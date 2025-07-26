@@ -115,7 +115,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "Ürünleri isme veya açıklamaya göre ara...",
-    "NoProductsFound": "Kriterlerinize uygun ürün bulunamadı."
+    "NoProductsFound": "Kriterlerinize uygun ürün bulunamadı.",
+    "FilterByStatus": "Duruma göre filtrele",
+    "AllStatuses": "Tüm durumlar",
+    "HelpNeeded": "Yardım gerekiyor",
+    "LookingForParticipants": "Katılımcı arıyor",
+    "Details": "Detaylar"
   },
   "StoryPage": {
     "Written by": "Yazan",

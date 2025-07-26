@@ -109,7 +109,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "البحث في المنتجات بالاسم أو الوصف...",
-    "NoProductsFound": "لم يتم العثور على منتجات تطابق معاييرك."
+    "NoProductsFound": "لم يتم العثور على منتجات تطابق معاييرك.",
+    "FilterByStatus": "تصفية حسب الحالة:",
+    "AllStatuses": "جميع الحالات",
+    "HelpNeeded": "مساعدة مطلوبة",
+    "LookingForParticipants": "البحث عن مشاركين",
+    "Details": "التفاصيل"
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "الأفراد والمنظمات الأعضاء في هذا الملف الشخصي.",

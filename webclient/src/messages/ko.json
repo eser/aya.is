@@ -111,7 +111,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "이름 또는 설명으로 제품 검색...",
-    "NoProductsFound": "기준에 맞는 제품을 찾을 수 없습니다."
+    "NoProductsFound": "기준에 맞는 제품을 찾을 수 없습니다.",
+    "FilterByStatus": "상태별로 필터링:",
+    "AllStatuses": "모든 상태",
+    "HelpNeeded": "도움이 필요합니다",
+    "LookingForParticipants": "참여자를 찾고 있습니다",
+    "Details": "세부 정보"
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "이 프로필의 멤버인 개인 및 조직.",

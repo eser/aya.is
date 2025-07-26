@@ -111,7 +111,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "Buscar productos por nombre o descripción...",
-    "NoProductsFound": "No se encontraron productos que coincidan con sus criterios."
+    "NoProductsFound": "No se encontraron productos que coincidan con sus criterios.",
+    "FilterByStatus": "Filtrar por estado:",
+    "AllStatuses": "Todos los estados",
+    "HelpNeeded": "Se necesita ayuda",
+    "LookingForParticipants": "Buscando participantes",
+    "Details": "Detalles"
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "Individuos y organizaciones que son miembros de este perfil.",

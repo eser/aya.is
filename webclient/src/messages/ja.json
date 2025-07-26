@@ -111,7 +111,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "名前または説明で製品を検索...",
-    "NoProductsFound": "基準に一致する製品が見つかりませんでした。"
+    "NoProductsFound": "基準に一致する製品が見つかりませんでした。",
+    "FilterByStatus": "ステータスで絞り込む：",
+    "AllStatuses": "すべてのステータス",
+    "HelpNeeded": "助けが必要",
+    "LookingForParticipants": "参加者を探しています",
+    "Details": "詳細"
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "このプロフィールのメンバーである個人および組織。",

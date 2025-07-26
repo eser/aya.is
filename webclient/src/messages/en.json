@@ -115,7 +115,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "Search products by name or description...",
-    "NoProductsFound": "No products found matching your criteria."
+    "NoProductsFound": "No products found matching your criteria.",
+    "FilterByStatus": "Filter by status",
+    "AllStatuses": "All statuses",
+    "HelpNeeded": "Help needed",
+    "LookingForParticipants": "Looking for participants",
+    "Details": "Details"
   },
   "StoryPage": {
     "Written by": "Written by",

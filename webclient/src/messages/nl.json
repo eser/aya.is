@@ -111,7 +111,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "Zoek producten op naam of omschrijving...",
-    "NoProductsFound": "Geen producten gevonden die aan uw criteria voldoen."
+    "NoProductsFound": "Geen producten gevonden die aan uw criteria voldoen.",
+    "FilterByStatus": "Filteren op status:",
+    "AllStatuses": "Alle statussen",
+    "HelpNeeded": "Hulp nodig",
+    "LookingForParticipants": "Op zoek naar deelnemers",
+    "Details": "Details"
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "Individuen en organisaties die lid zijn van dit profiel.",

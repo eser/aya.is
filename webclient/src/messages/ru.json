@@ -111,7 +111,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "Поиск продуктов по названию или описанию...",
-    "NoProductsFound": "Продукты, соответствующие вашим критериям, не найдены."
+    "NoProductsFound": "Продукты, соответствующие вашим критериям, не найдены.",
+    "FilterByStatus": "Фильтровать по статусу:",
+    "AllStatuses": "Все статусы",
+    "HelpNeeded": "Нужна помощь",
+    "LookingForParticipants": "Ищем участников",
+    "Details": "Детали"
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "Частные лица и организации, являющиеся участниками этого профиля.",

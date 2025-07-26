@@ -111,7 +111,12 @@
   },
   "Products": {
     "SearchProductsPlaceholder": "按名称或描述搜索产品...",
-    "NoProductsFound": "未找到符合您标准的产品。"
+    "NoProductsFound": "未找到符合您标准的产品。",
+    "FilterByStatus": "按状态筛选：",
+    "AllStatuses": "所有状态",
+    "HelpNeeded": "需要帮助",
+    "LookingForParticipants": "寻找参与者",
+    "Details": "详情"
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "此个人资料的成员（个人和组织）。",
