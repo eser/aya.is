@@ -68,6 +68,13 @@
     "Written by": "Geschreven door",
     "Publications": "Publicaties"
   },
+    "Pagination": {
+    "Previous": "Vorige",
+    "Next": "Volgende",
+    "Page": "Pagina",
+    "of": "/",
+    "Go to page": "Ga naar pagina"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "Een verzameling van open source projecten en organisaties.",
     "Last update": "Laatste update",

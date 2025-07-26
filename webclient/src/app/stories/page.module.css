@@ -1,0 +1,11 @@
+.story-group {
+  @apply mb-8;
+}
+
+.group-header {
+  @apply text-2xl font-bold text-foreground mb-4 pb-2 border-b border-border;
+}
+
+.pagination-container {
+  @apply mt-8 flex justify-center;
+} 

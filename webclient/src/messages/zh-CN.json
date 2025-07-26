@@ -68,6 +68,13 @@
     "Written by": "作者",
     "Publications": "出版物"
   },
+  "Pagination": {
+    "Previous": "上一页",
+    "Next": "下一页",
+    "Page": "页",
+    "of": "共",
+    "Go to page": "跳转到页面"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "开源项目和组织的集合。",
     "Last update": "最后更新",

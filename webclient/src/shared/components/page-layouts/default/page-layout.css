@@ -200,7 +200,7 @@ body {
     @apply pl-10 list-disc;
 
     & > li {
-      @apply text-start;
+      @apply text-start list-none;
     }
   }
 
@@ -219,7 +219,7 @@ a:is(.button) {
   @apply no-underline;
 }
 
-a:not([role="button"], [role="menuitem"], [role="card"]) {
+a:not([role="button"], [role="menuitem"], [role="card"], [data-slot="pagination-link"]) {
   @apply text-foreground hover:text-accent-foreground underline underline-offset-4;
 }
 

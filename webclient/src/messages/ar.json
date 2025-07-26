@@ -69,6 +69,13 @@
     "Written by": "من طرف",
     "Publications": "المنشورات"
   },
+    "Pagination": {
+    "Previous": "السابق",
+    "Next": "التالي",
+    "Page": "صفحة",
+    "of": "/",
+    "Go to page": "اذهب إلى الصفحة"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "مجموعة من مشاريع ومنظمات المصدر المفتوح.",
     "Last update": "آخر تحديث",

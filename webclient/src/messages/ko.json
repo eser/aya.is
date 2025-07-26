@@ -68,6 +68,13 @@
     "Written by": "작성자",
     "Publications": "출판물"
   },
+    "Pagination": {
+    "Previous": "이전",
+    "Next": "다음",
+    "Page": "페이지",
+    "of": "/",
+    "Go to page": "페이지로 이동"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "오픈 소스 프로젝트 및 조직 모음입니다.",
     "Last update": "마지막 업데이트",

@@ -68,6 +68,13 @@
     "Written by": "Yazan",
     "Publications": "Yayınlar"
   },
+  "Pagination": {
+    "Previous": "Önceki",
+    "Next": "Sonraki",
+    "Page": "Sayfa",
+    "of": "/",
+    "Go to page": "Sayfaya git"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "Açık kaynak projelerin ve organizasyonların bir koleksiyonu.",
     "Last update": "Son güncelleme",

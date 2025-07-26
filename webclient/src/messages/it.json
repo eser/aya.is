@@ -68,6 +68,13 @@
     "Written by": "Scritto da",
     "Publications": "Pubblicazioni"
   },
+  "Pagination": {
+    "Previous": "Precedente",
+    "Next": "Successivo",
+    "Page": "Pagina",
+    "of": "di",
+    "Go to page": "Vai alla pagina"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "Una raccolta di progetti e organizzazioni open source.",
     "Last update": "Ultimo aggiornamento",

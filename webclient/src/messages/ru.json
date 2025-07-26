@@ -68,6 +68,13 @@
     "Written by": "Написано",
     "Publications": "Публикации"
   },
+  "Pagination": {
+    "Previous": "Предыдущая",
+    "Next": "Следующая",
+    "Page": "Страница",
+    "of": "из",
+    "Go to page": "Перейти на страницу"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "Коллекция проектов и организаций с открытым исходным кодом.",
     "Last update": "Последнее обновление",

@@ -68,6 +68,13 @@
     "Written by": "作成者",
     "Publications": "出版物"
   },
+  "Pagination": {
+    "Previous": "前へ",
+    "Next": "次へ",
+    "Page": "ページ",
+    "of": "/",
+    "Go to page": "ページに移動"
+  },
   "Contributions": {
     "A collection of open source projects and organizations.": "オープンソースプロジェクトと組織のコレクションです。",
     "Last update": "最終更新",
