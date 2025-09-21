@@ -72,7 +72,6 @@ export function CreateProfileForm() {
 
   // Check if session already has an individual profile
   const hasIndividualProfile = session?.selected_profile?.kind === "individual";
-  console.log(hasIndividualProfile);
   const defaultKind = hasIndividualProfile ? "organization" : "individual";
 
   const form = useForm<CreateProfileFormData>({
