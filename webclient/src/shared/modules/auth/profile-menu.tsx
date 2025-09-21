@@ -29,7 +29,7 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
 
   const handleProfileClick = () => {
     if (session.selected_profile) {
-      router.push(`/${session.selected_profile?.slug}`);
+      router.push(`/${session.selected_profile.slug}`);
     } else {
       router.push("/elements/create-profile");
     }
