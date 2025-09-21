@@ -24,7 +24,8 @@ import { forbiddenSlugs, supportedLocales } from "@/shared/config.ts";
 import { useAuth } from "@/shared/modules/auth/auth-context.tsx";
 import { useTranslations } from "@/shared/modules/i18n/use-translations.tsx";
 import { backend } from "@/shared/modules/backend/backend.ts";
-
+const forbiddenPattern = `^(?!${forbiddenSlugs.join("|")}).*`;
+const forbiddenRegex = new RegExp(forbiddenPattern, "i");
 const createProfileSchema = z.object({
   kind: z.enum(["individual", "organization", "product"], {
     message: "Profile type is required",
@@ -34,9 +35,7 @@ const createProfileSchema = z.object({
     .min(3, "Slug must be at least 3 characters long")
     .max(50, "Slug must be no more than 50 characters long")
     .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens")
-    .refine((value) => !forbiddenSlugs.includes(value.toLowerCase()), {
-      message: "This slug is reserved and cannot be used",
-    }),
+    .regex(forbiddenRegex, "This slug is reserved and cannot be used"),
   title: z
     .string()
     .min(2, "Title must be at least 2 characters long")
