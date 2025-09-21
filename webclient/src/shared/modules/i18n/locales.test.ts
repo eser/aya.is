@@ -1,4 +1,6 @@
-import { assertEquals } from "jsr:@std/assert";
+/// <reference lib="deno.ns" />
+
+import { assertEquals } from "jsr:@std/assert@1.0.14";
 
 import { type Locale, localeMatch } from "./locales.ts";
 

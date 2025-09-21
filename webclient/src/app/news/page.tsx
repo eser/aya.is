@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { backend } from "@/shared/modules/backend/backend.ts";
 import { getTranslations } from "@/shared/modules/i18n/get-translations.tsx";
-import { StoriesPageClient } from "../stories/_components/stories-page-client";
+import { StoriesPageClient } from "../stories/_components/stories-page-client.tsx";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslations();

@@ -4,6 +4,7 @@ import type { Profile } from "./types.ts";
 export type UpdateProfileRequest = {
   profile_picture_uri?: string | null;
   pronouns?: string | null;
+  // deno-lint-ignore no-explicit-any
   properties?: Record<string, any> | null;
 };
 

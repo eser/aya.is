@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { backend } from "@/shared/modules/backend/backend.ts";
+
 import { useTranslations } from "@/shared/modules/i18n/use-translations.tsx";
 import { Button } from "@/shared/components/ui/button.tsx";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert.tsx";
-import styles from "./profile-picture-upload.module.css";
 
+import styles from "./profile-picture-upload.module.css";
 type ProfilePictureUploadProps = {
   currentProfilePictureURI?: string | null;
   onUploadComplete: (newProfilePictureURI: string) => void;
@@ -75,7 +75,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
     fileInputRef.current?.click();
   };
 
-  const handleRemove = async () => {
+  const handleRemove = () => {
     setIsUploading(true);
     setError(null);
 

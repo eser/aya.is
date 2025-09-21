@@ -1,14 +1,11 @@
-import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
-
-import { type Profile } from "@/shared/components/userland/profile-card/profile-card.tsx";
-import { useTranslations } from "@/shared/modules/i18n/use-translations.tsx";
-import { Users } from "lucide-react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
-import { type ProductStatusFilter } from "./filter-bar.tsx";
+import { Badge } from "@/shared/components/ui/badge.tsx";
+import { Button } from "@/shared/components/ui/button.tsx";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card.tsx";
+import { type Profile } from "@/shared/components/userland/profile-card/profile-card.tsx";
+import { useTranslations } from "@/shared/modules/i18n/use-translations.tsx";
 
 export type ProductCardProps = {
   product: Profile; // Assuming products also use the Profile type structure
@@ -60,7 +57,7 @@ export function ProductCard(props: ProductCardProps) {
 
       <CardContent>
         <div className="flex space-x-2">
-          <Button asChild className="flex-1" variant={"outline"}>
+          <Button asChild className="flex-1" variant="outline">
             <Link href={product.slug}>{t("Products", "Details")}</Link>
           </Button>
 

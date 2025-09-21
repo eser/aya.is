@@ -3,6 +3,7 @@ import { fetcher } from "@/shared/modules/backend/fetcher.ts";
 export type UpdateProfileTranslationRequest = {
   title: string;
   description: string;
+  // deno-lint-ignore no-explicit-any
   properties?: Record<string, any> | null;
 };
 

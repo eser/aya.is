@@ -12,7 +12,7 @@ For new ADRs, please use [template.md](template.md) as basis. You can easily cre
 [adr-tool](https://www.npmjs.com/package/adr-tool) based on the template:
 
 ```
-npx adr-tool create <decision>
+deno -A npm:adr-tool create <decision>
 ```
 
 ---
