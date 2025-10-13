@@ -51,7 +51,7 @@ function applyLocaleMiddleware(req: NextRequest, res: NextResponse): NextRespons
   return res;
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   let res = NextResponse.next();
 
   res = await applyCustomDomainMiddleware(req, res);
