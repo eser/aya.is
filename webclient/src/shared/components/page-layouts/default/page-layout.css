@@ -124,7 +124,6 @@ html[data-theme="midnight"] {
   --safe: 117.45 52.81% 82.55%;
   --safe-foreground: 158.18 57.89% 26.08%;
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
   --ring: 215 20.2% 65.1%;
   --radius: 0.5rem;
 }
@@ -156,7 +155,6 @@ html[data-theme="midnight"] {
   --safe: 117.45 52.81% 82.55%;
   --safe-foreground: 158.18 57.89% 26.08%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 85.7% 97.3%;
   --ring: 217.2 32.6% 17.5%;
 } */
 

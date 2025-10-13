@@ -25,7 +25,7 @@ export function AuthErrorBanner() {
               variant="ghost"
               size="sm"
               onClick={clearError}
-              className="ml-4 h-auto p-1 text-destructive hover:text-destructive-foreground"
+              className="ml-4 h-auto p-1 text-destructive hover:text-primary-foreground"
             >
               {t("Layout", "Dismiss") || "Dismiss"}
             </Button>

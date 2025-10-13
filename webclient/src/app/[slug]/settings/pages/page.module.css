@@ -77,7 +77,7 @@
 }
 
 .deleteButton {
-  @apply hover:bg-destructive hover:text-destructive-foreground;
+  @apply hover:bg-destructive hover:text-primary-foreground;
 }
 
 .deleteAction {
@@ -113,7 +113,7 @@
 }
 
 .textarea {
-  @apply w-full resize-vertical;
+  @apply w-full resize-y;
 }
 
 .hint {

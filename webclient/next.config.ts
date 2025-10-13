@@ -7,16 +7,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  reactCompiler: true,
   // output: "standalone",
 
   trailingSlash: false,
   productionBrowserSourceMaps: true,
   poweredByHeader: false,
-
-  experimental: {
-    reactCompiler: { compilationMode: "all" },
-    ppr: true, // 'incremental',
-  },
 
   images: {
     remotePatterns: [
