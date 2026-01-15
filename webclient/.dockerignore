@@ -1,4 +1,7 @@
-.next/*
-node_modules/*
-.dockerignore
+node_modules
+.output
+.git
 .gitignore
+*.md
+.env.local
+.env.*.local

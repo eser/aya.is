@@ -154,6 +154,26 @@ func (s *Service) AuthHandleCallback(
 	return authResult, nil
 }
 
+// GenerateSessionToken creates a new JWT token for a given session and user.
+// Used for cookie-based session check.
+func (s *Service) GenerateSessionToken(sessionID, userID string) (string, time.Time, error) {
+	now := time.Now()
+	expiresAt := now.Add(s.Config.TokenTTL)
+
+	claims := &JWTClaims{
+		UserID:    userID,
+		SessionID: sessionID,
+		ExpiresAt: expiresAt.Unix(),
+	}
+
+	tokenString, err := s.tokenService.GenerateToken(claims)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("%w: %w", ErrFailedToGenerateToken, err)
+	}
+
+	return tokenString, expiresAt, nil
+}
+
 // RefreshToken validates the current JWT token and issues a new one with extended expiration.
 func (s *Service) RefreshToken( //nolint:funlen
 	ctx context.Context,

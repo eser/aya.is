@@ -1,0 +1,5 @@
+@reference "@/theme.css";
+
+.grid {
+  @apply grid gap-6 grid-cols-1 animate-in fade-in duration-500;
+}

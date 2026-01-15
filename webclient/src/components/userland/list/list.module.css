@@ -1,0 +1,5 @@
+@reference "@/theme.css";
+
+.list {
+  @apply flex flex-col gap-12;
+}

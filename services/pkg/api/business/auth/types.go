@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/users"
@@ -17,6 +18,48 @@ type Config struct {
 	GitHub    GitHubAuthProviderConfig `conf:"github"`
 	JwtSecret string                   `conf:"jwt_secret" default:"secret"`
 	TokenTTL  time.Duration            `conf:"token_ttl"  default:"365d"`
+
+	// Cookie settings for cross-domain SSO
+	CookieDomain string `conf:"cookie_domain" default:".aya.is"`
+	CookieName   string `conf:"cookie_name"   default:"aya_session"`
+	SecureCookie bool   `conf:"secure_cookie" default:"true"`
+
+	// CORS settings (comma-separated)
+	CorsAllowedOrigins string `conf:"cors_allowed_origins" default:"https://aya.is,https://www.aya.is,http://localhost:3000,http://localhost:5173,http://localhost:4173"`
+	CorsAllowedHeaders string `conf:"cors_allowed_headers" default:"Accept,Authorization,Content-Type,Origin,X-Requested-With,Traceparent,Tracestate"`
+	CorsAllowedMethods string `conf:"cors_allowed_methods" default:"GET,POST,PUT,DELETE,PATCH,HEAD,OPTIONS"`
+}
+
+// GetCorsAllowedOrigins parses comma-separated origins into a slice.
+func (c *Config) GetCorsAllowedOrigins() []string {
+	return splitAndTrim(c.CorsAllowedOrigins)
+}
+
+// GetCorsAllowedHeaders parses comma-separated headers into a slice.
+func (c *Config) GetCorsAllowedHeaders() []string {
+	return splitAndTrim(c.CorsAllowedHeaders)
+}
+
+// GetCorsAllowedMethods parses comma-separated methods into a slice.
+func (c *Config) GetCorsAllowedMethods() []string {
+	return splitAndTrim(c.CorsAllowedMethods)
+}
+
+func splitAndTrim(s string) []string {
+	if s == "" {
+		return nil
+	}
+
+	parts := strings.Split(s, ",")
+	result := make([]string, 0, len(parts))
+
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	return result
 }
 
 // Auth types

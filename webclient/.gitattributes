@@ -1,0 +1,9 @@
+# Set the default behavior as unix line endings for all text files,
+# in case people don't have core.autocrlf set.
+* text=auto eol=lf
+
+# Linguist overrides
+*.md linguist-documentation
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.lock binary linguist-generated

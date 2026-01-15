@@ -44,12 +44,13 @@
     "Login with GitHub": "Login with GitHub",
     "My Profile": "My Profile",
     "Logout": "Logout",
-    "Authenticating...": "Authenticating...",
-    "Please wait": "Please wait",
-    "✓ Successfully logged in!": "✓ Successfully logged in!",
-    "Redirecting to homepage...": "Redirecting to homepage...",
-    "✗ Authentication failed": "✗ Authentication failed",
-    "Return to Homepage": "Return to Homepage"
+    "Authenticating": "Authenticating...",
+    "PleaseWait": "Please wait",
+    "LoginSuccess": "Successfully logged in!",
+    "RedirectingToHomepage": "Redirecting to homepage...",
+    "LoginFailed": "Authentication failed",
+    "TryAgainOrReturnToHomepage": "Please try again or return to homepage",
+    "ReturnToHomepage": "Return to Homepage"
   },
   "Home": {
     "AYA the Open Source Network": "AYA the Open Source Network",
@@ -59,6 +60,7 @@
     "IntroText": "**AYA (means Open Source Network in Turkish)** is a platform enabling volunteers motivated by social good to collaborate and develop quality information technology solutions.\n\nWe have collectively realized projects by providing expert volunteer support and technical resources. These projects have been open-source solutions accessible and controllable by everyone, primarily official institutions and non-governmental organizations. Our role has been facilitating volunteer communication and resource management coordination.\n\nAs a non-profit organization focusing on social benefit, AYA continues its journey with a [software foundation identity](/aya/stories/20240107-vakif-kimligimiz-ve-sinirlarimiz) hosting various IT projects."
   },
   "Stories": {
+    "Description": "Articles, announcements and content from the AYA community.",
     "All": "All",
     "Status": "Status",
     "Announcement": "Announcement",
@@ -109,6 +111,7 @@
     "No members found.": "No members found."
   },
   "Elements": {
+    "Description": "Individuals, organizations and projects in the AYA network.",
     "Individuals": "Individuals",
     "Organizations": "Organizations",
     "NoProfilesFound": "No profiles found matching your criteria.",
@@ -121,6 +124,7 @@
     "No image available": "No image available"
   },
   "Products": {
+    "Description": "Open source projects and products developed within AYA.",
     "SearchProductsPlaceholder": "Search products by name or description...",
     "NoProductsFound": "No products found matching your criteria.",
     "FilterByStatus": "Filter by status",

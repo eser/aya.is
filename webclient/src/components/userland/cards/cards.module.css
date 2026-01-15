@@ -1,0 +1,5 @@
+@reference "@/theme.css";
+
+.cards {
+  @apply mb-16 grid grid-cols-none md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2;
+}

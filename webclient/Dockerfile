@@ -1,85 +1,48 @@
-# ------------------------------------------------------------
-# Versions
-# ------------------------------------------------------------
+# versions
+FROM node:25-trixie-slim AS base
 
-FROM denoland/deno:2.5.1 AS upstream-builder
-FROM denoland/deno:distroless-2.5.1 AS upstream-runner
+# builder stage
+FROM base AS builder
 
-# Create a minimal image base-debian12 or static-debian12
-# (see: https://github.com/GoogleContainerTools/distroless#why-should-i-use-distroless-images)
+RUN apt-get update && apt-get -y install --no-install-recommends \
+  ca-certificates \
+  curl
 
-## ------------------------------------------------------------
-## Base stage for both development and production
-## ------------------------------------------------------------
-FROM upstream-builder AS base
+# Install pnpm
+RUN curl -fsSL https://get.pnpm.io/install.sh | \
+  ENV="$HOME/.bashrc" SHELL=/bin/bash bash -
 
-# Install base system dependencies
-RUN apt-get update && \
-  apt-get -y install --no-install-recommends curl ca-certificates
+# Set pnpm in PATH
+ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
-# Install node.js 24
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x -o nodesource_setup.sh
-RUN sh nodesource_setup.sh
-RUN apt-get install -y nodejs
+WORKDIR /app
 
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV DENO_DIR=./.deno_cache
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
 
-# Set working directory
-WORKDIR /srv/app
+# Install dependencies
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+  pnpm install --frozen-lockfile
 
-## ------------------------------------------------------------
-## Development stages
-## ------------------------------------------------------------
-FROM base AS development-runner
+# Copy source code
+COPY . .
 
+# Build the application
+RUN node --run build
+
+# runner stage
+FROM base AS runner
+
+WORKDIR /app
+
+# Copy built output
+COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/package.json ./
+
+# Expose port
 EXPOSE 3000
-
-ENV NODE_ENV=development
-ENV HOSTNAME="0.0.0.0"
 ENV PORT=3000
 
-CMD ["task", "dev"]
-
-## ------------------------------------------------------------
-## Production stages
-## ------------------------------------------------------------
-FROM base AS production-builder
-
-# Install dependencies first to improve caching
-COPY package.json deno.lock ./
-RUN deno install --allow-scripts
-
-# Copy the rest of the application
-COPY . ./
-
-# Create necessary directories and set permissions in builder stage
-RUN mkdir -p .next
-RUN mkdir -p .deno_cache
-
-RUN deno task build
-
-# Production image, copy all the files and run next
-FROM upstream-runner AS production-runner
-
-# Set working directory
-WORKDIR /srv/app
-
-ENV NODE_ENV=production
-ENV HOSTNAME="0.0.0.0"
-ENV PORT=3000
-
-# # Automatically leverage output traces to reduce image size
-# # https://nextjs.org/docs/app/api-reference/next-config-js/output
-# COPY --from=production-builder --chown=deno:deno /srv/app/.next/standalone ./
-# COPY --from=production-builder --chown=deno:deno /srv/app/.next/static ./.next/static
-# COPY --from=production-builder --chown=deno:deno /srv/app/public ./public
-COPY --from=production-builder /srv/app/ ./
-
-EXPOSE 3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-# CMD ["run", "--allow-all", "server.js"]
-
-CMD ["task", "start"]
+# Start the server
+CMD ["node", "--run", "start"]

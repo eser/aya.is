@@ -18,6 +18,61 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen
 	userService *users.Service,
 	profileService *profiles.Service,
 ) {
+	// Session check endpoint for cross-domain SSO (reads from cookie, not Authorization header)
+	routes.Route(
+		"GET /{locale}/auth/session-check",
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
+			if err != nil {
+				return ctx.Results.JSON(map[string]any{
+					"data": map[string]any{"authenticated": false},
+				})
+			}
+
+			session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if err != nil || session == nil || session.Status != "active" {
+				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
+
+				return ctx.Results.JSON(map[string]any{
+					"data": map[string]any{"authenticated": false},
+				})
+			}
+
+			if session.LoggedInUserID == nil {
+				return ctx.Results.JSON(map[string]any{
+					"data": map[string]any{"authenticated": false},
+				})
+			}
+
+			// Generate fresh JWT
+			tokenString, expiresAt, err := authService.GenerateSessionToken(
+				session.ID,
+				*session.LoggedInUserID,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to generate session token",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.JSON(map[string]any{
+					"data": map[string]any{"authenticated": false},
+				})
+			}
+
+			user, _ := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]any{
+					"authenticated": true,
+					"token":         tokenString,
+					"expires_at":    expiresAt.Unix(),
+					"user":          user,
+				},
+			})
+		}).
+		HasSummary("Session Check").
+		HasDescription("Checks session via cookie for cross-domain SSO.").
+		HasResponse(http.StatusOK)
+
 	// Register authenticated route with auth middleware
 	routes.Route(
 		"GET /{locale}/sessions/current",

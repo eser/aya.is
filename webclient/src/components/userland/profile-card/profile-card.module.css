@@ -1,0 +1,33 @@
+@reference "@/theme.css";
+
+.cardLink {
+  @apply block no-underline rounded-lg shadow-md transition-shadow duration-200 ease-in-out bg-card text-card-foreground;
+
+  &:hover {
+    @apply shadow-xl;
+  }
+}
+
+.profileCard {
+  @apply p-6 h-full flex flex-col items-center;
+}
+
+.avatarContainer {
+  @apply mb-4;
+}
+
+.avatar {
+  @apply rounded-full object-cover w-20 h-20;
+}
+
+.info {
+  @apply text-center;
+}
+
+.title {
+  @apply text-xl font-semibold mb-1 text-foreground;
+}
+
+.description {
+  @apply text-sm text-muted-foreground line-clamp-3;
+}

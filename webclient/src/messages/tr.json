@@ -44,12 +44,13 @@
     "Login with GitHub": "GitHub ile Giriş",
     "My Profile": "Profilim",
     "Logout": "Çıkış yap",
-    "Authenticating...": "Kimlik doğrulanıyor...",
-    "Please wait": "Lütfen bekleyin",
-    "✓ Successfully logged in!": "✓ Başarıyla giriş yapıldı!",
-    "Redirecting to homepage...": "Ana sayfaya yönlendiriliyorsunuz...",
-    "✗ Authentication failed": "✗ Kimlik doğrulama başarısız",
-    "Return to Homepage": "Ana Sayfaya Dön"
+    "Authenticating": "Kimlik doğrulanıyor...",
+    "PleaseWait": "Lütfen bekleyin",
+    "LoginSuccess": "Başarıyla giriş yapıldı!",
+    "RedirectingToHomepage": "Ana sayfaya yönlendiriliyorsunuz...",
+    "LoginFailed": "Kimlik doğrulama başarısız",
+    "TryAgainOrReturnToHomepage": "Lütfen tekrar deneyin veya ana sayfaya dönün",
+    "ReturnToHomepage": "Ana Sayfaya Dön"
   },
   "Home": {
     "AYA the Open Source Network": "AYA, Açık Yazılım Ağı",
@@ -59,6 +60,7 @@
     "IntroText": "**AYA (açılımı Açık Yazılım Ağı)**, sosyal bir yarar oluşturmak motivasyonuyla nitelikli bilişim çözümleri üreten gönüllülerin bir araya gelmesine ve projeler gerçekleştirmesine imkan sağlayan bir platformdur.\n\nBugüne kadar projelere yetkin ve uzman gönüllü desteği ve teknik kaynaklar sunarak kolektif bir şekilde gerçeklenmelerini sağladık. Bu projeler resmi kurumlar ve sivil toplum kuruluşları başta olmak üzere herkesin kullanımına ve denetimine açık, açık kaynak lisanslarına sahip bilişim çözümleri oldular. Bizim buradaki rolümüz hem gönüllülerin aralarındaki iletişime aracı olmak hem de kaynak yönetiminde koordinasyon sağlamak oldu.\n\nSosyal yarar gözeten ve kar amacı gütmeyen bir oluşum olarak AYA, bugün yoluna portföyünde bilişim projeleri barındıran [yazılım vakfı kimliğiyle](/aya/stories/20240107-vakif-kimligimiz-ve-sinirlarimiz) devam ediyor."
   },
   "Stories": {
+    "Description": "AYA topluluğundan makaleler, duyurular ve içerikler.",
     "All": "Tümü",
     "Status": "Durum",
     "Announcement": "Duyuru",
@@ -109,6 +111,7 @@
     "No members found.": "Üye bulunamadı."
   },
   "Elements": {
+    "Description": "AYA ağındaki kişiler, organizasyonlar ve projeler.",
     "Individuals": "Kişiler",
     "Organizations": "Organizasyonlar",
     "NoProfilesFound": "Kriterlerinize uygun profil bulunamadı.",
@@ -121,6 +124,7 @@
     "No image available": "Görsel mevcut değil"
   },
   "Products": {
+    "Description": "AYA kapsamında geliştirilen açık kaynak projeler ve ürünler.",
     "SearchProductsPlaceholder": "Ürünleri isme veya açıklamaya göre ara...",
     "NoProductsFound": "Kriterlerinize uygun ürün bulunamadı.",
     "FilterByStatus": "Duruma göre filtrele",

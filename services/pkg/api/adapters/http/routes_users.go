@@ -139,6 +139,14 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 					)
 				}
 
+				// Set session cookie for cross-domain SSO
+				SetSessionCookie(
+					ctx.ResponseWriter,
+					result.SessionID,
+					result.ExpiresAt,
+					authService.Config,
+				)
+
 				if result.RedirectURI != "" {
 					return ctx.Results.Redirect(result.RedirectURI)
 				}
@@ -156,6 +164,9 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 
 	routes.
 		Route("POST /{locale}/auth/logout", func(ctx *httpfx.Context) httpfx.Result {
+			// Clear session cookie for cross-domain SSO
+			ClearSessionCookie(ctx.ResponseWriter, authService.Config)
+
 			// Invalidate session logic (optional, e.g., remove session from DB)
 			return ctx.Results.JSON(map[string]string{"status": "logged out"})
 		}).

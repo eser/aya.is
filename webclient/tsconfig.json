@@ -1,51 +1,39 @@
 {
   "compilerOptions": {
-    // Type Checking
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    // Modules
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true, // Required for --noEmit with tsc --build
-    // Emit
-    "noEmit": true, // Let Next.js handle transpilation
-    // Language and Environment
-    "target": "ES2017",
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "module": "ESNext",
     "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
     ],
-    "jsx": "react-jsx", // Next.js handles JSX transform
-    // Interop Constraints
-    "esModuleInterop": true,
-    "isolatedModules": true,
+    "types": [
+      "vite/client"
+    ],
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": false,
+    "noEmit": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "allowJs": true,
-    // Completeness
     "skipLibCheck": true,
-    // Project Structure
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
       ]
-    },
-    "incremental": true, // Enable incremental compilation
-    // Plugins
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.mjs",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "src/**/*",
+    "vite.config.ts"
   ],
   "exclude": [
     "node_modules"

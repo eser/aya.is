@@ -1,0 +1,29 @@
+@reference "@/theme.css";
+
+.listItem {
+  @apply flex gap-6;
+
+  & .date {
+    @apply flex flex-col w-full text-center;
+
+    & .day {
+      @apply text-6xl font-semibold text-slate-500 dark:text-slate-300;
+    }
+
+    & .monthYear {
+      @apply text-slate-400;
+    }
+  }
+
+  & .title {
+    @apply text-2xl font-semibold text-primary-foreground hover:underline;
+  }
+
+  & .desc {
+    @apply text-lg leading-6 text-foreground line-clamp-2 hyphens-auto;
+  }
+
+  & .media {
+    @apply w-48 rounded-md shadow-lg shadow-accent;
+  }
+}

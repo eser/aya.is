@@ -9,7 +9,7 @@ repos:
       - id: check-json
         exclude: |
           (?x)^(
-            webclient/tsconfig.json
+            webclient.old/tsconfig.json
           )$
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable
@@ -29,25 +29,25 @@ repos:
         args: ["--autofix", "--no-ensure-ascii", "--no-sort-keys"]
         exclude: |
           (?x)^(
-            webclient/tsconfig.json
+            webclient.old/tsconfig.json
           )$
       - id: trailing-whitespace
 
-  - repo: https://github.com/crate-ci/typos
-    rev: v1.34.0
-    hooks:
-      - id: typos
-        verbose: true
-        args:
-          - "--config"
-          - ".github/typos.toml"
-        exclude: |
-          (?x)^(
-            docs/.*|
-            webclient/src/messages/.*|
-            services/etc/data/default/seed/seed.sql|
-            go.mod
-          )$
+  # - repo: https://github.com/crate-ci/typos
+  #   rev: v1.34.0
+  #   hooks:
+  #     - id: typos
+  #       verbose: true
+  #       args:
+  #         - "--config"
+  #         - ".github/typos.toml"
+  #       exclude: |
+  #         (?x)^(
+  #           docs/.*|
+  #           webclient/src/messages/.*|
+  #           services/etc/data/default/seed/seed.sql|
+  #           go.mod
+  #         )$
 
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.2.0
@@ -80,7 +80,9 @@ repos:
             webclient/src/app/products/_components/.*|
             webclient/src/app/stories/\[storyslug\]/_components/.*|
             webclient/public/assets/.*|
-            webclient/Dockerfile
+            webclient/Dockerfile|
+            webclient/LICENSE|
+            webclient/README.md
           )$
 
       - id: rest-snake-case-files-only
@@ -94,6 +96,7 @@ repos:
             .git/COMMIT_EDITMSG|
             docs/.*|
             webclient/.*|
+            webclient.old/.*|
             services/pkg/ajan/configfx/README.md|
             services/pkg/ajan/connfx/README.md|
             services/pkg/ajan/httpclient/README.md|

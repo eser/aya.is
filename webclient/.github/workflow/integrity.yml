@@ -1,0 +1,53 @@
+name: Integrity Pipeline
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+*
+
+  pull_request:
+    types:
+      - opened
+      - edited # in case of base branch change
+      - synchronize
+      # - reopened
+      # - ready_for_review
+    branches:
+      - "**"
+
+  # schedule:
+  #   - cron: "18 21 * * 6"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-integrity
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: Integration
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1

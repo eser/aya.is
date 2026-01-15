@@ -33,7 +33,7 @@ func Run(
 	routes.Use(middlewares.ResolveAddressMiddleware())
 	routes.Use(middlewares.ResponseTimeMiddleware())
 	routes.Use(middlewares.TracingMiddleware(logger)) //nolint:contextcheck
-	routes.Use(middlewares.CorsMiddleware())
+	routes.Use(CorsMiddlewareWithCustomDomains(authService.Config, profileService))
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics)) //nolint:contextcheck
 
 	// Global OPTIONS handler for preflight requests
