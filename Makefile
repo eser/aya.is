@@ -10,18 +10,18 @@ help: ## Shows help for each of the Makefile recipes.
 
 .PHONY: init
 init: # Initializes the project.
-	cd ./services && \
+	cd ./apps/services && \
   make init && \
-  cd ../
+  cd ../../
 
 .PHONY: ok
 ok: ## Checks if the code is ok.
-	cd ./services && \
+	cd ./apps/services && \
   make ok && \
-  cd ../webclient && \
+  cd ../../apps/webclient && \
   deno lint && \
   deno fmt --check && \
-  cd ../
+  cd ../../
 
 .PHONY: build
 build: ## (Re)builds the containers.

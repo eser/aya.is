@@ -1,31 +1,65 @@
 name: aya-is-development
 
+# ============================================================================
+# Docker Compose for AYA.is Development
+# ============================================================================
+# Usage:
+#   docker compose up                    # Start all services
+#   docker compose up webclient          # Start webclient only
+#   docker compose up services postgres  # Start backend only
+#   docker compose watch                 # Start with hot reload (Watch mode)
+#
+# UIs:
+#   Webclient:    http://localhost:3000
+#   Services API: http://localhost:8080
+#   PostgreSQL:   localhost:5432
+# ============================================================================
+
 services:
   webclient:
     tty: true
     stdin_open: true
     restart: unless-stopped
     build:
-      context: ./webclient/
-      target: development-runner
+      context: .
+      dockerfile: apps/webclient/Dockerfile
+      target: development
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/webclient/src
+          target: /monorepo/apps/webclient/src
+        - action: rebuild
+          path: ./apps/webclient/package.json
+        - action: rebuild
+          path: ./apps/webclient/deno.json
     environment:
-      NEXT_PUBLIC_BACKEND_URI: http://localhost:8080
-      NEXT_PUBLIC_HOST: http://localhost:3000
+      # Vite client-side variables (bundled at build time)
+      VITE_BACKEND_URI: http://localhost:8080
+      VITE_HOST: http://localhost:3000
+      # Server-side runtime variable (for SSR/API routes)
       BACKEND_URI: http://services:8080
     networks:
       - aya-is-network
     ports:
       - 3000:3000
-    volumes:
-      - ./webclient/:/srv/app
 
   services:
     tty: true
     stdin_open: true
     restart: unless-stopped
     build:
-      context: ./services/
+      context: .
+      dockerfile: apps/services/Dockerfile
       target: development-runner
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./apps/services
+          target: /srv/monorepo/apps/services
+          ignore:
+            - "**/*.md"
+            - "**/tmp/"
     environment:
       ENV: development
       PORT: 8080
@@ -39,8 +73,6 @@ services:
       - aya-is-network
     ports:
       - 8080:8080
-    volumes:
-      - ./services/:/srv/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,8 +83,8 @@ services:
     environment:
       POSTGRES_PASSWORD: s3cr3t
     healthcheck:
-      test: ["CMD-SHELL", "psql -U 'postgres' -c '\\q'"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
       timeout: 5s
       retries: 10
     volumes:

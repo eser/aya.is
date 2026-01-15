@@ -77,7 +77,8 @@ To connect to the service container:
 $ make cli
 ```
 
-This command connects you to the backend service's bash shell. From here you can perform database management and other operations.
+This command connects you to the backend service's bash shell. From here you can perform database management and other
+operations.
 
 ### Example
 
@@ -86,7 +87,6 @@ Getting a profile:
 ```js
 await backend.getProfile("en", "eser");
 ```
-
 
 ## Data Model
 
@@ -99,9 +99,9 @@ The project uses the following main data structures:
 ## How to Contribute
 
 We welcome contributions from everyone. To start please [read our contributing guide](CONTRIBUTING.en.md). If you want
-to help you can check out our [issues](https://github.com/eser/aya.is/issues). If you have any questions, feel
-free to join our [Discord server](https://discord.gg/itdepremyardim). If you are stuck at any point, feel free to ask
-for help on GitHub Issues or Discord.
+to help you can check out our [issues](https://github.com/eser/aya.is/issues). If you have any questions, feel free to
+join our [Discord server](https://discord.gg/itdepremyardim). If you are stuck at any point, feel free to ask for help
+on GitHub Issues or Discord.
 
 ## License
 

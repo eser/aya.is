@@ -2,9 +2,9 @@
 
 👍🎉 Öncelikle, katkıda bulunmak için zaman ayırdığınız için teşekkürler! 🎉👍
 
-Aşağıda GitHub'da yer alan aya.is ve paketlerine katkıda bulunmaya bir dizi yönlendirme bulacaksınız. Bunlar
-çoğunlukla yönlendirmelerdir, katı kurallar değil. Muhakeme yeteneğinizi kullanmaktan çekinmeyin ve bu belgedeki
-yönergelere dahi bir pull request ile değişiklik önermekten geri durmayın.
+Aşağıda GitHub'da yer alan aya.is ve paketlerine katkıda bulunmaya bir dizi yönlendirme bulacaksınız. Bunlar çoğunlukla
+yönlendirmelerdir, katı kurallar değil. Muhakeme yeteneğinizi kullanmaktan çekinmeyin ve bu belgedeki yönergelere dahi
+bir pull request ile değişiklik önermekten geri durmayın.
 
 ## Başlamadan önce ne bilmeliyim?
 

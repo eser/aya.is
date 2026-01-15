@@ -90,7 +90,6 @@ Profil getirme:
 await backend.getProfile("tr", "eser");
 ```
 
-
 ### Veri Modeli
 
 Proje aşağıdaki ana veri yapılarını kullanır:

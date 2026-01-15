@@ -1,16 +1,32 @@
 name: aya-is-production
 
+# ============================================================================
+# Docker Compose for AYA.is Production
+# ============================================================================
+# Usage:
+#   docker compose -f compose.production.yml up -d
+#   docker compose -f compose.production.yml down
+#
+# UIs:
+#   Webclient:    http://localhost:3000
+#   Services API: http://localhost:8080
+# ============================================================================
+
 services:
   webclient:
     tty: true
     stdin_open: true
     restart: unless-stopped
     build:
-      context: ./webclient/
-      target: production-runner
+      context: .
+      dockerfile: apps/webclient/Dockerfile
+      target: runner
+      args:
+        # Build-time variables for Vite bundling
+        VITE_BACKEND_URI: http://localhost:8080
+        VITE_HOST: http://localhost:3000
     environment:
-      NEXT_PUBLIC_BACKEND_URI: http://localhost:8080
-      NEXT_PUBLIC_HOST: http://localhost:3000
+      # Server-side runtime variable (for SSR/API routes)
       BACKEND_URI: http://services:8080
     networks:
       - aya-is-network
@@ -22,7 +38,8 @@ services:
     stdin_open: true
     restart: unless-stopped
     build:
-      context: ./services/
+      context: .
+      dockerfile: apps/services/Dockerfile
       target: production-runner
     environment:
       ENV: production
@@ -47,8 +64,8 @@ services:
     environment:
       POSTGRES_PASSWORD: s3cr3t
     healthcheck:
-      test: ["CMD-SHELL", "psql -U 'postgres' -c '\\q'"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
       timeout: 5s
       retries: 10
     volumes:

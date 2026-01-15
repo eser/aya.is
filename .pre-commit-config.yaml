@@ -1,15 +1,20 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=1024"]
       - id: check-case-conflict
+      - id: check-illegal-windows-names
       - id: check-executables-have-shebangs
       - id: check-json
         exclude: |
           (?x)^(
-            webclient.old/tsconfig.json
+            apps/webclient.old/tsconfig.json
           )$
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable
@@ -19,6 +24,8 @@ repos:
       - id: check-yaml
         args: [--allow-multiple-documents]
       - id: destroyed-symlinks
+      - id: detect-aws-credentials
+        args: ["--allow-missing-credentials"]
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
@@ -29,9 +36,12 @@ repos:
         args: ["--autofix", "--no-ensure-ascii", "--no-sort-keys"]
         exclude: |
           (?x)^(
-            webclient.old/tsconfig.json
+            apps/webclient.old/tsconfig.json
           )$
       - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
+      # - id: no-commit-to-branch
+      #   args: ["--branch", "main", "--branch", "master"]
 
   # - repo: https://github.com/crate-ci/typos
   #   rev: v1.34.0
@@ -50,11 +60,23 @@ repos:
   #         )$
 
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.2.0
+    rev: v4.3.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
-        args: []
+        args: [
+          "--strict",
+          "--verbose",
+          "ci",
+          "chore",
+          "docs",
+          "feat",
+          "fix",
+          "perf",
+          "refactor",
+          "revert",
+          "test",
+        ]
 
   - repo: local
     hooks:
@@ -74,15 +96,14 @@ repos:
         files: 'webclient/(?!\.test\.[jt]sx?$)[^a-z0-9\-\.\/\[\]@]'
         exclude: |
           (?x)^(
-            webclient/src/messages/.*|
-            webclient/src/app/\[slug\]/_components/.*|
-            webclient/src/app/elements/_components/.*|
-            webclient/src/app/products/_components/.*|
-            webclient/src/app/stories/\[storyslug\]/_components/.*|
-            webclient/public/assets/.*|
-            webclient/Dockerfile|
-            webclient/LICENSE|
-            webclient/README.md
+            apps/webclient/src/messages/.*|
+            apps/webclient/src/app/\[slug\]/_components/.*|
+            apps/webclient/src/app/elements/_components/.*|
+            apps/webclient/src/app/products/_components/.*|
+            apps/webclient/src/app/stories/\[storyslug\]/_components/.*|
+            apps/webclient/public/assets/.*|
+            apps/webclient/Dockerfile|
+            apps/webclient/README.md
           )$
 
       - id: rest-snake-case-files-only
@@ -92,22 +113,23 @@ repos:
         files: '(?!\.test\.[jt]sx?$)[^a-z0-9_\.\/\[\]@]'
         exclude: |
           (?x)^(
+            .claude/.*|
             .github/.*|
             .git/COMMIT_EDITMSG|
             docs/.*|
-            webclient/.*|
-            webclient.old/.*|
-            services/pkg/ajan/configfx/README.md|
-            services/pkg/ajan/connfx/README.md|
-            services/pkg/ajan/httpclient/README.md|
-            services/pkg/ajan/httpfx/README.md|
-            services/pkg/ajan/lib/README.md|
-            services/pkg/ajan/logfx/README.md|
-            services/pkg/ajan/processfx/README.md|
-            services/pkg/ajan/results/README.md|
-            services/pkg/ajan/types/README.md|
-            services/Dockerfile|
-            services/Makefile|
+            apps/webclient/.*|
+            apps/webclient.old/.*|
+            apps/services/pkg/ajan/configfx/README.md|
+            apps/services/pkg/ajan/connfx/README.md|
+            apps/services/pkg/ajan/httpclient/README.md|
+            apps/services/pkg/ajan/httpfx/README.md|
+            apps/services/pkg/ajan/lib/README.md|
+            apps/services/pkg/ajan/logfx/README.md|
+            apps/services/pkg/ajan/processfx/README.md|
+            apps/services/pkg/ajan/results/README.md|
+            apps/services/pkg/ajan/types/README.md|
+            apps/services/Dockerfile|
+            apps/services/Makefile|
             .pre-commit-config.yaml|
             LICENSE|
             Makefile|

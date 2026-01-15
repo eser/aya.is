@@ -1,6 +1,7 @@
 # [short title of solved problem and solution]
 
-- Status: [accepted | deprecated | superseded by [ADR-0005](0005-example.md)] <!-- optional -->
+- Status: [accepted | deprecated | superseded by [ADR-0005](0005-example.md)]
+  <!-- optional -->
 - Deciders: [list everyone involved in the decision] <!-- optional -->
 - Date: [YYYY-MM-DD when the decision was last updated] <!-- optional -->
 - Template used: [MADR 3.0.0](https://adr.github.io/madr/) <!-- optional -->
@@ -71,7 +72,8 @@ which resolves force force | … | comes out best (see below)].
 
 ## Links <!-- optional -->
 
-- [Link type] [Link to ADR] <!-- example: Refined by [ADR-0005](0005-example.md) -->
+- [Link type] [Link to ADR]
+  <!-- example: Refined by [ADR-0005](0005-example.md) -->
 - … <!-- numbers of links can vary -->
 
 <!-- markdownlint-disable-file MD013 -->

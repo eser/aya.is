@@ -1,0 +1,20 @@
+{
+  "nodeModulesDir": "auto",
+  "exclude": [
+    "**/node_modules/*",
+    "**/.tanstack/*",
+    "**/.claude/skills/*",
+    "**/apps/webclient.old/*",
+    "**/apps/**/*.gen.ts"
+  ],
+  "lint": {
+    "rules": {
+      "tags": [
+        "recommended"
+      ]
+    }
+  },
+  "fmt": {
+    "lineWidth": 120
+  }
+}

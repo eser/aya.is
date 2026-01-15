@@ -39,6 +39,7 @@ jobs:
   integration:
     name: Integration
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
 
     permissions:
       contents: read # Needed to clone the repository
@@ -76,13 +77,13 @@ jobs:
         with:
           go-version: ${{ matrix.golang-version }}
           cache: true
-          cache-dependency-path: ./services/go.sum
+          cache-dependency-path: ./apps/services/go.sum
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
 
       - name: Build services
-        working-directory: ./services/
+        working-directory: ./apps/services/
         run: go build -v ./...
 
       # - name: Generate webclient coverage report

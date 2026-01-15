@@ -1,0 +1,30 @@
+@reference "@/theme.css";
+
+.card {
+  @apply no-underline min-h-[12rem];
+
+  & > .inner {
+    @apply w-full h-full flex flex-col bg-card text-card-foreground rounded-l-lg rounded-br-lg border border-slate-200
+      shadow-md;
+
+    & > .tags {
+      @apply flex-none self-end px-2 py-1 max-w-fit text-xs font-medium text-foreground bg-border rounded-bl-md;
+    }
+
+    & > .image {
+      @apply flex items-center justify-center px-4 h-[10em];
+
+      & > img {
+        @apply rounded-full w-auto h-auto;
+      }
+    }
+
+    & > .title {
+      @apply flex-none mx-5 mb-2 text-2xl font-bold tracking-tight text-start leading-tight;
+    }
+
+    & > .description {
+      @apply grow mx-5 font-normal text-start leading-normal;
+    }
+  }
+}
