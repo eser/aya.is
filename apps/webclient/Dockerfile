@@ -81,19 +81,17 @@ RUN deno task build
 # ------------------------------------------------------------
 FROM base AS runner
 
+# Run as non-root user (Deno image provides 'deno' user)
+USER deno
+
 WORKDIR /app
 
-# Copy built output from builder
-COPY --from=builder /monorepo/apps/webclient/.output ./.output
-COPY --from=builder /monorepo/apps/webclient/package.json ./
-COPY --from=builder /monorepo/apps/webclient/deno.json ./
-
-# Run as non-root user (Deno image provides 'deno' user with uid 1000)
-USER 1000
+# Copy built output from builder (self-contained, no package.json needed)
+COPY --from=builder /monorepo/apps/webclient/.output ./
 
 EXPOSE 3000
 ENV PORT=3000
-ENV HOST=0.0.0.0
+ENV HOST=::
 
-# Start the Nitro server with Deno (uses package.json scripts)
+# Start the Nitro server directly
 CMD ["deno", "task", "start"]
