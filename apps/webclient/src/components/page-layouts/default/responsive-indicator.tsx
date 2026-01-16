@@ -1,5 +1,5 @@
 export function ResponsiveIndicator() {
-  if (import.meta.env.PROD) {
+  if ((import.meta.env.MODE ?? "development") !== "development") {
     return null;
   }
 
