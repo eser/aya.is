@@ -86,9 +86,18 @@ function rewriteUrlForCustomDomain(
   let remainingPath: string;
 
   if (segments.length > 0 && isValidLocale(segments[0])) {
-    // Explicit locale: eser.dev/en/blog -> /en/eser/blog
+    // Explicit locale in URL
     locale = segments[0];
-    remainingPath = segments.slice(1).join("/");
+    const afterLocale = segments.slice(1);
+
+    // Check if profile slug is already in the path (e.g., /tr/eser/blog)
+    if (afterLocale.length > 0 && afterLocale[0] === profileSlug) {
+      // Already has profile slug, don't add again
+      remainingPath = afterLocale.slice(1).join("/");
+    } else {
+      // No profile slug yet: eser.dev/en/blog -> /en/eser/blog
+      remainingPath = afterLocale.join("/");
+    }
   } else {
     // No locale: eser.dev/blog -> /tr/eser/blog (using profile's default locale)
     locale = profileDefaultLocale ?? getDefaultLocale();
@@ -100,6 +109,14 @@ function rewriteUrlForCustomDomain(
   const newUrl = new URL(url);
   newUrl.pathname = newPathname;
   return newUrl;
+}
+
+// Inject script to sync browser URL with rewritten path
+function injectUrlSyncScript(html: string, rewrittenPath: string, profileSlug: string): string {
+  const script =
+    `<script>window.__CUSTOM_DOMAIN__={path:"${rewrittenPath}",profile:"${profileSlug}"};history.replaceState(null,"","${rewrittenPath}"+location.search+location.hash);</script>`;
+  // Inject right after opening <head> tag (handles attributes like <head data-tsd-source="...">)
+  return html.replace(/<head([^>]*)>/, `<head$1>${script}`);
 }
 
 export default createServerEntry({
@@ -135,7 +152,21 @@ export default createServerEntry({
           signal: request.signal,
         });
 
-        return handler.fetch(newRequest);
+        const response = await handler.fetch(newRequest);
+
+        // Inject URL sync script for HTML responses
+        const contentType = response.headers.get("content-type") ?? "";
+        if (contentType.includes("text/html")) {
+          const html = await response.text();
+          const modifiedHtml = injectUrlSyncScript(html, newUrl.pathname, customDomain.slug);
+          return new Response(modifiedHtml, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+          });
+        }
+
+        return response;
       }
     }
 
