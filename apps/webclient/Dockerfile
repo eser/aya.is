@@ -37,7 +37,7 @@ COPY ./apps/webclient/package.json ./apps/webclient/deno.json ./
 RUN deno install
 
 # Copy source code
-COPY . ./
+COPY ./apps/webclient/ ./
 
 EXPOSE 3000
 
@@ -57,7 +57,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 WORKDIR /monorepo
 
 # Copy root deno.json (shared lint/fmt settings)
-COPY deno.json ./
+COPY ./deno.json ./
 
 # Install root dependencies (if any)
 RUN deno install
@@ -65,13 +65,13 @@ RUN deno install
 WORKDIR /monorepo/apps/webclient
 
 # Copy webclient package files
-COPY apps/webclient/package.json apps/webclient/deno.json ./
+COPY ./apps/webclient/package.json ./apps/webclient/deno.json ./
 
 # Install webclient dependencies
 RUN deno install
 
 # Copy source code
-COPY . ./
+COPY ./apps/webclient/ ./
 
 # Build the application (uses package.json scripts)
 RUN deno task build

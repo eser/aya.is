@@ -70,7 +70,7 @@ RUN go mod download && go mod verify
 
 # Copy the rest of the services application
 WORKDIR /srv/monorepo
-COPY apps/services/ ./apps/services/
+COPY ./apps/services/ ./apps/services/
 
 # Build the application
 WORKDIR /srv/monorepo/apps/services
@@ -89,13 +89,14 @@ RUN apt-get update && \
 # Set working directory
 WORKDIR /srv/app
 
-# Copy the binary from the production-builder container
+# Copy the binary and config from the production-builder container
 COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/serve ./
 COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/.env ./
 COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/config.json ./
 
-COPY apps/services/etc/data/default/migrations ./etc/data/default/migrations
-COPY apps/services/etc/data/default/seed/seed.sql ./etc/data/default/seed/seed.sql
+# Copy migrations and seed data from the production-builder container
+COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/etc/data/default/migrations ./etc/data/default/migrations
+COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/etc/data/default/seed/seed.sql ./etc/data/default/seed/seed.sql
 
 # Run as a non-root user
 USER nonroot
