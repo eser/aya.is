@@ -27,6 +27,7 @@
     "npm:clsx@^2.1.1": "2.1.1",
     "npm:cmdk@^1.1.1": "1.1.1_react@19.2.3_react-dom@19.2.3__react@19.2.3_@types+react@19.2.8_@types+react-dom@19.2.3__@types+react@19.2.8",
     "npm:date-fns@^4.1.0": "4.1.0",
+    "npm:destr@^2.0.5": "2.0.5",
     "npm:embla-carousel-react@^8.6.0": "8.6.0_react@19.2.3_embla-carousel@8.6.0",
     "npm:i18next-browser-languagedetector@^8.2.0": "8.2.0",
     "npm:i18next-resources-to-backend@^1.2.1": "1.2.1",
@@ -2554,6 +2555,9 @@
     },
     "dequal@2.0.3": {
       "integrity": "sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA=="
+    },
+    "destr@2.0.5": {
+      "integrity": "sha512-ugFTXCtDZunbzasqBxrK93Ik/DRYsO6S/fedkWEMKqt04xZ4csmnmwGDBAb07QWNaGMAmnTIemsYZCksjATwsA=="
     },
     "detect-libc@2.1.2": {
       "integrity": "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ=="
@@ -5621,6 +5625,7 @@
         "npm:clsx@^2.1.1",
         "npm:cmdk@^1.1.1",
         "npm:date-fns@^4.1.0",
+        "npm:destr@^2.0.5",
         "npm:embla-carousel-react@^8.6.0",
         "npm:i18next-browser-languagedetector@^8.2.0",
         "npm:i18next-resources-to-backend@^1.2.1",
