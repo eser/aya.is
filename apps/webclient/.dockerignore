@@ -1,7 +1,0 @@
-node_modules
-.output
-.git
-.gitignore
-*.md
-.env.local
-.env.*.local

@@ -1,0 +1,33 @@
+# Dependencies
+**/node_modules
+
+# Build outputs
+**/.output
+**/.tanstack
+**/.vite
+
+# Git
+.git
+**/.gitignore
+**/.gitattributes
+
+# IDE and editor files
+.github
+.vscode
+.idea
+**/.editorconfig
+*.swp
+*.swo
+
+# Local environment files
+**/.env.local
+**/.env.*.local
+**/config.local.json
+**/config.*.local.json
+
+# Docker files (avoid recursive issues)
+**/.dockerignore
+
+# Config files not needed in build
+**/.pre-commit-config.yaml
+**/LICENSE

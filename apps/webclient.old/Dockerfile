@@ -2,8 +2,8 @@
 # Versions
 # ------------------------------------------------------------
 
-FROM denoland/deno:2.5.1 AS upstream-builder
-FROM denoland/deno:distroless-2.5.1 AS upstream-runner
+FROM denoland/deno:2.6.5 AS upstream-builder
+FROM denoland/deno:distroless-2.6.5 AS upstream-runner
 
 # Create a minimal image base-debian12 or static-debian12
 # (see: https://github.com/GoogleContainerTools/distroless#why-should-i-use-distroless-images)

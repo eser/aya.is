@@ -8,7 +8,7 @@
 # ------------------------------------------------------------
 # Base image
 # ------------------------------------------------------------
-FROM denoland/deno:2.4.1 AS base
+FROM denoland/deno:2.6.5 AS base
 
 # ------------------------------------------------------------
 # Development stage (with hot reload)
@@ -30,7 +30,7 @@ RUN deno install
 
 WORKDIR /monorepo/apps/webclient
 
-# Copy webclient package files for dependency installation
+# Copy webclient package files (no lock file - let Deno resolve all transitive deps)
 COPY ./apps/webclient/package.json ./apps/webclient/deno.json ./
 
 # Install webclient dependencies
@@ -73,7 +73,7 @@ RUN deno install
 # Copy source code
 COPY ./apps/webclient/ ./
 
-# Build the application (uses package.json scripts)
+# Build the application
 RUN deno task build
 
 # ------------------------------------------------------------
