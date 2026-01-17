@@ -1,8 +1,12 @@
+import type { SupportedLocaleCode } from "@/config";
+
 export type DomainConfiguration = {
   type: "main";
+  defaultCulture: SupportedLocaleCode;
   allowsWwwPrefix: boolean;
 } | {
   type: "custom-domain";
+  defaultCulture: SupportedLocaleCode;
   profileSlug: string;
   allowsWwwPrefix: boolean;
 } | {

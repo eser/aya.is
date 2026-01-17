@@ -1,4 +1,5 @@
 import process from "node:process";
+import { CUSTOM_DOMAIN_DEFAULT_LOCALE } from "@/config";
 import { isMainDomain } from "@/shared.ts";
 
 import type { DomainConfiguration } from "@/request-context";
@@ -10,6 +11,7 @@ const cacheTimestamps = new Map<string, number>();
 
 export const defaultDomainConfiguration: DomainConfiguration = {
   type: "main",
+  defaultCulture: CUSTOM_DOMAIN_DEFAULT_LOCALE,
   allowsWwwPrefix: false,
 };
 
@@ -78,6 +80,7 @@ export async function getDomainConfiguration(address: string | undefined): Promi
     return {
       type: "custom-domain",
       profileSlug: backendResult.slug,
+      defaultCulture: CUSTOM_DOMAIN_DEFAULT_LOCALE,
       allowsWwwPrefix: false,
     };
   }

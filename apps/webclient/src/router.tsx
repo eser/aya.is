@@ -1,5 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { CUSTOM_DOMAIN_DEFAULT_LOCALE } from "@/config";
 
 import type { RequestContext } from "@/request-context";
 
@@ -30,6 +31,13 @@ export async function getRouter() {
     requestContext.domainConfiguration.profileSlug
   ) || undefined;
 
+  const defaultLocale = (
+    (
+      requestContext?.domainConfiguration.type === "main" ||
+      requestContext?.domainConfiguration.type === "custom-domain"
+    ) && requestContext?.domainConfiguration?.defaultCulture
+  ) || CUSTOM_DOMAIN_DEFAULT_LOCALE;
+
   const router = createRouter({
     routeTree,
     context: { requestContext },
@@ -38,25 +46,40 @@ export async function getRouter() {
 
     rewrite: customDomainProfileSlug !== undefined
       ? {
-          input: ({ url }) => {
-            // /en/about -> /en/{profileSlug}/about
-            const pathParts = url.pathname.split("/").filter(Boolean);
-            pathParts.splice(1, 0, customDomainProfileSlug);
-            url.pathname = `/${pathParts.join("/")}`;
+        input: ({ url }) => {
+          // /en/about -> /en/{profileSlug}/about
+          // / -> /en/{profileSlug} (adds default locale for empty paths)
+          const pathParts = url.pathname.split("/").filter(Boolean);
 
-            return url;
-          },
-          output: ({ url }) => {
-            // /en/{profileSlug}/about -> /en/about
-            const pathParts = url.pathname.split("/").filter(Boolean);
-            if (pathParts[1] === customDomainProfileSlug) {
-              pathParts.splice(1, 1);
-              url.pathname = `/${pathParts.join("/")}`;
-            }
+          // If path is empty, prepend the default locale
+          if (pathParts.length === 0) {
+            pathParts.unshift(defaultLocale);
+          }
 
-            return url;
-          },
-        }
+          pathParts.splice(1, 0, customDomainProfileSlug);
+          url.pathname = `/${pathParts.join("/")}`;
+
+          return url;
+        },
+        output: ({ url }) => {
+          // /en/{profileSlug}/about -> /about (removes slug and default locale)
+          // /tr/{profileSlug}/about -> /tr/about (keeps non-default locale)
+          const pathParts = url.pathname.split("/").filter(Boolean);
+
+          // Remove profile slug from position 1
+          if (pathParts[1] === customDomainProfileSlug) {
+            pathParts.splice(1, 1);
+          }
+
+          // Remove default locale from the start (for cleaner URLs on custom domains)
+          if (pathParts[0] === defaultLocale) {
+            pathParts.shift();
+          }
+
+          url.pathname = `/${pathParts.join("/")}`;
+          return url;
+        },
+      }
       : undefined,
   });
 
