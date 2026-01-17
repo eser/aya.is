@@ -102,7 +102,6 @@ export function Header() {
               type="button"
               className="cursor-pointer whitespace-nowrap ml-1 xl:ml-2 text-xs md:text-sm"
               onClick={() => {
-                console.log("Login button clicked");
                 login();
               }}
             >

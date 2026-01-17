@@ -13,6 +13,7 @@ export default defineConfig({
     watch: {
       ignored: ["**/routeTree.gen.ts"],
     },
+    allowedHosts: true,
   },
   plugins: [
     devtools(),

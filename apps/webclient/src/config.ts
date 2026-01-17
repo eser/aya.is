@@ -59,13 +59,6 @@ export const getBackendUri = (): string => {
   return siteConfig.backendUri;
 };
 
-// Get main domains (not custom domains) for URL rewriting
-export function getMainDomains(): string[] {
-  const hostUrl = new URL(siteConfig.host);
-  const hostname = hostUrl.hostname;
-  return ["localhost", "127.0.0.1", hostname, `www.${hostname}`];
-}
-
 // Locale Configuration
 export const SUPPORTED_LOCALES = [
   "tr",

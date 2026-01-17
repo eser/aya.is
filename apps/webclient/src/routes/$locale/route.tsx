@@ -1,11 +1,11 @@
-// Locale layout - handles both valid locales and profile slugs
+// Locale layout - handles locale validation and i18n sync
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { DEFAULT_LOCALE, isValidLocale, type SupportedLocaleCode } from "@/config";
 
 export const Route = createFileRoute("/$locale")({
-  beforeLoad: ({ params, location }) => {
+  beforeLoad: async ({ params, location }) => {
     const { locale } = params;
 
     // Check if this is a valid locale
@@ -16,7 +16,9 @@ export const Route = createFileRoute("/$locale")({
       throw redirect({ to: newPath, replace: true });
     }
 
-    return { locale: locale as SupportedLocaleCode };
+    return {
+      locale: locale as SupportedLocaleCode,
+    };
   },
   component: LocaleLayout,
 });
@@ -27,7 +29,7 @@ function LocaleLayout() {
 
   // Sync i18n language with URL locale
   useEffect(() => {
-    if (locale && i18n.language !== locale) {
+    if (locale !== undefined && i18n.language !== locale) {
       i18n.changeLanguage(locale);
     }
   }, [locale, i18n]);

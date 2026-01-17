@@ -1,4 +1,5 @@
-// Homepage for locale
+// Homepage for locale - shows landing page
+// On custom domain, server-side URL rewriting redirects to profile page
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
@@ -14,7 +15,6 @@ import i18next from "i18next";
 export const Route = createFileRoute("/$locale/")({
   loader: async ({ params }) => {
     const { locale } = params;
-    // Get the intro text for this locale and compile it as MDX
     const introText = i18next.getFixedT(locale)("Home.IntroText");
     const compiledIntro = await compileMdx(introText);
     return { compiledIntro };
@@ -45,7 +45,7 @@ function LocaleHomePage() {
 
             <div className="mt-10" />
 
-            <MdxContent compiledSource={compiledIntro} />
+            {compiledIntro !== null && <MdxContent compiledSource={compiledIntro} />}
           </article>
         </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { siteConfig } from "@/config";
-import { useKonamiCode } from "@/lib/hooks/use-secret-code";
+import { useKonamiCode } from "@/hooks/use-secret-code";
 
 export function EasterEgg() {
   const konami = useKonamiCode();
