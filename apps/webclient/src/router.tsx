@@ -48,12 +48,12 @@ export async function getRouter() {
       ? {
         input: ({ url }) => {
           // /en/about -> /en/{profileSlug}/about
-          // / -> /en/{profileSlug} (adds default locale for empty paths)
+          // / -> /tr/{profileSlug} (adds default locale for empty paths)
           const pathParts = url.pathname.split("/").filter(Boolean);
 
           // If path is empty, prepend the default locale
           if (pathParts.length === 0) {
-            pathParts.unshift(defaultLocale);
+            pathParts.push(defaultLocale);
           }
 
           pathParts.splice(1, 0, customDomainProfileSlug);
@@ -62,18 +62,12 @@ export async function getRouter() {
           return url;
         },
         output: ({ url }) => {
-          // /en/{profileSlug}/about -> /about (removes slug and default locale)
-          // /tr/{profileSlug}/about -> /tr/about (keeps non-default locale)
+          // /tr/{profileSlug}/about -> /tr/about (always keeps locale)
           const pathParts = url.pathname.split("/").filter(Boolean);
 
           // Remove profile slug from position 1
           if (pathParts[1] === customDomainProfileSlug) {
             pathParts.splice(1, 1);
-          }
-
-          // Remove default locale from the start (for cleaner URLs on custom domains)
-          if (pathParts[0] === defaultLocale) {
-            pathParts.shift();
           }
 
           url.pathname = `/${pathParts.join("/")}`;
