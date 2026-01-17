@@ -1,5 +1,4 @@
 import {
-  CUSTOM_DOMAIN_DEFAULT_LOCALE,
   DEFAULT_LOCALE,
   isValidLocale,
   SUPPORTED_LOCALES,
@@ -51,19 +50,6 @@ export function parseLocaleFromPath(pathname: string): {
   }
 
   return { locale: null, restPath: pathname };
-}
-
-/**
- * Get the effective locale based on URL and domain context
- */
-export function getEffectiveLocale(
-  urlLocale: string | null | undefined,
-  isCustomDomain: boolean,
-): SupportedLocaleCode {
-  if (urlLocale && isValidLocale(urlLocale)) {
-    return urlLocale;
-  }
-  return isCustomDomain ? CUSTOM_DOMAIN_DEFAULT_LOCALE : DEFAULT_LOCALE;
 }
 
 /**

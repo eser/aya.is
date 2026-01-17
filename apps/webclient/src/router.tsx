@@ -1,6 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import { CUSTOM_DOMAIN_DEFAULT_LOCALE } from "@/config";
+import { DEFAULT_LOCALE } from "@/config";
 
 import type { RequestContext } from "@/request-context";
 
@@ -36,7 +36,7 @@ export async function getRouter() {
       requestContext?.domainConfiguration.type === "main" ||
       requestContext?.domainConfiguration.type === "custom-domain"
     ) && requestContext?.domainConfiguration?.defaultCulture
-  ) || CUSTOM_DOMAIN_DEFAULT_LOCALE;
+  ) || DEFAULT_LOCALE;
 
   const router = createRouter({
     routeTree,

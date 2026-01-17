@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { NavigationProvider, type NavigationState } from "@/modules/navigation/navigation-context";
 import { EasterEgg, ResponsiveIndicator } from "@/components/page-layouts/default";
 import {
-  CUSTOM_DOMAIN_DEFAULT_LOCALE,
   DEFAULT_LOCALE,
   isValidLocale,
   type SupportedLocaleCode,
@@ -44,7 +43,7 @@ function detectNavigationState(
   if (urlLocale !== null && isValidLocale(urlLocale)) {
     localeCode = urlLocale;
   } else {
-    localeCode = isCustom ? CUSTOM_DOMAIN_DEFAULT_LOCALE : DEFAULT_LOCALE;
+    localeCode = DEFAULT_LOCALE;
   }
 
   return {

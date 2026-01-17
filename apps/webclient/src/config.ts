@@ -79,7 +79,6 @@ export const SUPPORTED_LOCALES = [
 export type SupportedLocaleCode = (typeof SUPPORTED_LOCALES)[number];
 
 export const DEFAULT_LOCALE: SupportedLocaleCode = "tr"; // Default for main domain
-export const CUSTOM_DOMAIN_DEFAULT_LOCALE: SupportedLocaleCode = "en"; // Default for custom domains
 export const FALLBACK_LOCALE: SupportedLocaleCode = "tr"; // Fallback for missing translations
 
 export const supportedLocales: Record<SupportedLocaleCode, Locale> = {
