@@ -52,12 +52,39 @@ export const Route = createFileRoute("/$locale/$slug")({
 });
 
 function ProfileNotFound() {
+  const { t } = useTranslation();
+
+  // Try to get loader data - if available, profile exists but child path doesn't match
+  // If not available (throws), profile doesn't exist
+  let hasProfile = false;
+  try {
+    const data = Route.useLoaderData();
+    hasProfile = data?.profile !== null && data?.profile !== undefined;
+  } catch {
+    hasProfile = false;
+  }
+
+  // If profile exists, we're inside ProfileLayout's Outlet - don't wrap in PageLayout
+  if (hasProfile) {
+    return (
+      <div className="content">
+        <h2>{t("Layout.Page not found")}</h2>
+        <p className="text-muted-foreground">
+          {t(
+            "Layout.The page you are looking for does not exist. Please check your spelling and try again.",
+          )}
+        </p>
+      </div>
+    );
+  }
+
+  // Profile doesn't exist - render full page with PageLayout
   return (
     <PageLayout>
       <div className="container mx-auto py-16 px-4 text-center">
-        <h1 className="text-4xl font-bold mb-4">Profile Not Found</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("Layout.Profile Not Found")}</h1>
         <p className="text-muted-foreground">
-          The profile you're looking for doesn't exist.
+          {t("Layout.The profile you are looking for does not exist.")}
         </p>
       </div>
     </PageLayout>
