@@ -139,7 +139,7 @@ export function SearchBar() {
                 <CommandItem
                   key={item.key}
                   onSelect={() => {
-                    navigate({ to: item.href });
+                    navigate({ to: `/${localeCode}${item.href}` });
                     setOpen(false);
                   }}
                 >
@@ -164,7 +164,7 @@ export function SearchBar() {
                     <CommandItem
                       key={profile.id}
                       onSelect={() => {
-                        navigate({ to: `/${profile.slug}` });
+                        navigate({ to: `/${localeCode}/${profile.slug}` });
                         setOpen(false);
                       }}
                     >
