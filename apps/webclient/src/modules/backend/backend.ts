@@ -28,6 +28,11 @@ import { deleteProfilePage } from "./profiles/delete-profile-page";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
 import { getCurrentSession } from "./sessions/get-current-session";
+import { createSession } from "./sessions/create-session";
+import { getSessionPreferences } from "./sessions/get-preferences";
+import { updateSessionPreferences } from "./sessions/update-preferences";
+import { getPOWChallenge } from "./protection/get-pow-challenge";
+import { solvePOW, isPOWSolverSupported } from "./protection/solve-pow";
 import { getSpotlight } from "./site/get-spotlight";
 import { handleAuthCallback } from "./auth/handle-callback";
 import { checkSessionViaCookie } from "./auth/session-check";
@@ -75,6 +80,14 @@ export const backend = {
 
   // Sessions
   getCurrentSession,
+  createSession,
+  getSessionPreferences,
+  updateSessionPreferences,
+
+  // Protection
+  getPOWChallenge,
+  solvePOW,
+  isPOWSolverSupported,
 
   // Site
   getSpotlight,
@@ -95,10 +108,12 @@ export {
   createProfile,
   createProfileLink,
   createProfilePage,
+  createSession,
   deleteProfileLink,
   deleteProfilePage,
   getCurrentSession,
   getCustomDomain,
+  getPOWChallenge,
   getProfile,
   getProfileContributions,
   getProfileMembers,
@@ -108,18 +123,22 @@ export {
   getProfileStories,
   getProfileStory,
   getProfileTranslations,
+  getSessionPreferences,
   getSpotlight,
   getStoriesByKinds,
   getStory,
   getUser,
   getUsers,
   handleAuthCallback,
+  isPOWSolverSupported,
   listProfileLinks,
   listProfilePages,
+  solvePOW,
   updateProfile,
   updateProfileLink,
   updateProfilePage,
   updateProfilePageTranslation,
   updateProfileTranslation,
+  updateSessionPreferences,
   uploadProfilePicture,
 };

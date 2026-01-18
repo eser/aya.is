@@ -148,6 +148,12 @@ export interface Session {
   avatar_url?: string | null;
 }
 
+export interface SessionPreferences {
+  theme?: "light" | "dark" | "system";
+  locale?: string;
+  timezone?: string;
+}
+
 // Custom Domain Types
 export interface CustomDomain {
   host: string;

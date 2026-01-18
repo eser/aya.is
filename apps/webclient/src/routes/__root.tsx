@@ -95,7 +95,12 @@ function RootComponent() {
           requestContext={requestContext}
         >
           <AuthProvider>
-            <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+            <ThemeProvider
+              defaultTheme="system"
+              storageKey="vite-ui-theme"
+              locale={navigationState.locale}
+              enableServerSync
+            >
               <LocaleSynchronizer />
               <Outlet />
             </ThemeProvider>

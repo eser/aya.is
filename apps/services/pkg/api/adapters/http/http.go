@@ -11,6 +11,8 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
+	"github.com/eser/aya.is/services/pkg/api/business/protection"
+	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
@@ -24,6 +26,8 @@ func Run(
 	userService *users.Service,
 	profileService *profiles.Service,
 	storyService *stories.Service,
+	sessionService *sessions.Service,
+	protectionService *protection.Service,
 ) (func(), error) {
 	routes := httpfx.NewRouter("/")
 	httpService := httpfx.NewHTTPService(config, routes, logger)
@@ -60,6 +64,13 @@ func Run(
 		authService,
 		userService,
 		profileService,
+		sessionService,
+		protectionService,
+	)
+	RegisterHTTPRoutesForProtection( //nolint:contextcheck
+		routes,
+		logger,
+		protectionService,
 	)
 	RegisterHTTPRoutesForSite( //nolint:contextcheck
 		routes,

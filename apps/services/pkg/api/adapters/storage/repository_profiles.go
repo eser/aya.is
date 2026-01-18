@@ -409,7 +409,7 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 		ctx,
 		GetProfileMembershipsByMemberProfileIDParams{
 			LocaleCode:      localeCode,
-			MemberProfileID: memberProfileID,
+			MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
 		},
 	)
 	if err != nil {

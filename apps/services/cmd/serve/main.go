@@ -31,6 +31,8 @@ func main() {
 			appContext.UserService,
 			appContext.ProfileService,
 			appContext.StoryService,
+			appContext.SessionService,
+			appContext.ProtectionService,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(

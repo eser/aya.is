@@ -16,6 +16,8 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
+	"github.com/eser/aya.is/services/pkg/api/business/protection"
+	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	_ "github.com/lib/pq"
@@ -41,10 +43,12 @@ type AppContext struct {
 	JWTTokenService *auth_tokens.JWTTokenService
 
 	// Business
-	AuthService    *auth.Service
-	UserService    *users.Service
-	ProfileService *profiles.Service
-	StoryService   *stories.Service
+	AuthService       *auth.Service
+	UserService       *users.Service
+	ProfileService    *profiles.Service
+	StoryService      *stories.Service
+	SessionService    *sessions.Service
+	ProtectionService *protection.Service
 }
 
 func New() *AppContext {
@@ -171,6 +175,26 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.JWTTokenService,
 		&a.Config.Auth,
 		a.UserService,
+	)
+
+	// ID generator function using users.DefaultIDGenerator
+	idGen := func() string {
+		return string(users.DefaultIDGenerator())
+	}
+
+	a.ProtectionService = protection.NewService(
+		a.Logger,
+		&a.Config.Protection,
+		a.Repository,
+		idGen,
+	)
+
+	a.SessionService = sessions.NewService(
+		a.Logger,
+		&a.Config.Sessions,
+		a.Repository,
+		a.UserService,
+		idGen,
 	)
 
 	// ----------------------------------------------------

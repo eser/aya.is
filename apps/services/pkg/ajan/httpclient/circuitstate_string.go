@@ -18,8 +18,9 @@ const _CircuitState_name = "StateClosedStateHalfOpenStateOpen"
 var _CircuitState_index = [...]uint8{0, 11, 24, 33}
 
 func (i CircuitState) String() string {
-	if i < 0 || i >= CircuitState(len(_CircuitState_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_CircuitState_index)-1 {
 		return "CircuitState(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _CircuitState_name[_CircuitState_index[i]:_CircuitState_index[i+1]]
+	return _CircuitState_name[_CircuitState_index[idx]:_CircuitState_index[idx+1]]
 }
