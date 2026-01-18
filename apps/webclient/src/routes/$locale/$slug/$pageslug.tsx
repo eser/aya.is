@@ -1,5 +1,5 @@
 // Profile custom page
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { MdxContent } from "@/components/userland/mdx-content";
@@ -12,13 +12,13 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug")({
     // Skip if pageslug matches known routes
     const knownRoutes = ["stories", "settings", "members", "contributions"];
     if (knownRoutes.includes(pageslug)) {
-      throw notFound();
+      return { page: null, compiledContent: null, notFound: true };
     }
 
     const page = await backend.getProfilePage(locale, slug, pageslug);
 
-    if (!page) {
-      throw notFound();
+    if (page === null || page === undefined) {
+      return { page: null, compiledContent: null, notFound: true };
     }
 
     // Compile MDX content on the server
@@ -32,14 +32,21 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug")({
       }
     }
 
-    return { page, compiledContent };
+    return { page, compiledContent, notFound: false };
   },
   component: ProfileCustomPage,
   notFoundComponent: PageNotFound,
 });
 
 function ProfileCustomPage() {
-  const { page, compiledContent } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
+
+  // If notFound flag is set, render 404 page
+  if (loaderData.notFound || loaderData.page === null) {
+    return <PageNotFound />;
+  }
+
+  const { page, compiledContent } = loaderData;
 
   return (
     <div className="content">

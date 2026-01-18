@@ -1,7 +1,6 @@
 // Profile layout
 import { createFileRoute, notFound, Outlet, useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { forbiddenSlugs } from "@/config";
 import { backend, type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
 import { Icons } from "@/components/icons";
@@ -28,12 +27,6 @@ function findIcon(kind: string) {
 export const Route = createFileRoute("/$locale/$slug")({
   beforeLoad: ({ params }) => {
     const { slug } = params;
-
-    // Check for forbidden slugs
-    if (forbiddenSlugs.includes(slug.toLowerCase())) {
-      throw notFound();
-    }
-
     return { profileSlug: slug };
   },
   loader: async ({ params }) => {
@@ -42,10 +35,10 @@ export const Route = createFileRoute("/$locale/$slug")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile === null) {
-      throw notFound();
+      return { profile: null, notFound: true };
     }
 
-    return { profile };
+    return { profile, notFound: false };
   },
   component: ProfileLayout,
   notFoundComponent: ProfileNotFound,
@@ -54,37 +47,13 @@ export const Route = createFileRoute("/$locale/$slug")({
 function ProfileNotFound() {
   const { t } = useTranslation();
 
-  // Try to get loader data - if available, profile exists but child path doesn't match
-  // If not available (throws), profile doesn't exist
-  let hasProfile = false;
-  try {
-    const data = Route.useLoaderData();
-    hasProfile = data?.profile !== null && data?.profile !== undefined;
-  } catch {
-    hasProfile = false;
-  }
-
-  // If profile exists, we're inside ProfileLayout's Outlet - don't wrap in PageLayout
-  if (hasProfile) {
-    return (
-      <div className="content">
-        <h2>{t("Layout.Page not found")}</h2>
-        <p className="text-muted-foreground">
-          {t(
-            "Layout.The page you are looking for does not exist. Please check your spelling and try again.",
-          )}
-        </p>
-      </div>
-    );
-  }
-
-  // Profile doesn't exist - render full page with PageLayout
+  // Simple 404 page - PageLayout handles the header/footer
   return (
     <PageLayout>
       <div className="container mx-auto py-16 px-4 text-center">
-        <h1 className="text-4xl font-bold mb-4">{t("Layout.Profile Not Found")}</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("Layout.Page not found")}</h1>
         <p className="text-muted-foreground">
-          {t("Layout.The profile you are looking for does not exist.")}
+          {t("Layout.The page you are looking for does not exist. Please check your spelling and try again.")}
         </p>
       </div>
     </PageLayout>
@@ -93,8 +62,15 @@ function ProfileNotFound() {
 
 function ProfileLayout() {
   const params = useParams({ strict: false });
-  const { profile } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
   const slug = (params as { slug?: string }).slug ?? "";
+
+  // If notFound flag is set, render 404 page
+  if (loaderData.notFound || loaderData.profile === null) {
+    return <ProfileNotFound />;
+  }
+
+  const { profile } = loaderData;
 
   return (
     <PageLayout>
