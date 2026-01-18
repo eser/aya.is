@@ -140,7 +140,7 @@ func (s *Service) SetPreference(ctx context.Context, sessionID, key, value strin
 		return err
 	}
 
-	err := s.repo.SetPreference(ctx, sessionID, key, value)
+	err = s.repo.SetPreference(ctx, sessionID, key, value)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToSetPreference, err)
 	}
