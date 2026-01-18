@@ -27,7 +27,8 @@
   },
   "Loading": {
     "Loading...": "Loading...",
-    "Loading share options...": "Loading share options..."
+    "Loading share options...": "Loading share options...",
+    "Saving...": "Saving..."
   },
   "Search": {
     "General search": "General search",
@@ -235,7 +236,26 @@
     "Soon you'll be able to create custom pages with rich content using MDX format.": "Soon you'll be able to create custom pages with rich content using MDX format.",
     "Advanced configuration and developer options for your profile.": "Advanced configuration and developer options for your profile.",
     "Advanced settings and configuration options are under development.": "Advanced settings and configuration options are under development.",
-    "Soon you'll have access to advanced features like API keys, webhooks, and custom integrations.": "Soon you'll have access to advanced features like API keys, webhooks, and custom integrations."
+    "Soon you'll have access to advanced features like API keys, webhooks, and custom integrations.": "Soon you'll have access to advanced features like API keys, webhooks, and custom integrations.",
+    "Profile Picture": "Profile Picture",
+    "Basic Information": "Basic Information",
+    "Title": "Title",
+    "Enter title": "Enter title",
+    "Description": "Description",
+    "Enter description": "Enter description",
+    "A brief description about yourself or your organization": "A brief description about yourself or your organization",
+    "Pronouns": "Pronouns",
+    "Enter pronouns": "Enter pronouns",
+    "Optional pronouns to display on your profile": "Optional pronouns to display on your profile",
+    "Save Changes": "Save Changes",
+    "Profile updated successfully": "Profile updated successfully",
+    "Failed to update profile": "Failed to update profile",
+    "Change Picture": "Change Picture",
+    "Uploading...": "Uploading...",
+    "Picture uploaded successfully": "Picture uploaded successfully",
+    "Failed to upload picture": "Failed to upload picture",
+    "Invalid file type": "Please upload an image file (JPEG, PNG, GIF, or WebP).",
+    "File too large": "File too large. Maximum size is 5MB."
   },
   "StoryPage": {
     "Written by": "Written by",

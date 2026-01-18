@@ -1,9 +1,26 @@
 // Profile settings layout
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
+import { backend } from "@/modules/backend/backend";
 
 export const Route = createFileRoute("/$locale/$slug/settings")({
+  loader: async ({ params }) => {
+    const { locale, slug } = params;
+
+    // Fetch profile and permissions in parallel
+    const [profile, permissions] = await Promise.all([
+      backend.getProfile(locale, slug),
+      backend.getProfilePermissions(locale, slug),
+    ]);
+
+    // Redirect if profile doesn't exist or user can't edit
+    if (profile === null || permissions === null || !permissions.can_edit) {
+      throw redirect({ to: `/${locale}/${slug}` });
+    }
+
+    return { profile, permissions };
+  },
   component: SettingsLayout,
 });
 

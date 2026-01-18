@@ -1,10 +1,12 @@
 // Profile layout
-import { createFileRoute, notFound, Outlet, useParams } from "@tanstack/react-router";
+import * as React from "react";
+import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend, type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
 import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layouts/default";
+import { useAuth } from "@/lib/auth/auth-context";
 
 function findIcon(kind: string) {
   switch (kind) {
@@ -64,6 +66,7 @@ function ProfileLayout() {
   const params = useParams({ strict: false });
   const loaderData = Route.useLoaderData();
   const slug = (params as { slug?: string }).slug ?? "";
+  const locale = (params as { locale?: string }).locale ?? "en";
 
   // If notFound flag is set, render 404 page
   if (loaderData.notFound || loaderData.profile === null) {
@@ -76,7 +79,7 @@ function ProfileLayout() {
     <PageLayout>
       <section className="container px-4 py-8 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start">
-          <ProfileSidebar profile={profile} slug={slug} />
+          <ProfileSidebar profile={profile} slug={slug} locale={locale} />
           <main>
             <Outlet />
           </main>
@@ -89,10 +92,26 @@ function ProfileLayout() {
 type ProfileSidebarProps = {
   profile: Profile;
   slug: string;
+  locale: string;
 };
 
 function ProfileSidebar(props: ProfileSidebarProps) {
   const { t } = useTranslation();
+  const auth = useAuth();
+  const [canEdit, setCanEdit] = React.useState(false);
+
+  // Check if user can edit this profile
+  React.useEffect(() => {
+    if (auth.isAuthenticated && !auth.isLoading) {
+      backend.getProfilePermissions(props.locale, props.slug).then((perms) => {
+        if (perms !== null) {
+          setCanEdit(perms.can_edit);
+        }
+      });
+    } else {
+      setCanEdit(false);
+    }
+  }, [auth.isAuthenticated, auth.isLoading, props.locale, props.slug]);
 
   return (
     <aside className="flex flex-col gap-4">
@@ -202,6 +221,18 @@ function ProfileSidebar(props: ProfileSidebarProps) {
               </LocaleLink>
             </li>
           ))}
+
+          {canEdit && (
+            <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl md:after:content-none">
+              <LocaleLink
+                to={`/${props.slug}/settings`}
+                className="no-underline text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
+              >
+                <Icons.settings className="h-4 w-4" />
+                {t("Profile.Settings")}
+              </LocaleLink>
+            </li>
+          )}
         </ul>
       </nav>
     </aside>

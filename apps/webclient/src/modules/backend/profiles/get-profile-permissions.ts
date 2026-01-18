@@ -5,5 +5,5 @@ export async function getProfilePermissions(
   locale: string,
   slug: string,
 ): Promise<ProfilePermissions | null> {
-  return await fetcher<ProfilePermissions>(`/${locale}/profiles/${slug}/permissions`);
+  return await fetcher<ProfilePermissions>(`/${locale}/profiles/${slug}/_permissions`);
 }

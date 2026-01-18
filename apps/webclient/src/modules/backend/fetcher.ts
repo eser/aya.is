@@ -161,7 +161,8 @@ async function refreshToken(): Promise<string | null> {
 
   try {
     const backendUri = getBackendUri();
-    const response = await fetch(`${backendUri}/auth/refresh`, {
+    // Use 'en' as fallback locale for token refresh (locale doesn't affect token validation)
+    const response = await fetch(`${backendUri}/en/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
