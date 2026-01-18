@@ -23,6 +23,24 @@ type Querier interface {
 	//  WHERE
 	//    window_start < NOW() - INTERVAL '2 hours'
 	CleanupExpiredSessionRateLimits(ctx context.Context) error
+	//CopySessionPreferences
+	//
+	//  INSERT INTO
+	//    session_preference (session_id, key, value, updated_at)
+	//  SELECT
+	//    $1,
+	//    sp.key,
+	//    sp.value,
+	//    NOW()
+	//  FROM
+	//    session_preference sp
+	//  WHERE
+	//    sp.session_id = $2
+	//  ON CONFLICT (session_id, key) DO UPDATE
+	//  SET
+	//    value = EXCLUDED.value,
+	//    updated_at = NOW()
+	CopySessionPreferences(ctx context.Context, arg CopySessionPreferencesParams) error
 	//CountPOWChallengesByIPHash
 	//
 	//  SELECT
@@ -157,6 +175,8 @@ type Querier interface {
 	//      oauth_redirect_uri,
 	//      logged_in_user_id,
 	//      logged_in_at,
+	//      last_activity_at,
+	//      user_agent,
 	//      expires_at,
 	//      created_at,
 	//      updated_at
@@ -172,7 +192,9 @@ type Querier interface {
 	//      $7,
 	//      $8,
 	//      $9,
-	//      $10
+	//      $10,
+	//      $11,
+	//      $12
 	//    )
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	//CreateUser
@@ -388,6 +410,8 @@ type Querier interface {
 	//    oauth_redirect_uri,
 	//    logged_in_user_id,
 	//    logged_in_at,
+	//    last_activity_at,
+	//    user_agent,
 	//    expires_at,
 	//    created_at,
 	//    updated_at
@@ -395,7 +419,7 @@ type Querier interface {
 	//    session
 	//  WHERE
 	//    id = $1
-	GetSessionByID(ctx context.Context, arg GetSessionByIDParams) (*Session, error)
+	GetSessionByID(ctx context.Context, arg GetSessionByIDParams) (*GetSessionByIDRow, error)
 	//GetSessionPreference
 	//
 	//  SELECT
@@ -581,6 +605,29 @@ type Querier interface {
 	//    AND p.approved_at IS NOT NULL
 	//    AND p.deleted_at IS NULL
 	ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error)
+	//ListSessionsByUserID
+	//
+	//  SELECT
+	//    id,
+	//    status,
+	//    oauth_request_state,
+	//    oauth_request_code_verifier,
+	//    oauth_redirect_uri,
+	//    logged_in_user_id,
+	//    logged_in_at,
+	//    last_activity_at,
+	//    user_agent,
+	//    expires_at,
+	//    created_at,
+	//    updated_at
+	//  FROM
+	//    session
+	//  WHERE
+	//    logged_in_user_id = $1
+	//  ORDER BY
+	//    last_activity_at DESC NULLS LAST,
+	//    created_at DESC
+	ListSessionsByUserID(ctx context.Context, arg ListSessionsByUserIDParams) ([]*ListSessionsByUserIDRow, error)
 	// -- name: ListStories :many
 	// SELECT sqlc.embed(s), sqlc.embed(st), sqlc.embed(p), sqlc.embed(pt)
 	// FROM "story" s
@@ -701,6 +748,17 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	SetUserIndividualProfileID(ctx context.Context, arg SetUserIndividualProfileIDParams) (int64, error)
+	//TerminateSession
+	//
+	//  UPDATE
+	//    session
+	//  SET
+	//    status = 'terminated',
+	//    updated_at = NOW()
+	//  WHERE
+	//    id = $1
+	//    AND logged_in_user_id = $2
+	TerminateSession(ctx context.Context, arg TerminateSessionParams) error
 	//UpdateProfile
 	//
 	//  UPDATE "profile"
@@ -757,6 +815,17 @@ type Querier interface {
 	//  WHERE profile_id = $4
 	//    AND locale_code = $5
 	UpdateProfileTx(ctx context.Context, arg UpdateProfileTxParams) (int64, error)
+	//UpdateSessionActivity
+	//
+	//  UPDATE
+	//    session
+	//  SET
+	//    last_activity_at = NOW(),
+	//    user_agent = COALESCE($1, user_agent),
+	//    updated_at = NOW()
+	//  WHERE
+	//    id = $2
+	UpdateSessionActivity(ctx context.Context, arg UpdateSessionActivityParams) error
 	//UpdateSessionLoggedInAt
 	//
 	//  UPDATE
@@ -767,6 +836,16 @@ type Querier interface {
 	//  WHERE
 	//    id = $2
 	UpdateSessionLoggedInAt(ctx context.Context, arg UpdateSessionLoggedInAtParams) error
+	//UpdateSessionStatus
+	//
+	//  UPDATE
+	//    session
+	//  SET
+	//    status = $1,
+	//    updated_at = NOW()
+	//  WHERE
+	//    id = $2
+	UpdateSessionStatus(ctx context.Context, arg UpdateSessionStatusParams) error
 	//UpdateUser
 	//
 	//  UPDATE "user"

@@ -52,7 +52,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			}
 
 			session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-			if err != nil || session == nil || session.Status != "active" {
+			if err != nil || session == nil || session.Status != users.SessionStatusActive {
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
 				return ctx.Results.JSON(map[string]any{
@@ -330,7 +330,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 			// Verify session exists
 			session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-			if err != nil || session == nil || session.Status != "active" {
+			if err != nil || session == nil || session.Status != users.SessionStatusActive {
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
 				return ctx.Results.Unauthorized(
@@ -376,7 +376,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 			// Verify session exists
 			session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-			if err != nil || session == nil || session.Status != "active" {
+			if err != nil || session == nil || session.Status != users.SessionStatusActive {
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
 				return ctx.Results.Unauthorized(
@@ -478,5 +478,134 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 		}).
 		HasSummary("Update Session Preferences").
 		HasDescription("Updates the current session preferences (theme, locale, timezone).").
+		HasResponse(http.StatusOK)
+
+	// GET /{locale}/sessions/list - List all sessions for current user
+	routes.Route(
+		"GET /{locale}/sessions/list",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			// Get user ID from context (set by auth middleware)
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Session ID not found in context"),
+				)
+			}
+
+			// Get user from session
+			session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if err != nil || session == nil || session.LoggedInUserID == nil {
+				return ctx.Results.Unauthorized(
+					httpfx.WithPlainText("User not logged in"),
+				)
+			}
+
+			// List all sessions for user
+			sessions, err := userService.ListSessionsByUserID(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to list sessions",
+					slog.String("error", err.Error()),
+					slog.String("user_id", *session.LoggedInUserID))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to list sessions"),
+				)
+			}
+
+			// Map sessions to response format (hide sensitive fields)
+			sessionList := make([]map[string]any, 0, len(sessions))
+			for _, s := range sessions {
+				sessionList = append(sessionList, map[string]any{
+					"id":               s.ID,
+					"status":           s.Status,
+					"user_agent":       s.UserAgent,
+					"last_activity_at": s.LastActivityAt,
+					"logged_in_at":     s.LoggedInAt,
+					"created_at":       s.CreatedAt,
+					"is_current":       s.ID == sessionID,
+				})
+			}
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]any{
+					"sessions": sessionList,
+				},
+				"error": nil,
+			})
+		}).
+		HasSummary("List User Sessions").
+		HasDescription("Lists all sessions for the current user.").
+		HasResponse(http.StatusOK)
+
+	// POST /{locale}/sessions/{sessionId}/terminate - Terminate a specific session
+	routes.Route(
+		"POST /{locale}/sessions/{sessionId}/terminate",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			// Get current session ID from context
+			currentSessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Session ID not found in context"),
+				)
+			}
+
+			// Get target session ID from path
+			targetSessionID := ctx.Request.PathValue("sessionId")
+			if targetSessionID == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Session ID is required"),
+				)
+			}
+
+			// Prevent terminating current session (use logout instead)
+			if targetSessionID == currentSessionID {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Cannot terminate current session. Use logout instead."),
+				)
+			}
+
+			// Get user from current session
+			session, err := userService.GetSessionByID(ctx.Request.Context(), currentSessionID)
+			if err != nil || session == nil || session.LoggedInUserID == nil {
+				return ctx.Results.Unauthorized(
+					httpfx.WithPlainText("User not logged in"),
+				)
+			}
+
+			// Terminate the target session (only if it belongs to the same user)
+			err = userService.TerminateSession(
+				ctx.Request.Context(),
+				targetSessionID,
+				*session.LoggedInUserID,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to terminate session",
+					slog.String("error", err.Error()),
+					slog.String("target_session_id", targetSessionID),
+					slog.String("user_id", *session.LoggedInUserID))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to terminate session"),
+				)
+			}
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]any{
+					"status": "terminated",
+				},
+				"error": nil,
+			})
+		}).
+		HasSummary("Terminate Session").
+		HasDescription("Terminates a specific session for the current user.").
 		HasResponse(http.StatusOK)
 }

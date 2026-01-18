@@ -57,6 +57,7 @@ func Run(
 		logger,
 		authService,
 		userService,
+		sessionService,
 	)
 	RegisterHTTPRoutesForSessions( //nolint:contextcheck
 		routes,

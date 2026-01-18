@@ -195,10 +195,10 @@ func (s *Service) RefreshToken( //nolint:funlen
 
 	// Verify session is still active
 	session, err := s.userService.GetSessionByID(ctx, claims.SessionID)
-	if err != nil || session.Status != "active" {
+	if err != nil || session.Status != users.SessionStatusActive {
 		s.logger.WarnContext(ctx, "Session is not active",
 			slog.String("session_id", claims.SessionID),
-			slog.String("status", session.Status))
+			slog.String("status", string(session.Status)))
 
 		return nil, ErrSessionExpired
 	}

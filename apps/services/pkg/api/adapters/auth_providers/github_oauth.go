@@ -205,12 +205,14 @@ func (g *GitHubAuthProvider) HandleOAuthCallback( //nolint:funlen
 	// 4. Create session in DB
 	session := users.Session{
 		ID:                       string(g.userService.GenerateID()),
-		Status:                   "active",
+		Status:                   users.SessionStatusActive,
 		OauthRequestState:        state,
 		OauthRequestCodeVerifier: "", // PKCE not used here
 		OauthRedirectURI:         nil,
 		LoggedInUserID:           &user.ID,
 		LoggedInAt:               &now,
+		LastActivityAt:           &now,
+		UserAgent:                nil, // Will be set on first authenticated request
 		ExpiresAt:                &expiresAt,
 		CreatedAt:                now,
 		UpdatedAt:                nil,

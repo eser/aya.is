@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
@@ -46,12 +45,13 @@ func AuthMiddleware(authService *auth.Service, userService *users.Service) httpf
 
 		// Load session from repository
 		session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-		if err != nil || session.Status != "active" {
+		if err != nil || session.Status != users.SessionStatusActive {
 			return ctx.Results.Unauthorized(httpfx.WithPlainText("Session invalid"))
 		}
 
-		// Update logged_in_at
-		_ = userService.UpdateSessionLoggedInAt(ctx.Request.Context(), sessionID, time.Now())
+		// Update last activity and user agent
+		userAgent := ctx.Request.Header.Get("User-Agent")
+		_ = userService.UpdateSessionActivity(ctx.Request.Context(), sessionID, &userAgent)
 
 		// Store session ID in context for route handlers
 		newContext := context.WithValue(

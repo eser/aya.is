@@ -26,12 +26,14 @@ func (r *Repository) GetSessionByID(
 
 	result := &users.Session{
 		ID:                       row.ID,
-		Status:                   row.Status,
+		Status:                   users.SessionStatus(row.Status),
 		OauthRequestState:        row.OauthRequestState,
 		OauthRequestCodeVerifier: row.OauthRequestCodeVerifier,
 		OauthRedirectURI:         vars.ToStringPtr(row.OauthRedirectURI),
 		LoggedInUserID:           vars.ToStringPtr(row.LoggedInUserID),
 		LoggedInAt:               vars.ToTimePtr(row.LoggedInAt),
+		LastActivityAt:           vars.ToTimePtr(row.LastActivityAt),
+		UserAgent:                vars.ToStringPtr(row.UserAgent),
 		ExpiresAt:                vars.ToTimePtr(row.ExpiresAt),
 		CreatedAt:                row.CreatedAt,
 		UpdatedAt:                vars.ToTimePtr(row.UpdatedAt),
@@ -46,12 +48,14 @@ func (r *Repository) CreateSession(
 ) error {
 	err := r.queries.CreateSession(ctx, CreateSessionParams{
 		ID:                       session.ID,
-		Status:                   session.Status,
+		Status:                   session.Status.String(),
 		OauthRequestState:        session.OauthRequestState,
 		OauthRequestCodeVerifier: session.OauthRequestCodeVerifier,
 		OauthRedirectURI:         vars.ToSQLNullString(session.OauthRedirectURI),
 		LoggedInUserID:           vars.ToSQLNullString(session.LoggedInUserID),
 		LoggedInAt:               vars.ToSQLNullTime(session.LoggedInAt),
+		LastActivityAt:           vars.ToSQLNullTime(session.LastActivityAt),
+		UserAgent:                vars.ToSQLNullString(session.UserAgent),
 		ExpiresAt:                vars.ToSQLNullTime(session.ExpiresAt),
 		CreatedAt:                session.CreatedAt,
 		UpdatedAt:                vars.ToSQLNullTime(session.UpdatedAt),
@@ -77,6 +81,82 @@ func (r *Repository) UpdateSessionLoggedInAt(
 	}
 
 	return nil
+}
+
+func (r *Repository) UpdateSessionStatus(
+	ctx context.Context,
+	id string,
+	status string,
+) error {
+	return r.queries.UpdateSessionStatus(ctx, UpdateSessionStatusParams{
+		ID:     id,
+		Status: status,
+	})
+}
+
+func (r *Repository) CopySessionPreferences(
+	ctx context.Context,
+	oldSessionID string,
+	newSessionID string,
+) error {
+	return r.queries.CopySessionPreferences(ctx, CopySessionPreferencesParams{
+		OldSessionID: oldSessionID,
+		NewSessionID: newSessionID,
+	})
+}
+
+func (r *Repository) ListSessionsByUserID(
+	ctx context.Context,
+	userID string,
+) ([]*users.Session, error) {
+	rows, err := r.queries.ListSessionsByUserID(ctx, ListSessionsByUserIDParams{
+		UserID: sql.NullString{String: userID, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*users.Session, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &users.Session{
+			ID:                       row.ID,
+			Status:                   users.SessionStatus(row.Status),
+			OauthRequestState:        row.OauthRequestState,
+			OauthRequestCodeVerifier: row.OauthRequestCodeVerifier,
+			OauthRedirectURI:         vars.ToStringPtr(row.OauthRedirectURI),
+			LoggedInUserID:           vars.ToStringPtr(row.LoggedInUserID),
+			LoggedInAt:               vars.ToTimePtr(row.LoggedInAt),
+			LastActivityAt:           vars.ToTimePtr(row.LastActivityAt),
+			UserAgent:                vars.ToStringPtr(row.UserAgent),
+			ExpiresAt:                vars.ToTimePtr(row.ExpiresAt),
+			CreatedAt:                row.CreatedAt,
+			UpdatedAt:                vars.ToTimePtr(row.UpdatedAt),
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) UpdateSessionActivity(
+	ctx context.Context,
+	id string,
+	userAgent *string,
+) error {
+	return r.queries.UpdateSessionActivity(ctx, UpdateSessionActivityParams{
+		ID:        id,
+		UserAgent: vars.ToSQLNullString(userAgent),
+	})
+}
+
+func (r *Repository) TerminateSession(
+	ctx context.Context,
+	sessionID string,
+	userID string,
+) error {
+	return r.queries.TerminateSession(ctx, TerminateSessionParams{
+		ID:     sessionID,
+		UserID: sql.NullString{String: userID, Valid: true},
+	})
 }
 
 // Session Preferences
@@ -238,4 +318,13 @@ func (r *Repository) CheckAndIncrementRateLimit(
 	windowSeconds int,
 ) (bool, error) {
 	return r.CheckAndIncrementSessionRateLimit(ctx, ipHash, limit, windowSeconds)
+}
+
+// CopyPreferences implements sessions.Repository.
+func (r *Repository) CopyPreferences(
+	ctx context.Context,
+	oldSessionID string,
+	newSessionID string,
+) error {
+	return r.CopySessionPreferences(ctx, oldSessionID, newSessionID)
 }

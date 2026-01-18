@@ -11,10 +11,12 @@ import (
 )
 
 var (
-	ErrSessionNotFound       = errors.New("session not found")
-	ErrFailedToGetSession    = errors.New("failed to get session")
-	ErrFailedToCreateSession = errors.New("failed to create session")
-	ErrRateLimitExceeded     = errors.New("rate limit exceeded")
+	ErrSessionNotFound         = errors.New("session not found")
+	ErrFailedToGetSession      = errors.New("failed to get session")
+	ErrFailedToCreateSession   = errors.New("failed to create session")
+	ErrFailedToInvalidate      = errors.New("failed to invalidate session")
+	ErrFailedToCopyPreferences = errors.New("failed to copy preferences")
+	ErrRateLimitExceeded       = errors.New("rate limit exceeded")
 )
 
 // Repository defines the interface for session preference operations.
@@ -24,6 +26,7 @@ type Repository interface {
 	GetPreference(ctx context.Context, sessionID, key string) (*SessionPreference, error)
 	SetPreference(ctx context.Context, sessionID, key, value string) error
 	DeletePreference(ctx context.Context, sessionID, key string) error
+	CopyPreferences(ctx context.Context, oldSessionID, newSessionID string) error
 
 	// Rate limiting operations
 	CheckAndIncrementRateLimit(
@@ -84,7 +87,7 @@ func (s *Service) CreateSession(ctx context.Context, ipHash string) (*users.Sess
 	now := time.Now()
 	session := &users.Session{
 		ID:                       s.idGen(),
-		Status:                   "active",
+		Status:                   users.SessionStatusActive,
 		OauthRequestState:        "", // Not an OAuth session
 		OauthRequestCodeVerifier: "",
 		OauthRedirectURI:         nil,
@@ -172,4 +175,54 @@ func (s *Service) DeletePreference(ctx context.Context, sessionID, key string) e
 	}
 
 	return s.repo.DeletePreference(ctx, sessionID, key)
+}
+
+// LogoutResult contains the result of a logout operation.
+type LogoutResult struct {
+	NewSession *users.Session
+}
+
+// LogoutSession invalidates the current session and creates a new anonymous session
+// with the same preferences. This ensures the user is logged out across all domains.
+func (s *Service) LogoutSession(ctx context.Context, oldSessionID string) (*LogoutResult, error) {
+	// Create a new anonymous session (no rate limiting for logout)
+	now := time.Now()
+	newSession := &users.Session{
+		ID:                       s.idGen(),
+		Status:                   users.SessionStatusActive,
+		OauthRequestState:        "",
+		OauthRequestCodeVerifier: "",
+		OauthRedirectURI:         nil,
+		LoggedInUserID:           nil, // Anonymous
+		LoggedInAt:               nil,
+		ExpiresAt:                nil,
+		CreatedAt:                now,
+		UpdatedAt:                nil,
+	}
+
+	err := s.userService.CreateSession(ctx, newSession)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateSession, err)
+	}
+
+	// Copy preferences from old session to new session
+	err = s.repo.CopyPreferences(ctx, oldSessionID, newSession.ID)
+	if err != nil {
+		// Log but don't fail - the logout is more important than preserving preferences
+		s.logger.WarnContext(ctx, "Failed to copy preferences during logout",
+			"error", err.Error(),
+			"old_session_id", oldSessionID,
+			"new_session_id", newSession.ID)
+	}
+
+	// Invalidate the old session
+	err = s.userService.InvalidateSession(ctx, oldSessionID)
+	if err != nil {
+		// Log but don't fail - the new session is already created
+		s.logger.WarnContext(ctx, "Failed to invalidate old session during logout",
+			"error", err.Error(),
+			"old_session_id", oldSessionID)
+	}
+
+	return &LogoutResult{NewSession: newSession}, nil
 }

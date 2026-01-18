@@ -32,6 +32,11 @@ type Repository interface {
 	CreateSession(ctx context.Context, session *Session) error
 	GetSessionByID(ctx context.Context, id string) (*Session, error)
 	UpdateSessionLoggedInAt(ctx context.Context, id string, loggedInAt time.Time) error
+	UpdateSessionStatus(ctx context.Context, id string, status string) error
+	CopySessionPreferences(ctx context.Context, oldSessionID, newSessionID string) error
+	ListSessionsByUserID(ctx context.Context, userID string) ([]*Session, error)
+	UpdateSessionActivity(ctx context.Context, id string, userAgent *string) error
+	TerminateSession(ctx context.Context, sessionID, userID string) error
 }
 
 type Service struct {
@@ -120,6 +125,48 @@ func (s *Service) UpdateSessionLoggedInAt(
 	err := s.repo.UpdateSessionLoggedInAt(ctx, id, loggedInAt)
 	if err != nil {
 		return fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateRecord, id, err)
+	}
+
+	return nil
+}
+
+func (s *Service) InvalidateSession(ctx context.Context, id string) error {
+	err := s.repo.UpdateSessionStatus(ctx, id, SessionStatusLoggedOut.String())
+	if err != nil {
+		return fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateRecord, id, err)
+	}
+
+	return nil
+}
+
+func (s *Service) ListSessionsByUserID(ctx context.Context, userID string) ([]*Session, error) {
+	sessions, err := s.repo.ListSessionsByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(user_id: %s): %w", ErrFailedToListRecords, userID, err)
+	}
+
+	return sessions, nil
+}
+
+func (s *Service) UpdateSessionActivity(ctx context.Context, id string, userAgent *string) error {
+	err := s.repo.UpdateSessionActivity(ctx, id, userAgent)
+	if err != nil {
+		return fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateRecord, id, err)
+	}
+
+	return nil
+}
+
+func (s *Service) TerminateSession(ctx context.Context, sessionID, userID string) error {
+	err := s.repo.TerminateSession(ctx, sessionID, userID)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(session_id: %s, user_id: %s): %w",
+			ErrFailedToUpdateRecord,
+			sessionID,
+			userID,
+			err,
+		)
 	}
 
 	return nil

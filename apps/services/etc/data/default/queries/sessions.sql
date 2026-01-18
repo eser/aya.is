@@ -7,6 +7,8 @@ SELECT
   oauth_redirect_uri,
   logged_in_user_id,
   logged_in_at,
+  last_activity_at,
+  user_agent,
   expires_at,
   created_at,
   updated_at
@@ -25,6 +27,8 @@ INSERT INTO
     oauth_redirect_uri,
     logged_in_user_id,
     logged_in_at,
+    last_activity_at,
+    user_agent,
     expires_at,
     created_at,
     updated_at
@@ -38,10 +42,54 @@ VALUES
     sqlc.arg(oauth_redirect_uri),
     sqlc.arg(logged_in_user_id),
     sqlc.arg(logged_in_at),
+    sqlc.arg(last_activity_at),
+    sqlc.arg(user_agent),
     sqlc.arg(expires_at),
     sqlc.arg(created_at),
     sqlc.arg(updated_at)
   );
+
+-- name: ListSessionsByUserID :many
+SELECT
+  id,
+  status,
+  oauth_request_state,
+  oauth_request_code_verifier,
+  oauth_redirect_uri,
+  logged_in_user_id,
+  logged_in_at,
+  last_activity_at,
+  user_agent,
+  expires_at,
+  created_at,
+  updated_at
+FROM
+  session
+WHERE
+  logged_in_user_id = sqlc.arg(user_id)
+ORDER BY
+  last_activity_at DESC NULLS LAST,
+  created_at DESC;
+
+-- name: UpdateSessionActivity :exec
+UPDATE
+  session
+SET
+  last_activity_at = NOW(),
+  user_agent = COALESCE(sqlc.arg(user_agent), user_agent),
+  updated_at = NOW()
+WHERE
+  id = sqlc.arg(id);
+
+-- name: TerminateSession :exec
+UPDATE
+  session
+SET
+  status = 'terminated',
+  updated_at = NOW()
+WHERE
+  id = sqlc.arg(id)
+  AND logged_in_user_id = sqlc.arg(user_id);
 
 -- name: UpdateSessionLoggedInAt :exec
 UPDATE
@@ -51,6 +99,32 @@ SET
   updated_at = NOW()
 WHERE
   id = sqlc.arg(id);
+
+-- name: UpdateSessionStatus :exec
+UPDATE
+  session
+SET
+  status = sqlc.arg(status),
+  updated_at = NOW()
+WHERE
+  id = sqlc.arg(id);
+
+-- name: CopySessionPreferences :exec
+INSERT INTO
+  session_preference (session_id, key, value, updated_at)
+SELECT
+  sqlc.arg(new_session_id),
+  sp.key,
+  sp.value,
+  NOW()
+FROM
+  session_preference sp
+WHERE
+  sp.session_id = sqlc.arg(old_session_id)
+ON CONFLICT (session_id, key) DO UPDATE
+SET
+  value = EXCLUDED.value,
+  updated_at = NOW();
 
 -- Session Preferences
 

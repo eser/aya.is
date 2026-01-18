@@ -5,10 +5,12 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
@@ -19,6 +21,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 	logger *logfx.Logger,
 	authService *auth.Service,
 	userService *users.Service,
+	sessionService *sessions.Service,
 ) {
 	routes.
 		Route("GET /{locale}/users", func(ctx *httpfx.Context) httpfx.Result {
@@ -164,14 +167,40 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 
 	routes.
 		Route("POST /{locale}/auth/logout", func(ctx *httpfx.Context) httpfx.Result {
-			// Clear session cookie for cross-domain SSO
-			ClearSessionCookie(ctx.ResponseWriter, authService.Config)
+			// Get current session ID from cookie
+			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
+			if err != nil {
+				// No session to logout, just clear cookie and return success
+				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
-			// Invalidate session logic (optional, e.g., remove session from DB)
+				return ctx.Results.JSON(map[string]string{"status": "logged out"})
+			}
+
+			// Logout session: invalidate old, create new anonymous with same preferences
+			result, err := sessionService.LogoutSession(ctx.Request.Context(), sessionID)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to logout session",
+					slog.String("error", err.Error()),
+					slog.String("session_id", sessionID))
+				// Still clear the cookie even if logout fails
+				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
+
+				return ctx.Results.JSON(map[string]string{"status": "logged out"})
+			}
+
+			// Set new session cookie
+			expiresAt := time.Now().Add(24 * time.Hour)
+			SetSessionCookie(
+				ctx.ResponseWriter,
+				result.NewSession.ID,
+				expiresAt,
+				authService.Config,
+			)
+
 			return ctx.Results.JSON(map[string]string{"status": "logged out"})
 		}).
 		HasSummary("Logout").
-		HasDescription("Logs out the user.").
+		HasDescription("Logs out the user and creates a new anonymous session.").
 		HasResponse(http.StatusOK)
 
 	routes.

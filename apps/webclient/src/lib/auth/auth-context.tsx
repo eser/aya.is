@@ -4,7 +4,6 @@ import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
 import {
   clearAuthData,
-  getAuthToken,
   isTokenExpiringSoon,
   refreshTokenRequest,
   setAuthToken,
@@ -48,72 +47,20 @@ export function AuthProvider(props: AuthProviderProps) {
   });
 
   const initAuth = React.useCallback(async () => {
-    // Check localStorage first (fast path for already authenticated users)
+    // SSR check
     if (typeof window === "undefined" || !globalThis.localStorage) {
       setState((prev) => ({ ...prev, isLoading: false }));
       return;
     }
 
-    const token = getAuthToken();
-    const sessionStr = localStorage.getItem("auth_session");
-
-    // Fast path: token + cached session
-    if (token !== null && sessionStr !== null) {
-      try {
-        const session = JSON.parse(sessionStr);
-        setState({
-          isLoading: false,
-          isAuthenticated: true,
-          user: session.user || null,
-          token,
-        });
-        return;
-      } catch {
-        // Invalid session data, proceed to fetch session
-      }
-    }
-
     const locale = getCurrentLanguage();
-    const backendUri = getBackendUri();
 
-    // If we have a token but no session, fetch session using the token
-    if (token !== null) {
-      try {
-        const response = await fetch(
-          `${backendUri}/${locale}/sessions/current`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.data !== undefined && result.data !== null) {
-            const user = result.data.user || null;
-            localStorage.setItem("auth_session", JSON.stringify({ user }));
-            setState({
-              isLoading: false,
-              isAuthenticated: true,
-              user,
-              token,
-            });
-            return;
-          }
-        }
-      } catch {
-        // Token validation failed, clear and proceed
-        clearAuthData();
-      }
-    }
-
-    // Silent cookie-based check for cross-domain SSO (fallback)
+    // Always validate session via cookie-based check (works cross-domain)
+    // This is the source of truth for authentication state
     const result = await checkSessionViaCookie(locale);
 
     if (result.authenticated && result.token !== undefined) {
+      // User is authenticated - update local storage and state
       setAuthToken(
         result.token,
         result.expires_at ?? Date.now() + 24 * 60 * 60 * 1000,
@@ -129,6 +76,9 @@ export function AuthProvider(props: AuthProviderProps) {
         token: result.token,
       });
     } else {
+      // User is NOT authenticated - clear any stale local data
+      // This ensures logout on one domain propagates to all domains
+      clearAuthData();
       setState({
         isLoading: false,
         isAuthenticated: false,

@@ -4,7 +4,7 @@ import type { POWSolverRequest, POWSolverResponse } from "./types.ts";
  * Solve a PoW challenge using a Web Worker
  * Returns the nonce that solves the challenge
  */
-export async function solvePOW(
+export function solvePOW(
   prefix: string,
   difficulty: number,
 ): Promise<string> {

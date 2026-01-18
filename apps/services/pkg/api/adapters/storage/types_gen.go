@@ -190,6 +190,8 @@ type Session struct {
 	ExpiresAt                sql.NullTime   `db:"expires_at" json:"expires_at"`
 	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
+	LastActivityAt           sql.NullTime   `db:"last_activity_at" json:"last_activity_at"`
+	UserAgent                sql.NullString `db:"user_agent" json:"user_agent"`
 }
 
 type SessionPreference struct {
