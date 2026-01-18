@@ -186,6 +186,10 @@ export function getLocaleData(locale: string): Locale | undefined {
   return undefined;
 }
 
+export const predefinedSlugs: readonly string[] = [
+  "auth"
+];
+
 // Forbidden slugs (reserved for system routes)
 export const forbiddenSlugs: readonly string[] = [
   "about",

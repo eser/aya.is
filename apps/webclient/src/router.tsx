@@ -1,6 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import { DEFAULT_LOCALE } from "@/config";
+import { DEFAULT_LOCALE, predefinedSlugs, siteConfig } from "@/config";
 
 import type { RequestContext } from "@/request-context";
 
@@ -56,6 +56,12 @@ export async function getRouter() {
             pathParts.push(defaultLocale);
           }
 
+          // Skip profile slug injection for system routes (auth, api, etc.)
+          // These routes exist at /$locale/auth/* and shouldn't be nested under profile
+          if (predefinedSlugs.includes(pathParts[1])) {
+            return url;
+          }
+
           pathParts.splice(1, 0, customDomainProfileSlug);
           url.pathname = `/${pathParts.join("/")}`;
 
@@ -65,13 +71,23 @@ export async function getRouter() {
           // /tr/{profileSlug}/about -> /tr/about (always keeps locale)
           const pathParts = url.pathname.split("/").filter(Boolean);
 
+          // Skip profile slug injection for system routes (auth, api, etc.)
+          // These routes exist at /$locale/auth/* and shouldn't be nested under profile
+          if (predefinedSlugs.includes(pathParts[1])) {
+            return url;
+          }
+
           // Remove profile slug from position 1
           if (pathParts[1] === customDomainProfileSlug) {
             pathParts.splice(1, 1);
+            url.pathname = `/${pathParts.join("/")}`;
+
+            return url;
           }
 
-          url.pathname = `/${pathParts.join("/")}`;
-          return url;
+          const newUrl = new URL(siteConfig.host);
+          newUrl.pathname = `/${pathParts.join("/")}`;
+          return newUrl;
         },
       }
       : undefined,
