@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/eser/aya.is/services/pkg/ajan/lib"
 )
 
 var (
@@ -227,9 +229,12 @@ func reflectSet( //nolint:cyclop,gocognit,funlen
 			continue
 		}
 
-		// Check if the target map has the key with the child name
-		value, valueOk := (*target)[key].(string)
-		if !valueOk {
+		// Check if the target map has the key with the child name (case-insensitive)
+		rawValue, found := lib.CaseInsensitiveGet(target, key)
+
+		value, valueOk := rawValue.(string)
+
+		if !found || !valueOk {
 			if child.HasDefaultValue {
 				reflectSetField(child.Field, child.Type, child.DefaultValue)
 

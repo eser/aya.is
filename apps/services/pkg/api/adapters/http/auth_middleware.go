@@ -45,7 +45,7 @@ func AuthMiddleware(authService *auth.Service, userService *users.Service) httpf
 
 		// Load session from repository
 		session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-		if err != nil || session.Status != users.SessionStatusActive {
+		if err != nil || session == nil || session.Status != users.SessionStatusActive {
 			return ctx.Results.Unauthorized(httpfx.WithPlainText("Session invalid"))
 		}
 
