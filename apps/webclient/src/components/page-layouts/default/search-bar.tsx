@@ -17,6 +17,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config";
+import { useNavigation } from "@/modules/navigation/navigation-context";
 import type { Profile } from "@/modules/backend/types";
 import { getSpotlight } from "@/modules/backend/site/get-spotlight";
 import {
@@ -75,6 +76,7 @@ export function SearchBar() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { isCustomDomain } = useNavigation();
 
   const localeCode = i18n.language as SupportedLocaleCode;
 
@@ -139,7 +141,11 @@ export function SearchBar() {
                 <CommandItem
                   key={item.key}
                   onSelect={() => {
-                    navigate({ to: `/${localeCode}${item.href}` });
+                    if (isCustomDomain) {
+                      navigate({ href: `${siteConfig.host}/${localeCode}${item.href}` });
+                    } else {
+                      navigate({ to: `/${localeCode}${item.href}` });
+                    }
                     setOpen(false);
                   }}
                 >
@@ -164,7 +170,11 @@ export function SearchBar() {
                     <CommandItem
                       key={profile.id}
                       onSelect={() => {
-                        navigate({ to: `/${localeCode}/${profile.slug}` });
+                        if (isCustomDomain) {
+                          navigate({ href: `${siteConfig.host}/${localeCode}/${profile.slug}` });
+                        } else {
+                          navigate({ to: `/${localeCode}/${profile.slug}` });
+                        }
                         setOpen(false);
                       }}
                     >
