@@ -2,8 +2,9 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
-import { MdxContent } from "@/components/userland/mdx-content";
+import { StoryContent } from "@/components/widgets/story";
 import { compileMdx } from "@/lib/mdx";
+import { siteConfig } from "@/config";
 
 export const Route = createFileRoute("/$locale/$slug/stories/$storyslug")({
   loader: async ({ params }) => {
@@ -25,22 +26,25 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug")({
       }
     }
 
-    return { story, compiledContent };
+    // Build current URL for sharing
+    const currentUrl = `${siteConfig.host}/${locale}/${slug}/stories/${storyslug}`;
+
+    return { story, compiledContent, currentUrl };
   },
   component: ProfileStoryPage,
   notFoundComponent: StoryNotFound,
 });
 
 function ProfileStoryPage() {
-  const { story, compiledContent } = Route.useLoaderData();
+  const { story, compiledContent, currentUrl } = Route.useLoaderData();
 
   return (
-    <article className="content">
-      <h2>{story.title}</h2>
-      {compiledContent ? <MdxContent compiledSource={compiledContent} /> : (
-        story.content && <div dangerouslySetInnerHTML={{ __html: story.content }} />
-      )}
-    </article>
+    <StoryContent
+      story={story}
+      compiledContent={compiledContent}
+      currentUrl={currentUrl}
+      showAuthor={false}
+    />
   );
 }
 

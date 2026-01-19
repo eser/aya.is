@@ -3,8 +3,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
-import { StoryFooter, StoryMetadata, StoryShare } from "@/components/widgets/story";
-import { MdxContent } from "@/components/userland/mdx-content";
+import { StoryContent } from "@/components/widgets/story";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 
@@ -30,7 +29,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug")({
     }
 
     // Get current URL for sharing
-    const currentUrl = `${siteConfig.host}/stories/${storyslug}`;
+    const currentUrl = `${siteConfig.host}/${locale}/stories/${storyslug}`;
 
     return { story, compiledContent, currentUrl };
   },
@@ -44,21 +43,12 @@ function StoryPage() {
   return (
     <PageLayout>
       <section className="container px-4 py-8 mx-auto max-w-4xl">
-        <div className="content">
-          <h1>{story.title}</h1>
-
-          <StoryMetadata story={story} />
-
-          <article>
-            {compiledContent ? <MdxContent compiledSource={compiledContent} /> : (
-              story.content && <div dangerouslySetInnerHTML={{ __html: story.content }} />
-            )}
-          </article>
-
-          <StoryShare story={story} currentUrl={currentUrl} />
-
-          <StoryFooter story={story} />
-        </div>
+        <StoryContent
+          story={story}
+          compiledContent={compiledContent}
+          currentUrl={currentUrl}
+          showAuthor
+        />
       </section>
     </PageLayout>
   );
