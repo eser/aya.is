@@ -252,10 +252,15 @@ SELECT
   CASE
     WHEN u.kind = 'admin' THEN true
     WHEN s.author_profile_id = u.individual_profile_id THEN true
+    WHEN pm.kind IN ('owner', 'lead', 'editor') THEN true
     ELSE false
   END as can_edit
 FROM "story" s
 LEFT JOIN "user" u ON u.id = $1
+LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+  AND pm.member_profile_id = u.individual_profile_id
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 WHERE s.id = $2
   AND s.deleted_at IS NULL
 LIMIT 1
@@ -284,10 +289,15 @@ type GetStoryOwnershipForUserRow struct {
 //	  CASE
 //	    WHEN u.kind = 'admin' THEN true
 //	    WHEN s.author_profile_id = u.individual_profile_id THEN true
+//	    WHEN pm.kind IN ('owner', 'lead', 'editor') THEN true
 //	    ELSE false
 //	  END as can_edit
 //	FROM "story" s
 //	LEFT JOIN "user" u ON u.id = $1
+//	LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+//	  AND pm.member_profile_id = u.individual_profile_id
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 //	WHERE s.id = $2
 //	  AND s.deleted_at IS NULL
 //	LIMIT 1

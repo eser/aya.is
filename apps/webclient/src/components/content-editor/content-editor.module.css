@@ -1,3 +1,5 @@
+@reference "@/theme.css";
+
 /* Content Editor Styles */
 
 .editor-container {
@@ -51,7 +53,7 @@
 
 /* Preview Panel */
 .preview-panel {
-  @apply prose prose-sm dark:prose-invert max-w-none;
+  @apply max-w-none;
 }
 
 .preview-loading {
