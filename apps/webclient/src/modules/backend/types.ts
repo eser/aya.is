@@ -20,12 +20,31 @@ export interface Profile {
   updated_at: string;
 }
 
+export type ProfileLinkKind =
+  | "website"
+  | "github"
+  | "x"
+  | "linkedin"
+  | "instagram"
+  | "youtube"
+  | "bsky"
+  | "discord"
+  | "telegram";
+
 export interface ProfileLink {
   id: string;
-  kind: string;
-  uri: string;
-  title?: string | null;
-  sort_order: number;
+  kind: ProfileLinkKind;
+  profile_id: string;
+  order: number;
+  is_managed: boolean;
+  is_verified: boolean;
+  is_hidden: boolean;
+  remote_id?: string | null;
+  public_id?: string | null;
+  uri?: string | null;
+  title: string;
+  created_at: string;
+  updated_at?: string | null;
 }
 
 export interface ProfilePage {

@@ -47,12 +47,6 @@ function SettingsLayout() {
           {t("Profile.General")}
         </LocaleLink>
         <LocaleLink
-          to={`/${params.slug}/settings/translations`}
-          className="text-sm font-medium hover:text-foreground"
-        >
-          {t("Profile.Translations")}
-        </LocaleLink>
-        <LocaleLink
           to={`/${params.slug}/settings/links`}
           className="text-sm font-medium hover:text-foreground"
         >
