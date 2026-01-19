@@ -1,12 +1,15 @@
 // Profile index - shows profile stories/timeline with date grouping and pagination
 import * as React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
 import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+
+const parentRoute = getRouteApi("/$locale/$slug");
 
 export const Route = createFileRoute("/$locale/$slug/")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -25,6 +28,7 @@ function ProfileIndexPage() {
   const { t } = useTranslation();
   const auth = useAuth();
   const { stories, slug, locale } = Route.useLoaderData();
+  const { profile } = parentRoute.useLoaderData();
   const [canEdit, setCanEdit] = React.useState(false);
 
   // Check edit permissions
@@ -40,26 +44,32 @@ function ProfileIndexPage() {
     }
   }, [auth.isAuthenticated, auth.isLoading, locale, slug]);
 
+  if (profile === null) {
+    return null;
+  }
+
   return (
-    <div className="content">
-      {canEdit && (
-        <div className="flex justify-end mb-4">
-          <Link
-            to="/$locale/$slug/stories/new"
-            params={{ locale, slug }}
-          >
-            <Button variant="default" size="sm">
-              <Plus className="mr-1.5 size-4" />
-              {t("Editor.Add Story")}
-            </Button>
-          </Link>
-        </div>
-      )}
-      <StoriesPageClient
-        initialStories={stories}
-        basePath={`/${locale}/${slug}`}
-        profileSlug={slug}
-      />
-    </div>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+      <div className="content">
+        {canEdit && (
+          <div className="flex justify-end mb-4">
+            <Link
+              to="/$locale/$slug/stories/new"
+              params={{ locale, slug }}
+            >
+              <Button variant="default" size="sm">
+                <Plus className="mr-1.5 size-4" />
+                {t("Editor.Add Story")}
+              </Button>
+            </Link>
+          </div>
+        )}
+        <StoriesPageClient
+          initialStories={stories}
+          basePath={`/${locale}/${slug}`}
+          profileSlug={slug}
+        />
+      </div>
+    </ProfileSidebarLayout>
   );
 }

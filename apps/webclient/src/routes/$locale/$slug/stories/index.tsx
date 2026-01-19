@@ -1,7 +1,10 @@
 // Profile stories index - shows all profile stories with date grouping and pagination
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
+import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+
+const profileRoute = getRouteApi("/$locale/$slug");
 
 export const Route = createFileRoute("/$locale/$slug/stories/")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -18,14 +21,21 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
 
 function ProfileStoriesIndexPage() {
   const { stories, slug, locale } = Route.useLoaderData();
+  const { profile } = profileRoute.useLoaderData();
+
+  if (profile === null) {
+    return null;
+  }
 
   return (
-    <div className="content">
-      <StoriesPageClient
-        initialStories={stories}
-        basePath={`/${locale}/${slug}/stories`}
-        profileSlug={slug}
-      />
-    </div>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+      <div className="content">
+        <StoriesPageClient
+          initialStories={stories}
+          basePath={`/${locale}/${slug}/stories`}
+          profileSlug={slug}
+        />
+      </div>
+    </ProfileSidebarLayout>
   );
 }
