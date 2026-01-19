@@ -41,6 +41,9 @@ func Run(
 	routes.Use(CorsMiddlewareWithCustomDomains(authService.Config, profileService))
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics)) //nolint:contextcheck
 
+	// mcp adapter (must be registered before OPTIONS wildcard to avoid pattern conflict)
+	mcpadapter.RegisterMCPRoutes(routes, profileService, storyService)
+
 	// Global OPTIONS handler for preflight requests
 	routes.Route("OPTIONS /{path...}", func(ctx *httpfx.Context) httpfx.Result {
 		return ctx.Results.Ok()
@@ -92,9 +95,6 @@ func Run(
 		logger,
 		storyService,
 	)
-
-	// mcp adapter
-	mcpadapter.RegisterMCPRoutes(routes, profileService, storyService)
 
 	// run
 	return httpService.Start(ctx) //nolint:wrapcheck
