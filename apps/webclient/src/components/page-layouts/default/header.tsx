@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth/auth-context";
 import { LocaleLink } from "@/components/locale-link";
-import { Icons } from "@/components/icons";
+import { GitHub } from "@/components/icons";
 import { Logo } from "./logo";
 import { SearchBar } from "./search-bar";
 import { ProfileMenu } from "./profile-menu";
@@ -105,7 +105,7 @@ export function Header() {
                 login();
               }}
             >
-              <Icons.github className="mr-2 h-4 w-4" />
+              <GitHub className="mr-2 h-4 w-4" />
               <span>{t("Auth.Login with GitHub")}</span>
             </Button>
           )}

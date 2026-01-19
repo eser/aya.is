@@ -2,27 +2,36 @@
 import * as React from "react";
 import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Globe, Instagram, Link, Linkedin, Settings, Youtube } from "lucide-react";
+import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
-import { Icons } from "@/components/icons";
 import { PageLayout } from "@/components/page-layouts/default";
 import { useAuth } from "@/lib/auth/auth-context";
 
 function findIcon(kind: string) {
   switch (kind) {
     case "github":
-      return Icons.github;
+      return GitHub;
     case "twitter":
     case "x":
-      return Icons.twitter;
+      return X;
     case "linkedin":
-      return Icons.linkedin;
+      return Linkedin;
     case "instagram":
-      return Icons.instagram;
+      return Instagram;
     case "youtube":
-      return Icons.youtube;
+      return Youtube;
+    case "bsky":
+      return Bsky;
+    case "discord":
+      return Discord;
+    case "telegram":
+      return Telegram;
+    case "website":
+      return Globe;
     default:
-      return Icons.link;
+      return Link;
   }
 }
 
@@ -151,7 +160,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
               return (
                 <a
                   key={link.id}
-                  href={link.uri}
+                  href={link.uri ?? undefined}
                   title={link.title !== null && link.title !== undefined ? link.title : link.kind}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -228,7 +237,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                 to={`/${props.slug}/settings`}
                 className="no-underline text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
               >
-                <Icons.settings className="h-4 w-4" />
+                <Settings className="h-4 w-4" />
                 {t("Profile.Settings")}
               </LocaleLink>
             </li>

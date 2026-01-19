@@ -3,9 +3,9 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Moon, SunMedium } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
-import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
@@ -206,7 +206,7 @@ export function SearchBar() {
               }}
               disabled={theme === "light"}
             >
-              <Icons.sun className="w-4 h-4 mr-2" />
+              <SunMedium className="w-4 h-4 mr-2" />
               <span>{t("Layout.Light")}</span>
             </CommandItem>
             <CommandItem
@@ -216,7 +216,7 @@ export function SearchBar() {
               }}
               disabled={theme === "dark"}
             >
-              <Icons.moon className="w-4 h-4 mr-2" />
+              <Moon className="w-4 h-4 mr-2" />
               <span>{t("Layout.Midnight")}</span>
             </CommandItem>
           </CommandGroup>
