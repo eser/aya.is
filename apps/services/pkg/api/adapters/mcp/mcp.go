@@ -40,5 +40,7 @@ func RegisterMCPRoutes(
 		},
 	)
 
-	routes.GetMux().Handle("/mcp", handler)
+	// Register with explicit HTTP methods to avoid conflict with OPTIONS wildcard
+	routes.GetMux().Handle("GET /mcp", handler)
+	routes.GetMux().Handle("POST /mcp", handler)
 }
