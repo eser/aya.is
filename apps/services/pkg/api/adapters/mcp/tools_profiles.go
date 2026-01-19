@@ -15,10 +15,10 @@ const (
 )
 
 type listProfilesInput struct {
-	Locale string  `json:"locale,omitempty" jsonschema:"description=Locale code (default: en)"`
-	Kind   string  `json:"kind,omitempty"   jsonschema:"description=Filter by kind: individual organization product"`
-	Limit  int     `json:"limit,omitempty"  jsonschema:"description=Maximum results (default 20 max 100)"`
-	Cursor *string `json:"cursor,omitempty" jsonschema:"description=Pagination cursor for next page"`
+	Locale string  `json:"locale,omitempty" jsonschema:"Locale code (default: en)"`
+	Kind   string  `json:"kind,omitempty"   jsonschema:"Filter by kind: individual, organization, product"`
+	Limit  int     `json:"limit,omitempty"  jsonschema:"Maximum results (default 20, max 100)"`
+	Cursor *string `json:"cursor,omitempty" jsonschema:"Pagination cursor for next page"`
 }
 
 type profileBrief struct {
@@ -48,8 +48,8 @@ type listProfilesOutput struct {
 }
 
 type getProfileInput struct {
-	Locale string `json:"locale,omitempty" jsonschema:"description=Locale code (default: en)"`
-	Slug   string `json:"slug"             jsonschema:"required,description=Profile slug"`
+	Locale string `json:"locale,omitempty" jsonschema:"Locale code (default: en)"`
+	Slug   string `json:"slug"             jsonschema:"required,Profile slug"`
 }
 
 type getProfileOutput struct {
@@ -65,9 +65,9 @@ type getProfileOutput struct {
 }
 
 type getProfilePageInput struct {
-	Locale      string `json:"locale,omitempty" jsonschema:"description=Locale code (default: en)"`
-	ProfileSlug string `json:"profile_slug"     jsonschema:"required,description=Profile slug"`
-	PageSlug    string `json:"page_slug"        jsonschema:"required,description=Page slug"`
+	Locale      string `json:"locale,omitempty" jsonschema:"Locale code (default: en)"`
+	ProfileSlug string `json:"profile_slug"     jsonschema:"required,Profile slug"`
+	PageSlug    string `json:"page_slug"        jsonschema:"required,Page slug"`
 }
 
 type getProfilePageOutput struct {

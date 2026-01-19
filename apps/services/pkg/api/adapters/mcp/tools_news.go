@@ -14,10 +14,10 @@ var ErrNewsNotFound = errors.New("news item not found")
 const newsKind = "news"
 
 type listNewsInput struct {
-	Locale          string  `json:"locale,omitempty"           jsonschema:"description=Locale code (default: en)"`
-	PublicationSlug *string `json:"publication_slug,omitempty" jsonschema:"description=Filter by publication profile slug"`
-	Limit           int     `json:"limit,omitempty"            jsonschema:"description=Maximum results (default 20 max 100)"`
-	Cursor          *string `json:"cursor,omitempty"           jsonschema:"description=Pagination cursor for next page"`
+	Locale          string  `json:"locale,omitempty"           jsonschema:"Locale code (default: en)"`
+	PublicationSlug *string `json:"publication_slug,omitempty" jsonschema:"Filter by publication profile slug"`
+	Limit           int     `json:"limit,omitempty"            jsonschema:"Maximum results (default 20, max 100)"`
+	Cursor          *string `json:"cursor,omitempty"           jsonschema:"Pagination cursor for next page"`
 }
 
 type newsBrief struct {
@@ -36,8 +36,8 @@ type listNewsOutput struct {
 }
 
 type getNewsInput struct {
-	Locale string `json:"locale,omitempty" jsonschema:"description=Locale code (default: en)"`
-	Slug   string `json:"slug"             jsonschema:"required,description=News item slug"`
+	Locale string `json:"locale,omitempty" jsonschema:"Locale code (default: en)"`
+	Slug   string `json:"slug"             jsonschema:"required,News item slug"`
 }
 
 type getNewsOutput struct {
