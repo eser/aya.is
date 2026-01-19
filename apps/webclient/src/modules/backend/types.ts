@@ -137,7 +137,7 @@ export interface Story {
   deleted_at: string | null;
 }
 
-export interface StoryEx extends Omit<Story, "author_profile_id"> {
+export interface StoryEx extends Omit<Story, "author_profile_id" | "author_profile"> {
   author_profile: {
     id: string;
     slug: string;
@@ -229,4 +229,64 @@ export interface UpdateProfileTranslationInput {
   locale: string;
   title: string;
   description?: string;
+}
+
+// Story CRUD Types
+export interface InsertStoryInput {
+  slug: string;
+  kind: StoryKind;
+  title: string;
+  summary?: string;
+  content: string;
+  story_picture_uri?: string | null;
+  status: "draft" | "published";
+  is_featured?: boolean;
+}
+
+export interface UpdateStoryInput {
+  slug: string;
+  status: "draft" | "published";
+  is_featured?: boolean;
+  story_picture_uri?: string | null;
+}
+
+export interface UpdateStoryTranslationInput {
+  title: string;
+  summary?: string;
+  content: string;
+}
+
+export interface StoryEditData {
+  id: string;
+  kind: StoryKind;
+  slug: string | null;
+  story_picture_uri: string | null;
+  status: string;
+  is_featured: boolean;
+  title: string | null;
+  summary: string | null;
+  content: string;
+  author_profile_id: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface StoryPermissions {
+  can_edit: boolean;
+}
+
+// Upload Types
+export type UploadPurpose = "content-image" | "cover-image" | "profile-picture";
+
+export interface GetPresignedURLRequest {
+  filename: string;
+  content_type: string;
+  purpose: UploadPurpose;
+}
+
+export interface GetPresignedURLResponse {
+  upload_url: string;
+  key: string;
+  public_url: string;
+  expires_at: string;
 }

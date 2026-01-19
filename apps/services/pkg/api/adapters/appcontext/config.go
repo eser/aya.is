@@ -17,6 +17,15 @@ type FeatureFlags struct {
 	Dummy bool `conf:"dummy" default:"false"` // dummy feature flag
 }
 
+type S3Config struct {
+	Endpoint        string `conf:"endpoint"          default:""`
+	Region          string `conf:"region"            default:"auto"`
+	AccessKeyID     string `conf:"access_key_id"     default:""`
+	SecretAccessKey string `conf:"secret_access_key" default:""`
+	BucketName      string `conf:"bucket_name"       default:""`
+	PublicURL       string `conf:"public_url"        default:""`
+}
+
 type ExternalsConfig struct {
 	Arcade arcade.Config `conf:"arcade"`
 }
@@ -26,6 +35,7 @@ type AppConfig struct {
 	Sessions   sessions.Config   `conf:"sessions"`
 	Protection protection.Config `conf:"protection"`
 	Data       DataConfig        `conf:"data"`
+	S3         S3Config          `conf:"s3"`
 	Externals  ExternalsConfig   `conf:"externals"`
 	SiteURI    string            `conf:"site_uri"   default:"http://localhost:8080"`
 	ajan.BaseConfig

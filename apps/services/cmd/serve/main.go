@@ -33,6 +33,7 @@ func main() {
 			appContext.StoryService,
 			appContext.SessionService,
 			appContext.ProtectionService,
+			appContext.UploadService,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(

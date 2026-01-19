@@ -1,10 +1,14 @@
 // Profile story page
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import * as React from "react";
+import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { PencilLine } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
 import { StoryContent } from "@/components/widgets/story-content";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/$locale/$slug/stories/$storyslug")({
   loader: async ({ params }) => {
@@ -36,16 +40,54 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug")({
 });
 
 function ProfileStoryPage() {
+  const { t } = useTranslation();
+  const params = Route.useParams();
+  const auth = useAuth();
   const { story, compiledContent, currentUrl } = Route.useLoaderData();
+  const [canEdit, setCanEdit] = React.useState(false);
+
+  // Check edit permissions
+  React.useEffect(() => {
+    if (auth.isAuthenticated && !auth.isLoading) {
+      backend
+        .getStoryPermissions(params.locale, params.slug, story.id)
+        .then((perms) => {
+          if (perms !== null) {
+            setCanEdit(perms.can_edit);
+          }
+        });
+    } else {
+      setCanEdit(false);
+    }
+  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug, story.id]);
 
   return (
-    <StoryContent
-      story={story}
-      compiledContent={compiledContent}
-      currentUrl={currentUrl}
-      showAuthor={false}
-      headingOffset={2}
-    />
+    <div>
+      {canEdit && (
+        <div className="flex justify-end mb-4">
+          <Link
+            to="/$locale/$slug/stories/$storyslug/edit"
+            params={{
+              locale: params.locale,
+              slug: params.slug,
+              storyslug: params.storyslug,
+            }}
+          >
+            <Button variant="outline" size="sm">
+              <PencilLine className="mr-1.5 size-4" />
+              {t("Editor.Edit Story")}
+            </Button>
+          </Link>
+        </div>
+      )}
+      <StoryContent
+        story={story}
+        compiledContent={compiledContent}
+        currentUrl={currentUrl}
+        showAuthor={false}
+        headingOffset={2}
+      />
+    </div>
   );
 }
 

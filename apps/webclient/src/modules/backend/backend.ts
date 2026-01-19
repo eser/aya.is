@@ -27,6 +27,15 @@ import { updateProfilePageTranslation } from "./profiles/update-profile-page-tra
 import { deleteProfilePage } from "./profiles/delete-profile-page";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
+import { insertStory } from "./stories/insert-story";
+import { getStoryForEdit } from "./stories/get-story-for-edit";
+import { updateStory } from "./stories/update-story";
+import { updateStoryTranslation } from "./stories/update-story-translation";
+import { removeStory } from "./stories/remove-story";
+import { getStoryPermissions } from "./stories/get-story-permissions";
+import { getPresignedURL } from "./uploads/get-presigned-url";
+import { uploadToPresignedURL } from "./uploads/upload-to-presigned-url";
+import { removeUpload } from "./uploads/remove-upload";
 import { getCurrentSession } from "./sessions/get-current-session";
 import { createSession } from "./sessions/create-session";
 import { getSessionPreferences } from "./sessions/get-preferences";
@@ -77,6 +86,17 @@ export const backend = {
   // Stories
   getStoriesByKinds,
   getStory,
+  insertStory,
+  getStoryForEdit,
+  updateStory,
+  updateStoryTranslation,
+  removeStory,
+  getStoryPermissions,
+
+  // Uploads
+  getPresignedURL,
+  uploadToPresignedURL,
+  removeUpload,
 
   // Sessions
   getCurrentSession,
@@ -125,14 +145,20 @@ export {
   getProfileTranslations,
   getSessionPreferences,
   getSpotlight,
+  getPresignedURL,
   getStoriesByKinds,
   getStory,
+  getStoryForEdit,
+  getStoryPermissions,
   getUser,
   getUsers,
   handleAuthCallback,
+  insertStory,
   isPOWSolverSupported,
   listProfileLinks,
   listProfilePages,
+  removeStory,
+  removeUpload,
   solvePOW,
   updateProfile,
   updateProfileLink,
@@ -140,5 +166,8 @@ export {
   updateProfilePageTranslation,
   updateProfileTranslation,
   updateSessionPreferences,
+  updateStory,
+  updateStoryTranslation,
   uploadProfilePicture,
+  uploadToPresignedURL,
 };

@@ -140,6 +140,219 @@ func (r *Repository) ListStoriesOfPublication(
 	return wrappedResponse, nil
 }
 
+// CRUD methods for stories
+
+func (r *Repository) InsertStory(
+	ctx context.Context,
+	id string,
+	authorProfileID string,
+	slug string,
+	kind string,
+	status string,
+	isFeatured bool,
+	storyPictureURI *string,
+	properties map[string]any,
+) (*stories.Story, error) {
+	params := InsertStoryParams{
+		ID:              id,
+		AuthorProfileID: sql.NullString{String: authorProfileID, Valid: true},
+		Slug:            slug,
+		Kind:            kind,
+		Status:          status,
+		IsFeatured:      isFeatured,
+		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
+		Properties:      vars.ToSQLNullRawMessage(properties),
+	}
+
+	row, err := r.queries.InsertStory(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return &stories.Story{
+		ID:              row.ID,
+		AuthorProfileID: vars.ToStringPtr(row.AuthorProfileID),
+		Slug:            row.Slug,
+		Kind:            row.Kind,
+		Status:          row.Status,
+		IsFeatured:      row.IsFeatured,
+		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
+	}, nil
+}
+
+func (r *Repository) InsertStoryTx(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+	title string,
+	summary string,
+	content string,
+) error {
+	params := InsertStoryTxParams{
+		StoryID:    storyID,
+		LocaleCode: localeCode,
+		Title:      title,
+		Summary:    summary,
+		Content:    content,
+	}
+
+	return r.queries.InsertStoryTx(ctx, params)
+}
+
+func (r *Repository) InsertStoryPublication(
+	ctx context.Context,
+	id string,
+	storyID string,
+	profileID string,
+	kind string,
+	properties map[string]any,
+) error {
+	params := InsertStoryPublicationParams{
+		ID:         id,
+		StoryID:    storyID,
+		ProfileID:  profileID,
+		Kind:       kind,
+		Properties: vars.ToSQLNullRawMessage(properties),
+	}
+
+	_, err := r.queries.InsertStoryPublication(ctx, params)
+
+	return err
+}
+
+func (r *Repository) UpdateStory(
+	ctx context.Context,
+	id string,
+	slug string,
+	status string,
+	isFeatured bool,
+	storyPictureURI *string,
+) error {
+	params := UpdateStoryParams{
+		ID:              id,
+		Slug:            slug,
+		Status:          status,
+		IsFeatured:      isFeatured,
+		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
+	}
+
+	_, err := r.queries.UpdateStory(ctx, params)
+
+	return err
+}
+
+func (r *Repository) UpdateStoryTx(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+	title string,
+	summary string,
+	content string,
+) error {
+	params := UpdateStoryTxParams{
+		StoryID:    storyID,
+		LocaleCode: localeCode,
+		Title:      title,
+		Summary:    summary,
+		Content:    content,
+	}
+
+	_, err := r.queries.UpdateStoryTx(ctx, params)
+
+	return err
+}
+
+func (r *Repository) UpsertStoryTx(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+	title string,
+	summary string,
+	content string,
+) error {
+	params := UpsertStoryTxParams{
+		StoryID:    storyID,
+		LocaleCode: localeCode,
+		Title:      title,
+		Summary:    summary,
+		Content:    content,
+	}
+
+	return r.queries.UpsertStoryTx(ctx, params)
+}
+
+func (r *Repository) RemoveStory(ctx context.Context, id string) error {
+	params := RemoveStoryParams{ID: id}
+	_, err := r.queries.RemoveStory(ctx, params)
+
+	return err
+}
+
+func (r *Repository) GetStoryForEdit(
+	ctx context.Context,
+	localeCode string,
+	id string,
+) (*stories.StoryForEdit, error) {
+	params := GetStoryForEditParams{
+		LocaleCode: localeCode,
+		ID:         id,
+	}
+
+	row, err := r.queries.GetStoryForEdit(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return &stories.StoryForEdit{
+		ID:              row.ID,
+		AuthorProfileID: vars.ToStringPtr(row.AuthorProfileID),
+		Slug:            row.Slug,
+		Kind:            row.Kind,
+		Status:          row.Status,
+		IsFeatured:      row.IsFeatured,
+		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
+		Title:           row.Title,
+		Summary:         row.Summary,
+		Content:         row.Content,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
+	}, nil
+}
+
+func (r *Repository) GetStoryOwnershipForUser(
+	ctx context.Context,
+	userID string,
+	storyID string,
+) (*stories.StoryOwnership, error) {
+	params := GetStoryOwnershipForUserParams{
+		UserID:  userID,
+		StoryID: storyID,
+	}
+
+	row, err := r.queries.GetStoryOwnershipForUser(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return &stories.StoryOwnership{
+		ID:              row.ID,
+		Slug:            row.Slug,
+		AuthorProfileID: vars.ToStringPtr(row.AuthorProfileID),
+		UserKind:        row.UserKind.String,
+		CanEdit:         row.CanEdit,
+	}, nil
+}
+
 func (r *Repository) parseStoryWithChildren( //nolint:funlen
 	profile Profile,
 	profileTx ProfileTx,

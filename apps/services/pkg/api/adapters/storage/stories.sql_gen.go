@@ -9,6 +9,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
+
+	"github.com/sqlc-dev/pqtype"
 )
 
 const getStoryByID = `-- name: GetStoryByID :one
@@ -139,6 +142,81 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 	return &i, err
 }
 
+const getStoryForEdit = `-- name: GetStoryForEdit :one
+SELECT
+  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  st.locale_code,
+  st.title,
+  st.summary,
+  st.content
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = $1
+WHERE s.id = $2
+  AND s.deleted_at IS NULL
+LIMIT 1
+`
+
+type GetStoryForEditParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ID         string `db:"id" json:"id"`
+}
+
+type GetStoryForEditRow struct {
+	ID              string                `db:"id" json:"id"`
+	AuthorProfileID sql.NullString        `db:"author_profile_id" json:"author_profile_id"`
+	Slug            string                `db:"slug" json:"slug"`
+	Kind            string                `db:"kind" json:"kind"`
+	Status          string                `db:"status" json:"status"`
+	IsFeatured      bool                  `db:"is_featured" json:"is_featured"`
+	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	LocaleCode      string                `db:"locale_code" json:"locale_code"`
+	Title           string                `db:"title" json:"title"`
+	Summary         string                `db:"summary" json:"summary"`
+	Content         string                `db:"content" json:"content"`
+}
+
+// GetStoryForEdit
+//
+//	SELECT
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  st.locale_code,
+//	  st.title,
+//	  st.summary,
+//	  st.content
+//	FROM "story" s
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
+//	  AND st.locale_code = $1
+//	WHERE s.id = $2
+//	  AND s.deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams) (*GetStoryForEditRow, error) {
+	row := q.db.QueryRowContext(ctx, getStoryForEdit, arg.LocaleCode, arg.ID)
+	var i GetStoryForEditRow
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorProfileID,
+		&i.Slug,
+		&i.Kind,
+		&i.Status,
+		&i.IsFeatured,
+		&i.StoryPictureURI,
+		&i.Properties,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.LocaleCode,
+		&i.Title,
+		&i.Summary,
+		&i.Content,
+	)
+	return &i, err
+}
+
 const getStoryIDBySlug = `-- name: GetStoryIDBySlug :one
 SELECT id
 FROM "story"
@@ -165,8 +243,282 @@ func (q *Queries) GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugPara
 	return id, err
 }
 
-const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
+const getStoryOwnershipForUser = `-- name: GetStoryOwnershipForUser :one
+SELECT
+  s.id,
+  s.slug,
+  s.author_profile_id,
+  u.kind as user_kind,
+  CASE
+    WHEN u.kind = 'admin' THEN true
+    WHEN s.author_profile_id = u.individual_profile_id THEN true
+    ELSE false
+  END as can_edit
+FROM "story" s
+LEFT JOIN "user" u ON u.id = $1
+WHERE s.id = $2
+  AND s.deleted_at IS NULL
+LIMIT 1
+`
 
+type GetStoryOwnershipForUserParams struct {
+	UserID  string `db:"user_id" json:"user_id"`
+	StoryID string `db:"story_id" json:"story_id"`
+}
+
+type GetStoryOwnershipForUserRow struct {
+	ID              string         `db:"id" json:"id"`
+	Slug            string         `db:"slug" json:"slug"`
+	AuthorProfileID sql.NullString `db:"author_profile_id" json:"author_profile_id"`
+	UserKind        sql.NullString `db:"user_kind" json:"user_kind"`
+	CanEdit         bool           `db:"can_edit" json:"can_edit"`
+}
+
+// GetStoryOwnershipForUser
+//
+//	SELECT
+//	  s.id,
+//	  s.slug,
+//	  s.author_profile_id,
+//	  u.kind as user_kind,
+//	  CASE
+//	    WHEN u.kind = 'admin' THEN true
+//	    WHEN s.author_profile_id = u.individual_profile_id THEN true
+//	    ELSE false
+//	  END as can_edit
+//	FROM "story" s
+//	LEFT JOIN "user" u ON u.id = $1
+//	WHERE s.id = $2
+//	  AND s.deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetStoryOwnershipForUser(ctx context.Context, arg GetStoryOwnershipForUserParams) (*GetStoryOwnershipForUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getStoryOwnershipForUser, arg.UserID, arg.StoryID)
+	var i GetStoryOwnershipForUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.AuthorProfileID,
+		&i.UserKind,
+		&i.CanEdit,
+	)
+	return &i, err
+}
+
+const insertStory = `-- name: InsertStory :one
+
+INSERT INTO "story" (
+  id,
+  author_profile_id,
+  slug,
+  kind,
+  status,
+  is_featured,
+  story_picture_uri,
+  properties,
+  created_at
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7,
+  $8,
+  NOW()
+) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at
+`
+
+type InsertStoryParams struct {
+	ID              string                `db:"id" json:"id"`
+	AuthorProfileID sql.NullString        `db:"author_profile_id" json:"author_profile_id"`
+	Slug            string                `db:"slug" json:"slug"`
+	Kind            string                `db:"kind" json:"kind"`
+	Status          string                `db:"status" json:"status"`
+	IsFeatured      bool                  `db:"is_featured" json:"is_featured"`
+	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+}
+
+// -- name: ListStories :many
+// SELECT sqlc.embed(s), sqlc.embed(st), sqlc.embed(p), sqlc.embed(pt)
+// FROM "story" s
+//
+//	INNER JOIN "story_tx" st ON st.story_id = s.id
+//	AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
+//	AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
+//	AND st.locale_code = sqlc.arg(locale_code)
+//	LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+//	INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
+//
+// WHERE s.deleted_at IS NULL
+// ORDER BY s.created_at DESC;
+//
+//	INSERT INTO "story" (
+//	  id,
+//	  author_profile_id,
+//	  slug,
+//	  kind,
+//	  status,
+//	  is_featured,
+//	  story_picture_uri,
+//	  properties,
+//	  created_at
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5,
+//	  $6,
+//	  $7,
+//	  $8,
+//	  NOW()
+//	) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at
+func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error) {
+	row := q.db.QueryRowContext(ctx, insertStory,
+		arg.ID,
+		arg.AuthorProfileID,
+		arg.Slug,
+		arg.Kind,
+		arg.Status,
+		arg.IsFeatured,
+		arg.StoryPictureURI,
+		arg.Properties,
+	)
+	var i Story
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorProfileID,
+		&i.Slug,
+		&i.Kind,
+		&i.Status,
+		&i.IsFeatured,
+		&i.StoryPictureURI,
+		&i.Properties,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return &i, err
+}
+
+const insertStoryPublication = `-- name: InsertStoryPublication :one
+INSERT INTO "story_publication" (
+  id,
+  story_id,
+  profile_id,
+  kind,
+  properties,
+  created_at
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  NOW()
+) RETURNING id, story_id, profile_id, kind, properties, created_at, updated_at, deleted_at
+`
+
+type InsertStoryPublicationParams struct {
+	ID         string                `db:"id" json:"id"`
+	StoryID    string                `db:"story_id" json:"story_id"`
+	ProfileID  string                `db:"profile_id" json:"profile_id"`
+	Kind       string                `db:"kind" json:"kind"`
+	Properties pqtype.NullRawMessage `db:"properties" json:"properties"`
+}
+
+// InsertStoryPublication
+//
+//	INSERT INTO "story_publication" (
+//	  id,
+//	  story_id,
+//	  profile_id,
+//	  kind,
+//	  properties,
+//	  created_at
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5,
+//	  NOW()
+//	) RETURNING id, story_id, profile_id, kind, properties, created_at, updated_at, deleted_at
+func (q *Queries) InsertStoryPublication(ctx context.Context, arg InsertStoryPublicationParams) (*StoryPublication, error) {
+	row := q.db.QueryRowContext(ctx, insertStoryPublication,
+		arg.ID,
+		arg.StoryID,
+		arg.ProfileID,
+		arg.Kind,
+		arg.Properties,
+	)
+	var i StoryPublication
+	err := row.Scan(
+		&i.ID,
+		&i.StoryID,
+		&i.ProfileID,
+		&i.Kind,
+		&i.Properties,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return &i, err
+}
+
+const insertStoryTx = `-- name: InsertStoryTx :exec
+INSERT INTO "story_tx" (
+  story_id,
+  locale_code,
+  title,
+  summary,
+  content
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+)
+`
+
+type InsertStoryTxParams struct {
+	StoryID    string `db:"story_id" json:"story_id"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	Title      string `db:"title" json:"title"`
+	Summary    string `db:"summary" json:"summary"`
+	Content    string `db:"content" json:"content"`
+}
+
+// InsertStoryTx
+//
+//	INSERT INTO "story_tx" (
+//	  story_id,
+//	  locale_code,
+//	  title,
+//	  summary,
+//	  content
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5
+//	)
+func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error {
+	_, err := q.db.ExecContext(ctx, insertStoryTx,
+		arg.StoryID,
+		arg.LocaleCode,
+		arg.Title,
+		arg.Summary,
+		arg.Content,
+	)
+	return err
+}
+
+const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
   st.story_id, st.locale_code, st.title, st.summary, st.content,
@@ -218,19 +570,7 @@ type ListStoriesOfPublicationRow struct {
 	Publications json.RawMessage `db:"publications" json:"publications"`
 }
 
-// -- name: ListStories :many
-// SELECT sqlc.embed(s), sqlc.embed(st), sqlc.embed(p), sqlc.embed(pt)
-// FROM "story" s
-//
-//	INNER JOIN "story_tx" st ON st.story_id = s.id
-//	AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
-//	AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
-//	AND st.locale_code = sqlc.arg(locale_code)
-//	LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
-//	INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
-//
-// WHERE s.deleted_at IS NULL
-// ORDER BY s.created_at DESC;
+// ListStoriesOfPublication
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
@@ -326,4 +666,171 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeStory = `-- name: RemoveStory :execrows
+UPDATE "story"
+SET deleted_at = NOW()
+WHERE id = $1
+  AND deleted_at IS NULL
+`
+
+type RemoveStoryParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// RemoveStory
+//
+//	UPDATE "story"
+//	SET deleted_at = NOW()
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) RemoveStory(ctx context.Context, arg RemoveStoryParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, removeStory, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateStory = `-- name: UpdateStory :execrows
+UPDATE "story"
+SET
+  slug = $1,
+  status = $2,
+  is_featured = $3,
+  story_picture_uri = $4,
+  updated_at = NOW()
+WHERE id = $5
+  AND deleted_at IS NULL
+`
+
+type UpdateStoryParams struct {
+	Slug            string         `db:"slug" json:"slug"`
+	Status          string         `db:"status" json:"status"`
+	IsFeatured      bool           `db:"is_featured" json:"is_featured"`
+	StoryPictureURI sql.NullString `db:"story_picture_uri" json:"story_picture_uri"`
+	ID              string         `db:"id" json:"id"`
+}
+
+// UpdateStory
+//
+//	UPDATE "story"
+//	SET
+//	  slug = $1,
+//	  status = $2,
+//	  is_featured = $3,
+//	  story_picture_uri = $4,
+//	  updated_at = NOW()
+//	WHERE id = $5
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateStory,
+		arg.Slug,
+		arg.Status,
+		arg.IsFeatured,
+		arg.StoryPictureURI,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateStoryTx = `-- name: UpdateStoryTx :execrows
+UPDATE "story_tx"
+SET
+  title = $1,
+  summary = $2,
+  content = $3
+WHERE story_id = $4
+  AND locale_code = $5
+`
+
+type UpdateStoryTxParams struct {
+	Title      string `db:"title" json:"title"`
+	Summary    string `db:"summary" json:"summary"`
+	Content    string `db:"content" json:"content"`
+	StoryID    string `db:"story_id" json:"story_id"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+}
+
+// UpdateStoryTx
+//
+//	UPDATE "story_tx"
+//	SET
+//	  title = $1,
+//	  summary = $2,
+//	  content = $3
+//	WHERE story_id = $4
+//	  AND locale_code = $5
+func (q *Queries) UpdateStoryTx(ctx context.Context, arg UpdateStoryTxParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateStoryTx,
+		arg.Title,
+		arg.Summary,
+		arg.Content,
+		arg.StoryID,
+		arg.LocaleCode,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const upsertStoryTx = `-- name: UpsertStoryTx :exec
+INSERT INTO "story_tx" (
+  story_id,
+  locale_code,
+  title,
+  summary,
+  content
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+) ON CONFLICT (story_id, locale_code) DO UPDATE SET
+  title = EXCLUDED.title,
+  summary = EXCLUDED.summary,
+  content = EXCLUDED.content
+`
+
+type UpsertStoryTxParams struct {
+	StoryID    string `db:"story_id" json:"story_id"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	Title      string `db:"title" json:"title"`
+	Summary    string `db:"summary" json:"summary"`
+	Content    string `db:"content" json:"content"`
+}
+
+// UpsertStoryTx
+//
+//	INSERT INTO "story_tx" (
+//	  story_id,
+//	  locale_code,
+//	  title,
+//	  summary,
+//	  content
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5
+//	) ON CONFLICT (story_id, locale_code) DO UPDATE SET
+//	  title = EXCLUDED.title,
+//	  summary = EXCLUDED.summary,
+//	  content = EXCLUDED.content
+func (q *Queries) UpsertStoryTx(ctx context.Context, arg UpsertStoryTxParams) error {
+	_, err := q.db.ExecContext(ctx, upsertStoryTx,
+		arg.StoryID,
+		arg.LocaleCode,
+		arg.Title,
+		arg.Summary,
+		arg.Content,
+	)
+	return err
 }

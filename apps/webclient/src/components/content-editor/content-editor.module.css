@@ -1,0 +1,106 @@
+/* Content Editor Styles */
+
+.editor-container {
+  @apply flex h-full flex-col;
+}
+
+.editor-header {
+  @apply flex items-center justify-between border-b p-4;
+}
+
+.editor-main {
+  @apply flex flex-1 overflow-hidden;
+}
+
+.editor-sidebar {
+  @apply w-80 shrink-0 border-r p-4 overflow-y-auto;
+}
+
+.editor-content {
+  @apply flex flex-1 flex-col overflow-hidden;
+}
+
+.editor-toolbar {
+  @apply flex items-center justify-between border-b px-4 py-2;
+}
+
+.toolbar-group {
+  @apply flex items-center gap-1;
+}
+
+.editor-panels {
+  @apply flex flex-1 overflow-hidden;
+}
+
+.editor-panel {
+  @apply flex-1 overflow-y-auto p-4;
+}
+
+.editor-panel-split {
+  @apply w-1/2;
+}
+
+.editor-panel-divider {
+  @apply w-px bg-border;
+}
+
+/* Markdown Editor */
+.markdown-textarea {
+  @apply h-full w-full resize-none border-0 bg-transparent p-0 font-mono text-sm focus:ring-0 focus:outline-none;
+}
+
+/* Preview Panel */
+.preview-panel {
+  @apply prose prose-sm dark:prose-invert max-w-none;
+}
+
+.preview-loading {
+  @apply flex items-center justify-center h-full text-muted-foreground;
+}
+
+.preview-error {
+  @apply rounded-md border border-destructive/50 bg-destructive/10 p-4 text-destructive;
+}
+
+/* Metadata Form */
+.metadata-form {
+  @apply space-y-4;
+}
+
+.metadata-field {
+  @apply space-y-2;
+}
+
+.metadata-label {
+  @apply text-sm font-medium;
+}
+
+/* Image Upload */
+.upload-dropzone {
+  @apply flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors;
+}
+
+.upload-dropzone-active {
+  @apply border-primary bg-primary/5;
+}
+
+.upload-preview {
+  @apply relative rounded-md overflow-hidden;
+}
+
+.upload-preview-image {
+  @apply w-full h-auto object-cover;
+}
+
+/* Status Badge */
+.status-badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+}
+
+.status-draft {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400;
+}
+
+.status-published {
+  @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400;
+}

@@ -33,6 +33,7 @@ linters:
               desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
           allow:
             - $gostd
+            - github.com/aws/aws-sdk-go-v2
             - github.com/eser/aya.is/services
             - github.com/getkin/kin-openapi
             - github.com/go-faker/faker/v4

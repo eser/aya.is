@@ -13,12 +13,14 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_providers"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
+	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
+	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	_ "github.com/lib/pq"
 )
@@ -41,8 +43,10 @@ type AppContext struct {
 
 	Repository      *storage.Repository
 	JWTTokenService *auth_tokens.JWTTokenService
+	S3Client        *s3client.Client
 
 	// Business
+	UploadService     *uploads.Service
 	AuthService       *auth.Service
 	UserService       *users.Service
 	ProfileService    *profiles.Service
@@ -161,6 +165,31 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	a.JWTTokenService = auth_tokens.NewJWTTokenService(&a.Config.Auth)
 
 	// ----------------------------------------------------
+	// Adapter: S3Client (optional - only if configured)
+	// ----------------------------------------------------
+	if a.Config.S3.Endpoint != "" && a.Config.S3.BucketName != "" {
+		a.S3Client, err = s3client.New(ctx, s3client.Config{
+			Endpoint:        a.Config.S3.Endpoint,
+			Region:          a.Config.S3.Region,
+			AccessKeyID:     a.Config.S3.AccessKeyID,
+			SecretAccessKey: a.Config.S3.SecretAccessKey,
+			BucketName:      a.Config.S3.BucketName,
+			PublicURL:       a.Config.S3.PublicURL,
+		})
+		if err != nil {
+			return fmt.Errorf("%w: failed to create S3 client: %w", ErrInitFailed, err)
+		}
+
+		a.Logger.InfoContext(
+			ctx,
+			"[AppContext] S3 client initialized",
+			slog.String("module", "appcontext"),
+			slog.String("endpoint", a.Config.S3.Endpoint),
+			slog.String("bucket", a.Config.S3.BucketName),
+		)
+	}
+
+	// ----------------------------------------------------
 	// Business Services
 	// ----------------------------------------------------
 	a.ProfileService = profiles.NewService(a.Logger, a.Repository)
@@ -169,6 +198,11 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Repository,
 	)
 	a.StoryService = stories.NewService(a.Logger, a.Repository)
+
+	// UploadService (only if S3 client is available)
+	if a.S3Client != nil {
+		a.UploadService = uploads.NewService(a.Logger, a.S3Client)
+	}
 
 	a.AuthService = auth.NewService(
 		a.Logger,

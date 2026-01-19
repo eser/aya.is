@@ -492,6 +492,21 @@ type Querier interface {
 	//    AND s.deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*GetStoryByIDRow, error)
+	//GetStoryForEdit
+	//
+	//  SELECT
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+	//    st.locale_code,
+	//    st.title,
+	//    st.summary,
+	//    st.content
+	//  FROM "story" s
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
+	//    AND st.locale_code = $1
+	//  WHERE s.id = $2
+	//    AND s.deleted_at IS NULL
+	//  LIMIT 1
+	GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams) (*GetStoryForEditRow, error)
 	//GetStoryIDBySlug
 	//
 	//  SELECT id
@@ -500,6 +515,24 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error)
+	//GetStoryOwnershipForUser
+	//
+	//  SELECT
+	//    s.id,
+	//    s.slug,
+	//    s.author_profile_id,
+	//    u.kind as user_kind,
+	//    CASE
+	//      WHEN u.kind = 'admin' THEN true
+	//      WHEN s.author_profile_id = u.individual_profile_id THEN true
+	//      ELSE false
+	//    END as can_edit
+	//  FROM "story" s
+	//  LEFT JOIN "user" u ON u.id = $1
+	//  WHERE s.id = $2
+	//    AND s.deleted_at IS NULL
+	//  LIMIT 1
+	GetStoryOwnershipForUser(ctx context.Context, arg GetStoryOwnershipForUserParams) (*GetStoryOwnershipForUserRow, error)
 	//GetUserByEmail
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
@@ -540,6 +573,75 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	GetUserProfilePermissions(ctx context.Context, arg GetUserProfilePermissionsParams) ([]*GetUserProfilePermissionsRow, error)
+	// -- name: ListStories :many
+	// SELECT sqlc.embed(s), sqlc.embed(st), sqlc.embed(p), sqlc.embed(pt)
+	// FROM "story" s
+	//   INNER JOIN "story_tx" st ON st.story_id = s.id
+	//   AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
+	//   AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
+	//   AND st.locale_code = sqlc.arg(locale_code)
+	//   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+	//   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
+	// WHERE s.deleted_at IS NULL
+	// ORDER BY s.created_at DESC;
+	//
+	//
+	//  INSERT INTO "story" (
+	//    id,
+	//    author_profile_id,
+	//    slug,
+	//    kind,
+	//    status,
+	//    is_featured,
+	//    story_picture_uri,
+	//    properties,
+	//    created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    $6,
+	//    $7,
+	//    $8,
+	//    NOW()
+	//  ) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at
+	InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error)
+	//InsertStoryPublication
+	//
+	//  INSERT INTO "story_publication" (
+	//    id,
+	//    story_id,
+	//    profile_id,
+	//    kind,
+	//    properties,
+	//    created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    NOW()
+	//  ) RETURNING id, story_id, profile_id, kind, properties, created_at, updated_at, deleted_at
+	InsertStoryPublication(ctx context.Context, arg InsertStoryPublicationParams) (*StoryPublication, error)
+	//InsertStoryTx
+	//
+	//  INSERT INTO "story_tx" (
+	//    story_id,
+	//    locale_code,
+	//    title,
+	//    summary,
+	//    content
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5
+	//  )
+	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
@@ -628,18 +730,7 @@ type Querier interface {
 	//    last_activity_at DESC NULLS LAST,
 	//    created_at DESC
 	ListSessionsByUserID(ctx context.Context, arg ListSessionsByUserIDParams) ([]*ListSessionsByUserIDRow, error)
-	// -- name: ListStories :many
-	// SELECT sqlc.embed(s), sqlc.embed(st), sqlc.embed(p), sqlc.embed(pt)
-	// FROM "story" s
-	//   INNER JOIN "story_tx" st ON st.story_id = s.id
-	//   AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
-	//   AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
-	//   AND st.locale_code = sqlc.arg(locale_code)
-	//   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
-	//   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
-	// WHERE s.deleted_at IS NULL
-	// ORDER BY s.created_at DESC;
-	//
+	//ListStoriesOfPublication
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
@@ -712,6 +803,13 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	RemoveProfile(ctx context.Context, arg RemoveProfileParams) (int64, error)
+	//RemoveStory
+	//
+	//  UPDATE "story"
+	//  SET deleted_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	RemoveStory(ctx context.Context, arg RemoveStoryParams) (int64, error)
 	//RemoveUser
 	//
 	//  UPDATE "user"
@@ -846,6 +944,28 @@ type Querier interface {
 	//  WHERE
 	//    id = $2
 	UpdateSessionStatus(ctx context.Context, arg UpdateSessionStatusParams) error
+	//UpdateStory
+	//
+	//  UPDATE "story"
+	//  SET
+	//    slug = $1,
+	//    status = $2,
+	//    is_featured = $3,
+	//    story_picture_uri = $4,
+	//    updated_at = NOW()
+	//  WHERE id = $5
+	//    AND deleted_at IS NULL
+	UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error)
+	//UpdateStoryTx
+	//
+	//  UPDATE "story_tx"
+	//  SET
+	//    title = $1,
+	//    summary = $2,
+	//    content = $3
+	//  WHERE story_id = $4
+	//    AND locale_code = $5
+	UpdateStoryTx(ctx context.Context, arg UpdateStoryTxParams) (int64, error)
 	//UpdateUser
 	//
 	//  UPDATE "user"
@@ -911,6 +1031,25 @@ type Querier interface {
 	//      ELSE session_rate_limit.window_start
 	//    END
 	UpsertSessionRateLimit(ctx context.Context, arg UpsertSessionRateLimitParams) error
+	//UpsertStoryTx
+	//
+	//  INSERT INTO "story_tx" (
+	//    story_id,
+	//    locale_code,
+	//    title,
+	//    summary,
+	//    content
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5
+	//  ) ON CONFLICT (story_id, locale_code) DO UPDATE SET
+	//    title = EXCLUDED.title,
+	//    summary = EXCLUDED.summary,
+	//    content = EXCLUDED.content
+	UpsertStoryTx(ctx context.Context, arg UpsertStoryTxParams) error
 }
 
 var _ Querier = (*Queries)(nil)

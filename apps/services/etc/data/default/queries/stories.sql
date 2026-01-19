@@ -50,6 +50,136 @@ LIMIT 1;
 -- WHERE s.deleted_at IS NULL
 -- ORDER BY s.created_at DESC;
 
+-- name: InsertStory :one
+INSERT INTO "story" (
+  id,
+  author_profile_id,
+  slug,
+  kind,
+  status,
+  is_featured,
+  story_picture_uri,
+  properties,
+  created_at
+) VALUES (
+  sqlc.arg(id),
+  sqlc.arg(author_profile_id),
+  sqlc.arg(slug),
+  sqlc.arg(kind),
+  sqlc.arg(status),
+  sqlc.arg(is_featured),
+  sqlc.narg(story_picture_uri),
+  sqlc.narg(properties),
+  NOW()
+) RETURNING *;
+
+-- name: InsertStoryTx :exec
+INSERT INTO "story_tx" (
+  story_id,
+  locale_code,
+  title,
+  summary,
+  content
+) VALUES (
+  sqlc.arg(story_id),
+  sqlc.arg(locale_code),
+  sqlc.arg(title),
+  sqlc.arg(summary),
+  sqlc.arg(content)
+);
+
+-- name: InsertStoryPublication :one
+INSERT INTO "story_publication" (
+  id,
+  story_id,
+  profile_id,
+  kind,
+  properties,
+  created_at
+) VALUES (
+  sqlc.arg(id),
+  sqlc.arg(story_id),
+  sqlc.arg(profile_id),
+  sqlc.arg(kind),
+  sqlc.narg(properties),
+  NOW()
+) RETURNING *;
+
+-- name: UpdateStory :execrows
+UPDATE "story"
+SET
+  slug = sqlc.arg(slug),
+  status = sqlc.arg(status),
+  is_featured = sqlc.arg(is_featured),
+  story_picture_uri = sqlc.narg(story_picture_uri),
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: UpdateStoryTx :execrows
+UPDATE "story_tx"
+SET
+  title = sqlc.arg(title),
+  summary = sqlc.arg(summary),
+  content = sqlc.arg(content)
+WHERE story_id = sqlc.arg(story_id)
+  AND locale_code = sqlc.arg(locale_code);
+
+-- name: UpsertStoryTx :exec
+INSERT INTO "story_tx" (
+  story_id,
+  locale_code,
+  title,
+  summary,
+  content
+) VALUES (
+  sqlc.arg(story_id),
+  sqlc.arg(locale_code),
+  sqlc.arg(title),
+  sqlc.arg(summary),
+  sqlc.arg(content)
+) ON CONFLICT (story_id, locale_code) DO UPDATE SET
+  title = EXCLUDED.title,
+  summary = EXCLUDED.summary,
+  content = EXCLUDED.content;
+
+-- name: RemoveStory :execrows
+UPDATE "story"
+SET deleted_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: GetStoryForEdit :one
+SELECT
+  s.*,
+  st.locale_code,
+  st.title,
+  st.summary,
+  st.content
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = sqlc.arg(locale_code)
+WHERE s.id = sqlc.arg(id)
+  AND s.deleted_at IS NULL
+LIMIT 1;
+
+-- name: GetStoryOwnershipForUser :one
+SELECT
+  s.id,
+  s.slug,
+  s.author_profile_id,
+  u.kind as user_kind,
+  CASE
+    WHEN u.kind = 'admin' THEN true
+    WHEN s.author_profile_id = u.individual_profile_id THEN true
+    ELSE false
+  END as can_edit
+FROM "story" s
+LEFT JOIN "user" u ON u.id = sqlc.arg(user_id)
+WHERE s.id = sqlc.arg(story_id)
+  AND s.deleted_at IS NULL
+LIMIT 1;
+
 -- name: ListStoriesOfPublication :many
 SELECT
   sqlc.embed(s),
