@@ -15,7 +15,7 @@ function findIcon(kind: string) {
       return Icons.github;
     case "twitter":
     case "x":
-      return Icons.twitter;
+      return Icons.x;
     case "linkedin":
       return Icons.linkedin;
     case "instagram":

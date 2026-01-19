@@ -14,6 +14,7 @@ export const Icons = {
   linkedin: Lucide.Linkedin,
   instagram: Lucide.Instagram,
   youtube: Lucide.Youtube,
+  x: Lucide.XIcon,
   gitFork: Lucide.GitFork,
   gitPullRequest: Lucide.GitPullRequest,
   gitCommit: Lucide.GitCommit,

@@ -5,6 +5,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import { NavigationProvider, type NavigationState } from "@/modules/navigation/navigation-context";
@@ -103,6 +104,7 @@ function RootComponent() {
             >
               <LocaleSynchronizer />
               <Outlet />
+              <Toaster />
             </ThemeProvider>
           </AuthProvider>
         </RootDocument>
