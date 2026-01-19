@@ -70,7 +70,7 @@ function StoryNotFound() {
   return (
     <PageLayout>
       <section className="container px-4 py-8 mx-auto text-center">
-        <h1 className="text-3xl font-bold mb-4">
+        <h1 className="font-serif text-3xl font-bold mb-4">
           {t("Layout.Page not found")}
         </h1>
         <p className="text-muted-foreground">

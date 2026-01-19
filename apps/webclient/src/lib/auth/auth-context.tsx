@@ -9,12 +9,13 @@ import {
   setAuthToken,
 } from "@/modules/backend/fetcher";
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email?: string;
   github_handle?: string;
   individual_profile_id?: string;
+  individual_profile_slug?: string;
 }
 
 interface AuthContextValue {
@@ -65,14 +66,21 @@ export function AuthProvider(props: AuthProviderProps) {
         result.token,
         result.expires_at ?? Date.now() + 24 * 60 * 60 * 1000,
       );
+
+      // Combine user data with profile slug if available
+      const userData: User | null = result.user !== undefined ? {
+        ...result.user,
+        individual_profile_slug: result.selected_profile?.slug,
+      } : null;
+
       localStorage.setItem(
         "auth_session",
-        JSON.stringify({ user: result.user }),
+        JSON.stringify({ user: userData }),
       );
       setState({
         isLoading: false,
         isAuthenticated: true,
-        user: result.user || null,
+        user: userData,
         token: result.token,
       });
     } else {

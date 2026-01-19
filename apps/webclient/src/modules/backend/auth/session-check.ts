@@ -11,6 +11,14 @@ export interface SessionCheckResponse {
     github_handle?: string;
     individual_profile_id?: string;
   };
+  selected_profile?: {
+    id: string;
+    slug: string;
+    kind: string;
+    title: string;
+    description?: string;
+    profile_picture_uri?: string;
+  };
 }
 
 /**

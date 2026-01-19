@@ -185,7 +185,7 @@ function NotFoundComponent() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-4xl font-bold">404</h1>
+      <h1 className="font-serif text-4xl font-bold">404</h1>
       <p className="text-muted-foreground">{t("Error.Page not found")}</p>
       <Button render={<Link to="/">{t("Layout.Go Home")}</Link>} />
     </div>

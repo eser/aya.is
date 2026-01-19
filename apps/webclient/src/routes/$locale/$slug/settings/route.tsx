@@ -31,7 +31,7 @@ function SettingsLayout() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">{t("Profile.Settings")}</h2>
+        <h2 className="font-serif text-2xl font-bold">{t("Profile.Settings")}</h2>
         <p className="text-muted-foreground">
           {t(
             "Profile.Manage your profile information, links, and preferences.",

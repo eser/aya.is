@@ -39,7 +39,7 @@ export function ProductCard(props: ProductCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle>
-              <h3 className="text-xl font-semibold mb-1 text-foreground">
+              <h3 className="font-serif text-xl font-semibold mb-1 text-foreground">
                 {product.title}
               </h3>
             </CardTitle>

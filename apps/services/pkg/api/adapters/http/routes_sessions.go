@@ -82,13 +82,36 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 			user, _ := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
 
+			response := map[string]any{
+				"authenticated":    true,
+				"token":            tokenString,
+				"expires_at":       expiresAt.Unix(),
+				"user":             user,
+				"selected_profile": nil,
+			}
+
+			// If user has an individual profile, fetch it
+			if user != nil && user.IndividualProfileID != nil {
+				locale := ctx.Request.PathValue("locale")
+				profile, profileErr := profileService.GetByID(
+					ctx.Request.Context(),
+					locale,
+					*user.IndividualProfileID,
+				)
+				if profileErr == nil && profile != nil {
+					response["selected_profile"] = map[string]any{
+						"id":                  profile.ID,
+						"slug":                profile.Slug,
+						"kind":                profile.Kind,
+						"title":               profile.Title,
+						"description":         profile.Description,
+						"profile_picture_uri": profile.ProfilePictureURI,
+					}
+				}
+			}
+
 			return ctx.Results.JSON(map[string]any{
-				"data": map[string]any{
-					"authenticated": true,
-					"token":         tokenString,
-					"expires_at":    expiresAt.Unix(),
-					"user":          user,
-				},
+				"data": response,
 			})
 		}).
 		HasSummary("Session Check").

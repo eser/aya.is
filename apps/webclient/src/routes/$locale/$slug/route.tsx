@@ -62,7 +62,7 @@ function ProfileNotFound() {
   return (
     <PageLayout>
       <div className="container mx-auto py-16 px-4 text-center">
-        <h1 className="text-4xl font-bold mb-4">{t("Layout.Page not found")}</h1>
+        <h1 className="font-serif text-4xl font-bold mb-4">{t("Layout.Page not found")}</h1>
         <p className="text-muted-foreground">
           {t("Layout.The page you are looking for does not exist. Please check your spelling and try again.")}
         </p>
@@ -154,7 +154,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
         {props.profile.links !== null &&
           props.profile.links !== undefined &&
           props.profile.links.length > 0 && (
-          <div className="flex gap-4 mb-3 text-sm text-muted">
+          <div className="flex gap-4 mb-3 text-sm text-muted-foreground">
             {props.profile.links.map((link) => {
               const Icon = findIcon(link.kind);
               return (
@@ -166,7 +166,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                   rel="noopener noreferrer"
                   className="no-underline"
                 >
-                  <Icon className="stroke-muted-foreground hover:stroke-foreground h-5 w-5" />
+                  <Icon className="hover:stroke-foreground h-5 w-5" />
                 </a>
               );
             })}

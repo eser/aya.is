@@ -23,7 +23,6 @@ function ProductsPage() {
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
           <h1>{t("Layout.Products")}</h1>
-          <h2 className="subtitle">{t("Products.Description")}</h2>
 
           <ProductsContent initialProfiles={products} />
         </div>

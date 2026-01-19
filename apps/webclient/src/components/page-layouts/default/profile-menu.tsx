@@ -39,9 +39,8 @@ export function ProfileMenu(props: ProfileMenuProps) {
 
   const handleProfileClick = () => {
     // Navigate to user's profile if they have one, otherwise to create profile page
-    if (user.individual_profile_id !== undefined) {
-      // TODO: Get slug from profile data when available
-      navigate({ to: `/${locale}/elements/create-profile` });
+    if (user.individual_profile_slug !== undefined) {
+      navigate({ to: `/${locale}/${user.individual_profile_slug}` });
     } else {
       navigate({ to: `/${locale}/elements/create-profile` });
     }

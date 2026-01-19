@@ -26,7 +26,6 @@ function ElementsIndexPage() {
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
           <h1>{t("Layout.Elements")}</h1>
-          <h2 className="subtitle">{t("Elements.Description")}</h2>
 
           <ElementsContent initialProfiles={profiles} />
         </div>

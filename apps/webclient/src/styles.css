@@ -191,10 +191,6 @@
       @apply text-start list-none;
     }
   }
-
-  p {
-    @apply text-justify;
-  }
 }
 
 /* Content links get underlines */

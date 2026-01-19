@@ -351,7 +351,7 @@ function LinksSettingsPage() {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-semibold">{t("Profile.Social Links")}</h3>
+          <h3 className="font-serif text-xl font-semibold">{t("Profile.Social Links")}</h3>
           <p className="text-muted-foreground text-sm mt-1">
             {t("Profile.Manage your social media links and external websites.")}
           </p>
