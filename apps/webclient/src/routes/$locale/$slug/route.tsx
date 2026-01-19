@@ -166,7 +166,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                   rel="noopener noreferrer"
                   className="no-underline"
                 >
-                  <Icon className="hover:stroke-foreground h-5 w-5" />
+                  <Icon className="hover:text-foreground h-5 w-5" />
                 </a>
               );
             })}
