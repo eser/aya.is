@@ -73,6 +73,11 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		return fmt.Errorf("%w: %w", ErrInitFailed, ErrJWTSecretMissing)
 	}
 
+	// Log JWT secret length for debugging (not the actual secret)
+	slog.Info("JWT secret loaded",
+		slog.Int("jwt_secret_length", len(a.Config.Auth.JwtSecret)),
+	)
+
 	// ----------------------------------------------------
 	// Adapter: Logger
 	// ----------------------------------------------------
