@@ -53,9 +53,9 @@ VALUES (sqlc.arg(profile_id), sqlc.arg(locale_code), sqlc.arg(title), sqlc.arg(d
 -- name: UpdateProfile :execrows
 UPDATE "profile"
 SET
-  profile_picture_uri = sqlc.narg(profile_picture_uri),
-  pronouns = sqlc.narg(pronouns),
-  properties = sqlc.narg(properties),
+  profile_picture_uri = COALESCE(sqlc.narg(profile_picture_uri), profile_picture_uri),
+  pronouns = COALESCE(sqlc.narg(pronouns), pronouns),
+  properties = COALESCE(sqlc.narg(properties), properties),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;

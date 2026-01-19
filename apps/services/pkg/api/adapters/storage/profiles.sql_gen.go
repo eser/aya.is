@@ -1419,9 +1419,9 @@ func (q *Queries) RemoveProfile(ctx context.Context, arg RemoveProfileParams) (i
 const updateProfile = `-- name: UpdateProfile :execrows
 UPDATE "profile"
 SET
-  profile_picture_uri = $1,
-  pronouns = $2,
-  properties = $3,
+  profile_picture_uri = COALESCE($1, profile_picture_uri),
+  pronouns = COALESCE($2, pronouns),
+  properties = COALESCE($3, properties),
   updated_at = NOW()
 WHERE id = $4
   AND deleted_at IS NULL
@@ -1438,9 +1438,9 @@ type UpdateProfileParams struct {
 //
 //	UPDATE "profile"
 //	SET
-//	  profile_picture_uri = $1,
-//	  pronouns = $2,
-//	  properties = $3,
+//	  profile_picture_uri = COALESCE($1, profile_picture_uri),
+//	  pronouns = COALESCE($2, pronouns),
+//	  properties = COALESCE($3, properties),
 //	  updated_at = NOW()
 //	WHERE id = $4
 //	  AND deleted_at IS NULL
