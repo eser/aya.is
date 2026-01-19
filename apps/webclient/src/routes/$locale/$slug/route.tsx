@@ -166,7 +166,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                   rel="noopener noreferrer"
                   className="no-underline"
                 >
-                  <Icon className="hover:text-foreground h-5 w-5" />
+                  <Icon className="transition-colors hover:text-foreground h-5 w-5" />
                 </a>
               );
             })}
@@ -187,7 +187,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
           <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
             <LocaleLink
               to={`/${props.slug}`}
-              className="no-underline text-muted-foreground hover:text-foreground"
+              className="no-underline transition-colors text-muted-foreground hover:text-foreground"
             >
               {t("Layout.Profile")}
             </LocaleLink>
@@ -197,7 +197,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
               <LocaleLink
                 to={`/${props.slug}/contributions`}
-                className="no-underline text-muted-foreground hover:text-foreground"
+                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
               >
                 {t("Layout.Contributions")}
               </LocaleLink>
@@ -210,7 +210,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
               <LocaleLink
                 to={`/${props.slug}/members`}
-                className="no-underline text-muted-foreground hover:text-foreground"
+                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
               >
                 {t("Layout.Members")}
               </LocaleLink>
@@ -224,7 +224,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             >
               <LocaleLink
                 to={`/${props.slug}/${page.slug}`}
-                className="no-underline text-muted-foreground hover:text-foreground"
+                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
               >
                 {page.title}
               </LocaleLink>
@@ -235,7 +235,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl md:after:content-none">
               <LocaleLink
                 to={`/${props.slug}/settings`}
-                className="no-underline text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
+                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
               >
                 {t("Profile.Settings")}
               </LocaleLink>
