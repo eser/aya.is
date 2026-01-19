@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	DefaultCacheTTL = 1 * time.Hour
+	DefaultCacheTTL = 2 * time.Minute
 )
 
 var (

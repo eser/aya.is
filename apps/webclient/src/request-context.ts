@@ -8,6 +8,7 @@ export type DomainConfiguration = {
   type: "custom-domain";
   defaultCulture: SupportedLocaleCode;
   profileSlug: string;
+  profileTitle: string | null;
   allowsWwwPrefix: boolean;
 } | {
   type: "not-configured";

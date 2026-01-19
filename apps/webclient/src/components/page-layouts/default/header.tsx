@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/lib/auth/auth-context";
 import { LocaleLink } from "@/components/locale-link";
 import { GitHub } from "@/components/icons";
+import { useNavigation } from "@/modules/navigation/navigation-context";
 import { Logo } from "./logo";
 import { SearchBar } from "./search-bar";
 import { ProfileMenu } from "./profile-menu";
@@ -30,6 +31,7 @@ function useNavItems() {
 export function Header() {
   const { t } = useTranslation();
   const { isAuthenticated, login } = useAuth();
+  const { isCustomDomain, customDomainProfileSlug, customDomainProfileTitle } = useNavigation();
   const navItems = useNavItems();
 
   return (
@@ -39,56 +41,83 @@ export function Header() {
         <nav className="flex-1">
           <div className="hidden md:flex items-center gap-5">
             <LocaleLink
-              to="/"
+              to={isCustomDomain ? `/${customDomainProfileSlug}` : "/"}
               className="text-foreground hover:text-accent-foreground no-underline"
             >
               <Logo />
             </LocaleLink>
-            {navItems.map((item) => (
-              <LocaleLink
-                key={item.key}
-                to={item.href}
-                className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
-              >
-                {item.title}
-              </LocaleLink>
-            ))}
+            {isCustomDomain ? (
+              customDomainProfileTitle !== null && (
+                <LocaleLink
+                  to={`/${customDomainProfileSlug}`}
+                  className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
+                >
+                  {customDomainProfileTitle}
+                </LocaleLink>
+              )
+            ) : (
+              navItems.map((item) => (
+                <LocaleLink
+                  key={item.key}
+                  to={item.href}
+                  className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
+                >
+                  {item.title}
+                </LocaleLink>
+              ))
+            )}
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={(props) => (
-                  <Button
-                    {...props}
-                    variant="ghost"
-                    className="-ml-4 hover:bg-transparent"
-                  >
-                    <Logo />
-                  </Button>
+            {isCustomDomain ? (
+              <div className="flex items-center gap-3">
+                <LocaleLink
+                  to="/"
+                  className="text-foreground hover:text-accent-foreground no-underline"
+                >
+                  <Logo />
+                </LocaleLink>
+                {customDomainProfileTitle !== null && (
+                  <span className="text-sm font-semibold text-foreground">
+                    {customDomainProfileTitle}
+                  </span>
                 )}
-              />
-              <DropdownMenuContent
-                align="start"
-                sideOffset={14}
-                className="w-[300px]"
-              >
-                <DropdownMenuItem>
-                  <LocaleLink to="/" className="no-underline w-full">
-                    {t("Layout.Homepage")}
-                  </LocaleLink>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {navItems.map((item) => (
-                  <DropdownMenuItem key={item.key}>
-                    <LocaleLink to={item.href} className="no-underline w-full">
-                      {item.title}
+              </div>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={(props) => (
+                    <Button
+                      {...props}
+                      variant="ghost"
+                      className="-ml-4 hover:bg-transparent"
+                    >
+                      <Logo />
+                    </Button>
+                  )}
+                />
+                <DropdownMenuContent
+                  align="start"
+                  sideOffset={14}
+                  className="w-[300px]"
+                >
+                  <DropdownMenuItem>
+                    <LocaleLink to="/" className="no-underline w-full">
+                      {t("Layout.Homepage")}
                     </LocaleLink>
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuSeparator />
+                  {navItems.map((item) => (
+                    <DropdownMenuItem key={item.key}>
+                      <LocaleLink to={item.href} className="no-underline w-full">
+                        {item.title}
+                      </LocaleLink>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </nav>
 

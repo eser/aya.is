@@ -34,7 +34,8 @@ function detectNavigationState(
   // Check if we have custom domain info from middleware context
   const domainConfig = requestContext?.domainConfiguration;
   const isCustom = domainConfig?.type === "custom-domain";
-  const customProfile = isCustom ? domainConfig.profileSlug : null;
+  const customProfileSlug = isCustom ? domainConfig.profileSlug : null;
+  const customProfileTitle = isCustom ? domainConfig.profileTitle : null;
 
   // Parse locale from URL path
   const { locale: urlLocale } = parseLocaleFromPath(pathname);
@@ -52,7 +53,8 @@ function detectNavigationState(
     localeData: supportedLocales[localeCode],
     isCustomDomain: isCustom,
     customDomainHost: isCustom ? host ?? null : null,
-    customDomainProfile: customProfile,
+    customDomainProfileSlug: customProfileSlug,
+    customDomainProfileTitle: customProfileTitle,
   };
 }
 
@@ -165,7 +167,7 @@ globalThis.__REQUEST_CONTEXT__ = ${JSON.stringify(requestContext)};
         <ResponsiveIndicator />
         <TanStackDevtools
           config={{
-            position: "bottom-right",
+            position: "bottom-left",
           }}
           plugins={[
             {

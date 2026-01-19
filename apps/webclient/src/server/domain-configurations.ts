@@ -5,8 +5,8 @@ import { isMainDomain } from "@/shared.ts";
 import type { DomainConfiguration } from "@/request-context";
 
 // Cache for custom domain lookups
-const domainCache = new Map<string, { slug: string; locale: string | null } | null>();
-const CACHE_TTL = 5 * 60 * 1000;
+const domainCache = new Map<string, { slug: string; title: string | null; locale: string | null } | null>();
+const CACHE_TTL = 2 * 60 * 1000;
 const cacheTimestamps = new Map<string, number>();
 
 export const defaultDomainConfiguration: DomainConfiguration = {
@@ -17,7 +17,7 @@ export const defaultDomainConfiguration: DomainConfiguration = {
 
 export async function fetchCustomDomainFromBackend(
   host: string,
-): Promise<{ slug: string; locale: string | null } | null> {
+): Promise<{ slug: string; title: string | null; locale: string | null } | null> {
   const customDomainOverride = process.env.CUSTOM_DOMAIN;
   const effectiveHost = customDomainOverride !== undefined && customDomainOverride !== "" ? customDomainOverride : host;
 
@@ -50,7 +50,7 @@ export async function fetchCustomDomainFromBackend(
       return null;
     }
 
-    const result = { slug: profileData.slug, locale: profileData.locale ?? null };
+    const result = { slug: profileData.slug, title: profileData.title ?? null, locale: profileData.locale ?? null };
     domainCache.set(effectiveHost, result);
     cacheTimestamps.set(effectiveHost, now);
     return result;
@@ -80,6 +80,7 @@ export async function getDomainConfiguration(address: string | undefined): Promi
     return {
       type: "custom-domain",
       profileSlug: backendResult.slug,
+      profileTitle: backendResult.title,
       defaultCulture: DEFAULT_LOCALE,
       allowsWwwPrefix: false,
     };

@@ -25,7 +25,12 @@ export interface NavigationState {
   /**
    * The profile slug for custom domains (determined by the domain), null otherwise
    */
-  customDomainProfile: string | null;
+  customDomainProfileSlug: string | null;
+
+  /**
+   * The profile title for custom domains, null otherwise
+   */
+  customDomainProfileTitle: string | null;
 }
 
 const NavigationContext = React.createContext<NavigationState | undefined>(
