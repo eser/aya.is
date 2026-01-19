@@ -106,7 +106,6 @@ func createListStoriesHandler(
 		}
 
 		cursor := cursors.NewCursor(limit, input.Cursor)
-		cursor.Filters["kind"] = "story"
 
 		var (
 			result cursors.Cursored[[]*stories.StoryWithChildren]
