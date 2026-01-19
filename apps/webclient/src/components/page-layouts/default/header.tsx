@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { LocaleLink } from "@/components/locale-link";
 import { GitHub } from "@/components/icons";
 import { useNavigation } from "@/modules/navigation/navigation-context";
+import { backend } from "@/modules/backend/backend";
 import { Logo } from "./logo";
 import { SearchBar } from "./search-bar";
 import { ProfileMenu } from "./profile-menu";
@@ -31,8 +33,23 @@ function useNavItems() {
 export function Header() {
   const { t } = useTranslation();
   const { isAuthenticated, login } = useAuth();
-  const { isCustomDomain, customDomainProfileSlug, customDomainProfileTitle } = useNavigation();
+  const { locale, isCustomDomain, customDomainProfileSlug, customDomainProfileTitle } = useNavigation();
   const navItems = useNavItems();
+
+  // Fetch localized profile title for custom domains
+  const [localizedTitle, setLocalizedTitle] = React.useState<string | null>(customDomainProfileTitle);
+
+  React.useEffect(() => {
+    if (isCustomDomain && customDomainProfileSlug !== null) {
+      backend.getProfile(locale, customDomainProfileSlug).then((profile) => {
+        if (profile !== null) {
+          setLocalizedTitle(profile.title);
+        }
+      });
+    }
+  }, [isCustomDomain, customDomainProfileSlug, locale]);
+
+  const profileTitle = localizedTitle ?? customDomainProfileTitle;
 
   return (
     <header className="sticky top-0 z-40 w-full bg-secondary border-0 border-b-2 border-solid border-b-sidebar-border">
@@ -47,12 +64,12 @@ export function Header() {
               <Logo />
             </LocaleLink>
             {isCustomDomain ? (
-              customDomainProfileTitle !== null && (
+              profileTitle !== null && (
                 <LocaleLink
                   to={`/${customDomainProfileSlug}`}
                   className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
                 >
-                  {customDomainProfileTitle}
+                  {profileTitle}
                 </LocaleLink>
               )
             ) : (
@@ -78,9 +95,9 @@ export function Header() {
                 >
                   <Logo />
                 </LocaleLink>
-                {customDomainProfileTitle !== null && (
+                {profileTitle !== null && (
                   <span className="text-sm font-semibold text-foreground">
-                    {customDomainProfileTitle}
+                    {profileTitle}
                   </span>
                 )}
               </div>

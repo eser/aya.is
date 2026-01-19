@@ -150,7 +150,7 @@
 /* Content typography styles */
 .content {
   h1 {
-    @apply font-serif break-words text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-tight mb-6;
+    @apply font-serif wrap-break-word text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-tight mb-6;
 
     &:not(:first-child) {
       @apply mt-10;
@@ -162,7 +162,7 @@
   }
 
   h2 {
-    @apply font-serif break-words text-base sm:text-lg md:text-xl lg:text-2xl leading-tight mb-4;
+    @apply font-serif wrap-break-word text-base sm:text-lg md:text-xl lg:text-2xl leading-tight mb-4;
 
     &:not(:first-child) {
       @apply mt-8;
@@ -174,7 +174,7 @@
   }
 
   h3 {
-    @apply font-serif break-words text-sm sm:text-base md:text-lg lg:text-xl leading-tight mb-2;
+    @apply font-serif wrap-break-word text-sm sm:text-base md:text-lg lg:text-xl leading-tight mb-2;
 
     &:not(:first-child) {
       @apply mt-6;
@@ -182,7 +182,7 @@
   }
 
   h4 {
-    @apply font-serif break-words text-xs sm:text-sm md:text-base lg:text-lg leading-snug mb-1;
+    @apply font-serif wrap-break-word text-xs sm:text-sm md:text-base lg:text-lg leading-snug mb-1;
 
     &:not(:first-child) {
       @apply mt-4;
@@ -190,7 +190,7 @@
   }
 
   h5 {
-    @apply font-serif break-words text-xs sm:text-sm md:text-base lg:text-lg leading-snug mb-1;
+    @apply font-serif wrap-break-word text-xs sm:text-sm md:text-base lg:text-lg leading-snug mb-1;
 
     &:not(:first-child) {
       @apply mt-4;
@@ -200,7 +200,7 @@
   ol,
   ul,
   p {
-    @apply break-words leading-[1.8] mb-6;
+    @apply wrap-break-word leading-[1.8] mb-6;
   }
 
   ul,
