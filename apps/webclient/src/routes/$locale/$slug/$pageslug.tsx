@@ -1,9 +1,13 @@
 // Profile custom page
-import { createFileRoute } from "@tanstack/react-router";
+import * as React from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { PencilLine } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
 import { TextContent } from "@/components/widgets/text-content";
 import { compileMdx } from "@/lib/mdx";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/$locale/$slug/$pageslug")({
   loader: async ({ params }) => {
@@ -39,7 +43,11 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug")({
 });
 
 function ProfileCustomPage() {
+  const { t } = useTranslation();
+  const params = Route.useParams();
+  const auth = useAuth();
   const loaderData = Route.useLoaderData();
+  const [canEdit, setCanEdit] = React.useState(false);
 
   // If notFound flag is set, render 404 page
   if (loaderData.notFound || loaderData.page === null) {
@@ -48,13 +56,47 @@ function ProfileCustomPage() {
 
   const { page, compiledContent } = loaderData;
 
+  // Check edit permissions (pages use profile permissions)
+  React.useEffect(() => {
+    if (auth.isAuthenticated && !auth.isLoading) {
+      backend
+        .getProfilePermissions(params.locale, params.slug)
+        .then((perms) => {
+          if (perms !== null) {
+            setCanEdit(perms.can_edit);
+          }
+        });
+    } else {
+      setCanEdit(false);
+    }
+  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug]);
+
   return (
-    <TextContent
-      title={page.title}
-      compiledContent={compiledContent}
-      rawContent={page.content}
-      headingOffset={2}
-    />
+    <div>
+      {canEdit && (
+        <div className="flex justify-end mb-4">
+          <Link
+            to="/$locale/$slug/$pageslug/edit"
+            params={{
+              locale: params.locale,
+              slug: params.slug,
+              pageslug: params.pageslug,
+            }}
+          >
+            <Button variant="outline" size="sm">
+              <PencilLine className="mr-1.5 size-4" />
+              {t("Editor.Edit Page")}
+            </Button>
+          </Link>
+        </div>
+      )}
+      <TextContent
+        title={page.title}
+        compiledContent={compiledContent}
+        rawContent={page.content}
+        headingOffset={2}
+      />
+    </div>
   );
 }
 
