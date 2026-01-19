@@ -237,7 +237,6 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                 to={`/${props.slug}/settings`}
                 className="no-underline text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
               >
-                <Settings className="h-4 w-4" />
                 {t("Profile.Settings")}
               </LocaleLink>
             </li>

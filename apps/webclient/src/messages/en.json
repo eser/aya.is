@@ -255,7 +255,15 @@
     "Picture uploaded successfully": "Picture uploaded successfully",
     "Failed to upload picture": "Failed to upload picture",
     "Invalid file type": "Please upload an image file (JPEG, PNG, GIF, or WebP).",
-    "File too large": "File too large. Maximum size is 5MB."
+    "File too large": "File too large. Maximum size is 5MB.",
+    "Pages": "Pages",
+    "Manage and reorder your profile pages.": "Manage and reorder your profile pages.",
+    "No pages found.": "No pages found.",
+    "Pages reordered successfully": "Pages reordered successfully",
+    "Failed to reorder pages": "Failed to reorder pages",
+    "Failed to load profile pages": "Failed to load profile pages",
+    "Links reordered successfully": "Links reordered successfully",
+    "Failed to reorder links": "Failed to reorder links"
   },
   "StoryPage": {
     "Written by": "Written by",

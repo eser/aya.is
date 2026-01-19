@@ -94,14 +94,22 @@ function SettingsIndexPage() {
 
   return (
     <Card className="p-6">
-      <h3 className="text-xl font-semibold mb-6">
-        {t("Profile.Profile Settings")}
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-xl font-semibold">{t("Profile.General")}</h3>
+          {/* <p className="text-muted-foreground text-sm mt-1">
+            {t("Profile.Manage your social media links and external websites.")}
+          </p> */}
+        </div>
+        {/* <Button onClick={handleOpenAddDialog}>
+          <Plus className="size-4 mr-2" />
+          {t("Profile.Add Link")}
+        </Button> */}
+      </div>
 
       <div className="space-y-8">
         {/* Profile Picture Section */}
         <div>
-          <h4 className="text-sm font-medium mb-4">{t("Profile.Profile Picture")}</h4>
           <ProfilePictureUpload
             currentImageUri={currentProfile.profile_picture_uri}
             profileSlug={params.slug}
@@ -116,7 +124,6 @@ function SettingsIndexPage() {
 
         {/* Profile Form Section */}
         <div>
-          <h4 className="text-sm font-medium mb-4">{t("Profile.Basic Information")}</h4>
           <EditProfileForm
             profile={currentProfile}
             onSubmit={handleSubmit}

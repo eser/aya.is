@@ -1,8 +1,9 @@
 import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
+import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import type { Profile } from "@/modules/backend/backend";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -82,9 +83,6 @@ export function EditProfileForm(props: EditProfileFormProps) {
               placeholder={t("Profile.Enter description")}
               rows={4}
             />
-            <FieldDescription>
-              {t("Profile.A brief description about yourself or your organization")}
-            </FieldDescription>
             {field.state.meta.errors.length > 0 && (
               <FieldError>{field.state.meta.errors[0]}</FieldError>
             )}
@@ -106,9 +104,6 @@ export function EditProfileForm(props: EditProfileFormProps) {
                 onBlur={field.handleBlur}
                 placeholder={t("Profile.Enter pronouns")}
               />
-              <FieldDescription>
-                {t("Profile.Optional pronouns to display on your profile")}
-              </FieldDescription>
               {field.state.meta.errors.length > 0 && (
                 <FieldError>{field.state.meta.errors[0]}</FieldError>
               )}
@@ -121,14 +116,19 @@ export function EditProfileForm(props: EditProfileFormProps) {
         selector={(state) => [state.canSubmit, state.isSubmitting]}
       >
         {([canSubmit, isSubmitting]) => (
-          <Button
-            type="submit"
-            disabled={!canSubmit || isSubmitting || props.isSubmitting}
-          >
-            {isSubmitting || props.isSubmitting
-              ? t("Loading.Saving...")
-              : t("Profile.Save Changes")}
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={!canSubmit || isSubmitting || props.isSubmitting}
+            >
+              {(isSubmitting || props.isSubmitting) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isSubmitting || props.isSubmitting
+                ? t("Loading.Saving...")
+                : t("Profile.Save Changes")}
+            </Button>
+          </div>
         )}
       </form.Subscribe>
     </form>

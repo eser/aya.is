@@ -225,7 +225,13 @@
     "Manage your profile in multiple languages": "Profilinizi birden fazla dilde yönetin",
     "Add social media and website links": "Sosyal medya ve web sitesi bağlantıları ekleyin",
     "Create custom content pages": "Özel içerik sayfaları oluşturun",
-    "Advanced configuration options": "Gelişmiş yapılandırma seçenekleri"
+    "Advanced configuration options": "Gelişmiş yapılandırma seçenekleri",
+    "Pages": "Sayfalar",
+    "Manage and reorder your profile pages.": "Profil sayfalarınızı yönetin ve yeniden sıralayın.",
+    "No pages found.": "Sayfa bulunamadı.",
+    "Pages reordered successfully": "Sayfalar başarıyla yeniden sıralandı",
+    "Failed to reorder pages": "Sayfalar yeniden sıralanamadı",
+    "Failed to load profile pages": "Profil sayfaları yüklenemedi"
   },
   "StoryPage": {
     "Written by": "Yazan",
