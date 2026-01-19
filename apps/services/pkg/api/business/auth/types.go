@@ -16,8 +16,8 @@ type GitHubAuthProviderConfig struct {
 
 type Config struct {
 	GitHub    GitHubAuthProviderConfig `conf:"github"`
-	JwtSecret string                   `conf:"jwt_secret"` // Required - no default for security
-	TokenTTL  time.Duration            `conf:"token_ttl"  default:"365d"`
+	JwtSecret string                   `conf:"jwt_secret"`                 // Required - no default for security
+	TokenTTL  time.Duration            `conf:"token_ttl"  default:"8760h"` // 365 days in hours (Go doesn't support "d")
 
 	// Cookie settings for cross-domain SSO
 	CookieDomain string `conf:"cookie_domain" default:".aya.is"`

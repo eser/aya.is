@@ -3,7 +3,6 @@ package auth_tokens
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/golang-jwt/jwt/v5"
@@ -66,13 +65,6 @@ func (j *JWTTokenService) GenerateToken(claims *auth.JWTClaims) (string, error) 
 		return "", auth.ErrJWTNotConfigured
 	}
 
-	// Debug: Log JWT secret length (not the actual secret for security)
-	slog.Info("JWTTokenService: Generating token",
-		slog.Int("jwt_secret_length", len(j.config.JwtSecret)),
-		slog.String("user_id", claims.UserID),
-		slog.String("session_id", claims.SessionID),
-	)
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":    claims.UserID,
 		"session_id": claims.SessionID,
@@ -83,10 +75,6 @@ func (j *JWTTokenService) GenerateToken(claims *auth.JWTClaims) (string, error) 
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrFailedToSignToken, err)
 	}
-
-	slog.Debug("JWTTokenService: Token generated successfully",
-		slog.Int("token_length", len(tokenString)),
-	)
 
 	return tokenString, nil
 }

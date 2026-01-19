@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"log/slog"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
@@ -27,36 +26,19 @@ func AuthMiddleware(authService *auth.Service, userService *users.Service) httpf
 
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// Debug: Log JWT secret length (not the actual secret for security)
-		secretLen := len(authService.Config.JwtSecret)
-		slog.Info("AuthMiddleware: Validating token",
-			slog.Int("jwt_secret_length", secretLen),
-			slog.Int("token_length", len(tokenStr)),
-		)
-
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 			// Validate signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				slog.Warn("AuthMiddleware: Unexpected signing method",
-					slog.String("method", token.Method.Alg()),
-				)
-
 				return nil, auth.ErrInvalidSigningMethod
 			}
 
 			return []byte(authService.Config.JwtSecret), nil
 		})
 		if err != nil {
-			slog.Warn("AuthMiddleware: Token parse failed",
-				slog.String("error", err.Error()),
-			)
-
 			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid token"))
 		}
 
 		if !token.Valid {
-			slog.Warn("AuthMiddleware: Token invalid after parse")
-
 			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid token"))
 		}
 
