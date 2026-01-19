@@ -1,6 +1,8 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { compileMdx } from "@/lib/mdx";
 import { MdxContent } from "@/components/userland/mdx-content";
+import { cn } from "@/lib/utils";
 import styles from "./content-editor.module.css";
 
 type PreviewPanelProps = {
@@ -9,6 +11,7 @@ type PreviewPanelProps = {
 };
 
 export function PreviewPanel(props: PreviewPanelProps) {
+  const { t } = useTranslation();
   const { content, debounceMs = 300 } = props;
   const [compiledSource, setCompiledSource] = React.useState<string | null>(
     null,
@@ -46,30 +49,30 @@ export function PreviewPanel(props: PreviewPanelProps) {
   if (content.trim() === "") {
     return (
       <div className={styles.previewLoading}>
-        Start writing to see the preview...
+        {t("Editor.Start writing to see the preview...")}
       </div>
     );
   }
 
   if (isCompiling && compiledSource === null) {
-    return <div className={styles.previewLoading}>Compiling...</div>;
+    return <div className={styles.previewLoading}>{t("Editor.Compiling...")}</div>;
   }
 
   if (error !== null) {
     return (
       <div className={styles.previewError}>
-        <strong>Preview Error:</strong>
+        <strong>{t("Editor.Preview Error")}:</strong>
         <pre className="mt-2 whitespace-pre-wrap text-xs">{error}</pre>
       </div>
     );
   }
 
   if (compiledSource === null) {
-    return <div className={styles.previewLoading}>Loading preview...</div>;
+    return <div className={styles.previewLoading}>{t("Editor.Loading preview...")}</div>;
   }
 
   return (
-    <div className={styles.previewPanel}>
+    <div className={cn("content", styles.previewPanel)}>
       <MdxContent compiledSource={compiledSource} headingOffset={1} />
     </div>
   );

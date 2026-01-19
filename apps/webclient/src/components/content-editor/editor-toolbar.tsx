@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bold,
   Italic,
@@ -63,6 +64,7 @@ const formatButtons: ToolbarButton[] = [
 ];
 
 export function EditorToolbar(props: EditorToolbarProps) {
+  const { t } = useTranslation();
   const { viewMode, onViewModeChange, onFormat, onImageUpload } = props;
 
   return (
@@ -102,9 +104,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <ImageIcon className="size-4" />
-            <span className="sr-only">Insert Image</span>
+            <span className="sr-only">{t("Editor.Insert Image")}</span>
           </TooltipTrigger>
-          <TooltipContent>Insert Image</TooltipContent>
+          <TooltipContent>{t("Editor.Insert Image")}</TooltipContent>
         </Tooltip>
       </div>
 
@@ -120,9 +122,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <PanelLeft className="size-4" />
-            <span className="sr-only">Editor Only</span>
+            <span className="sr-only">{t("Editor.Editor Only")}</span>
           </TooltipTrigger>
-          <TooltipContent>Editor Only</TooltipContent>
+          <TooltipContent>{t("Editor.Editor Only")}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -136,9 +138,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <SplitSquareVertical className="size-4" />
-            <span className="sr-only">Split View</span>
+            <span className="sr-only">{t("Editor.Split View")}</span>
           </TooltipTrigger>
-          <TooltipContent>Split View</TooltipContent>
+          <TooltipContent>{t("Editor.Split View")}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -152,9 +154,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <PanelRight className="size-4" />
-            <span className="sr-only">Preview Only</span>
+            <span className="sr-only">{t("Editor.Preview Only")}</span>
           </TooltipTrigger>
-          <TooltipContent>Preview Only</TooltipContent>
+          <TooltipContent>{t("Editor.Preview Only")}</TooltipContent>
         </Tooltip>
       </ButtonGroup>
     </div>

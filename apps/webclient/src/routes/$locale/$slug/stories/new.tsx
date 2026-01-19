@@ -52,7 +52,7 @@ function NewStoryPage() {
   };
 
   return (
-    <div className="content h-[calc(100vh-200px)]">
+    <div className="h-[calc(100vh-140px)]">
       <ContentEditor
         locale={params.locale}
         profileSlug={params.slug}

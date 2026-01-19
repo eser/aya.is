@@ -1,10 +1,17 @@
 import * as React from "react";
-import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { ArrowLeft, PanelLeftClose, PanelLeft } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import { MarkdownEditor, wrapSelectedText, insertTextAtCursor } from "./markdown-editor";
 import { PreviewPanel } from "./preview-panel";
 import {
@@ -26,6 +33,8 @@ export type ContentEditorData = {
   content: string;
   coverImageUrl?: string | null;
   status: ContentStatus;
+  publishedAt?: string | null;
+  isFeatured?: boolean;
 };
 
 type ContentEditorProps = {
@@ -35,6 +44,8 @@ type ContentEditorProps = {
   initialData: ContentEditorData;
   backUrl: string;
   backLabel?: string;
+  canDelete?: boolean;
+  isAdmin?: boolean;
   onSave: (data: ContentEditorData) => Promise<void>;
   onDelete?: () => Promise<void>;
   isNew?: boolean;
@@ -47,6 +58,8 @@ export function ContentEditor(props: ContentEditorProps) {
     initialData,
     backUrl,
     backLabel = "Back",
+    canDelete = false,
+    isAdmin = false,
     onSave,
     onDelete,
     isNew = false,
@@ -61,12 +74,19 @@ export function ContentEditor(props: ContentEditorProps) {
     initialData.coverImageUrl ?? null,
   );
   const [status, setStatus] = React.useState<ContentStatus>(initialData.status);
+  const [publishedAt, setPublishedAt] = React.useState(
+    initialData.publishedAt ?? null,
+  );
+  const [isFeatured, setIsFeatured] = React.useState(
+    initialData.isFeatured ?? false,
+  );
 
   // UI state
   const [viewMode, setViewMode] = React.useState<ViewMode>("split");
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showImageModal, setShowImageModal] = React.useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
@@ -76,9 +96,11 @@ export function ContentEditor(props: ContentEditorProps) {
       summary !== initialData.summary ||
       content !== initialData.content ||
       coverImageUrl !== (initialData.coverImageUrl ?? null) ||
-      status !== initialData.status
+      status !== initialData.status ||
+      publishedAt !== (initialData.publishedAt ?? null) ||
+      isFeatured !== (initialData.isFeatured ?? false)
     );
-  }, [title, slug, summary, content, coverImageUrl, status, initialData]);
+  }, [title, slug, summary, content, coverImageUrl, status, publishedAt, isFeatured, initialData]);
 
   // Auto-generate slug from title for new content
   React.useEffect(() => {
@@ -100,6 +122,8 @@ export function ContentEditor(props: ContentEditorProps) {
     content,
     coverImageUrl,
     status,
+    publishedAt,
+    isFeatured,
   });
 
   const handleSave = async () => {
@@ -180,21 +204,22 @@ export function ContentEditor(props: ContentEditorProps) {
     insertTextAtCursor(textarea, markdown, setContent);
   };
 
+  const { t } = useTranslation();
+
   return (
     <div className={styles.editorContainer}>
       {/* Header */}
       <div className={styles.editorHeader}>
         <div className="flex items-center gap-3">
           <Link to={backUrl}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-1.5 size-4" />
-              {backLabel}
+            <Button variant="outline" size="icon" className="rounded-full">
+              <ArrowLeft className="size-4" />
             </Button>
           </Link>
           <h1 className="text-lg font-semibold">
             {isNew
-              ? `New ${contentType === "story" ? "Story" : "Page"}`
-              : `Edit ${contentType === "story" ? "Story" : "Page"}`}
+              ? t(contentType === "story" ? "Editor.New Story" : "Editor.New Page")
+              : t(contentType === "story" ? "Editor.Edit Story" : "Editor.Edit Page")}
           </h1>
         </div>
 
@@ -214,66 +239,125 @@ export function ContentEditor(props: ContentEditorProps) {
       {/* Main Content */}
       <div className={styles.editorMain}>
         {/* Sidebar - Metadata */}
-        <div className={styles.editorSidebar}>
-          <div className={styles.metadataForm}>
-            <div className={styles.metadataField}>
-              <Label htmlFor="title" className={styles.metadataLabel}>
-                Title
-              </Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter title..."
-              />
-            </div>
+        <div
+          className={cn(
+            styles.editorSidebar,
+            sidebarCollapsed && styles.editorSidebarCollapsed,
+          )}
+        >
+          <div className={styles.sidebarHeader}>
+            <span className={cn(styles.sidebarTitle, sidebarCollapsed && "hidden")}>
+              {t("Editor.Metadata")}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title={sidebarCollapsed ? t("Editor.Expand sidebar") : t("Editor.Collapse sidebar")}
+            >
+              {sidebarCollapsed ? (
+                <PanelLeft className="size-4" />
+              ) : (
+                <PanelLeftClose className="size-4" />
+              )}
+            </Button>
+          </div>
 
-            <div className={styles.metadataField}>
-              <Label htmlFor="slug" className={styles.metadataLabel}>
-                Slug
-              </Label>
-              <Input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="url-friendly-slug"
-              />
-            </div>
-
-            <div className={styles.metadataField}>
-              <Label htmlFor="summary" className={styles.metadataLabel}>
-                Summary
-              </Label>
-              <Textarea
-                id="summary"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-                placeholder="Brief summary..."
-                className="min-h-[80px]"
-              />
-            </div>
-
-            <div className={styles.metadataField}>
-              <Label htmlFor="cover-image" className={styles.metadataLabel}>
-                Cover Image URL
-              </Label>
-              <Input
-                id="cover-image"
-                value={coverImageUrl ?? ""}
-                onChange={(e) =>
-                  setCoverImageUrl(e.target.value || null)
-                }
-                placeholder="https://..."
-              />
-              {coverImageUrl !== null && coverImageUrl !== "" && (
-                <img
-                  src={coverImageUrl}
-                  alt="Cover preview"
-                  className="mt-2 rounded-md max-h-32 w-full object-cover"
+          {!sidebarCollapsed && (
+            <div className={styles.metadataForm}>
+              <div className={styles.metadataField}>
+                <Label htmlFor="title" className={styles.metadataLabel}>
+                  {t("Editor.Title")}
+                </Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={t("Editor.Enter title...")}
                 />
+              </div>
+
+              <div className={styles.metadataField}>
+                <Label htmlFor="slug" className={styles.metadataLabel}>
+                  {t("Editor.Slug")}
+                </Label>
+                <Input
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder={t("Editor.url-friendly-slug")}
+                />
+              </div>
+
+              <div className={styles.metadataField}>
+                <Label htmlFor="summary" className={styles.metadataLabel}>
+                  {t("Editor.Summary")}
+                </Label>
+                <Textarea
+                  id="summary"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  placeholder={t("Editor.Brief summary...")}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div className={styles.metadataField}>
+                <Label htmlFor="cover-image" className={styles.metadataLabel}>
+                  {t("Editor.Cover Image URL")}
+                </Label>
+                <Input
+                  id="cover-image"
+                  value={coverImageUrl ?? ""}
+                  onChange={(e) =>
+                    setCoverImageUrl(e.target.value || null)
+                  }
+                  placeholder="https://..."
+                />
+                {coverImageUrl !== null && coverImageUrl !== "" && (
+                  <img
+                    src={coverImageUrl}
+                    alt="Cover preview"
+                    className="mt-2 rounded-md max-h-32 w-full object-cover"
+                  />
+                )}
+              </div>
+
+              {/* Admin-only fields */}
+              {isAdmin && (
+                <>
+                  <div className={styles.metadataField}>
+                    <Label htmlFor="published-at" className={styles.metadataLabel}>
+                      {t("Editor.Published At")}
+                    </Label>
+                    <Input
+                      id="published-at"
+                      type="datetime-local"
+                      value={publishedAt ?? ""}
+                      onChange={(e) =>
+                        setPublishedAt(e.target.value || null)
+                      }
+                    />
+                  </div>
+
+                  {contentType === "story" && (
+                    <div className={styles.metadataField}>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="is-featured" className={styles.metadataLabel}>
+                          {t("Editor.Featured")}
+                        </Label>
+                        <Switch
+                          id="is-featured"
+                          checked={isFeatured}
+                          onCheckedChange={setIsFeatured}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* Editor Content */}
@@ -286,35 +370,41 @@ export function ContentEditor(props: ContentEditorProps) {
           />
 
           <div className={styles.editorPanels}>
-            {/* Editor Panel */}
-            {(viewMode === "editor" || viewMode === "split") && (
-              <div
-                className={cn(
-                  styles.editorPanel,
-                  viewMode === "split" && styles.editorPanelSplit,
-                )}
-              >
+            {/* Split View with Resizable Panels */}
+            {viewMode === "split" && (
+              <ResizablePanelGroup direction="horizontal" className="h-full">
+                <ResizablePanel defaultSize={50} minSize={25}>
+                  <div className={styles.editorPanel}>
+                    <MarkdownEditor
+                      value={content}
+                      onChange={setContent}
+                      placeholder={t("Editor.Write your content in markdown...")}
+                    />
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={50} minSize={25}>
+                  <div className={styles.editorPanel}>
+                    <PreviewPanel content={content} />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            )}
+
+            {/* Editor Only */}
+            {viewMode === "editor" && (
+              <div className={styles.editorPanel}>
                 <MarkdownEditor
                   value={content}
                   onChange={setContent}
-                  placeholder="Write your content in markdown..."
+                  placeholder={t("Editor.Write your content in markdown...")}
                 />
               </div>
             )}
 
-            {/* Divider */}
-            {viewMode === "split" && (
-              <div className={styles.editorPanelDivider} />
-            )}
-
-            {/* Preview Panel */}
-            {(viewMode === "preview" || viewMode === "split") && (
-              <div
-                className={cn(
-                  styles.editorPanel,
-                  viewMode === "split" && styles.editorPanelSplit,
-                )}
-              >
+            {/* Preview Only */}
+            {viewMode === "preview" && (
+              <div className={styles.editorPanel}>
                 <PreviewPanel content={content} />
               </div>
             )}

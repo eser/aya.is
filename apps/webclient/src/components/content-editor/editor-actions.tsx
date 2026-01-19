@@ -1,4 +1,6 @@
-import { Save, Globe, GlobeLock, Trash2, Loader2 } from "lucide-react";
+import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { Save, Globe, GlobeLock, Trash2, Loader2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -9,8 +11,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +29,7 @@ type EditorActionsProps = {
   isSaving: boolean;
   isDeleting: boolean;
   hasChanges: boolean;
+  canDelete?: boolean;
   onSave: () => void;
   onPublish: () => void;
   onUnpublish: () => void;
@@ -29,11 +38,13 @@ type EditorActionsProps = {
 };
 
 export function EditorActions(props: EditorActionsProps) {
+  const { t } = useTranslation();
   const {
     status,
     isSaving,
     isDeleting,
     hasChanges,
+    canDelete = false,
     onSave,
     onPublish,
     onUnpublish,
@@ -42,10 +53,48 @@ export function EditorActions(props: EditorActionsProps) {
   } = props;
 
   const isPublished = status === "published";
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
   return (
     <div className="flex items-center gap-3">
       <StatusBadge status={status} />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm">
+            <MoreHorizontal className="size-4" />
+            <span className="sr-only">{t("Editor.More options")}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-auto">
+          {isPublished && (
+            <>
+              <DropdownMenuItem onClick={onUnpublish} disabled={isSaving}>
+                <GlobeLock className="mr-2 size-4" />
+                {t("Editor.Unpublish")}
+              </DropdownMenuItem>
+              {showDelete && <DropdownMenuSeparator />}
+            </>
+          )}
+          {showDelete && (
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isDeleting || !canDelete}
+            >
+              <Trash2 className="mr-2 size-4" />
+              {t("Editor.Delete")}
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {!isPublished && (
+        <Button variant="default" size="sm" onClick={onPublish} disabled={isSaving}>
+          <Globe className="mr-1.5 size-4" />
+          {t("Editor.Publish")}
+        </Button>
+      )}
 
       <Button
         variant="outline"
@@ -58,55 +107,23 @@ export function EditorActions(props: EditorActionsProps) {
         ) : (
           <Save className="mr-1.5 size-4" />
         )}
-        Save
+        {t("Editor.Save")}
       </Button>
 
-      {isPublished ? (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onUnpublish}
-          disabled={isSaving}
-        >
-          <GlobeLock className="mr-1.5 size-4" />
-          Unpublish
-        </Button>
-      ) : (
-        <Button variant="default" size="sm" onClick={onPublish} disabled={isSaving}>
-          <Globe className="mr-1.5 size-4" />
-          Publish
-        </Button>
-      )}
-
-      {showDelete && (
-        <AlertDialog>
-          <AlertDialogTrigger
-            render={
-              <Button variant="destructive" size="sm" disabled={isDeleting} />
-            }
-          >
-            {isDeleting ? (
-              <Loader2 className="mr-1.5 size-4 animate-spin" />
-            ) : (
-              <Trash2 className="mr-1.5 size-4" />
-            )}
-            Delete
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete this content?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete this
-                content and all associated data.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Editor.Delete")}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Editor.Delete Confirmation")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Profile.Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={onDelete}>{t("Editor.Delete")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -116,6 +133,7 @@ type StatusBadgeProps = {
 };
 
 function StatusBadge(props: StatusBadgeProps) {
+  const { t } = useTranslation();
   const { status } = props;
   const isPublished = status === "published";
 
@@ -129,12 +147,12 @@ function StatusBadge(props: StatusBadgeProps) {
       {isPublished ? (
         <>
           <Globe className="size-3" />
-          Published
+          {t("Editor.Published")}
         </>
       ) : (
         <>
           <GlobeLock className="size-3" />
-          Draft
+          {t("Editor.Draft")}
         </>
       )}
     </span>
