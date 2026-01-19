@@ -3,6 +3,16 @@ import { compile, runSync } from "@mdx-js/mdx";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import {
+  Card,
+  Cards,
+  List,
+  ListItem,
+  ProfileCard,
+  ProfileList,
+  SiteLink,
+  Story,
+} from "@/components/userland";
 
 type HeadingTag = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
@@ -15,12 +25,10 @@ const headingTags: HeadingTag[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
  */
 export function createMdxComponents(
   offset: number = 1,
-): Record<string, (props: React.HTMLAttributes<HTMLHeadingElement>) => React.ReactElement> {
-  const components: Record<
-    string,
-    (props: React.HTMLAttributes<HTMLHeadingElement>) => React.ReactElement
-  > = {};
+): Record<string, React.ComponentType<any>> {
+  const components: Record<string, React.ComponentType<any>> = {};
 
+  // Add heading components with offset
   for (let i = 0; i < headingTags.length; i++) {
     const sourceTag = headingTags[i];
     const targetIndex = Math.min(i + offset, headingTags.length - 1);
@@ -30,6 +38,16 @@ export function createMdxComponents(
       <TargetTag {...props} />
     );
   }
+
+  // Add custom userland components
+  components.Card = Card;
+  components.Cards = Cards;
+  components.List = List;
+  components.ListItem = ListItem;
+  components.ProfileCard = ProfileCard;
+  components.ProfileList = ProfileList;
+  components.SiteLink = SiteLink;
+  components.Story = Story;
 
   return components;
 }
