@@ -167,15 +167,8 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	// ----------------------------------------------------
 	// Adapter: S3Client (optional - only if configured)
 	// ----------------------------------------------------
-	if a.Config.S3.Endpoint != "" && a.Config.S3.BucketName != "" {
-		a.S3Client, err = s3client.New(ctx, s3client.Config{
-			Endpoint:        a.Config.S3.Endpoint,
-			Region:          a.Config.S3.Region,
-			AccessKeyID:     a.Config.S3.AccessKeyID,
-			SecretAccessKey: a.Config.S3.SecretAccessKey,
-			BucketName:      a.Config.S3.BucketName,
-			PublicURL:       a.Config.S3.PublicURL,
-		})
+	if a.Config.S3.IsConfigured() {
+		a.S3Client, err = s3client.New(ctx, a.Config.S3)
 		if err != nil {
 			return fmt.Errorf("%w: failed to create S3 client: %w", ErrInitFailed, err)
 		}

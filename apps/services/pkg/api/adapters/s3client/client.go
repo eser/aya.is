@@ -21,12 +21,17 @@ var (
 
 // Config holds the S3 client configuration.
 type Config struct {
-	Endpoint        string // e.g., "https://<account>.r2.cloudflarestorage.com"
-	Region          string // e.g., "auto" for R2
-	AccessKeyID     string
-	SecretAccessKey string
-	BucketName      string
-	PublicURL       string // e.g., "https://cdn.aya.is"
+	Endpoint        string `conf:"endpoint"          default:""`
+	Region          string `conf:"region"            default:"auto"`
+	AccessKeyID     string `conf:"access_key_id"     default:""`
+	SecretAccessKey string `conf:"secret_access_key" default:""`
+	BucketName      string `conf:"bucket_name"       default:""`
+	PublicURL       string `conf:"public_url"        default:""`
+}
+
+// IsConfigured returns true if the S3 configuration has the required fields.
+func (c *Config) IsConfigured() bool {
+	return c.Endpoint != "" && c.BucketName != ""
 }
 
 // Client is an S3-compatible storage client.
