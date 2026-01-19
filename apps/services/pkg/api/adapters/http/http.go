@@ -9,6 +9,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/modules/openapi"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/modules/profiling"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	mcpadapter "github.com/eser/aya.is/services/pkg/api/adapters/mcp"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
@@ -91,6 +92,9 @@ func Run(
 		logger,
 		storyService,
 	)
+
+	// mcp adapter
+	mcpadapter.RegisterMCPRoutes(routes, profileService, storyService)
 
 	// run
 	return httpService.Start(ctx) //nolint:wrapcheck
