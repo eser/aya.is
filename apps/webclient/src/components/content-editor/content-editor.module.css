@@ -53,7 +53,7 @@
 
 /* Preview Panel */
 .preview-panel {
-  @apply max-w-none;
+  @apply prose prose-sm dark:prose-invert max-w-none;
 }
 
 .preview-loading {

@@ -9,7 +9,7 @@ import { compileMdx } from "@/lib/mdx";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 
-export const Route = createFileRoute("/$locale/$slug/$pageslug")({
+export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
   loader: async ({ params }) => {
     const { locale, slug, pageslug } = params;
 
@@ -72,23 +72,22 @@ function ProfileCustomPage() {
   }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug]);
 
   return (
-    <div>
+    <div className="relative">
       {canEdit && (
-        <div className="flex justify-end mb-4">
-          <Link
-            to="/$locale/$slug/$pageslug/edit"
-            params={{
-              locale: params.locale,
-              slug: params.slug,
-              pageslug: params.pageslug,
-            }}
-          >
-            <Button variant="outline" size="sm">
-              <PencilLine className="mr-1.5 size-4" />
-              {t("Editor.Edit Page")}
-            </Button>
-          </Link>
-        </div>
+        <Link
+          to="/$locale/$slug/$pageslug/edit"
+          params={{
+            locale: params.locale,
+            slug: params.slug,
+            pageslug: params.pageslug,
+          }}
+          className="absolute right-0 top-0 z-10"
+        >
+          <Button variant="outline" size="sm">
+            <PencilLine className="mr-1.5 size-4" />
+            {t("Editor.Edit Page")}
+          </Button>
+        </Link>
       )}
       <TextContent
         title={page.title}

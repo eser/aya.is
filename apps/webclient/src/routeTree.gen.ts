@@ -26,17 +26,19 @@ import { Route as LocaleStoriesStoryslugRouteImport } from './routes/$locale/sto
 import { Route as LocaleAuthCallbackRouteImport } from './routes/$locale/auth/callback'
 import { Route as LocaleSlugMembersRouteImport } from './routes/$locale/$slug/members'
 import { Route as LocaleSlugContributionsRouteImport } from './routes/$locale/$slug/contributions'
-import { Route as LocaleSlugPageslugRouteImport } from './routes/$locale/$slug/$pageslug'
 import { Route as LocaleSlugSplatRouteImport } from './routes/$locale/$slug/$'
 import { Route as LocaleSlugStoriesRouteRouteImport } from './routes/$locale/$slug/stories/route'
 import { Route as LocaleSlugSettingsRouteRouteImport } from './routes/$locale/$slug/settings/route'
+import { Route as LocaleSlugPageslugRouteRouteImport } from './routes/$locale/$slug/$pageslug/route'
 import { Route as LocaleSlugStoriesIndexRouteImport } from './routes/$locale/$slug/stories/index'
 import { Route as LocaleSlugSettingsIndexRouteImport } from './routes/$locale/$slug/settings/index'
+import { Route as LocaleSlugPageslugIndexRouteImport } from './routes/$locale/$slug/$pageslug/index'
 import { Route as LocaleSlugStoriesNewRouteImport } from './routes/$locale/$slug/stories/new'
-import { Route as LocaleSlugStoriesStoryslugRouteImport } from './routes/$locale/$slug/stories/$storyslug'
 import { Route as LocaleSlugSettingsPagesRouteImport } from './routes/$locale/$slug/settings/pages'
 import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
 import { Route as LocaleSlugPageslugEditRouteImport } from './routes/$locale/$slug/$pageslug/edit'
+import { Route as LocaleSlugStoriesStoryslugRouteRouteImport } from './routes/$locale/$slug/stories/$storyslug/route'
+import { Route as LocaleSlugStoriesStoryslugIndexRouteImport } from './routes/$locale/$slug/stories/$storyslug/index'
 import { Route as LocaleSlugStoriesStoryslugEditRouteImport } from './routes/$locale/$slug/stories/$storyslug/edit'
 
 const LocaleRouteRoute = LocaleRouteRouteImport.update({
@@ -124,11 +126,6 @@ const LocaleSlugContributionsRoute = LocaleSlugContributionsRouteImport.update({
   path: '/contributions',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
-const LocaleSlugPageslugRoute = LocaleSlugPageslugRouteImport.update({
-  id: '/$pageslug',
-  path: '/$pageslug',
-  getParentRoute: () => LocaleSlugRouteRoute,
-} as any)
 const LocaleSlugSplatRoute = LocaleSlugSplatRouteImport.update({
   id: '/$',
   path: '/$',
@@ -144,6 +141,11 @@ const LocaleSlugSettingsRouteRoute = LocaleSlugSettingsRouteRouteImport.update({
   path: '/settings',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
+const LocaleSlugPageslugRouteRoute = LocaleSlugPageslugRouteRouteImport.update({
+  id: '/$pageslug',
+  path: '/$pageslug',
+  getParentRoute: () => LocaleSlugRouteRoute,
+} as any)
 const LocaleSlugStoriesIndexRoute = LocaleSlugStoriesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -154,17 +156,16 @@ const LocaleSlugSettingsIndexRoute = LocaleSlugSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LocaleSlugSettingsRouteRoute,
 } as any)
+const LocaleSlugPageslugIndexRoute = LocaleSlugPageslugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleSlugPageslugRouteRoute,
+} as any)
 const LocaleSlugStoriesNewRoute = LocaleSlugStoriesNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => LocaleSlugStoriesRouteRoute,
 } as any)
-const LocaleSlugStoriesStoryslugRoute =
-  LocaleSlugStoriesStoryslugRouteImport.update({
-    id: '/$storyslug',
-    path: '/$storyslug',
-    getParentRoute: () => LocaleSlugStoriesRouteRoute,
-  } as any)
 const LocaleSlugSettingsPagesRoute = LocaleSlugSettingsPagesRouteImport.update({
   id: '/pages',
   path: '/pages',
@@ -178,13 +179,25 @@ const LocaleSlugSettingsLinksRoute = LocaleSlugSettingsLinksRouteImport.update({
 const LocaleSlugPageslugEditRoute = LocaleSlugPageslugEditRouteImport.update({
   id: '/edit',
   path: '/edit',
-  getParentRoute: () => LocaleSlugPageslugRoute,
+  getParentRoute: () => LocaleSlugPageslugRouteRoute,
 } as any)
+const LocaleSlugStoriesStoryslugRouteRoute =
+  LocaleSlugStoriesStoryslugRouteRouteImport.update({
+    id: '/$storyslug',
+    path: '/$storyslug',
+    getParentRoute: () => LocaleSlugStoriesRouteRoute,
+  } as any)
+const LocaleSlugStoriesStoryslugIndexRoute =
+  LocaleSlugStoriesStoryslugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleSlugStoriesStoryslugRouteRoute,
+  } as any)
 const LocaleSlugStoriesStoryslugEditRoute =
   LocaleSlugStoriesStoryslugEditRouteImport.update({
     id: '/edit',
     path: '/edit',
-    getParentRoute: () => LocaleSlugStoriesStoryslugRoute,
+    getParentRoute: () => LocaleSlugStoriesStoryslugRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -197,10 +210,10 @@ export interface FileRoutesByFullPath {
   '/$locale/news': typeof LocaleNewsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/$locale/': typeof LocaleIndexRoute
+  '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugRouteRouteWithChildren
   '/$locale/$slug/settings': typeof LocaleSlugSettingsRouteRouteWithChildren
   '/$locale/$slug/stories': typeof LocaleSlugStoriesRouteRouteWithChildren
   '/$locale/$slug/$': typeof LocaleSlugSplatRoute
-  '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugRouteWithChildren
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
   '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
@@ -209,14 +222,16 @@ export interface FileRoutesByFullPath {
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
   '/$locale/stories/': typeof LocaleStoriesIndexRoute
+  '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/pages': typeof LocaleSlugSettingsPagesRoute
-  '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteWithChildren
   '/$locale/$slug/stories/new': typeof LocaleSlugStoriesNewRoute
+  '/$locale/$slug/$pageslug/': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories/': typeof LocaleSlugStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug/edit': typeof LocaleSlugStoriesStoryslugEditRoute
+  '/$locale/$slug/stories/$storyslug/': typeof LocaleSlugStoriesStoryslugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -225,7 +240,6 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/$slug/$': typeof LocaleSlugSplatRoute
-  '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugRouteWithChildren
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
   '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
@@ -237,11 +251,12 @@ export interface FileRoutesByTo {
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/pages': typeof LocaleSlugSettingsPagesRoute
-  '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteWithChildren
   '/$locale/$slug/stories/new': typeof LocaleSlugStoriesNewRoute
+  '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/settings': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories': typeof LocaleSlugStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug/edit': typeof LocaleSlugStoriesStoryslugEditRoute
+  '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -254,10 +269,10 @@ export interface FileRoutesById {
   '/$locale/news': typeof LocaleNewsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/$locale/': typeof LocaleIndexRoute
+  '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugRouteRouteWithChildren
   '/$locale/$slug/settings': typeof LocaleSlugSettingsRouteRouteWithChildren
   '/$locale/$slug/stories': typeof LocaleSlugStoriesRouteRouteWithChildren
   '/$locale/$slug/$': typeof LocaleSlugSplatRoute
-  '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugRouteWithChildren
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
   '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
@@ -266,14 +281,16 @@ export interface FileRoutesById {
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/products/': typeof LocaleProductsIndexRoute
   '/$locale/stories/': typeof LocaleStoriesIndexRoute
+  '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/pages': typeof LocaleSlugSettingsPagesRoute
-  '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteWithChildren
   '/$locale/$slug/stories/new': typeof LocaleSlugStoriesNewRoute
+  '/$locale/$slug/$pageslug/': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories/': typeof LocaleSlugStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug/edit': typeof LocaleSlugStoriesStoryslugEditRoute
+  '/$locale/$slug/stories/$storyslug/': typeof LocaleSlugStoriesStoryslugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -287,10 +304,10 @@ export interface FileRouteTypes {
     | '/$locale/news'
     | '/auth/callback'
     | '/$locale/'
+    | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/settings'
     | '/$locale/$slug/stories'
     | '/$locale/$slug/$'
-    | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/members'
     | '/$locale/auth/callback'
@@ -299,14 +316,16 @@ export interface FileRouteTypes {
     | '/$locale/elements/'
     | '/$locale/products'
     | '/$locale/stories/'
+    | '/$locale/$slug/stories/$storyslug'
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/pages'
-    | '/$locale/$slug/stories/$storyslug'
     | '/$locale/$slug/stories/new'
+    | '/$locale/$slug/$pageslug/'
     | '/$locale/$slug/settings/'
     | '/$locale/$slug/stories/'
     | '/$locale/$slug/stories/$storyslug/edit'
+    | '/$locale/$slug/stories/$storyslug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -315,7 +334,6 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/$locale'
     | '/$locale/$slug/$'
-    | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/members'
     | '/$locale/auth/callback'
@@ -327,11 +345,12 @@ export interface FileRouteTypes {
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/pages'
-    | '/$locale/$slug/stories/$storyslug'
     | '/$locale/$slug/stories/new'
+    | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/settings'
     | '/$locale/$slug/stories'
     | '/$locale/$slug/stories/$storyslug/edit'
+    | '/$locale/$slug/stories/$storyslug'
   id:
     | '__root__'
     | '/'
@@ -343,10 +362,10 @@ export interface FileRouteTypes {
     | '/$locale/news'
     | '/auth/callback'
     | '/$locale/'
+    | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/settings'
     | '/$locale/$slug/stories'
     | '/$locale/$slug/$'
-    | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/members'
     | '/$locale/auth/callback'
@@ -355,14 +374,16 @@ export interface FileRouteTypes {
     | '/$locale/elements/'
     | '/$locale/products/'
     | '/$locale/stories/'
+    | '/$locale/$slug/stories/$storyslug'
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/pages'
-    | '/$locale/$slug/stories/$storyslug'
     | '/$locale/$slug/stories/new'
+    | '/$locale/$slug/$pageslug/'
     | '/$locale/$slug/settings/'
     | '/$locale/$slug/stories/'
     | '/$locale/$slug/stories/$storyslug/edit'
+    | '/$locale/$slug/stories/$storyslug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -492,13 +513,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugContributionsRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
-    '/$locale/$slug/$pageslug': {
-      id: '/$locale/$slug/$pageslug'
-      path: '/$pageslug'
-      fullPath: '/$locale/$slug/$pageslug'
-      preLoaderRoute: typeof LocaleSlugPageslugRouteImport
-      parentRoute: typeof LocaleSlugRouteRoute
-    }
     '/$locale/$slug/$': {
       id: '/$locale/$slug/$'
       path: '/$'
@@ -520,6 +534,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsRouteRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
+    '/$locale/$slug/$pageslug': {
+      id: '/$locale/$slug/$pageslug'
+      path: '/$pageslug'
+      fullPath: '/$locale/$slug/$pageslug'
+      preLoaderRoute: typeof LocaleSlugPageslugRouteRouteImport
+      parentRoute: typeof LocaleSlugRouteRoute
+    }
     '/$locale/$slug/stories/': {
       id: '/$locale/$slug/stories/'
       path: '/'
@@ -534,18 +555,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsIndexRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
+    '/$locale/$slug/$pageslug/': {
+      id: '/$locale/$slug/$pageslug/'
+      path: '/'
+      fullPath: '/$locale/$slug/$pageslug/'
+      preLoaderRoute: typeof LocaleSlugPageslugIndexRouteImport
+      parentRoute: typeof LocaleSlugPageslugRouteRoute
+    }
     '/$locale/$slug/stories/new': {
       id: '/$locale/$slug/stories/new'
       path: '/new'
       fullPath: '/$locale/$slug/stories/new'
       preLoaderRoute: typeof LocaleSlugStoriesNewRouteImport
-      parentRoute: typeof LocaleSlugStoriesRouteRoute
-    }
-    '/$locale/$slug/stories/$storyslug': {
-      id: '/$locale/$slug/stories/$storyslug'
-      path: '/$storyslug'
-      fullPath: '/$locale/$slug/stories/$storyslug'
-      preLoaderRoute: typeof LocaleSlugStoriesStoryslugRouteImport
       parentRoute: typeof LocaleSlugStoriesRouteRoute
     }
     '/$locale/$slug/settings/pages': {
@@ -567,17 +588,47 @@ declare module '@tanstack/react-router' {
       path: '/edit'
       fullPath: '/$locale/$slug/$pageslug/edit'
       preLoaderRoute: typeof LocaleSlugPageslugEditRouteImport
-      parentRoute: typeof LocaleSlugPageslugRoute
+      parentRoute: typeof LocaleSlugPageslugRouteRoute
+    }
+    '/$locale/$slug/stories/$storyslug': {
+      id: '/$locale/$slug/stories/$storyslug'
+      path: '/$storyslug'
+      fullPath: '/$locale/$slug/stories/$storyslug'
+      preLoaderRoute: typeof LocaleSlugStoriesStoryslugRouteRouteImport
+      parentRoute: typeof LocaleSlugStoriesRouteRoute
+    }
+    '/$locale/$slug/stories/$storyslug/': {
+      id: '/$locale/$slug/stories/$storyslug/'
+      path: '/'
+      fullPath: '/$locale/$slug/stories/$storyslug/'
+      preLoaderRoute: typeof LocaleSlugStoriesStoryslugIndexRouteImport
+      parentRoute: typeof LocaleSlugStoriesStoryslugRouteRoute
     }
     '/$locale/$slug/stories/$storyslug/edit': {
       id: '/$locale/$slug/stories/$storyslug/edit'
       path: '/edit'
       fullPath: '/$locale/$slug/stories/$storyslug/edit'
       preLoaderRoute: typeof LocaleSlugStoriesStoryslugEditRouteImport
-      parentRoute: typeof LocaleSlugStoriesStoryslugRoute
+      parentRoute: typeof LocaleSlugStoriesStoryslugRouteRoute
     }
   }
 }
+
+interface LocaleSlugPageslugRouteRouteChildren {
+  LocaleSlugPageslugEditRoute: typeof LocaleSlugPageslugEditRoute
+  LocaleSlugPageslugIndexRoute: typeof LocaleSlugPageslugIndexRoute
+}
+
+const LocaleSlugPageslugRouteRouteChildren: LocaleSlugPageslugRouteRouteChildren =
+  {
+    LocaleSlugPageslugEditRoute: LocaleSlugPageslugEditRoute,
+    LocaleSlugPageslugIndexRoute: LocaleSlugPageslugIndexRoute,
+  }
+
+const LocaleSlugPageslugRouteRouteWithChildren =
+  LocaleSlugPageslugRouteRoute._addFileChildren(
+    LocaleSlugPageslugRouteRouteChildren,
+  )
 
 interface LocaleSlugSettingsRouteRouteChildren {
   LocaleSlugSettingsLinksRoute: typeof LocaleSlugSettingsLinksRoute
@@ -597,30 +648,32 @@ const LocaleSlugSettingsRouteRouteWithChildren =
     LocaleSlugSettingsRouteRouteChildren,
   )
 
-interface LocaleSlugStoriesStoryslugRouteChildren {
+interface LocaleSlugStoriesStoryslugRouteRouteChildren {
   LocaleSlugStoriesStoryslugEditRoute: typeof LocaleSlugStoriesStoryslugEditRoute
+  LocaleSlugStoriesStoryslugIndexRoute: typeof LocaleSlugStoriesStoryslugIndexRoute
 }
 
-const LocaleSlugStoriesStoryslugRouteChildren: LocaleSlugStoriesStoryslugRouteChildren =
+const LocaleSlugStoriesStoryslugRouteRouteChildren: LocaleSlugStoriesStoryslugRouteRouteChildren =
   {
     LocaleSlugStoriesStoryslugEditRoute: LocaleSlugStoriesStoryslugEditRoute,
+    LocaleSlugStoriesStoryslugIndexRoute: LocaleSlugStoriesStoryslugIndexRoute,
   }
 
-const LocaleSlugStoriesStoryslugRouteWithChildren =
-  LocaleSlugStoriesStoryslugRoute._addFileChildren(
-    LocaleSlugStoriesStoryslugRouteChildren,
+const LocaleSlugStoriesStoryslugRouteRouteWithChildren =
+  LocaleSlugStoriesStoryslugRouteRoute._addFileChildren(
+    LocaleSlugStoriesStoryslugRouteRouteChildren,
   )
 
 interface LocaleSlugStoriesRouteRouteChildren {
-  LocaleSlugStoriesStoryslugRoute: typeof LocaleSlugStoriesStoryslugRouteWithChildren
+  LocaleSlugStoriesStoryslugRouteRoute: typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   LocaleSlugStoriesNewRoute: typeof LocaleSlugStoriesNewRoute
   LocaleSlugStoriesIndexRoute: typeof LocaleSlugStoriesIndexRoute
 }
 
 const LocaleSlugStoriesRouteRouteChildren: LocaleSlugStoriesRouteRouteChildren =
   {
-    LocaleSlugStoriesStoryslugRoute:
-      LocaleSlugStoriesStoryslugRouteWithChildren,
+    LocaleSlugStoriesStoryslugRouteRoute:
+      LocaleSlugStoriesStoryslugRouteRouteWithChildren,
     LocaleSlugStoriesNewRoute: LocaleSlugStoriesNewRoute,
     LocaleSlugStoriesIndexRoute: LocaleSlugStoriesIndexRoute,
   }
@@ -630,32 +683,21 @@ const LocaleSlugStoriesRouteRouteWithChildren =
     LocaleSlugStoriesRouteRouteChildren,
   )
 
-interface LocaleSlugPageslugRouteChildren {
-  LocaleSlugPageslugEditRoute: typeof LocaleSlugPageslugEditRoute
-}
-
-const LocaleSlugPageslugRouteChildren: LocaleSlugPageslugRouteChildren = {
-  LocaleSlugPageslugEditRoute: LocaleSlugPageslugEditRoute,
-}
-
-const LocaleSlugPageslugRouteWithChildren =
-  LocaleSlugPageslugRoute._addFileChildren(LocaleSlugPageslugRouteChildren)
-
 interface LocaleSlugRouteRouteChildren {
+  LocaleSlugPageslugRouteRoute: typeof LocaleSlugPageslugRouteRouteWithChildren
   LocaleSlugSettingsRouteRoute: typeof LocaleSlugSettingsRouteRouteWithChildren
   LocaleSlugStoriesRouteRoute: typeof LocaleSlugStoriesRouteRouteWithChildren
   LocaleSlugSplatRoute: typeof LocaleSlugSplatRoute
-  LocaleSlugPageslugRoute: typeof LocaleSlugPageslugRouteWithChildren
   LocaleSlugContributionsRoute: typeof LocaleSlugContributionsRoute
   LocaleSlugMembersRoute: typeof LocaleSlugMembersRoute
   LocaleSlugIndexRoute: typeof LocaleSlugIndexRoute
 }
 
 const LocaleSlugRouteRouteChildren: LocaleSlugRouteRouteChildren = {
+  LocaleSlugPageslugRouteRoute: LocaleSlugPageslugRouteRouteWithChildren,
   LocaleSlugSettingsRouteRoute: LocaleSlugSettingsRouteRouteWithChildren,
   LocaleSlugStoriesRouteRoute: LocaleSlugStoriesRouteRouteWithChildren,
   LocaleSlugSplatRoute: LocaleSlugSplatRoute,
-  LocaleSlugPageslugRoute: LocaleSlugPageslugRouteWithChildren,
   LocaleSlugContributionsRoute: LocaleSlugContributionsRoute,
   LocaleSlugMembersRoute: LocaleSlugMembersRoute,
   LocaleSlugIndexRoute: LocaleSlugIndexRoute,

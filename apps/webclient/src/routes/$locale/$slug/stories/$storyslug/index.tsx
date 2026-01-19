@@ -10,7 +10,7 @@ import { siteConfig } from "@/config";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 
-export const Route = createFileRoute("/$locale/$slug/stories/$storyslug")({
+export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
   loader: async ({ params }) => {
     const { locale, slug, storyslug } = params;
     const story = await backend.getProfileStory(locale, slug, storyslug);
@@ -62,23 +62,22 @@ function ProfileStoryPage() {
   }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug, story.id]);
 
   return (
-    <div>
+    <div className="relative">
       {canEdit && (
-        <div className="flex justify-end mb-4">
-          <Link
-            to="/$locale/$slug/stories/$storyslug/edit"
-            params={{
-              locale: params.locale,
-              slug: params.slug,
-              storyslug: params.storyslug,
-            }}
-          >
-            <Button variant="outline" size="sm">
-              <PencilLine className="mr-1.5 size-4" />
-              {t("Editor.Edit Story")}
-            </Button>
-          </Link>
-        </div>
+        <Link
+          to="/$locale/$slug/stories/$storyslug/edit"
+          params={{
+            locale: params.locale,
+            slug: params.slug,
+            storyslug: params.storyslug,
+          }}
+          className="absolute right-0 top-0 z-10"
+        >
+          <Button variant="outline" size="sm">
+            <PencilLine className="mr-1.5 size-4" />
+            {t("Editor.Edit Story")}
+          </Button>
+        </Link>
       )}
       <StoryContent
         story={story}

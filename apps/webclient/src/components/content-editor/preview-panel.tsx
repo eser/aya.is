@@ -69,7 +69,7 @@ export function PreviewPanel(props: PreviewPanelProps) {
   }
 
   return (
-    <div className={`${styles.previewPanel} prose prose-sm dark:prose-invert`}>
+    <div className={styles.previewPanel}>
       <MdxContent compiledSource={compiledSource} headingOffset={1} />
     </div>
   );
