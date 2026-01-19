@@ -2,7 +2,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
-import { MdxContent } from "@/components/userland/mdx-content";
+import { TextContent } from "@/components/widgets/text-content";
 import { compileMdx } from "@/lib/mdx";
 
 export const Route = createFileRoute("/$locale/$slug/$pageslug")({
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug")({
 
     // Compile MDX content on the server
     let compiledContent: string | null = null;
-    if (page.content) {
+    if (page.content !== null && page.content !== undefined) {
       try {
         compiledContent = await compileMdx(page.content);
       } catch (error) {
@@ -49,12 +49,12 @@ function ProfileCustomPage() {
   const { page, compiledContent } = loaderData;
 
   return (
-    <div className="content">
-      <h2>{page.title}</h2>
-      {compiledContent ? <MdxContent compiledSource={compiledContent} /> : (
-        page.content && <div dangerouslySetInnerHTML={{ __html: page.content }} />
-      )}
-    </div>
+    <TextContent
+      title={page.title}
+      compiledContent={compiledContent}
+      rawContent={page.content}
+      headingOffset={2}
+    />
   );
 }
 

@@ -4,14 +4,38 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
-// Custom MDX components - demote headings to prevent h1 conflicts
-export const mdxComponents = {
-  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 {...props} />,
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 {...props} />,
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h4 {...props} />,
-  h4: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h5 {...props} />,
-  h5: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h6 {...props} />,
-};
+type HeadingTag = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+
+const headingTags: HeadingTag[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
+
+/**
+ * Creates MDX components with heading level offset.
+ * offset=1 means h1→h2, h2→h3, etc. (default, for h1 page titles)
+ * offset=2 means h1→h3, h2→h4, etc. (for h2 page titles)
+ */
+export function createMdxComponents(
+  offset: number = 1,
+): Record<string, (props: React.HTMLAttributes<HTMLHeadingElement>) => React.ReactElement> {
+  const components: Record<
+    string,
+    (props: React.HTMLAttributes<HTMLHeadingElement>) => React.ReactElement
+  > = {};
+
+  for (let i = 0; i < headingTags.length; i++) {
+    const sourceTag = headingTags[i];
+    const targetIndex = Math.min(i + offset, headingTags.length - 1);
+    const TargetTag = headingTags[targetIndex];
+
+    components[sourceTag] = (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+      <TargetTag {...props} />
+    );
+  }
+
+  return components;
+}
+
+// Default components with offset 1 (for backward compatibility)
+export const mdxComponents = createMdxComponents(1);
 
 /**
  * Compiles MDX source to a function body string that can be serialized.

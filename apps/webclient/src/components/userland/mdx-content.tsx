@@ -1,21 +1,29 @@
 import * as React from "react";
-import { mdxComponents, runMdxSync } from "@/lib/mdx";
+import { createMdxComponents, runMdxSync } from "@/lib/mdx";
 
 type MdxContentProps = {
   compiledSource: string;
   className?: string;
+  headingOffset?: number;
 };
 
 export function MdxContent(props: MdxContentProps) {
+  const { compiledSource, className, headingOffset = 1 } = props;
+
   // Use useMemo to cache the MDX component and avoid re-running on every render
   const Content = React.useMemo(() => {
     try {
-      return runMdxSync(props.compiledSource);
+      return runMdxSync(compiledSource);
     } catch (error) {
       console.error("Failed to run MDX:", error);
       return null;
     }
-  }, [props.compiledSource]);
+  }, [compiledSource]);
+
+  const components = React.useMemo(
+    () => createMdxComponents(headingOffset),
+    [headingOffset],
+  );
 
   if (Content === null) {
     return (
@@ -26,8 +34,8 @@ export function MdxContent(props: MdxContentProps) {
   }
 
   return (
-    <div className={props.className}>
-      <Content components={mdxComponents} />
+    <div className={className}>
+      <Content components={components} />
     </div>
   );
 }

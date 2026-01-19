@@ -2,20 +2,23 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { StoryEx } from "@/modules/backend/types";
 
-export type StoryShareProps = {
-  story: StoryEx;
+export type ShareOptionsProps = {
+  title: string;
+  summary?: string | null;
+  content?: string | null;
+  slug?: string | null;
   currentUrl: string;
 };
 
-export function StoryShare(props: StoryShareProps) {
+export function ShareOptions(props: ShareOptionsProps) {
+  const { title, summary, content, slug, currentUrl } = props;
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(props.currentUrl);
+      await navigator.clipboard.writeText(currentUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -23,45 +26,47 @@ export function StoryShare(props: StoryShareProps) {
     }
   };
 
+  const shareText = summary !== null && summary !== undefined
+    ? `${title} - ${summary}`
+    : title;
+
   const handleWhatsAppShare = () => {
-    const text = `${props.story.title} - ${props.story.summary}`;
-    const url = `https://wa.me/?text=${encodeURIComponent(`${text} ${props.currentUrl}`)}`;
+    const url =
+      `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleTelegramShare = () => {
-    const text = `${props.story.title} - ${props.story.summary}`;
-    const url = `https://t.me/share/url?url=${encodeURIComponent(props.currentUrl)}&text=${encodeURIComponent(text)}`;
+    const url =
+      `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleLinkedInShare = () => {
-    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(props.currentUrl)}`;
+    const url =
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleRedditShare = () => {
-    const url = `https://reddit.com/submit?url=${encodeURIComponent(props.currentUrl)}&title=${
-      encodeURIComponent(props.story.title ?? "")
-    }`;
+    const url =
+      `https://reddit.com/submit?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleXShare = () => {
-    const text = `${props.story.title} - ${props.story.summary}`;
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${
-      encodeURIComponent(props.currentUrl)
-    }`;
+    const url =
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleDownloadMarkdown = () => {
-    const markdownContent = `# ${props.story.title}\n\n${props.story.summary}\n\n${props.story.content}`;
+    const markdownContent = `# ${title}\n\n${summary ?? ""}\n\n${content ?? ""}`;
     const blob = new Blob([markdownContent], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${props.story.slug ?? "story"}.md`;
+    a.download = `${slug ?? "content"}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

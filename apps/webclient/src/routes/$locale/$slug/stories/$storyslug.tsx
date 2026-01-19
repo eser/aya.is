@@ -2,7 +2,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
-import { StoryContent } from "@/components/widgets/story";
+import { StoryContent } from "@/components/widgets/story-content";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 
@@ -11,13 +11,13 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug")({
     const { locale, slug, storyslug } = params;
     const story = await backend.getProfileStory(locale, slug, storyslug);
 
-    if (!story) {
+    if (story === null || story === undefined) {
       throw notFound();
     }
 
     // Compile MDX content on the server
     let compiledContent: string | null = null;
-    if (story.content) {
+    if (story.content !== null && story.content !== undefined) {
       try {
         compiledContent = await compileMdx(story.content);
       } catch (error) {
@@ -44,6 +44,7 @@ function ProfileStoryPage() {
       compiledContent={compiledContent}
       currentUrl={currentUrl}
       showAuthor={false}
+      headingOffset={2}
     />
   );
 }
