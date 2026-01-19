@@ -18,6 +18,7 @@ import {
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -316,7 +317,32 @@ function LinksSettingsPage() {
   if (isLoading) {
     return (
       <Card className="p-6">
-        <p className="text-muted-foreground">{t("Loading.Loading...")}</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <Skeleton className="h-7 w-40 mb-2" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 p-4 border rounded-lg"
+            >
+              <Skeleton className="size-5" />
+              <Skeleton className="size-10 rounded-full" />
+              <div className="flex-1">
+                <Skeleton className="h-5 w-32 mb-2" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="flex items-center gap-1">
+                <Skeleton className="size-10" />
+                <Skeleton className="size-10" />
+              </div>
+            </div>
+          ))}
+        </div>
       </Card>
     );
   }
