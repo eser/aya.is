@@ -2,7 +2,7 @@
 import * as React from "react";
 import { createFileRoute, Outlet, useParams } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Globe, Instagram, Link, Linkedin, Settings, Youtube } from "lucide-react";
+import { Globe, Instagram, Link, Linkedin, PencilLine, Youtube } from "lucide-react";
 import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
@@ -177,6 +177,17 @@ function ProfileSidebar(props: ProfileSidebarProps) {
           props.profile.description !== undefined && (
           <p className="mt-0 mb-4 font-sans text-sm font-normal leading-snug text-left">
             {props.profile.description}
+            {canEdit && (
+              <div className="flex">
+                <LocaleLink
+                  to={`/${props.slug}/settings`}
+                  className="no-underline transition-colors text-muted-foreground hover:text-foreground flex text-sm items-center"
+                >
+                  <PencilLine size="16" className="mr-1.5" />
+                  {t("Profile.Edit Profile")}
+                </LocaleLink>
+              </div>
+            )}
           </p>
         )}
       </div>
@@ -230,17 +241,6 @@ function ProfileSidebar(props: ProfileSidebarProps) {
               </LocaleLink>
             </li>
           ))}
-
-          {canEdit && (
-            <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl md:after:content-none">
-              <LocaleLink
-                to={`/${props.slug}/settings`}
-                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
-              >
-                {t("Profile.Settings")}
-              </LocaleLink>
-            </li>
-          )}
         </ul>
       </nav>
     </aside>

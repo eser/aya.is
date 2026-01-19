@@ -39,22 +39,35 @@ function SettingsLayout() {
         </p>
       </div>
 
-      <nav className="flex gap-4 border-b pb-2">
+      <nav className="flex gap-4 border-b">
         <LocaleLink
           to={`/${params.slug}/settings`}
-          className="text-sm font-medium hover:text-foreground"
+          activeOptions={{ exact: true }}
+          className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+          activeProps={{
+            className:
+              "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
+          }}
         >
           {t("Profile.General")}
         </LocaleLink>
         <LocaleLink
           to={`/${params.slug}/settings/pages`}
-          className="text-sm font-medium hover:text-foreground"
+          className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+          activeProps={{
+            className:
+              "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
+          }}
         >
           {t("Profile.Pages")}
         </LocaleLink>
         <LocaleLink
           to={`/${params.slug}/settings/links`}
-          className="text-sm font-medium hover:text-foreground"
+          className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+          activeProps={{
+            className:
+              "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
+          }}
         >
           {t("Profile.Social Links")}
         </LocaleLink>

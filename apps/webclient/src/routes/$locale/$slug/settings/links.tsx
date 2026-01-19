@@ -317,7 +317,7 @@ function LinksSettingsPage() {
   if (isLoading) {
     return (
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <div>
             <Skeleton className="h-7 w-40 mb-2" />
             <Skeleton className="h-4 w-72" />
@@ -349,7 +349,7 @@ function LinksSettingsPage() {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="font-serif text-xl font-semibold text-foreground">{t("Profile.Social Links")}</h3>
           <p className="text-muted-foreground text-sm mt-1">
@@ -357,7 +357,7 @@ function LinksSettingsPage() {
           </p>
         </div>
         <Button onClick={handleOpenAddDialog}>
-          <Plus className="size-4 mr-2" />
+          <Plus className="size-4 mr-1" />
           {t("Profile.Add Link")}
         </Button>
       </div>
@@ -367,7 +367,7 @@ function LinksSettingsPage() {
           <Globe className="size-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-4">{t("Profile.No links added yet.")}</p>
           <Button variant="outline" onClick={handleOpenAddDialog}>
-            <Plus className="size-4 mr-2" />
+            <Plus className="size-4 mr-1" />
             {t("Profile.Add Your First Link")}
           </Button>
         </div>
