@@ -12,8 +12,8 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Eye,
   EyeOff,
+  GripVertical,
   type LucideIcon,
 } from "lucide-react";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
@@ -47,7 +47,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
 
 export const Route = createFileRoute("/$locale/$slug/settings/links")({
   component: LinksSettingsPage,
@@ -128,6 +127,10 @@ function LinksSettingsPage() {
   const [linkToDelete, setLinkToDelete] = React.useState<ProfileLink | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
 
+  // Drag and drop state
+  const [draggedId, setDraggedId] = React.useState<string | null>(null);
+  const [dragOverId, setDragOverId] = React.useState<string | null>(null);
+
   const [formData, setFormData] = React.useState<LinkFormData>({
     kind: "github",
     title: "",
@@ -144,7 +147,9 @@ function LinksSettingsPage() {
     setIsLoading(true);
     const result = await backend.listProfileLinks(params.locale, params.slug);
     if (result !== null) {
-      setLinks(result);
+      // Sort by order
+      const sorted = [...result].sort((a, b) => a.order - b.order);
+      setLinks(sorted);
     } else {
       toast.error(t("Profile.Failed to load profile links"));
     }
@@ -257,6 +262,90 @@ function LinksSettingsPage() {
     }));
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, linkId: string) => {
+    setDraggedId(linkId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", linkId);
+    // Add a slight delay to allow the drag image to be captured
+    setTimeout(() => {
+      const element = document.querySelector(`[data-link-id="${linkId}"]`);
+      if (element !== null) {
+        element.classList.add("opacity-50");
+      }
+    }, 0);
+  };
+
+  const handleDragEnd = () => {
+    // Remove opacity from dragged element
+    if (draggedId !== null) {
+      const element = document.querySelector(`[data-link-id="${draggedId}"]`);
+      if (element !== null) {
+        element.classList.remove("opacity-50");
+      }
+    }
+    setDraggedId(null);
+    setDragOverId(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, linkId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (linkId !== draggedId) {
+      setDragOverId(linkId);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverId(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    setDragOverId(null);
+
+    if (draggedId === null || draggedId === targetId) return;
+
+    const draggedIndex = links.findIndex((l) => l.id === draggedId);
+    const targetIndex = links.findIndex((l) => l.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Reorder locally first for immediate feedback
+    const newLinks = [...links];
+    const [draggedItem] = newLinks.splice(draggedIndex, 1);
+    newLinks.splice(targetIndex, 0, draggedItem);
+
+    // Update local state immediately
+    setLinks(newLinks);
+
+    // Update orders on backend
+    const updatePromises = newLinks.map((link, index) => {
+      const newOrder = index + 1;
+      if (link.order !== newOrder) {
+        return backend.updateProfileLink(params.locale, params.slug, link.id, {
+          kind: link.kind,
+          order: newOrder,
+          uri: link.uri ?? null,
+          title: link.title,
+          is_hidden: link.is_hidden,
+        });
+      }
+      return Promise.resolve(null);
+    });
+
+    try {
+      await Promise.all(updatePromises);
+      toast.success(t("Profile.Links reordered successfully"));
+      // Reload to get fresh data from server
+      loadLinks();
+    } catch {
+      toast.error(t("Profile.Failed to reorder links"));
+      // Reload to restore original order
+      loadLinks();
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -290,17 +379,32 @@ function LinksSettingsPage() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {links.map((link) => {
             const config = getLinkTypeConfig(link.kind);
             const IconComponent = config.icon;
+            const isDragOver = dragOverId === link.id;
 
             return (
               <div
                 key={link.id}
-                className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                data-link-id={link.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, link.id)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOver(e, link.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, link.id)}
+                className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
+                  isDragOver
+                    ? "border-primary bg-primary/5 border-dashed"
+                    : "hover:bg-muted/50"
+                }`}
               >
-                <div className="flex items-center justify-center size-10 rounded-full bg-muted">
+                <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+                  <GripVertical className="size-5" />
+                </div>
+                <div className="flex items-center justify-center size-10 rounded-full bg-muted shrink-0">
                   <IconComponent className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -317,18 +421,24 @@ function LinksSettingsPage() {
                     <p className="text-sm text-muted-foreground truncate">{link.uri}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleOpenEditDialog(link)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenEditDialog(link);
+                    }}
                   >
                     <Pencil className="size-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleOpenDeleteDialog(link)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenDeleteDialog(link);
+                    }}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -363,11 +473,11 @@ function LinksSettingsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {LINK_TYPES.map((linkType) => {
-                    const IconComponent = linkType.icon;
+                    const IconComp = linkType.icon;
                     return (
                       <SelectItem key={linkType.kind} value={linkType.kind}>
                         <div className="flex items-center gap-2">
-                          <IconComponent className="size-4" />
+                          <IconComp className="size-4" />
                           <span>{linkType.label}</span>
                         </div>
                       </SelectItem>
