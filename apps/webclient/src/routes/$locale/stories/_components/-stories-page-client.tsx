@@ -27,6 +27,8 @@ type GroupedStories = {
 type StoriesPageClientProps = {
   initialStories: StoryEx[] | null;
   basePath: string;
+  /** Profile slug for generating story links (e.g., "eser" for /eser/stories/...) */
+  profileSlug?: string;
 };
 
 export function StoriesPageClient(props: StoriesPageClientProps) {
@@ -129,11 +131,12 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
           <h2 className="text-lg font-semibold text-muted-foreground mb-4 pb-2 border-b border-border">
             {formatMonthYear(group.date, locale)}
           </h2>
-          <div className="divide-y divide-border">
+          <div>
             {group.stories.map((story) => (
               <Story
                 key={story.id}
                 story={story}
+                profileSlug={props.profileSlug}
               />
             ))}
           </div>

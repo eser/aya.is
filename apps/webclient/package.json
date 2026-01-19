@@ -21,6 +21,7 @@
     "@tanstack/react-start": "^1.149.4",
     "@tanstack/router-plugin": "^1.149.3",
     "@tanstack/virtual-file-routes": "^1.145.4",
+    "@types/mdast": "^4.0.4",
     "better-auth": "^1.4.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -48,6 +49,7 @@
     "remark-gfm": "^4.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
+    "unist-util-visit": "^5.0.0",
     "vaul": "^1.1.2",
     "zod": "^4.3.5"
   },

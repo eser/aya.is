@@ -1,14 +1,10 @@
 @reference "@/theme.css";
 
 .story {
-  @apply flex flex-col md:flex-row items-center md:items-start gap-4 py-6 border-b border-border;
+  @apply flex flex-col md:flex-row items-center md:items-start gap-4 py-6;
 
   &:first-child {
     @apply pt-0;
-  }
-
-  &:last-child {
-    @apply border-b-0;
   }
 }
 

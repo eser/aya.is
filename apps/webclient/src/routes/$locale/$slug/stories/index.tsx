@@ -1,38 +1,31 @@
-// Profile stories index - shows all profile stories
+// Profile stories index - shows all profile stories with date grouping and pagination
 import { createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
-import { backend, type StoryEx } from "@/modules/backend/backend";
-import { Story } from "@/components/userland/story";
+import { backend } from "@/modules/backend/backend";
+import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
 
 export const Route = createFileRoute("/$locale/$slug/stories/")({
+  validateSearch: (search: Record<string, unknown>) => {
+    const offset = Number(search.offset) || 0;
+    return offset > 0 ? { offset } : {};
+  },
   loader: async ({ params }) => {
     const { slug, locale } = params;
     const stories = await backend.getProfileStories(locale, slug);
-    return { stories };
+    return { stories, slug, locale };
   },
   component: ProfileStoriesIndexPage,
 });
 
 function ProfileStoriesIndexPage() {
-  const { stories } = Route.useLoaderData();
-  const params = Route.useParams();
-  const { t } = useTranslation();
-
-  if (stories.length === 0) {
-    return (
-      <div className="content">
-        <p className="text-muted-foreground">
-          {t("Layout.Content not yet available.")}
-        </p>
-      </div>
-    );
-  }
+  const { stories, slug, locale } = Route.useLoaderData();
 
   return (
-    <div className="flex flex-col">
-      {stories.map((story: StoryEx) => (
-        <Story key={story.id} story={story} profileSlug={params.slug} />
-      ))}
+    <div className="content">
+      <StoriesPageClient
+        initialStories={stories}
+        basePath={`/${locale}/${slug}/stories`}
+        profileSlug={slug}
+      />
     </div>
   );
 }

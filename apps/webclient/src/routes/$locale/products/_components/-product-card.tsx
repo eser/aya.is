@@ -1,10 +1,8 @@
 "use client";
 
-import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Profile } from "@/modules/backend/types";
 
 export type ProductCardProps = {
@@ -12,55 +10,44 @@ export type ProductCardProps = {
 };
 
 export function ProductCard(props: ProductCardProps) {
-  const { t } = useTranslation();
   const { product } = props;
 
   return (
-    <Card
-      key={product.slug}
-      className="pt-0 pb-4 group hover:shadow-lg transition-all duration-300 border-0 shadow-md gap-3"
-    >
-      <div className="relative overflow-hidden">
-        <img
-          src={product.profile_picture_uri ?? "/assets/site-logo.svg"}
-          alt={product.title}
-          width={300}
-          height={200}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute top-4 left-4">
-          <Badge variant="secondary" className="bg-white/90 text-slate-700">
-            {product.kind}
-          </Badge>
-        </div>
-      </div>
-
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle>
-              <h3 className="font-serif text-xl font-semibold mb-1 text-foreground">
-                {product.title}
-              </h3>
-            </CardTitle>
-            <CardDescription className="text-sm text-slate-600 mb-3">
-              {product.description}
-            </CardDescription>
+    <LocaleLink to={`/${product.slug}`} role="card" className="block">
+      <Card
+        key={product.slug}
+        className="pt-0 pb-4 group hover:shadow-lg transition-all duration-300 border-0 shadow-md gap-3 cursor-pointer"
+      >
+        <div className="relative overflow-hidden">
+          <img
+            src={product.profile_picture_uri ?? "/assets/site-logo.svg"}
+            alt={product.title}
+            width={300}
+            height={200}
+            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute top-4 left-4">
+            <Badge variant="secondary" className="bg-white/90 text-slate-700">
+              {product.kind}
+            </Badge>
           </div>
         </div>
-      </CardHeader>
 
-      <CardContent>
-        <div className="flex space-x-2">
-          <Button
-            className="flex-1"
-            variant="outline"
-            render={<LocaleLink to={`/${product.slug}`} />}
-          >
-            {t("Products.Details")}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-h-25">
+              <CardTitle>
+                <h3 className="font-serif text-xl font-semibold mb-1 text-foreground">
+                  {product.title}
+                </h3>
+              </CardTitle>
+              <CardDescription className="text-sm text-slate-600 mb-3">
+                {product.description}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+    </LocaleLink>
   );
 }

@@ -3,15 +3,19 @@ import { compile, runSync } from "@mdx-js/mdx";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import { remarkEmbed } from "./remark-embed";
 import {
   Card,
   Cards,
+  Embed,
   List,
   ListItem,
   ProfileCard,
   ProfileList,
   SiteLink,
   Story,
+  TwitterEmbed,
+  YouTubeEmbed,
 } from "@/components/userland";
 
 type HeadingTag = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -42,12 +46,15 @@ export function createMdxComponents(
   // Add custom userland components
   components.Card = Card;
   components.Cards = Cards;
+  components.Embed = Embed;
   components.List = List;
   components.ListItem = ListItem;
   components.ProfileCard = ProfileCard;
   components.ProfileList = ProfileList;
   components.SiteLink = SiteLink;
   components.Story = Story;
+  components.TwitterEmbed = TwitterEmbed;
+  components.YouTubeEmbed = YouTubeEmbed;
 
   return components;
 }
@@ -62,7 +69,7 @@ export const mdxComponents = createMdxComponents(1);
 export async function compileMdx(source: string): Promise<string> {
   const compiled = await compile(source, {
     outputFormat: "function-body",
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkEmbed, remarkGfm],
     rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "wrap" }],

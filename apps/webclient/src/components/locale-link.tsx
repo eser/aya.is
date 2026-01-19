@@ -52,7 +52,6 @@ export function LocaleLink({
   });
 
   return (
-    // @ts-expect-error - href is a dynamic string, but Link expects typed routes
     <Link to={href} {...props}>
       {children}
     </Link>

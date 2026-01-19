@@ -16,11 +16,15 @@
   }
 
   & .title {
-    @apply text-2xl font-semibold text-primary-foreground hover:underline;
+    @apply text-2xl font-semibold text-primary;
+
+    & a {
+      @apply no-underline text-primary hover:underline;
+    }
   }
 
   & .desc {
-    @apply text-lg leading-6 text-foreground line-clamp-2 hyphens-auto;
+    @apply text-base leading-6 text-foreground line-clamp-2 hyphens-auto;
   }
 
   & .media {

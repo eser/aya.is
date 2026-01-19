@@ -156,7 +156,7 @@ function PagesSettingsPage() {
   return (
     <Card className="p-6">
       <div className="mb-6">
-        <h3 className="font-serif text-xl font-semibold">{t("Profile.Pages")}</h3>
+        <h3 className="font-serif text-xl font-semibold text-foreground">{t("Profile.Pages")}</h3>
         <p className="text-muted-foreground text-sm mt-1">
           {t("Profile.Manage and reorder your profile pages.")}
         </p>
