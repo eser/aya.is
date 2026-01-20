@@ -307,6 +307,7 @@
     "Summary": "Summary",
     "Slug": "Slug",
     "Story Picture URI": "Story Picture URI",
+    "Cover Picture URI": "Cover Picture URI",
     "Draft": "Draft",
     "Published": "Published",
     "Delete Confirmation": "This action cannot be undone. This will permanently delete this content and all associated data.",

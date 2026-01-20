@@ -43,7 +43,8 @@ import { EditorActions, type ContentStatus } from "./editor-actions";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
-import { allowedURIPrefixes, isAllowedURI } from "@/config";
+import { isAllowedURI } from "@/config";
+import { getEntityConfig } from "./entity-types";
 
 // Schema for optional URL validation (null, empty string, or valid http/https URL)
 const optionalUrlSchema = z.union([
@@ -118,6 +119,10 @@ export function ContentEditor(props: ContentEditorProps) {
 
   const isAdmin = userKind === "admin";
 
+  // Get entity-specific configuration
+  const entityConfig = getEntityConfig(contentType);
+  const imageFieldConfig = entityConfig.imageFields[0];
+
   const { t } = useTranslation();
 
   // Form state
@@ -173,9 +178,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
     // For non-admin users, validate URI prefix
     if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
-      const prefixes = contentType === "story"
-        ? allowedURIPrefixes.stories
-        : allowedURIPrefixes.profiles;
+      const prefixes = imageFieldConfig.allowedPrefixes;
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
         setStoryPictureUriError(
@@ -186,7 +189,7 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     setStoryPictureUriError(null);
-  }, [storyPictureUri, t, isAdmin, contentType]);
+  }, [storyPictureUri, t, isAdmin, imageFieldConfig.allowedPrefixes]);
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
@@ -240,9 +243,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
     // Validate URI prefix for non-admin users
     if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
-      const prefixes = contentType === "story"
-        ? allowedURIPrefixes.stories
-        : allowedURIPrefixes.profiles;
+      const prefixes = imageFieldConfig.allowedPrefixes;
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
         setStoryPictureUriError(
@@ -275,9 +276,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
     // Validate URI prefix for non-admin users
     if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
-      const prefixes = contentType === "story"
-        ? allowedURIPrefixes.stories
-        : allowedURIPrefixes.profiles;
+      const prefixes = imageFieldConfig.allowedPrefixes;
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
         setStoryPictureUriError(
@@ -555,10 +554,10 @@ export function ContentEditor(props: ContentEditorProps) {
                 />
               </div>
 
-              {/* Story Picture URI */}
+              {/* Picture URI (Story Picture or Cover Picture depending on entity type) */}
               <div className={styles.metadataField}>
                 <Label htmlFor="story-picture-uri" className={styles.metadataLabel}>
-                  {t("Editor.Story Picture URI")}
+                  {t(imageFieldConfig.labelKey)}
                 </Label>
                 <div className="flex gap-2">
                   <Input

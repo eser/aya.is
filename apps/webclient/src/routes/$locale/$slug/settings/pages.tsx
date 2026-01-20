@@ -1,9 +1,9 @@
 // Profile pages settings
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { FileText, GripVertical, ExternalLink, Pencil } from "lucide-react";
+import { FileText, GripVertical, ExternalLink, Pencil, Plus } from "lucide-react";
 import { backend, type ProfilePage } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -155,11 +155,22 @@ function PagesSettingsPage() {
 
   return (
     <Card className="p-6">
-      <div>
-        <h3 className="font-serif text-xl font-semibold text-foreground">{t("Profile.Pages")}</h3>
-        <p className="text-muted-foreground text-sm mt-1">
-          {t("Profile.Manage and reorder your profile pages.")}
-        </p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="font-serif text-xl font-semibold text-foreground">{t("Profile.Pages")}</h3>
+          <p className="text-muted-foreground text-sm mt-1">
+            {t("Profile.Manage and reorder your profile pages.")}
+          </p>
+        </div>
+        <Link
+          to="/$locale/$slug/settings/pages/new"
+          params={{ locale: params.locale, slug: params.slug }}
+        >
+          <Button variant="default" size="sm">
+            <Plus className="mr-1.5 size-4" />
+            {t("Editor.Add Page")}
+          </Button>
+        </Link>
       </div>
 
       {pages.length === 0 ? (
