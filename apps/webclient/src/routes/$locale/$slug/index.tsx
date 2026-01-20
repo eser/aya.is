@@ -50,19 +50,18 @@ function ProfileIndexPage() {
 
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
-      <div className="content">
+      <div className="content relative">
         {canEdit && (
-          <div className="flex justify-end mb-4">
-            <Link
-              to="/$locale/$slug/stories/new"
-              params={{ locale, slug }}
-            >
-              <Button variant="default" size="sm">
-                <Plus className="mr-1.5 size-4" />
-                {t("Editor.Add Story")}
-              </Button>
-            </Link>
-          </div>
+          <Link
+            to="/$locale/stories/new"
+            params={{ locale }}
+            className="absolute right-0 top-0 z-10"
+          >
+            <Button variant="default" size="sm">
+              <Plus className="mr-1.5 size-4" />
+              {t("Editor.Add Story")}
+            </Button>
+          </Link>
         )}
         <StoriesPageClient
           initialStories={stories}

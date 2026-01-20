@@ -1,13 +1,11 @@
 // Profile story page
 import * as React from "react";
-import { createFileRoute, notFound, Link, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, notFound, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { PencilLine } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
 import { StoryContent } from "@/components/widgets/story-content";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 
@@ -43,7 +41,6 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
 });
 
 function ProfileStoryPage() {
-  const { t } = useTranslation();
   const params = Route.useParams();
   const auth = useAuth();
   const { story, compiledContent, currentUrl, locale, slug } = Route.useLoaderData();
@@ -69,33 +66,18 @@ function ProfileStoryPage() {
     return <StoryNotFound />;
   }
 
+  const editUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/edit` : undefined;
+
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
-      <div className="relative">
-        {canEdit && (
-          <Link
-            to="/$locale/$slug/stories/$storyslug/edit"
-            params={{
-              locale: params.locale,
-              slug: params.slug,
-              storyslug: params.storyslug,
-            }}
-            className="absolute right-0 top-0 z-10"
-          >
-            <Button variant="outline" size="sm">
-              <PencilLine className="mr-1.5 size-4" />
-              {t("Editor.Edit Story")}
-            </Button>
-          </Link>
-        )}
-        <StoryContent
-          story={story}
-          compiledContent={compiledContent}
-          currentUrl={currentUrl}
-          showAuthor={false}
-          headingOffset={2}
-        />
-      </div>
+      <StoryContent
+        story={story}
+        compiledContent={compiledContent}
+        currentUrl={currentUrl}
+        showAuthor={false}
+        headingOffset={2}
+        editUrl={editUrl}
+      />
     </ProfileSidebarLayout>
   );
 }

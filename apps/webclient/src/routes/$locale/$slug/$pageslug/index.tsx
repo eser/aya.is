@@ -2,7 +2,7 @@
 import * as React from "react";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { PencilLine } from "lucide-react";
+import { SquarePen } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
 import { TextContent } from "@/components/widgets/text-content";
 import { compileMdx } from "@/lib/mdx";
@@ -89,7 +89,7 @@ function ProfileCustomPage() {
             className="absolute right-0 top-0 z-10"
           >
             <Button variant="outline" size="sm">
-              <PencilLine className="mr-1.5 size-4" />
+              <SquarePen className="mr-1.5 size-4" />
               {t("Editor.Edit Page")}
             </Button>
           </Link>

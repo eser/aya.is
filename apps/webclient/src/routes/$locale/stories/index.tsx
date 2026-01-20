@@ -1,8 +1,11 @@
 // Stories index page
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/auth-context";
 import { StoriesPageClient } from "./_components/-stories-page-client";
 
 export const Route = createFileRoute("/$locale/stories/")({
@@ -21,12 +24,28 @@ export const Route = createFileRoute("/$locale/stories/")({
 function StoriesIndexPage() {
   const { stories, locale } = Route.useLoaderData();
   const { t } = useTranslation();
+  const auth = useAuth();
+
+  const canCreate = auth.isAuthenticated && auth.user?.individual_profile_slug !== undefined;
 
   return (
     <PageLayout>
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
-          <h1>{t("Layout.Articles")}</h1>
+          <div className="flex items-start justify-between">
+            <h1>{t("Layout.Articles")}</h1>
+            {canCreate && (
+              <Link
+                to="/$locale/stories/new"
+                params={{ locale }}
+              >
+                <Button variant="default" size="sm">
+                  <Plus className="mr-1.5 size-4" />
+                  {t("Editor.Add Story")}
+                </Button>
+              </Link>
+            )}
+          </div>
 
           <StoriesPageClient
             initialStories={stories}

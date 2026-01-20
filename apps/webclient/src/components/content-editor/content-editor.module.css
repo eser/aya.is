@@ -7,7 +7,7 @@
 }
 
 .editorHeader {
-  @apply flex items-center justify-between border-b pb-4;
+  @apply flex items-center justify-between border-b p-4;
 }
 
 .editorMain {

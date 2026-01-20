@@ -1,6 +1,6 @@
 // Profile settings index (general settings)
 import * as React from "react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend, type Profile } from "@/modules/backend/backend";
@@ -8,8 +8,7 @@ import { Card } from "@/components/ui/card";
 import { ProfilePictureUpload } from "@/components/profile/profile-picture-upload";
 import { EditProfileForm, type EditProfileInput } from "@/components/forms/edit-profile-form";
 
-// Import parent route to access its loader data
-import { Route as SettingsRoute } from "./route";
+const settingsRoute = getRouteApi("/$locale/$slug/settings");
 
 export const Route = createFileRoute("/$locale/$slug/settings/")({
   component: SettingsIndexPage,
@@ -21,7 +20,7 @@ function SettingsIndexPage() {
   const router = useRouter();
 
   // Get profile from parent settings route loader
-  const { profile: initialProfile } = SettingsRoute.useLoaderData();
+  const { profile: initialProfile } = settingsRoute.useLoaderData();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [currentProfile, setCurrentProfile] = React.useState<Profile>(initialProfile);

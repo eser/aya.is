@@ -35,26 +35,40 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 type PaginationLinkProps = {
   isActive?: boolean;
   size?: "default" | "sm" | "lg" | "icon";
+  render?: (props: React.ComponentProps<"a"> & { className: string }) => React.ReactNode;
 } & React.ComponentProps<"a">;
 
 function PaginationLink({
   className,
   isActive,
   size = "icon",
+  render,
   ...props
 }: PaginationLinkProps) {
+  const combinedClassName = cn(
+    buttonVariants({
+      variant: isActive ? "outline" : "ghost",
+      size,
+    }),
+    className,
+  );
+
+  if (render !== undefined) {
+    return render({
+      ...props,
+      className: combinedClassName,
+      "aria-current": isActive ? "page" : undefined,
+      "data-slot": "pagination-link",
+      "data-active": isActive,
+    } as React.ComponentProps<"a"> & { className: string });
+  }
+
   return (
     <a
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
-      className={cn(
-        buttonVariants({
-          variant: isActive ? "outline" : "ghost",
-          size,
-        }),
-        className,
-      )}
+      className={combinedClassName}
       {...props}
     />
   );
@@ -63,17 +77,25 @@ function PaginationLink({
 function PaginationPrevious({
   className,
   children,
+  render,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
+  const content = (
+    <>
+      <ChevronLeftIcon />
+      <span className="hidden sm:block">{children ?? "Previous"}</span>
+    </>
+  );
+
   return (
     <PaginationLink
       aria-label="Go to previous page"
       size="default"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
+      render={render !== undefined ? (linkProps) => render({ ...linkProps, children: content }) : undefined}
       {...props}
     >
-      <ChevronLeftIcon />
-      <span className="hidden sm:block">{children ?? "Previous"}</span>
+      {content}
     </PaginationLink>
   );
 }
@@ -81,17 +103,25 @@ function PaginationPrevious({
 function PaginationNext({
   className,
   children,
+  render,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) {
+  const content = (
+    <>
+      <span className="hidden sm:block">{children ?? "Next"}</span>
+      <ChevronRightIcon />
+    </>
+  );
+
   return (
     <PaginationLink
       aria-label="Go to next page"
       size="default"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
+      render={render !== undefined ? (linkProps) => render({ ...linkProps, children: content }) : undefined}
       {...props}
     >
-      <span className="hidden sm:block">{children ?? "Next"}</span>
-      <ChevronRightIcon />
+      {content}
     </PaginationLink>
   );
 }

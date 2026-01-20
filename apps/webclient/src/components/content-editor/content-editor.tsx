@@ -1,12 +1,30 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, PanelLeftClose, PanelLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  PanelLeftClose,
+  PanelLeft,
+  Newspaper,
+  PencilLine,
+  Megaphone,
+  Info,
+  Images,
+  Presentation,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { StoryKind } from "@/modules/backend/types";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -35,6 +53,7 @@ export type ContentEditorData = {
   status: ContentStatus;
   publishedAt?: string | null;
   isFeatured?: boolean;
+  kind?: StoryKind;
 };
 
 type ContentEditorProps = {
@@ -80,6 +99,9 @@ export function ContentEditor(props: ContentEditorProps) {
   const [isFeatured, setIsFeatured] = React.useState(
     initialData.isFeatured ?? false,
   );
+  const [kind, setKind] = React.useState<StoryKind>(
+    initialData.kind ?? "article",
+  );
 
   // UI state
   const [viewMode, setViewMode] = React.useState<ViewMode>("split");
@@ -98,9 +120,10 @@ export function ContentEditor(props: ContentEditorProps) {
       coverImageUrl !== (initialData.coverImageUrl ?? null) ||
       status !== initialData.status ||
       publishedAt !== (initialData.publishedAt ?? null) ||
-      isFeatured !== (initialData.isFeatured ?? false)
+      isFeatured !== (initialData.isFeatured ?? false) ||
+      kind !== (initialData.kind ?? "article")
     );
-  }, [title, slug, summary, content, coverImageUrl, status, publishedAt, isFeatured, initialData]);
+  }, [title, slug, summary, content, coverImageUrl, status, publishedAt, isFeatured, kind, initialData]);
 
   // Auto-generate slug from title for new content
   React.useEffect(() => {
@@ -124,6 +147,7 @@ export function ContentEditor(props: ContentEditorProps) {
     status,
     publishedAt,
     isFeatured,
+    kind,
   });
 
   const handleSave = async () => {
@@ -211,7 +235,13 @@ export function ContentEditor(props: ContentEditorProps) {
       {/* Header */}
       <div className={styles.editorHeader}>
         <div className="flex items-center gap-3">
-          <Link to={backUrl}>
+          <Link
+            to={backUrl}
+            onClick={(e: React.MouseEvent) => {
+              e.preventDefault();
+              globalThis.history.back();
+            }}
+          >
             <Button variant="outline" size="icon" className="rounded-full">
               <ArrowLeft className="size-4" />
             </Button>
@@ -288,6 +318,57 @@ export function ContentEditor(props: ContentEditorProps) {
                   placeholder={t("Editor.url-friendly-slug")}
                 />
               </div>
+
+              {contentType === "story" && (
+                <div className={styles.metadataField}>
+                  <Label htmlFor="kind" className={styles.metadataLabel}>
+                    {t("Editor.Kind")}
+                  </Label>
+                  <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)}>
+                    <SelectTrigger id="kind">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="article">
+                        <span className="flex items-center gap-2">
+                          <PencilLine className="size-4" />
+                          {t("Stories.Article")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="announcement">
+                        <span className="flex items-center gap-2">
+                          <Megaphone className="size-4" />
+                          {t("Stories.Announcement")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="news">
+                        <span className="flex items-center gap-2">
+                          <Newspaper className="size-4" />
+                          {t("Editor.News")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="status">
+                        <span className="flex items-center gap-2">
+                          <Info className="size-4" />
+                          {t("Stories.Status")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="content">
+                        <span className="flex items-center gap-2">
+                          <Images className="size-4" />
+                          {t("Stories.Content")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="presentation">
+                        <span className="flex items-center gap-2">
+                          <Presentation className="size-4" />
+                          {t("Stories.Presentation")}
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className={styles.metadataField}>
                 <Label htmlFor="summary" className={styles.metadataLabel}>

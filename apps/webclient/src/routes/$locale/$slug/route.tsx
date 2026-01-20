@@ -1,5 +1,5 @@
 // Profile route - loads profile data and passes through to children
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -41,10 +41,22 @@ function ProfileNotFound() {
 
 function ProfileRoute() {
   const loaderData = Route.useLoaderData();
+  const matches = useMatches();
 
   // If notFound flag is set, render 404 page
   if (loaderData.notFound || loaderData.profile === null) {
     return <ProfileNotFound />;
+  }
+
+  // Check if we're on an edit route - these need full-width layout without section wrapper
+  const isEditRoute = matches.some((match) => match.pathname.endsWith("/edit"));
+
+  if (isEditRoute) {
+    return (
+      <PageLayout>
+        <Outlet />
+      </PageLayout>
+    );
   }
 
   // Just pass through - children handle their own layout

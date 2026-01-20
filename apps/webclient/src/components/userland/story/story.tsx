@@ -1,11 +1,28 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import {
+  Newspaper,
+  PencilLine,
+  Megaphone,
+  Info,
+  Images,
+  Presentation,
+} from "lucide-react";
 import { LocaleLink } from "@/components/locale-link";
 import { cn } from "@/lib/utils";
 import { formatDateString } from "@/lib/date";
-import type { Story as StoryType, StoryEx } from "@/modules/backend/types";
+import type { Story as StoryType, StoryEx, StoryKind } from "@/modules/backend/types";
 import styles from "./story.module.css";
+
+const storyKindIcons: Record<StoryKind, React.ElementType> = {
+  news: Newspaper,
+  article: PencilLine,
+  announcement: Megaphone,
+  status: Info,
+  content: Images,
+  presentation: Presentation,
+};
 
 export type StoryProps = {
   profileSlug?: string;
@@ -68,9 +85,15 @@ export function Story(props: StoryProps) {
           <p className={styles.summary}>{props.story.summary}</p>
           <div className={styles.meta}>
             {props.story.created_at !== null && (
-              <time dateTime={props.story.created_at}>
-                {formatDateString(props.story.created_at, locale)}
-              </time>
+              <span className="flex items-center gap-1.5">
+                {(() => {
+                  const KindIcon = storyKindIcons[props.story.kind];
+                  return KindIcon !== undefined ? <KindIcon className="size-3.5" /> : null;
+                })()}
+                <time dateTime={props.story.created_at}>
+                  {formatDateString(props.story.created_at, locale)}
+                </time>
+              </span>
             )}
             {props.story.author_profile !== null && (
               <span className={styles.author}>

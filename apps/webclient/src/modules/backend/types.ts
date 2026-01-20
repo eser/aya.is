@@ -129,6 +129,7 @@ export interface Story {
   title: string | null;
   summary: string | null;
   content: string;
+  status: "draft" | "published";
   is_featured: boolean;
   author_profile_id: string | null;
   author_profile: Profile | null;
@@ -248,6 +249,7 @@ export interface UpdateStoryInput {
   status: "draft" | "published";
   is_featured?: boolean;
   story_picture_uri?: string | null;
+  kind?: StoryKind;
 }
 
 export interface UpdateStoryTranslationInput {

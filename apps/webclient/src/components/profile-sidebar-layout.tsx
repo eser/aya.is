@@ -1,7 +1,7 @@
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, Instagram, Link, Linkedin, PencilLine, Youtube } from "lucide-react";
+import { Globe, Instagram, Link, Linkedin, SquarePen, Youtube } from "lucide-react";
 import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
@@ -135,7 +135,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                   to={`/${props.slug}/settings`}
                   className="no-underline transition-colors text-muted-foreground hover:text-foreground flex text-sm items-center"
                 >
-                  <PencilLine size="16" className="mr-1.5" />
+                  <SquarePen size="16" className="mr-1.5" />
                   {t("Profile.Edit Profile")}
                 </LocaleLink>
               </span>

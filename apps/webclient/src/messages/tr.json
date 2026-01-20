@@ -232,7 +232,10 @@
     "No pages found.": "Sayfa bulunamadı.",
     "Pages reordered successfully": "Sayfalar başarıyla yeniden sıralandı",
     "Failed to reorder pages": "Sayfalar yeniden sıralanamadı",
-    "Failed to load profile pages": "Profil sayfaları yüklenemedi"
+    "Failed to load profile pages": "Profil sayfaları yüklenemedi",
+    "Manage your stories and articles.": "Hikayelerinizi ve makalelerinizi yönetin.",
+    "No stories found.": "Hikaye bulunamadı.",
+    "View": "Görüntüle"
   },
   "StoryPage": {
     "Written by": "Yazan",
@@ -325,6 +328,8 @@
     "Failed to upload file": "Dosya yüklenemedi. Lütfen tekrar deneyin.",
     "An unexpected error occurred": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
     "Published At": "Yayınlanma Tarihi",
-    "Featured": "Öne Çıkan"
+    "Featured": "Öne Çıkan",
+    "Kind": "Tür",
+    "News": "Haber"
   }
 }

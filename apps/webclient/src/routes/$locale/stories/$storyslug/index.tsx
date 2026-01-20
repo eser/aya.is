@@ -1,4 +1,5 @@
 // Individual story page
+import * as React from "react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -6,8 +7,9 @@ import { backend } from "@/modules/backend/backend";
 import { StoryContent } from "@/components/widgets/story-content";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
+import { useAuth } from "@/lib/auth/auth-context";
 
-export const Route = createFileRoute("/$locale/stories/$storyslug")({
+export const Route = createFileRoute("/$locale/stories/$storyslug/")({
   loader: async ({ params }) => {
     const { locale, storyslug } = params;
     const story = await backend.getStory(locale, storyslug);
@@ -38,7 +40,30 @@ export const Route = createFileRoute("/$locale/stories/$storyslug")({
 });
 
 function StoryPage() {
+  const params = Route.useParams();
+  const auth = useAuth();
   const { story, compiledContent, currentUrl } = Route.useLoaderData();
+  const [canEdit, setCanEdit] = React.useState(false);
+
+  // Get author profile slug for permissions check
+  const authorProfileSlug = story.author_profile?.slug ?? null;
+
+  // Check edit permissions
+  React.useEffect(() => {
+    if (auth.isAuthenticated && !auth.isLoading && authorProfileSlug !== null) {
+      backend
+        .getStoryPermissions(params.locale, authorProfileSlug, story.id)
+        .then((perms) => {
+          if (perms !== null) {
+            setCanEdit(perms.can_edit);
+          }
+        });
+    } else {
+      setCanEdit(false);
+    }
+  }, [auth.isAuthenticated, auth.isLoading, params.locale, authorProfileSlug, story.id]);
+
+  const editUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/edit` : undefined;
 
   return (
     <PageLayout>
@@ -48,6 +73,7 @@ function StoryPage() {
           compiledContent={compiledContent}
           currentUrl={currentUrl}
           showAuthor
+          editUrl={editUrl}
         />
       </section>
     </PageLayout>
