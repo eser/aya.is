@@ -364,6 +364,7 @@
     "Kind": "Kind",
     "News": "News",
     "Slug must start with": "Slug must start with",
-    "Invalid URI": "Invalid URI"
+    "Invalid URI": "Invalid URI",
+    "URI must start with allowed prefix": "URI must start with allowed prefix"
   }
 }

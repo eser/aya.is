@@ -43,6 +43,7 @@ import { EditorActions, type ContentStatus } from "./editor-actions";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
+import { allowedURIPrefixes, isAllowedURI } from "@/config";
 
 // Schema for optional URL validation (null, empty string, or valid http/https URL)
 const optionalUrlSchema = z.union([
@@ -167,10 +168,25 @@ export function ContentEditor(props: ContentEditorProps) {
     const result = optionalUrlSchema.safeParse(storyPictureUri);
     if (!result.success) {
       setStoryPictureUriError(t("Editor.Invalid URI"));
-    } else {
-      setStoryPictureUriError(null);
+      return;
     }
-  }, [storyPictureUri, t]);
+
+    // For non-admin users, validate URI prefix
+    if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
+      const prefixes = contentType === "story"
+        ? allowedURIPrefixes.stories
+        : allowedURIPrefixes.profiles;
+
+      if (!isAllowedURI(storyPictureUri, prefixes)) {
+        setStoryPictureUriError(
+          t("Editor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
+        );
+        return;
+      }
+    }
+
+    setStoryPictureUriError(null);
+  }, [storyPictureUri, t, isAdmin, contentType]);
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
@@ -221,6 +237,21 @@ export function ContentEditor(props: ContentEditorProps) {
         return;
       }
     }
+
+    // Validate URI prefix for non-admin users
+    if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
+      const prefixes = contentType === "story"
+        ? allowedURIPrefixes.stories
+        : allowedURIPrefixes.profiles;
+
+      if (!isAllowedURI(storyPictureUri, prefixes)) {
+        setStoryPictureUriError(
+          t("Editor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
+        );
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       await onSave(getCurrentData());
@@ -238,6 +269,20 @@ export function ContentEditor(props: ContentEditorProps) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, effectivePublishedAt);
       if (!valid && expectedPrefix !== null) {
         setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
+        return;
+      }
+    }
+
+    // Validate URI prefix for non-admin users
+    if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
+      const prefixes = contentType === "story"
+        ? allowedURIPrefixes.stories
+        : allowedURIPrefixes.profiles;
+
+      if (!isAllowedURI(storyPictureUri, prefixes)) {
+        setStoryPictureUriError(
+          t("Editor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
+        );
         return;
       }
     }
@@ -347,7 +392,7 @@ export function ContentEditor(props: ContentEditorProps) {
           onPublish={handlePublish}
           onUnpublish={handleUnpublish}
           onDelete={handleDelete}
-          canDelete={!isNew && onDelete !== undefined}
+          canDelete={!isNew && onDelete !== undefined && isAdmin}
         />
       </div>
 

@@ -332,6 +332,7 @@
     "Kind": "Tür",
     "News": "Haber",
     "Slug must start with": "Slug şununla başlamalı",
-    "Invalid URI": "Geçersiz URI"
+    "Invalid URI": "Geçersiz URI",
+    "URI must start with allowed prefix": "URI izin verilen prefix ile başlamalı"
   }
 }

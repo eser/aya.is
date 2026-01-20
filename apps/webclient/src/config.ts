@@ -190,6 +190,31 @@ export const predefinedSlugs: readonly string[] = [
   "auth"
 ];
 
+// Allowed URI prefixes for uploads (must match server-side config)
+// These are used to validate URIs for non-admin users
+export const allowedURIPrefixes = {
+  // Stories: only our upload service
+  stories: [
+    import.meta.env.VITE_ALLOWED_URI_PREFIXES_STORIES ?? "https://objects.aya.is/",
+  ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
+
+  // Profiles: our upload service + GitHub avatars
+  profiles: [
+    import.meta.env.VITE_ALLOWED_URI_PREFIXES_PROFILES ?? "https://objects.aya.is/,https://avatars.githubusercontent.com/",
+  ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
+};
+
+// Validate if a URI starts with one of the allowed prefixes
+export function isAllowedURI(uri: string | null | undefined, prefixes: string[]): boolean {
+  if (uri === null || uri === undefined || uri === "") {
+    return true; // Empty/null URIs are allowed
+  }
+  if (prefixes.length === 0) {
+    return true; // No restrictions if no prefixes configured
+  }
+  return prefixes.some((prefix) => uri.startsWith(prefix));
+}
+
 // Forbidden slugs (reserved for system routes)
 export const forbiddenSlugs: readonly string[] = [
   "about",
