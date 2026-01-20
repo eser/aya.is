@@ -152,6 +152,7 @@ func (r *Repository) InsertStory(
 	isFeatured bool,
 	storyPictureURI *string,
 	properties map[string]any,
+	publishedAt *time.Time,
 ) (*stories.Story, error) {
 	params := InsertStoryParams{
 		ID:              id,
@@ -162,6 +163,7 @@ func (r *Repository) InsertStory(
 		IsFeatured:      isFeatured,
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
 		Properties:      vars.ToSQLNullRawMessage(properties),
+		PublishedAt:     vars.ToSQLNullTime(publishedAt),
 	}
 
 	row, err := r.queries.InsertStory(ctx, params)
@@ -177,6 +179,7 @@ func (r *Repository) InsertStory(
 		Status:          row.Status,
 		IsFeatured:      row.IsFeatured,
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
+		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -229,6 +232,7 @@ func (r *Repository) UpdateStory(
 	status string,
 	isFeatured bool,
 	storyPictureURI *string,
+	publishedAt *time.Time,
 ) error {
 	params := UpdateStoryParams{
 		ID:              id,
@@ -236,6 +240,7 @@ func (r *Repository) UpdateStory(
 		Status:          status,
 		IsFeatured:      isFeatured,
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
+		PublishedAt:     vars.ToSQLNullTime(publishedAt),
 	}
 
 	_, err := r.queries.UpdateStory(ctx, params)
@@ -321,6 +326,7 @@ func (r *Repository) GetStoryForEdit(
 		Summary:         row.Summary,
 		Content:         row.Content,
 		CreatedAt:       row.CreatedAt,
+		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
 }

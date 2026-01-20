@@ -60,6 +60,7 @@ INSERT INTO "story" (
   is_featured,
   story_picture_uri,
   properties,
+  published_at,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -70,6 +71,7 @@ INSERT INTO "story" (
   sqlc.arg(is_featured),
   sqlc.narg(story_picture_uri),
   sqlc.narg(properties),
+  sqlc.narg(published_at),
   NOW()
 ) RETURNING *;
 
@@ -112,6 +114,7 @@ SET
   status = sqlc.arg(status),
   is_featured = sqlc.arg(is_featured),
   story_picture_uri = sqlc.narg(story_picture_uri),
+  published_at = sqlc.narg(published_at),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;

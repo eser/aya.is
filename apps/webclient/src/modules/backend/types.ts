@@ -242,6 +242,7 @@ export interface InsertStoryInput {
   story_picture_uri?: string | null;
   status: "draft" | "published";
   is_featured?: boolean;
+  published_at?: string | null;
 }
 
 export interface UpdateStoryInput {
@@ -250,6 +251,7 @@ export interface UpdateStoryInput {
   is_featured?: boolean;
   story_picture_uri?: string | null;
   kind?: StoryKind;
+  published_at?: string | null;
 }
 
 export interface UpdateStoryTranslationInput {
@@ -270,6 +272,7 @@ export interface StoryEditData {
   content: string;
   author_profile_id: string | null;
   created_at: string;
+  published_at: string | null;
   updated_at: string | null;
 }
 

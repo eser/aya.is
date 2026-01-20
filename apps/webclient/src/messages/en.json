@@ -362,6 +362,7 @@
     "Published At": "Published At",
     "Featured": "Featured",
     "Kind": "Kind",
-    "News": "News"
+    "News": "News",
+    "Slug must start with": "Slug must start with"
   }
 }

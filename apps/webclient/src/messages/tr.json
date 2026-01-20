@@ -330,6 +330,7 @@
     "Published At": "Yayınlanma Tarihi",
     "Featured": "Öne Çıkan",
     "Kind": "Tür",
-    "News": "Haber"
+    "News": "Haber",
+    "Slug must start with": "Slug şununla başlamalı"
   }
 }

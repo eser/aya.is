@@ -42,6 +42,27 @@ import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
 
+// Helper to format date as YYYYMMDD
+function formatDatePrefix(dateString: string | null): string | null {
+  if (dateString === null || dateString === "") return null;
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
+}
+
+// Validate slug starts with YYYYMMDD of publish date
+function validateSlugPrefix(slug: string, publishedAt: string | null): { valid: boolean; expectedPrefix: string | null } {
+  const expectedPrefix = formatDatePrefix(publishedAt);
+  if (expectedPrefix === null) {
+    return { valid: true, expectedPrefix: null }; // No validation if no publish date
+  }
+  const valid = slug.startsWith(expectedPrefix);
+  return { valid, expectedPrefix };
+}
+
 export type ContentType = "story" | "page";
 
 export type ContentEditorData = {
@@ -84,6 +105,8 @@ export function ContentEditor(props: ContentEditorProps) {
     isNew = false,
   } = props;
 
+  const { t } = useTranslation();
+
   // Form state
   const [title, setTitle] = React.useState(initialData.title);
   const [slug, setSlug] = React.useState(initialData.slug);
@@ -109,6 +132,21 @@ export function ContentEditor(props: ContentEditorProps) {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showImageModal, setShowImageModal] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const [slugError, setSlugError] = React.useState<string | null>(null);
+
+  // Validate slug on change
+  React.useEffect(() => {
+    if (status === "published" && publishedAt !== null) {
+      const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
+      if (!valid && expectedPrefix !== null) {
+        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}-`);
+      } else {
+        setSlugError(null);
+      }
+    } else {
+      setSlugError(null);
+    }
+  }, [slug, publishedAt, status, t]);
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
@@ -151,6 +189,14 @@ export function ContentEditor(props: ContentEditorProps) {
   });
 
   const handleSave = async () => {
+    // Validate slug prefix for published content
+    if (status === "published" && publishedAt !== null) {
+      const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
+      if (!valid && expectedPrefix !== null) {
+        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}-`);
+        return;
+      }
+    }
     setIsSaving(true);
     try {
       await onSave(getCurrentData());
@@ -160,10 +206,21 @@ export function ContentEditor(props: ContentEditorProps) {
   };
 
   const handlePublish = async () => {
+    // Set current date/time as publish date if not set
+    const effectivePublishedAt = publishedAt ?? new Date().toISOString().slice(0, 16);
+
+    // Validate slug prefix
+    const { valid, expectedPrefix } = validateSlugPrefix(slug, effectivePublishedAt);
+    if (!valid && expectedPrefix !== null) {
+      setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}-`);
+      return;
+    }
+
     setStatus("published");
+    setPublishedAt(effectivePublishedAt);
     setIsSaving(true);
     try {
-      await onSave({ ...getCurrentData(), status: "published" });
+      await onSave({ ...getCurrentData(), status: "published", publishedAt: effectivePublishedAt });
     } finally {
       setIsSaving(false);
     }
@@ -227,8 +284,6 @@ export function ContentEditor(props: ContentEditorProps) {
     const markdown = `![${alt}](${url})`;
     insertTextAtCursor(textarea, markdown, setContent);
   };
-
-  const { t } = useTranslation();
 
   return (
     <div className={styles.editorContainer}>
@@ -316,7 +371,11 @@ export function ContentEditor(props: ContentEditorProps) {
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder={t("Editor.url-friendly-slug")}
+                  className={slugError !== null ? "border-destructive" : ""}
                 />
+                {slugError !== null && (
+                  <p className="text-sm text-destructive mt-1">{slugError}</p>
+                )}
               </div>
 
               {contentType === "story" && (
@@ -404,38 +463,38 @@ export function ContentEditor(props: ContentEditorProps) {
                 )}
               </div>
 
+              {/* Published At - visible for published content, editable only by admin */}
+              {(status === "published" || isAdmin) && (
+                <div className={styles.metadataField}>
+                  <Label htmlFor="published-at" className={styles.metadataLabel}>
+                    {t("Editor.Published At")}
+                  </Label>
+                  <Input
+                    id="published-at"
+                    type="datetime-local"
+                    value={publishedAt ?? ""}
+                    onChange={(e) =>
+                      setPublishedAt(e.target.value || null)
+                    }
+                    disabled={!isAdmin}
+                  />
+                </div>
+              )}
+
               {/* Admin-only fields */}
-              {isAdmin && (
-                <>
-                  <div className={styles.metadataField}>
-                    <Label htmlFor="published-at" className={styles.metadataLabel}>
-                      {t("Editor.Published At")}
+              {isAdmin && contentType === "story" && (
+                <div className={styles.metadataField}>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="is-featured" className={styles.metadataLabel}>
+                      {t("Editor.Featured")}
                     </Label>
-                    <Input
-                      id="published-at"
-                      type="datetime-local"
-                      value={publishedAt ?? ""}
-                      onChange={(e) =>
-                        setPublishedAt(e.target.value || null)
-                      }
+                    <Switch
+                      id="is-featured"
+                      checked={isFeatured}
+                      onCheckedChange={setIsFeatured}
                     />
                   </div>
-
-                  {contentType === "story" && (
-                    <div className={styles.metadataField}>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="is-featured" className={styles.metadataLabel}>
-                          {t("Editor.Featured")}
-                        </Label>
-                        <Switch
-                          id="is-featured"
-                          checked={isFeatured}
-                          onCheckedChange={setIsFeatured}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
             </div>
           )}

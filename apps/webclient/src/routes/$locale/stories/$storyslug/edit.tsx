@@ -150,6 +150,7 @@ function EditStoryPage() {
     status: editData.status === "published" ? "published" : "draft",
     kind: (editData.kind as ContentEditorData["kind"]) ?? "article",
     isFeatured: editData.is_featured,
+    publishedAt: editData.published_at,
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -164,6 +165,7 @@ function EditStoryPage() {
         is_featured: data.isFeatured ?? editData.is_featured,
         story_picture_uri: data.coverImageUrl,
         kind: data.kind,
+        published_at: data.publishedAt,
       },
     );
 

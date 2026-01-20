@@ -17,6 +17,7 @@ func DefaultIDGenerator() RecordID {
 
 type Story struct {
 	CreatedAt       time.Time  `json:"created_at"`
+	PublishedAt     *time.Time `json:"published_at"`
 	Properties      any        `json:"properties"`
 	AuthorProfileID *string    `json:"author_profile_id"`
 	StoryPictureURI *string    `json:"story_picture_uri"`
@@ -42,6 +43,7 @@ type StoryWithChildren struct {
 // StoryForEdit contains the raw story data for editing (without compiled content).
 type StoryForEdit struct {
 	CreatedAt       time.Time  `json:"created_at"`
+	PublishedAt     *time.Time `json:"published_at"`
 	AuthorProfileID *string    `json:"author_profile_id"`
 	StoryPictureURI *string    `json:"story_picture_uri"`
 	UpdatedAt       *time.Time `json:"updated_at"`

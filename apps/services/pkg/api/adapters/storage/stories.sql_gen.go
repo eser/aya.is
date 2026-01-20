@@ -16,7 +16,7 @@ import (
 
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
   st.story_id, st.locale_code, st.title, st.summary, st.content,
   p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties,
@@ -66,7 +66,7 @@ type GetStoryByIDRow struct {
 // GetStoryByID
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content,
 //	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties,
@@ -116,6 +116,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.Story.CreatedAt,
 		&i.Story.UpdatedAt,
 		&i.Story.DeletedAt,
+		&i.Story.PublishedAt,
 		&i.StoryTx.StoryID,
 		&i.StoryTx.LocaleCode,
 		&i.StoryTx.Title,
@@ -144,7 +145,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 
 const getStoryForEdit = `-- name: GetStoryForEdit :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
   st.locale_code,
   st.title,
   st.summary,
@@ -174,6 +175,7 @@ type GetStoryForEditRow struct {
 	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	PublishedAt     sql.NullTime          `db:"published_at" json:"published_at"`
 	LocaleCode      string                `db:"locale_code" json:"locale_code"`
 	Title           string                `db:"title" json:"title"`
 	Summary         string                `db:"summary" json:"summary"`
@@ -183,7 +185,7 @@ type GetStoryForEditRow struct {
 // GetStoryForEdit
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 //	  st.locale_code,
 //	  st.title,
 //	  st.summary,
@@ -209,6 +211,7 @@ func (q *Queries) GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.PublishedAt,
 		&i.LocaleCode,
 		&i.Title,
 		&i.Summary,
@@ -325,6 +328,7 @@ INSERT INTO "story" (
   is_featured,
   story_picture_uri,
   properties,
+  published_at,
   created_at
 ) VALUES (
   $1,
@@ -335,8 +339,9 @@ INSERT INTO "story" (
   $6,
   $7,
   $8,
+  $9,
   NOW()
-) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at
+) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at, published_at
 `
 
 type InsertStoryParams struct {
@@ -348,6 +353,7 @@ type InsertStoryParams struct {
 	IsFeatured      bool                  `db:"is_featured" json:"is_featured"`
 	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	PublishedAt     sql.NullTime          `db:"published_at" json:"published_at"`
 }
 
 // -- name: ListStories :many
@@ -373,6 +379,7 @@ type InsertStoryParams struct {
 //	  is_featured,
 //	  story_picture_uri,
 //	  properties,
+//	  published_at,
 //	  created_at
 //	) VALUES (
 //	  $1,
@@ -383,8 +390,9 @@ type InsertStoryParams struct {
 //	  $6,
 //	  $7,
 //	  $8,
+//	  $9,
 //	  NOW()
-//	) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at
+//	) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at, published_at
 func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error) {
 	row := q.db.QueryRowContext(ctx, insertStory,
 		arg.ID,
@@ -395,6 +403,7 @@ func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Stor
 		arg.IsFeatured,
 		arg.StoryPictureURI,
 		arg.Properties,
+		arg.PublishedAt,
 	)
 	var i Story
 	err := row.Scan(
@@ -409,6 +418,7 @@ func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Stor
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.PublishedAt,
 	)
 	return &i, err
 }
@@ -530,7 +540,7 @@ func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) er
 
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
   st.story_id, st.locale_code, st.title, st.summary, st.content,
   p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
@@ -583,7 +593,7 @@ type ListStoriesOfPublicationRow struct {
 // ListStoriesOfPublication
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content,
 //	  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
@@ -642,6 +652,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.Story.CreatedAt,
 			&i.Story.UpdatedAt,
 			&i.Story.DeletedAt,
+			&i.Story.PublishedAt,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,
@@ -710,8 +721,9 @@ SET
   status = $2,
   is_featured = $3,
   story_picture_uri = $4,
+  published_at = $5,
   updated_at = NOW()
-WHERE id = $5
+WHERE id = $6
   AND deleted_at IS NULL
 `
 
@@ -720,6 +732,7 @@ type UpdateStoryParams struct {
 	Status          string         `db:"status" json:"status"`
 	IsFeatured      bool           `db:"is_featured" json:"is_featured"`
 	StoryPictureURI sql.NullString `db:"story_picture_uri" json:"story_picture_uri"`
+	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
 	ID              string         `db:"id" json:"id"`
 }
 
@@ -731,8 +744,9 @@ type UpdateStoryParams struct {
 //	  status = $2,
 //	  is_featured = $3,
 //	  story_picture_uri = $4,
+//	  published_at = $5,
 //	  updated_at = NOW()
-//	WHERE id = $5
+//	WHERE id = $6
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateStory,
@@ -740,6 +754,7 @@ func (q *Queries) UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64
 		arg.Status,
 		arg.IsFeatured,
 		arg.StoryPictureURI,
+		arg.PublishedAt,
 		arg.ID,
 	)
 	if err != nil {

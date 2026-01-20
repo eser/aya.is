@@ -118,6 +118,7 @@ function NewStoryPage() {
       story_picture_uri: data.coverImageUrl,
       status: data.status,
       is_featured: data.isFeatured ?? false,
+      published_at: data.publishedAt,
     });
 
     if (result !== null) {

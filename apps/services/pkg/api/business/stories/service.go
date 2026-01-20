@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -18,7 +20,21 @@ var (
 	ErrFailedToRemoveRecord = errors.New("failed to remove record")
 	ErrUnauthorized         = errors.New("unauthorized")
 	ErrStoryNotFound        = errors.New("story not found")
+	ErrInvalidSlugPrefix    = errors.New("slug must start with YYYYMMDD of publish date")
 )
+
+// validateSlugDatePrefix validates that the slug starts with YYYYMMDD format
+// matching the provided publish date.
+func validateSlugDatePrefix(slug string, publishDate time.Time) error {
+	expectedPrefix := publishDate.Format("20060102")
+
+	// Check if slug starts with the expected date prefix
+	if !strings.HasPrefix(slug, expectedPrefix) {
+		return fmt.Errorf("%w: expected prefix %s", ErrInvalidSlugPrefix, expectedPrefix)
+	}
+
+	return nil
+}
 
 type Repository interface {
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
@@ -46,6 +62,7 @@ type Repository interface {
 		isFeatured bool,
 		storyPictureURI *string,
 		properties map[string]any,
+		publishedAt *time.Time,
 	) (*Story, error)
 	InsertStoryTx(
 		ctx context.Context,
@@ -70,6 +87,7 @@ type Repository interface {
 		status string,
 		isFeatured bool,
 		storyPictureURI *string,
+		publishedAt *time.Time,
 	) error
 	UpdateStoryTx(
 		ctx context.Context,
@@ -241,7 +259,16 @@ func (s *Service) Create(
 	content string,
 	storyPictureURI *string,
 	isFeatured bool,
+	publishedAt *time.Time,
 ) (*Story, error) {
+	// Validate slug date prefix for published stories
+	if status == "published" && publishedAt != nil {
+		err := validateSlugDatePrefix(slug, *publishedAt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Get author profile ID
 	authorProfileID, err := s.repo.GetProfileIDBySlug(ctx, authorProfileSlug)
 	if err != nil {
@@ -273,6 +300,7 @@ func (s *Service) Create(
 		isFeatured,
 		storyPictureURI,
 		nil, // No additional properties for now
+		publishedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
@@ -318,6 +346,7 @@ func (s *Service) Update(
 	status string,
 	isFeatured bool,
 	storyPictureURI *string,
+	publishedAt *time.Time,
 ) (*StoryForEdit, error) {
 	// Check authorization
 	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
@@ -334,8 +363,16 @@ func (s *Service) Update(
 		)
 	}
 
+	// Validate slug date prefix for published stories
+	if status == "published" && publishedAt != nil {
+		err := validateSlugDatePrefix(slug, *publishedAt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// Update the story
-	err = s.repo.UpdateStory(ctx, storyID, slug, status, isFeatured, storyPictureURI)
+	err = s.repo.UpdateStory(ctx, storyID, slug, status, isFeatured, storyPictureURI, publishedAt)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToUpdateRecord, storyID, err)
 	}

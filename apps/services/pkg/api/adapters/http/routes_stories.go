@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -85,14 +86,15 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			profileSlugParam := ctx.Request.PathValue("slug")
 
 			var requestBody struct {
-				Slug            string  `json:"slug"`
-				Kind            string  `json:"kind"`
-				Title           string  `json:"title"`
-				Summary         string  `json:"summary"`
-				Content         string  `json:"content"`
-				StoryPictureURI *string `json:"story_picture_uri"`
-				Status          string  `json:"status"`
-				IsFeatured      bool    `json:"is_featured"`
+				Slug            string     `json:"slug"`
+				Kind            string     `json:"kind"`
+				Title           string     `json:"title"`
+				Summary         string     `json:"summary"`
+				Content         string     `json:"content"`
+				StoryPictureURI *string    `json:"story_picture_uri"`
+				Status          string     `json:"status"`
+				IsFeatured      bool       `json:"is_featured"`
+				PublishedAt     *time.Time `json:"published_at"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -128,6 +130,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				requestBody.Content,
 				requestBody.StoryPictureURI,
 				requestBody.IsFeatured,
+				requestBody.PublishedAt,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {
@@ -255,10 +258,11 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			var requestBody struct {
-				Slug            string  `json:"slug"`
-				Status          string  `json:"status"`
-				IsFeatured      bool    `json:"is_featured"`
-				StoryPictureURI *string `json:"story_picture_uri"`
+				Slug            string     `json:"slug"`
+				Status          string     `json:"status"`
+				IsFeatured      bool       `json:"is_featured"`
+				StoryPictureURI *string    `json:"story_picture_uri"`
+				PublishedAt     *time.Time `json:"published_at"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -287,6 +291,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				requestBody.Status,
 				requestBody.IsFeatured,
 				requestBody.StoryPictureURI,
+				requestBody.PublishedAt,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {

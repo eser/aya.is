@@ -461,7 +461,7 @@ type Querier interface {
 	//GetStoryByID
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content,
 	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties,
@@ -495,7 +495,7 @@ type Querier interface {
 	//GetStoryForEdit
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 	//    st.locale_code,
 	//    st.title,
 	//    st.summary,
@@ -600,6 +600,7 @@ type Querier interface {
 	//    is_featured,
 	//    story_picture_uri,
 	//    properties,
+	//    published_at,
 	//    created_at
 	//  ) VALUES (
 	//    $1,
@@ -610,8 +611,9 @@ type Querier interface {
 	//    $6,
 	//    $7,
 	//    $8,
+	//    $9,
 	//    NOW()
-	//  ) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at
+	//  ) RETURNING id, author_profile_id, slug, kind, status, is_featured, story_picture_uri, properties, created_at, updated_at, deleted_at, published_at
 	InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error)
 	//InsertStoryPublication
 	//
@@ -738,7 +740,7 @@ type Querier interface {
 	//ListStoriesOfPublication
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content,
 	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
@@ -957,8 +959,9 @@ type Querier interface {
 	//    status = $2,
 	//    is_featured = $3,
 	//    story_picture_uri = $4,
+	//    published_at = $5,
 	//    updated_at = NOW()
-	//  WHERE id = $5
+	//  WHERE id = $6
 	//    AND deleted_at IS NULL
 	UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error)
 	//UpdateStoryTx
