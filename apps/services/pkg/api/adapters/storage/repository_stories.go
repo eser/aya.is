@@ -380,6 +380,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Content:         storyTx.Content,
 			Properties:      vars.ToObject(story.Properties),
 			CreatedAt:       story.CreatedAt,
+			PublishedAt:     vars.ToTimePtr(story.PublishedAt),
 			UpdatedAt:       vars.ToTimePtr(story.UpdatedAt),
 			DeletedAt:       vars.ToTimePtr(story.DeletedAt),
 		},
