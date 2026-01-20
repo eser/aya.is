@@ -1,8 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { compileMdx } from "@/lib/mdx";
-import { MdxContent } from "@/components/userland/mdx-content";
-import { cn } from "@/lib/utils";
+import { TextContent } from "@/components/widgets/text-content";
 import styles from "./content-editor.module.css";
 
 type PreviewPanelProps = {
@@ -72,8 +71,11 @@ export function PreviewPanel(props: PreviewPanelProps) {
   }
 
   return (
-    <div className={cn("content", styles.previewPanel)}>
-      <MdxContent compiledSource={compiledSource} headingOffset={1} />
-    </div>
+    <TextContent
+      compiledContent={compiledSource}
+      variant="compact"
+      headingOffset={1}
+      className={styles.previewPanel}
+    />
   );
 }

@@ -55,9 +55,9 @@
   @apply h-full w-full resize-none border-0 bg-transparent p-0 font-mono text-sm focus:ring-0 focus:outline-none;
 }
 
-/* Preview Panel */
+/* Preview Panel - prose classes now handled by TextContent component */
 .previewPanel {
-  @apply prose prose-sm dark:prose-invert max-w-none;
+  @apply overflow-auto;
 }
 
 .previewLoading {

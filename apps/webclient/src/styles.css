@@ -137,11 +137,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     font-synthesis: none;
     font-feature-settings: "rlig" 1, "calt" 1;
     @apply font-sans bg-background text-foreground subpixel-antialiased min-h-screen;
   }
+
   html {
     @apply font-sans text-[18px];
   }
@@ -200,22 +202,21 @@
   ol,
   ul,
   p {
-    @apply wrap-break-word leading-[1.8] mb-6;
+    @apply wrap-break-word leading-[1.8] m-0 p-0 mb-6;
   }
 
   ul,
   ol {
-    @apply pl-10 list-disc;
+    @apply pl-4 list-disc;
 
     & > li {
-      @apply text-start list-none;
+      @apply text-start pl-2;
     }
   }
-}
 
-/* Content links get underlines */
-.content a {
-  @apply text-foreground hover:text-accent-foreground underline underline-offset-4;
+  a {
+    @apply underline underline-offset-4;
+  }
 }
 
 /* Navigation and UI links - no underlines */
