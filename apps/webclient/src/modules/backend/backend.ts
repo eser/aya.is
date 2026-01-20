@@ -15,6 +15,7 @@ import { createProfile } from "./profiles/create-profile";
 import { updateProfile } from "./profiles/update-profile";
 import { updateProfileTranslation } from "./profiles/update-profile-translation";
 import { uploadProfilePicture } from "./profiles/upload-profile-picture";
+import { updateProfilePicture } from "./profiles/update-profile-picture";
 import { getProfileTranslations } from "./profiles/get-profile-translations";
 import { listProfileLinks } from "./profiles/list-profile-links";
 import { createProfileLink } from "./profiles/create-profile-link";
@@ -68,6 +69,7 @@ export const backend = {
   updateProfile,
   updateProfileTranslation,
   uploadProfilePicture,
+  updateProfilePicture,
   getProfileTranslations,
 
   // Profile Links
@@ -168,6 +170,7 @@ export {
   updateSessionPreferences,
   updateStory,
   updateStoryTranslation,
+  updateProfilePicture,
   uploadProfilePicture,
   uploadToPresignedURL,
 };

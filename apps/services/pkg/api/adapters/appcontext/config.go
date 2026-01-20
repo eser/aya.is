@@ -5,8 +5,10 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
+	"github.com/eser/aya.is/services/pkg/api/business/stories"
 )
 
 type DataConfig struct {
@@ -26,6 +28,8 @@ type AppConfig struct {
 	Auth       auth.Config       `conf:"auth"`
 	Sessions   sessions.Config   `conf:"sessions"`
 	Protection protection.Config `conf:"protection"`
+	Profiles   profiles.Config   `conf:"profiles"`
+	Stories    stories.Config    `conf:"stories"`
 	Data       DataConfig        `conf:"data"`
 	S3         s3client.Config   `conf:"s3"`
 	Externals  ExternalsConfig   `conf:"externals"`

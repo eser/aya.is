@@ -52,16 +52,42 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
   const handleUpload = async (file: File) => {
     setIsUploading(true);
     try {
-      const result = await backend.uploadProfilePicture(
-        props.locale,
-        props.profileSlug,
+      // Step 1: Get presigned URL
+      const presignResponse = await backend.getPresignedURL(props.locale, {
+        filename: file.name,
+        content_type: file.type,
+        purpose: "profile-picture",
+      });
+
+      if (presignResponse === null) {
+        toast.error(t("Profile.Failed to upload picture"));
+        setPreviewUrl(null);
+        return;
+      }
+
+      // Step 2: Upload file directly to S3/R2
+      const uploadSuccess = await backend.uploadToPresignedURL(
+        presignResponse.upload_url,
         file,
+        file.type,
       );
 
-      if (result !== null) {
+      if (!uploadSuccess) {
+        toast.error(t("Profile.Failed to upload picture"));
+        setPreviewUrl(null);
+        return;
+      }
+
+      // Step 3: Update profile with new picture URI
+      const updateResult = await backend.updateProfilePicture(
+        props.locale,
+        props.profileSlug,
+        presignResponse.public_url,
+      );
+
+      if (updateResult !== null) {
         toast.success(t("Profile.Picture uploaded successfully"));
-        props.onUploadComplete(result.profile_picture_uri);
-        // Clear preview since we now have the real URL
+        props.onUploadComplete(presignResponse.public_url);
         setPreviewUrl(null);
       } else {
         toast.error(t("Profile.Failed to upload picture"));

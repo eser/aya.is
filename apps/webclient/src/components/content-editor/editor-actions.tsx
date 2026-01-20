@@ -29,12 +29,11 @@ type EditorActionsProps = {
   isSaving: boolean;
   isDeleting: boolean;
   hasChanges: boolean;
-  canDelete?: boolean;
   onSave: () => void;
   onPublish: () => void;
   onUnpublish: () => void;
   onDelete: () => void;
-  showDelete?: boolean;
+  canDelete?: boolean;
 };
 
 export function EditorActions(props: EditorActionsProps) {
@@ -44,12 +43,11 @@ export function EditorActions(props: EditorActionsProps) {
     isSaving,
     isDeleting,
     hasChanges,
-    canDelete = false,
     onSave,
     onPublish,
     onUnpublish,
     onDelete,
-    showDelete = true,
+    canDelete = true,
   } = props;
 
   const isPublished = status === "published";
@@ -73,19 +71,17 @@ export function EditorActions(props: EditorActionsProps) {
                 <GlobeLock className="mr-2 size-4" />
                 {t("Editor.Unpublish")}
               </DropdownMenuItem>
-              {showDelete && <DropdownMenuSeparator />}
+              {canDelete && <DropdownMenuSeparator />}
             </>
           )}
-          {showDelete && (
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={isDeleting || !canDelete}
-            >
-              <Trash2 className="mr-2 size-4" />
-              {t("Editor.Delete")}
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={!canDelete || isDeleting}
+          >
+            <Trash2 className="mr-2 size-4" />
+            {t("Editor.Delete")}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

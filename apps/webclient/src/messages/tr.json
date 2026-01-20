@@ -274,7 +274,7 @@
     "Title": "Başlık",
     "Summary": "Özet",
     "Slug": "Slug",
-    "Cover Image URL": "Kapak Resmi URL",
+    "Story Picture URI": "Hikaye Resmi URI",
     "Draft": "Taslak",
     "Published": "Yayınlandı",
     "Delete Confirmation": "Bu işlem geri alınamaz. Bu içerik ve tüm ilişkili veriler kalıcı olarak silinecektir.",
@@ -331,6 +331,7 @@
     "Featured": "Öne Çıkan",
     "Kind": "Tür",
     "News": "Haber",
-    "Slug must start with": "Slug şununla başlamalı"
+    "Slug must start with": "Slug şununla başlamalı",
+    "Invalid URI": "Geçersiz URI"
   }
 }

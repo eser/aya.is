@@ -33,7 +33,7 @@ var allowedContentTypes = map[Purpose][]string{ //nolint:gochecknoglobals
 		"image/webp",
 		"image/svg+xml",
 	},
-	PurposeCoverImage: {
+	PurposeStoryPicture: {
 		"image/jpeg",
 		"image/png",
 		"image/webp",

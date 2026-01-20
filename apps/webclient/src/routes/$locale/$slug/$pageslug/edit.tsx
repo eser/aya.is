@@ -126,10 +126,11 @@ function EditPagePage() {
   const initialData: ContentEditorData = {
     title: page.title ?? "",
     slug: page.slug ?? "",
-    summary: "",
+    summary: page.summary ?? "",
     content: page.content ?? "",
-    coverImageUrl: null,
+    storyPictureUri: page.cover_picture_uri ?? null,
     status: "published",
+    publishedAt: page.published_at ?? null,
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -141,8 +142,8 @@ function EditPagePage() {
       {
         slug: data.slug,
         order: page.sort_order,
-        cover_picture_uri: data.coverImageUrl,
-        published_at: null,
+        cover_picture_uri: data.storyPictureUri ?? null,
+        published_at: data.publishedAt ?? null,
       },
     );
 
@@ -208,7 +209,7 @@ function EditPagePage() {
         contentType="page"
         initialData={initialData}
         backUrl={`/${params.locale}/${params.slug}/${params.pageslug}`}
-        backLabel="Back to Page"
+        userKind={auth.user?.kind}
         onSave={handleSave}
         onDelete={handleDelete}
       />

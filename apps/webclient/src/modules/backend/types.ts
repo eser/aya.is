@@ -47,13 +47,16 @@ export interface ProfileLink {
   updated_at?: string | null;
 }
 
-export interface ProfilePage {
+export type ProfilePage = {
   id: string;
   slug: string;
   title: string;
+  summary: string;
   content: string;
   sort_order: number;
-}
+  cover_picture_uri?: string | null;
+  published_at?: string | null;
+};
 
 export interface ProfileContribution {
   id: string;

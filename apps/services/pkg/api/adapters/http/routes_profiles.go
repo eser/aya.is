@@ -508,10 +508,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind for URI prefix validation
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Update the profile
 			profile, err := profileService.Update(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				requestBody.ProfilePictureURI,
 				requestBody.Pronouns,
@@ -1206,10 +1216,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind for URI prefix validation
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Create the profile page
 			page, err := profileService.CreateProfilePage(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				requestBody.Slug,
 				localeParam,
@@ -1294,10 +1314,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind for URI prefix validation
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Update the profile page
 			page, err := profileService.UpdateProfilePage(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				pageIDParam,
 				requestBody.Slug,

@@ -7,7 +7,7 @@ type Purpose string
 
 const (
 	PurposeContentImage   Purpose = "content-image"
-	PurposeCoverImage     Purpose = "cover-image"
+	PurposeStoryPicture   Purpose = "story-picture"
 	PurposeProfilePicture Purpose = "profile-picture"
 )
 

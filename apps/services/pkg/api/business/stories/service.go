@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -21,12 +22,39 @@ var (
 	ErrUnauthorized         = errors.New("unauthorized")
 	ErrStoryNotFound        = errors.New("story not found")
 	ErrInvalidSlugPrefix    = errors.New("slug must start with YYYYMMDD of publish date")
+	ErrInvalidURI           = errors.New("invalid URI")
+	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
 )
 
-// validateSlugDatePrefix validates that the slug starts with YYYYMMDD format
+// Config holds the stories service configuration.
+type Config struct {
+	// AllowedURIPrefixes is a comma-separated list of allowed URI prefixes.
+	AllowedURIPrefixes string `conf:"allowed_uri_prefixes" default:"https://objects.aya.is/"`
+}
+
+// GetAllowedURIPrefixes returns the allowed URI prefixes as a slice.
+func (c *Config) GetAllowedURIPrefixes() []string {
+	if c.AllowedURIPrefixes == "" {
+		return nil
+	}
+
+	prefixes := strings.Split(c.AllowedURIPrefixes, ",")
+	result := make([]string, 0, len(prefixes))
+
+	for _, prefix := range prefixes {
+		trimmed := strings.TrimSpace(prefix)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	return result
+}
+
+// validateSlugDatePrefix validates that the slug starts with YYYYMMDD- format
 // matching the provided publish date.
 func validateSlugDatePrefix(slug string, publishDate time.Time) error {
-	expectedPrefix := publishDate.Format("20060102")
+	expectedPrefix := publishDate.Format("20060102") + "-"
 
 	// Check if slug starts with the expected date prefix
 	if !strings.HasPrefix(slug, expectedPrefix) {
@@ -34,6 +62,45 @@ func validateSlugDatePrefix(slug string, publishDate time.Time) error {
 	}
 
 	return nil
+}
+
+// validateOptionalURL validates that a URL is either nil or a valid http/https URL.
+func validateOptionalURL(uri *string) error {
+	if uri == nil {
+		return nil
+	}
+
+	parsedURL, err := url.ParseRequestURI(*uri)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrInvalidURI, *uri)
+	}
+
+	// Only accept http and https protocols
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return fmt.Errorf("%w: URL must use http or https protocol: %s", ErrInvalidURI, *uri)
+	}
+
+	return nil
+}
+
+// validateURIPrefixes validates that a URI starts with one of the allowed prefixes.
+// This is used to restrict non-admin users to only use URIs from our upload service.
+func validateURIPrefixes(uri *string, allowedPrefixes []string) error {
+	if uri == nil || *uri == "" {
+		return nil
+	}
+
+	if len(allowedPrefixes) == 0 {
+		return nil
+	}
+
+	for _, prefix := range allowedPrefixes {
+		if strings.HasPrefix(*uri, prefix) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%w: %s", ErrInvalidURIPrefix, strings.Join(allowedPrefixes, ", "))
 }
 
 type Repository interface {
@@ -116,12 +183,18 @@ type Repository interface {
 
 type Service struct {
 	logger      *logfx.Logger
+	config      *Config
 	repo        Repository
 	idGenerator RecordIDGenerator
 }
 
-func NewService(logger *logfx.Logger, repo Repository) *Service {
-	return &Service{logger: logger, repo: repo, idGenerator: DefaultIDGenerator}
+func NewService(logger *logfx.Logger, config *Config, repo Repository) *Service {
+	return &Service{
+		logger:      logger,
+		config:      config,
+		repo:        repo,
+		idGenerator: DefaultIDGenerator,
+	}
 }
 
 func (s *Service) GetByID(
@@ -248,6 +321,7 @@ func (s *Service) GetForEdit(
 func (s *Service) Create(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	authorProfileSlug string,
 	publicationProfileSlug string,
 	localeCode string,
@@ -264,6 +338,19 @@ func (s *Service) Create(
 	// Validate slug date prefix for published stories
 	if status == "published" && publishedAt != nil {
 		err := validateSlugDatePrefix(slug, *publishedAt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Validate story picture URI
+	if err := validateOptionalURL(storyPictureURI); err != nil {
+		return nil, err
+	}
+
+	// Non-admin users can only use URIs from our upload service
+	if userKind != "admin" {
+		err := validateURIPrefixes(storyPictureURI, s.config.GetAllowedURIPrefixes())
 		if err != nil {
 			return nil, err
 		}
@@ -341,6 +428,7 @@ func (s *Service) Create(
 func (s *Service) Update(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	storyID string,
 	slug string,
 	status string,
@@ -366,6 +454,19 @@ func (s *Service) Update(
 	// Validate slug date prefix for published stories
 	if status == "published" && publishedAt != nil {
 		err := validateSlugDatePrefix(slug, *publishedAt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Validate story picture URI
+	if err := validateOptionalURL(storyPictureURI); err != nil {
+		return nil, err
+	}
+
+	// Non-admin users can only use URIs from our upload service
+	if userKind != "admin" {
+		err := validateURIPrefixes(storyPictureURI, s.config.GetAllowedURIPrefixes())
 		if err != nil {
 			return nil, err
 		}

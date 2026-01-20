@@ -185,12 +185,12 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	// ----------------------------------------------------
 	// Business Services
 	// ----------------------------------------------------
-	a.ProfileService = profiles.NewService(a.Logger, a.Repository)
+	a.ProfileService = profiles.NewService(a.Logger, &a.Config.Profiles, a.Repository)
 	a.UserService = users.NewService(
 		a.Logger,
 		a.Repository,
 	)
-	a.StoryService = stories.NewService(a.Logger, a.Repository)
+	a.StoryService = stories.NewService(a.Logger, &a.Config.Stories, a.Repository)
 
 	// UploadService (only if S3 client is available)
 	if a.S3Client != nil {

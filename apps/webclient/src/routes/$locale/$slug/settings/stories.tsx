@@ -164,19 +164,16 @@ function StoriesSettingsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
+                    <LocaleLink to={`/stories/${story.slug}/edit`}>
+                      <Button variant="ghost" size="icon" title={t("Profile.Edit")}>
+                        <Pencil className="size-4" />
+                      </Button>
+                    </LocaleLink>
                     <LocaleLink to={`/stories/${story.slug}`}>
                       <Button variant="ghost" size="icon" title={t("Profile.View")}>
                         <ExternalLink className="size-4" />
                       </Button>
                     </LocaleLink>
-                    <Link
-                      to="/$locale/stories/$storyslug/edit"
-                      params={{ locale: params.locale, storyslug: story.slug ?? "" }}
-                    >
-                      <Button variant="ghost" size="icon" title={t("Profile.Edit")}>
-                        <Pencil className="size-4" />
-                      </Button>
-                    </Link>
                   </div>
                 </div>
               );

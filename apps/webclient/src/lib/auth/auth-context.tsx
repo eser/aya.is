@@ -9,16 +9,17 @@ import {
   setAuthToken,
 } from "@/modules/backend/fetcher";
 
-export interface User {
+export type User = {
   id: string;
+  kind: string;
   name: string;
   email?: string;
   github_handle?: string;
   individual_profile_id?: string;
   individual_profile_slug?: string;
-}
+};
 
-interface AuthContextValue {
+type AuthContextValue = {
   isLoading: boolean;
   isAuthenticated: boolean;
   user: User | null;
@@ -26,7 +27,7 @@ interface AuthContextValue {
   login: (redirectUri?: string) => void;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
-}
+};
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 

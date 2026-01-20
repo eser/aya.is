@@ -1,11 +1,12 @@
 import { getBackendUri } from "@/config";
 
-export interface SessionCheckResponse {
+export type SessionCheckResponse = {
   authenticated: boolean;
   token?: string;
   expires_at?: number;
   user?: {
     id: string;
+    kind: string;
     name: string;
     email?: string;
     github_handle?: string;
@@ -19,7 +20,7 @@ export interface SessionCheckResponse {
     description?: string;
     profile_picture_uri?: string;
   };
-}
+};
 
 /**
  * Check session via cookie for cross-domain SSO.

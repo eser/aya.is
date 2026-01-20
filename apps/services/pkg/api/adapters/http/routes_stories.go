@@ -116,9 +116,19 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
+			// Get user to determine kind for URI prefix validation
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			story, err := storyService.Create(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				profileSlugParam,
 				profileSlugParam,
 				localeParam,
@@ -283,9 +293,19 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
+			// Get user to determine kind for URI prefix validation
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			story, err := storyService.Update(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				storyIDParam,
 				requestBody.Slug,
 				requestBody.Status,

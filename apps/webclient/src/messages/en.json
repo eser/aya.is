@@ -223,7 +223,7 @@
     "Brief description of your page": "Brief description of your page",
     "Page Content": "Page Content",
     "Write your content here (supports Markdown)...": "Write your content here (supports Markdown)...",
-    "Cover Image URL": "Cover Image URL",
+    "Story Picture URI": "Story Picture URI",
     "https://example.com/image.jpg": "https://example.com/image.jpg",
     "Creating...": "Creating...",
     "Create Page": "Create Page",
@@ -306,7 +306,7 @@
     "Title": "Title",
     "Summary": "Summary",
     "Slug": "Slug",
-    "Cover Image URL": "Cover Image URL",
+    "Story Picture URI": "Story Picture URI",
     "Draft": "Draft",
     "Published": "Published",
     "Delete Confirmation": "This action cannot be undone. This will permanently delete this content and all associated data.",
@@ -363,6 +363,7 @@
     "Featured": "Featured",
     "Kind": "Kind",
     "News": "News",
-    "Slug must start with": "Slug must start with"
+    "Slug must start with": "Slug must start with",
+    "Invalid URI": "Invalid URI"
   }
 }

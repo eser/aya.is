@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -17,7 +19,73 @@ var (
 	ErrFailedToDeleteRecord = errors.New("failed to delete record")
 	ErrUnauthorized         = errors.New("unauthorized")
 	ErrProfileNotFound      = errors.New("profile not found")
+	ErrInvalidURI           = errors.New("invalid URI")
+	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
 )
+
+// Config holds the profiles service configuration.
+type Config struct {
+	// AllowedURIPrefixes is a comma-separated list of allowed URI prefixes.
+	AllowedURIPrefixes string `conf:"allowed_uri_prefixes" default:"https://objects.aya.is/,https://avatars.githubusercontent.com/"`
+}
+
+// GetAllowedURIPrefixes returns the allowed URI prefixes as a slice.
+func (c *Config) GetAllowedURIPrefixes() []string {
+	if c.AllowedURIPrefixes == "" {
+		return nil
+	}
+
+	prefixes := strings.Split(c.AllowedURIPrefixes, ",")
+	result := make([]string, 0, len(prefixes))
+
+	for _, prefix := range prefixes {
+		trimmed := strings.TrimSpace(prefix)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	return result
+}
+
+// validateOptionalURL validates that a URL is either nil or a valid http/https URL.
+func validateOptionalURL(uri *string) error {
+	if uri == nil {
+		return nil
+	}
+
+	parsedURL, err := url.ParseRequestURI(*uri)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrInvalidURI, *uri)
+	}
+
+	// Only accept http and https protocols
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return fmt.Errorf("%w: URL must use http or https protocol: %s", ErrInvalidURI, *uri)
+	}
+
+	return nil
+}
+
+// validateURIPrefixes validates that a URI starts with one of the allowed prefixes.
+// This is used to restrict non-admin users to only use URIs from our upload service.
+func validateURIPrefixes(uri *string, allowedPrefixes []string) error {
+	if uri == nil || *uri == "" {
+		return nil
+	}
+
+	if len(allowedPrefixes) == 0 {
+		return nil
+	}
+
+	for _, prefix := range allowedPrefixes {
+		if strings.HasPrefix(*uri, prefix) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%w: %s", ErrInvalidURIPrefix, strings.Join(allowedPrefixes, ", "))
+}
 
 type RecentPostsFetcher interface {
 	GetRecentPostsByUsername(
@@ -197,12 +265,13 @@ type Repository interface { //nolint:interfacebloat
 
 type Service struct {
 	logger      *logfx.Logger
+	config      *Config
 	repo        Repository
 	idGenerator RecordIDGenerator
 }
 
-func NewService(logger *logfx.Logger, repo Repository) *Service {
-	return &Service{logger: logger, repo: repo, idGenerator: DefaultIDGenerator}
+func NewService(logger *logfx.Logger, config *Config, repo Repository) *Service {
+	return &Service{logger: logger, config: config, repo: repo, idGenerator: DefaultIDGenerator}
 }
 
 func (s *Service) GetByID(ctx context.Context, localeCode string, id string) (*Profile, error) {
@@ -557,6 +626,7 @@ func (s *Service) CanUserEditProfile(
 func (s *Service) Update(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	profilePictureURI *string,
 	pronouns *string,
@@ -575,6 +645,19 @@ func (s *Service) Update(
 			userID,
 			profileSlug,
 		)
+	}
+
+	// Validate profile picture URI
+	if err := validateOptionalURL(profilePictureURI); err != nil {
+		return nil, err
+	}
+
+	// Non-admin users can only use URIs from allowed prefixes
+	if userKind != "admin" {
+		err := validateURIPrefixes(profilePictureURI, s.config.GetAllowedURIPrefixes())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Get profile ID
@@ -969,6 +1052,7 @@ func (s *Service) ListProfileLinksBySlug(
 func (s *Service) CreateProfilePage(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	slug string,
 	localeCode string,
@@ -991,6 +1075,19 @@ func (s *Service) CreateProfilePage(
 			userID,
 			profileSlug,
 		)
+	}
+
+	// Validate cover picture URI
+	if err := validateOptionalURL(coverPictureURI); err != nil {
+		return nil, err
+	}
+
+	// Non-admin users can only use URIs from allowed prefixes
+	if userKind != "admin" {
+		err := validateURIPrefixes(coverPictureURI, s.config.GetAllowedURIPrefixes())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Get profile ID
@@ -1050,6 +1147,7 @@ func (s *Service) CreateProfilePage(
 func (s *Service) UpdateProfilePage(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	pageID string,
 	slug string,
@@ -1070,6 +1168,19 @@ func (s *Service) UpdateProfilePage(
 			userID,
 			profileSlug,
 		)
+	}
+
+	// Validate cover picture URI
+	if err := validateOptionalURL(coverPictureURI); err != nil {
+		return nil, err
+	}
+
+	// Non-admin users can only use URIs from allowed prefixes
+	if userKind != "admin" {
+		err := validateURIPrefixes(coverPictureURI, s.config.GetAllowedURIPrefixes())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Verify the page exists

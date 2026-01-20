@@ -1,15 +1,17 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 import {
   ArrowLeft,
   PanelLeftClose,
-  PanelLeft,
+  PanelLeftOpen,
   Newspaper,
   PencilLine,
   Megaphone,
   Info,
   Images,
   Presentation,
+  Upload,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -42,7 +44,17 @@ import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
 
-// Helper to format date as YYYYMMDD
+// Schema for optional URL validation (null, empty string, or valid http/https URL)
+const optionalUrlSchema = z.union([
+  z.literal(null),
+  z.literal(""),
+  z.string().url().refine(
+    (url) => url.startsWith("http://") || url.startsWith("https://"),
+    { message: "URL must use http or https protocol" },
+  ),
+]);
+
+// Helper to format date as YYYYMMDD-
 function formatDatePrefix(dateString: string | null): string | null {
   if (dateString === null || dateString === "") return null;
   const date = new Date(dateString);
@@ -50,14 +62,14 @@ function formatDatePrefix(dateString: string | null): string | null {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-  return `${year}${month}${day}`;
+  return `${year}${month}${day}-`;
 }
 
-// Validate slug starts with YYYYMMDD of publish date
+// Validate slug starts with YYYYMMDD- of publish date
 function validateSlugPrefix(slug: string, publishedAt: string | null): { valid: boolean; expectedPrefix: string | null } {
   const expectedPrefix = formatDatePrefix(publishedAt);
   if (expectedPrefix === null) {
-    return { valid: true, expectedPrefix: null }; // No validation if no publish date
+    return { valid: true, expectedPrefix: null };
   }
   const valid = slug.startsWith(expectedPrefix);
   return { valid, expectedPrefix };
@@ -70,7 +82,7 @@ export type ContentEditorData = {
   slug: string;
   summary: string;
   content: string;
-  coverImageUrl?: string | null;
+  storyPictureUri?: string | null;
   status: ContentStatus;
   publishedAt?: string | null;
   isFeatured?: boolean;
@@ -83,9 +95,8 @@ type ContentEditorProps = {
   contentType: ContentType;
   initialData: ContentEditorData;
   backUrl: string;
-  backLabel?: string;
-  canDelete?: boolean;
-  isAdmin?: boolean;
+  userKind?: string;
+  validateSlugDatePrefix?: boolean;
   onSave: (data: ContentEditorData) => Promise<void>;
   onDelete?: () => Promise<void>;
   isNew?: boolean;
@@ -97,13 +108,14 @@ export function ContentEditor(props: ContentEditorProps) {
     contentType,
     initialData,
     backUrl,
-    backLabel = "Back",
-    canDelete = false,
-    isAdmin = false,
+    userKind,
+    validateSlugDatePrefix: shouldValidateSlugDatePrefix = false,
     onSave,
     onDelete,
     isNew = false,
   } = props;
+
+  const isAdmin = userKind === "admin";
 
   const { t } = useTranslation();
 
@@ -112,8 +124,8 @@ export function ContentEditor(props: ContentEditorProps) {
   const [slug, setSlug] = React.useState(initialData.slug);
   const [summary, setSummary] = React.useState(initialData.summary);
   const [content, setContent] = React.useState(initialData.content);
-  const [coverImageUrl, setCoverImageUrl] = React.useState(
-    initialData.coverImageUrl ?? null,
+  const [storyPictureUri, setStoryPictureUri] = React.useState(
+    initialData.storyPictureUri ?? null,
   );
   const [status, setStatus] = React.useState<ContentStatus>(initialData.status);
   const [publishedAt, setPublishedAt] = React.useState(
@@ -131,22 +143,34 @@ export function ContentEditor(props: ContentEditorProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showImageModal, setShowImageModal] = React.useState(false);
+  const [showStoryPictureModal, setShowStoryPictureModal] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [slugError, setSlugError] = React.useState<string | null>(null);
+  const [storyPictureUriError, setStoryPictureUriError] = React.useState<string | null>(null);
 
-  // Validate slug on change
+  // Validate slug on change (only for stories with global slugs)
   React.useEffect(() => {
-    if (status === "published" && publishedAt !== null) {
+    if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
       if (!valid && expectedPrefix !== null) {
-        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}-`);
+        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
       } else {
         setSlugError(null);
       }
     } else {
       setSlugError(null);
     }
-  }, [slug, publishedAt, status, t]);
+  }, [slug, publishedAt, status, shouldValidateSlugDatePrefix, t]);
+
+  // Validate story picture URI on change
+  React.useEffect(() => {
+    const result = optionalUrlSchema.safeParse(storyPictureUri);
+    if (!result.success) {
+      setStoryPictureUriError(t("Editor.Invalid URI"));
+    } else {
+      setStoryPictureUriError(null);
+    }
+  }, [storyPictureUri, t]);
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
@@ -155,13 +179,13 @@ export function ContentEditor(props: ContentEditorProps) {
       slug !== initialData.slug ||
       summary !== initialData.summary ||
       content !== initialData.content ||
-      coverImageUrl !== (initialData.coverImageUrl ?? null) ||
+      storyPictureUri !== (initialData.storyPictureUri ?? null) ||
       status !== initialData.status ||
       publishedAt !== (initialData.publishedAt ?? null) ||
       isFeatured !== (initialData.isFeatured ?? false) ||
       kind !== (initialData.kind ?? "article")
     );
-  }, [title, slug, summary, content, coverImageUrl, status, publishedAt, isFeatured, kind, initialData]);
+  }, [title, slug, summary, content, storyPictureUri, status, publishedAt, isFeatured, kind, initialData]);
 
   // Auto-generate slug from title for new content
   React.useEffect(() => {
@@ -181,7 +205,7 @@ export function ContentEditor(props: ContentEditorProps) {
     slug,
     summary,
     content,
-    coverImageUrl,
+    storyPictureUri,
     status,
     publishedAt,
     isFeatured,
@@ -189,11 +213,11 @@ export function ContentEditor(props: ContentEditorProps) {
   });
 
   const handleSave = async () => {
-    // Validate slug prefix for published content
-    if (status === "published" && publishedAt !== null) {
+    // Validate slug prefix for published content (stories only)
+    if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
       if (!valid && expectedPrefix !== null) {
-        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}-`);
+        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
         return;
       }
     }
@@ -209,11 +233,13 @@ export function ContentEditor(props: ContentEditorProps) {
     // Set current date/time as publish date if not set
     const effectivePublishedAt = publishedAt ?? new Date().toISOString().slice(0, 16);
 
-    // Validate slug prefix
-    const { valid, expectedPrefix } = validateSlugPrefix(slug, effectivePublishedAt);
-    if (!valid && expectedPrefix !== null) {
-      setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}-`);
-      return;
+    // Validate slug prefix (stories only)
+    if (shouldValidateSlugDatePrefix) {
+      const { valid, expectedPrefix } = validateSlugPrefix(slug, effectivePublishedAt);
+      if (!valid && expectedPrefix !== null) {
+        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
+        return;
+      }
     }
 
     setStatus("published");
@@ -285,6 +311,10 @@ export function ContentEditor(props: ContentEditorProps) {
     insertTextAtCursor(textarea, markdown, setContent);
   };
 
+  const handleStoryPictureInsert = (url: string, _alt: string) => {
+    setStoryPictureUri(url);
+  };
+
   return (
     <div className={styles.editorContainer}>
       {/* Header */}
@@ -317,7 +347,7 @@ export function ContentEditor(props: ContentEditorProps) {
           onPublish={handlePublish}
           onUnpublish={handleUnpublish}
           onDelete={handleDelete}
-          showDelete={!isNew && onDelete !== undefined}
+          canDelete={!isNew && onDelete !== undefined}
         />
       </div>
 
@@ -341,7 +371,7 @@ export function ContentEditor(props: ContentEditorProps) {
               title={sidebarCollapsed ? t("Editor.Expand sidebar") : t("Editor.Collapse sidebar")}
             >
               {sidebarCollapsed ? (
-                <PanelLeft className="size-4" />
+                <PanelLeftOpen className="size-4" />
               ) : (
                 <PanelLeftClose className="size-4" />
               )}
@@ -350,34 +380,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
           {!sidebarCollapsed && (
             <div className={styles.metadataForm}>
-              <div className={styles.metadataField}>
-                <Label htmlFor="title" className={styles.metadataLabel}>
-                  {t("Editor.Title")}
-                </Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder={t("Editor.Enter title...")}
-                />
-              </div>
-
-              <div className={styles.metadataField}>
-                <Label htmlFor="slug" className={styles.metadataLabel}>
-                  {t("Editor.Slug")}
-                </Label>
-                <Input
-                  id="slug"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder={t("Editor.url-friendly-slug")}
-                  className={slugError !== null ? "border-destructive" : ""}
-                />
-                {slugError !== null && (
-                  <p className="text-sm text-destructive mt-1">{slugError}</p>
-                )}
-              </div>
-
+              {/* Kind */}
               {contentType === "story" && (
                 <div className={styles.metadataField}>
                   <Label htmlFor="kind" className={styles.metadataLabel}>
@@ -429,37 +432,20 @@ export function ContentEditor(props: ContentEditorProps) {
                 </div>
               )}
 
+              {/* Slug */}
               <div className={styles.metadataField}>
-                <Label htmlFor="summary" className={styles.metadataLabel}>
-                  {t("Editor.Summary")}
-                </Label>
-                <Textarea
-                  id="summary"
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  placeholder={t("Editor.Brief summary...")}
-                  className="min-h-[80px]"
-                />
-              </div>
-
-              <div className={styles.metadataField}>
-                <Label htmlFor="cover-image" className={styles.metadataLabel}>
-                  {t("Editor.Cover Image URL")}
+                <Label htmlFor="slug" className={styles.metadataLabel}>
+                  {t("Editor.Slug")}
                 </Label>
                 <Input
-                  id="cover-image"
-                  value={coverImageUrl ?? ""}
-                  onChange={(e) =>
-                    setCoverImageUrl(e.target.value || null)
-                  }
-                  placeholder="https://..."
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder={t("Editor.url-friendly-slug")}
+                  className={slugError !== null ? "border-destructive" : ""}
                 />
-                {coverImageUrl !== null && coverImageUrl !== "" && (
-                  <img
-                    src={coverImageUrl}
-                    alt="Cover preview"
-                    className="mt-2 rounded-md max-h-32 w-full object-cover"
-                  />
+                {slugError !== null && (
+                  <p className="text-sm text-destructive mt-1">{slugError}</p>
                 )}
               </div>
 
@@ -471,7 +457,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   </Label>
                   <Input
                     id="published-at"
-                    type="datetime-local"
+                    type="text"
                     value={publishedAt ?? ""}
                     onChange={(e) =>
                       setPublishedAt(e.target.value || null)
@@ -481,7 +467,7 @@ export function ContentEditor(props: ContentEditorProps) {
                 </div>
               )}
 
-              {/* Admin-only fields */}
+              {/* Is Featured - Admin only */}
               {isAdmin && contentType === "story" && (
                 <div className={styles.metadataField}>
                   <div className="flex items-center justify-between">
@@ -496,6 +482,70 @@ export function ContentEditor(props: ContentEditorProps) {
                   </div>
                 </div>
               )}
+
+              {/* Title */}
+              <div className={styles.metadataField}>
+                <Label htmlFor="title" className={styles.metadataLabel}>
+                  {t("Editor.Title")}
+                </Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={t("Editor.Enter title...")}
+                />
+              </div>
+
+              {/* Summary */}
+              <div className={styles.metadataField}>
+                <Label htmlFor="summary" className={styles.metadataLabel}>
+                  {t("Editor.Summary")}
+                </Label>
+                <Textarea
+                  id="summary"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  placeholder={t("Editor.Brief summary...")}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              {/* Story Picture URI */}
+              <div className={styles.metadataField}>
+                <Label htmlFor="story-picture-uri" className={styles.metadataLabel}>
+                  {t("Editor.Story Picture URI")}
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="story-picture-uri"
+                    value={storyPictureUri ?? ""}
+                    onChange={(e) =>
+                      setStoryPictureUri(e.target.value || null)
+                    }
+                    placeholder="https://..."
+                    className={cn("flex-1", storyPictureUriError !== null && "border-destructive")}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowStoryPictureModal(true)}
+                    title={t("Editor.Upload")}
+                  >
+                    <Upload className="size-4" />
+                  </Button>
+                </div>
+                {storyPictureUriError !== null && (
+                  <p className="text-sm text-destructive mt-1">{storyPictureUriError}</p>
+                )}
+                {storyPictureUri !== null && storyPictureUri !== "" && storyPictureUriError === null && (
+                  <img
+                    src={storyPictureUri}
+                    alt="Picture preview"
+                    className="mt-2 rounded-md max-h-32 w-full object-cover"
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -552,13 +602,22 @@ export function ContentEditor(props: ContentEditorProps) {
         </div>
       </div>
 
-      {/* Image Upload Modal */}
+      {/* Image Upload Modal for content */}
       <ImageUploadModal
         open={showImageModal}
         onOpenChange={setShowImageModal}
         onImageInsert={handleImageInsert}
         locale={locale}
         purpose="content-image"
+      />
+
+      {/* Image Upload Modal for story picture */}
+      <ImageUploadModal
+        open={showStoryPictureModal}
+        onOpenChange={setShowStoryPictureModal}
+        onImageInsert={handleStoryPictureInsert}
+        locale={locale}
+        purpose="cover-image"
       />
     </div>
   );

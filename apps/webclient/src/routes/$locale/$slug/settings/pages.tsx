@@ -3,7 +3,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { FileText, GripVertical, ExternalLink } from "lucide-react";
+import { FileText, GripVertical, ExternalLink, Pencil } from "lucide-react";
 import { backend, type ProfilePage } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -198,11 +198,18 @@ function PagesSettingsPage() {
                   <p className="font-medium truncate">{page.title}</p>
                   <p className="text-sm text-muted-foreground">/{page.slug}</p>
                 </div>
-                <LocaleLink to={`/${params.slug}/${page.slug}`}>
-                  <Button variant="ghost" size="icon">
-                    <ExternalLink className="size-4" />
-                  </Button>
-                </LocaleLink>
+                <div className="flex items-center gap-1">
+                  <LocaleLink to={`/${params.slug}/${page.slug}/edit`}>
+                    <Button variant="ghost" size="icon">
+                      <Pencil className="size-4" />
+                    </Button>
+                  </LocaleLink>
+                  <LocaleLink to={`/${params.slug}/${page.slug}`}>
+                    <Button variant="ghost" size="icon">
+                      <ExternalLink className="size-4" />
+                    </Button>
+                  </LocaleLink>
+                </div>
               </div>
             );
           })}
