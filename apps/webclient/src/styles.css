@@ -207,10 +207,12 @@
 
   ul,
   ol {
-    @apply pl-4 list-disc;
+    &:not([data-slot="pagination-content"]) {
+      @apply pl-4 list-disc;
 
-    & > li {
-      @apply text-start pl-2;
+      & > li {
+        @apply text-start pl-2;
+      }
     }
   }
 
@@ -223,8 +225,8 @@
 a[role="button"],
 a[role="menuitem"],
 a[role="card"],
-a[data-slot="pagination-link"],
 a[data-slot="nav-link"],
+.content a[data-slot="pagination-link"],
 header a,
 footer a,
 nav a,

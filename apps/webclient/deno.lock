@@ -8,7 +8,6 @@
     "npm:@mdx-js/react@^3.1.1": "3.1.1_@types+react@19.2.8_react@19.2.3",
     "npm:@modelcontextprotocol/sdk@^1.17.0": "1.25.2_zod@4.3.5_ajv@8.17.1_express@5.2.1",
     "npm:@t3-oss/env-core@~0.13.8": "0.13.10_typescript@5.9.3_zod@4.3.5",
-    "npm:@tailwindcss/typography@~0.5.19": "0.5.19_tailwindcss@4.1.18",
     "npm:@tailwindcss/vite@^4.1.18": "4.1.18_vite@7.3.1__@types+node@25.0.9__picomatch@4.0.3_@types+node@25.0.9",
     "npm:@tanstack/devtools-vite@~0.4.1": "0.4.1_vite@7.3.1__@types+node@25.0.9__picomatch@4.0.3_@types+node@25.0.9",
     "npm:@tanstack/react-devtools@~0.9.2": "0.9.2_@types+react@19.2.8_@types+react-dom@19.2.3__@types+react@19.2.8_react@19.2.3_react-dom@19.2.3__react@19.2.3",
@@ -53,7 +52,6 @@
     "npm:rehype-autolink-headings@^7.1.0": "7.1.0",
     "npm:rehype-slug@6": "6.0.0",
     "npm:remark-gfm@^4.0.1": "4.0.1",
-    "npm:remark-parse@*": "11.0.0",
     "npm:rolldown-vite@^7.3.1": "7.3.1_@types+node@25.0.9_picomatch@4.0.3",
     "npm:shadcn@^3.6.3": "3.6.3_@babel+core@7.28.6_zod@3.25.76_typescript@5.9.3_@types+node@25.0.9",
     "npm:sonner@^2.0.7": "2.0.7_react@19.2.3_react-dom@19.2.3__react@19.2.3",
@@ -61,7 +59,6 @@
     "npm:tailwindcss@^4.1.18": "4.1.18",
     "npm:tw-animate-css@^1.4.0": "1.4.0",
     "npm:typescript@^5.9.3": "5.9.3",
-    "npm:unified@*": "11.0.5",
     "npm:unist-util-visit@5": "5.0.0",
     "npm:vaul@^1.1.2": "1.1.2_react@19.2.3_react-dom@19.2.3__react@19.2.3_@types+react@19.2.8_@types+react-dom@19.2.3__@types+react@19.2.8",
     "npm:vite-tsconfig-paths@^6.0.4": "6.0.4_typescript@5.9.3",
@@ -1562,13 +1559,6 @@
         "@tailwindcss/oxide-wasm32-wasi",
         "@tailwindcss/oxide-win32-arm64-msvc",
         "@tailwindcss/oxide-win32-x64-msvc"
-      ]
-    },
-    "@tailwindcss/typography@0.5.19_tailwindcss@4.1.18": {
-      "integrity": "sha512-w31dd8HOx3k9vPtcQh5QHP9GwKcgbMp87j58qi6xgiBnFFtKEAgCWnDw4qUT8aHwkCp8bKvb/KGKWWHedP0AAg==",
-      "dependencies": [
-        "postcss-selector-parser@6.0.10",
-        "tailwindcss"
       ]
     },
     "@tailwindcss/vite@4.1.18_vite@7.3.1__@types+node@25.0.9__picomatch@4.0.3_@types+node@25.0.9": {
@@ -4458,13 +4448,6 @@
     "pkce-challenge@5.0.1": {
       "integrity": "sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ=="
     },
-    "postcss-selector-parser@6.0.10": {
-      "integrity": "sha512-IQ7TZdoaqbT+LCpShg46jnZVlhWD2w6iQYAcYXfHARZ7X1t/UGhhceQDs5X0cGqKvYlHNOuv7Oa1xmb0oQuA3w==",
-      "dependencies": [
-        "cssesc",
-        "util-deprecate"
-      ]
-    },
     "postcss-selector-parser@7.1.1": {
       "integrity": "sha512-orRsuYpJVw8LdAwqqLykBj9ecS5/cRHlI5+nvTo8LcCKmzDmqVORXtOIYEEQuL9D4BxtA1lm5isAqzQZCoQ6Eg==",
       "dependencies": [
@@ -5014,7 +4997,7 @@
         "open",
         "ora",
         "postcss",
-        "postcss-selector-parser@7.1.1",
+        "postcss-selector-parser",
         "prompts",
         "recast",
         "stringify-object",
@@ -5668,7 +5651,6 @@
         "npm:@mdx-js/react@^3.1.1",
         "npm:@modelcontextprotocol/sdk@^1.17.0",
         "npm:@t3-oss/env-core@~0.13.8",
-        "npm:@tailwindcss/typography@~0.5.19",
         "npm:@tailwindcss/vite@^4.1.18",
         "npm:@tanstack/devtools-vite@~0.4.1",
         "npm:@tanstack/react-devtools@~0.9.2",

@@ -2,8 +2,6 @@ import { MdxContent } from "@/components/userland/mdx-content";
 import { ShareOptions } from "./share-options";
 import { cn } from "@/lib/utils";
 
-export type TextContentVariant = "default" | "compact" | "large";
-
 export type TextContentProps = {
   title?: string;
   compiledContent: string | null;
@@ -16,14 +14,7 @@ export type TextContentProps = {
   };
   bare?: boolean;
   headingOffset?: number;
-  variant?: TextContentVariant;
   className?: string;
-};
-
-const proseVariants: Record<TextContentVariant, string> = {
-  default: "prose dark:prose-invert",
-  compact: "prose prose-sm dark:prose-invert",
-  large: "prose prose-lg dark:prose-invert",
 };
 
 export function TextContent(props: TextContentProps) {
@@ -34,7 +25,6 @@ export function TextContent(props: TextContentProps) {
     shareOptions,
     bare = false,
     headingOffset = 1,
-    variant = "default",
     className,
   } = props;
 
@@ -67,7 +57,7 @@ export function TextContent(props: TextContentProps) {
   }
 
   return (
-    <article className={cn(proseVariants[variant], "content max-w-none", className)}>
+    <article className={cn("content", className)}>
       {content}
     </article>
   );

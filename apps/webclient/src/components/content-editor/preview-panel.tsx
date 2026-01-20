@@ -73,7 +73,6 @@ export function PreviewPanel(props: PreviewPanelProps) {
   return (
     <TextContent
       compiledContent={compiledSource}
-      variant="compact"
       headingOffset={1}
       className={styles.previewPanel}
     />
