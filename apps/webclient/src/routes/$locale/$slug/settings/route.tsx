@@ -6,6 +6,7 @@ import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 
 export const Route = createFileRoute("/$locale/$slug/settings")({
+  ssr: false,
   loader: async ({ params }) => {
     const { locale, slug } = params;
 
