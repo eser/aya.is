@@ -40,10 +40,11 @@ type HTTPClient interface {
 
 // ProfileLinkOAuthState contains state information for OAuth flow.
 type ProfileLinkOAuthState struct {
-	State       string    `json:"state"`
-	ProfileSlug string    `json:"profile_slug"`
-	Locale      string    `json:"locale"`
-	ExpiresAt   time.Time `json:"expires_at"`
+	State          string    `json:"state"`
+	ProfileSlug    string    `json:"profile_slug"`
+	Locale         string    `json:"locale"`
+	RedirectOrigin string    `json:"redirect_origin"` // Frontend origin for redirect after callback
+	ExpiresAt      time.Time `json:"expires_at"`
 }
 
 // ProfileLinkOAuthResult contains the result of a successful OAuth flow.
@@ -85,6 +86,7 @@ func (y *YouTubeOAuthProvider) InitiateOAuth(
 	redirectURI string,
 	profileSlug string,
 	locale string,
+	redirectOrigin string,
 ) (string, string, error) {
 	// Generate cryptographically secure random state
 	stateBytes := make([]byte, OAuthStateSizeBytes)
@@ -98,10 +100,11 @@ func (y *YouTubeOAuthProvider) InitiateOAuth(
 
 	// Create state object with profile info
 	stateObj := ProfileLinkOAuthState{
-		State:       randomState,
-		ProfileSlug: profileSlug,
-		Locale:      locale,
-		ExpiresAt:   time.Now().Add(StateExpiryDuration),
+		State:          randomState,
+		ProfileSlug:    profileSlug,
+		Locale:         locale,
+		RedirectOrigin: redirectOrigin,
+		ExpiresAt:      time.Now().Add(StateExpiryDuration),
 	}
 
 	// Encode state as base64 JSON

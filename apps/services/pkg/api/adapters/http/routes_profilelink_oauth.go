@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -93,12 +94,22 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 			redirectURI := fmt.Sprintf("%s/profiles/_links/callback/%s",
 				siteURI, providerParam)
 
+			// Get the origin from Referer header for redirect after callback
+			referer := ctx.Request.Header.Get("Referer")
+			redirectOrigin := ""
+			if referer != "" {
+				if parsedURL, parseErr := url.Parse(referer); parseErr == nil {
+					redirectOrigin = fmt.Sprintf("%s://%s", parsedURL.Scheme, parsedURL.Host)
+				}
+			}
+
 			// Initiate OAuth flow
 			authURL, _, err := youtubeProvider.InitiateOAuth(
 				ctx.Request.Context(),
 				redirectURI,
 				slugParam,
 				localeParam,
+				redirectOrigin,
 			)
 			if err != nil {
 				logger.ErrorContext(ctx.Request.Context(), "Failed to initiate OAuth",
@@ -141,18 +152,10 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 			stateParam := ctx.Request.URL.Query().Get("state")
 			errorParam := ctx.Request.URL.Query().Get("error")
 
-			// Check for access denied - redirect to home with error (locale unknown at this point)
-			if errorParam == "access_denied" {
-				logger.InfoContext(ctx.Request.Context(), "User denied OAuth access",
-					slog.String("provider", providerParam))
-
-				return ctx.Results.Redirect("/tr?error=access_denied")
-			}
-
-			// Validate required parameters
-			if code == "" || stateParam == "" {
+			// Validate required parameters (state needed for redirect origin)
+			if stateParam == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Missing required OAuth parameters"),
+					httpfx.WithPlainText("Missing required OAuth state parameter"),
 				)
 			}
 
@@ -167,26 +170,59 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 			redirectURI := fmt.Sprintf("%s/profiles/_links/callback/%s",
 				siteURI, providerParam)
 
-			// Handle the OAuth callback
+			// Handle the OAuth callback (this also parses the state)
 			result, stateObj, err := youtubeProvider.HandleCallback(
 				ctx.Request.Context(),
 				code,
 				stateParam,
 				redirectURI,
 			)
+
+			// Helper to build redirect URL with fallbacks
+			buildRedirectURL := func(path string) string {
+				origin := ""
+				if stateObj != nil && stateObj.RedirectOrigin != "" {
+					origin = stateObj.RedirectOrigin
+				}
+
+				return origin + path
+			}
+
+			// Check for access denied
+			if errorParam == "access_denied" {
+				logger.InfoContext(ctx.Request.Context(), "User denied OAuth access",
+					slog.String("provider", providerParam))
+
+				locale := "tr"
+				if stateObj != nil && stateObj.Locale != "" {
+					locale = stateObj.Locale
+				}
+
+				return ctx.Results.Redirect(
+					buildRedirectURL(fmt.Sprintf("/%s?error=access_denied", locale)),
+				)
+			}
+
+			// Check for missing code
+			if code == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Missing authorization code"),
+				)
+			}
+
 			if err != nil {
 				logger.ErrorContext(ctx.Request.Context(), "OAuth callback failed",
 					slog.String("error", err.Error()),
 					slog.String("provider", providerParam))
 
-				// Redirect back with error (use locale from state if available, fallback to "tr")
 				locale := "tr"
 				if stateObj != nil && stateObj.Locale != "" {
 					locale = stateObj.Locale
 				}
-				redirectURL := fmt.Sprintf("/%s?error=oauth_failed", locale)
 
-				return ctx.Results.Redirect(redirectURL)
+				return ctx.Results.Redirect(
+					buildRedirectURL(fmt.Sprintf("/%s?error=oauth_failed", locale)),
+				)
 			}
 
 			// Get profile ID from slug
@@ -198,7 +234,11 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				logger.ErrorContext(ctx.Request.Context(), "Profile not found",
 					slog.String("slug", stateObj.ProfileSlug))
 
-				redirectURL := fmt.Sprintf("/%s?error=profile_not_found", stateObj.Locale)
+				redirectURL := fmt.Sprintf(
+					"%s/%s?error=profile_not_found",
+					stateObj.RedirectOrigin,
+					stateObj.Locale,
+				)
 
 				return ctx.Results.Redirect(redirectURL)
 			}
@@ -216,8 +256,8 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 					slog.String("profile_id", profileID),
 					slog.String("remote_id", result.RemoteID))
 
-				redirectURL := fmt.Sprintf("/%s/%s/settings/links?error=oauth_failed",
-					stateObj.Locale, stateObj.ProfileSlug)
+				redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?error=oauth_failed",
+					stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug)
 
 				return ctx.Results.Redirect(redirectURL)
 			}
@@ -245,8 +285,8 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 						slog.String("error", err.Error()),
 						slog.String("link_id", existingLink.ID))
 
-					redirectURL := fmt.Sprintf("/%s/%s/settings/links?error=update_failed",
-						stateObj.Locale, stateObj.ProfileSlug)
+					redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?error=update_failed",
+						stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug)
 
 					return ctx.Results.Redirect(redirectURL)
 				}
@@ -283,8 +323,8 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 						slog.String("error", err.Error()),
 						slog.String("profile_id", profileID))
 
-					redirectURL := fmt.Sprintf("/%s/%s/settings/links?error=create_failed",
-						stateObj.Locale, stateObj.ProfileSlug)
+					redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?error=create_failed",
+						stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug)
 
 					return ctx.Results.Redirect(redirectURL)
 				}
@@ -296,8 +336,8 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 			}
 
 			// Redirect to the settings page with success message
-			redirectURL := fmt.Sprintf("/%s/%s/settings/links?connected=%s",
-				stateObj.Locale, stateObj.ProfileSlug, providerParam)
+			redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?connected=%s",
+				stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug, providerParam)
 
 			return ctx.Results.Redirect(redirectURL)
 		}).
