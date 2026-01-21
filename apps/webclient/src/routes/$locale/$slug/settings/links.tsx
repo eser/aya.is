@@ -263,16 +263,21 @@ function LinksSettingsPage() {
   };
 
   const handleConnectYouTube = async () => {
-    const result = await backend.initiateProfileLinkOAuth(
-      params.locale,
-      params.slug,
-      "youtube",
-    );
-    if (result === null) {
+    try {
+      const result = await backend.initiateProfileLinkOAuth(
+        params.locale,
+        params.slug,
+        "youtube",
+      );
+      if (result === null) {
+        toast.error(t("Profile", "Failed to connect"));
+        return;
+      }
+      window.location.href = result.auth_url;
+    } catch (error) {
+      console.error("OAuth initiation failed:", error);
       toast.error(t("Profile", "Failed to connect"));
-      return;
     }
-    window.location.href = result.auth_url;
   };
 
   // Drag and drop handlers

@@ -118,8 +118,11 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				slog.String("auth_url", authURL))
 
 			// Return the auth URL for frontend to redirect
-			return ctx.Results.JSON(map[string]string{
-				"auth_url": authURL,
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{
+					"auth_url": authURL,
+				},
+				"error": nil,
 			})
 		}).
 		HasSummary("Initiate Profile Link OAuth").
