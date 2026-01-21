@@ -3,7 +3,6 @@ import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import type { RequestContext } from "@/request-context";
 import { getDomainConfiguration } from "./server/domain-configurations";
-import { requestContextBinder } from "./server/request-context-binder";
 import { markdownMiddleware } from "./server/markdown-middleware";
 import { registerAllMarkdownHandlers } from "./server/markdown-handlers";
 
@@ -60,6 +59,8 @@ const customDomainMiddleware = createMiddleware()
       originalPath: originalPathParts,
     };
 
+    // Dynamic import to avoid bundling AsyncLocalStorage in client
+    const { requestContextBinder } = await import("./server/request-context-binder");
     return requestContextBinder.run(requestContext, () => {
       return next({ context: { requestContext } });
     });

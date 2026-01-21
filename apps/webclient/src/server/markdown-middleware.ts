@@ -13,7 +13,6 @@ import { createMiddleware } from "@tanstack/react-start";
 import { createMarkdownResponse, createNotFoundResponse } from "@/lib/markdown";
 import { DEFAULT_LOCALE } from "@/config";
 import { generateLlmsTxt, generateLlmsFullTxt } from "@/routes/-llms-txt";
-import { requestContextBinder } from "./request-context-binder";
 
 // Type for markdown handlers
 type MarkdownHandler = (
@@ -150,6 +149,8 @@ export const markdownMiddleware = createMiddleware().server(
 
     // Get the effective path - use rewritten path from request context if available
     // This handles custom domains where /tr/index.md becomes /tr/eser/index.md
+    // Dynamic import to avoid bundling AsyncLocalStorage in client
+    const { requestContextBinder } = await import("./request-context-binder");
     const requestContext = requestContextBinder.getStore();
     let effectivePath: string;
 
