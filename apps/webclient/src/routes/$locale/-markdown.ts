@@ -40,11 +40,24 @@ export function generateLocaleIndexMarkdown(locale: string): string {
 }
 
 /**
+ * Shared handler for locale index markdown
+ */
+function handleLocaleIndex(
+  _params: Record<string, string>,
+  locale: string,
+  _searchParams: URLSearchParams,
+): Promise<string | null> {
+  return Promise.resolve(generateLocaleIndexMarkdown(locale));
+}
+
+/**
  * Register markdown handler for locale index
- * Pattern: /$locale
+ * Patterns: /$locale and /$locale/index
  */
 export function registerLocaleIndexHandler(): void {
-  registerMarkdownHandler("$locale", (_params, locale, _searchParams) => {
-    return Promise.resolve(generateLocaleIndexMarkdown(locale));
-  });
+  // Handle /$locale.md
+  registerMarkdownHandler("$locale", handleLocaleIndex);
+
+  // Handle /$locale/index.md
+  registerMarkdownHandler("$locale/index", handleLocaleIndex);
 }
