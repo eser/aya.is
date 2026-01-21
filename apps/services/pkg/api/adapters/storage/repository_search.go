@@ -37,6 +37,7 @@ func (r *Repository) Search(
 	}
 
 	for _, p := range profileRows {
+		kind := p.Kind
 		results = append(results, &profiles.SearchResult{
 			Type:     "profile",
 			ID:       p.ID,
@@ -44,6 +45,7 @@ func (r *Repository) Search(
 			Title:    p.Title,
 			Summary:  &p.Description,
 			ImageURI: vars.ToStringPtr(p.ProfilePictureURI),
+			Kind:     &kind,
 			Rank:     p.Rank,
 		})
 	}
@@ -60,15 +62,18 @@ func (r *Repository) Search(
 	}
 
 	for _, s := range storyRows {
+		kind := s.Kind
 		results = append(results, &profiles.SearchResult{
-			Type:        "story",
-			ID:          s.ID,
-			Slug:        s.Slug,
-			Title:       s.Title,
-			Summary:     &s.Summary,
-			ImageURI:    vars.ToStringPtr(s.StoryPictureURI),
-			ProfileSlug: vars.ToStringPtr(s.AuthorSlug),
-			Rank:        s.Rank,
+			Type:         "story",
+			ID:           s.ID,
+			Slug:         s.Slug,
+			Title:        s.Title,
+			Summary:      &s.Summary,
+			ImageURI:     vars.ToStringPtr(s.StoryPictureURI),
+			ProfileSlug:  vars.ToStringPtr(s.AuthorSlug),
+			ProfileTitle: vars.ToStringPtr(s.AuthorTitle),
+			Kind:         &kind,
+			Rank:         s.Rank,
 		})
 	}
 
@@ -85,14 +90,15 @@ func (r *Repository) Search(
 
 	for _, pp := range pageRows {
 		results = append(results, &profiles.SearchResult{
-			Type:        "page",
-			ID:          pp.ID,
-			Slug:        pp.Slug,
-			Title:       pp.Title,
-			Summary:     &pp.Summary,
-			ImageURI:    vars.ToStringPtr(pp.CoverPictureURI),
-			ProfileSlug: &pp.ProfileSlug,
-			Rank:        pp.Rank,
+			Type:         "page",
+			ID:           pp.ID,
+			Slug:         pp.Slug,
+			Title:        pp.Title,
+			Summary:      &pp.Summary,
+			ImageURI:     vars.ToStringPtr(pp.CoverPictureURI),
+			ProfileSlug:  &pp.ProfileSlug,
+			ProfileTitle: &pp.ProfileTitle,
+			Rank:         pp.Rank,
 		})
 	}
 

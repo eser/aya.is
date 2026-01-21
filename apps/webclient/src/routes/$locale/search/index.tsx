@@ -2,7 +2,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useCallback, useState } from "react";
-import { BookOpen, FileText, Search, User } from "lucide-react";
+import { FileText, Newspaper, ScrollText, Search, User } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Input } from "@/components/ui/input";
@@ -36,10 +36,11 @@ export const Route = createFileRoute("/$locale/search/")({
 });
 
 function SearchPage() {
-  const { results, query, locale } = Route.useLoaderData();
+  const { results, query, locale, profileSlug } = Route.useLoaderData();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState(query);
+  const isCustomDomain = profileSlug !== undefined;
 
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
@@ -55,12 +56,15 @@ function SearchPage() {
     [searchInput, locale, navigate],
   );
 
-  const getIcon = (type: string) => {
-    switch (type) {
+  const getIcon = (result: SearchResult) => {
+    switch (result.type) {
       case "profile":
         return <User className="size-5 text-muted-foreground" />;
       case "story":
-        return <BookOpen className="size-5 text-muted-foreground" />;
+        if (result.kind === "news") {
+          return <Newspaper className="size-5 text-muted-foreground" />;
+        }
+        return <ScrollText className="size-5 text-muted-foreground" />;
       case "page":
         return <FileText className="size-5 text-muted-foreground" />;
       default:
@@ -85,8 +89,12 @@ function SearchPage() {
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
+  const getTypeLabel = (result: SearchResult) => {
+    if (result.type === "story" && result.kind !== null) {
+      const kindKey = result.kind.charAt(0).toUpperCase() + result.kind.slice(1);
+      return t(`Layout.${kindKey}`, t("Search.Story"));
+    }
+    switch (result.type) {
       case "profile":
         return t("Search.Profile");
       case "story":
@@ -94,8 +102,16 @@ function SearchPage() {
       case "page":
         return t("Search.Page");
       default:
-        return type;
+        return result.type;
     }
+  };
+
+  const getTitle = (result: SearchResult) => {
+    // For stories and pages on non-custom domain, show profile title prefix
+    if (!isCustomDomain && result.profile_title !== null && (result.type === "story" || result.type === "page")) {
+      return `${result.profile_title}: ${result.title}`;
+    }
+    return result.title;
   };
 
   return (
@@ -139,19 +155,19 @@ function SearchPage() {
                           className="block p-4 border rounded-lg hover:bg-accent transition-colors no-underline"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="mt-0.5">{getIcon(result.type)}</div>
+                            <div className="mt-0.5">{getIcon(result)}</div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-xs px-2 py-0.5 bg-muted rounded">
-                                  {getTypeLabel(result.type)}
+                                  {getTypeLabel(result)}
                                 </span>
-                                {result.profile_slug !== null && result.type !== "profile" && (
+                                {!isCustomDomain && result.profile_slug !== null && result.type !== "profile" && (
                                   <span className="text-xs text-muted-foreground">
                                     @{result.profile_slug}
                                   </span>
                                 )}
                               </div>
-                              <h3 className="font-medium truncate">{result.title}</h3>
+                              <h3 className="font-medium truncate">{getTitle(result)}</h3>
                               {result.summary !== null && (
                                 <p className="text-sm text-muted-foreground line-clamp-2">
                                   {result.summary}

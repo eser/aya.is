@@ -29,8 +29,13 @@ import {
   BoxIcon,
   CalendarIcon,
   FileTextIcon,
+  Images,
+  Info,
   Loader2Icon,
+  Megaphone,
   NewspaperIcon,
+  PencilLine,
+  Presentation,
   ScrollTextIcon,
   SettingsIcon,
   UserIcon,
@@ -124,17 +129,67 @@ export function SearchBar() {
     }
   }, [open]);
 
-  const getSearchResultIcon = (type: string) => {
-    switch (type) {
+  const getSearchResultIcon = (result: SearchResult) => {
+    switch (result.type) {
       case "profile":
-        return UserIcon;
+        if (result.kind === "individual") {
+          return UserIcon;
+        }
+
+        if (result.kind === "organization") {
+          return UsersIcon;
+        }
+
+        return BoxIcon;
       case "story":
+        // Different icons for story kinds
+        if (result.kind === "article") {
+          return PencilLine;
+        }
+
+        if (result.kind === "announcement") {
+          return Megaphone;
+        }
+
+        if (result.kind === "news") {
+          return NewspaperIcon;
+        }
+
+        if (result.kind === "status") {
+          return Info;
+        }
+
+        if (result.kind === "content") {
+          return Images;
+        }
+
+        if (result.kind === "presentation") {
+          return Presentation;
+        }
+
         return BookOpenIcon;
       case "page":
         return FileTextIcon;
       default:
         return FileTextIcon;
     }
+  };
+
+  const getSearchResultTypeLabel = (result: SearchResult) => {
+    if (result.type === "story" && result.kind !== null) {
+      // Use specific kind label (News, Article)
+      const kindKey = result.kind.charAt(0).toUpperCase() + result.kind.slice(1);
+      return t(`Layout.${kindKey}`, t("Search.Story"));
+    }
+    return t(`Search.${result.type.charAt(0).toUpperCase() + result.type.slice(1)}`);
+  };
+
+  const getSearchResultTitle = (result: SearchResult) => {
+    // For stories and pages on non-custom domain, show profile title prefix
+    if (!isCustomDomain && result.profile_title !== null && (result.type === "story" || result.type === "page")) {
+      return `${result.profile_title}: ${result.title}`;
+    }
+    return result.title;
   };
 
   const getSearchResultLink = (result: SearchResult) => {
@@ -232,38 +287,85 @@ export function SearchBar() {
                   </span>
                 }
               >
-                {searchResults !== null && searchResults.length > 0
-                  ? searchResults.map((result) => {
-                    const Icon = getSearchResultIcon(result.type);
-                    return (
-                      <CommandItem
-                        key={`${result.type}-${result.id}`}
-                        value={`search-${result.type}-${result.slug}-${result.title}`}
-                        onSelect={() => {
-                          navigate({ to: getSearchResultLink(result) });
-                          setOpen(false);
-                        }}
-                      >
-                        <Icon className="w-4 h-4 mr-2" />
-                        <span className="truncate">{result.title}</span>
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {t(`Search.${result.type.charAt(0).toUpperCase() + result.type.slice(1)}`)}
+                {isSearching && searchResults === null
+                  ? (
+                    <>
+                      <div className="px-2 py-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="size-4 rounded bg-muted animate-pulse" />
+                          <div className="h-4 flex-1 rounded bg-muted animate-pulse" />
+                          <div className="h-4 w-12 rounded bg-muted animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="px-2 py-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="size-4 rounded bg-muted animate-pulse" />
+                          <div className="h-4 flex-1 rounded bg-muted animate-pulse" />
+                          <div className="h-4 w-12 rounded bg-muted animate-pulse" />
+                        </div>
+                      </div>
+                    </>
+                  )
+                  : searchResults !== null && searchResults.length > 0
+                    ? searchResults.map((result) => {
+                      const Icon = getSearchResultIcon(result);
+                      return (
+                        <CommandItem
+                          key={`${result.type}-${result.id}`}
+                          value={`search-${result.type}-${result.slug}-${result.title}`}
+                          onSelect={() => {
+                            navigate({ to: getSearchResultLink(result) });
+                            setOpen(false);
+                          }}
+                        >
+                          <Icon className="w-4 h-4 mr-2" />
+                          <span className="truncate">{getSearchResultTitle(result)}</span>
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            {getSearchResultTypeLabel(result)}
+                          </span>
+                        </CommandItem>
+                      );
+                    })
+                    : !isSearching && (
+                      <CommandItem disabled>
+                        <span className="text-muted-foreground">
+                          {t("Search.No results found.")}
                         </span>
                       </CommandItem>
-                    );
-                  })
-                  : !isSearching && (
-                    <CommandItem disabled>
-                      <span className="text-muted-foreground">
-                        {t("Search.No results found.")}
-                      </span>
-                    </CommandItem>
-                  )}
+                    )}
               </CommandGroup>
               <CommandSeparator />
             </>
           )}
-          {!isCustomDomain && searchQuery.trim().length < 2 && (
+          {spotlight !== null && spotlight.length > 0 && (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading={t("Search.Profiles")}>
+                {spotlight.map((profile) => {
+                  const Icon = profile.kind === "individual"
+                    ? UserIcon
+                    : profile.kind === "organization"
+                    ? UsersIcon
+                    : BoxIcon;
+
+                  return (
+                    <CommandItem
+                      key={profile.id}
+                      onSelect={() => {
+                        navigate({ to: `/${localeCode}/${profile.slug}` });
+                        setOpen(false);
+                      }}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      <span>{profile.title}</span>
+                      <span className="sr-only">{profile.description}</span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </>
+          )}
+          {!isCustomDomain && (
             <>
               <CommandGroup heading={t("Search.Suggestions")}>
                 {navItems.map((item) => {
@@ -282,34 +384,6 @@ export function SearchBar() {
                   );
                 })}
               </CommandGroup>
-              {spotlight !== null && spotlight.length > 0 && (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup heading={t("Search.Profiles")}>
-                    {spotlight.map((profile) => {
-                      const Icon = profile.kind === "individual"
-                        ? UserIcon
-                        : profile.kind === "organization"
-                        ? UsersIcon
-                        : BoxIcon;
-
-                      return (
-                        <CommandItem
-                          key={profile.id}
-                          onSelect={() => {
-                            navigate({ to: `/${localeCode}/${profile.slug}` });
-                            setOpen(false);
-                          }}
-                        >
-                          <Icon className="w-4 h-4 mr-2" />
-                          <span>{profile.title}</span>
-                          <span className="sr-only">{profile.description}</span>
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-                </>
-              )}
               <CommandSeparator />
             </>
           )}

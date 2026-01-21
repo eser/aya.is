@@ -8,6 +8,8 @@ export interface SearchResult {
   summary: string | null;
   image_uri: string | null;
   profile_slug: string | null;
+  profile_title: string | null;
+  kind: string | null;
   rank: number;
 }
 
