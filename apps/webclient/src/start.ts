@@ -59,7 +59,6 @@ const customDomainMiddleware = createMiddleware()
       originalPath: originalPathParts,
     };
 
-    // Dynamic import to avoid bundling AsyncLocalStorage in client
     const { requestContextBinder } = await import("./server/request-context-binder");
     return requestContextBinder.run(requestContext, () => {
       return next({ context: { requestContext } });

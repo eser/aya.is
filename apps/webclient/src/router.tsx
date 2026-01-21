@@ -15,11 +15,14 @@ async function getRequestContext(): Promise<RequestContext | undefined> {
     return globalThis.__REQUEST_CONTEXT__;
   }
 
-  // read from AsyncLocalStorage (server-side)
-  const { requestContextBinder } = await import("./server/request-context-binder");
-  const requestContext = requestContextBinder.getStore();
+  // Server-side only: import.meta.env.SSR is replaced at build time
+  // This allows Vite to dead-code eliminate this branch from client bundle
+  if (import.meta.env.SSR) {
+    const { requestContextBinder } = await import("./server/request-context-binder");
+    return requestContextBinder.getStore();
+  }
 
-  return requestContext;
+  return undefined;
 }
 
 // Create a new router instance
