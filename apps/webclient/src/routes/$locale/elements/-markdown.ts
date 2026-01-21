@@ -55,7 +55,7 @@ export function generateElementsListingMarkdown(
  * Pattern: /$locale/elements
  */
 export function registerElementsListingHandler(): void {
-  registerMarkdownHandler("$locale/elements", async (params, locale, _searchParams) => {
+  registerMarkdownHandler("$locale/elements", async (_params, locale, _searchParams) => {
     const profiles = await backend.getProfilesByKinds(locale, [
       "individual",
       "organization",

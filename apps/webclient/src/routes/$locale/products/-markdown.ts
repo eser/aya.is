@@ -35,7 +35,7 @@ export function generateProductsListingMarkdown(
  * Pattern: /$locale/products
  */
 export function registerProductsListingHandler(): void {
-  registerMarkdownHandler("$locale/products", async (params, locale, _searchParams) => {
+  registerMarkdownHandler("$locale/products", async (_params, locale, _searchParams) => {
     const products = await backend.getProfilesByKinds(locale, ["product"]);
 
     if (products === null) {

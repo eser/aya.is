@@ -64,7 +64,7 @@ export function generateStoriesListingMarkdown(
  * Pattern: /$locale/stories
  */
 export function registerGlobalStoriesListingHandler(): void {
-  registerMarkdownHandler("$locale/stories", async (params, locale, _searchParams) => {
+  registerMarkdownHandler("$locale/stories", async (_params, locale, _searchParams) => {
     // Get all story kinds
     const stories = await backend.getStoriesByKinds(locale, [
       "article",

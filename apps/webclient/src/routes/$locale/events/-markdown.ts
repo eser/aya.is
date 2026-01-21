@@ -23,7 +23,7 @@ export function generateEventsListingMarkdown(_locale: string): string {
  * Pattern: /$locale/events
  */
 export function registerEventsListingHandler(): void {
-  registerMarkdownHandler("$locale/events", async (_params, locale, _searchParams) => {
-    return generateEventsListingMarkdown(locale);
+  registerMarkdownHandler("$locale/events", (_params, locale, _searchParams) => {
+    return Promise.resolve(generateEventsListingMarkdown(locale));
   });
 }

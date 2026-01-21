@@ -113,51 +113,64 @@ export function generateProfilePageMarkdown(
 }
 
 /**
+ * Shared handler logic for profile markdown
+ */
+async function handleProfileMarkdown(
+  params: Record<string, string>,
+  locale: string,
+  searchParams: URLSearchParams,
+): Promise<string | null> {
+  const { slug } = params;
+
+  if (slug === undefined) {
+    return null;
+  }
+
+  // Skip reserved paths
+  const reservedPaths = ["stories", "news", "products", "elements", "events"];
+  if (reservedPaths.includes(slug)) {
+    return null;
+  }
+
+  const profile = await backend.getProfile(locale, slug);
+
+  if (profile === null) {
+    return null;
+  }
+
+  // Fetch stories for this profile
+  const allStories = await backend.getProfileStories(locale, slug);
+  const storiesList = allStories ?? [];
+
+  // Handle pagination
+  const offset = Number(searchParams.get("offset")) || 0;
+  const total = storiesList.length;
+  const totalPages = Math.ceil(total / STORIES_PER_PAGE);
+  const currentPage = Math.floor(offset / STORIES_PER_PAGE) + 1;
+
+  // Get stories for current page
+  const paginatedStories = storiesList.slice(offset, offset + STORIES_PER_PAGE);
+
+  const pagination: PaginationInfo = {
+    offset,
+    total,
+    currentPage,
+    totalPages,
+  };
+
+  return generateProfileMarkdown(profile, locale, paginatedStories, pagination);
+}
+
+/**
  * Register markdown handler for profile pages
- * Pattern: /$locale/$slug
+ * Patterns: /$locale/$slug and /$locale/$slug/index
  */
 export function registerProfileMarkdownHandler(): void {
-  registerMarkdownHandler("$locale/$slug", async (params, locale, searchParams) => {
-    const { slug } = params;
+  // Handle /$locale/$slug.md
+  registerMarkdownHandler("$locale/$slug", handleProfileMarkdown);
 
-    if (slug === undefined) {
-      return null;
-    }
-
-    // Skip reserved paths
-    const reservedPaths = ["stories", "news", "products", "elements", "events"];
-    if (reservedPaths.includes(slug)) {
-      return null;
-    }
-
-    const profile = await backend.getProfile(locale, slug);
-
-    if (profile === null) {
-      return null;
-    }
-
-    // Fetch stories for this profile
-    const allStories = await backend.getProfileStories(locale, slug);
-    const storiesList = allStories ?? [];
-
-    // Handle pagination
-    const offset = Number(searchParams.get("offset")) || 0;
-    const total = storiesList.length;
-    const totalPages = Math.ceil(total / STORIES_PER_PAGE);
-    const currentPage = Math.floor(offset / STORIES_PER_PAGE) + 1;
-
-    // Get stories for current page
-    const paginatedStories = storiesList.slice(offset, offset + STORIES_PER_PAGE);
-
-    const pagination: PaginationInfo = {
-      offset,
-      total,
-      currentPage,
-      totalPages,
-    };
-
-    return generateProfileMarkdown(profile, locale, paginatedStories, pagination);
-  });
+  // Handle /$locale/$slug/index.md
+  registerMarkdownHandler("$locale/$slug/index", handleProfileMarkdown);
 }
 
 /**

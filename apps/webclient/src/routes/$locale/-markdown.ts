@@ -44,7 +44,7 @@ export function generateLocaleIndexMarkdown(locale: string): string {
  * Pattern: /$locale
  */
 export function registerLocaleIndexHandler(): void {
-  registerMarkdownHandler("$locale", async (_params, locale, _searchParams) => {
-    return generateLocaleIndexMarkdown(locale);
+  registerMarkdownHandler("$locale", (_params, locale, _searchParams) => {
+    return Promise.resolve(generateLocaleIndexMarkdown(locale));
   });
 }

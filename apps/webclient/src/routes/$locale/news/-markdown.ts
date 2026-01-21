@@ -45,7 +45,7 @@ export function generateNewsListingMarkdown(
  * Pattern: /$locale/news
  */
 export function registerNewsListingHandler(): void {
-  registerMarkdownHandler("$locale/news", async (params, locale, _searchParams) => {
+  registerMarkdownHandler("$locale/news", async (_params, locale, _searchParams) => {
     const news = await backend.getStoriesByKinds(locale, ["news"]);
 
     if (news === null) {
