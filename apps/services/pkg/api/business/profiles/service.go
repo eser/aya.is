@@ -266,6 +266,7 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		localeCode string,
 		query string,
+		profileSlug *string,
 		limit int32,
 	) ([]*SearchResult, error)
 }
@@ -1365,17 +1366,19 @@ func (s *Service) GetProfilePage(
 // }
 
 // Search performs a full-text search across profiles, stories, and profile pages.
+// If profileSlug is provided, search is scoped to that profile only.
 func (s *Service) Search(
 	ctx context.Context,
 	localeCode string,
 	query string,
+	profileSlug *string,
 	limit int32,
 ) ([]*SearchResult, error) {
 	if query == "" {
 		return []*SearchResult{}, nil
 	}
 
-	results, err := s.repo.Search(ctx, localeCode, query, limit)
+	results, err := s.repo.Search(ctx, localeCode, query, profileSlug, limit)
 	if err != nil {
 		return nil, fmt.Errorf("search failed: %w", err)
 	}

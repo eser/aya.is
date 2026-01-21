@@ -368,6 +368,7 @@ FROM "profile" p
 WHERE pt.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
+  AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
 ORDER BY rank DESC
 LIMIT sqlc.arg(limit_count);
 
@@ -391,5 +392,6 @@ FROM "profile_page" pp
 WHERE ppt.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
   AND pp.deleted_at IS NULL
   AND p.approved_at IS NOT NULL
+  AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
 ORDER BY rank DESC
 LIMIT sqlc.arg(limit_count);

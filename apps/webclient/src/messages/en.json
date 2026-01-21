@@ -41,7 +41,17 @@
     "Theme: System": "Theme: System",
     "Theme: Light": "Theme: Light",
     "Theme: Midnight": "Theme: Midnight",
-    "Localization": "Localization"
+    "Localization": "Localization",
+    "Title": "Search",
+    "Placeholder": "Search for profiles, stories, pages...",
+    "Button": "Search",
+    "NoResults": "No results found for \"{{query}}\"",
+    "ResultCount": "{{count}} results found",
+    "EnterQuery": "Enter a search term to find profiles, stories, and pages.",
+    "Profile": "Profile",
+    "Story": "Story",
+    "Page": "Page",
+    "Results": "Results"
   },
   "Auth": {
     "Login with GitHub": "Login with GitHub",

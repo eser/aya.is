@@ -845,8 +845,9 @@ type Querier interface {
 	//  WHERE ppt.search_vector @@ plainto_tsquery('simple', $1)
 	//    AND pp.deleted_at IS NULL
 	//    AND p.approved_at IS NOT NULL
+	//    AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 	//  ORDER BY rank DESC
-	//  LIMIT $3
+	//  LIMIT $4
 	SearchProfilePages(ctx context.Context, arg SearchProfilePagesParams) ([]*SearchProfilePagesRow, error)
 	//SearchProfiles
 	//
@@ -864,8 +865,9 @@ type Querier interface {
 	//  WHERE pt.search_vector @@ plainto_tsquery('simple', $1)
 	//    AND p.approved_at IS NOT NULL
 	//    AND p.deleted_at IS NULL
+	//    AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 	//  ORDER BY rank DESC
-	//  LIMIT $3
+	//  LIMIT $4
 	SearchProfiles(ctx context.Context, arg SearchProfilesParams) ([]*SearchProfilesRow, error)
 	//SearchStories
 	//
@@ -889,8 +891,9 @@ type Querier interface {
 	//  WHERE st.search_vector @@ plainto_tsquery('simple', $1)
 	//    AND s.deleted_at IS NULL
 	//    AND s.status = 'published'
+	//    AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 	//  ORDER BY rank DESC
-	//  LIMIT $3
+	//  LIMIT $4
 	SearchStories(ctx context.Context, arg SearchStoriesParams) ([]*SearchStoriesRow, error)
 	//SetInCache
 	//

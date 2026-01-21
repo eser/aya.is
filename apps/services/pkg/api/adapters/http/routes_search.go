@@ -34,7 +34,20 @@ func RegisterHTTPRoutesForSearch(
 				}
 			}
 
-			results, err := profileService.Search(ctx.Request.Context(), localeParam, query, limit)
+			// get profile parameter for scoped search (optional)
+			var profileSlug *string
+			profileParam := ctx.Request.URL.Query().Get("profile")
+			if profileParam != "" {
+				profileSlug = &profileParam
+			}
+
+			results, err := profileService.Search(
+				ctx.Request.Context(),
+				localeParam,
+				query,
+				profileSlug,
+				limit,
+			)
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
@@ -47,6 +60,6 @@ func RegisterHTTPRoutesForSearch(
 			return ctx.Results.JSON(wrappedResponse)
 		}).
 		HasSummary("Search across profiles, stories, and pages").
-		HasDescription("Full-text search using PostgreSQL tsvector.").
+		HasDescription("Full-text search using PostgreSQL tsvector. Use 'profile' query param to scope search to a specific profile.").
 		HasResponse(http.StatusOK)
 }

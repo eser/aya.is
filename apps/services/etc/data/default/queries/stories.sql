@@ -245,5 +245,6 @@ FROM "story" s
 WHERE st.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
   AND s.deleted_at IS NULL
   AND s.status = 'published'
+  AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
 ORDER BY rank DESC
 LIMIT sqlc.arg(limit_count);

@@ -2,25 +2,35 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
 )
 
 // Search performs a unified search across profiles, stories, and profile pages.
+// If profileSlug is provided, search is scoped to that profile only.
 func (r *Repository) Search(
 	ctx context.Context,
 	localeCode string,
 	query string,
+	profileSlug *string,
 	limit int32,
 ) ([]*profiles.SearchResult, error) {
 	results := make([]*profiles.SearchResult, 0)
 
+	// Convert profile slug to sql.NullString
+	filterProfileSlug := sql.NullString{}
+	if profileSlug != nil && *profileSlug != "" {
+		filterProfileSlug = sql.NullString{String: *profileSlug, Valid: true}
+	}
+
 	// Search profiles
 	profileRows, err := r.queries.SearchProfiles(ctx, SearchProfilesParams{
-		Query:      query,
-		LocaleCode: localeCode,
-		LimitCount: limit,
+		Query:             query,
+		LocaleCode:        localeCode,
+		FilterProfileSlug: filterProfileSlug,
+		LimitCount:        limit,
 	})
 	if err != nil {
 		return nil, err
@@ -40,9 +50,10 @@ func (r *Repository) Search(
 
 	// Search stories
 	storyRows, err := r.queries.SearchStories(ctx, SearchStoriesParams{
-		Query:      query,
-		LocaleCode: localeCode,
-		LimitCount: limit,
+		Query:             query,
+		LocaleCode:        localeCode,
+		FilterProfileSlug: filterProfileSlug,
+		LimitCount:        limit,
 	})
 	if err != nil {
 		return nil, err
@@ -63,9 +74,10 @@ func (r *Repository) Search(
 
 	// Search profile pages
 	pageRows, err := r.queries.SearchProfilePages(ctx, SearchProfilePagesParams{
-		Query:      query,
-		LocaleCode: localeCode,
-		LimitCount: limit,
+		Query:             query,
+		LocaleCode:        localeCode,
+		FilterProfileSlug: filterProfileSlug,
+		LimitCount:        limit,
 	})
 	if err != nil {
 		return nil, err

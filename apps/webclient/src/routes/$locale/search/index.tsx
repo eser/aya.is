@@ -7,6 +7,7 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useNavigation } from "@/modules/navigation/navigation-context";
 import type { SearchResult } from "@/modules/backend/search/search";
 
 export const Route = createFileRoute("/$locale/search/")({
@@ -15,16 +16,21 @@ export const Route = createFileRoute("/$locale/search/")({
     return q.length > 0 ? { q } : {};
   },
   loaderDeps: ({ search }) => ({ q: search.q }),
-  loader: async ({ params, deps }) => {
+  loader: async ({ params, deps, context }) => {
     const { locale } = params;
     const query = deps.q ?? "";
 
+    // Get profile slug from domain configuration (for custom domains)
+    const requestContext = context.requestContext;
+    const domainConfig = requestContext?.domainConfiguration;
+    const profileSlug = domainConfig?.type === "custom-domain" ? domainConfig.profileSlug : undefined;
+
     if (query.length === 0) {
-      return { results: null, query: "", locale };
+      return { results: null, query: "", locale, profileSlug };
     }
 
-    const results = await backend.search(locale, query);
-    return { results, query, locale };
+    const results = await backend.search(locale, query, profileSlug);
+    return { results, query, locale, profileSlug };
   },
   component: SearchPage,
 });
@@ -130,7 +136,7 @@ function SearchPage() {
                         <Link
                           key={`${result.type}-${result.id}`}
                           to={getLink(result)}
-                          className="block p-4 border rounded-lg hover:bg-accent transition-colors"
+                          className="block p-4 border rounded-lg hover:bg-accent transition-colors no-underline"
                         >
                           <div className="flex items-start gap-3">
                             <div className="mt-0.5">{getIcon(result.type)}</div>

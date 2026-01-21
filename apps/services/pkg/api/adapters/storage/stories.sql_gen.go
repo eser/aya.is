@@ -739,14 +739,16 @@ FROM "story" s
 WHERE st.search_vector @@ plainto_tsquery('simple', $1)
   AND s.deleted_at IS NULL
   AND s.status = 'published'
+  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 ORDER BY rank DESC
-LIMIT $3
+LIMIT $4
 `
 
 type SearchStoriesParams struct {
-	Query      string `db:"query" json:"query"`
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	LimitCount int32  `db:"limit_count" json:"limit_count"`
+	Query             string         `db:"query" json:"query"`
+	LocaleCode        string         `db:"locale_code" json:"locale_code"`
+	FilterProfileSlug sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
+	LimitCount        int32          `db:"limit_count" json:"limit_count"`
 }
 
 type SearchStoriesRow struct {
@@ -784,10 +786,16 @@ type SearchStoriesRow struct {
 //	WHERE st.search_vector @@ plainto_tsquery('simple', $1)
 //	  AND s.deleted_at IS NULL
 //	  AND s.status = 'published'
+//	  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 //	ORDER BY rank DESC
-//	LIMIT $3
+//	LIMIT $4
 func (q *Queries) SearchStories(ctx context.Context, arg SearchStoriesParams) ([]*SearchStoriesRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchStories, arg.Query, arg.LocaleCode, arg.LimitCount)
+	rows, err := q.db.QueryContext(ctx, searchStories,
+		arg.Query,
+		arg.LocaleCode,
+		arg.FilterProfileSlug,
+		arg.LimitCount,
+	)
 	if err != nil {
 		return nil, err
 	}

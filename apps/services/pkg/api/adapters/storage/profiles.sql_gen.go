@@ -1446,14 +1446,16 @@ FROM "profile_page" pp
 WHERE ppt.search_vector @@ plainto_tsquery('simple', $1)
   AND pp.deleted_at IS NULL
   AND p.approved_at IS NOT NULL
+  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 ORDER BY rank DESC
-LIMIT $3
+LIMIT $4
 `
 
 type SearchProfilePagesParams struct {
-	Query      string `db:"query" json:"query"`
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	LimitCount int32  `db:"limit_count" json:"limit_count"`
+	Query             string         `db:"query" json:"query"`
+	LocaleCode        string         `db:"locale_code" json:"locale_code"`
+	FilterProfileSlug sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
+	LimitCount        int32          `db:"limit_count" json:"limit_count"`
 }
 
 type SearchProfilePagesRow struct {
@@ -1489,10 +1491,16 @@ type SearchProfilePagesRow struct {
 //	WHERE ppt.search_vector @@ plainto_tsquery('simple', $1)
 //	  AND pp.deleted_at IS NULL
 //	  AND p.approved_at IS NOT NULL
+//	  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 //	ORDER BY rank DESC
-//	LIMIT $3
+//	LIMIT $4
 func (q *Queries) SearchProfilePages(ctx context.Context, arg SearchProfilePagesParams) ([]*SearchProfilePagesRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchProfilePages, arg.Query, arg.LocaleCode, arg.LimitCount)
+	rows, err := q.db.QueryContext(ctx, searchProfilePages,
+		arg.Query,
+		arg.LocaleCode,
+		arg.FilterProfileSlug,
+		arg.LimitCount,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1539,14 +1547,16 @@ FROM "profile" p
 WHERE pt.search_vector @@ plainto_tsquery('simple', $1)
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
+  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 ORDER BY rank DESC
-LIMIT $3
+LIMIT $4
 `
 
 type SearchProfilesParams struct {
-	Query      string `db:"query" json:"query"`
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	LimitCount int32  `db:"limit_count" json:"limit_count"`
+	Query             string         `db:"query" json:"query"`
+	LocaleCode        string         `db:"locale_code" json:"locale_code"`
+	FilterProfileSlug sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
+	LimitCount        int32          `db:"limit_count" json:"limit_count"`
 }
 
 type SearchProfilesRow struct {
@@ -1575,10 +1585,16 @@ type SearchProfilesRow struct {
 //	WHERE pt.search_vector @@ plainto_tsquery('simple', $1)
 //	  AND p.approved_at IS NOT NULL
 //	  AND p.deleted_at IS NULL
+//	  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 //	ORDER BY rank DESC
-//	LIMIT $3
+//	LIMIT $4
 func (q *Queries) SearchProfiles(ctx context.Context, arg SearchProfilesParams) ([]*SearchProfilesRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchProfiles, arg.Query, arg.LocaleCode, arg.LimitCount)
+	rows, err := q.db.QueryContext(ctx, searchProfiles,
+		arg.Query,
+		arg.LocaleCode,
+		arg.FilterProfileSlug,
+		arg.LimitCount,
+	)
 	if err != nil {
 		return nil, err
 	}

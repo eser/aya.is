@@ -21,10 +21,15 @@ import { useNavigation } from "@/modules/navigation/navigation-context";
 import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
 import type { Profile } from "@/modules/backend/types";
 import { getSpotlight } from "@/modules/backend/site/get-spotlight";
+import { search } from "@/modules/backend/search/search";
+import type { SearchResult } from "@/modules/backend/search/search";
 import {
+  BookOpenIcon,
   BoxesIcon,
   BoxIcon,
   CalendarIcon,
+  FileTextIcon,
+  Loader2Icon,
   NewspaperIcon,
   ScrollTextIcon,
   SettingsIcon,
@@ -73,12 +78,15 @@ export function SearchBar() {
   const [backendUri, setBackendUri] = React.useState<string | null>(
     typeof window !== "undefined" ? localStorage.getItem("backendUri") : null,
   );
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [searchResults, setSearchResults] = React.useState<SearchResult[] | null>(null);
+  const [isSearching, setIsSearching] = React.useState(false);
 
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
-  const { isCustomDomain } = useNavigation();
+  const { isCustomDomain, customDomainProfileSlug } = useNavigation();
 
   const localeCode = i18n.language as SupportedLocaleCode;
 
@@ -86,6 +94,65 @@ export function SearchBar() {
   React.useEffect(() => {
     getSpotlight().then(setSpotlight);
   }, []);
+
+  // Debounced search effect
+  React.useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults(null);
+      return;
+    }
+
+    setIsSearching(true);
+    const timeoutId = setTimeout(() => {
+      search(localeCode, searchQuery.trim(), customDomainProfileSlug ?? undefined, 10)
+        .then((results) => {
+          setSearchResults(results);
+        })
+        .finally(() => {
+          setIsSearching(false);
+        });
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, localeCode, customDomainProfileSlug]);
+
+  // Reset search when dialog closes
+  React.useEffect(() => {
+    if (!open) {
+      setSearchQuery("");
+      setSearchResults(null);
+    }
+  }, [open]);
+
+  const getSearchResultIcon = (type: string) => {
+    switch (type) {
+      case "profile":
+        return UserIcon;
+      case "story":
+        return BookOpenIcon;
+      case "page":
+        return FileTextIcon;
+      default:
+        return FileTextIcon;
+    }
+  };
+
+  const getSearchResultLink = (result: SearchResult) => {
+    switch (result.type) {
+      case "profile":
+        return `/${localeCode}/${result.slug}`;
+      case "story":
+        return result.profile_slug !== null
+          ? `/${localeCode}/${result.profile_slug}/stories/${result.slug}`
+          : `/${localeCode}/stories/${result.slug}`;
+      case "page":
+        return result.profile_slug !== null
+          ? `/${localeCode}/${result.profile_slug}/${result.slug}`
+          : `/${localeCode}/${result.slug}`;
+      default:
+        return "#";
+    }
+  };
 
   const handleBackendUriChange = (newBackendUri: string | null) => {
     setBackendUri(newBackendUri);
@@ -147,10 +214,56 @@ export function SearchBar() {
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder={t("Search.General search")} />
+        <CommandInput
+          placeholder={t("Search.General search")}
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+        />
         <CommandList>
           <CommandEmpty>{t("Search.No results found.")}</CommandEmpty>
-          {!isCustomDomain && (
+          {/* Dynamic search results */}
+          {searchQuery.trim().length >= 2 && (
+            <>
+              <CommandGroup
+                heading={
+                  <span className="flex items-center gap-2">
+                    {t("Search.Results")}
+                    {isSearching && <Loader2Icon className="size-3 animate-spin" />}
+                  </span>
+                }
+              >
+                {searchResults !== null && searchResults.length > 0
+                  ? searchResults.map((result) => {
+                    const Icon = getSearchResultIcon(result.type);
+                    return (
+                      <CommandItem
+                        key={`${result.type}-${result.id}`}
+                        value={`search-${result.type}-${result.slug}-${result.title}`}
+                        onSelect={() => {
+                          navigate({ to: getSearchResultLink(result) });
+                          setOpen(false);
+                        }}
+                      >
+                        <Icon className="w-4 h-4 mr-2" />
+                        <span className="truncate">{result.title}</span>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {t(`Search.${result.type.charAt(0).toUpperCase() + result.type.slice(1)}`)}
+                        </span>
+                      </CommandItem>
+                    );
+                  })
+                  : !isSearching && (
+                    <CommandItem disabled>
+                      <span className="text-muted-foreground">
+                        {t("Search.No results found.")}
+                      </span>
+                    </CommandItem>
+                  )}
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
+          {!isCustomDomain && searchQuery.trim().length < 2 && (
             <>
               <CommandGroup heading={t("Search.Suggestions")}>
                 {navItems.map((item) => {

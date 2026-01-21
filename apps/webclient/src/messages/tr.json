@@ -41,7 +41,17 @@
     "Theme: System": "Tema: Sistem",
     "Theme: Light": "Tema: Açık",
     "Theme: Midnight": "Tema: Koyu",
-    "Localization": "Yerelleştirme"
+    "Localization": "Yerelleştirme",
+    "Title": "Arama",
+    "Placeholder": "Profil, hikaye veya sayfa ara...",
+    "Button": "Ara",
+    "NoResults": "\"{{query}}\" için sonuç bulunamadı",
+    "ResultCount": "{{count}} sonuç bulundu",
+    "EnterQuery": "Profil, hikaye ve sayfa bulmak için bir arama terimi girin.",
+    "Profile": "Profil",
+    "Story": "Hikaye",
+    "Page": "Sayfa",
+    "Results": "Sonuçlar"
   },
   "Auth": {
     "Login with GitHub": "GitHub ile Giriş",
