@@ -21,6 +21,7 @@ import { listProfileLinks } from "./profiles/list-profile-links";
 import { createProfileLink } from "./profiles/create-profile-link";
 import { updateProfileLink } from "./profiles/update-profile-link";
 import { deleteProfileLink } from "./profiles/delete-profile-link";
+import { initiateProfileLinkOAuth } from "./profiles/initiate-profile-link-oauth";
 import { listProfilePages } from "./profiles/list-profile-pages";
 import { createProfilePage } from "./profiles/create-profile-page";
 import { updateProfilePage } from "./profiles/update-profile-page";
@@ -78,6 +79,7 @@ export const backend = {
   createProfileLink,
   updateProfileLink,
   deleteProfileLink,
+  initiateProfileLinkOAuth,
 
   // Profile Pages
   listProfilePages,

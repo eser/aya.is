@@ -26,8 +26,9 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 	siteURI string,
 ) {
 	// Initiate OAuth flow for connecting a provider to a profile link
+	// Returns JSON with auth_url for frontend to redirect to
 	routes.Route(
-		"GET /{locale}/profiles/{slug}/_links/connect/{provider}",
+		"POST /{locale}/profiles/{slug}/_links/connect/{provider}",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
 			// Get session ID from context
@@ -111,17 +112,19 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				)
 			}
 
-			logger.DebugContext(ctx.Request.Context(), "Redirecting to OAuth provider",
+			logger.DebugContext(ctx.Request.Context(), "Generated OAuth URL",
 				slog.String("provider", providerParam),
 				slog.String("slug", slugParam),
 				slog.String("auth_url", authURL))
 
-			// Redirect to the OAuth provider
-			return ctx.Results.Redirect(authURL)
+			// Return the auth URL for frontend to redirect
+			return ctx.Results.JSON(map[string]string{
+				"auth_url": authURL,
+			})
 		}).
 		HasSummary("Initiate Profile Link OAuth").
-		HasDescription("Start the OAuth flow to connect a social media account to a profile.").
-		HasResponse(http.StatusTemporaryRedirect)
+		HasDescription("Start the OAuth flow to connect a social media account to a profile. Returns auth_url for frontend redirect.").
+		HasResponse(http.StatusOK)
 
 	// OAuth callback handler
 	routes.Route(

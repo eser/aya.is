@@ -150,6 +150,7 @@ func (y *YouTubeOAuthProvider) HandleCallback(
 	}
 
 	var stateObj ProfileLinkOAuthState
+
 	jsonErr := json.Unmarshal(stateJSON, &stateObj)
 	if jsonErr != nil {
 		return nil, nil, fmt.Errorf("%w: invalid state format", ErrInvalidState)
@@ -252,6 +253,7 @@ func (y *YouTubeOAuthProvider) exchangeCodeForTokens(
 	}
 
 	var tokenResp tokenResponse
+
 	jsonErr := json.Unmarshal(body, &tokenResp)
 	if jsonErr != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToExchangeCode, jsonErr)

@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
-import { getBackendUri } from "@/config.ts";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -263,10 +262,17 @@ function LinksSettingsPage() {
     }));
   };
 
-  const handleConnectYouTube = () => {
-    const backendUri = getBackendUri();
-    const connectUrl = `${backendUri}/${params.locale}/profiles/${params.slug}/_links/connect/youtube`;
-    window.location.href = connectUrl;
+  const handleConnectYouTube = async () => {
+    const result = await backend.initiateProfileLinkOAuth(
+      params.locale,
+      params.slug,
+      "youtube",
+    );
+    if (result === null) {
+      toast.error(t("Profile", "Failed to connect"));
+      return;
+    }
+    window.location.href = result.auth_url;
   };
 
   // Drag and drop handlers
