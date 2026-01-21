@@ -3,7 +3,7 @@
  * Events is currently a placeholder with no data
  */
 import { formatFrontmatter } from "@/lib/markdown";
-import { registerMarkdownHandler } from "@/lib/markdown-middleware";
+import { registerMarkdownHandler } from "@/server/markdown-middleware";
 
 /**
  * Generate markdown for the events listing page

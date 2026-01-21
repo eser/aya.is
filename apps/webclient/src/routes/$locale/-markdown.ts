@@ -3,7 +3,7 @@
  * Provides an overview of the locale with links to main sections
  */
 import { formatFrontmatter } from "@/lib/markdown";
-import { registerMarkdownHandler } from "@/lib/markdown-middleware";
+import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { siteConfig, getLocaleData } from "@/config";
 
 /**

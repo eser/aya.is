@@ -2,7 +2,7 @@
  * Global stories domain - markdown generation utilities
  */
 import { formatFrontmatter } from "@/lib/markdown";
-import { registerMarkdownHandler } from "@/lib/markdown-middleware";
+import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { formatDate, parseDateFromSlug } from "@/lib/date";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { backend } from "@/modules/backend/backend";

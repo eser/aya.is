@@ -10,10 +10,10 @@
  * the rewritten path from request context for custom domains.
  */
 import { createMiddleware } from "@tanstack/react-start";
-import { createMarkdownResponse, createNotFoundResponse } from "./markdown";
+import { createMarkdownResponse, createNotFoundResponse } from "@/lib/markdown";
 import { DEFAULT_LOCALE } from "@/config";
 import { generateLlmsTxt, generateLlmsFullTxt } from "@/routes/-llms-txt";
-import { requestContextBinder } from "@/server/request-context-binder";
+import { requestContextBinder } from "./request-context-binder";
 
 // Type for markdown handlers
 type MarkdownHandler = (

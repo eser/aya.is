@@ -2,7 +2,7 @@
  * Profile domain - markdown generation utilities
  */
 import { formatFrontmatter } from "@/lib/markdown";
-import { registerMarkdownHandler } from "@/lib/markdown-middleware";
+import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { backend } from "@/modules/backend/backend";
 import type { Profile, ProfilePage, Story } from "@/modules/backend/types";
 

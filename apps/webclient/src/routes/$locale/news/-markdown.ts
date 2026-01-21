@@ -3,7 +3,7 @@
  * News is a filtered view of stories with kind="news"
  */
 import { formatFrontmatter } from "@/lib/markdown";
-import { registerMarkdownHandler } from "@/lib/markdown-middleware";
+import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { formatDate, parseDateFromSlug } from "@/lib/date";
 import { backend } from "@/modules/backend/backend";
 import type { StoryEx } from "@/modules/backend/types";

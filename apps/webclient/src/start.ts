@@ -4,8 +4,8 @@ import { getRequestHeader } from "@tanstack/react-start/server";
 import type { RequestContext } from "@/request-context";
 import { getDomainConfiguration } from "./server/domain-configurations";
 import { requestContextBinder } from "./server/request-context-binder";
-import { markdownMiddleware } from "./lib/markdown-middleware";
-import { registerAllMarkdownHandlers } from "./lib/markdown-handlers";
+import { markdownMiddleware } from "./server/markdown-middleware";
+import { registerAllMarkdownHandlers } from "./server/markdown-handlers";
 
 // Register all markdown handlers at startup
 registerAllMarkdownHandlers();

@@ -3,7 +3,7 @@
  * Elements shows profiles of individuals and organizations
  */
 import { formatFrontmatter } from "@/lib/markdown";
-import { registerMarkdownHandler } from "@/lib/markdown-middleware";
+import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { backend } from "@/modules/backend/backend";
 import type { Profile } from "@/modules/backend/types";
 
