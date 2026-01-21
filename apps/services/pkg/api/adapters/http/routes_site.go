@@ -69,7 +69,9 @@ func RegisterHTTPRoutesForSite(
 				// },
 			}
 
-			return ctx.Results.JSON(spotlightItems)
+			wrappedResponse := cursors.WrapResponseWithCursor(spotlightItems, nil)
+
+			return ctx.Results.JSON(wrappedResponse)
 		}).
 		HasSummary("Gets spotlight metadata").
 		HasDescription("Gets spotlight metadata.").
