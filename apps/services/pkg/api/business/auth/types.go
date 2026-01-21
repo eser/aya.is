@@ -14,8 +14,15 @@ type GitHubAuthProviderConfig struct {
 	Scope        string `conf:"scope"         default:"read:user user:email"`
 }
 
+type YouTubeOAuthConfig struct {
+	ClientID     string `conf:"client_id"`
+	ClientSecret string `conf:"client_secret"`
+	Scope        string `conf:"scope"         default:"https://www.googleapis.com/auth/youtube.readonly"`
+}
+
 type Config struct {
 	GitHub    GitHubAuthProviderConfig `conf:"github"`
+	YouTube   YouTubeOAuthConfig       `conf:"youtube"`
 	JwtSecret string                   `conf:"jwt_secret"`                 // Required - no default for security
 	TokenTTL  time.Duration            `conf:"token_ttl"  default:"8760h"` // 365 days in hours (Go doesn't support "d")
 

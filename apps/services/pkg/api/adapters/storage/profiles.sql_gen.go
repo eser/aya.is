@@ -421,6 +421,30 @@ func (q *Queries) DeleteProfilePage(ctx context.Context, arg DeleteProfilePagePa
 	return result.RowsAffected()
 }
 
+const getMaxProfileLinkOrder = `-- name: GetMaxProfileLinkOrder :one
+SELECT COALESCE(MAX("order"), 0) as max_order
+FROM "profile_link"
+WHERE profile_id = $1
+  AND deleted_at IS NULL
+`
+
+type GetMaxProfileLinkOrderParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
+}
+
+// GetMaxProfileLinkOrder
+//
+//	SELECT COALESCE(MAX("order"), 0) as max_order
+//	FROM "profile_link"
+//	WHERE profile_id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileLinkOrderParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getMaxProfileLinkOrder, arg.ProfileID)
+	var max_order interface{}
+	err := row.Scan(&max_order)
+	return max_order, err
+}
+
 const getProfileByID = `-- name: GetProfileByID :one
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
@@ -546,6 +570,60 @@ type GetProfileLinkParams struct {
 //	  AND deleted_at IS NULL
 func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*ProfileLink, error) {
 	row := q.db.QueryRowContext(ctx, getProfileLink, arg.ID)
+	var i ProfileLink
+	err := row.Scan(
+		&i.ID,
+		&i.ProfileID,
+		&i.Kind,
+		&i.Order,
+		&i.IsManaged,
+		&i.IsVerified,
+		&i.IsHidden,
+		&i.RemoteID,
+		&i.PublicID,
+		&i.URI,
+		&i.Title,
+		&i.AuthProvider,
+		&i.AuthAccessTokenScope,
+		&i.AuthAccessToken,
+		&i.AuthAccessTokenExpiresAt,
+		&i.AuthRefreshToken,
+		&i.AuthRefreshTokenExpiresAt,
+		&i.Properties,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return &i, err
+}
+
+const getProfileLinkByRemoteID = `-- name: GetProfileLinkByRemoteID :one
+SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+FROM "profile_link"
+WHERE profile_id = $1
+  AND kind = $2
+  AND remote_id = $3
+  AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetProfileLinkByRemoteIDParams struct {
+	ProfileID string         `db:"profile_id" json:"profile_id"`
+	Kind      string         `db:"kind" json:"kind"`
+	RemoteID  sql.NullString `db:"remote_id" json:"remote_id"`
+}
+
+// GetProfileLinkByRemoteID
+//
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	FROM "profile_link"
+//	WHERE profile_id = $1
+//	  AND kind = $2
+//	  AND remote_id = $3
+//	  AND deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLinkByRemoteIDParams) (*ProfileLink, error) {
+	row := q.db.QueryRowContext(ctx, getProfileLinkByRemoteID, arg.ProfileID, arg.Kind, arg.RemoteID)
 	var i ProfileLink
 	err := row.Scan(
 		&i.ID,
@@ -1706,6 +1784,65 @@ func (q *Queries) UpdateProfileLink(ctx context.Context, arg UpdateProfileLinkPa
 		arg.URI,
 		arg.Title,
 		arg.IsHidden,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateProfileLinkOAuthTokens = `-- name: UpdateProfileLinkOAuthTokens :execrows
+UPDATE "profile_link"
+SET
+  public_id = $1,
+  uri = $2,
+  title = $3,
+  auth_access_token = $4,
+  auth_access_token_expires_at = $5,
+  auth_refresh_token = $6,
+  auth_access_token_scope = $7,
+  is_verified = TRUE,
+  updated_at = NOW()
+WHERE id = $8
+  AND deleted_at IS NULL
+`
+
+type UpdateProfileLinkOAuthTokensParams struct {
+	PublicID                 sql.NullString `db:"public_id" json:"public_id"`
+	URI                      sql.NullString `db:"uri" json:"uri"`
+	Title                    string         `db:"title" json:"title"`
+	AuthAccessToken          sql.NullString `db:"auth_access_token" json:"auth_access_token"`
+	AuthAccessTokenExpiresAt sql.NullTime   `db:"auth_access_token_expires_at" json:"auth_access_token_expires_at"`
+	AuthRefreshToken         sql.NullString `db:"auth_refresh_token" json:"auth_refresh_token"`
+	AuthAccessTokenScope     sql.NullString `db:"auth_access_token_scope" json:"auth_access_token_scope"`
+	ID                       string         `db:"id" json:"id"`
+}
+
+// UpdateProfileLinkOAuthTokens
+//
+//	UPDATE "profile_link"
+//	SET
+//	  public_id = $1,
+//	  uri = $2,
+//	  title = $3,
+//	  auth_access_token = $4,
+//	  auth_access_token_expires_at = $5,
+//	  auth_refresh_token = $6,
+//	  auth_access_token_scope = $7,
+//	  is_verified = TRUE,
+//	  updated_at = NOW()
+//	WHERE id = $8
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateProfileLinkOAuthTokens(ctx context.Context, arg UpdateProfileLinkOAuthTokensParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateProfileLinkOAuthTokens,
+		arg.PublicID,
+		arg.URI,
+		arg.Title,
+		arg.AuthAccessToken,
+		arg.AuthAccessTokenExpiresAt,
+		arg.AuthRefreshToken,
+		arg.AuthAccessTokenScope,
 		arg.ID,
 	)
 	if err != nil {

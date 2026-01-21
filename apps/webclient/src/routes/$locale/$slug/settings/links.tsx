@@ -14,9 +14,12 @@ import {
   Trash2,
   EyeOff,
   GripVertical,
+  ChevronDown,
+  BadgeCheck,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
+import { getBackendUri } from "@/config.ts";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -48,6 +51,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/$locale/$slug/settings/links")({
   component: LinksSettingsPage,
@@ -105,6 +115,29 @@ function LinksSettingsPage() {
     uri: "",
     is_hidden: false,
   });
+
+  // Handle OAuth success/error from URL query params
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const connected = urlParams.get("connected");
+    const error = urlParams.get("error");
+
+    if (connected !== null) {
+      toast.success(t("Profile.Connected successfully", { provider: connected }));
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    if (error !== null) {
+      if (error === "access_denied") {
+        toast.error(t("Profile.Connection was cancelled"));
+      } else {
+        toast.error(t("Profile.Failed to connect", { error }));
+      }
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [t]);
 
   // Load links on mount
   React.useEffect(() => {
@@ -228,6 +261,12 @@ function LinksSettingsPage() {
       kind,
       title: prev.title === "" ? config.label : prev.title,
     }));
+  };
+
+  const handleConnectYouTube = () => {
+    const backendUri = getBackendUri();
+    const connectUrl = `${backendUri}/${params.locale}/profiles/${params.slug}/_links/connect/youtube`;
+    window.location.href = connectUrl;
   };
 
   // Drag and drop handlers
@@ -356,10 +395,36 @@ function LinksSettingsPage() {
             {t("Profile.Manage your social media links and external websites.")}
           </p>
         </div>
-        <Button onClick={handleOpenAddDialog}>
-          <Plus className="size-4 mr-1" />
-          {t("Profile.Add Link")}
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Plus className="size-4 mr-1" />
+              {t("Profile.Add Link")}
+              <ChevronDown className="size-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleConnectYouTube}>
+              <Youtube className="size-4 mr-2" />
+              {t("Profile.Connect YouTube")}
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <X className="size-4 mr-2" />
+              {t("Profile.Connect X")}
+              <span className="ml-auto text-xs text-muted-foreground">{t("Common.Coming soon")}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <Linkedin className="size-4 mr-2" />
+              {t("Profile.Connect LinkedIn")}
+              <span className="ml-auto text-xs text-muted-foreground">{t("Common.Coming soon")}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleOpenAddDialog}>
+              <Plus className="size-4 mr-2" />
+              {t("Profile.Manual Link")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {links.length === 0 ? (
@@ -403,6 +468,12 @@ function LinksSettingsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium truncate">{link.title}</p>
+                    {link.is_verified && link.is_managed && (
+                      <span className="inline-flex items-center gap-1 text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded">
+                        <BadgeCheck className="size-3" />
+                        {t("Profile.Connected")}
+                      </span>
+                    )}
                     {link.is_hidden && (
                       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                         <EyeOff className="size-3" />

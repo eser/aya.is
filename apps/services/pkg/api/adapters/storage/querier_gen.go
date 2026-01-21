@@ -282,6 +282,13 @@ type Querier interface {
 	//    AND updated_at > $2
 	//  LIMIT 1
 	GetFromCacheSince(ctx context.Context, arg GetFromCacheSinceParams) (*GetFromCacheSinceRow, error)
+	//GetMaxProfileLinkOrder
+	//
+	//  SELECT COALESCE(MAX("order"), 0) as max_order
+	//  FROM "profile_link"
+	//  WHERE profile_id = $1
+	//    AND deleted_at IS NULL
+	GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileLinkOrderParams) (interface{}, error)
 	//GetPOWChallengeByID
 	//
 	//  SELECT
@@ -330,6 +337,16 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*ProfileLink, error)
+	//GetProfileLinkByRemoteID
+	//
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  FROM "profile_link"
+	//  WHERE profile_id = $1
+	//    AND kind = $2
+	//    AND remote_id = $3
+	//    AND deleted_at IS NULL
+	//  LIMIT 1
+	GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLinkByRemoteIDParams) (*ProfileLink, error)
 	//GetProfileMembershipsByMemberProfileID
 	//
 	//  SELECT
@@ -959,6 +976,22 @@ type Querier interface {
 	//  WHERE id = $6
 	//    AND deleted_at IS NULL
 	UpdateProfileLink(ctx context.Context, arg UpdateProfileLinkParams) (int64, error)
+	//UpdateProfileLinkOAuthTokens
+	//
+	//  UPDATE "profile_link"
+	//  SET
+	//    public_id = $1,
+	//    uri = $2,
+	//    title = $3,
+	//    auth_access_token = $4,
+	//    auth_access_token_expires_at = $5,
+	//    auth_refresh_token = $6,
+	//    auth_access_token_scope = $7,
+	//    is_verified = TRUE,
+	//    updated_at = NOW()
+	//  WHERE id = $8
+	//    AND deleted_at IS NULL
+	UpdateProfileLinkOAuthTokens(ctx context.Context, arg UpdateProfileLinkOAuthTokensParams) (int64, error)
 	//UpdateProfilePage
 	//
 	//  UPDATE "profile_page"

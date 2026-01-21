@@ -13,6 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_providers"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
+	"github.com/eser/aya.is/services/pkg/api/adapters/profilelink_oauth"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
@@ -41,9 +42,10 @@ type AppContext struct {
 
 	Arcade *arcade.Arcade
 
-	Repository      *storage.Repository
-	JWTTokenService *auth_tokens.JWTTokenService
-	S3Client        *s3client.Client
+	Repository           *storage.Repository
+	JWTTokenService      *auth_tokens.JWTTokenService
+	S3Client             *s3client.Client
+	YouTubeOAuthProvider *profilelink_oauth.YouTubeOAuthProvider
 
 	// Business
 	UploadService     *uploads.Service
@@ -236,6 +238,15 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			a.JWTTokenService,
 			a.UserService,
 		),
+	)
+
+	// ----------------------------------------------------
+	// Profile Link OAuth Providers
+	// ----------------------------------------------------
+	a.YouTubeOAuthProvider = profilelink_oauth.NewYouTubeOAuthProvider(
+		&a.Config.Auth.YouTube,
+		a.Logger,
+		a.HTTPClient,
 	)
 
 	return nil

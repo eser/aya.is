@@ -2,6 +2,7 @@ package profiles
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/url"
@@ -269,6 +270,41 @@ type Repository interface { //nolint:interfacebloat
 		profileSlug *string,
 		limit int32,
 	) ([]*SearchResult, error)
+	// OAuth Profile Link methods
+	GetProfileLinkByRemoteID(
+		ctx context.Context,
+		profileID string,
+		kind string,
+		remoteID string,
+	) (*ProfileLink, error)
+	CreateOAuthProfileLink(
+		ctx context.Context,
+		id string,
+		kind string,
+		profileID string,
+		order int,
+		remoteID string,
+		publicID string,
+		uri string,
+		title string,
+		authProvider string,
+		authScope string,
+		accessToken string,
+		accessTokenExpiresAt *sql.NullTime,
+		refreshToken *string,
+	) (*ProfileLink, error)
+	UpdateProfileLinkOAuthTokens(
+		ctx context.Context,
+		id string,
+		publicID string,
+		uri string,
+		title string,
+		authScope string,
+		accessToken string,
+		accessTokenExpiresAt *sql.NullTime,
+		refreshToken *string,
+	) error
+	GetMaxProfileLinkOrder(ctx context.Context, profileID string) (int, error)
 }
 
 type Service struct {
@@ -1384,4 +1420,64 @@ func (s *Service) Search(
 	}
 
 	return results, nil
+}
+
+// GetProfileIDBySlug returns the profile ID for a given slug.
+func (s *Service) GetProfileIDBySlug(ctx context.Context, slug string) (string, error) {
+	return s.repo.GetProfileIDBySlug(ctx, slug)
+}
+
+// GetProfileLinkByRemoteID returns a profile link by its remote ID (e.g., YouTube channel ID).
+func (s *Service) GetProfileLinkByRemoteID(
+	ctx context.Context,
+	profileID string,
+	kind string,
+	remoteID string,
+) (*ProfileLink, error) {
+	return s.repo.GetProfileLinkByRemoteID(ctx, profileID, kind, remoteID)
+}
+
+// UpdateProfileLinkOAuthTokens updates the OAuth tokens for an existing profile link.
+func (s *Service) UpdateProfileLinkOAuthTokens(
+	ctx context.Context,
+	id string,
+	publicID string,
+	uri string,
+	title string,
+	authScope string,
+	accessToken string,
+	accessTokenExpiresAt *sql.NullTime,
+	refreshToken *string,
+) error {
+	return s.repo.UpdateProfileLinkOAuthTokens(
+		ctx, id, publicID, uri, title, authScope, accessToken, accessTokenExpiresAt, refreshToken,
+	)
+}
+
+// CreateOAuthProfileLink creates a new OAuth-connected profile link.
+func (s *Service) CreateOAuthProfileLink(
+	ctx context.Context,
+	id string,
+	kind string,
+	profileID string,
+	order int,
+	remoteID string,
+	publicID string,
+	uri string,
+	title string,
+	authProvider string,
+	authScope string,
+	accessToken string,
+	accessTokenExpiresAt *sql.NullTime,
+	refreshToken *string,
+) (*ProfileLink, error) {
+	return s.repo.CreateOAuthProfileLink(
+		ctx, id, kind, profileID, order, remoteID, publicID, uri, title,
+		authProvider, authScope, accessToken, accessTokenExpiresAt, refreshToken,
+	)
+}
+
+// GetMaxProfileLinkOrder returns the maximum order value for profile links.
+func (s *Service) GetMaxProfileLinkOrder(ctx context.Context, profileID string) (int, error) {
+	return s.repo.GetMaxProfileLinkOrder(ctx, profileID)
 }

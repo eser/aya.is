@@ -1,4 +1,7 @@
 {
+  "Common": {
+    "Coming soon": "Yakında"
+  },
   "Layout": {
     "Homepage": "Ana Sayfa",
     "Elements": "Bileşenler",
@@ -231,6 +234,14 @@
     "Failed to delete link": "Bağlantı silinemedi",
     "Links reordered successfully": "Bağlantılar başarıyla yeniden sıralandı",
     "Failed to reorder links": "Bağlantılar yeniden sıralanamadı",
+    "Connect YouTube": "YouTube'a Bağlan",
+    "Connect X": "X'e Bağlan",
+    "Connect LinkedIn": "LinkedIn'e Bağlan",
+    "Manual Link": "Manuel Bağlantı",
+    "Connected": "Bağlı",
+    "Connected successfully": "{{provider}} başarıyla bağlandı",
+    "Connection was cancelled": "Bağlantı iptal edildi",
+    "Failed to connect": "Bağlantı başarısız: {{error}}",
     "Manage your profile information, links, and preferences.": "Profil bilgilerinizi, bağlantılarınızı ve tercihlerinizi yönetin.",
     "Basic profile information and settings": "Temel profil bilgileri ve ayarları",
     "Manage your profile in multiple languages": "Profilinizi birden fazla dilde yönetin",

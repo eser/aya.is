@@ -923,3 +923,169 @@ func (r *Repository) DeleteProfilePage(
 
 	return err
 }
+
+// OAuth Profile Link methods
+
+func (r *Repository) GetProfileLinkByRemoteID(
+	ctx context.Context,
+	profileID string,
+	kind string,
+	remoteID string,
+) (*profiles.ProfileLink, error) {
+	row, err := r.queries.GetProfileLinkByRemoteID(ctx, GetProfileLinkByRemoteIDParams{
+		ProfileID: profileID,
+		Kind:      kind,
+		RemoteID:  sql.NullString{String: remoteID, Valid: true},
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	result := &profiles.ProfileLink{
+		ID:         row.ID,
+		Kind:       row.Kind,
+		ProfileID:  row.ProfileID,
+		Order:      int(row.Order),
+		IsManaged:  row.IsManaged,
+		IsVerified: row.IsVerified,
+		IsHidden:   row.IsHidden,
+		RemoteID:   vars.ToStringPtr(row.RemoteID),
+		PublicID:   vars.ToStringPtr(row.PublicID),
+		URI:        vars.ToStringPtr(row.URI),
+		Title:      row.Title,
+		CreatedAt:  row.CreatedAt,
+		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
+	}
+
+	return result, nil
+}
+
+func (r *Repository) CreateOAuthProfileLink(
+	ctx context.Context,
+	id string,
+	kind string,
+	profileID string,
+	order int,
+	remoteID string,
+	publicID string,
+	uri string,
+	title string,
+	authProvider string,
+	authScope string,
+	accessToken string,
+	accessTokenExpiresAt *sql.NullTime,
+	refreshToken *string,
+) (*profiles.ProfileLink, error) {
+	var refreshTokenSQL sql.NullString
+	if refreshToken != nil {
+		refreshTokenSQL = sql.NullString{String: *refreshToken, Valid: true}
+	}
+
+	var expiresAtSQL sql.NullTime
+	if accessTokenExpiresAt != nil {
+		expiresAtSQL = *accessTokenExpiresAt
+	}
+
+	row, err := r.queries.CreateProfileLink(ctx, CreateProfileLinkParams{
+		ID:                       id,
+		Kind:                     kind,
+		ProfileID:                profileID,
+		LinkOrder:                int32(order),
+		IsManaged:                true,  // OAuth links are managed
+		IsVerified:               true,  // OAuth links are verified
+		IsHidden:                 false, // Show by default
+		RemoteID:                 sql.NullString{String: remoteID, Valid: true},
+		PublicID:                 sql.NullString{String: publicID, Valid: true},
+		URI:                      sql.NullString{String: uri, Valid: true},
+		Title:                    title,
+		AuthProvider:             sql.NullString{String: authProvider, Valid: true},
+		AuthAccessTokenScope:     sql.NullString{String: authScope, Valid: true},
+		AuthAccessToken:          sql.NullString{String: accessToken, Valid: true},
+		AuthAccessTokenExpiresAt: expiresAtSQL,
+		AuthRefreshToken:         refreshTokenSQL,
+		AuthRefreshTokenExpiresAt: sql.NullTime{
+			Valid: false,
+		}, // Google doesn't provide refresh token expiry
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := &profiles.ProfileLink{
+		ID:         row.ID,
+		Kind:       row.Kind,
+		ProfileID:  row.ProfileID,
+		Order:      int(row.Order),
+		IsManaged:  row.IsManaged,
+		IsVerified: row.IsVerified,
+		IsHidden:   row.IsHidden,
+		RemoteID:   vars.ToStringPtr(row.RemoteID),
+		PublicID:   vars.ToStringPtr(row.PublicID),
+		URI:        vars.ToStringPtr(row.URI),
+		Title:      row.Title,
+		CreatedAt:  row.CreatedAt,
+		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
+	}
+
+	return result, nil
+}
+
+func (r *Repository) UpdateProfileLinkOAuthTokens(
+	ctx context.Context,
+	id string,
+	publicID string,
+	uri string,
+	title string,
+	authScope string,
+	accessToken string,
+	accessTokenExpiresAt *sql.NullTime,
+	refreshToken *string,
+) error {
+	var refreshTokenSQL sql.NullString
+	if refreshToken != nil {
+		refreshTokenSQL = sql.NullString{String: *refreshToken, Valid: true}
+	}
+
+	var expiresAtSQL sql.NullTime
+	if accessTokenExpiresAt != nil {
+		expiresAtSQL = *accessTokenExpiresAt
+	}
+
+	_, err := r.queries.UpdateProfileLinkOAuthTokens(ctx, UpdateProfileLinkOAuthTokensParams{
+		ID:                       id,
+		PublicID:                 sql.NullString{String: publicID, Valid: true},
+		URI:                      sql.NullString{String: uri, Valid: true},
+		Title:                    title,
+		AuthAccessTokenScope:     sql.NullString{String: authScope, Valid: true},
+		AuthAccessToken:          sql.NullString{String: accessToken, Valid: true},
+		AuthAccessTokenExpiresAt: expiresAtSQL,
+		AuthRefreshToken:         refreshTokenSQL,
+	})
+
+	return err
+}
+
+func (r *Repository) GetMaxProfileLinkOrder(
+	ctx context.Context,
+	profileID string,
+) (int, error) {
+	result, err := r.queries.GetMaxProfileLinkOrder(ctx, GetMaxProfileLinkOrderParams{
+		ProfileID: profileID,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// The result is interface{} containing int64
+	if maxOrder, ok := result.(int64); ok {
+		return int(maxOrder), nil
+	}
+
+	return 0, nil
+}

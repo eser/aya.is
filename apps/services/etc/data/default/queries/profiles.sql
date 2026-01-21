@@ -395,3 +395,33 @@ WHERE ppt.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
   AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
 ORDER BY rank DESC
 LIMIT sqlc.arg(limit_count);
+
+-- name: GetProfileLinkByRemoteID :one
+SELECT *
+FROM "profile_link"
+WHERE profile_id = sqlc.arg(profile_id)
+  AND kind = sqlc.arg(kind)
+  AND remote_id = sqlc.arg(remote_id)
+  AND deleted_at IS NULL
+LIMIT 1;
+
+-- name: UpdateProfileLinkOAuthTokens :execrows
+UPDATE "profile_link"
+SET
+  public_id = sqlc.narg(public_id),
+  uri = sqlc.narg(uri),
+  title = sqlc.arg(title),
+  auth_access_token = sqlc.narg(auth_access_token),
+  auth_access_token_expires_at = sqlc.narg(auth_access_token_expires_at),
+  auth_refresh_token = sqlc.narg(auth_refresh_token),
+  auth_access_token_scope = sqlc.narg(auth_access_token_scope),
+  is_verified = TRUE,
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: GetMaxProfileLinkOrder :one
+SELECT COALESCE(MAX("order"), 0) as max_order
+FROM "profile_link"
+WHERE profile_id = sqlc.arg(profile_id)
+  AND deleted_at IS NULL;

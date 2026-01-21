@@ -34,6 +34,7 @@ func main() {
 			appContext.SessionService,
 			appContext.ProtectionService,
 			appContext.UploadService,
+			appContext.YouTubeOAuthProvider,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(
