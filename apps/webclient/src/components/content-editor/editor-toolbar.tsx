@@ -47,20 +47,20 @@ export type FormatAction =
 type ToolbarButton = {
   action: FormatAction;
   icon: React.ElementType;
-  label: string;
+  labelKey: string;
   shortcut?: string;
 };
 
 const formatButtons: ToolbarButton[] = [
-  { action: "bold", icon: Bold, label: "Bold", shortcut: "Ctrl+B" },
-  { action: "italic", icon: Italic, label: "Italic", shortcut: "Ctrl+I" },
-  { action: "h2", icon: Heading2, label: "Heading 2" },
-  { action: "h3", icon: Heading3, label: "Heading 3" },
-  { action: "ul", icon: List, label: "Bullet List" },
-  { action: "ol", icon: ListOrdered, label: "Numbered List" },
-  { action: "link", icon: Link, label: "Link", shortcut: "Ctrl+K" },
-  { action: "code", icon: Code, label: "Code" },
-  { action: "quote", icon: Quote, label: "Quote" },
+  { action: "bold", icon: Bold, labelKey: "Editor.Bold", shortcut: "Ctrl+B" },
+  { action: "italic", icon: Italic, labelKey: "Editor.Italic", shortcut: "Ctrl+I" },
+  { action: "h2", icon: Heading2, labelKey: "Editor.Heading 2" },
+  { action: "h3", icon: Heading3, labelKey: "Editor.Heading 3" },
+  { action: "ul", icon: List, labelKey: "Editor.Bullet List" },
+  { action: "ol", icon: ListOrdered, labelKey: "Editor.Numbered List" },
+  { action: "link", icon: Link, labelKey: "Editor.Link", shortcut: "Ctrl+K" },
+  { action: "code", icon: Code, labelKey: "Editor.Code" },
+  { action: "quote", icon: Quote, labelKey: "Editor.Quote" },
 ];
 
 export function EditorToolbar(props: EditorToolbarProps) {
@@ -82,10 +82,10 @@ export function EditorToolbar(props: EditorToolbarProps) {
               }
             >
               <button.icon className="size-4" />
-              <span className="sr-only">{button.label}</span>
+              <span className="sr-only">{t(button.labelKey)}</span>
             </TooltipTrigger>
             <TooltipContent>
-              {button.label}
+              {t(button.labelKey)}
               {button.shortcut !== undefined && (
                 <span className="ml-2 text-muted-foreground">
                   {button.shortcut}

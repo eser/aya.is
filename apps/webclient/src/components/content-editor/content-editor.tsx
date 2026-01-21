@@ -432,7 +432,20 @@ export function ContentEditor(props: ContentEditorProps) {
                   </Label>
                   <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)}>
                     <SelectTrigger id="kind">
-                      <SelectValue />
+                      <span className="flex items-center gap-2">
+                        {kind === "article" && <PencilLine className="size-4" />}
+                        {kind === "announcement" && <Megaphone className="size-4" />}
+                        {kind === "news" && <Newspaper className="size-4" />}
+                        {kind === "status" && <Info className="size-4" />}
+                        {kind === "content" && <Images className="size-4" />}
+                        {kind === "presentation" && <Presentation className="size-4" />}
+                        {kind === "article" && t("Stories.Article")}
+                        {kind === "announcement" && t("Stories.Announcement")}
+                        {kind === "news" && t("Editor.News")}
+                        {kind === "status" && t("Stories.Status")}
+                        {kind === "content" && t("Stories.Content")}
+                        {kind === "presentation" && t("Stories.Presentation")}
+                      </span>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="article">
