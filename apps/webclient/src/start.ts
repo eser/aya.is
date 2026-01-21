@@ -15,11 +15,12 @@ const customDomainMiddleware = createMiddleware()
     const url = new URL(request.url);
 
     // Skip static assets and internal paths - pass through directly
+    // Note: .md files are NOT skipped - they need path rewriting for custom domains
     if (
       url.pathname.startsWith("/_") ||
       url.pathname.startsWith("/api/") ||
       url.pathname.startsWith("/assets/") ||
-      url.pathname.includes(".")
+      (url.pathname.includes(".") && !url.pathname.endsWith(".md") && !url.pathname.endsWith(".txt"))
     ) {
       return next();
     }
@@ -40,7 +41,17 @@ const customDomainMiddleware = createMiddleware()
     const originalPathParts = url.pathname.split("/").filter(Boolean);
     const pathParts = [...originalPathParts];
     if (domainConfiguration.type === "custom-domain") {
-      pathParts.splice(1, 0, domainConfiguration.profileSlug);
+      // Handle the case where the path is just /{locale}.md (e.g., /tr.md)
+      // In this case, we need to transform it to /{locale}/{profileSlug}.md
+      if (pathParts.length === 1 && pathParts[0] !== undefined && pathParts[0].endsWith(".md")) {
+        const localeWithMd = pathParts[0];
+        const locale = localeWithMd.slice(0, -3); // Remove .md suffix
+        pathParts[0] = locale;
+        pathParts.push(`${domainConfiguration.profileSlug}.md`);
+      } else {
+        // Standard case: insert profile slug after locale
+        pathParts.splice(1, 0, domainConfiguration.profileSlug);
+      }
     }
 
     const requestContext: RequestContext = {
@@ -56,7 +67,8 @@ const customDomainMiddleware = createMiddleware()
 
 export const startInstance = createStart(() => {
   return {
-    // Markdown middleware runs first to intercept .md requests
-    requestMiddleware: [markdownMiddleware, customDomainMiddleware],
+    // Custom domain middleware runs first to set up request context with rewritten paths
+    // Markdown middleware then uses the rewritten path for custom domains
+    requestMiddleware: [customDomainMiddleware, markdownMiddleware],
   };
 });

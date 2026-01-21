@@ -5,11 +5,15 @@
  * - Each domain registers its markdown handler
  * - Middleware matches URL patterns and delegates to the appropriate handler
  * - Returns markdown Response directly, bypassing React rendering
+ *
+ * Note: This middleware runs AFTER customDomainMiddleware, so it can use
+ * the rewritten path from request context for custom domains.
  */
 import { createMiddleware } from "@tanstack/react-start";
 import { createMarkdownResponse, createNotFoundResponse } from "./markdown";
 import { DEFAULT_LOCALE } from "@/config";
 import { generateLlmsTxt, generateLlmsFullTxt } from "@/routes/-llms-txt";
+import { requestContextBinder } from "@/server/request-context-binder";
 
 // Type for markdown handlers
 type MarkdownHandler = (
@@ -110,6 +114,8 @@ function matchAllPatterns(
  * Global markdown middleware
  * Intercepts requests ending in .md and returns markdown content
  * Also handles /llms.txt and /llms-full.txt
+ *
+ * Uses the rewritten path from request context for custom domains.
  */
 export const markdownMiddleware = createMiddleware().server(
   async ({ request, next }) => {
@@ -142,8 +148,29 @@ export const markdownMiddleware = createMiddleware().server(
       return next();
     }
 
+    // Get the effective path - use rewritten path from request context if available
+    // This handles custom domains where /tr/index.md becomes /tr/eser/index.md
+    const requestContext = requestContextBinder.getStore();
+    let effectivePath: string;
+
+    if (requestContext !== undefined && requestContext.path.length > 0) {
+      // Use the rewritten path from request context
+      // The path array doesn't include the .md suffix, so we need to handle it
+      const pathParts = [...requestContext.path];
+      const lastPart = pathParts[pathParts.length - 1];
+      if (lastPart !== undefined && lastPart.endsWith(".md")) {
+        // Last segment has .md suffix
+        effectivePath = "/" + pathParts.join("/");
+      } else {
+        // Append .md suffix from original URL
+        effectivePath = "/" + pathParts.join("/") + ".md";
+      }
+    } else {
+      effectivePath = url.pathname;
+    }
+
     // Get all matching handlers sorted by specificity
-    const matches = matchAllPatterns(url.pathname);
+    const matches = matchAllPatterns(effectivePath);
 
     if (matches.length === 0) {
       // No handler registered for this pattern
