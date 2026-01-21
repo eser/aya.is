@@ -19,8 +19,7 @@ import {
 import { siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config";
 import { useNavigation } from "@/modules/navigation/navigation-context";
 import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
-import type { Profile } from "@/modules/backend/types";
-import { getSpotlight } from "@/modules/backend/site/get-spotlight";
+import { getSpotlight, type SpotlightItem } from "@/modules/backend/site/get-spotlight";
 import { search } from "@/modules/backend/search/search";
 import type { SearchResult } from "@/modules/backend/search/search";
 import {
@@ -77,9 +76,22 @@ const navItems = [
   },
 ];
 
+// Icon mapping for spotlight items
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  User: UserIcon,
+  Users: UsersIcon,
+  Box: BoxIcon,
+  Boxes: BoxesIcon,
+  Newspaper: NewspaperIcon,
+  ScrollText: ScrollTextIcon,
+  Calendar: CalendarIcon,
+  FileText: FileTextIcon,
+  BookOpen: BookOpenIcon,
+};
+
 export function SearchBar() {
   const [open, setOpen] = React.useState(false);
-  const [spotlight, setSpotlight] = React.useState<Profile[] | null>(null);
+  const [spotlight, setSpotlight] = React.useState<SpotlightItem[] | null>(null);
   const [backendUri, setBackendUri] = React.useState<string | null>(
     typeof window !== "undefined" ? localStorage.getItem("backendUri") : null,
   );
@@ -97,8 +109,8 @@ export function SearchBar() {
 
   // Fetch spotlight data on mount
   React.useEffect(() => {
-    getSpotlight().then(setSpotlight);
-  }, []);
+    getSpotlight(localeCode).then(setSpotlight);
+  }, [localeCode]);
 
   // Debounced search effect
   React.useEffect(() => {
@@ -340,25 +352,20 @@ export function SearchBar() {
           {spotlight !== null && spotlight.length > 0 && (
             <>
               <CommandSeparator />
-              <CommandGroup heading={t("Search.Profiles")}>
-                {spotlight.map((profile) => {
-                  const Icon = profile.kind === "individual"
-                    ? UserIcon
-                    : profile.kind === "organization"
-                    ? UsersIcon
-                    : BoxIcon;
+              <CommandGroup heading={t("Search.Spotlight")}>
+                {spotlight.map((item) => {
+                  const Icon = iconMap[item.icon] ?? BoxIcon;
 
                   return (
                     <CommandItem
-                      key={profile.id}
+                      key={item.to}
                       onSelect={() => {
-                        navigate({ to: `/${localeCode}/${profile.slug}` });
+                        navigate({ to: item.to });
                         setOpen(false);
                       }}
                     >
                       <Icon className="w-4 h-4 mr-2" />
-                      <span>{profile.title}</span>
-                      <span className="sr-only">{profile.description}</span>
+                      <span>{item.title}</span>
                     </CommandItem>
                   );
                 })}

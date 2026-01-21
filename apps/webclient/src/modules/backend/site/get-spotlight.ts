@@ -1,8 +1,13 @@
 import { fetcher } from "../fetcher";
-import type { Profile } from "../types";
 
-export type GetSpotlightData = Profile[];
+export interface SpotlightItem {
+  icon: string;
+  to: string;
+  title: string;
+}
 
-export async function getSpotlight(): Promise<GetSpotlightData | null> {
-  return await fetcher<GetSpotlightData>("/en/site/spotlight");
+export type GetSpotlightData = SpotlightItem[];
+
+export async function getSpotlight(locale: string): Promise<GetSpotlightData | null> {
+  return await fetcher<GetSpotlightData>(`/${locale}/site/spotlight`);
 }

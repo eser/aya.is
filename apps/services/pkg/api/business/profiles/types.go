@@ -121,6 +121,13 @@ type ProfileTx struct {
 	Properties  any    `json:"properties"`
 }
 
+// SpotlightItem represents an item in the spotlight section.
+type SpotlightItem struct {
+	Icon  string `json:"icon"`
+	To    string `json:"to"`
+	Title string `json:"title"`
+}
+
 // SearchResult represents a unified search result across profiles, stories, and pages.
 type SearchResult struct {
 	Type         string  `json:"type"`

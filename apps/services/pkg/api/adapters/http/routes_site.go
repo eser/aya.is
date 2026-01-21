@@ -53,21 +53,23 @@ func RegisterHTTPRoutesForSite(
 	routes.
 		Route("GET /{locale}/site/spotlight", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			// localeParam := ctx.Request.PathValue("locale")
 
-			records, err := profileService.List(
-				ctx.Request.Context(),
-				localeParam,
-				cursors.NewCursor(0, nil),
-			)
-			if err != nil {
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
-				)
+			// Static spotlight items
+			spotlightItems := []profiles.SpotlightItem{
+				// {
+				// 	Icon:  "Users",
+				// 	To:    "/" + localeParam + "/aya",
+				// 	Title: "AYA",
+				// },
+				// {
+				// 	Icon:  "User",
+				// 	To:    "/" + localeParam + "/eser",
+				// 	Title: "Eser Özvataf | SW³",
+				// },
 			}
 
-			return ctx.Results.JSON(records)
+			return ctx.Results.JSON(spotlightItems)
 		}).
 		HasSummary("Gets spotlight metadata").
 		HasDescription("Gets spotlight metadata.").
