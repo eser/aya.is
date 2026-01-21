@@ -4,6 +4,11 @@ import { getRequestHeader } from "@tanstack/react-start/server";
 import type { RequestContext } from "@/request-context";
 import { getDomainConfiguration } from "./server/domain-configurations";
 import { requestContextBinder } from "./server/request-context-binder";
+import { markdownMiddleware } from "./lib/markdown-middleware";
+import { registerAllMarkdownHandlers } from "./lib/markdown-handlers";
+
+// Register all markdown handlers at startup
+registerAllMarkdownHandlers();
 
 const customDomainMiddleware = createMiddleware()
   .server(async ({ request, next }) => {
@@ -51,6 +56,7 @@ const customDomainMiddleware = createMiddleware()
 
 export const startInstance = createStart(() => {
   return {
-    requestMiddleware: [customDomainMiddleware],
+    // Markdown middleware runs first to intercept .md requests
+    requestMiddleware: [markdownMiddleware, customDomainMiddleware],
   };
 });

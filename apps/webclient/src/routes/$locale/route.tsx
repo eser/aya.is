@@ -1,13 +1,23 @@
 // Locale layout - handles locale validation and i18n sync
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, notFound } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { DEFAULT_LOCALE, isValidLocale, type SupportedLocaleCode } from "@/config";
 import { PageLayout } from "@/components/page-layouts/default";
 
+// Paths that should NOT be matched by the $locale route
+// These are handled by dedicated API/server routes
+const EXCLUDED_PATHS = ["api", "llms.txt", "llms-full.txt"];
+
 export const Route = createFileRoute("/$locale")({
   beforeLoad: async ({ params, location }) => {
     const { locale } = params;
+
+    // Don't match paths that should be handled by API routes
+    // This allows /api/* routes to take precedence
+    if (EXCLUDED_PATHS.includes(locale)) {
+      throw notFound();
+    }
 
     // Check if this is a valid locale
     if (!isValidLocale(locale)) {

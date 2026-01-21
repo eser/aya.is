@@ -22,6 +22,7 @@ import { Route as LocaleStoriesIndexRouteImport } from './routes/$locale/stories
 import { Route as LocaleProductsIndexRouteImport } from './routes/$locale/products/index'
 import { Route as LocaleElementsIndexRouteImport } from './routes/$locale/elements/index'
 import { Route as LocaleSlugIndexRouteImport } from './routes/$locale/$slug/index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as LocaleStoriesNewRouteImport } from './routes/$locale/stories/new'
 import { Route as LocaleAuthCallbackRouteImport } from './routes/$locale/auth/callback'
 import { Route as LocaleSlugMembersRouteImport } from './routes/$locale/$slug/members'
@@ -108,6 +109,11 @@ const LocaleSlugIndexRoute = LocaleSlugIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LocaleSlugRouteRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleStoriesNewRoute = LocaleStoriesNewRouteImport.update({
   id: '/new',
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
   '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
   '/$locale/stories/new': typeof LocaleStoriesNewRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/$locale/$slug/': typeof LocaleSlugIndexRoute
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
   '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
   '/$locale/stories/new': typeof LocaleStoriesNewRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/$locale/$slug': typeof LocaleSlugIndexRoute
   '/$locale/elements': typeof LocaleElementsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
@@ -305,6 +313,7 @@ export interface FileRoutesById {
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
   '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
   '/$locale/stories/new': typeof LocaleStoriesNewRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/$locale/$slug/': typeof LocaleSlugIndexRoute
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/products/': typeof LocaleProductsIndexRoute
@@ -343,6 +352,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/members'
     | '/$locale/auth/callback'
     | '/$locale/stories/new'
+    | '/api/auth/$'
     | '/$locale/$slug/'
     | '/$locale/elements/'
     | '/$locale/products'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/members'
     | '/$locale/auth/callback'
     | '/$locale/stories/new'
+    | '/api/auth/$'
     | '/$locale/$slug'
     | '/$locale/elements'
     | '/$locale/products'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/members'
     | '/$locale/auth/callback'
     | '/$locale/stories/new'
+    | '/api/auth/$'
     | '/$locale/$slug/'
     | '/$locale/elements/'
     | '/$locale/products/'
@@ -428,6 +440,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LocaleRouteRoute: typeof LocaleRouteRouteWithChildren
   AuthCallbackRoute: typeof AuthCallbackRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/$slug/'
       preLoaderRoute: typeof LocaleSlugIndexRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$locale/stories/new': {
       id: '/$locale/stories/new'
@@ -851,6 +871,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LocaleRouteRoute: LocaleRouteRouteWithChildren,
   AuthCallbackRoute: AuthCallbackRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
