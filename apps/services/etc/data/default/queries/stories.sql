@@ -223,3 +223,27 @@ WHERE
   AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
   AND s.deleted_at IS NULL
 ORDER BY s.created_at DESC;
+
+-- name: SearchStories :many
+SELECT
+  s.id,
+  s.slug,
+  s.kind,
+  s.story_picture_uri,
+  s.author_profile_id,
+  st.title,
+  st.summary,
+  p.slug as author_slug,
+  pt.title as author_title,
+  ts_rank(st.search_vector, plainto_tsquery('simple', sqlc.arg(query))) as rank
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+    AND st.locale_code = sqlc.arg(locale_code)
+  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = sqlc.arg(locale_code)
+WHERE st.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
+  AND s.deleted_at IS NULL
+  AND s.status = 'published'
+ORDER BY rank DESC
+LIMIT sqlc.arg(limit_count);

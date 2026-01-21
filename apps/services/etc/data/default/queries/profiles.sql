@@ -352,3 +352,44 @@ WHERE
   AND pm.member_profile_id = sqlc.arg(member_profile_id)
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 ORDER BY pm.created_at DESC;
+
+-- name: SearchProfiles :many
+SELECT
+  p.id,
+  p.slug,
+  p.kind,
+  p.profile_picture_uri,
+  pt.title,
+  pt.description,
+  ts_rank(pt.search_vector, plainto_tsquery('simple', sqlc.arg(query))) as rank
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = sqlc.arg(locale_code)
+WHERE pt.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
+  AND p.approved_at IS NOT NULL
+  AND p.deleted_at IS NULL
+ORDER BY rank DESC
+LIMIT sqlc.arg(limit_count);
+
+-- name: SearchProfilePages :many
+SELECT
+  pp.id,
+  pp.slug,
+  pp.profile_id,
+  pp.cover_picture_uri,
+  ppt.title,
+  ppt.summary,
+  p.slug as profile_slug,
+  pt.title as profile_title,
+  ts_rank(ppt.search_vector, plainto_tsquery('simple', sqlc.arg(query))) as rank
+FROM "profile_page" pp
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+    AND ppt.locale_code = sqlc.arg(locale_code)
+  INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = sqlc.arg(locale_code)
+WHERE ppt.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
+  AND pp.deleted_at IS NULL
+  AND p.approved_at IS NOT NULL
+ORDER BY rank DESC
+LIMIT sqlc.arg(limit_count);

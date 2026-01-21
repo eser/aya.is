@@ -19,6 +19,7 @@ import { Route as LocaleStoriesRouteRouteImport } from './routes/$locale/stories
 import { Route as LocaleElementsRouteRouteImport } from './routes/$locale/elements/route'
 import { Route as LocaleSlugRouteRouteImport } from './routes/$locale/$slug/route'
 import { Route as LocaleStoriesIndexRouteImport } from './routes/$locale/stories/index'
+import { Route as LocaleSearchIndexRouteImport } from './routes/$locale/search/index'
 import { Route as LocaleProductsIndexRouteImport } from './routes/$locale/products/index'
 import { Route as LocaleElementsIndexRouteImport } from './routes/$locale/elements/index'
 import { Route as LocaleSlugIndexRouteImport } from './routes/$locale/$slug/index'
@@ -94,6 +95,11 @@ const LocaleStoriesIndexRoute = LocaleStoriesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LocaleStoriesRouteRoute,
+} as any)
+const LocaleSearchIndexRoute = LocaleSearchIndexRouteImport.update({
+  id: '/search/',
+  path: '/search/',
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleProductsIndexRoute = LocaleProductsIndexRouteImport.update({
   id: '/products/',
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/': typeof LocaleSlugIndexRoute
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
+  '/$locale/search': typeof LocaleSearchIndexRoute
   '/$locale/stories/': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug': typeof LocaleSlugIndexRoute
   '/$locale/elements': typeof LocaleElementsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
+  '/$locale/search': typeof LocaleSearchIndexRoute
   '/$locale/stories': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/$locale/$slug/': typeof LocaleSlugIndexRoute
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/products/': typeof LocaleProductsIndexRoute
+  '/$locale/search/': typeof LocaleSearchIndexRoute
   '/$locale/stories/': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
@@ -356,6 +365,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/'
     | '/$locale/elements/'
     | '/$locale/products'
+    | '/$locale/search'
     | '/$locale/stories/'
     | '/$locale/$slug/stories/$storyslug'
     | '/$locale/$slug/$pageslug/edit'
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug'
     | '/$locale/elements'
     | '/$locale/products'
+    | '/$locale/search'
     | '/$locale/stories'
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/settings/links'
@@ -421,6 +432,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/'
     | '/$locale/elements/'
     | '/$locale/products/'
+    | '/$locale/search/'
     | '/$locale/stories/'
     | '/$locale/$slug/stories/$storyslug'
     | '/$locale/$slug/$pageslug/edit'
@@ -514,6 +526,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/stories/'
       preLoaderRoute: typeof LocaleStoriesIndexRouteImport
       parentRoute: typeof LocaleStoriesRouteRoute
+    }
+    '/$locale/search/': {
+      id: '/$locale/search/'
+      path: '/search'
+      fullPath: '/$locale/search'
+      preLoaderRoute: typeof LocaleSearchIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/products/': {
       id: '/$locale/products/'
@@ -850,6 +869,7 @@ interface LocaleRouteRouteChildren {
   LocaleIndexRoute: typeof LocaleIndexRoute
   LocaleAuthCallbackRoute: typeof LocaleAuthCallbackRoute
   LocaleProductsIndexRoute: typeof LocaleProductsIndexRoute
+  LocaleSearchIndexRoute: typeof LocaleSearchIndexRoute
 }
 
 const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
@@ -861,6 +881,7 @@ const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
   LocaleIndexRoute: LocaleIndexRoute,
   LocaleAuthCallbackRoute: LocaleAuthCallbackRoute,
   LocaleProductsIndexRoute: LocaleProductsIndexRoute,
+  LocaleSearchIndexRoute: LocaleSearchIndexRoute,
 }
 
 const LocaleRouteRouteWithChildren = LocaleRouteRoute._addFileChildren(

@@ -42,12 +42,13 @@ import { createSession } from "./sessions/create-session";
 import { getSessionPreferences } from "./sessions/get-preferences";
 import { updateSessionPreferences } from "./sessions/update-preferences";
 import { getPOWChallenge } from "./protection/get-pow-challenge";
-import { solvePOW, isPOWSolverSupported } from "./protection/solve-pow";
+import { isPOWSolverSupported, solvePOW } from "./protection/solve-pow";
 import { getSpotlight } from "./site/get-spotlight";
 import { handleAuthCallback } from "./auth/handle-callback";
 import { checkSessionViaCookie } from "./auth/session-check";
 import { getUser } from "./users/get-user";
 import { getUsers } from "./users/get-users";
+import { search } from "./search/search";
 
 // Re-export types
 export * from "./types";
@@ -121,6 +122,9 @@ export const backend = {
   // Users
   getUser,
   getUsers,
+
+  // Search
+  search,
 };
 
 // Individual exports for tree-shaking
@@ -136,6 +140,7 @@ export {
   getCurrentSession,
   getCustomDomain,
   getPOWChallenge,
+  getPresignedURL,
   getProfile,
   getProfileContributions,
   getProfileMembers,
@@ -147,7 +152,6 @@ export {
   getProfileTranslations,
   getSessionPreferences,
   getSpotlight,
-  getPresignedURL,
   getStoriesByKinds,
   getStory,
   getStoryForEdit,
@@ -161,16 +165,17 @@ export {
   listProfilePages,
   removeStory,
   removeUpload,
+  search,
   solvePOW,
   updateProfile,
   updateProfileLink,
   updateProfilePage,
   updateProfilePageTranslation,
+  updateProfilePicture,
   updateProfileTranslation,
   updateSessionPreferences,
   updateStory,
   updateStoryTranslation,
-  updateProfilePicture,
   uploadProfilePicture,
   uploadToPresignedURL,
 };

@@ -261,6 +261,13 @@ type Repository interface { //nolint:interfacebloat
 		content string,
 	) error
 	DeleteProfilePage(ctx context.Context, id string) error
+	// Search methods
+	Search(
+		ctx context.Context,
+		localeCode string,
+		query string,
+		limit int32,
+	) ([]*SearchResult, error)
 }
 
 type Service struct {
@@ -1356,3 +1363,22 @@ func (s *Service) GetProfilePage(
 
 // 	return record, nil
 // }
+
+// Search performs a full-text search across profiles, stories, and profile pages.
+func (s *Service) Search(
+	ctx context.Context,
+	localeCode string,
+	query string,
+	limit int32,
+) ([]*SearchResult, error) {
+	if query == "" {
+		return []*SearchResult{}, nil
+	}
+
+	results, err := s.repo.Search(ctx, localeCode, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("search failed: %w", err)
+	}
+
+	return results, nil
+}

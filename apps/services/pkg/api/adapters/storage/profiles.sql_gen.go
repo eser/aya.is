@@ -422,7 +422,7 @@ func (q *Queries) DeleteProfilePage(ctx context.Context, arg DeleteProfilePagePa
 }
 
 const getProfileByID = `-- name: GetProfileByID :one
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
@@ -443,7 +443,7 @@ type GetProfileByIDRow struct {
 
 // GetProfileByID
 //
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
@@ -470,6 +470,7 @@ func (q *Queries) GetProfileByID(ctx context.Context, arg GetProfileByIDParams) 
 		&i.ProfileTx.Title,
 		&i.ProfileTx.Description,
 		&i.ProfileTx.Properties,
+		&i.ProfileTx.SearchVector,
 	)
 	return &i, err
 }
@@ -581,7 +582,7 @@ SELECT
   pm.properties as membership_properties,
   pm.created_at as membership_created_at,
   p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
-  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM
   "profile_membership" pm
   INNER JOIN "profile" p ON p.id = pm.profile_id
@@ -622,7 +623,7 @@ type GetProfileMembershipsByMemberProfileIDRow struct {
 //	  pm.properties as membership_properties,
 //	  pm.created_at as membership_created_at,
 //	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
-//	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+//	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM
 //	  "profile_membership" pm
 //	  INNER JOIN "profile" p ON p.id = pm.profile_id
@@ -667,6 +668,7 @@ func (q *Queries) GetProfileMembershipsByMemberProfileID(ctx context.Context, ar
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
 		); err != nil {
 			return nil, err
 		}
@@ -789,7 +791,7 @@ func (q *Queries) GetProfilePage(ctx context.Context, arg GetProfilePageParams) 
 }
 
 const getProfilePageByProfileIDAndSlug = `-- name: GetProfilePageByProfileIDAndSlug :one
-SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
   AND ppt.locale_code = $1
@@ -818,11 +820,12 @@ type GetProfilePageByProfileIDAndSlugRow struct {
 	Title           string         `db:"title" json:"title"`
 	Summary         string         `db:"summary" json:"summary"`
 	Content         string         `db:"content" json:"content"`
+	SearchVector    interface{}    `db:"search_vector" json:"search_vector"`
 }
 
 // GetProfilePageByProfileIDAndSlug
 //
-//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 //	  AND ppt.locale_code = $1
@@ -846,12 +849,13 @@ func (q *Queries) GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetP
 		&i.Title,
 		&i.Summary,
 		&i.Content,
+		&i.SearchVector,
 	)
 	return &i, err
 }
 
 const getProfileTxByID = `-- name: GetProfileTxByID :many
-SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile_tx" pt
 WHERE pt.profile_id = $1
 `
@@ -866,7 +870,7 @@ type GetProfileTxByIDRow struct {
 
 // GetProfileTxByID
 //
-//	SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+//	SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile_tx" pt
 //	WHERE pt.profile_id = $1
 func (q *Queries) GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDParams) ([]*GetProfileTxByIDRow, error) {
@@ -884,6 +888,7 @@ func (q *Queries) GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDPara
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
 		); err != nil {
 			return nil, err
 		}
@@ -1108,9 +1113,9 @@ const listProfileMemberships = `-- name: ListProfileMemberships :many
 SELECT
   pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
   p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
-  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at,
-  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties
+  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 FROM
 	"profile_membership" pm
   INNER JOIN "profile" p1 ON p1.id = pm.profile_id
@@ -1151,9 +1156,9 @@ type ListProfileMembershipsRow struct {
 //	SELECT
 //	  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
 //	  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
-//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at,
-//	  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties
+//	  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 //	FROM
 //		"profile_membership" pm
 //	  INNER JOIN "profile" p1 ON p1.id = pm.profile_id
@@ -1213,6 +1218,7 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
 			&i.Profile_2.ID,
 			&i.Profile_2.Slug,
 			&i.Profile_2.Kind,
@@ -1229,6 +1235,7 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.ProfileTx_2.Title,
 			&i.ProfileTx_2.Description,
 			&i.ProfileTx_2.Properties,
+			&i.ProfileTx_2.SearchVector,
 		); err != nil {
 			return nil, err
 		}
@@ -1244,7 +1251,7 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 }
 
 const listProfilePagesByProfileID = `-- name: ListProfilePagesByProfileID :many
-SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
   AND ppt.locale_code = $1
@@ -1273,11 +1280,12 @@ type ListProfilePagesByProfileIDRow struct {
 	Title           string         `db:"title" json:"title"`
 	Summary         string         `db:"summary" json:"summary"`
 	Content         string         `db:"content" json:"content"`
+	SearchVector    interface{}    `db:"search_vector" json:"search_vector"`
 }
 
 // ListProfilePagesByProfileID
 //
-//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 //	  AND ppt.locale_code = $1
@@ -1308,6 +1316,7 @@ func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfi
 			&i.Title,
 			&i.Summary,
 			&i.Content,
+			&i.SearchVector,
 		); err != nil {
 			return nil, err
 		}
@@ -1323,7 +1332,7 @@ func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfi
 }
 
 const listProfiles = `-- name: ListProfiles :many
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
@@ -1344,7 +1353,7 @@ type ListProfilesRow struct {
 
 // ListProfiles
 //
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
@@ -1377,6 +1386,7 @@ func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
 		); err != nil {
 			return nil, err
 		}
@@ -1414,6 +1424,188 @@ func (q *Queries) RemoveProfile(ctx context.Context, arg RemoveProfileParams) (i
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const searchProfilePages = `-- name: SearchProfilePages :many
+SELECT
+  pp.id,
+  pp.slug,
+  pp.profile_id,
+  pp.cover_picture_uri,
+  ppt.title,
+  ppt.summary,
+  p.slug as profile_slug,
+  pt.title as profile_title,
+  ts_rank(ppt.search_vector, plainto_tsquery('simple', $1)) as rank
+FROM "profile_page" pp
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+    AND ppt.locale_code = $2
+  INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = $2
+WHERE ppt.search_vector @@ plainto_tsquery('simple', $1)
+  AND pp.deleted_at IS NULL
+  AND p.approved_at IS NOT NULL
+ORDER BY rank DESC
+LIMIT $3
+`
+
+type SearchProfilePagesParams struct {
+	Query      string `db:"query" json:"query"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	LimitCount int32  `db:"limit_count" json:"limit_count"`
+}
+
+type SearchProfilePagesRow struct {
+	ID              string         `db:"id" json:"id"`
+	Slug            string         `db:"slug" json:"slug"`
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
+	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	Title           string         `db:"title" json:"title"`
+	Summary         string         `db:"summary" json:"summary"`
+	ProfileSlug     string         `db:"profile_slug" json:"profile_slug"`
+	ProfileTitle    string         `db:"profile_title" json:"profile_title"`
+	Rank            float32        `db:"rank" json:"rank"`
+}
+
+// SearchProfilePages
+//
+//	SELECT
+//	  pp.id,
+//	  pp.slug,
+//	  pp.profile_id,
+//	  pp.cover_picture_uri,
+//	  ppt.title,
+//	  ppt.summary,
+//	  p.slug as profile_slug,
+//	  pt.title as profile_title,
+//	  ts_rank(ppt.search_vector, plainto_tsquery('simple', $1)) as rank
+//	FROM "profile_page" pp
+//	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+//	    AND ppt.locale_code = $2
+//	  INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	    AND pt.locale_code = $2
+//	WHERE ppt.search_vector @@ plainto_tsquery('simple', $1)
+//	  AND pp.deleted_at IS NULL
+//	  AND p.approved_at IS NOT NULL
+//	ORDER BY rank DESC
+//	LIMIT $3
+func (q *Queries) SearchProfilePages(ctx context.Context, arg SearchProfilePagesParams) ([]*SearchProfilePagesRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchProfilePages, arg.Query, arg.LocaleCode, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SearchProfilePagesRow{}
+	for rows.Next() {
+		var i SearchProfilePagesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Slug,
+			&i.ProfileID,
+			&i.CoverPictureURI,
+			&i.Title,
+			&i.Summary,
+			&i.ProfileSlug,
+			&i.ProfileTitle,
+			&i.Rank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchProfiles = `-- name: SearchProfiles :many
+SELECT
+  p.id,
+  p.slug,
+  p.kind,
+  p.profile_picture_uri,
+  pt.title,
+  pt.description,
+  ts_rank(pt.search_vector, plainto_tsquery('simple', $1)) as rank
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = $2
+WHERE pt.search_vector @@ plainto_tsquery('simple', $1)
+  AND p.approved_at IS NOT NULL
+  AND p.deleted_at IS NULL
+ORDER BY rank DESC
+LIMIT $3
+`
+
+type SearchProfilesParams struct {
+	Query      string `db:"query" json:"query"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	LimitCount int32  `db:"limit_count" json:"limit_count"`
+}
+
+type SearchProfilesRow struct {
+	ID                string         `db:"id" json:"id"`
+	Slug              string         `db:"slug" json:"slug"`
+	Kind              string         `db:"kind" json:"kind"`
+	ProfilePictureURI sql.NullString `db:"profile_picture_uri" json:"profile_picture_uri"`
+	Title             string         `db:"title" json:"title"`
+	Description       string         `db:"description" json:"description"`
+	Rank              float32        `db:"rank" json:"rank"`
+}
+
+// SearchProfiles
+//
+//	SELECT
+//	  p.id,
+//	  p.slug,
+//	  p.kind,
+//	  p.profile_picture_uri,
+//	  pt.title,
+//	  pt.description,
+//	  ts_rank(pt.search_vector, plainto_tsquery('simple', $1)) as rank
+//	FROM "profile" p
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	    AND pt.locale_code = $2
+//	WHERE pt.search_vector @@ plainto_tsquery('simple', $1)
+//	  AND p.approved_at IS NOT NULL
+//	  AND p.deleted_at IS NULL
+//	ORDER BY rank DESC
+//	LIMIT $3
+func (q *Queries) SearchProfiles(ctx context.Context, arg SearchProfilesParams) ([]*SearchProfilesRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchProfiles, arg.Query, arg.LocaleCode, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SearchProfilesRow{}
+	for rows.Next() {
+		var i SearchProfilesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Slug,
+			&i.Kind,
+			&i.ProfilePictureURI,
+			&i.Title,
+			&i.Description,
+			&i.Rank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateProfile = `-- name: UpdateProfile :execrows

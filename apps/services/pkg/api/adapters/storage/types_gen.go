@@ -130,19 +130,21 @@ type ProfilePage struct {
 }
 
 type ProfilePageTx struct {
-	ProfilePageID string `db:"profile_page_id" json:"profile_page_id"`
-	LocaleCode    string `db:"locale_code" json:"locale_code"`
-	Title         string `db:"title" json:"title"`
-	Summary       string `db:"summary" json:"summary"`
-	Content       string `db:"content" json:"content"`
+	ProfilePageID string      `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode    string      `db:"locale_code" json:"locale_code"`
+	Title         string      `db:"title" json:"title"`
+	Summary       string      `db:"summary" json:"summary"`
+	Content       string      `db:"content" json:"content"`
+	SearchVector  interface{} `db:"search_vector" json:"search_vector"`
 }
 
 type ProfileTx struct {
-	ProfileID   string                `db:"profile_id" json:"profile_id"`
-	LocaleCode  string                `db:"locale_code" json:"locale_code"`
-	Title       string                `db:"title" json:"title"`
-	Description string                `db:"description" json:"description"`
-	Properties  pqtype.NullRawMessage `db:"properties" json:"properties"`
+	ProfileID    string                `db:"profile_id" json:"profile_id"`
+	LocaleCode   string                `db:"locale_code" json:"locale_code"`
+	Title        string                `db:"title" json:"title"`
+	Description  string                `db:"description" json:"description"`
+	Properties   pqtype.NullRawMessage `db:"properties" json:"properties"`
+	SearchVector interface{}           `db:"search_vector" json:"search_vector"`
 }
 
 type ProtectionPowChallenge struct {
@@ -234,11 +236,12 @@ type StoryPublication struct {
 }
 
 type StoryTx struct {
-	StoryID    string `db:"story_id" json:"story_id"`
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	Title      string `db:"title" json:"title"`
-	Summary    string `db:"summary" json:"summary"`
-	Content    string `db:"content" json:"content"`
+	StoryID      string      `db:"story_id" json:"story_id"`
+	LocaleCode   string      `db:"locale_code" json:"locale_code"`
+	Title        string      `db:"title" json:"title"`
+	Summary      string      `db:"summary" json:"summary"`
+	Content      string      `db:"content" json:"content"`
+	SearchVector interface{} `db:"search_vector" json:"search_vector"`
 }
 
 type User struct {

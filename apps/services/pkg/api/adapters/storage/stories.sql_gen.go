@@ -17,9 +17,9 @@ import (
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
-  st.story_id, st.locale_code, st.title, st.summary, st.content,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
-  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties,
+  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
   pb.publications
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
@@ -67,9 +67,9 @@ type GetStoryByIDRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
-//	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties,
+//	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 //	  pb.publications
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
@@ -122,6 +122,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.StoryTx.Title,
 		&i.StoryTx.Summary,
 		&i.StoryTx.Content,
+		&i.StoryTx.SearchVector,
 		&i.Profile.ID,
 		&i.Profile.Slug,
 		&i.Profile.Kind,
@@ -138,6 +139,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.ProfileTx.Title,
 		&i.ProfileTx.Description,
 		&i.ProfileTx.Properties,
+		&i.ProfileTx.SearchVector,
 		&i.Publications,
 	)
 	return &i, err
@@ -541,9 +543,9 @@ func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) er
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
-  st.story_id, st.locale_code, st.title, st.summary, st.content,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
-  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
@@ -594,9 +596,9 @@ type ListStoriesOfPublicationRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
-//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
@@ -658,6 +660,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.StoryTx.Title,
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
+			&i.StoryTx.SearchVector,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -674,6 +677,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
 			&i.Publications,
 		); err != nil {
 			return nil, err
@@ -712,6 +716,108 @@ func (q *Queries) RemoveStory(ctx context.Context, arg RemoveStoryParams) (int64
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const searchStories = `-- name: SearchStories :many
+SELECT
+  s.id,
+  s.slug,
+  s.kind,
+  s.story_picture_uri,
+  s.author_profile_id,
+  st.title,
+  st.summary,
+  p.slug as author_slug,
+  pt.title as author_title,
+  ts_rank(st.search_vector, plainto_tsquery('simple', $1)) as rank
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+    AND st.locale_code = $2
+  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = $2
+WHERE st.search_vector @@ plainto_tsquery('simple', $1)
+  AND s.deleted_at IS NULL
+  AND s.status = 'published'
+ORDER BY rank DESC
+LIMIT $3
+`
+
+type SearchStoriesParams struct {
+	Query      string `db:"query" json:"query"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	LimitCount int32  `db:"limit_count" json:"limit_count"`
+}
+
+type SearchStoriesRow struct {
+	ID              string         `db:"id" json:"id"`
+	Slug            string         `db:"slug" json:"slug"`
+	Kind            string         `db:"kind" json:"kind"`
+	StoryPictureURI sql.NullString `db:"story_picture_uri" json:"story_picture_uri"`
+	AuthorProfileID sql.NullString `db:"author_profile_id" json:"author_profile_id"`
+	Title           string         `db:"title" json:"title"`
+	Summary         string         `db:"summary" json:"summary"`
+	AuthorSlug      sql.NullString `db:"author_slug" json:"author_slug"`
+	AuthorTitle     sql.NullString `db:"author_title" json:"author_title"`
+	Rank            float32        `db:"rank" json:"rank"`
+}
+
+// SearchStories
+//
+//	SELECT
+//	  s.id,
+//	  s.slug,
+//	  s.kind,
+//	  s.story_picture_uri,
+//	  s.author_profile_id,
+//	  st.title,
+//	  st.summary,
+//	  p.slug as author_slug,
+//	  pt.title as author_title,
+//	  ts_rank(st.search_vector, plainto_tsquery('simple', $1)) as rank
+//	FROM "story" s
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
+//	    AND st.locale_code = $2
+//	  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+//	  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	    AND pt.locale_code = $2
+//	WHERE st.search_vector @@ plainto_tsquery('simple', $1)
+//	  AND s.deleted_at IS NULL
+//	  AND s.status = 'published'
+//	ORDER BY rank DESC
+//	LIMIT $3
+func (q *Queries) SearchStories(ctx context.Context, arg SearchStoriesParams) ([]*SearchStoriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchStories, arg.Query, arg.LocaleCode, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SearchStoriesRow{}
+	for rows.Next() {
+		var i SearchStoriesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Slug,
+			&i.Kind,
+			&i.StoryPictureURI,
+			&i.AuthorProfileID,
+			&i.Title,
+			&i.Summary,
+			&i.AuthorSlug,
+			&i.AuthorTitle,
+			&i.Rank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateStory = `-- name: UpdateStory :execrows

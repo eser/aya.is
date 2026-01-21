@@ -102,6 +102,10 @@ func Run(
 		userService,
 		storyService,
 	)
+	RegisterHTTPRoutesForSearch( //nolint:contextcheck
+		routes,
+		profileService,
+	)
 
 	// run
 	return httpService.Start(ctx) //nolint:wrapcheck

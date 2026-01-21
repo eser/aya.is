@@ -120,3 +120,15 @@ type ProfileTx struct {
 	Description string `json:"description"`
 	Properties  any    `json:"properties"`
 }
+
+// SearchResult represents a unified search result across profiles, stories, and pages.
+type SearchResult struct {
+	Type        string  `json:"type"`
+	ID          string  `json:"id"`
+	Slug        string  `json:"slug"`
+	Title       string  `json:"title"`
+	Summary     *string `json:"summary"`
+	ImageURI    *string `json:"image_uri"`
+	ProfileSlug *string `json:"profile_slug"`
+	Rank        float32 `json:"rank"`
+}
