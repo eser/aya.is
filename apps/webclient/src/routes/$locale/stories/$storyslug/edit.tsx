@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/page-layouts/default";
 
 export const Route = createFileRoute("/$locale/stories/$storyslug/edit")({
+  ssr: false,
   loader: async ({ params }) => {
     const { locale, storyslug } = params;
 

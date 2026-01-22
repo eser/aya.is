@@ -1,4 +1,4 @@
-// Edit page
+// Edit profile page
 import * as React from "react";
 import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
+  ssr: false,
   loader: async ({ params }) => {
     const { locale, slug, pageslug } = params;
 
