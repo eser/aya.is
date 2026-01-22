@@ -10,7 +10,6 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/modules/profiling"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	mcpadapter "github.com/eser/aya.is/services/pkg/api/adapters/mcp"
-	"github.com/eser/aya.is/services/pkg/api/adapters/profilelink_oauth"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
@@ -32,7 +31,7 @@ func Run(
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
 	uploadService *uploads.Service,
-	youtubeOAuthProvider *profilelink_oauth.YouTubeOAuthProvider,
+	profileLinkProviders *ProfileLinkProviders,
 ) (func(), error) {
 	routes := httpfx.NewRouter("/")
 	httpService := httpfx.NewHTTPService(config, routes, logger)
@@ -108,13 +107,13 @@ func Run(
 		routes,
 		profileService,
 	)
-	RegisterHTTPRoutesForProfileLinkOAuth( //nolint:contextcheck
+	RegisterHTTPRoutesForProfileLinks( //nolint:contextcheck
 		routes,
 		logger,
 		authService,
 		userService,
 		profileService,
-		youtubeOAuthProvider,
+		profileLinkProviders,
 		baseURI,
 	)
 

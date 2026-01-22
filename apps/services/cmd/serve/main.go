@@ -34,7 +34,10 @@ func main() {
 			appContext.SessionService,
 			appContext.ProtectionService,
 			appContext.UploadService,
-			appContext.YouTubeOAuthProvider,
+			&http.ProfileLinkProviders{
+				YouTube: appContext.YouTubeProvider,
+				GitHub:  appContext.GitHubProvider,
+			},
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(

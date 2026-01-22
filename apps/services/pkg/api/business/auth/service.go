@@ -28,20 +28,21 @@ var (
 )
 
 type Provider interface {
-	// InitiateOAuth returns the URL to redirect the user to GitHub for login, and the state to track the request.
+	// InitiateOAuth builds the OAuth URL with the given state.
+	// The caller is responsible for generating the state (e.g., auth.GenerateRandomState for login).
 	InitiateOAuth(
 		ctx context.Context,
 		redirectURI string,
-	) (authURL string, state OAuthState, err error)
+		state string,
+	) (authURL string, err error)
 
-	// HandleOAuthCallback exchanges the code for a token, fetches user info, upserts user,
-	// creates session, and returns JWT.
+	// HandleOAuthCallback exchanges the code for tokens and returns account info.
+	// State validation and user/session creation is handled by the service layer.
 	HandleOAuthCallback(
 		ctx context.Context,
 		code string,
-		state string,
 		redirectURI string,
-	) (AuthResult, error)
+	) (OAuthCallbackResult, error)
 }
 
 type TokenService interface {
@@ -100,6 +101,12 @@ func (s *Service) Initiate(
 		return "", ErrProviderNotFound
 	}
 
+	// Generate state for login flow
+	state, err := GenerateRandomState()
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToInitiate, err)
+	}
+
 	callbackURI, err := url.Parse(baseURI)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrFailedToParseBaseURI, err)
@@ -111,7 +118,7 @@ func (s *Service) Initiate(
 	callbackURI.Path += "/auth/" + providerName + "/callback"
 	callbackURI.RawQuery = callbackURIQueryString.Encode()
 
-	authURL, _, err := provider.InitiateOAuth(ctx, callbackURI.String())
+	authURL, err := provider.InitiateOAuth(ctx, callbackURI.String(), state)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrFailedToInitiate, err)
 	}
@@ -132,11 +139,94 @@ func (s *Service) AuthHandleCallback(
 		return AuthResult{}, ErrProviderNotFound
 	}
 
-	authResult, err := provider.HandleOAuthCallback(ctx, code, state, redirectURI)
+	// Get account info from provider (state validation is service layer responsibility)
+	accountInfo, err := provider.HandleOAuthCallback(ctx, code, redirectURI)
 	if err != nil {
 		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
 	}
 
+	// Create/update user
+	s.logger.DebugContext(ctx, "Creating/updating user from OAuth",
+		slog.String("provider", providerName),
+		slog.String("remote_id", accountInfo.RemoteID),
+		slog.String("username", accountInfo.Username))
+
+	user, err := s.userService.UpsertGitHubUser(
+		ctx,
+		accountInfo.RemoteID,
+		accountInfo.Email,
+		accountInfo.Name,
+		accountInfo.Username,
+	)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to upsert user",
+			slog.String("remote_id", accountInfo.RemoteID),
+			slog.String("error", err.Error()))
+
+		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
+	}
+
+	// Create session
+	now := time.Now()
+	expiresAt := now.Add(s.Config.TokenTTL)
+
+	session := users.Session{
+		ID:                       string(s.userService.GenerateID()),
+		Status:                   users.SessionStatusActive,
+		OauthRequestState:        state,
+		OauthRequestCodeVerifier: "",
+		OauthRedirectURI:         nil,
+		LoggedInUserID:           &user.ID,
+		LoggedInAt:               &now,
+		LastActivityAt:           &now,
+		UserAgent:                nil,
+		ExpiresAt:                &expiresAt,
+		CreatedAt:                now,
+		UpdatedAt:                nil,
+	}
+
+	s.logger.DebugContext(ctx, "Creating session",
+		slog.String("session_id", session.ID),
+		slog.String("user_id", user.ID))
+
+	err = s.userService.CreateSession(ctx, &session)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to create session",
+			slog.String("session_id", session.ID),
+			slog.String("error", err.Error()))
+
+		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
+	}
+
+	// Generate JWT
+	claims := &JWTClaims{
+		UserID:    user.ID,
+		SessionID: session.ID,
+		ExpiresAt: expiresAt.Unix(),
+	}
+
+	s.logger.DebugContext(ctx, "Generating JWT token",
+		slog.String("user_id", user.ID),
+		slog.String("session_id", session.ID))
+
+	tokenString, err := s.tokenService.GenerateToken(claims)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to generate JWT token",
+			slog.String("user_id", user.ID),
+			slog.String("error", err.Error()))
+
+		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToGenerateToken, err)
+	}
+
+	authResult := AuthResult{
+		User:        user,
+		SessionID:   session.ID,
+		JWT:         tokenString,
+		ExpiresAt:   expiresAt,
+		RedirectURI: redirectURI,
+	}
+
+	// Add auth_token to redirect URI
 	if authResult.RedirectURI != "" {
 		finalRedirectURI, err := url.Parse(authResult.RedirectURI)
 		if err != nil {
@@ -150,6 +240,11 @@ func (s *Service) AuthHandleCallback(
 
 		authResult.RedirectURI = finalRedirectURI.String()
 	}
+
+	s.logger.DebugContext(ctx, "OAuth callback completed successfully",
+		slog.String("user_id", user.ID),
+		slog.String("session_id", session.ID),
+		slog.String("provider", providerName))
 
 	return authResult, nil
 }

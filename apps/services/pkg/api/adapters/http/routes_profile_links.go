@@ -10,20 +10,27 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
-	"github.com/eser/aya.is/services/pkg/api/adapters/profilelink_oauth"
+	"github.com/eser/aya.is/services/pkg/api/adapters/github"
+	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
-// RegisterHTTPRoutesForProfileLinkOAuth registers the OAuth routes for profile links.
-func RegisterHTTPRoutesForProfileLinkOAuth(
+// ProfileLinkProviders contains all external service providers.
+type ProfileLinkProviders struct {
+	YouTube *youtube.Provider
+	GitHub  *github.Provider
+}
+
+// RegisterHTTPRoutesForProfileLinks registers the OAuth routes for profile links.
+func RegisterHTTPRoutesForProfileLinks(
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
 	userService *users.Service,
 	profileService *profiles.Service,
-	youtubeProvider *profilelink_oauth.YouTubeOAuthProvider,
+	providers *ProfileLinkProviders,
 	siteURI string,
 ) {
 	// Initiate OAuth flow for connecting a provider to a profile link
@@ -47,10 +54,10 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 			providerParam := ctx.Request.PathValue("provider")
 
 			// Validate provider
-			if providerParam != "youtube" {
+			if providerParam != "youtube" && providerParam != "github" {
 				return ctx.Results.BadRequest(
 					httpfx.WithPlainText(
-						"Unsupported provider. Only 'youtube' is currently supported.",
+						"Unsupported provider. Supported: 'youtube', 'github'.",
 					),
 				)
 			}
@@ -90,7 +97,7 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				)
 			}
 
-			// Build the redirect URI for OAuth callback (no locale - simpler for Google Console config)
+			// Build the redirect URI for OAuth callback
 			redirectURI := fmt.Sprintf("%s/profiles/_links/callback/%s",
 				siteURI, providerParam)
 
@@ -103,14 +110,40 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				}
 			}
 
-			// Initiate OAuth flow
-			authURL, _, err := youtubeProvider.InitiateOAuth(
-				ctx.Request.Context(),
-				redirectURI,
+			// Generate state for linking flow (service layer responsibility)
+			_, encodedState, err := profiles.CreateProfileLinkState(
 				slugParam,
 				localeParam,
 				redirectOrigin,
 			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to create profile link state",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to initiate OAuth flow"),
+				)
+			}
+
+			// Initiate OAuth flow based on provider
+			var authURL string
+			switch providerParam {
+			case "youtube":
+				authURL, err = providers.YouTube.InitiateOAuth(
+					ctx.Request.Context(),
+					redirectURI,
+					encodedState,
+				)
+			case "github":
+				authURL, err = providers.GitHub.InitiateOAuth(
+					ctx.Request.Context(),
+					redirectURI,
+					encodedState,
+				)
+			}
+
 			if err != nil {
 				logger.ErrorContext(ctx.Request.Context(), "Failed to initiate OAuth",
 					slog.String("error", err.Error()),
@@ -140,7 +173,7 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 		HasDescription("Start the OAuth flow to connect a social media account to a profile. Returns auth_url for frontend redirect.").
 		HasResponse(http.StatusOK)
 
-	// OAuth callback handler (no locale in path - simpler for Google Console config)
+	// OAuth callback handler (no locale in path - simpler for OAuth app config)
 	routes.Route(
 		"GET /profiles/_links/callback/{provider}",
 		func(ctx *httpfx.Context) httpfx.Result {
@@ -160,32 +193,63 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 			}
 
 			// Validate provider
-			if providerParam != "youtube" {
+			if providerParam != "youtube" && providerParam != "github" {
 				return ctx.Results.BadRequest(
 					httpfx.WithPlainText("Unsupported provider"),
 				)
+			}
+
+			// Decode and validate state at service layer
+			stateObj, stateErr := profiles.DecodeProfileLinkState(stateParam)
+			if stateErr != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to decode state",
+					slog.String("error", stateErr.Error()),
+					slog.String("provider", providerParam))
+
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Invalid OAuth state"),
+				)
+			}
+
+			// Validate state expiry
+			validationErr := profiles.ValidateProfileLinkState(stateObj)
+			if validationErr != nil {
+				logger.ErrorContext(ctx.Request.Context(), "State validation failed",
+					slog.String("error", validationErr.Error()),
+					slog.String("provider", providerParam))
+
+				redirectURL := fmt.Sprintf("%s/%s?error=state_expired",
+					stateObj.RedirectOrigin, stateObj.Locale)
+
+				return ctx.Results.Redirect(redirectURL)
 			}
 
 			// Build the redirect URI (must match what we used in initiate)
 			redirectURI := fmt.Sprintf("%s/profiles/_links/callback/%s",
 				siteURI, providerParam)
 
-			// Handle the OAuth callback (this also parses the state)
-			result, stateObj, err := youtubeProvider.HandleCallback(
-				ctx.Request.Context(),
-				code,
-				stateParam,
-				redirectURI,
-			)
+			// Handle the OAuth callback based on provider
+			var result auth.OAuthCallbackResult
+			var err error
 
-			// Helper to build redirect URL with fallbacks
+			switch providerParam {
+			case "youtube":
+				result, err = providers.YouTube.HandleOAuthCallback(
+					ctx.Request.Context(),
+					code,
+					redirectURI,
+				)
+			case "github":
+				result, err = providers.GitHub.HandleOAuthCallback(
+					ctx.Request.Context(),
+					code,
+					redirectURI,
+				)
+			}
+
+			// Helper to build redirect URL
 			buildRedirectURL := func(path string) string {
-				origin := ""
-				if stateObj != nil && stateObj.RedirectOrigin != "" {
-					origin = stateObj.RedirectOrigin
-				}
-
-				return origin + path
+				return stateObj.RedirectOrigin + path
 			}
 
 			// Check for access denied
@@ -193,13 +257,8 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				logger.InfoContext(ctx.Request.Context(), "User denied OAuth access",
 					slog.String("provider", providerParam))
 
-				locale := "tr"
-				if stateObj != nil && stateObj.Locale != "" {
-					locale = stateObj.Locale
-				}
-
 				return ctx.Results.Redirect(
-					buildRedirectURL(fmt.Sprintf("/%s?error=access_denied", locale)),
+					buildRedirectURL(fmt.Sprintf("/%s?error=access_denied", stateObj.Locale)),
 				)
 			}
 
@@ -215,13 +274,8 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 					slog.String("error", err.Error()),
 					slog.String("provider", providerParam))
 
-				locale := "tr"
-				if stateObj != nil && stateObj.Locale != "" {
-					locale = stateObj.Locale
-				}
-
 				return ctx.Results.Redirect(
-					buildRedirectURL(fmt.Sprintf("/%s?error=oauth_failed", locale)),
+					buildRedirectURL(fmt.Sprintf("/%s?error=oauth_failed", stateObj.Locale)),
 				)
 			}
 
@@ -243,11 +297,14 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				return ctx.Results.Redirect(redirectURL)
 			}
 
+			// Determine link kind from provider
+			linkKind := providerParam // "youtube" or "github"
+
 			// Check if a link with this remote ID already exists
 			existingLink, err := profileService.GetProfileLinkByRemoteID(
 				ctx.Request.Context(),
 				profileID,
-				result.Kind,
+				linkKind,
 				result.RemoteID,
 			)
 			if err != nil {
@@ -272,9 +329,9 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				err = profileService.UpdateProfileLinkOAuthTokens(
 					ctx.Request.Context(),
 					existingLink.ID,
-					result.PublicID,
+					result.Username,
 					result.URI,
-					result.Title,
+					result.Name,
 					result.Scope,
 					result.AccessToken,
 					expiresAt,
@@ -305,13 +362,13 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				_, err = profileService.CreateOAuthProfileLink(
 					ctx.Request.Context(),
 					linkID,
-					result.Kind,
+					linkKind,
 					profileID,
 					newOrder,
 					result.RemoteID,
-					result.PublicID,
+					result.Username,
 					result.URI,
-					result.Title,
+					result.Name,
 					providerParam,
 					result.Scope,
 					result.AccessToken,
@@ -332,7 +389,7 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 				logger.InfoContext(ctx.Request.Context(), "Created OAuth profile link",
 					slog.String("link_id", linkID),
 					slog.String("provider", providerParam),
-					slog.String("channel_id", result.RemoteID))
+					slog.String("remote_id", result.RemoteID))
 			}
 
 			// Redirect to the settings page with success message

@@ -262,6 +262,24 @@ function LinksSettingsPage() {
     }));
   };
 
+  const handleConnectGitHub = async () => {
+    try {
+      const result = await backend.initiateProfileLinkOAuth(
+        params.locale,
+        params.slug,
+        "github",
+      );
+      if (result === null) {
+        toast.error(t("Profile", "Failed to connect"));
+        return;
+      }
+      window.location.href = result.auth_url;
+    } catch (error) {
+      console.error("OAuth initiation failed:", error);
+      toast.error(t("Profile", "Failed to connect"));
+    }
+  };
+
   const handleConnectYouTube = async () => {
     try {
       const result = await backend.initiateProfileLinkOAuth(
@@ -415,6 +433,10 @@ function LinksSettingsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleConnectGitHub}>
+              <GitHub className="size-4 mr-2" />
+              {t("Profile.Connect GitHub")}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleConnectYouTube}>
               <Youtube className="size-4 mr-2" />
               {t("Profile.Connect YouTube")}
@@ -542,9 +564,21 @@ function LinksSettingsPage() {
               <Select
                 value={formData.kind}
                 onValueChange={(value) => handleKindChange(value as ProfileLinkKind)}
+                disabled={editingLink?.is_managed === true}
               >
                 <SelectTrigger id="link-type">
-                  <SelectValue placeholder={t("Profile.Select link type")} />
+                  <SelectValue placeholder={t("Profile.Select link type")}>
+                    {(() => {
+                      const config = getLinkTypeConfig(formData.kind);
+                      const IconComp = config.icon;
+                      return (
+                        <div className="flex items-center gap-2">
+                          <IconComp className="size-4" />
+                          <span>{config.label}</span>
+                        </div>
+                      );
+                    })()}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {LINK_TYPES.map((linkType) => {
@@ -569,9 +603,12 @@ function LinksSettingsPage() {
                 value={formData.title}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                 placeholder={getLinkTypeConfig(formData.kind).label}
+                disabled={editingLink?.is_managed === true}
               />
               <p className="text-xs text-muted-foreground">
-                {t("Profile.A friendly name for this link.")}
+                {editingLink?.is_managed === true
+                  ? t("Profile.This field is managed automatically and cannot be edited.")
+                  : t("Profile.A friendly name for this link.")}
               </p>
             </div>
 
@@ -582,9 +619,12 @@ function LinksSettingsPage() {
                 value={formData.uri}
                 onChange={(e) => setFormData((prev) => ({ ...prev, uri: e.target.value }))}
                 placeholder={getLinkTypeConfig(formData.kind).placeholder}
+                disabled={editingLink?.is_managed === true}
               />
               <p className="text-xs text-muted-foreground">
-                {t("Profile.The full URL to your profile or website.")}
+                {editingLink?.is_managed === true
+                  ? t("Profile.This field is managed automatically and cannot be edited.")
+                  : t("Profile.The full URL to your profile or website.")}
               </p>
             </div>
 

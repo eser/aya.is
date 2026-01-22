@@ -89,3 +89,20 @@ type JWTClaims struct {
 	SessionID string
 	ExpiresAt int64
 }
+
+// OAuthCallbackResult contains all information from an OAuth callback.
+// Different use cases (login, profile linking) use different fields.
+type OAuthCallbackResult struct {
+	// Identity
+	RemoteID string // Provider's user/channel ID
+	Username string // Handle/login (e.g., GitHub username, YouTube channel handle)
+	Name     string // Display name
+	Email    string // Email (may be empty for non-login providers like YouTube)
+	URI      string // Profile/channel URL
+
+	// Tokens (used for profile linking to store for future API calls)
+	AccessToken          string
+	RefreshToken         string
+	AccessTokenExpiresAt *time.Time
+	Scope                string
+}

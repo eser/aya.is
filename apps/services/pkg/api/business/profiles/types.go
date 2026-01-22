@@ -80,6 +80,16 @@ type ProfileLinkBrief struct {
 	IsVerified bool   `json:"is_verified"`
 }
 
+// ProfileLinkState contains state for profile link OAuth flows.
+// This extends the basic OAuth state with profile-specific data.
+type ProfileLinkState struct {
+	State          string    `json:"state"`
+	ProfileSlug    string    `json:"profile_slug"`
+	Locale         string    `json:"locale"`
+	RedirectOrigin string    `json:"redirect_origin"`
+	ExpiresAt      time.Time `json:"expires_at"`
+}
+
 type ProfileMembership struct {
 	Properties    any        `json:"properties"`
 	Profile       *Profile   `json:"profile"`

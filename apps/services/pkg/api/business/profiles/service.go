@@ -918,6 +918,14 @@ func (s *Service) UpdateProfileLink(
 		)
 	}
 
+	// For managed links, preserve the original title, URI, and kind
+	// Users can only change order and visibility for managed links
+	if existingLink.IsManaged {
+		kind = existingLink.Kind
+		title = existingLink.Title
+		uri = existingLink.URI
+	}
+
 	// Update the link
 	err = s.repo.UpdateProfileLink(ctx, linkID, kind, order, uri, title, isHidden)
 	if err != nil {
