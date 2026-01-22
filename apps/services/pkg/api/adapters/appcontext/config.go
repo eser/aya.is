@@ -4,6 +4,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
+	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
@@ -33,6 +34,7 @@ type AppConfig struct {
 	Data       DataConfig        `conf:"data"`
 	S3         s3client.Config   `conf:"s3"`
 	Externals  ExternalsConfig   `conf:"externals"`
+	Workers    workers.Config    `conf:"workers"`
 	SiteURI    string            `conf:"site_uri"   default:"http://localhost:8080"`
 	ajan.BaseConfig
 

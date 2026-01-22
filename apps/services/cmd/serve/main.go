@@ -5,8 +5,11 @@ import (
 	"log/slog"
 
 	"github.com/eser/aya.is/services/pkg/ajan/processfx"
+	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/appcontext"
 	"github.com/eser/aya.is/services/pkg/api/adapters/http"
+	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
+	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
 func main() {
@@ -21,6 +24,14 @@ func main() {
 
 	process := processfx.New(baseCtx, appContext.Logger)
 
+	startHTTPServer(process, appContext)
+	startWorkers(process, appContext)
+
+	process.Wait()
+	process.Shutdown()
+}
+
+func startHTTPServer(process *processfx.Process, appContext *appcontext.AppContext) {
 	process.StartGoroutine("http-server", func(ctx context.Context) error {
 		cleanup, err := http.Run(
 			ctx,
@@ -53,7 +64,44 @@ func main() {
 
 		return nil
 	})
+}
 
-	process.Wait()
-	process.Shutdown()
+func startWorkers(process *processfx.Process, appContext *appcontext.AppContext) {
+	idGen := func() string {
+		return string(users.DefaultIDGenerator())
+	}
+
+	// YouTube full sync worker
+	if appContext.Config.Workers.YouTubeSync.FullSyncEnabled {
+		fullSyncWorker := workers.NewYouTubeFullSyncWorker(
+			&appContext.Config.Workers.YouTubeSync,
+			appContext.Logger,
+			appContext.LinkSyncService,
+			appContext.YouTubeProvider,
+			idGen,
+		)
+
+		runner := workerfx.NewRunner(fullSyncWorker, appContext.Logger)
+
+		process.StartGoroutine("youtube-full-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// YouTube incremental sync worker
+	if appContext.Config.Workers.YouTubeSync.IncrementalSyncEnabled {
+		incrementalSyncWorker := workers.NewYouTubeIncrementalSyncWorker(
+			&appContext.Config.Workers.YouTubeSync,
+			appContext.Logger,
+			appContext.LinkSyncService,
+			appContext.YouTubeProvider,
+			idGen,
+		)
+
+		runner := workerfx.NewRunner(incrementalSyncWorker, appContext.Logger)
+
+		process.StartGoroutine("youtube-incremental-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
 }

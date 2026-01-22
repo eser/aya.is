@@ -17,6 +17,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
@@ -59,6 +60,7 @@ type AppContext struct {
 	StoryService      *stories.Service
 	SessionService    *sessions.Service
 	ProtectionService *protection.Service
+	LinkSyncService   *linksync.Service
 }
 
 func New() *AppContext {
@@ -227,6 +229,12 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		&a.Config.Sessions,
 		a.Repository,
 		a.UserService,
+		idGen,
+	)
+
+	a.LinkSyncService = linksync.NewService(
+		a.Logger,
+		a.Repository,
 		idGen,
 	)
 

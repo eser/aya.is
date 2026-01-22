@@ -52,6 +52,11 @@ type Querier interface {
 	//    AND created_at > NOW() - INTERVAL '1 hour'
 	//    AND used = FALSE
 	CountPOWChallengesByIPHash(ctx context.Context, arg CountPOWChallengesByIPHashParams) (int64, error)
+	//CreateLinkImport
+	//
+	//  INSERT INTO "profile_link_import" (id, profile_link_id, remote_id, properties, created_at)
+	//  VALUES ($1, $2, $3, $4, NOW())
+	CreateLinkImport(ctx context.Context, arg CreateLinkImportParams) error
 	// PoW Challenges
 	//
 	//
@@ -282,6 +287,23 @@ type Querier interface {
 	//    AND updated_at > $2
 	//  LIMIT 1
 	GetFromCacheSince(ctx context.Context, arg GetFromCacheSinceParams) (*GetFromCacheSinceRow, error)
+	//GetLatestImportByLinkID
+	//
+	//  SELECT id, profile_link_id, remote_id, properties, created_at, updated_at, deleted_at
+	//  FROM "profile_link_import"
+	//  WHERE profile_link_id = $1
+	//    AND deleted_at IS NULL
+	//  ORDER BY created_at DESC
+	//  LIMIT 1
+	GetLatestImportByLinkID(ctx context.Context, arg GetLatestImportByLinkIDParams) (*ProfileLinkImport, error)
+	//GetLinkImportByRemoteID
+	//
+	//  SELECT id, profile_link_id, remote_id, properties, created_at, updated_at, deleted_at
+	//  FROM "profile_link_import"
+	//  WHERE profile_link_id = $1
+	//    AND remote_id = $2
+	//  LIMIT 1
+	GetLinkImportByRemoteID(ctx context.Context, arg GetLinkImportByRemoteIDParams) (*ProfileLinkImport, error)
 	//GetMaxProfileLinkOrder
 	//
 	//  SELECT COALESCE(MAX("order"), 0) as max_order
@@ -666,6 +688,26 @@ type Querier interface {
 	//    $5
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
+	//ListManagedLinksForKind
+	//
+	//  SELECT
+	//    pl.id,
+	//    pl.profile_id,
+	//    pl.kind,
+	//    pl.remote_id,
+	//    pl.auth_access_token,
+	//    pl.auth_access_token_expires_at,
+	//    pl.auth_refresh_token
+	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
+	//      AND p.deleted_at IS NULL
+	//  WHERE pl.kind = $1
+	//    AND pl.is_managed = TRUE
+	//    AND pl.auth_access_token IS NOT NULL
+	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl.updated_at ASC NULLS FIRST
+	//  LIMIT $2
+	ListManagedLinksForKind(ctx context.Context, arg ListManagedLinksForKindParams) ([]*ListManagedLinksForKindRow, error)
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
@@ -798,6 +840,15 @@ type Querier interface {
 	//  WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND deleted_at IS NULL
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, error)
+	//MarkLinkImportsDeletedExcept
+	//
+	//  UPDATE "profile_link_import"
+	//  SET deleted_at = NOW()
+	//  WHERE profile_link_id = $1
+	//    AND deleted_at IS NULL
+	//    AND remote_id IS NOT NULL
+	//    AND remote_id != ALL($2::TEXT[])
+	MarkLinkImportsDeletedExcept(ctx context.Context, arg MarkLinkImportsDeletedExceptParams) (int64, error)
 	//MarkPOWChallengeUsed
 	//
 	//  UPDATE protection_pow_challenge
@@ -952,6 +1003,15 @@ type Querier interface {
 	//    id = $1
 	//    AND logged_in_user_id = $2
 	TerminateSession(ctx context.Context, arg TerminateSessionParams) error
+	//UpdateLinkImport
+	//
+	//  UPDATE "profile_link_import"
+	//  SET
+	//    properties = $1,
+	//    updated_at = NOW(),
+	//    deleted_at = NULL
+	//  WHERE id = $2
+	UpdateLinkImport(ctx context.Context, arg UpdateLinkImportParams) (int64, error)
 	//UpdateProfile
 	//
 	//  UPDATE "profile"
@@ -992,6 +1052,17 @@ type Querier interface {
 	//  WHERE id = $8
 	//    AND deleted_at IS NULL
 	UpdateProfileLinkOAuthTokens(ctx context.Context, arg UpdateProfileLinkOAuthTokensParams) (int64, error)
+	//UpdateProfileLinkTokens
+	//
+	//  UPDATE "profile_link"
+	//  SET
+	//    auth_access_token = $1,
+	//    auth_access_token_expires_at = $2,
+	//    auth_refresh_token = $3,
+	//    updated_at = NOW()
+	//  WHERE id = $4
+	//    AND deleted_at IS NULL
+	UpdateProfileLinkTokens(ctx context.Context, arg UpdateProfileLinkTokensParams) (int64, error)
 	//UpdateProfilePage
 	//
 	//  UPDATE "profile_page"
