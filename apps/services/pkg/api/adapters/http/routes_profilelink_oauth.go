@@ -8,12 +8,12 @@ import (
 	"net/url"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/profilelink_oauth"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
-	"github.com/google/uuid"
 )
 
 // RegisterHTTPRoutesForProfileLinkOAuth registers the OAuth routes for profile links.
@@ -296,7 +296,7 @@ func RegisterHTTPRoutesForProfileLinkOAuth(
 					slog.String("provider", providerParam))
 			} else {
 				// Create new OAuth profile link
-				linkID := uuid.New().String()
+				linkID := lib.IDsGenerateUnique()
 
 				// Get the next order value
 				maxOrder, _ := profileService.GetMaxProfileLinkOrder(ctx.Request.Context(), profileID)
