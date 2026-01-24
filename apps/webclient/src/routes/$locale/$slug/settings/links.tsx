@@ -536,7 +536,7 @@ function LinksSettingsPage() {
                     >
                       <MoreHorizontal className="size-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-auto">
                       {link.is_managed && (
                         <>
                           <DropdownMenuItem
