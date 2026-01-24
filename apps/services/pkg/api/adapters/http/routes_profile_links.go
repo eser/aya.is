@@ -348,7 +348,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					return ctx.Results.Redirect(redirectURL)
 				}
 
-				logger.InfoContext(ctx.Request.Context(), "Updated OAuth tokens for existing link",
+				logger.DebugContext(ctx.Request.Context(), "Updated OAuth tokens for existing link",
 					slog.String("link_id", existingLink.ID),
 					slog.String("provider", providerParam))
 			} else {
@@ -386,7 +386,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					return ctx.Results.Redirect(redirectURL)
 				}
 
-				logger.InfoContext(ctx.Request.Context(), "Created OAuth profile link",
+				logger.DebugContext(ctx.Request.Context(), "Created OAuth profile link",
 					slog.String("link_id", linkID),
 					slog.String("provider", providerParam),
 					slog.String("remote_id", result.RemoteID))

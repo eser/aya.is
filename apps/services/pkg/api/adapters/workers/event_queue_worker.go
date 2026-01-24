@@ -109,7 +109,7 @@ func (w *EventQueueWorker) Execute(ctx context.Context) error {
 		return nil
 	}
 
-	w.logger.InfoContext(ctx, "Event completed successfully",
+	w.logger.DebugContext(ctx, "Event completed successfully",
 		slog.String("event_id", event.ID),
 		slog.String("type", string(event.Type)))
 

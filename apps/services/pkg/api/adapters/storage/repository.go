@@ -171,7 +171,7 @@ func (r *Repository) RunMigrations(ctx context.Context, migrationsDir string) er
 }
 
 func (r *Repository) SeedData(ctx context.Context, seedFilePath string) error {
-	r.logger.InfoContext(ctx, "Checking if seed data is needed")
+	r.logger.DebugContext(ctx, "Checking if seed data is needed")
 
 	cursor := &cursors.Cursor{ //nolint:exhaustruct
 		Limit: 1, // Just need to check if any profiles exist

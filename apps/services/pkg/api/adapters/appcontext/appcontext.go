@@ -95,7 +95,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		logfx.WithConfig(&a.Config.Log),
 	)
 
-	a.Logger.InfoContext(
+	a.Logger.DebugContext(
 		ctx,
 		"[AppContext] Initialization in progress",
 		slog.String("module", "appcontext"),
@@ -184,7 +184,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			return fmt.Errorf("%w: failed to create S3 client: %w", ErrInitFailed, err)
 		}
 
-		a.Logger.InfoContext(
+		a.Logger.DebugContext(
 			ctx,
 			"[AppContext] S3 client initialized",
 			slog.String("module", "appcontext"),

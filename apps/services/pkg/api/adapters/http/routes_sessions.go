@@ -177,7 +177,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 					if user.IndividualProfileID != nil {
 						// Get locale from path
 						locale := ctx.Request.PathValue("locale")
-						logger.InfoContext(ctx.Request.Context(), "Fetching profile",
+						logger.DebugContext(ctx.Request.Context(), "Fetching profile",
 							slog.String("locale", locale),
 							slog.String("profile_id", *user.IndividualProfileID))
 

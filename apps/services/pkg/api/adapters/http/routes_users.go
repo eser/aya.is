@@ -92,7 +92,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				)
 			}
 
-			logger.InfoContext(ctx.Request.Context(), "Redirecting to auth provider login",
+			logger.DebugContext(ctx.Request.Context(), "Redirecting to auth provider login",
 				slog.String("auth_url", authURL),
 				slog.String("redirect_uri", redirectURI),
 				slog.String("auth_provider", authProvider))

@@ -98,7 +98,7 @@ func (hs *HTTPService) SetupTLS(ctx context.Context) error {
 }
 
 func (hs *HTTPService) Start(ctx context.Context) (func(), error) {
-	hs.logger.InfoContext(ctx, "HTTPService is starting...", slog.String("addr", hs.Config.Addr))
+	hs.logger.DebugContext(ctx, "HTTPService is starting...", slog.String("addr", hs.Config.Addr))
 
 	if hs.InnerMetrics != nil {
 		err := hs.InnerMetrics.Init()
@@ -132,7 +132,7 @@ func (hs *HTTPService) Start(ctx context.Context) (func(), error) {
 	}()
 
 	cleanup := func() {
-		hs.logger.InfoContext(ctx, "Shutting down server...")
+		hs.logger.DebugContext(ctx, "HTTPService is shutting down...")
 
 		newCtx, cancel := context.WithTimeout(ctx, hs.Config.GracefulShutdownTimeout)
 		defer cancel()
@@ -145,7 +145,7 @@ func (hs *HTTPService) Start(ctx context.Context) (func(), error) {
 			return
 		}
 
-		hs.logger.InfoContext(ctx, "HTTPService has gracefully stopped.")
+		hs.logger.DebugContext(ctx, "HTTPService has gracefully stopped.")
 	}
 
 	return cleanup, nil

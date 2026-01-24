@@ -166,7 +166,7 @@ func (registry *Registry) AddConnection( //nolint:ireturn
 		return nil, fmt.Errorf("%w (protocol=%q)", ErrUnsupportedProtocol, config.Protocol)
 	}
 
-	registry.logger.InfoContext(
+	registry.logger.DebugContext(
 		ctx,
 		"creating connection",
 		slog.String("name", name),
@@ -189,7 +189,7 @@ func (registry *Registry) AddConnection( //nolint:ireturn
 
 	registry.connections[name] = conn
 
-	registry.logger.InfoContext(
+	registry.logger.DebugContext(
 		ctx,
 		"successfully added connection",
 		slog.String("name", name),
@@ -222,7 +222,7 @@ func (registry *Registry) RemoveConnection(ctx context.Context, name string) err
 
 	delete(registry.connections, name)
 
-	registry.logger.InfoContext(
+	registry.logger.DebugContext(
 		ctx,
 		"removed connection",
 		slog.String("name", name),

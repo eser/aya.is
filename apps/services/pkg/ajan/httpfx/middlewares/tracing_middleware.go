@@ -62,7 +62,7 @@ func TracingMiddleware(logger *logfx.Logger) httpfx.Handler {
 				attrs...,
 			)
 		} else {
-			logger.InfoContext(
+			logger.DebugContext(
 				newCtx,
 				"HTTP request completed",
 				attrs...,
