@@ -140,7 +140,11 @@ func (s *Service) AuthHandleCallback(
 	}
 
 	// Get account info from provider (state validation is service layer responsibility)
-	accountInfo, err := provider.HandleOAuthCallback(ctx, code, redirectURI)
+	// Pass empty redirect_uri to avoid a mismatch in GitHub's token exchange.
+	// The redirect_uri sent to GitHub during authorization includes query params
+	// (e.g., ?redirect_uri=<frontend_url>), but the redirectURI here is the frontend URL.
+	// Passing a mismatched value causes GitHub to reject the token exchange.
+	accountInfo, err := provider.HandleOAuthCallback(ctx, code, "")
 	if err != nil {
 		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
 	}
