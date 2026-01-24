@@ -9,11 +9,13 @@ export async function checkProfileSlug(
   locale: string,
   slug: string,
 ): Promise<CheckProfileSlugResponse | null> {
-  return await fetcher<CheckProfileSlugResponse>(
+  const result = await fetcher<CheckProfileSlugResponse>(
     locale,
     `/profiles/${slug}/_check`,
     {
       method: "GET",
     },
   );
+
+  return result;
 }

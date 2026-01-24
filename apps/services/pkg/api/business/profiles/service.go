@@ -24,10 +24,19 @@ var (
 	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
 )
 
+// SlugAvailabilityResult holds the result of a slug availability check.
+type SlugAvailabilityResult struct {
+	Available bool
+	Message   string
+}
+
 // Config holds the profiles service configuration.
 type Config struct {
 	// AllowedURIPrefixes is a comma-separated list of allowed URI prefixes.
 	AllowedURIPrefixes string `conf:"allowed_uri_prefixes" default:"https://objects.aya.is/,https://avatars.githubusercontent.com/"`
+
+	// ForbiddenSlugs is a comma-separated list of reserved slugs that cannot be used as profile slugs.
+	ForbiddenSlugs string `conf:"forbidden_slugs" default:"about,admin,api,auth,communities,community,config,contact,contributions,dashboard,element,elements,events,faq,feed,guide,help,home,impressum,imprint,jobs,legal,login,logout,new,news,null,organizations,orgs,people,policies,policy,privacy,product,products,profile,profiles,projects,register,root,search,services,settings,signin,signout,signup,site,stories,story,support,tag,tags,terms,tos,undefined,user,users,verify,wiki"`
 }
 
 // GetAllowedURIPrefixes returns the allowed URI prefixes as a slice.
@@ -43,6 +52,25 @@ func (c *Config) GetAllowedURIPrefixes() []string {
 		trimmed := strings.TrimSpace(prefix)
 		if trimmed != "" {
 			result = append(result, trimmed)
+		}
+	}
+
+	return result
+}
+
+// GetForbiddenSlugs returns the forbidden slugs as a set.
+func (c *Config) GetForbiddenSlugs() map[string]bool {
+	if c.ForbiddenSlugs == "" {
+		return nil
+	}
+
+	slugs := strings.Split(c.ForbiddenSlugs, ",")
+	result := make(map[string]bool, len(slugs))
+
+	for _, slug := range slugs {
+		trimmed := strings.TrimSpace(slug)
+		if trimmed != "" {
+			result[trimmed] = true
 		}
 	}
 
@@ -588,6 +616,32 @@ func (s *Service) CheckSlugExists(ctx context.Context, slug string) (bool, error
 	}
 
 	return exists, nil
+}
+
+func (s *Service) CheckSlugAvailability(ctx context.Context, slug string) (*SlugAvailabilityResult, error) {
+	if s.config.GetForbiddenSlugs()[slug] {
+		return &SlugAvailabilityResult{
+			Available: false,
+			Message:   "This slug is reserved",
+		}, nil
+	}
+
+	exists, err := s.CheckSlugExists(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	if exists {
+		return &SlugAvailabilityResult{
+			Available: false,
+			Message:   "This slug is already taken",
+		}, nil
+	}
+
+	return &SlugAvailabilityResult{
+		Available: true,
+		Message:   "",
+	}, nil
 }
 
 func (s *Service) Create(

@@ -276,6 +276,8 @@
     "For teams and companies": "Takımlar ve şirketler için",
     "For apps, tools, and services": "Uygulamalar, araçlar ve hizmetler için",
     "You already have an individual profile": "Zaten bir kişisel profiliniz var. Organizasyon veya ürün profili oluşturabilirsiniz.",
+    "Individual profile exists": "Zaten bir kişisel profiliniz var",
+    "You can create organization or product profiles": "Organizasyon veya ürün profili oluşturabilirsiniz.",
     "Slug": "Slug",
     "Available": "Uygun",
     "This slug is unavailable": "Bu slug kullanılamaz",

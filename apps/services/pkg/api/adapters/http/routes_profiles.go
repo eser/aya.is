@@ -94,7 +94,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithPlainText("slug parameter is required"))
 			}
 
-			exists, err := profileService.CheckSlugExists(ctx.Request.Context(), slugParam)
+			availability, err := profileService.CheckSlugAvailability(ctx.Request.Context(), slugParam)
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
@@ -102,16 +102,17 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			result := map[string]bool{
-				"exists": exists,
+			result := map[string]any{
+				"available": availability.Available,
+				"message":   availability.Message,
 			}
 
 			wrappedResponse := cursors.WrapResponseWithCursor(result, nil)
 
 			return ctx.Results.JSON(wrappedResponse)
 		}).
-		HasSummary("Check if profile slug exists").
-		HasDescription("Check if a profile slug is already taken in the database.").
+		HasSummary("Check profile slug availability").
+		HasDescription("Check if a profile slug is available (not taken or reserved).").
 		HasResponse(http.StatusOK)
 
 	routes.

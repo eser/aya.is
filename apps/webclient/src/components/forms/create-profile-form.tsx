@@ -2,7 +2,7 @@ import * as React from "react";
 import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Building2, Check, Loader2, Package, User, X } from "lucide-react";
+import { ArrowLeft, Building2, Check, Info, Loader2, Package, User, X } from "lucide-react";
 import { z } from "zod";
 import type { CreateProfileInput } from "@/lib/schemas/profile";
 import { backend } from "@/modules/backend/backend";
@@ -10,7 +10,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import styles from "./create-profile-form.module.css";
 
 type ProfileKind = "individual" | "organization" | "product";
@@ -233,8 +233,10 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
 
           {props.hasIndividualProfile && (
             <Alert>
+              <Info className="size-4" />
+              <AlertTitle>{t("Profile.Individual profile exists")}</AlertTitle>
               <AlertDescription>
-                {t("Profile.You already have an individual profile")}
+                {t("Profile.You can create organization or product profiles")}
               </AlertDescription>
             </Alert>
           )}

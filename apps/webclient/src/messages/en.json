@@ -308,6 +308,8 @@
     "For teams and companies": "For teams and companies",
     "For apps, tools, and services": "For apps, tools, and services",
     "You already have an individual profile": "You already have an individual profile. You can create organization or product profiles.",
+    "Individual profile exists": "You already have an individual profile",
+    "You can create organization or product profiles": "You can create organization or product profiles.",
     "Slug": "Slug",
     "Available": "Available",
     "This slug is unavailable": "This slug is unavailable",
