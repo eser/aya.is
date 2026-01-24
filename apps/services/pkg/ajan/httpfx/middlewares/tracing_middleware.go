@@ -2,6 +2,8 @@ package middlewares
 
 import (
 	"log/slog"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
@@ -13,8 +15,17 @@ const (
 	httpErrorThreshold = 400
 )
 
-func TracingMiddleware(logger *logfx.Logger) httpfx.Handler {
+func TracingMiddleware(logger *logfx.Logger, skipLoggingPaths string) httpfx.Handler {
+	skipLoggingPathsArray := strings.Split(skipLoggingPaths, ",")
+
 	return func(ctx *httpfx.Context) httpfx.Result {
+		// Process the request
+		result := ctx.Next()
+
+		if slices.Contains(skipLoggingPathsArray, ctx.Request.URL.Path) {
+			return result
+		}
+
 		startTime := time.Now()
 
 		attrs := []any{
@@ -36,9 +47,6 @@ func TracingMiddleware(logger *logfx.Logger) httpfx.Handler {
 		ctx.UpdateContext(newCtx)
 
 		logger.InfoContext(newCtx, "HTTP request started", attrs...)
-
-		// Process the request
-		result := ctx.Next()
 
 		// Calculate duration
 		duration := time.Since(startTime)

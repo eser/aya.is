@@ -22,4 +22,6 @@ type Config struct {
 	HealthCheckEnabled bool `conf:"health_check" default:"true"`
 	OpenAPIEnabled     bool `conf:"openapi"      default:"true"`
 	ProfilingEnabled   bool `conf:"profiling"    default:"false"`
+
+	TracingSkipLoggingPaths string `conf:"tracing_skip_logging_paths" default:"/health-check"`
 }

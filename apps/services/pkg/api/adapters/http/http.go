@@ -40,7 +40,7 @@ func Run(
 	routes.Use(middlewares.ErrorHandlerMiddleware())
 	routes.Use(middlewares.ResolveAddressMiddleware())
 	routes.Use(middlewares.ResponseTimeMiddleware())
-	routes.Use(middlewares.TracingMiddleware(logger)) //nolint:contextcheck
+	routes.Use(middlewares.TracingMiddleware(logger, config.TracingSkipLoggingPaths)) //nolint:contextcheck
 	routes.Use(CorsMiddlewareWithCustomDomains(authService.Config, profileService))
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics)) //nolint:contextcheck
 
