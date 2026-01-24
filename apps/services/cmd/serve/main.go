@@ -79,6 +79,7 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 			appContext.LinkSyncService,
 			appContext.YouTubeProvider,
 			idGen,
+			appContext.RuntimeStateService,
 		)
 
 		runner := workerfx.NewRunner(fullSyncWorker, appContext.Logger)
@@ -96,6 +97,7 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 			appContext.LinkSyncService,
 			appContext.YouTubeProvider,
 			idGen,
+			appContext.RuntimeStateService,
 		)
 
 		runner := workerfx.NewRunner(incrementalSyncWorker, appContext.Logger)

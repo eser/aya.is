@@ -10,6 +10,7 @@ type YouTubeSyncConfig struct {
 	FullSyncInterval        time.Duration `conf:"full_sync_interval"        default:"6h"`
 	IncrementalSyncEnabled  bool          `conf:"incremental_sync_enabled"  default:"true"`
 	IncrementalSyncInterval time.Duration `conf:"incremental_sync_interval" default:"15m"`
+	CheckInterval           time.Duration `conf:"check_interval"            default:"1m"`
 	BatchSize               int           `conf:"batch_size"                default:"10"`
 	StoriesPerLink          int           `conf:"stories_per_link"          default:"50"`
 	TokenRefreshBuffer      time.Duration `conf:"token_refresh_buffer"      default:"5m"`

@@ -9,6 +9,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
+	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 )
 
 // Sentinel errors.
@@ -20,6 +21,10 @@ type SyncMode string
 const (
 	SyncModeFull        SyncMode = "full"
 	SyncModeIncremental SyncMode = "incremental"
+
+	// Advisory lock IDs for YouTube sync workers.
+	lockIDYouTubeFullSync        int64 = 100001
+	lockIDYouTubeIncrementalSync int64 = 100002
 )
 
 // RemoteStoryFetcher defines the interface for fetching stories from remote providers.
@@ -40,13 +45,15 @@ type RemoteStoryFetcher interface {
 
 // YouTubeSyncWorker syncs YouTube videos for managed profile links.
 type YouTubeSyncWorker struct {
-	config      *YouTubeSyncConfig
-	logger      *logfx.Logger
-	syncService *linksync.Service
-	fetcher     RemoteStoryFetcher
-	idGenerator func() string
-	mode        SyncMode
-	interval    time.Duration
+	config        *YouTubeSyncConfig
+	logger        *logfx.Logger
+	syncService   *linksync.Service
+	fetcher       RemoteStoryFetcher
+	idGenerator   func() string
+	runtimeStates *runtime_states.Service
+	mode          SyncMode
+	syncInterval  time.Duration
+	lockID        int64
 }
 
 // NewYouTubeFullSyncWorker creates a new YouTube full sync worker.
@@ -56,15 +63,18 @@ func NewYouTubeFullSyncWorker(
 	syncService *linksync.Service,
 	fetcher RemoteStoryFetcher,
 	idGenerator func() string,
+	runtimeStates *runtime_states.Service,
 ) *YouTubeSyncWorker {
 	return &YouTubeSyncWorker{
-		config:      config,
-		logger:      logger,
-		syncService: syncService,
-		fetcher:     fetcher,
-		idGenerator: idGenerator,
-		mode:        SyncModeFull,
-		interval:    config.FullSyncInterval,
+		config:        config,
+		logger:        logger,
+		syncService:   syncService,
+		fetcher:       fetcher,
+		idGenerator:   idGenerator,
+		runtimeStates: runtimeStates,
+		mode:          SyncModeFull,
+		syncInterval:  config.FullSyncInterval,
+		lockID:        lockIDYouTubeFullSync,
 	}
 }
 
@@ -75,15 +85,18 @@ func NewYouTubeIncrementalSyncWorker(
 	syncService *linksync.Service,
 	fetcher RemoteStoryFetcher,
 	idGenerator func() string,
+	runtimeStates *runtime_states.Service,
 ) *YouTubeSyncWorker {
 	return &YouTubeSyncWorker{
-		config:      config,
-		logger:      logger,
-		syncService: syncService,
-		fetcher:     fetcher,
-		idGenerator: idGenerator,
-		mode:        SyncModeIncremental,
-		interval:    config.IncrementalSyncInterval,
+		config:        config,
+		logger:        logger,
+		syncService:   syncService,
+		fetcher:       fetcher,
+		idGenerator:   idGenerator,
+		runtimeStates: runtimeStates,
+		mode:          SyncModeIncremental,
+		syncInterval:  config.IncrementalSyncInterval,
+		lockID:        lockIDYouTubeIncrementalSync,
 	}
 }
 
@@ -92,13 +105,55 @@ func (w *YouTubeSyncWorker) Name() string {
 	return "youtube-" + string(w.mode) + "-sync"
 }
 
-// Interval returns the worker execution interval.
+// Interval returns the check interval (how often to poll for schedule readiness).
 func (w *YouTubeSyncWorker) Interval() time.Duration {
-	return w.interval
+	return w.config.CheckInterval
 }
 
-// Execute runs a single sync cycle.
+// Execute checks the distributed schedule and runs a sync cycle if it's time.
 func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
+	// Check if it's time to run based on persisted schedule
+	nextRunKey := w.stateKey("next_run_at")
+
+	nextRunAt, err := w.runtimeStates.GetTime(ctx, nextRunKey)
+	if err == nil && time.Now().Before(nextRunAt) {
+		return nil
+	}
+	// If ErrStateNotFound or ErrInvalidTime, proceed (first run or corrupted state)
+
+	// Try advisory lock to prevent concurrent execution across instances
+	acquired, lockErr := w.runtimeStates.TryLock(ctx, w.lockID)
+	if lockErr != nil {
+		w.logger.WarnContext(ctx, "Failed to acquire advisory lock",
+			slog.String("mode", string(w.mode)),
+			slog.Any("error", lockErr))
+
+		return nil
+	}
+
+	if !acquired {
+		w.logger.DebugContext(ctx, "Another instance is running this worker",
+			slog.String("mode", string(w.mode)))
+
+		return nil
+	}
+
+	defer func() {
+		_ = w.runtimeStates.ReleaseLock(ctx, w.lockID)
+	}()
+
+	// Claim the next slot before executing
+	_ = w.runtimeStates.SetTime(ctx, nextRunKey, time.Now().Add(w.syncInterval))
+
+	return w.executeSync(ctx)
+}
+
+func (w *YouTubeSyncWorker) stateKey(suffix string) string {
+	return "youtube.sync." + string(w.mode) + "_sync_worker." + suffix
+}
+
+// executeSync runs the actual sync cycle.
+func (w *YouTubeSyncWorker) executeSync(ctx context.Context) error {
 	w.logger.DebugContext(ctx, "Starting YouTube sync cycle",
 		slog.String("mode", string(w.mode)))
 

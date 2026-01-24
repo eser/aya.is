@@ -21,6 +21,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
+	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
@@ -55,16 +56,17 @@ type AppContext struct {
 	YouTubeProvider *youtube.Provider
 
 	// Business
-	UploadService     *uploads.Service
-	AuthService       *auth.Service
-	UserService       *users.Service
-	ProfileService    *profiles.Service
-	StoryService      *stories.Service
-	SessionService    *sessions.Service
-	ProtectionService *protection.Service
-	LinkSyncService   *linksync.Service
-	EventService      *events.Service
-	EventRegistry     *events.HandlerRegistry
+	UploadService       *uploads.Service
+	AuthService         *auth.Service
+	UserService         *users.Service
+	ProfileService      *profiles.Service
+	StoryService        *stories.Service
+	SessionService      *sessions.Service
+	ProtectionService   *protection.Service
+	LinkSyncService     *linksync.Service
+	EventService        *events.Service
+	EventRegistry       *events.HandlerRegistry
+	RuntimeStateService *runtime_states.Service
 }
 
 func New() *AppContext {
@@ -251,6 +253,8 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	)
 
 	a.EventRegistry = events.NewHandlerRegistry()
+
+	a.RuntimeStateService = runtime_states.NewService(a.Logger, a.Repository)
 
 	// ----------------------------------------------------
 	// External Services
