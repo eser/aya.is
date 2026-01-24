@@ -2,6 +2,7 @@
 -- Replace 'simple' text search config with locale-aware configurations
 -- for better stemming and linguistic analysis.
 
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION locale_to_regconfig(locale TEXT) RETURNS regconfig AS $$
 BEGIN
   RETURN CASE locale
@@ -18,6 +19,7 @@ BEGIN
   END;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
+-- +goose StatementEnd
 
 -- Rebuild search_vector columns with locale-aware configs
 
