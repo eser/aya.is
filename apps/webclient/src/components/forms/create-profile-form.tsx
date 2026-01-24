@@ -56,6 +56,14 @@ type CreateProfileFormProps = {
   onSubmit: (data: CreateProfileInput) => Promise<void>;
 };
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error !== null && typeof error === "object" && "message" in error) {
+    return (error as { message: string }).message;
+  }
+  return String(error);
+}
+
 export function CreateProfileForm(props: CreateProfileFormProps) {
   const { t } = useTranslation();
 
@@ -248,7 +256,9 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                     aya.is/{props.locale}/{slugValue}
                   </p>
                 )}
-                {field.state.meta.errors.length > 0 && <FieldError>{field.state.meta.errors[0]}</FieldError>}
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
+                )}
               </Field>
             )}
           </form.Field>
@@ -266,7 +276,9 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                   onBlur={field.handleBlur}
                   placeholder={t("Profile.Enter title")}
                 />
-                {field.state.meta.errors.length > 0 && <FieldError>{field.state.meta.errors[0]}</FieldError>}
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
+                )}
               </Field>
             )}
           </form.Field>
@@ -285,7 +297,9 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                   placeholder={t("Profile.Enter description")}
                   rows={4}
                 />
-                {field.state.meta.errors.length > 0 && <FieldError>{field.state.meta.errors[0]}</FieldError>}
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
+                )}
               </Field>
             )}
           </form.Field>

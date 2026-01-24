@@ -29,7 +29,7 @@ function ElementsIndexPage() {
     <PageLayout>
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
-          <div className="flex items-center justify-between mb-20">
+          <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.Elements")}</h1>
             {isAuthenticated && (
               <Link

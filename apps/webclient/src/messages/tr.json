@@ -1,6 +1,7 @@
 {
   "Common": {
-    "Coming soon": "Yakında"
+    "Coming soon": "Yakında",
+    "Back": "Geri"
   },
   "Layout": {
     "Homepage": "Ana Sayfa",
@@ -31,7 +32,8 @@
   "Loading": {
     "Loading...": "Yükleniyor...",
     "Loading share options...": "Paylaşım seçenekleri yükleniyor...",
-    "Saving...": "Kaydediliyor..."
+    "Saving...": "Kaydediliyor...",
+    "Submitting...": "Gönderiliyor..."
   },
   "Search": {
     "General search": "Genel arama",
@@ -66,7 +68,9 @@
     "RedirectingToHomepage": "Ana sayfaya yönlendiriliyorsunuz...",
     "LoginFailed": "Kimlik doğrulama başarısız",
     "TryAgainOrReturnToHomepage": "Lütfen tekrar deneyin veya ana sayfaya dönün",
-    "ReturnToHomepage": "Ana Sayfaya Dön"
+    "ReturnToHomepage": "Ana Sayfaya Dön",
+    "Access Denied": "Erişim Engellendi",
+    "You need to be logged in to create a profile.": "Profil oluşturmak için giriş yapmanız gerekmektedir."
   },
   "Home": {
     "AYA the Open Source Network": "AYA, Açık Yazılım Ağı",
@@ -133,7 +137,8 @@
     "NoProfilesFound": "Kriterlerinize uygun profil bulunamadı.",
     "FilterByKind": "Türe göre filtrele:",
     "AllTypes": "Tümü",
-    "SearchPlaceholder": "İsim veya açıklamaya göre ara..."
+    "SearchPlaceholder": "İsim veya açıklamaya göre ara...",
+    "Add Element": "Bileşen Ekle"
   },
   "News": {
     "News item image": "Haber görseli",
@@ -147,7 +152,8 @@
     "AllStatuses": "Tüm durumlar",
     "HelpNeeded": "Yardım gerekiyor",
     "LookingForParticipants": "Katılımcı arıyor",
-    "Details": "Detaylar"
+    "Details": "Detaylar",
+    "Add Product": "Ürün Ekle"
   },
   "Profile": {
     "Create Profile": "Profil Oluştur",
@@ -260,7 +266,21 @@
     "Failed to load profile pages": "Profil sayfaları yüklenemedi",
     "Manage your stories and articles.": "Hikayelerinizi ve makalelerinizi yönetin.",
     "No stories found.": "Hikaye bulunamadı.",
-    "View": "Görüntüle"
+    "View": "Görüntüle",
+    "New Profile": "Yeni Profil",
+    "Choose your profile type": "Profil türünüzü seçin",
+    "Individual": "Kişisel",
+    "Organization": "Organizasyon",
+    "Product": "Ürün",
+    "Your personal profile": "Kişisel profiliniz",
+    "For teams and companies": "Takımlar ve şirketler için",
+    "For apps, tools, and services": "Uygulamalar, araçlar ve hizmetler için",
+    "You already have an individual profile": "Zaten bir kişisel profiliniz var. Organizasyon veya ürün profili oluşturabilirsiniz.",
+    "Slug": "Slug",
+    "Available": "Uygun",
+    "This slug is unavailable": "Bu slug kullanılamaz",
+    "Profile created successfully": "Profil başarıyla oluşturuldu",
+    "Failed to create profile": "Profil oluşturulamadı"
   },
   "StoryPage": {
     "Written by": "Yazan",

@@ -1,6 +1,7 @@
 {
   "Common": {
-    "Coming soon": "Coming soon"
+    "Coming soon": "Coming soon",
+    "Back": "Back"
   },
   "Layout": {
     "Homepage": "Homepage",
@@ -31,7 +32,8 @@
   "Loading": {
     "Loading...": "Loading...",
     "Loading share options...": "Loading share options...",
-    "Saving...": "Saving..."
+    "Saving...": "Saving...",
+    "Submitting...": "Submitting..."
   },
   "Search": {
     "General search": "General search",
@@ -66,7 +68,9 @@
     "RedirectingToHomepage": "Redirecting to homepage...",
     "LoginFailed": "Authentication failed",
     "TryAgainOrReturnToHomepage": "Please try again or return to homepage",
-    "ReturnToHomepage": "Return to Homepage"
+    "ReturnToHomepage": "Return to Homepage",
+    "Access Denied": "Access Denied",
+    "You need to be logged in to create a profile.": "You need to be logged in to create a profile."
   },
   "Home": {
     "AYA the Open Source Network": "AYA the Open Source Network",
@@ -133,7 +137,8 @@
     "NoProfilesFound": "No profiles found matching your criteria.",
     "FilterByKind": "Filter by type:",
     "AllTypes": "All",
-    "SearchPlaceholder": "Search by name or description..."
+    "SearchPlaceholder": "Search by name or description...",
+    "Add Element": "Add Element"
   },
   "News": {
     "News item image": "News item image",
@@ -147,7 +152,8 @@
     "AllStatuses": "All statuses",
     "HelpNeeded": "Help needed",
     "LookingForParticipants": "Looking for participants",
-    "Details": "Details"
+    "Details": "Details",
+    "Add Product": "Add Product"
   },
   "Profile": {
     "Create Profile": "Create Profile",
@@ -292,7 +298,21 @@
     "Failed to reorder links": "Failed to reorder links",
     "Manage your stories and articles.": "Manage your stories and articles.",
     "No stories found.": "No stories found.",
-    "View": "View"
+    "View": "View",
+    "New Profile": "New Profile",
+    "Choose your profile type": "Choose your profile type",
+    "Individual": "Individual",
+    "Organization": "Organization",
+    "Product": "Product",
+    "Your personal profile": "Your personal profile",
+    "For teams and companies": "For teams and companies",
+    "For apps, tools, and services": "For apps, tools, and services",
+    "You already have an individual profile": "You already have an individual profile. You can create organization or product profiles.",
+    "Slug": "Slug",
+    "Available": "Available",
+    "This slug is unavailable": "This slug is unavailable",
+    "Profile created successfully": "Profile created successfully",
+    "Failed to create profile": "Failed to create profile"
   },
   "StoryPage": {
     "Written by": "Written by",
