@@ -3,13 +3,13 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
-  createSession,
-  getSessionPreferences,
   updateSessionPreferences,
 } from "@/modules/backend/sessions";
+import { useAuth } from "@/lib/auth/auth-context";
 
 type Theme = "dark" | "light" | "system";
 
@@ -44,6 +44,9 @@ export function ThemeProvider(props: ThemeProviderProps) {
     enableServerSync = false,
   } = props;
 
+  const auth = useAuth();
+  const appliedFromServer = useRef(false);
+
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof globalThis.document === "undefined") {
       return defaultTheme;
@@ -51,42 +54,19 @@ export function ThemeProvider(props: ThemeProviderProps) {
     return (localStorage.getItem(storageKey) as Theme) ?? defaultTheme;
   });
 
-  const [isLoading, setIsLoading] = useState(enableServerSync);
-  const [hasSession, setHasSession] = useState(false);
-
-  // Sync from server on mount if enabled
+  // Sync theme from auth context preferences (loaded by AuthProvider)
   useEffect(() => {
-    if (!enableServerSync) {
+    if (!enableServerSync || auth.isLoading || appliedFromServer.current) {
       return;
     }
 
-    let mounted = true;
+    appliedFromServer.current = true;
 
-    async function syncFromServer() {
-      try {
-        const serverPrefs = await getSessionPreferences(locale);
-        if (mounted && serverPrefs !== null) {
-          setHasSession(true);
-          if (serverPrefs.theme !== undefined) {
-            setThemeState(serverPrefs.theme);
-            localStorage.setItem(storageKey, serverPrefs.theme);
-          }
-        }
-      } catch {
-        // Session doesn't exist or error - use localStorage values
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
+    if (auth.preferences !== null && auth.preferences.theme !== undefined) {
+      setThemeState(auth.preferences.theme);
+      localStorage.setItem(storageKey, auth.preferences.theme);
     }
-
-    syncFromServer();
-
-    return () => {
-      mounted = false;
-    };
-  }, [enableServerSync, locale, storageKey]);
+  }, [enableServerSync, auth.isLoading, auth.preferences, storageKey]);
 
   // Apply theme to DOM
   useEffect(() => {
@@ -122,26 +102,19 @@ export function ThemeProvider(props: ThemeProviderProps) {
       // Fire and forget - don't block UI
       (async () => {
         try {
-          if (hasSession) {
-            await updateSessionPreferences(locale, { theme: newTheme });
-          } else {
-            const result = await createSession(locale, { theme: newTheme });
-            if (result !== null) {
-              setHasSession(true);
-            }
-          }
+          await updateSessionPreferences(locale, { theme: newTheme });
         } catch (error) {
           console.error("[ThemeProvider] Failed to sync theme to server:", error);
         }
       })();
     },
-    [storageKey, enableServerSync, hasSession, locale],
+    [storageKey, enableServerSync, locale],
   );
 
   const value = {
     theme,
     setTheme,
-    isLoading,
+    isLoading: enableServerSync && auth.isLoading,
   };
 
   return (

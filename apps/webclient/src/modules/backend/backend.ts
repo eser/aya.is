@@ -39,13 +39,12 @@ import { uploadToPresignedURL } from "./uploads/upload-to-presigned-url";
 import { removeUpload } from "./uploads/remove-upload";
 import { getCurrentSession } from "./sessions/get-current-session";
 import { createSession } from "./sessions/create-session";
-import { getSessionPreferences } from "./sessions/get-preferences";
+import { getSessionCurrent } from "./sessions/get-session-current";
 import { updateSessionPreferences } from "./sessions/update-preferences";
 import { getPOWChallenge } from "./protection/get-pow-challenge";
 import { isPOWSolverSupported, solvePOW } from "./protection/solve-pow";
 import { getSpotlight } from "./site/get-spotlight";
 import { handleAuthCallback } from "./auth/handle-callback";
-import { checkSessionViaCookie } from "./auth/session-check";
 import { getUser } from "./users/get-user";
 import { getUsers } from "./users/get-users";
 import { search } from "./search/search";
@@ -104,7 +103,7 @@ export const backend = {
   // Sessions
   getCurrentSession,
   createSession,
-  getSessionPreferences,
+  getSessionCurrent,
   updateSessionPreferences,
 
   // Protection
@@ -117,7 +116,6 @@ export const backend = {
 
   // Auth
   handleAuthCallback,
-  checkSessionViaCookie,
 
   // Users
   getUser,
@@ -130,7 +128,6 @@ export const backend = {
 // Individual exports for tree-shaking
 export {
   checkProfileSlug,
-  checkSessionViaCookie,
   createProfile,
   createProfileLink,
   createProfilePage,
@@ -149,7 +146,7 @@ export {
   getProfileStories,
   getProfileStory,
   getProfileTranslations,
-  getSessionPreferences,
+  getSessionCurrent,
   getSpotlight,
   getStoriesByKinds,
   getStory,

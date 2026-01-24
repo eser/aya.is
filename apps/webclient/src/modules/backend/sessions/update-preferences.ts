@@ -11,7 +11,7 @@ export async function updateSessionPreferences(
 ): Promise<SessionPreferences | null> {
   const backendUri = getBackendUri();
   const response = await fetch(
-    `${backendUri}/${locale}/sessions/current/preferences`,
+    `${backendUri}/${locale}/sessions/_current`,
     {
       method: "PATCH",
       headers: {

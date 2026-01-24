@@ -40,14 +40,16 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
 ) {
-	// Session check endpoint for cross-domain SSO (reads from cookie, not Authorization header)
+	// GET /{locale}/sessions/_current - Consolidated session endpoint (cookie-based, no auth middleware)
+	// Returns auth state, fresh JWT token, and preferences in a single response.
+	// Used by frontend on app mount to establish session state without multiple round-trips.
 	routes.Route(
-		"GET /{locale}/auth/session-check",
-		func(ctx *httpfx.Context) httpfx.Result {
+		"GET /{locale}/sessions/_current",
+		func(ctx *httpfx.Context) httpfx.Result { //nolint:cyclop
 			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
 			if err != nil {
 				return ctx.Results.JSON(map[string]any{
-					"data": map[string]any{"authenticated": false},
+					"data": map[string]any{"authenticated": false, "preferences": nil},
 				})
 			}
 
@@ -56,17 +58,26 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
 				return ctx.Results.JSON(map[string]any{
-					"data": map[string]any{"authenticated": false},
+					"data": map[string]any{"authenticated": false, "preferences": nil},
 				})
 			}
 
+			// Fetch preferences (available for both anonymous and authenticated sessions)
+			prefs, prefsErr := sessionService.GetPreferences(ctx.Request.Context(), sessionID)
+			if prefsErr != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to get preferences",
+					slog.String("error", prefsErr.Error()),
+					slog.String("session_id", sessionID))
+			}
+
+			// Anonymous session - return preferences only
 			if session.LoggedInUserID == nil {
 				return ctx.Results.JSON(map[string]any{
-					"data": map[string]any{"authenticated": false},
+					"data": map[string]any{"authenticated": false, "preferences": prefs},
 				})
 			}
 
-			// Generate fresh JWT
+			// Authenticated session - generate fresh JWT and include user data
 			tokenString, expiresAt, err := authService.GenerateSessionToken(
 				session.ID,
 				*session.LoggedInUserID,
@@ -76,7 +87,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 					slog.String("error", err.Error()))
 
 				return ctx.Results.JSON(map[string]any{
-					"data": map[string]any{"authenticated": false},
+					"data": map[string]any{"authenticated": false, "preferences": prefs},
 				})
 			}
 
@@ -88,6 +99,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				"expires_at":       expiresAt.Unix(),
 				"user":             user,
 				"selected_profile": nil,
+				"preferences":      prefs,
 			}
 
 			// If user has an individual profile, fetch it
@@ -114,8 +126,8 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				"data": response,
 			})
 		}).
-		HasSummary("Session Check").
-		HasDescription("Checks session via cookie for cross-domain SSO.").
+		HasSummary("Get Current Session").
+		HasDescription("Returns auth state, token, and preferences via cookie-based session check.").
 		HasResponse(http.StatusOK)
 
 	// Register authenticated route with auth middleware
@@ -339,55 +351,9 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 		HasDescription("Creates a new anonymous session with optional PoW verification.").
 		HasResponse(http.StatusOK)
 
-	// GET /{locale}/sessions/current/preferences - Get current session preferences
+	// PATCH /{locale}/sessions/_current - Update session preferences
 	routes.Route(
-		"GET /{locale}/sessions/current/preferences",
-		func(ctx *httpfx.Context) httpfx.Result {
-			// Get session ID from cookie
-			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-			if err != nil {
-				return ctx.Results.Unauthorized(
-					httpfx.WithPlainText("No session found"),
-				)
-			}
-
-			// Verify session exists
-			session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-			if err != nil || session == nil || session.Status != users.SessionStatusActive {
-				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
-
-				return ctx.Results.Unauthorized(
-					httpfx.WithPlainText("Invalid session"),
-				)
-			}
-
-			// Get preferences
-			prefs, err := sessionService.GetPreferences(ctx.Request.Context(), sessionID)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Failed to get preferences",
-					slog.String("error", err.Error()),
-					slog.String("session_id", sessionID))
-
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get preferences"),
-				)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": map[string]any{
-					"preferences": prefs,
-				},
-				"error": nil,
-			})
-		}).
-		HasSummary("Get Session Preferences").
-		HasDescription("Returns the current session preferences.").
-		HasResponse(http.StatusOK)
-
-	// PATCH /{locale}/sessions/current/preferences - Update session preferences
-	routes.Route(
-		"PATCH /{locale}/sessions/current/preferences",
+		"PATCH /{locale}/sessions/_current",
 		func(ctx *httpfx.Context) httpfx.Result {
 			// Get session ID from cookie
 			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)

@@ -23,3 +23,29 @@ export interface CreateSessionResponse {
 export interface PreferencesResponse {
   preferences: SessionPreferences;
 }
+
+/**
+ * Response from GET /sessions/_current consolidated endpoint
+ */
+export interface SessionCurrentResponse {
+  authenticated: boolean;
+  token?: string;
+  expires_at?: number;
+  user?: {
+    id: string;
+    kind: string;
+    name: string;
+    email?: string;
+    github_handle?: string;
+    individual_profile_id?: string;
+  };
+  selected_profile?: {
+    id: string;
+    slug: string;
+    kind: string;
+    title: string;
+    description?: string;
+    profile_picture_uri?: string;
+  };
+  preferences?: SessionPreferences;
+}

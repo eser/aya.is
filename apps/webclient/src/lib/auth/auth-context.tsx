@@ -1,5 +1,6 @@
 import * as React from "react";
-import { checkSessionViaCookie } from "@/modules/backend/auth/session-check";
+import { getSessionCurrent } from "@/modules/backend/sessions/get-session-current";
+import type { SessionPreferences } from "@/modules/backend/sessions/types";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
 import {
@@ -24,6 +25,7 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   user: User | null;
   token: string | null;
+  preferences: SessionPreferences | null;
   login: (redirectUri?: string) => void;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
@@ -41,11 +43,13 @@ export function AuthProvider(props: AuthProviderProps) {
     isAuthenticated: boolean;
     user: User | null;
     token: string | null;
+    preferences: SessionPreferences | null;
   }>({
     isLoading: true,
     isAuthenticated: false,
     user: null,
     token: null,
+    preferences: null,
   });
 
   const initAuth = React.useCallback(async () => {
@@ -57,9 +61,8 @@ export function AuthProvider(props: AuthProviderProps) {
 
     const locale = getCurrentLanguage();
 
-    // Always validate session via cookie-based check (works cross-domain)
-    // This is the source of truth for authentication state
-    const result = await checkSessionViaCookie(locale);
+    // Single consolidated call: validates session cookie, returns auth + preferences
+    const result = await getSessionCurrent(locale);
 
     if (result.authenticated && result.token !== undefined) {
       // User is authenticated - update local storage and state
@@ -83,6 +86,7 @@ export function AuthProvider(props: AuthProviderProps) {
         isAuthenticated: true,
         user: userData,
         token: result.token,
+        preferences: result.preferences ?? null,
       });
     } else {
       // User is NOT authenticated - clear any stale local data
@@ -93,6 +97,7 @@ export function AuthProvider(props: AuthProviderProps) {
         isAuthenticated: false,
         user: null,
         token: null,
+        preferences: result.preferences ?? null,
       });
     }
   }, []);
