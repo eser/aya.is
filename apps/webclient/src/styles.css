@@ -162,6 +162,10 @@
     &.hero {
       @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-8;
     }
+
+    &.no-margin {
+      @apply mb-0;
+    }
   }
 
   h2 {
@@ -174,6 +178,10 @@
     &.subtitle {
       @apply text-xs sm:text-sm md:text-base lg:text-lg mt-0 mb-10 text-muted-foreground;
     }
+
+    &.no-margin {
+      @apply mb-0;
+    }
   }
 
   h3 {
@@ -181,6 +189,10 @@
 
     &:not(:first-child) {
       @apply mt-6;
+    }
+
+    &.no-margin {
+      @apply mb-0;
     }
   }
 
@@ -190,6 +202,10 @@
     &:not(:first-child) {
       @apply mt-4;
     }
+
+    &.no-margin {
+      @apply mb-0;
+    }
   }
 
   h5 {
@@ -197,6 +213,10 @@
 
     &:not(:first-child) {
       @apply mt-4;
+    }
+
+    &.no-margin {
+      @apply mb-0;
     }
   }
 

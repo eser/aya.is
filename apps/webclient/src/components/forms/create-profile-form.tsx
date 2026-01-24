@@ -63,6 +63,8 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     ? "organization"
     : props.defaultKind;
 
+  const [selectedKind, setSelectedKind] = React.useState<ProfileKind>(effectiveDefaultKind);
+  const [slugValue, setSlugValue] = React.useState("");
   const [slugAvailability, setSlugAvailability] = React.useState<SlugAvailability>({
     isChecking: false,
     isAvailable: null,
@@ -84,17 +86,8 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     },
   });
 
-  const slugValue = form.useStore((state) => state.values.slug);
-  const slugErrors = form.useStore((state) => {
-    const fieldMeta = state.fieldMeta.slug;
-    if (fieldMeta === undefined) {
-      return [];
-    }
-    return fieldMeta.errors;
-  });
-
   React.useEffect(() => {
-    if (slugValue.length < 3 || slugErrors.length > 0) {
+    if (slugValue.length < 3) {
       setSlugAvailability({ isChecking: false, isAvailable: null, message: null });
       return;
     }
@@ -122,12 +115,13 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slugValue, slugErrors.length, props.locale, t]);
+  }, [slugValue, props.locale, t]);
 
   const handleTypeSelect = (kind: ProfileKind) => {
     if (kind === "individual" && props.hasIndividualProfile) {
       return;
     }
+    setSelectedKind(kind);
     form.setFieldValue("kind", kind);
   };
 
@@ -135,15 +129,11 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     const sanitized = e.target.value
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, "-");
+    setSlugValue(sanitized);
     form.setFieldValue("slug", sanitized);
   };
 
-  const selectedKind = form.useStore((state) => state.values.kind);
-  const canSubmitForm = form.useStore((state) => state.canSubmit);
-  const isSubmitting = form.useStore((state) => state.isSubmitting);
-
   const isSlugValid = slugAvailability.isAvailable === true && !slugAvailability.isChecking;
-  const submitDisabled = !canSubmitForm || isSubmitting || !isSlugValid;
 
   return (
     <div className={styles.formContainer}>
@@ -231,7 +221,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                     placeholder="my-profile"
                     className="pr-24"
                   />
-                  {field.state.value.length >= 3 && field.state.meta.errors.length === 0 && (
+                  {slugValue.length >= 3 && field.state.meta.errors.length === 0 && (
                     <span className={styles.slugStatus}>
                       {slugAvailability.isChecking && (
                         <span className={styles.slugStatusChecking}>
@@ -253,9 +243,9 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                     </span>
                   )}
                 </div>
-                {field.state.value.length > 0 && field.state.meta.errors.length === 0 && (
+                {slugValue.length > 0 && field.state.meta.errors.length === 0 && (
                   <p className={styles.slugPreview}>
-                    aya.is/{props.locale}/{field.state.value}
+                    aya.is/{props.locale}/{slugValue}
                   </p>
                 )}
                 {field.state.meta.errors.length > 0 && <FieldError>{field.state.meta.errors[0]}</FieldError>}
@@ -302,19 +292,23 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
         </div>
 
         <div className={styles.actions}>
-          <Button
-            type="submit"
-            disabled={submitDisabled}
-          >
-            {isSubmitting
-              ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  {t("Loading.Submitting...")}
-                </>
-              )
-              : t("Profile.Create Profile")}
-          </Button>
+          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+            {([canSubmit, isSubmitting]) => (
+              <Button
+                type="submit"
+                disabled={!canSubmit || isSubmitting || !isSlugValid}
+              >
+                {isSubmitting
+                  ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      {t("Loading.Submitting...")}
+                    </>
+                  )
+                  : t("Profile.Create Profile")}
+              </Button>
+            )}
+          </form.Subscribe>
         </div>
       </form>
     </div>

@@ -31,7 +31,7 @@ function NewsPage() {
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
           <div className="flex items-center justify-between mb-20">
-            <h1 className="mb-0">{t("Layout.News")}</h1>
+            <h1 className="no-margin">{t("Layout.News")}</h1>
             {isAuthenticated && (
               <Link
                 to="/$locale/stories/new"
