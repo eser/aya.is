@@ -235,14 +235,14 @@ SELECT
   st.summary,
   p.slug as author_slug,
   pt.title as author_title,
-  ts_rank(st.search_vector, plainto_tsquery('simple', sqlc.arg(query))) as rank
+  ts_rank(st.search_vector, plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))) as rank
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
     AND st.locale_code = sqlc.arg(locale_code)
   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
   LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
     AND pt.locale_code = sqlc.arg(locale_code)
-WHERE st.search_vector @@ plainto_tsquery('simple', sqlc.arg(query))
+WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
   AND s.deleted_at IS NULL
   AND s.status = 'published'
   AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
