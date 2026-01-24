@@ -280,7 +280,13 @@
     "Available": "Uygun",
     "This slug is unavailable": "Bu slug kullanılamaz",
     "Profile created successfully": "Profil başarıyla oluşturuldu",
-    "Failed to create profile": "Profil oluşturulamadı"
+    "Failed to create profile": "Profil oluşturulamadı",
+    "Please select a profile type": "Lütfen bir profil türü seçin",
+    "Slug must be at least 3 characters": "Slug en az 3 karakter olmalıdır",
+    "Slug must be at most 50 characters": "Slug en fazla 50 karakter olmalıdır",
+    "Slug can only contain lowercase letters, numbers, and hyphens": "Slug yalnızca küçük harf, rakam ve tire içerebilir",
+    "Title is too long": "Başlık çok uzun",
+    "Description is too long": "Açıklama çok uzun"
   },
   "StoryPage": {
     "Written by": "Yazan",

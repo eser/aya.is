@@ -3,7 +3,8 @@ import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Building2, Check, Loader2, Package, User, X } from "lucide-react";
-import { type CreateProfileInput, createProfileSchema } from "@/lib/schemas/profile";
+import { z } from "zod";
+import type { CreateProfileInput } from "@/lib/schemas/profile";
 import { backend } from "@/modules/backend/backend";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -79,6 +80,23 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     message: null,
   });
 
+  const localizedSchema = React.useMemo(
+    () =>
+      z.object({
+        kind: z.enum(["individual", "organization", "product"], {
+          required_error: t("Profile.Please select a profile type"),
+        }),
+        slug: z
+          .string()
+          .min(3, t("Profile.Slug must be at least 3 characters"))
+          .max(50, t("Profile.Slug must be at most 50 characters"))
+          .regex(/^[a-z0-9-]+$/, t("Profile.Slug can only contain lowercase letters, numbers, and hyphens")),
+        title: z.string().min(1, t("Profile.Title is required")).max(100, t("Profile.Title is too long")),
+        description: z.string().max(500, t("Profile.Description is too long")).optional(),
+      }),
+    [t],
+  );
+
   const form = useForm({
     defaultValues: {
       slug: "",
@@ -87,12 +105,14 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
       kind: effectiveDefaultKind,
     },
     validators: {
-      onChange: createProfileSchema,
+      onChange: localizedSchema,
     },
     onSubmit: async ({ value }) => {
       await props.onSubmit(value);
     },
   });
+
+  const unavailableMessage = t("Profile.This slug is unavailable");
 
   React.useEffect(() => {
     if (slugValue.length < 3) {
@@ -103,15 +123,23 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     setSlugAvailability((prev) => ({ ...prev, isChecking: true }));
 
     const timeoutId = setTimeout(async () => {
-      const result = await backend.checkProfileSlug(props.locale, slugValue);
+      try {
+        const result = await backend.checkProfileSlug(props.locale, slugValue);
 
-      if (result !== null) {
-        setSlugAvailability({
-          isChecking: false,
-          isAvailable: result.available,
-          message: result.available ? null : (result.message ?? t("Profile.This slug is unavailable")),
-        });
-      } else {
+        if (result !== null) {
+          setSlugAvailability({
+            isChecking: false,
+            isAvailable: result.available,
+            message: result.available ? null : (result.message ?? unavailableMessage),
+          });
+        } else {
+          setSlugAvailability({
+            isChecking: false,
+            isAvailable: null,
+            message: null,
+          });
+        }
+      } catch {
         setSlugAvailability({
           isChecking: false,
           isAvailable: null,
@@ -123,7 +151,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slugValue, props.locale, t]);
+  }, [slugValue, props.locale, unavailableMessage]);
 
   const handleTypeSelect = (kind: ProfileKind) => {
     if (kind === "individual" && props.hasIndividualProfile) {
