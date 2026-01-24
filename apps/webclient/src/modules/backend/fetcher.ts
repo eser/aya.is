@@ -219,15 +219,7 @@ async function fetcherInternal<T>(
   const targetUrl = `${backendUri}/${locale}${relativePath}`;
 
   // Get auth token from localStorage (only available on client)
-  let authToken = getAuthToken();
-
-  // Proactively refresh token if expiring soon to avoid mid-request failures
-  if (authToken !== null && isTokenExpiringSoon()) {
-    const tokenResponse = await refreshTokenRequest(locale);
-    if (tokenResponse !== null) {
-      authToken = tokenResponse.token;
-    }
-  }
+  const authToken = getAuthToken();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
