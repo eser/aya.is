@@ -152,7 +152,6 @@ function ProfileSidebar(props: ProfileSidebarProps) {
           )}
 
           {(props.profile.kind === "organization" ||
-            props.profile.kind === "project" ||
             props.profile.kind === "product") && (
             <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
               <LocaleLink

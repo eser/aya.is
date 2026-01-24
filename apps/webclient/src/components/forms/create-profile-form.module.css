@@ -1,0 +1,98 @@
+@reference "@/theme.css";
+
+/* Create Profile Form Styles */
+
+.formContainer {
+  @apply mx-auto max-w-2xl space-y-8 px-4 py-8;
+}
+
+.formHeader {
+  @apply space-y-1;
+}
+
+.backLink {
+  @apply inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground;
+}
+
+.heading {
+  @apply text-2xl font-semibold tracking-tight;
+}
+
+/* Profile Type Cards */
+
+.typeSection {
+  @apply space-y-4;
+}
+
+.typeSectionLabel {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.typeCards {
+  @apply grid grid-cols-1 gap-4 md:grid-cols-3;
+}
+
+.typeCard {
+  @apply relative flex cursor-pointer flex-col items-center rounded-xl border p-6 text-center transition-all
+    duration-200 hover:border-primary/50 hover:shadow-sm;
+}
+
+.typeCardSelected {
+  @apply border-primary bg-primary/5 shadow-sm;
+}
+
+.typeCardDisabled {
+  @apply pointer-events-none cursor-not-allowed opacity-50;
+}
+
+.typeCardIcon {
+  @apply mb-3 size-10 text-muted-foreground;
+}
+
+.typeCardIconSelected {
+  @apply text-primary;
+}
+
+.typeCardTitle {
+  @apply text-sm font-medium;
+}
+
+.typeCardDesc {
+  @apply mt-1 text-xs text-muted-foreground;
+}
+
+/* Details Section */
+
+.detailsSection {
+  @apply space-y-6 rounded-xl border p-6;
+}
+
+.slugInputGroup {
+  @apply relative;
+}
+
+.slugStatus {
+  @apply pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 text-xs;
+}
+
+.slugStatusAvailable {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.slugStatusUnavailable {
+  @apply text-destructive;
+}
+
+.slugStatusChecking {
+  @apply text-muted-foreground;
+}
+
+.slugPreview {
+  @apply mt-1.5 text-xs text-muted-foreground;
+}
+
+/* Actions */
+
+.actions {
+  @apply flex justify-end pt-4;
+}

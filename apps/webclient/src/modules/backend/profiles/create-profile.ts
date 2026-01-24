@@ -3,7 +3,7 @@ import { getAuthToken } from "../fetcher";
 import type { Profile } from "../types";
 
 export type CreateProfileRequest = {
-  kind: "individual" | "organization" | "project" | "product";
+  kind: "individual" | "organization" | "product";
   slug: string;
   title: string;
   description: string;

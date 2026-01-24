@@ -24,17 +24,15 @@ export const Route = createFileRoute("/$locale/stories/")({
 function StoriesIndexPage() {
   const { stories, locale } = Route.useLoaderData();
   const { t } = useTranslation();
-  const auth = useAuth();
-
-  const canCreate = auth.isAuthenticated && auth.user?.individual_profile_slug !== undefined;
+  const { isAuthenticated } = useAuth();
 
   return (
     <PageLayout>
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
-          <div className="flex items-start justify-between">
-            <h1>{t("Layout.Articles")}</h1>
-            {canCreate && (
+          <div className="flex items-center justify-between mb-20">
+            <h1 className="mb-0">{t("Layout.Articles")}</h1>
+            {isAuthenticated && (
               <Link
                 to="/$locale/stories/new"
                 params={{ locale }}

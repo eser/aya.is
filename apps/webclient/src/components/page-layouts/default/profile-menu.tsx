@@ -42,7 +42,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
     if (user.individual_profile_slug !== undefined) {
       navigate({ to: `/${locale}/${user.individual_profile_slug}` });
     } else {
-      navigate({ to: `/${locale}/elements/create-profile` });
+      navigate({ to: `/${locale}/elements/new` });
     }
   };
 

@@ -12,7 +12,7 @@ export interface Profile {
   title: string;
   description?: string | null;
   pronouns?: string | null;
-  kind: "individual" | "organization" | "project" | "product";
+  kind: "individual" | "organization" | "product";
   profile_picture_uri?: string | null;
   links?: ProfileLink[];
   pages?: ProfilePage[];
@@ -195,7 +195,7 @@ export interface CreateProfileInput {
   slug: string;
   title: string;
   description?: string;
-  kind: "individual" | "organization" | "project";
+  kind: "individual" | "organization" | "product";
 }
 
 export interface UpdateProfileInput {
