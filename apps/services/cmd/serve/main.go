@@ -104,4 +104,23 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 			return runner.Run(ctx)
 		})
 	}
+
+	// Event queue worker
+	if appContext.Config.Workers.EventQueue.Enabled {
+		workerID := idGen()
+
+		eventQueueWorker := workers.NewEventQueueWorker(
+			&appContext.Config.Workers.EventQueue,
+			appContext.Logger,
+			appContext.Repository,
+			appContext.EventRegistry,
+			workerID,
+		)
+
+		runner := workerfx.NewRunner(eventQueueWorker, appContext.Logger)
+
+		process.StartGoroutine("event-queue-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
 }

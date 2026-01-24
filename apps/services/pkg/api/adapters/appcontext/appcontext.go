@@ -17,6 +17,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
@@ -61,6 +62,8 @@ type AppContext struct {
 	SessionService    *sessions.Service
 	ProtectionService *protection.Service
 	LinkSyncService   *linksync.Service
+	EventService      *events.Service
+	EventRegistry     *events.HandlerRegistry
 }
 
 func New() *AppContext {
@@ -237,6 +240,14 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Repository,
 		idGen,
 	)
+
+	a.EventService = events.NewService(
+		a.Logger,
+		a.Repository,
+		idGen,
+	)
+
+	a.EventRegistry = events.NewHandlerRegistry()
 
 	// ----------------------------------------------------
 	// External Services

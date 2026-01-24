@@ -17,12 +17,52 @@ type Querier interface {
 	//      AND deleted_at IS NULL
 	//  ) AS exists
 	CheckProfileSlugExists(ctx context.Context, arg CheckProfileSlugExistsParams) (bool, error)
+	// CTE-based claim: atomically selects + locks + updates.
+	// Picks up both pending events that are due AND stale processing events
+	// past their visibility timeout (crash recovery built into the claim).
+	// Increments retry_count at claim time for crash safety.
+	//
+	//  WITH claimable AS (
+	//    SELECT id FROM "event_queue"
+	//    WHERE (
+	//      (status = 'pending' AND visible_at <= NOW())
+	//      OR (status = 'processing' AND visible_at <= NOW())
+	//    )
+	//    AND retry_count <= max_retries
+	//    ORDER BY visible_at ASC
+	//    LIMIT 1
+	//    FOR UPDATE SKIP LOCKED
+	//  )
+	//  UPDATE "event_queue"
+	//  SET
+	//    status = 'processing',
+	//    started_at = NOW(),
+	//    visible_at = NOW() + visibility_timeout_secs * INTERVAL '1 second',
+	//    retry_count = retry_count + 1,
+	//    worker_id = $1,
+	//    updated_at = NOW()
+	//  FROM claimable
+	//  WHERE "event_queue".id = claimable.id
+	//  RETURNING event_queue.id, event_queue.type, event_queue.payload, event_queue.status, event_queue.retry_count, event_queue.max_retries, event_queue.visible_at, event_queue.visibility_timeout_secs, event_queue.started_at, event_queue.completed_at, event_queue.failed_at, event_queue.created_at, event_queue.updated_at, event_queue.error_message, event_queue.worker_id
+	ClaimNextEvent(ctx context.Context, arg ClaimNextEventParams) (*EventQueue, error)
 	//CleanupExpiredSessionRateLimits
 	//
 	//  DELETE FROM session_rate_limit
 	//  WHERE
 	//    window_start < NOW() - INTERVAL '2 hours'
 	CleanupExpiredSessionRateLimits(ctx context.Context) error
+	// Worker ID check prevents a timed-out worker from completing
+	// a job that was already re-claimed by another worker.
+	//
+	//  UPDATE "event_queue"
+	//  SET
+	//    status = 'completed',
+	//    completed_at = NOW(),
+	//    updated_at = NOW()
+	//  WHERE id = $1
+	//    AND status = 'processing'
+	//    AND worker_id = $2
+	CompleteEvent(ctx context.Context, arg CompleteEventParams) (int64, error)
 	//CopySessionPreferences
 	//
 	//  INSERT INTO
@@ -272,6 +312,43 @@ type Querier interface {
 	//    session_id = $1
 	//    AND key = $2
 	DeleteSessionPreference(ctx context.Context, arg DeleteSessionPreferenceParams) error
+	//EnqueueEvent
+	//
+	//  INSERT INTO "event_queue" (
+	//    id, type, payload, status, max_retries,
+	//    visibility_timeout_secs, visible_at, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    'pending',
+	//    $4,
+	//    $5,
+	//    $6,
+	//    NOW()
+	//  )
+	EnqueueEvent(ctx context.Context, arg EnqueueEventParams) error
+	// On failure: if retries exhausted -> dead, otherwise -> pending with backoff.
+	// Worker ID check prevents stale workers from interfering.
+	//
+	//  UPDATE "event_queue"
+	//  SET
+	//    status = CASE
+	//      WHEN retry_count >= max_retries THEN 'dead'
+	//      ELSE 'pending'
+	//    END,
+	//    error_message = $1,
+	//    failed_at = NOW(),
+	//    visible_at = CASE
+	//      WHEN retry_count >= max_retries THEN visible_at
+	//      ELSE NOW() + $2::INTEGER * INTERVAL '1 second'
+	//    END,
+	//    worker_id = NULL,
+	//    updated_at = NOW()
+	//  WHERE id = $3
+	//    AND status = 'processing'
+	//    AND worker_id = $4
+	FailEvent(ctx context.Context, arg FailEventParams) (int64, error)
 	//GetFromCache
 	//
 	//  SELECT value, updated_at
@@ -688,6 +765,14 @@ type Querier interface {
 	//    $5
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
+	//ListEventsByType
+	//
+	//  SELECT id, type, payload, status, retry_count, max_retries, visible_at, visibility_timeout_secs, started_at, completed_at, failed_at, created_at, updated_at, error_message, worker_id
+	//  FROM "event_queue"
+	//  WHERE type = $1
+	//  ORDER BY created_at DESC
+	//  LIMIT $2
+	ListEventsByType(ctx context.Context, arg ListEventsByTypeParams) ([]*EventQueue, error)
 	//ListManagedLinksForKind
 	//
 	//  SELECT
