@@ -8,7 +8,8 @@ export async function getStory(
   storyslug: string,
 ): Promise<StoryEx | null> {
   const response = await fetcher<GetStoryData>(
-    `/${locale}/stories/${storyslug}`,
+    locale,
+    `/stories/${storyslug}`,
   );
   return response;
 }

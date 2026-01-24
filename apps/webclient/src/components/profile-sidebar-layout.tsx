@@ -1,12 +1,10 @@
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Globe, Instagram, Link, Linkedin, SquarePen, Youtube } from "lucide-react";
 import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
-import { useAuth } from "@/lib/auth/auth-context";
-import { backend } from "@/modules/backend/backend";
+import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 
 function findIcon(kind: string) {
   switch (kind) {
@@ -58,21 +56,7 @@ type ProfileSidebarProps = {
 
 function ProfileSidebar(props: ProfileSidebarProps) {
   const { t } = useTranslation();
-  const auth = useAuth();
-  const [canEdit, setCanEdit] = React.useState(false);
-
-  // Check if user can edit this profile
-  React.useEffect(() => {
-    if (auth.isAuthenticated && !auth.isLoading) {
-      backend.getProfilePermissions(props.locale, props.slug).then((perms) => {
-        if (perms !== null) {
-          setCanEdit(perms.can_edit);
-        }
-      });
-    } else {
-      setCanEdit(false);
-    }
-  }, [auth.isAuthenticated, auth.isLoading, props.locale, props.slug]);
+  const { canEdit } = useProfilePermissions(props.locale, props.slug);
 
   return (
     <aside className="flex flex-col gap-4">

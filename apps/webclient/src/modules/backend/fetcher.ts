@@ -89,7 +89,7 @@ let refreshPromise: Promise<string | null> | null = null;
  * Deduplicates concurrent refresh calls to prevent race conditions
  */
 export async function refreshTokenRequest(
-  locale: string = "en",
+  locale: string,
 ): Promise<{ token: string; expiresAt: number } | null> {
   // Return existing refresh promise if one is in progress
   if (refreshPromise !== null) {
@@ -150,51 +150,6 @@ export async function refreshTokenRequest(
 }
 
 /**
- * Internal token refresh without locale parameter
- * Used for retry logic within fetcher
- */
-async function refreshToken(): Promise<string | null> {
-  const currentToken = getAuthToken();
-  if (currentToken === null) {
-    return null;
-  }
-
-  try {
-    const backendUri = getBackendUri();
-    // Use 'en' as fallback locale for token refresh (locale doesn't affect token validation)
-    const response = await fetch(`${backendUri}/en/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${currentToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    if (data.token !== undefined && data.token !== null) {
-      if (isLocalStorageAvailable()) {
-        globalThis.localStorage.setItem(AUTH_TOKEN_KEY, data.token as string);
-        if (data.expires_at !== undefined && data.expires_at !== null) {
-          globalThis.localStorage.setItem(
-            AUTH_TOKEN_EXPIRES_KEY,
-            String(data.expires_at),
-          );
-        }
-      }
-      return data.token as string;
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Build fetch options with proper credentials handling
  * Credentials are only included when authenticated due to CORS wildcard limitation
  */
@@ -218,6 +173,10 @@ function buildFetchOptions(
   return options;
 }
 
+// In-flight GET request cache to deduplicate concurrent fetches to the same endpoint.
+// Prevents multiple components or loaders from triggering duplicate network requests.
+const inflightGetRequests = new Map<string, Promise<unknown>>();
+
 /**
  * Generic API fetcher with automatic token refresh and error handling
  *
@@ -225,20 +184,47 @@ function buildFetchOptions(
  * because the backend uses wildcard CORS origin which is incompatible
  * with credentials (browsers reject this combination per CORS spec)
  */
-export async function fetcher<T>(
+export function fetcher<T>(
+  locale: string,
   relativePath: string,
   requestInit: RequestInit = {},
 ): Promise<T | null> {
-  const targetUrl = `${getBackendUri()}${relativePath}`;
+  const method = (requestInit.method ?? "GET").toUpperCase();
+  const requestPath = `${locale}/${relativePath}`;
+
+  // Deduplicate concurrent GET requests to the same path
+  if (method === "GET") {
+    const existing = inflightGetRequests.get(requestPath);
+    if (existing !== undefined) {
+      return existing as Promise<T | null>;
+    }
+
+    const promise = fetcherInternal<T>(locale, relativePath, requestInit).finally(() => {
+      inflightGetRequests.delete(requestPath);
+    });
+
+    inflightGetRequests.set(requestPath, promise);
+    return promise;
+  }
+
+  return fetcherInternal<T>(locale, relativePath, requestInit);
+}
+
+async function fetcherInternal<T>(
+  locale: string,
+  relativePath: string,
+  requestInit: RequestInit,
+): Promise<T | null> {
+  const targetUrl = `${getBackendUri()}${locale}/${relativePath}`;
 
   // Get auth token from localStorage (only available on client)
   let authToken = getAuthToken();
 
   // Proactively refresh token if expiring soon to avoid mid-request failures
   if (authToken !== null && isTokenExpiringSoon()) {
-    const newToken = await refreshToken();
-    if (newToken !== null) {
-      authToken = newToken;
+    const tokenResponse = await refreshTokenRequest(locale);
+    if (tokenResponse !== null) {
+      authToken = tokenResponse.token;
     }
   }
 
@@ -260,10 +246,10 @@ export async function fetcher<T>(
     response.status === HTTP_STATUS_METHOD_NOT_ALLOWED
   ) {
     if (authToken !== null) {
-      const newToken = await refreshToken();
+      const tokenResponse = await refreshTokenRequest(locale);
 
-      if (newToken !== null) {
-        headers["Authorization"] = `Bearer ${newToken}`;
+      if (tokenResponse !== null) {
+        headers["Authorization"] = `Bearer ${tokenResponse.token}`;
         const retryOptions = buildFetchOptions(requestInit, headers, true);
         const retryResponse = await fetch(targetUrl, retryOptions);
 
@@ -327,10 +313,11 @@ export async function fetcher<T>(
  * Does not set Content-Type header (browser sets it with boundary)
  */
 export async function uploadFetcher<T>(
+  locale: string,
   relativePath: string,
   formData: FormData,
 ): Promise<T | null> {
-  const targetUrl = `${getBackendUri()}${relativePath}`;
+  const targetUrl = `${getBackendUri()}${locale}/${relativePath}`;
 
   const authToken = getAuthToken();
 

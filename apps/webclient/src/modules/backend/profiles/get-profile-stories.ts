@@ -5,5 +5,5 @@ export async function getProfileStories(
   locale: string,
   slug: string,
 ): Promise<Story[] | null> {
-  return await fetcher<Story[]>(`/${locale}/profiles/${slug}/stories`);
+  return await fetcher<Story[]>(locale, `/profiles/${slug}/stories`);
 }

@@ -10,7 +10,8 @@ export async function removeUpload(
   key: string,
 ): Promise<RemoveUploadResult | null> {
   const response = await fetcher<RemoveUploadResult>(
-    `/${locale}/site/uploads/${key}`,
+    locale,
+    `/site/uploads/${key}`,
     {
       method: "DELETE",
     },

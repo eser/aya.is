@@ -1,12 +1,11 @@
 // Profile index - shows profile stories/timeline with date grouping and pagination
-import * as React from "react";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
 import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/auth-context";
+import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 
 const parentRoute = getRouteApi("/$locale/$slug");
@@ -26,23 +25,9 @@ export const Route = createFileRoute("/$locale/$slug/")({
 
 function ProfileIndexPage() {
   const { t } = useTranslation();
-  const auth = useAuth();
   const { stories, slug, locale } = Route.useLoaderData();
   const { profile } = parentRoute.useLoaderData();
-  const [canEdit, setCanEdit] = React.useState(false);
-
-  // Check edit permissions
-  React.useEffect(() => {
-    if (auth.isAuthenticated && !auth.isLoading) {
-      backend.getProfilePermissions(locale, slug).then((perms) => {
-        if (perms !== null) {
-          setCanEdit(perms.can_edit);
-        }
-      });
-    } else {
-      setCanEdit(false);
-    }
-  }, [auth.isAuthenticated, auth.isLoading, locale, slug]);
+  const { canEdit } = useProfilePermissions(locale, slug);
 
   if (profile === null) {
     return null;

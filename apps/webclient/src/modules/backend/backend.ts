@@ -1,7 +1,6 @@
 // Backend API Facade
 // This module provides a unified interface to all backend API calls
 
-import { getCustomDomain } from "./profiles/get-custom-domain";
 import { getProfilesByKinds } from "./profiles/get-profiles-by-kinds";
 import { getProfile } from "./profiles/get-profile";
 import { getProfilePage } from "./profiles/get-profile-page";
@@ -57,7 +56,6 @@ export * from "./types";
 // Backend API facade
 export const backend = {
   // Profiles
-  getCustomDomain,
   getProfilesByKinds,
   getProfile,
   getProfilePage,
@@ -140,7 +138,6 @@ export {
   deleteProfileLink,
   deleteProfilePage,
   getCurrentSession,
-  getCustomDomain,
   getPOWChallenge,
   getPresignedURL,
   getProfile,

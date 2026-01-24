@@ -14,7 +14,8 @@ export async function updateStoryTranslation(
   input: UpdateStoryTranslationInput,
 ): Promise<UpdateStoryTranslationResult | null> {
   const response = await fetcher<UpdateStoryTranslationResult>(
-    `/${locale}/profiles/${profileSlug}/_stories/${storyId}/translations/${translationLocale}`,
+    locale,
+    `/profiles/${profileSlug}/_stories/${storyId}/translations/${translationLocale}`,
     {
       method: "PATCH",
       body: JSON.stringify(input),

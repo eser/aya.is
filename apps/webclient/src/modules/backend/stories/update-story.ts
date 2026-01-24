@@ -10,7 +10,8 @@ export async function updateStory(
   input: UpdateStoryInput,
 ): Promise<Story | null> {
   const response = await fetcher<UpdateStoryData>(
-    `/${locale}/profiles/${profileSlug}/_stories/${storyId}`,
+    locale,
+    `/profiles/${profileSlug}/_stories/${storyId}`,
     {
       method: "PATCH",
       body: JSON.stringify(input),

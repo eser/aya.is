@@ -14,7 +14,8 @@ export async function uploadProfilePicture(
   formData.append("file", file);
 
   return await uploadFetcher<UploadProfilePictureResponse>(
-    `/${locale}/profiles/${slug}/_upload-picture`,
+    locale,
+    `/profiles/${slug}/_upload-picture`,
     formData,
   );
 }

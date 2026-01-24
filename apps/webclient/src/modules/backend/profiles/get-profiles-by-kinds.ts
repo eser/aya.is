@@ -6,5 +6,5 @@ export async function getProfilesByKinds(
   kinds: string[],
 ): Promise<Profile[] | null> {
   const kindsParam = kinds.join(",");
-  return await fetcher<Profile[]>(`/${locale}/profiles?filter_kind=${kindsParam}`);
+  return await fetcher<Profile[]>(locale, `/profiles?filter_kind=${kindsParam}`);
 }

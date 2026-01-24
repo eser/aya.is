@@ -9,5 +9,5 @@ export interface SpotlightItem {
 export type GetSpotlightData = SpotlightItem[];
 
 export async function getSpotlight(locale: string): Promise<GetSpotlightData | null> {
-  return await fetcher<GetSpotlightData>(`/${locale}/site/spotlight`);
+  return await fetcher<GetSpotlightData>(locale, `/site/spotlight`);
 }

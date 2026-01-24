@@ -8,7 +8,8 @@ export async function getProfileMembers(
   slug: string,
 ): Promise<ProfileMembership[] | null> {
   const response = await fetcher<GetProfileMembersData>(
-    `/${locale}/profiles/${slug}/members`,
+    locale,
+    `/profiles/${slug}/members`,
   );
 
   return response;

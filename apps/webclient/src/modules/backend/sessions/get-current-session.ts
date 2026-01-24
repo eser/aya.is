@@ -4,5 +4,5 @@ import type { Session } from "../types";
 export async function getCurrentSession(
   locale: string,
 ): Promise<Session | null> {
-  return await fetcher<Session>(`/${locale}/auth/session`);
+  return await fetcher<Session>(locale, `/auth/session`);
 }

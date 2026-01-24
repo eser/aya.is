@@ -8,7 +8,8 @@ export async function getProfileContributions(
   slug: string,
 ): Promise<ProfileMembership[] | null> {
   const response = await fetcher<GetProfileContributionsData>(
-    `/${locale}/profiles/${slug}/contributions`,
+    locale,
+    `/profiles/${slug}/contributions`,
   );
 
   return response;

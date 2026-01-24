@@ -15,7 +15,8 @@ export async function updateProfilePage(
   data: UpdateProfilePageRequest,
 ): Promise<ProfilePage | null> {
   return await fetcher<ProfilePage>(
-    `/${locale}/profiles/${profileSlug}/_pages/${pageId}`,
+    locale,
+    `/profiles/${profileSlug}/_pages/${pageId}`,
     {
       method: "PATCH",
       body: JSON.stringify(data),

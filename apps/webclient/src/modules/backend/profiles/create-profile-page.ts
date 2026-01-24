@@ -15,7 +15,7 @@ export async function createProfilePage(
   profileSlug: string,
   data: CreateProfilePageRequest,
 ): Promise<ProfilePage | null> {
-  return await fetcher<ProfilePage>(`/${locale}/profiles/${profileSlug}/_pages`, {
+  return await fetcher<ProfilePage>(locale, `/profiles/${profileSlug}/_pages`, {
     method: "POST",
     body: JSON.stringify(data),
   });

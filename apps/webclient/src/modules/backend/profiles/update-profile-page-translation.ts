@@ -14,7 +14,8 @@ export async function updateProfilePageTranslation(
   data: UpdateProfilePageTranslationRequest,
 ): Promise<{ success: boolean } | null> {
   return await fetcher<{ success: boolean }>(
-    `/${locale}/profiles/${profileSlug}/_pages/${pageId}/translations/${translationLocale}`,
+    locale,
+    `/profiles/${profileSlug}/_pages/${pageId}/translations/${translationLocale}`,
     {
       method: "PATCH",
       body: JSON.stringify(data),

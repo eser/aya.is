@@ -6,7 +6,7 @@ export async function updateProfilePicture(
   slug: string,
   profilePictureUri: string,
 ): Promise<Profile | null> {
-  return await fetcher<Profile>(`/${locale}/profiles/${slug}`, {
+  return await fetcher<Profile>(locale, `/profiles/${slug}`, {
     method: "PATCH",
     body: JSON.stringify({ profile_picture_uri: profilePictureUri }),
   });

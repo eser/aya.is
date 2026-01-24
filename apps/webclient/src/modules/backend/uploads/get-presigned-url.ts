@@ -9,7 +9,8 @@ export async function getPresignedURL(
   request: GetPresignedURLRequest,
 ): Promise<GetPresignedURLResponse | null> {
   const response = await fetcher<GetPresignedURLResponse>(
-    `/${locale}/site/uploads/presign`,
+    locale,
+    `/site/uploads/presign`,
     {
       method: "POST",
       body: JSON.stringify(request),

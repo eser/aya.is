@@ -7,7 +7,8 @@ export async function getStoryPermissions(
   storyId: string,
 ): Promise<StoryPermissions | null> {
   const response = await fetcher<StoryPermissions>(
-    `/${locale}/profiles/${profileSlug}/_stories/${storyId}/_permissions`,
+    locale,
+    `/profiles/${profileSlug}/_stories/${storyId}/_permissions`,
   );
   return response;
 }

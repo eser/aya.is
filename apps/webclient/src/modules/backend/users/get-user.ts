@@ -5,5 +5,5 @@ export async function getUser(
   locale: string,
   id: string,
 ): Promise<User | null> {
-  return await fetcher<User>(`/${locale}/users/${id}`);
+  return await fetcher<User>(locale, `/users/${id}`);
 }

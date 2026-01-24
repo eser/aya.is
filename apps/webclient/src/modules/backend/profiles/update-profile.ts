@@ -12,7 +12,7 @@ export async function updateProfile(
   slug: string,
   data: UpdateProfileRequest,
 ): Promise<Profile | null> {
-  return await fetcher<Profile>(`/${locale}/profiles/${slug}`, {
+  return await fetcher<Profile>(locale, `/profiles/${slug}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });

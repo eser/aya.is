@@ -9,7 +9,8 @@ export async function getProfileStory(
   storySlug: string,
 ): Promise<StoryEx | null> {
   const response = await fetcher<GetProfileStoryData>(
-    `/${locale}/profiles/${slug}/stories/${storySlug}`,
+    locale,
+    `/profiles/${slug}/stories/${storySlug}`,
   );
   return response;
 }

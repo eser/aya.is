@@ -10,7 +10,8 @@ export async function checkProfileSlug(
   slug: string,
 ): Promise<CheckProfileSlugResponse | null> {
   return await fetcher<CheckProfileSlugResponse>(
-    `/${locale}/profiles/${slug}/_check`,
+    locale,
+    `/profiles/${slug}/_check`,
     {
       method: "GET",
     },

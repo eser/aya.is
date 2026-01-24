@@ -1,5 +1,4 @@
 // Profile custom page
-import * as React from "react";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { SquarePen } from "lucide-react";
@@ -7,7 +6,7 @@ import { backend } from "@/modules/backend/backend";
 import { TextContent } from "@/components/widgets/text-content";
 import { compileMdx } from "@/lib/mdx";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/auth-context";
+import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 
 const profileRoute = getRouteApi("/$locale/$slug");
@@ -48,10 +47,9 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
 function ProfileCustomPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
-  const auth = useAuth();
   const loaderData = Route.useLoaderData();
   const { profile } = profileRoute.useLoaderData();
-  const [canEdit, setCanEdit] = React.useState(false);
+  const { canEdit } = useProfilePermissions(params.locale, params.slug);
 
   // If notFound flag is set, render 404 page
   if (loaderData.notFound || loaderData.page === null || profile === null) {
@@ -59,21 +57,6 @@ function ProfileCustomPage() {
   }
 
   const { page, compiledContent, locale, slug } = loaderData;
-
-  // Check edit permissions (pages use profile permissions)
-  React.useEffect(() => {
-    if (auth.isAuthenticated && !auth.isLoading) {
-      backend
-        .getProfilePermissions(params.locale, params.slug)
-        .then((perms) => {
-          if (perms !== null) {
-            setCanEdit(perms.can_edit);
-          }
-        });
-    } else {
-      setCanEdit(false);
-    }
-  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug]);
 
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>

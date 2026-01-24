@@ -8,7 +8,8 @@ export async function getStoriesByKinds(
   kinds: string[],
 ): Promise<StoryEx[] | null> {
   const response = await fetcher<GetStoriesData>(
-    `/${locale}/stories?filter_kind=${kinds.join(",")}`,
+    locale,
+    `/stories?filter_kind=${kinds.join(",")}`,
   );
 
   return response;

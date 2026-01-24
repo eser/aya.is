@@ -5,5 +5,5 @@ export async function getProfile(
   locale: string,
   slug: string,
 ): Promise<Profile | null> {
-  return await fetcher<Profile>(`/${locale}/profiles/${slug}`);
+  return await fetcher<Profile>(locale, `/profiles/${slug}`);
 }

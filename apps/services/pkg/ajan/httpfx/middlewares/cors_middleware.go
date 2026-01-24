@@ -13,7 +13,11 @@ const (
 	AccessControlAllowCredentialsHeader = "Access-Control-Allow-Credentials"
 	AccessControlAllowHeadersHeader     = "Access-Control-Allow-Headers"
 	AccessControlAllowMethodsHeader     = "Access-Control-Allow-Methods"
+	AccessControlMaxAgeHeader           = "Access-Control-Max-Age"
 )
+
+// preflightMaxAge is the duration in seconds that browsers can cache preflight responses.
+const preflightMaxAge = "3600"
 
 // corsConfig holds the configuration for CORS headers.
 // It is unexported as it's an internal detail of the CorsMiddleware.
@@ -126,7 +130,8 @@ func CorsMiddleware(options ...CorsOption) httpfx.Handler { //nolint:cyclop
 
 		// Handle preflight OPTIONS requests
 		if ctx.Request.Method == http.MethodOptions {
-			// Return 200 OK for preflight
+			headers.Set(AccessControlMaxAgeHeader, preflightMaxAge)
+
 			return ctx.Results.Ok()
 		}
 

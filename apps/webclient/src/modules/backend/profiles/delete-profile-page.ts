@@ -6,7 +6,8 @@ export async function deleteProfilePage(
   pageId: string,
 ): Promise<{ success: boolean } | null> {
   return await fetcher<{ success: boolean }>(
-    `/${locale}/profiles/${profileSlug}/_pages/${pageId}`,
+    locale,
+    `/profiles/${profileSlug}/_pages/${pageId}`,
     { method: "DELETE" },
   );
 }

@@ -28,5 +28,5 @@ export async function search(
     params.set("profile", profileSlug);
   }
 
-  return await fetcher<SearchResult[]>(`/${locale}/search?${params}`);
+  return await fetcher<SearchResult[]>(locale, `/search?${params}`);
 }
