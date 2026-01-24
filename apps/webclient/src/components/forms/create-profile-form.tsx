@@ -6,8 +6,14 @@ import { ArrowLeft, Building2, Check, Info, Loader2, Package, User, X } from "lu
 import { z } from "zod";
 import type { CreateProfileInput } from "@/lib/schemas/profile";
 import { backend } from "@/modules/backend/backend";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -224,73 +230,68 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                     {t(profileType.titleKey)}
                   </span>
                   <span className={styles.typeCardDesc}>
-                    {t(profileType.descKey)}
+                    {(profileType.kind === "individual" && props.hasIndividualProfile)
+                      ? t("Profile.Individual profile exists")
+                      : t(profileType.descKey)}
                   </span>
                 </button>
               );
             })}
           </div>
-
-          {props.hasIndividualProfile && (
-            <Alert>
-              <Info className="size-4" />
-              <AlertTitle>{t("Profile.Individual profile exists")}</AlertTitle>
-              <AlertDescription>
-                {t("Profile.You can create organization or product profiles")}
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
 
         {/* Profile Details */}
         <div className={styles.detailsSection}>
           <form.Field name="slug">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>
-                  {t("Profile.Slug")}
-                </FieldLabel>
-                <div className={styles.slugInputGroup}>
-                  <Input
-                    id={field.name}
-                    value={field.state.value}
-                    onChange={handleSlugChange}
-                    onBlur={field.handleBlur}
-                    placeholder="my-profile"
-                    className="pr-24"
-                  />
-                  {slugValue.length >= 3 && field.state.meta.errors.length === 0 && (
-                    <span className={styles.slugStatus}>
-                      {slugAvailability.isChecking && (
-                        <span className={styles.slugStatusChecking}>
-                          <Loader2 className="size-3.5 animate-spin" />
-                        </span>
-                      )}
-                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
-                        <span className={styles.slugStatusAvailable}>
-                          <Check className="size-3.5" />
-                          {t("Profile.Available")}
-                        </span>
-                      )}
-                      {!slugAvailability.isChecking && slugAvailability.isAvailable === false && (
-                        <span className={styles.slugStatusUnavailable}>
-                          <X className="size-3.5" />
-                          {slugAvailability.message}
-                        </span>
-                      )}
-                    </span>
+            {(field) => {
+              const hasValidationError = field.state.meta.errors.length > 0;
+              const isUnavailable = !slugAvailability.isChecking && slugAvailability.isAvailable === false;
+              const isInvalid = hasValidationError || isUnavailable;
+
+              return (
+                <Field data-invalid={isInvalid || undefined}>
+                  <FieldLabel htmlFor={field.name}>
+                    {t("Profile.Slug")}
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <InputGroupText>https://aya.is/{props.locale}/</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id={field.name}
+                      value={field.state.value}
+                      onChange={handleSlugChange}
+                      onBlur={field.handleBlur}
+                      placeholder="my-profile"
+                      aria-invalid={isInvalid || undefined}
+                    />
+                    {slugValue.length >= 3 && !hasValidationError && (
+                      <InputGroupAddon align="inline-end">
+                        {slugAvailability.isChecking && (
+                          <InputGroupText className={styles.slugStatusChecking}>
+                            <Loader2 className="size-3.5 animate-spin" />
+                          </InputGroupText>
+                        )}
+                        {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
+                          <InputGroupText className={styles.slugStatusAvailable}>
+                            <Check className="size-3.5" />
+                            {t("Profile.Available")}
+                          </InputGroupText>
+                        )}
+                      </InputGroupAddon>
+                    )}
+                  </InputGroup>
+                  {hasValidationError && (
+                    <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
                   )}
-                </div>
-                {slugValue.length > 0 && field.state.meta.errors.length === 0 && (
-                  <p className={styles.slugPreview}>
-                    aya.is/{props.locale}/{slugValue}
-                  </p>
-                )}
-                {field.state.meta.errors.length > 0 && (
-                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
-                )}
-              </Field>
-            )}
+                  {!hasValidationError && isUnavailable && (
+                    <FieldDescription className="text-destructive">
+                      {slugAvailability.message}
+                    </FieldDescription>
+                  )}
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="title">

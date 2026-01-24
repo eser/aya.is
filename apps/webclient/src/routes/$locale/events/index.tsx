@@ -6,7 +6,7 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 
-export const Route = createFileRoute("/$locale/events")({
+export const Route = createFileRoute("/$locale/events/")({
   loader: async ({ params }) => {
     const { locale } = params;
     // const events = await backend.getEvents(locale);
