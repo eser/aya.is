@@ -244,6 +244,8 @@
     "Connected successfully": "{{provider}} başarıyla bağlandı",
     "Connection was cancelled": "Bağlantı iptal edildi",
     "Failed to connect": "Bağlantı başarısız: {{error}}",
+    "Reconnect": "Yeniden Bağlan",
+    "Remove Connection": "Bağlantıyı Kaldır",
     "Manage your profile information, links, and preferences.": "Profil bilgilerinizi, bağlantılarınızı ve tercihlerinizi yönetin.",
     "Basic profile information and settings": "Temel profil bilgileri ve ayarları",
     "Manage your profile in multiple languages": "Profilinizi birden fazla dilde yönetin",

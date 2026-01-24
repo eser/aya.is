@@ -222,6 +222,8 @@
     "Connected successfully": "{{provider}} connected successfully",
     "Connection was cancelled": "Connection was cancelled",
     "Failed to connect": "Failed to connect: {{error}}",
+    "Reconnect": "Reconnect",
+    "Remove Connection": "Remove Connection",
     "Manage your profile information, links, and preferences.": "Manage your profile information, links, and preferences.",
     "Basic profile information and settings": "Basic profile information and settings",
     "Manage your profile in multiple languages": "Manage your profile in multiple languages",

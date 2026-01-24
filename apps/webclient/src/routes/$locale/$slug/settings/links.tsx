@@ -16,6 +16,8 @@ import {
   GripVertical,
   ChevronDown,
   BadgeCheck,
+  MoreHorizontal,
+  RefreshCw,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
@@ -298,6 +300,14 @@ function LinksSettingsPage() {
     }
   };
 
+  const handleReconnect = (link: ProfileLink) => {
+    if (link.kind === "github") {
+      handleConnectGitHub();
+    } else if (link.kind === "youtube") {
+      handleConnectYouTube();
+    }
+  };
+
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, linkId: string) => {
     setDraggedId(linkId);
@@ -519,6 +529,34 @@ function LinksSettingsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="size-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {link.is_managed && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={() => handleReconnect(link)}
+                          >
+                            <RefreshCw className="size-4" />
+                            {t("Profile.Reconnect")}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => handleOpenDeleteDialog(link)}
+                      >
+                        <Trash2 className="size-4" />
+                        {t("Profile.Remove Connection")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -528,16 +566,6 @@ function LinksSettingsPage() {
                     }}
                   >
                     <Pencil className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenDeleteDialog(link);
-                    }}
-                  >
-                    <Trash2 className="size-4" />
                   </Button>
                 </div>
               </div>
