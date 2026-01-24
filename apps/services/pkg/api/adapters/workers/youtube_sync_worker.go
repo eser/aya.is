@@ -99,7 +99,7 @@ func (w *YouTubeSyncWorker) Interval() time.Duration {
 
 // Execute runs a single sync cycle.
 func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
-	w.logger.InfoContext(ctx, "Starting YouTube sync cycle",
+	w.logger.DebugContext(ctx, "Starting YouTube sync cycle",
 		slog.String("mode", string(w.mode)))
 
 	// Get managed YouTube links

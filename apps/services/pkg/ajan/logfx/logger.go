@@ -2,6 +2,7 @@ package logfx
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -105,6 +106,10 @@ func (l *Logger) SetAsDefault() {
 	slog.SetDefault(l.Logger)
 }
 
+func (l *Logger) Printf(format string, args ...any) {
+	l.Log(context.Background(), slog.LevelInfo, fmt.Sprintf(format, args...))
+}
+
 // Trace logs at [LevelTrace].
 func (l *Logger) Trace(msg string, args ...any) {
 	l.Log(context.Background(), LevelTrace, msg, args...)
@@ -118,6 +123,12 @@ func (l *Logger) TraceContext(ctx context.Context, msg string, args ...any) {
 // Fatal logs at [LevelFatal].
 func (l *Logger) Fatal(msg string, args ...any) {
 	l.Log(context.Background(), LevelFatal, msg, args...)
+}
+
+// Fatalf logs at [LevelFatal] and exits.
+func (l *Logger) Fatalf(format string, args ...any) {
+	l.Log(context.Background(), LevelFatal, fmt.Sprintf(format, args...))
+	// os.Exit(1)
 }
 
 // FatalContext logs at [LevelFatal] with the given context.

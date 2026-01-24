@@ -26,6 +26,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 )
 
 var (
@@ -156,6 +157,8 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 
 	// Run database migrations
 	migrationsDir := a.Config.Data.MigrationsPath
+
+	goose.SetLogger(a.Logger)
 
 	err = a.Repository.RunMigrations(ctx, migrationsDir)
 	if err != nil {
