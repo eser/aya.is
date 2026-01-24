@@ -215,7 +215,8 @@ async function fetcherInternal<T>(
   relativePath: string,
   requestInit: RequestInit,
 ): Promise<T | null> {
-  const targetUrl = `${getBackendUri()}${locale}/${relativePath}`;
+  const backendUri = getBackendUri();
+  const targetUrl = `${backendUri}/${locale}${relativePath}`;
 
   // Get auth token from localStorage (only available on client)
   let authToken = getAuthToken();
@@ -317,7 +318,8 @@ export async function uploadFetcher<T>(
   relativePath: string,
   formData: FormData,
 ): Promise<T | null> {
-  const targetUrl = `${getBackendUri()}${locale}/${relativePath}`;
+  const backendUri = getBackendUri();
+  const targetUrl = `${backendUri}/${locale}${relativePath}`;
 
   const authToken = getAuthToken();
 
