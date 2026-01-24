@@ -224,22 +224,7 @@ func (w *YouTubeSyncWorker) syncLink( //nolint:cyclop,funlen
 
 	// Upsert each story
 	for _, story := range stories {
-		properties := map[string]any{
-			"title":         story.Title,
-			"description":   story.Description,
-			"published_at":  story.PublishedAt.Format(time.RFC3339),
-			"thumbnail_url": story.ThumbnailURL,
-			"duration":      story.Duration,
-			"view_count":    story.ViewCount,
-			"like_count":    story.LikeCount,
-		}
-
-		// Merge additional properties
-		for k, v := range story.Properties {
-			properties[k] = v
-		}
-
-		err = w.syncService.UpsertImport(ctx, link.ID, story.RemoteID, properties)
+		err = w.syncService.UpsertImport(ctx, link.ID, story.RemoteID, story.Properties)
 		if err != nil {
 			// Log but continue with other stories
 			w.logger.WarnContext(ctx, "Failed to upsert story",

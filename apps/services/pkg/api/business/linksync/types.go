@@ -37,15 +37,9 @@ type SyncResult struct {
 
 // RemoteStoryItem represents a story item fetched from a remote provider.
 type RemoteStoryItem struct {
-	RemoteID     string
-	Title        string
-	Description  string
-	PublishedAt  time.Time
-	ThumbnailURL string
-	Duration     string
-	ViewCount    int64
-	LikeCount    int64
-	Properties   map[string]any
+	RemoteID    string
+	PublishedAt time.Time
+	Properties  map[string]any
 }
 
 // TokenRefreshResult contains the result of a token refresh.

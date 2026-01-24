@@ -233,7 +233,7 @@ func (p *Provider) fetchPlaylistVideos(
 		}
 
 		// Process items
-		for _, item := range playlistResp.Items {
+		for i, item := range playlistResp.Items {
 			publishedAt, _ := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 
 			// Filter by publishedAfter if provided
@@ -243,17 +243,19 @@ func (p *Provider) fetchPlaylistVideos(
 				return videos, nil
 			}
 
+			// Store the raw playlist item metadata
+			var rawItem map[string]any
+
+			err := json.Unmarshal(playlistResp.RawItems[i], &rawItem)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
+			}
+
 			video := &linksync.RemoteStoryItem{
-				RemoteID:     item.ContentDetails.VideoID,
-				Title:        item.Snippet.Title,
-				Description:  item.Snippet.Description,
-				PublishedAt:  publishedAt,
-				ThumbnailURL: p.getBestThumbnail(item.Snippet.Thumbnails),
+				RemoteID:    item.ContentDetails.VideoID,
+				PublishedAt: publishedAt,
 				Properties: map[string]any{
-					"channel_id":    item.Snippet.ChannelID,
-					"channel_title": item.Snippet.ChannelTitle,
-					"playlist_id":   playlistID,
-					"position":      item.Snippet.Position,
+					"playlistItemMetadata": rawItem,
 				},
 			}
 
@@ -272,24 +274,22 @@ func (p *Provider) fetchPlaylistVideos(
 		pageToken = playlistResp.NextPageToken
 	}
 
-	// Fetch video statistics for the videos we have
+	// Fetch video metadata for the videos we have
 	if len(videos) > 0 {
 		videoIDs := make([]string, len(videos))
 		for i, v := range videos {
 			videoIDs[i] = v.RemoteID
 		}
 
-		stats, err := p.fetchVideoStatistics(ctx, accessToken, videoIDs)
+		videoMetadata, err := p.fetchVideoMetadata(ctx, accessToken, videoIDs)
 		if err != nil {
-			// Log but don't fail - statistics are optional
-			p.logger.WarnContext(ctx, "Failed to fetch video statistics",
+			// Log but don't fail - video metadata is optional
+			p.logger.WarnContext(ctx, "Failed to fetch video metadata",
 				slog.String("error", err.Error()))
 		} else {
 			for _, video := range videos {
-				if stat, ok := stats[video.RemoteID]; ok {
-					video.ViewCount = stat.ViewCount
-					video.LikeCount = stat.LikeCount
-					video.Duration = stat.Duration
+				if meta, ok := videoMetadata[video.RemoteID]; ok {
+					video.Properties["videoMetadata"] = meta
 				}
 			}
 		}
@@ -300,81 +300,56 @@ func (p *Provider) fetchPlaylistVideos(
 
 // playlistItemsResponse represents the YouTube playlist items API response.
 type playlistItemsResponse struct {
-	NextPageToken string `json:"nextPageToken"`
-	Items         []struct {
-		Snippet struct {
-			PublishedAt  string `json:"publishedAt"`
-			ChannelID    string `json:"channelId"`
-			Title        string `json:"title"`
-			Description  string `json:"description"`
-			ChannelTitle string `json:"channelTitle"`
-			Position     int    `json:"position"`
-			Thumbnails   struct {
-				Default  *thumbnail `json:"default"`
-				Medium   *thumbnail `json:"medium"`
-				High     *thumbnail `json:"high"`
-				Standard *thumbnail `json:"standard"`
-				Maxres   *thumbnail `json:"maxres"`
-			} `json:"thumbnails"`
-		} `json:"snippet"`
-		ContentDetails struct {
-			VideoID string `json:"videoId"`
-		} `json:"contentDetails"`
-	} `json:"items"`
+	NextPageToken string            `json:"nextPageToken"`
+	RawItems      []json.RawMessage `json:"items"`
+	Items         []playlistItem
 }
 
-type thumbnail struct {
-	URL    string `json:"url"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
+// playlistItem holds the minimal parsed fields needed for sync logic.
+type playlistItem struct {
+	Snippet struct {
+		PublishedAt string `json:"publishedAt"`
+	} `json:"snippet"`
+	ContentDetails struct {
+		VideoID string `json:"videoId"`
+	} `json:"contentDetails"`
 }
 
-// getBestThumbnail returns the highest quality thumbnail URL available.
-func (p *Provider) getBestThumbnail(thumbnails struct {
-	Default  *thumbnail `json:"default"`
-	Medium   *thumbnail `json:"medium"`
-	High     *thumbnail `json:"high"`
-	Standard *thumbnail `json:"standard"`
-	Maxres   *thumbnail `json:"maxres"`
-},
-) string {
-	if thumbnails.Maxres != nil {
-		return thumbnails.Maxres.URL
+// UnmarshalJSON custom unmarshals to preserve raw items while parsing minimal fields.
+func (r *playlistItemsResponse) UnmarshalJSON(data []byte) error {
+	type Alias struct {
+		NextPageToken string            `json:"nextPageToken"`
+		RawItems      []json.RawMessage `json:"items"`
 	}
 
-	if thumbnails.Standard != nil {
-		return thumbnails.Standard.URL
+	var alias Alias
+
+	err := json.Unmarshal(data, &alias)
+	if err != nil {
+		return err
 	}
 
-	if thumbnails.High != nil {
-		return thumbnails.High.URL
+	r.NextPageToken = alias.NextPageToken
+	r.RawItems = alias.RawItems
+	r.Items = make([]playlistItem, len(alias.RawItems))
+
+	for i, raw := range alias.RawItems {
+		err := json.Unmarshal(raw, &r.Items[i])
+		if err != nil {
+			return err
+		}
 	}
 
-	if thumbnails.Medium != nil {
-		return thumbnails.Medium.URL
-	}
-
-	if thumbnails.Default != nil {
-		return thumbnails.Default.URL
-	}
-
-	return ""
+	return nil
 }
 
-// videoStatistics holds view and like counts for a video.
-type videoStatistics struct {
-	ViewCount int64
-	LikeCount int64
-	Duration  string
-}
-
-// fetchVideoStatistics fetches statistics for multiple videos.
-func (p *Provider) fetchVideoStatistics(
+// fetchVideoMetadata fetches full metadata for multiple videos.
+func (p *Provider) fetchVideoMetadata(
 	ctx context.Context,
 	accessToken string,
 	videoIDs []string,
-) (map[string]*videoStatistics, error) {
-	result := make(map[string]*videoStatistics)
+) (map[string]map[string]any, error) {
+	result := make(map[string]map[string]any)
 
 	// YouTube API allows up to 50 video IDs per request
 	for i := 0; i < len(videoIDs); i += 50 {
@@ -386,7 +361,7 @@ func (p *Provider) fetchVideoStatistics(
 		batch := videoIDs[i:end]
 		ids := strings.Join(batch, ",")
 
-		reqURL := "https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=" + url.QueryEscape(
+		reqURL := "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=" + url.QueryEscape(
 			ids,
 		)
 
@@ -406,32 +381,24 @@ func (p *Provider) fetchVideoStatistics(
 		}
 
 		var videosResp struct {
-			Items []struct {
-				ID         string `json:"id"`
-				Statistics struct {
-					ViewCount string `json:"viewCount"`
-					LikeCount string `json:"likeCount"`
-				} `json:"statistics"`
-				ContentDetails struct {
-					Duration string `json:"duration"`
-				} `json:"contentDetails"`
-			} `json:"items"`
+			Items []json.RawMessage `json:"items"`
 		}
 
 		if err := json.Unmarshal(body, &videosResp); err != nil {
 			return nil, err
 		}
 
-		for _, item := range videosResp.Items {
-			var viewCount, likeCount int64
+		for _, rawItem := range videosResp.Items {
+			var item map[string]any
 
-			fmt.Sscanf(item.Statistics.ViewCount, "%d", &viewCount)
-			fmt.Sscanf(item.Statistics.LikeCount, "%d", &likeCount)
+			err := json.Unmarshal(rawItem, &item)
+			if err != nil {
+				return nil, err
+			}
 
-			result[item.ID] = &videoStatistics{
-				ViewCount: viewCount,
-				LikeCount: likeCount,
-				Duration:  item.ContentDetails.Duration,
+			id, _ := item["id"].(string)
+			if id != "" {
+				result[id] = item
 			}
 		}
 	}
