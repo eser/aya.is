@@ -37,6 +37,16 @@ type UserInfo struct {
 	HTMLURL string `json:"html_url"`
 }
 
+// OrgInfo represents GitHub organization information.
+type OrgInfo struct {
+	ID          int64  `json:"id"`
+	Login       string `json:"login"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Avatar      string `json:"avatar_url"`
+	HTMLURL     string `json:"html_url"`
+}
+
 // TokenResponse represents GitHub's token endpoint response.
 type TokenResponse struct {
 	AccessToken string `json:"access_token"`
@@ -203,4 +213,47 @@ func (c *Client) FetchUserInfo(
 	}
 
 	return &userInfo, nil
+}
+
+// FetchUserOrganizations fetches organizations the user belongs to from GitHub API.
+func (c *Client) FetchUserOrganizations(
+	ctx context.Context,
+	accessToken string,
+) ([]*OrgInfo, error) {
+	req, _ := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		"https://api.github.com/user/orgs",
+		nil,
+	)
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-Github-Api-Version", "2022-11-28")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.ErrorContext(ctx, "Failed to fetch user organizations",
+			slog.String("error", err.Error()))
+
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		c.logger.ErrorContext(ctx, "User organizations request failed",
+			slog.Int("status", resp.StatusCode),
+			slog.String("response", string(body)))
+
+		return nil, fmt.Errorf("%w: status %d", ErrFailedToGetUserInfo, resp.StatusCode)
+	}
+
+	var orgs []*OrgInfo
+
+	if err := json.Unmarshal(body, &orgs); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
+	}
+
+	return orgs, nil
 }

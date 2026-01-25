@@ -85,9 +85,31 @@ type ProfileLinkBrief struct {
 type ProfileLinkState struct {
 	State          string    `json:"state"`
 	ProfileSlug    string    `json:"profile_slug"`
+	ProfileKind    string    `json:"profile_kind"`
 	Locale         string    `json:"locale"`
 	RedirectOrigin string    `json:"redirect_origin"`
 	ExpiresAt      time.Time `json:"expires_at"`
+}
+
+// GitHubAccount represents a GitHub account (user or organization) for selection.
+type GitHubAccount struct {
+	ID          string `json:"id"`
+	Login       string `json:"login"`
+	Name        string `json:"name"`
+	AvatarURL   string `json:"avatar_url"`
+	HTMLURL     string `json:"html_url"`
+	Type        string `json:"type"` // "User" or "Organization"
+	Description string `json:"description,omitempty"`
+}
+
+// PendingGitHubConnection stores temporary OAuth data for account selection.
+type PendingGitHubConnection struct {
+	AccessToken string    `json:"access_token"`
+	Scope       string    `json:"scope"`
+	ProfileSlug string    `json:"profile_slug"`
+	ProfileKind string    `json:"profile_kind"`
+	Locale      string    `json:"locale"`
+	ExpiresAt   time.Time `json:"expires_at"`
 }
 
 type ProfileMembership struct {

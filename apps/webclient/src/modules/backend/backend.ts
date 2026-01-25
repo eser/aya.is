@@ -22,6 +22,8 @@ import { createProfileLink } from "./profiles/create-profile-link";
 import { updateProfileLink } from "./profiles/update-profile-link";
 import { deleteProfileLink } from "./profiles/delete-profile-link";
 import { initiateProfileLinkOAuth } from "./profiles/initiate-profile-link-oauth";
+import { getGitHubAccounts } from "./profiles/get-github-accounts";
+import { finalizeGitHubConnection } from "./profiles/finalize-github-connection";
 import { listProfilePages } from "./profiles/list-profile-pages";
 import { createProfilePage } from "./profiles/create-profile-page";
 import { updateProfilePage } from "./profiles/update-profile-page";
@@ -53,6 +55,7 @@ import { search } from "./search/search";
 
 // Re-export types
 export * from "./types";
+export type { GitHubAccount } from "./profiles/get-github-accounts";
 
 // Backend API facade
 export const backend = {
@@ -80,6 +83,8 @@ export const backend = {
   updateProfileLink,
   deleteProfileLink,
   initiateProfileLinkOAuth,
+  getGitHubAccounts,
+  finalizeGitHubConnection,
 
   // Profile Pages
   listProfilePages,
@@ -140,7 +145,9 @@ export {
   createSession,
   deleteProfileLink,
   deleteProfilePage,
+  finalizeGitHubConnection,
   getCurrentSession,
+  getGitHubAccounts,
   getPOWChallenge,
   getPresignedURL,
   getProfile,

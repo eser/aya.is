@@ -20,7 +20,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
-import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
+import { backend, type ProfileLink, type ProfileLinkKind, type GitHubAccount } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -110,6 +110,13 @@ function LinksSettingsPage() {
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
   const [dragOverId, setDragOverId] = React.useState<string | null>(null);
 
+  // GitHub account selection state
+  const [isAccountSelectionOpen, setIsAccountSelectionOpen] = React.useState(false);
+  const [pendingGitHubId, setPendingGitHubId] = React.useState<string | null>(null);
+  const [gitHubAccounts, setGitHubAccounts] = React.useState<GitHubAccount[]>([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = React.useState(false);
+  const [isConnectingAccount, setIsConnectingAccount] = React.useState(false);
+
   const [formData, setFormData] = React.useState<LinkFormData>({
     kind: "github",
     title: "",
@@ -122,6 +129,8 @@ function LinksSettingsPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const connected = urlParams.get("connected");
     const error = urlParams.get("error");
+    const pending = urlParams.get("pending");
+    const pendingId = urlParams.get("pending_id");
 
     if (connected !== null) {
       toast.success(t("Profile.Connected successfully", { provider: connected }));
@@ -138,7 +147,51 @@ function LinksSettingsPage() {
       // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
     }
+
+    // Handle pending GitHub connection for organization profiles
+    if (pending === "github" && pendingId !== null) {
+      setPendingGitHubId(pendingId);
+      setIsAccountSelectionOpen(true);
+      loadGitHubAccounts(pendingId);
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, [t]);
+
+  const loadGitHubAccounts = async (pendingId: string) => {
+    setIsLoadingAccounts(true);
+    const accounts = await backend.getGitHubAccounts(params.locale, params.slug, pendingId);
+    if (accounts !== null) {
+      setGitHubAccounts(accounts);
+    } else {
+      toast.error(t("Profile.Failed to load GitHub accounts"));
+      setIsAccountSelectionOpen(false);
+    }
+    setIsLoadingAccounts(false);
+  };
+
+  const handleSelectGitHubAccount = async (account: GitHubAccount) => {
+    if (pendingGitHubId === null) return;
+
+    setIsConnectingAccount(true);
+    const success = await backend.finalizeGitHubConnection(
+      params.locale,
+      params.slug,
+      account,
+      pendingGitHubId,
+    );
+
+    if (success) {
+      toast.success(t("Profile.Connected successfully", { provider: "GitHub" }));
+      setIsAccountSelectionOpen(false);
+      setPendingGitHubId(null);
+      setGitHubAccounts([]);
+      loadLinks();
+    } else {
+      toast.error(t("Profile.Failed to connect"));
+    }
+    setIsConnectingAccount(false);
+  };
 
   // Load links on mount
   React.useEffect(() => {
@@ -702,6 +755,86 @@ function LinksSettingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* GitHub Account Selection Dialog */}
+      <Dialog open={isAccountSelectionOpen} onOpenChange={(open) => {
+        if (!open && !isConnectingAccount) {
+          setIsAccountSelectionOpen(false);
+          setPendingGitHubId(null);
+          setGitHubAccounts([]);
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitHub className="size-5" />
+              {t("Profile.Select GitHub Account")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("Profile.Choose which GitHub account or organization to connect.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            {isLoadingAccounts ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Skeleton className="size-10 rounded-full" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-32 mb-2" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {gitHubAccounts.map((account) => (
+                  <button
+                    key={account.id}
+                    type="button"
+                    onClick={() => handleSelectGitHubAccount(account)}
+                    disabled={isConnectingAccount}
+                    className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <img
+                      src={account.avatar_url}
+                      alt={account.login}
+                      className="size-10 rounded-full"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{account.name || account.login}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        @{account.login}
+                        {account.type === "Organization" && (
+                          <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">
+                            {t("Profile.Organization")}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAccountSelectionOpen(false);
+                setPendingGitHubId(null);
+                setGitHubAccounts([]);
+              }}
+              disabled={isConnectingAccount}
+            >
+              {t("Profile.Cancel")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

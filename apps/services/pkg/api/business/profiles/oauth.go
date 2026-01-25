@@ -59,7 +59,7 @@ func ValidateProfileLinkState(state *ProfileLinkState) error {
 
 // CreateProfileLinkState creates a new ProfileLinkState for profile link OAuth flows.
 func CreateProfileLinkState(
-	profileSlug, locale, redirectOrigin string,
+	profileSlug, profileKind, locale, redirectOrigin string,
 ) (*ProfileLinkState, string, error) {
 	randomState, err := auth.GenerateRandomState()
 	if err != nil {
@@ -69,6 +69,7 @@ func CreateProfileLinkState(
 	state := &ProfileLinkState{
 		State:          randomState,
 		ProfileSlug:    profileSlug,
+		ProfileKind:    profileKind,
 		Locale:         locale,
 		RedirectOrigin: redirectOrigin,
 		ExpiresAt:      time.Now().Add(StateExpiryDuration),

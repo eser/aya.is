@@ -2,10 +2,12 @@ package http
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
@@ -19,8 +21,9 @@ import (
 
 // ProfileLinkProviders contains all external service providers.
 type ProfileLinkProviders struct {
-	YouTube *youtube.Provider
-	GitHub  *github.Provider
+	YouTube                *youtube.Provider
+	GitHub                 *github.Provider
+	PendingConnectionStore *profiles.PendingConnectionStore
 }
 
 // RegisterHTTPRoutesForProfileLinks registers the OAuth routes for profile links.
@@ -97,6 +100,15 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
+			// Get profile to determine its kind
+			profile, err := profileService.GetBySlug(ctx.Request.Context(), localeParam, slugParam)
+			if err != nil || profile == nil {
+				return ctx.Results.Error(
+					http.StatusNotFound,
+					httpfx.WithPlainText("Profile not found"),
+				)
+			}
+
 			// Build the redirect URI for OAuth callback
 			redirectURI := fmt.Sprintf("%s/profiles/_links/callback/%s",
 				siteURI, providerParam)
@@ -113,6 +125,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Generate state for linking flow (service layer responsibility)
 			_, encodedState, err := profiles.CreateProfileLinkState(
 				slugParam,
+				profile.Kind,
 				localeParam,
 				redirectOrigin,
 			)
@@ -279,6 +292,33 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
+			// For GitHub with organization/product profiles, store pending connection for account selection
+			if providerParam == "github" &&
+				(stateObj.ProfileKind == "organization" || stateObj.ProfileKind == "product") {
+				pendingConn := &profiles.PendingGitHubConnection{
+					AccessToken: result.AccessToken,
+					Scope:       result.Scope,
+					ProfileSlug: stateObj.ProfileSlug,
+					ProfileKind: stateObj.ProfileKind,
+					Locale:      stateObj.Locale,
+				}
+
+				pendingID := providers.PendingConnectionStore.Store(pendingConn)
+
+				logger.DebugContext(
+					ctx.Request.Context(),
+					"Stored pending GitHub connection for account selection",
+					slog.String("pending_id", pendingID),
+					slog.String("profile_slug", stateObj.ProfileSlug),
+				)
+
+				// Redirect with pending status for frontend to show account selection
+				redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?pending=github&pending_id=%s",
+					stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug, pendingID)
+
+				return ctx.Results.Redirect(redirectURL)
+			}
+
 			// Get profile ID from slug
 			profileID, err := profileService.GetProfileIDBySlug(
 				ctx.Request.Context(),
@@ -401,4 +441,235 @@ func RegisterHTTPRoutesForProfileLinks(
 		HasSummary("Profile Link OAuth Callback").
 		HasDescription("Handle OAuth callback from providers and create/update profile links.").
 		HasResponse(http.StatusTemporaryRedirect)
+
+	// Get available GitHub accounts for selection (user + organizations)
+	routes.Route(
+		"GET /{locale}/profiles/{slug}/_links/github/accounts",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			pendingID := ctx.Request.URL.Query().Get("pending_id")
+			if pendingID == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Missing pending_id parameter"),
+				)
+			}
+
+			// Get pending connection
+			pendingConn := providers.PendingConnectionStore.Get(pendingID)
+			if pendingConn == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Pending connection not found or expired"),
+				)
+			}
+
+			// Fetch user info
+			userInfo, err := providers.GitHub.Client().FetchUserInfo(
+				ctx.Request.Context(),
+				pendingConn.AccessToken,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to fetch GitHub user info",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to fetch GitHub account info"),
+				)
+			}
+
+			// Fetch organizations
+			orgs, err := providers.GitHub.Client().FetchUserOrganizations(
+				ctx.Request.Context(),
+				pendingConn.AccessToken,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to fetch GitHub organizations",
+					slog.String("error", err.Error()))
+				// Don't fail, just return empty orgs
+				orgs = []*github.OrgInfo{}
+			}
+
+			// Build response with user account and organizations
+			accounts := []profiles.GitHubAccount{
+				{
+					ID:        strconv.FormatInt(userInfo.ID, 10),
+					Login:     userInfo.Login,
+					Name:      userInfo.Name,
+					AvatarURL: userInfo.Avatar,
+					HTMLURL:   userInfo.HTMLURL,
+					Type:      "User",
+				},
+			}
+
+			for _, org := range orgs {
+				name := org.Name
+				if name == "" {
+					name = org.Login
+				}
+
+				accounts = append(accounts, profiles.GitHubAccount{
+					ID:          strconv.FormatInt(org.ID, 10),
+					Login:       org.Login,
+					Name:        name,
+					AvatarURL:   org.Avatar,
+					HTMLURL:     org.HTMLURL,
+					Type:        "Organization",
+					Description: org.Description,
+				})
+			}
+
+			return ctx.Results.JSON(map[string]any{
+				"data":  accounts,
+				"error": nil,
+			})
+		}).
+		HasSummary("Get GitHub Accounts").
+		HasDescription("Get available GitHub accounts (user and organizations) for linking.").
+		HasResponse(http.StatusOK)
+
+	// Finalize GitHub connection with selected account
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_links/github/finalize",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			slugParam := ctx.Request.PathValue("slug")
+
+			// Parse request body
+			var reqBody struct {
+				PendingID string `json:"pending_id"`
+				AccountID string `json:"account_id"`
+				Login     string `json:"login"`
+				Name      string `json:"name"`
+				HTMLURL   string `json:"html_url"`
+				Type      string `json:"type"`
+			}
+
+			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Invalid request body"),
+				)
+			}
+
+			if reqBody.PendingID == "" || reqBody.AccountID == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Missing required fields"),
+				)
+			}
+
+			// Get pending connection
+			pendingConn := providers.PendingConnectionStore.Get(reqBody.PendingID)
+			if pendingConn == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Pending connection not found or expired"),
+				)
+			}
+
+			// Verify the pending connection is for this profile
+			if pendingConn.ProfileSlug != slugParam {
+				return ctx.Results.BadRequest(
+					httpfx.WithPlainText("Pending connection does not match profile"),
+				)
+			}
+
+			// Get profile ID
+			profileID, err := profileService.GetProfileIDBySlug(
+				ctx.Request.Context(),
+				slugParam,
+			)
+			if err != nil || profileID == "" {
+				return ctx.Results.Error(
+					http.StatusNotFound,
+					httpfx.WithPlainText("Profile not found"),
+				)
+			}
+
+			// Check if a link with this remote ID already exists
+			existingLink, err := profileService.GetProfileLinkByRemoteID(
+				ctx.Request.Context(),
+				profileID,
+				"github",
+				reqBody.AccountID,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to check existing link",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to check existing link"),
+				)
+			}
+
+			if existingLink != nil {
+				// Update existing link
+				err = profileService.UpdateProfileLinkOAuthTokens(
+					ctx.Request.Context(),
+					existingLink.ID,
+					reqBody.Login,
+					reqBody.HTMLURL,
+					reqBody.Name,
+					pendingConn.Scope,
+					pendingConn.AccessToken,
+					nil,
+					nil,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Failed to update link",
+						slog.String("error", err.Error()))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText("Failed to update link"),
+					)
+				}
+			} else {
+				// Create new link
+				linkID := lib.IDsGenerateUnique()
+				maxOrder, _ := profileService.GetMaxProfileLinkOrder(ctx.Request.Context(), profileID)
+
+				_, err = profileService.CreateOAuthProfileLink(
+					ctx.Request.Context(),
+					linkID,
+					"github",
+					profileID,
+					maxOrder+1,
+					reqBody.AccountID,
+					reqBody.Login,
+					reqBody.HTMLURL,
+					reqBody.Name,
+					"github",
+					pendingConn.Scope,
+					pendingConn.AccessToken,
+					nil,
+					nil,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Failed to create link",
+						slog.String("error", err.Error()))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText("Failed to create link"),
+					)
+				}
+			}
+
+			// Clean up pending connection
+			providers.PendingConnectionStore.Delete(reqBody.PendingID)
+
+			logger.DebugContext(ctx.Request.Context(), "Finalized GitHub connection",
+				slog.String("profile_slug", slugParam),
+				slog.String("account_login", reqBody.Login),
+				slog.String("account_type", reqBody.Type))
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{
+					"status": "connected",
+				},
+				"error": nil,
+			})
+		}).
+		HasSummary("Finalize GitHub Connection").
+		HasDescription("Complete the GitHub connection with the selected account.").
+		HasResponse(http.StatusOK)
 }

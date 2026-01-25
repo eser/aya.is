@@ -21,6 +21,11 @@ func NewProvider(client *Client) *Provider {
 	}
 }
 
+// Client returns the underlying GitHub client.
+func (p *Provider) Client() *Client {
+	return p.client
+}
+
 // InitiateOAuth builds the OAuth URL with the given state.
 // Implements auth.Provider and profiles.LinkProvider interfaces.
 // For login: caller passes auth.GenerateRandomState()

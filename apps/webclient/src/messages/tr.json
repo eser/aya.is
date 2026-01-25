@@ -128,7 +128,9 @@
   },
   "Members": {
     "Individuals and organizations that are members of this profile.": "Bu profilin üyeleri, kişiler ve organizasyonlar.",
-    "No members found.": "Üye bulunamadı."
+    "No members found.": "Üye bulunamadı.",
+    "Commits": "Commit",
+    "Stars": "Yıldız"
   },
   "Elements": {
     "Description": "AYA ağındaki kişiler, organizasyonlar ve projeler.",
@@ -293,7 +295,10 @@
     "Slug must be at most 50 characters": "Slug en fazla 50 karakter olmalıdır",
     "Slug can only contain lowercase letters, numbers, and hyphens": "Slug yalnızca küçük harf, rakam ve tire içerebilir",
     "Title is too long": "Başlık çok uzun",
-    "Description is too long": "Açıklama çok uzun"
+    "Description is too long": "Açıklama çok uzun",
+    "Select GitHub Account": "GitHub Hesabı Seçin",
+    "Choose which GitHub account or organization to connect.": "Bağlanacak GitHub hesabını veya organizasyonunu seçin.",
+    "Failed to load GitHub accounts": "GitHub hesapları yüklenemedi"
   },
   "StoryPage": {
     "Written by": "Yazan",

@@ -3,6 +3,7 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+import { MemberCard } from "@/components/userland/member-card/member-card";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
@@ -28,16 +29,18 @@ function MembersPage() {
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
       <div className="content">
         <h2>{t("Layout.Members")}</h2>
-        <p className="text-muted-foreground mb-4">
+        <p className="text-muted-foreground mb-6">
           {t(
             "Members.Individuals and organizations that are members of this profile.",
           )}
         </p>
 
-        {members && members.length > 0
+        {members !== null && members.length > 0
           ? (
-            <div className="space-y-4">
-              {/* Members will be rendered here */}
+            <div className="flex flex-col gap-4">
+              {members.map((membership) => (
+                <MemberCard key={membership.id} membership={membership} />
+              ))}
             </div>
           )
           : (

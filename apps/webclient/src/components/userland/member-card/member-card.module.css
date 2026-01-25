@@ -1,0 +1,62 @@
+@reference "@/theme.css";
+
+.cardLink {
+  @apply block no-underline rounded-lg shadow-md transition-shadow duration-200 ease-in-out bg-card
+    text-card-foreground;
+
+  &:hover {
+    @apply shadow-xl;
+  }
+}
+
+.memberCard {
+  @apply p-6 flex items-center gap-6;
+}
+
+.avatarContainer {
+  @apply flex-shrink-0;
+}
+
+.avatar {
+  @apply rounded-full object-cover w-16 h-16;
+}
+
+.content {
+  @apply flex-1 min-w-0;
+}
+
+.titleRow {
+  @apply flex items-center gap-3 mb-1;
+}
+
+.title {
+  @apply text-lg font-semibold text-foreground;
+}
+
+.role {
+  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary;
+}
+
+.description {
+  @apply text-sm text-muted-foreground;
+}
+
+.stats {
+  @apply flex-shrink-0 ml-auto;
+}
+
+.statsGrid {
+  @apply flex gap-6 text-center;
+}
+
+.statItem {
+  @apply flex flex-col;
+}
+
+.statValue {
+  @apply text-lg font-semibold text-foreground;
+}
+
+.statLabel {
+  @apply text-xs text-muted-foreground;
+}

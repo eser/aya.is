@@ -9,6 +9,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/appcontext"
 	"github.com/eser/aya.is/services/pkg/api/adapters/http"
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
+	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
@@ -46,8 +47,9 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			appContext.ProtectionService,
 			appContext.UploadService,
 			&http.ProfileLinkProviders{
-				YouTube: appContext.YouTubeProvider,
-				GitHub:  appContext.GitHubProvider,
+				YouTube:                appContext.YouTubeProvider,
+				GitHub:                 appContext.GitHubProvider,
+				PendingConnectionStore: profiles.NewPendingConnectionStore(),
 			},
 		)
 		if err != nil {
