@@ -1,5 +1,5 @@
 // Profile settings layout
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { backend } from "@/modules/backend/backend";
@@ -30,9 +30,20 @@ function SettingsLayout() {
   const { t } = useTranslation();
   const params = Route.useParams();
   const { profile, locale, slug } = Route.useLoaderData();
+  const matches = useMatches();
 
   if (profile === null) {
     return null;
+  }
+
+  // Check if we're on a full-width route (edit/new pages need full screen without sidebar)
+  const isFullWidthRoute = matches.some((match) =>
+    // match.pathname.endsWith("/edit") || match.pathname.endsWith("/new")
+    match.pathname.endsWith("/pages/new")
+  );
+
+  if (isFullWidthRoute) {
+    return <Outlet />;
   }
 
   return (
