@@ -174,9 +174,10 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
   return (
     <div className={styles.formContainer}>
       <div className={styles.formHeader}>
-        <Link to={props.backUrl} className={styles.backLink}>
-          <ArrowLeft className="size-4" />
-          {t("Common.Back")}
+        <Link to={props.backUrl}>
+          <Button variant="outline" size="icon" className="rounded-full">
+            <ArrowLeft className="size-4" />
+          </Button>
         </Link>
         <h1 className={styles.heading}>{t("Profile.New Profile")}</h1>
       </div>
@@ -189,10 +190,6 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
       >
         {/* Profile Type Selection */}
         <div className={styles.typeSection}>
-          <p className={styles.typeSectionLabel}>
-            {t("Profile.Choose your profile type")}
-          </p>
-
           <div className={styles.typeCards}>
             {PROFILE_TYPES.map((profileType) => {
               const isSelected = selectedKind === profileType.kind;
