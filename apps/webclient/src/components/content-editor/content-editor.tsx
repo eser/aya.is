@@ -600,10 +600,10 @@ export function ContentEditor(props: ContentEditorProps) {
             <div className={styles.metadataForm}>
               {/* Kind */}
               {contentType === "story" && (
-                <div className={styles.metadataField}>
-                  <Label htmlFor="kind" className={styles.metadataLabel}>
-                    {t("Editor.Kind")}
-                  </Label>
+                <Field className={styles.metadataField}>
+                  <FieldLabel htmlFor="kind" className={styles.metadataLabel}>
+                    {t("Editor.Published At")}
+                  </FieldLabel>
                   <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)}>
                     <SelectTrigger id="kind">
                       <span className="flex items-center gap-2">
@@ -660,7 +660,7 @@ export function ContentEditor(props: ContentEditorProps) {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
               )}
 
               {/* Published At - visible for published content, editable only by admin */}
