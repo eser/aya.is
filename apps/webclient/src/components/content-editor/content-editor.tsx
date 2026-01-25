@@ -350,6 +350,7 @@ export function ContentEditor(props: ContentEditorProps) {
     const datePrefix = match !== null ? match[1] : "";
 
     setSlug(datePrefix + generatedSlug);
+    if (!showSlugValidation) setShowSlugValidation(true);
   }, [isNew, slugManuallyEdited, title, slug]);
 
   const getCurrentData = (): ContentEditorData => ({
