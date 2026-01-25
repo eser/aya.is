@@ -48,10 +48,12 @@ function ProfileRoute() {
     return <ProfileNotFound />;
   }
 
-  // Check if we're on an edit route - these need full-width layout without section wrapper
-  const isEditRoute = matches.some((match) => match.pathname.endsWith("/edit"));
+  // Check if we're on an edit/new route - these need full-width layout without section wrapper
+  const isFullWidthRoute = matches.some((match) =>
+    match.pathname.endsWith("/edit") || match.pathname.endsWith("/settings/pages/new")
+  );
 
-  if (isEditRoute) {
+  if (isFullWidthRoute) {
     return (
       <PageLayout>
         <Outlet />
