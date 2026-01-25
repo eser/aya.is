@@ -264,17 +264,18 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                 <Input
                   id={field.name}
                   value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    generateSlugFromTitle(e.target.value);
-                  }}
+                  onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={(e) => {
                     field.handleBlur(e);
-                    if (!showTitleValidation) {
-                      setShowTitleValidation(true);
-                    }
-                    if (!showSlugValidation && !slugManuallyEdited) {
-                      setShowSlugValidation(true);
+                    generateSlugFromTitle(field.state.value);
+                    // Only show validation if title has content
+                    if (field.state.value.trim() !== "") {
+                      if (!showTitleValidation) {
+                        setShowTitleValidation(true);
+                      }
+                      if (!showSlugValidation && !slugManuallyEdited) {
+                        setShowSlugValidation(true);
+                      }
                     }
                   }}
                   placeholder={t("Profile.Enter title")}
