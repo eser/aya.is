@@ -176,7 +176,7 @@
     }
 
     &.subtitle {
-      @apply text-xs sm:text-sm md:text-base lg:text-lg mt-0 mb-10 text-muted-foreground;
+      @apply text-base sm:text-lg md:text-xl lg:text-2xl mt-0 mb-10 text-muted-foreground;
     }
 
     &.no-margin {

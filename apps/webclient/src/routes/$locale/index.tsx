@@ -37,7 +37,7 @@ function LocaleHomePage() {
 
           <article className="content relative z-10">
             <h1 className="hero">{t("Home.AYA the Open Source Network")}</h1>
-            <h2>
+            <h2 className="subtitle">
               {t(
                 "Home.A software foundation formed by volunteer-developed software",
               )}
