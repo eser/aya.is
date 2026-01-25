@@ -7,19 +7,11 @@ import { ContentEditor, type ContentEditorData } from "@/components/content-edit
 import { useAuth } from "@/lib/auth/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/page-layouts/default";
+import { getDatePrefix } from "@/lib/slugify";
 
 export const Route = createFileRoute("/$locale/news/new")({
   component: NewNewsPage,
 });
-
-// Helper to get current date as YYYYMMDD- prefix
-function getDatePrefix(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}${month}${day}-`;
-}
 
 function NewNewsPage() {
   const params = Route.useParams();

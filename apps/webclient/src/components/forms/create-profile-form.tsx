@@ -6,6 +6,7 @@ import { ArrowLeft, Building2, Check, Loader2, Package, User } from "lucide-reac
 import { z } from "zod";
 import type { CreateProfileInput } from "@/lib/schemas/profile";
 import { backend } from "@/modules/backend/backend";
+import { slugify } from "@/lib/slugify";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
@@ -74,6 +75,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
 
   const [selectedKind, setSelectedKind] = React.useState<ProfileKind>(effectiveDefaultKind);
   const [slugValue, setSlugValue] = React.useState("");
+  const [slugManuallyEdited, setSlugManuallyEdited] = React.useState(false);
   const [slugAvailability, setSlugAvailability] = React.useState<SlugAvailability>({
     isChecking: false,
     isAvailable: null,
@@ -167,7 +169,18 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
       .replace(/[^a-z0-9-]/g, "-");
     setSlugValue(sanitized);
     form.setFieldValue("slug", sanitized);
+    if (!slugManuallyEdited) setSlugManuallyEdited(true);
   };
+
+  // Auto-generate slug from title (called on title blur)
+  const generateSlugFromTitle = React.useCallback((title: string) => {
+    if (slugManuallyEdited || title.trim() === "") {
+      return;
+    }
+    const generatedSlug = slugify(title);
+    setSlugValue(generatedSlug);
+    form.setFieldValue("slug", generatedSlug);
+  }, [slugManuallyEdited, form]);
 
   const isSlugValid = slugAvailability.isAvailable === true && !slugAvailability.isChecking;
 
@@ -233,6 +246,50 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
 
         {/* Profile Details */}
         <div className={styles.detailsSection}>
+          <form.Field name="title">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>
+                  {t("Profile.Title")}
+                </FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={(e) => {
+                    field.handleBlur(e);
+                    generateSlugFromTitle(field.state.value);
+                  }}
+                  placeholder={t("Profile.Enter title")}
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
+                )}
+              </Field>
+            )}
+          </form.Field>
+
+          <form.Field name="description">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>
+                  {t("Profile.Description")}
+                </FieldLabel>
+                <Textarea
+                  id={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder={t("Profile.Enter description")}
+                  rows={4}
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
+                )}
+              </Field>
+            )}
+          </form.Field>
+
           <form.Field name="slug">
             {(field) => {
               const hasValidationError = field.state.meta.errors.length > 0;
@@ -265,8 +322,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                         )}
                         {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
                           <InputGroupText className={styles.slugStatusAvailable}>
-                            <Check className="size-3.5" />
-                            {t("Profile.Available")}
+                            <Check className="size-4" />
                           </InputGroupText>
                         )}
                       </InputGroupAddon>
@@ -281,47 +337,6 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                 </Field>
               );
             }}
-          </form.Field>
-
-          <form.Field name="title">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>
-                  {t("Profile.Title")}
-                </FieldLabel>
-                <Input
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={t("Profile.Enter title")}
-                />
-                {field.state.meta.errors.length > 0 && (
-                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
-                )}
-              </Field>
-            )}
-          </form.Field>
-
-          <form.Field name="description">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>
-                  {t("Profile.Description")}
-                </FieldLabel>
-                <Textarea
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={t("Profile.Enter description")}
-                  rows={4}
-                />
-                {field.state.meta.errors.length > 0 && (
-                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
-                )}
-              </Field>
-            )}
           </form.Field>
         </div>
 

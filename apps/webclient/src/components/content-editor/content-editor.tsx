@@ -33,6 +33,7 @@ import { type ContentStatus, EditorActions } from "./editor-actions";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
+import { slugify } from "@/lib/slugify";
 import { isAllowedURI } from "@/config";
 import { backend } from "@/modules/backend/backend";
 import { getEntityConfig } from "./entity-types";
@@ -77,6 +78,14 @@ function validateSlugPrefix(
   const valid = slug.startsWith(expectedPrefix);
   return { valid, expectedPrefix };
 }
+
+// Known API messages that need translation
+const API_MESSAGE_KEYS: Record<string, string> = {
+  "Slug must be at least 12 characters": "Editor.Slug must be at least 12 characters",
+  "This slug is already taken": "Editor.This slug is already taken",
+  "This slug was previously used": "Editor.This slug was previously used",
+  "This slug is reserved": "Profile.This slug is reserved",
+};
 
 export type ContentType = "story" | "page";
 
@@ -157,7 +166,7 @@ export function ContentEditor(props: ContentEditorProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [slugError, setSlugError] = React.useState<string | null>(null);
   const [showSlugValidation, setShowSlugValidation] = React.useState(false);
-  const [slugManuallyEdited, setSlugManuallyEdited] = React.useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = React.useState(!isNew);
   const [titleError, setTitleError] = React.useState<string | null>(null);
   const [showTitleValidation, setTitleTouched] = React.useState(!isNew);
   const [storyPictureUriError, setStoryPictureUriError] = React.useState<string | null>(null);
@@ -240,14 +249,22 @@ export function ContentEditor(props: ContentEditorProps) {
             publishedAt: publishedAtRef.current,
           });
         } else {
-          result = await backend.checkPageSlug(locale, profileSlug, slug, excludeId);
+          result = await backend.checkPageSlug(locale, profileSlug, slug, {
+            excludeId,
+          });
         }
 
         if (result !== null) {
-          // Determine message based on severity
+          // Determine message based on severity and translate if needed
           let message: string | null = null;
           if (!result.available || result.severity === "warning") {
-            message = result.message ?? (result.available ? null : t("Editor.This slug is already taken"));
+            const apiMessage = result.message ?? (result.available ? null : "This slug is already taken");
+            // Translate known API messages
+            if (apiMessage !== null && apiMessage in API_MESSAGE_KEYS) {
+              message = t(API_MESSAGE_KEYS[apiMessage]);
+            } else {
+              message = apiMessage;
+            }
           }
 
           setSlugAvailability({
@@ -332,17 +349,12 @@ export function ContentEditor(props: ContentEditorProps) {
 
   // Auto-generate slug from title for new content (called on title blur)
   const generateSlugFromTitle = React.useCallback(() => {
-    // Only auto-generate for new content when user hasn't manually edited the slug
+    // Only auto-generate when user hasn't manually edited the slug
     if (slugManuallyEdited || title.trim() === "") {
       return;
     }
 
-    const generatedSlug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
+    const generatedSlug = slugify(title);
 
     // Get the date prefix from current slug or generate new one
     const datePrefixPattern = /^(\d{8}-).*$/;
@@ -351,7 +363,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
     setSlug(datePrefix + generatedSlug);
     if (!showSlugValidation) setShowSlugValidation(true);
-  }, [isNew, slugManuallyEdited, title, slug]);
+  }, [slugManuallyEdited, title, slug, showSlugValidation]);
 
   const getCurrentData = (): ContentEditorData => ({
     title,

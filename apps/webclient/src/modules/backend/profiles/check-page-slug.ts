@@ -6,13 +6,25 @@ export type CheckPageSlugResponse = {
   severity?: "error" | "warning" | "";
 };
 
+export type CheckPageSlugOptions = {
+  excludeId?: string;
+};
+
 export async function checkPageSlug(
   locale: string,
   profileSlug: string,
   pageSlug: string,
-  excludeId?: string,
+  options?: CheckPageSlugOptions,
 ): Promise<CheckPageSlugResponse | null> {
-  const queryParams = excludeId !== undefined ? `?exclude_id=${excludeId}` : "";
+  const params = new URLSearchParams();
+
+  if (options?.excludeId !== undefined) {
+    params.set("exclude_id", options.excludeId);
+  }
+
+  const queryString = params.toString();
+  const queryParams = queryString.length > 0 ? `?${queryString}` : "";
+
   const result = await fetcher<CheckPageSlugResponse>(
     locale,
     `/profiles/${profileSlug}/pages/${pageSlug}/_check${queryParams}`,
