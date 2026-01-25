@@ -1233,6 +1233,16 @@ func (s *Service) CreateProfilePage(
 		}
 	}
 
+	// Validate slug availability
+	slugResult, err := s.CheckPageSlugAvailability(ctx, localeCode, profileSlug, slug, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if !slugResult.Available {
+		return nil, fmt.Errorf("%w: %s", ErrFailedToCreateRecord, slugResult.Message)
+	}
+
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
@@ -1324,6 +1334,16 @@ func (s *Service) UpdateProfilePage(
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	// Validate slug availability (exclude current page)
+	slugResult, err := s.CheckPageSlugAvailability(ctx, "en", profileSlug, slug, &pageID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !slugResult.Available {
+		return nil, fmt.Errorf("%w: %s", ErrFailedToUpdateRecord, slugResult.Message)
 	}
 
 	// Verify the page exists

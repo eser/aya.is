@@ -197,7 +197,6 @@ export function ContentEditor(props: ContentEditorProps) {
   }, [slug, slugTouched, publishedAt, status, shouldValidateSlugDatePrefix, t]);
 
   // Debounced slug availability check
-  const unavailableMessage = t("Editor.This slug is already taken");
   React.useEffect(() => {
     // Only check if slug passes basic validation
     if (slugError !== null || slug.length < 3) {
@@ -218,7 +217,11 @@ export function ContentEditor(props: ContentEditorProps) {
         let result: { available: boolean; message?: string } | null = null;
 
         if (contentType === "story") {
-          result = await backend.checkStorySlug(locale, slug, excludeId);
+          result = await backend.checkStorySlug(locale, slug, {
+            excludeId,
+            status,
+            publishedAt,
+          });
         } else {
           result = await backend.checkPageSlug(locale, profileSlug, slug, excludeId);
         }
@@ -227,7 +230,7 @@ export function ContentEditor(props: ContentEditorProps) {
           setSlugAvailability({
             isChecking: false,
             isAvailable: result.available,
-            message: result.available ? null : (result.message ?? unavailableMessage),
+            message: result.available ? null : (result.message ?? t("Editor.This slug is already taken")),
           });
         } else {
           setSlugAvailability({
@@ -248,7 +251,7 @@ export function ContentEditor(props: ContentEditorProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slug, slugError, locale, profileSlug, contentType, excludeId, isNew, initialData.slug, unavailableMessage]);
+  }, [slug, slugError, locale, profileSlug, contentType, excludeId, isNew, initialData.slug, status, publishedAt]);
 
   // Validate title on change
   React.useEffect(() => {

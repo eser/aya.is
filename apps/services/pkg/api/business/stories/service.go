@@ -234,13 +234,28 @@ func (s *Service) GetBySlug(
 	return record, nil
 }
 
-// CheckSlugAvailability checks if a story slug is available.
+// CheckSlugAvailability checks if a story slug is available and validates the date prefix.
 // It optionally excludes a specific story ID (for edit scenarios).
+// When status is "published" and publishedAt is provided, it also validates the date prefix.
 func (s *Service) CheckSlugAvailability(
 	ctx context.Context,
 	slug string,
 	excludeStoryID *string,
+	status string,
+	publishedAt *time.Time,
 ) (*SlugAvailabilityResult, error) {
+	// Validate slug date prefix for published stories
+	if status == "published" && publishedAt != nil {
+		if err := validateSlugDatePrefix(slug, *publishedAt); err != nil {
+			expectedPrefix := publishedAt.Format("20060102") + "-"
+
+			return &SlugAvailabilityResult{
+				Available: false,
+				Message:   "Slug must start with " + expectedPrefix,
+			}, nil
+		}
+	}
+
 	storyID, err := s.repo.GetStoryIDBySlug(ctx, slug)
 	if err != nil || storyID == "" {
 		// If error or not found, slug is available
@@ -371,12 +386,14 @@ func (s *Service) Create(
 	isFeatured bool,
 	publishedAt *time.Time,
 ) (*Story, error) {
-	// Validate slug date prefix for published stories
-	if status == "published" && publishedAt != nil {
-		err := validateSlugDatePrefix(slug, *publishedAt)
-		if err != nil {
-			return nil, err
-		}
+	// Validate slug availability and date prefix
+	slugResult, err := s.CheckSlugAvailability(ctx, slug, nil, status, publishedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	if !slugResult.Available {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
 	}
 
 	// Validate story picture URI
@@ -487,12 +504,14 @@ func (s *Service) Update(
 		)
 	}
 
-	// Validate slug date prefix for published stories
-	if status == "published" && publishedAt != nil {
-		err := validateSlugDatePrefix(slug, *publishedAt)
-		if err != nil {
-			return nil, err
-		}
+	// Validate slug availability and date prefix
+	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, status, publishedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	if !slugResult.Available {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
 	}
 
 	// Validate story picture URI
