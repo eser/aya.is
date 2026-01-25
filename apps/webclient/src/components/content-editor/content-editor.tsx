@@ -204,8 +204,9 @@ export function ContentEditor(props: ContentEditorProps) {
 
   // Debounced slug availability check
   React.useEffect(() => {
-    // Only check if slug passes basic validation
-    if (slugError !== null || slug.length < 3) {
+    // Only check if slug passes basic format validation (not date prefix)
+    const hasBasicError = slug.length < 3 || slug.length > 100 || !/^[a-z0-9-]+$/.test(slug);
+    if (hasBasicError) {
       setSlugAvailability({ isChecking: false, isAvailable: null, message: null });
       return;
     }
@@ -257,7 +258,7 @@ export function ContentEditor(props: ContentEditorProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slug, slugError, locale, profileSlug, contentType, excludeId, isNew, initialData.slug]);
+  }, [slug, locale, profileSlug, contentType, excludeId, isNew, initialData.slug]);
 
   // Validate title on change
   React.useEffect(() => {
@@ -638,7 +639,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     aria-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.isAvailable === false) || undefined}
                     className="pr-8"
                   />
-                  {slugError === null && slug.length >= 3 && (
+                  {slug.length >= 3 && (
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                       {slugAvailability.isChecking && (
                         <Loader2 className="size-4 animate-spin text-muted-foreground" />

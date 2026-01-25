@@ -101,7 +101,14 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			return ctx.Results.JSON(availability)
+			result := map[string]any{
+				"available": availability.Available,
+				"message":   availability.Message,
+			}
+
+			wrappedResponse := cursors.WrapResponseWithCursor(result, nil)
+
+			return ctx.Results.JSON(wrappedResponse)
 		}).
 		HasSummary("Check story slug availability").
 		HasDescription("Check if a story slug is available (not taken) and validates date prefix for published stories.").

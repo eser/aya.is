@@ -201,7 +201,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					)
 				}
 
-				return ctx.Results.JSON(availability)
+				result := map[string]any{
+					"available": availability.Available,
+					"message":   availability.Message,
+				}
+
+				wrappedResponse := cursors.WrapResponseWithCursor(result, nil)
+
+				return ctx.Results.JSON(wrappedResponse)
 			},
 		).
 		HasSummary("Check page slug availability").
