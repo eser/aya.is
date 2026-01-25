@@ -76,6 +76,8 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
   const [selectedKind, setSelectedKind] = React.useState<ProfileKind>(effectiveDefaultKind);
   const [slugValue, setSlugValue] = React.useState("");
   const [slugManuallyEdited, setSlugManuallyEdited] = React.useState(false);
+  const [showTitleValidation, setShowTitleValidation] = React.useState(false);
+  const [showSlugValidation, setShowSlugValidation] = React.useState(false);
   const [slugAvailability, setSlugAvailability] = React.useState<SlugAvailability>({
     isChecking: false,
     isAvailable: null,
@@ -172,9 +174,16 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     if (!slugManuallyEdited) setSlugManuallyEdited(true);
   };
 
-  // Auto-generate slug from title (called on title blur)
+  // Auto-generate slug from title (called on title change)
   const generateSlugFromTitle = React.useCallback((title: string) => {
-    if (slugManuallyEdited || title.trim() === "") {
+    if (slugManuallyEdited) {
+      return;
+    }
+    if (title.trim() === "") {
+      setSlugValue("");
+      setShowSlugValidation(false);
+      setShowTitleValidation(false);
+      form.setFieldValue("slug", "");
       return;
     }
     const generatedSlug = slugify(title);
@@ -255,14 +264,22 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                 <Input
                   id={field.name}
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value);
+                    generateSlugFromTitle(e.target.value);
+                  }}
                   onBlur={(e) => {
                     field.handleBlur(e);
-                    generateSlugFromTitle(field.state.value);
+                    if (!showTitleValidation) {
+                      setShowTitleValidation(true);
+                    }
+                    if (!showSlugValidation && !slugManuallyEdited) {
+                      setShowSlugValidation(true);
+                    }
                   }}
                   placeholder={t("Profile.Enter title")}
                 />
-                {field.state.meta.errors.length > 0 && (
+                {showTitleValidation && field.state.meta.errors.length > 0 && (
                   <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
                 )}
               </Field>
@@ -292,8 +309,8 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
 
           <form.Field name="slug">
             {(field) => {
-              const hasValidationError = field.state.meta.errors.length > 0;
-              const isUnavailable = !slugAvailability.isChecking && slugAvailability.isAvailable === false;
+              const hasValidationError = showSlugValidation && field.state.meta.errors.length > 0;
+              const isUnavailable = showSlugValidation && !slugAvailability.isChecking && slugAvailability.isAvailable === false;
               const isInvalid = hasValidationError || isUnavailable;
 
               return (
@@ -309,11 +326,16 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                       id={field.name}
                       value={field.state.value}
                       onChange={handleSlugChange}
-                      onBlur={field.handleBlur}
+                      onBlur={(e) => {
+                        field.handleBlur(e);
+                        if (!showSlugValidation) {
+                          setShowSlugValidation(true);
+                        }
+                      }}
                       placeholder="my-profile"
                       aria-invalid={isInvalid || undefined}
                     />
-                    {slugValue.length >= 3 && !hasValidationError && (
+                    {showSlugValidation && slugValue.length >= 3 && !hasValidationError && (
                       <InputGroupAddon align="inline-end">
                         {slugAvailability.isChecking && (
                           <InputGroupText className={styles.slugStatusChecking}>
