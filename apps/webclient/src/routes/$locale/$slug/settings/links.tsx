@@ -25,7 +25,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -587,8 +587,8 @@ function LinksSettingsPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="link-type">{t("Profile.Link Type")}</Label>
+            <Field>
+              <FieldLabel htmlFor="link-type">{t("Profile.Link Type")}</FieldLabel>
               <Select
                 value={formData.kind}
                 onValueChange={(value) => handleKindChange(value as ProfileLinkKind)}
@@ -622,10 +622,10 @@ function LinksSettingsPage() {
                   })}
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
 
-            <div className="space-y-2">
-              <Label htmlFor="link-title">{t("Profile.Display Title")}</Label>
+            <Field>
+              <FieldLabel htmlFor="link-title">{t("Profile.Display Title")}</FieldLabel>
               <Input
                 id="link-title"
                 value={formData.title}
@@ -633,15 +633,15 @@ function LinksSettingsPage() {
                 placeholder={getLinkTypeConfig(formData.kind).label}
                 disabled={editingLink?.is_managed === true}
               />
-              <p className="text-xs text-muted-foreground">
+              <FieldDescription>
                 {editingLink?.is_managed === true
                   ? t("Profile.This field is managed automatically and cannot be edited.")
                   : t("Profile.A friendly name for this link.")}
-              </p>
-            </div>
+              </FieldDescription>
+            </Field>
 
-            <div className="space-y-2">
-              <Label htmlFor="link-uri">{t("Profile.URL")}</Label>
+            <Field>
+              <FieldLabel htmlFor="link-uri">{t("Profile.URL")}</FieldLabel>
               <Input
                 id="link-uri"
                 value={formData.uri}
@@ -649,14 +649,14 @@ function LinksSettingsPage() {
                 placeholder={getLinkTypeConfig(formData.kind).placeholder}
                 disabled={editingLink?.is_managed === true}
               />
-              <p className="text-xs text-muted-foreground">
+              <FieldDescription>
                 {editingLink?.is_managed === true
                   ? t("Profile.This field is managed automatically and cannot be edited.")
                   : t("Profile.The full URL to your profile or website.")}
-              </p>
-            </div>
+              </FieldDescription>
+            </Field>
 
-            <div className="flex items-center space-x-2">
+            <Field orientation="horizontal">
               <Checkbox
                 id="link-hidden"
                 checked={formData.is_hidden}
@@ -664,10 +664,10 @@ function LinksSettingsPage() {
                   setFormData((prev) => ({ ...prev, is_hidden: checked === true }))
                 }
               />
-              <Label htmlFor="link-hidden" className="text-sm font-normal cursor-pointer">
+              <FieldLabel htmlFor="link-hidden" className="font-normal cursor-pointer">
                 {t("Profile.Hide this link from your public profile.")}
-              </Label>
-            </div>
+              </FieldLabel>
+            </Field>
           </div>
 
           <DialogFooter>

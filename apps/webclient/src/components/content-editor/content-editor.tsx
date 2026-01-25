@@ -16,7 +16,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -490,28 +490,28 @@ export function ContentEditor(props: ContentEditorProps) {
               )}
 
               {/* Slug */}
-              <div className={styles.metadataField}>
-                <Label htmlFor="slug" className={styles.metadataLabel}>
+              <Field className={styles.metadataField} data-invalid={slugError !== null || undefined}>
+                <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
                   {t("Editor.Slug")}
-                </Label>
+                </FieldLabel>
                 <Input
                   id="slug"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder={t("Editor.url-friendly-slug")}
-                  className={slugError !== null ? "border-destructive" : ""}
+                  aria-invalid={slugError !== null || undefined}
                 />
                 {slugError !== null && (
-                  <p className="text-sm text-destructive mt-1">{slugError}</p>
+                  <FieldError>{slugError}</FieldError>
                 )}
-              </div>
+              </Field>
 
               {/* Published At - visible for published content, editable only by admin */}
               {(status === "published" || isAdmin) && (
-                <div className={styles.metadataField}>
-                  <Label htmlFor="published-at" className={styles.metadataLabel}>
+                <Field className={styles.metadataField}>
+                  <FieldLabel htmlFor="published-at" className={styles.metadataLabel}>
                     {t("Editor.Published At")}
-                  </Label>
+                  </FieldLabel>
                   <Input
                     id="published-at"
                     type="text"
@@ -521,43 +521,41 @@ export function ContentEditor(props: ContentEditorProps) {
                     }
                     disabled={!isAdmin}
                   />
-                </div>
+                </Field>
               )}
 
               {/* Is Featured - Admin only */}
               {isAdmin && contentType === "story" && (
-                <div className={styles.metadataField}>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="is-featured" className={styles.metadataLabel}>
-                      {t("Editor.Featured")}
-                    </Label>
-                    <Switch
-                      id="is-featured"
-                      checked={isFeatured}
-                      onCheckedChange={setIsFeatured}
-                    />
-                  </div>
-                </div>
+                <Field className={styles.metadataField} orientation="horizontal">
+                  <FieldLabel htmlFor="is-featured" className={styles.metadataLabel}>
+                    {t("Editor.Featured")}
+                  </FieldLabel>
+                  <Switch
+                    id="is-featured"
+                    checked={isFeatured}
+                    onCheckedChange={setIsFeatured}
+                  />
+                </Field>
               )}
 
               {/* Title */}
-              <div className={styles.metadataField}>
-                <Label htmlFor="title" className={styles.metadataLabel}>
+              <Field className={styles.metadataField}>
+                <FieldLabel htmlFor="title" className={styles.metadataLabel}>
                   {t("Editor.Title")}
-                </Label>
+                </FieldLabel>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t("Editor.Enter title...")}
                 />
-              </div>
+              </Field>
 
               {/* Summary */}
-              <div className={styles.metadataField}>
-                <Label htmlFor="summary" className={styles.metadataLabel}>
+              <Field className={styles.metadataField}>
+                <FieldLabel htmlFor="summary" className={styles.metadataLabel}>
                   {t("Editor.Summary")}
-                </Label>
+                </FieldLabel>
                 <Textarea
                   id="summary"
                   value={summary}
@@ -565,13 +563,13 @@ export function ContentEditor(props: ContentEditorProps) {
                   placeholder={t("Editor.Brief summary...")}
                   className="min-h-[80px]"
                 />
-              </div>
+              </Field>
 
               {/* Picture URI (Story Picture or Cover Picture depending on entity type) */}
-              <div className={styles.metadataField}>
-                <Label htmlFor="story-picture-uri" className={styles.metadataLabel}>
+              <Field className={styles.metadataField} data-invalid={storyPictureUriError !== null || undefined}>
+                <FieldLabel htmlFor="story-picture-uri" className={styles.metadataLabel}>
                   {t(imageFieldConfig.labelKey)}
-                </Label>
+                </FieldLabel>
                 <div className="flex gap-2">
                   <Input
                     id="story-picture-uri"
@@ -580,7 +578,8 @@ export function ContentEditor(props: ContentEditorProps) {
                       setStoryPictureUri(e.target.value || null)
                     }
                     placeholder="https://..."
-                    className={cn("flex-1", storyPictureUriError !== null && "border-destructive")}
+                    className="flex-1"
+                    aria-invalid={storyPictureUriError !== null || undefined}
                   />
                   <Button
                     type="button"
@@ -593,7 +592,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   </Button>
                 </div>
                 {storyPictureUriError !== null && (
-                  <p className="text-sm text-destructive mt-1">{storyPictureUriError}</p>
+                  <FieldError>{storyPictureUriError}</FieldError>
                 )}
                 {storyPictureUri !== null && storyPictureUri !== "" && storyPictureUriError === null && (
                   <img
@@ -602,7 +601,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     className="mt-2 rounded-md max-h-32 w-full object-cover"
                   />
                 )}
-              </div>
+              </Field>
             </div>
           )}
         </div>

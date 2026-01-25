@@ -50,65 +50,77 @@ export function EditProfileForm(props: EditProfileFormProps) {
       className="space-y-6"
     >
       <form.Field name="title">
-        {(field) => (
-          <Field>
-            <FieldLabel htmlFor={field.name}>
-              {t("Profile.Title")}
-            </FieldLabel>
-            <Input
-              id={field.name}
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-              placeholder={t("Profile.Enter title")}
-            />
-            {field.state.meta.errors.length > 0 && (
-              <FieldError>{field.state.meta.errors[0]}</FieldError>
-            )}
-          </Field>
-        )}
-      </form.Field>
-
-      <form.Field name="description">
-        {(field) => (
-          <Field>
-            <FieldLabel htmlFor={field.name}>
-              {t("Profile.Description")}
-            </FieldLabel>
-            <Textarea
-              id={field.name}
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-              placeholder={t("Profile.Enter description")}
-              rows={4}
-            />
-            {field.state.meta.errors.length > 0 && (
-              <FieldError>{field.state.meta.errors[0]}</FieldError>
-            )}
-          </Field>
-        )}
-      </form.Field>
-
-      {isIndividual && (
-        <form.Field name="pronouns">
-          {(field) => (
-            <Field>
+        {(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+          return (
+            <Field data-invalid={hasError || undefined}>
               <FieldLabel htmlFor={field.name}>
-                {t("Profile.Pronouns")}
+                {t("Profile.Title")}
               </FieldLabel>
               <Input
                 id={field.name}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder={t("Profile.Enter pronouns")}
+                placeholder={t("Profile.Enter title")}
+                aria-invalid={hasError || undefined}
               />
-              {field.state.meta.errors.length > 0 && (
+              {hasError && (
                 <FieldError>{field.state.meta.errors[0]}</FieldError>
               )}
             </Field>
-          )}
+          );
+        }}
+      </form.Field>
+
+      <form.Field name="description">
+        {(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+          return (
+            <Field data-invalid={hasError || undefined}>
+              <FieldLabel htmlFor={field.name}>
+                {t("Profile.Description")}
+              </FieldLabel>
+              <Textarea
+                id={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder={t("Profile.Enter description")}
+                rows={4}
+                aria-invalid={hasError || undefined}
+              />
+              {hasError && (
+                <FieldError>{field.state.meta.errors[0]}</FieldError>
+              )}
+            </Field>
+          );
+        }}
+      </form.Field>
+
+      {isIndividual && (
+        <form.Field name="pronouns">
+          {(field) => {
+            const hasError = field.state.meta.errors.length > 0;
+            return (
+              <Field data-invalid={hasError || undefined}>
+                <FieldLabel htmlFor={field.name}>
+                  {t("Profile.Pronouns")}
+                </FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder={t("Profile.Enter pronouns")}
+                  aria-invalid={hasError || undefined}
+                />
+                {hasError && (
+                  <FieldError>{field.state.meta.errors[0]}</FieldError>
+                )}
+              </Field>
+            );
+          }}
         </form.Field>
       )}
 

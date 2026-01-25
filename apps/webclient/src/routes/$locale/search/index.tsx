@@ -7,6 +7,7 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
 import { useNavigation } from "@/modules/navigation/navigation-context";
 import type { SearchResult } from "@/modules/backend/search/search";
 
@@ -120,14 +121,15 @@ function SearchPage() {
         <div className="content">
           <h1>{t("Search.Title", "Search")}</h1>
 
-          <form onSubmit={handleSearch} className="flex gap-2 mb-8">
-            <Input
-              type="search"
-              placeholder={t("Search.Placeholder", "Search for profiles, stories, pages...")}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="flex-1"
-            />
+          <form onSubmit={handleSearch} className="flex gap-2 mb-8 items-end">
+            <Field className="flex-1">
+              <Input
+                type="search"
+                placeholder={t("Search.Placeholder", "Search for profiles, stories, pages...")}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+            </Field>
             <Button type="submit">
               <Search className="size-4 mr-2" />
               {t("Search.Button", "Search")}

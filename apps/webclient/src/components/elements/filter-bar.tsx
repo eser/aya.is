@@ -2,7 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,10 +26,10 @@ export function FilterBar(props: FilterBarProps) {
 
   return (
     <div className="flex flex-col p-4 mb-8 border rounded-lg gap-4 md:flex-row md:items-end md:justify-between bg-card">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="kind-filter" className="font-semibold">
+      <Field>
+        <FieldLabel htmlFor="kind-filter" className="font-semibold">
           {t("Elements.FilterByKind")}
-        </Label>
+        </FieldLabel>
         <div
           className="flex rounded-md shadow-xs"
           role="group"
@@ -51,12 +51,12 @@ export function FilterBar(props: FilterBarProps) {
             </Button>
           ))}
         </div>
-      </div>
+      </Field>
 
-      <div className="flex flex-col flex-1 max-w-md gap-2">
-        <Label htmlFor="search-text" className="font-semibold">
+      <Field className="flex-1 max-w-md">
+        <FieldLabel htmlFor="search-text" className="font-semibold">
           {t("Search.Search")}
-        </Label>
+        </FieldLabel>
         <Input
           id="search-text"
           type="text"
@@ -65,7 +65,7 @@ export function FilterBar(props: FilterBarProps) {
           onChange={(e) => props.onSearchTextChange(e.target.value)}
           className="h-10"
         />
-      </div>
+      </Field>
     </div>
   );
 }

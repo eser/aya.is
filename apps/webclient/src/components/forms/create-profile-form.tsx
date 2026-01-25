@@ -39,13 +39,13 @@ const PROFILE_TYPES: ProfileTypeOption[] = [
     kind: "organization",
     icon: Building2,
     titleKey: "Profile.Organization",
-    descKey: "Profile.For teams and companies",
+    descKey: "Profile.For user groups and teams",
   },
   {
     kind: "product",
     icon: Package,
     titleKey: "Profile.Product",
-    descKey: "Profile.For apps, tools, and services",
+    descKey: "Profile.For apps, projects, tools and services",
   },
 ];
 

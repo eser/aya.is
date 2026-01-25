@@ -146,14 +146,14 @@
   },
   "Products": {
     "Description": "AYA kapsamında geliştirilen açık kaynak projeler ve ürünler.",
-    "SearchProductsPlaceholder": "Ürünleri isme veya açıklamaya göre ara...",
+    "SearchProductsPlaceholder": "Üretimleri isme veya açıklamaya göre ara...",
     "NoProductsFound": "Kriterlerinize uygun ürün bulunamadı.",
     "FilterByStatus": "Duruma göre filtrele",
     "AllStatuses": "Tüm durumlar",
     "HelpNeeded": "Yardım gerekiyor",
     "LookingForParticipants": "Katılımcı arıyor",
     "Details": "Detaylar",
-    "Add Product": "Ürün Ekle"
+    "Add Product": "Üretim Ekle"
   },
   "Profile": {
     "Create Profile": "Profil Oluştur",
@@ -271,10 +271,10 @@
     "Choose your profile type": "Profil türünüzü seçin",
     "Individual": "Kişisel",
     "Organization": "Organizasyon",
-    "Product": "Ürün",
+    "Product": "Üretim",
     "Your personal profile": "Kişisel profiliniz",
-    "For teams and companies": "Takımlar ve şirketler için",
-    "For apps, tools, and services": "Uygulamalar, araçlar ve hizmetler için",
+    "For user groups and teams": "Kullanıcı grupları ve takımlar için",
+    "For apps, projects, tools and services": "Uygulamalar, projeler, araçlar ve hizmetler için",
     "Individual profile exists": "Zaten bir kişisel profiliniz var",
     "Slug": "Slug",
     "Available": "Uygun",

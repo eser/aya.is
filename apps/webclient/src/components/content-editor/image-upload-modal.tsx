@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { backend } from "@/modules/backend/backend";
 import type { UploadPurpose } from "@/modules/backend/types";
 import styles from "./content-editor.module.css";
@@ -233,18 +233,18 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
                 </Button>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="alt-text">{t("Editor.Alt Text")}</Label>
+              <Field>
+                <FieldLabel htmlFor="alt-text">{t("Editor.Alt Text")}</FieldLabel>
                 <Input
                   id="alt-text"
                   value={altText}
                   onChange={(e) => setAltText(e.target.value)}
                   placeholder={t("Editor.Describe the image...")}
                 />
-                <p className="text-xs text-muted-foreground">
+                <FieldDescription>
                   {t("Editor.Alt text helps with accessibility and SEO")}
-                </p>
-              </div>
+                </FieldDescription>
+              </Field>
             </div>
           )}
 
