@@ -223,6 +223,7 @@
     "Slug must be at least 3 characters": "スラッグは3文字以上である必要があります",
     "Slug must be at most 100 characters": "スラッグは100文字以下である必要があります",
     "Slug can only contain lowercase letters, numbers, and hyphens": "スラッグには小文字、数字、ハイフンのみ使用できます",
+    "This slug is already taken": "このスラッグは既に使用されています",
     "Title is required": "タイトルは必須です",
     "Title must be at most 200 characters": "タイトルは200文字以下である必要があります",
     "Invalid URI": "無効なURI"

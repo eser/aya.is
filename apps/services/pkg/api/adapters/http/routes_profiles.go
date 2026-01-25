@@ -172,6 +172,42 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		HasDescription("List profile page by profile slug and page slug.").
 		HasResponse(http.StatusOK)
 
+	// Check page slug availability
+	routes.
+		Route(
+			"GET /{locale}/profiles/{slug}/pages/{pageSlug}/_check",
+			func(ctx *httpfx.Context) httpfx.Result {
+				localeParam := ctx.Request.PathValue("locale")
+				profileSlugParam := ctx.Request.PathValue("slug")
+				pageSlugParam := ctx.Request.PathValue("pageSlug")
+				excludeIDParam := ctx.Request.URL.Query().Get("exclude_id")
+
+				var excludeID *string
+				if excludeIDParam != "" {
+					excludeID = &excludeIDParam
+				}
+
+				availability, err := profileService.CheckPageSlugAvailability(
+					ctx.Request.Context(),
+					localeParam,
+					profileSlugParam,
+					pageSlugParam,
+					excludeID,
+				)
+				if err != nil {
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText(err.Error()),
+					)
+				}
+
+				return ctx.Results.JSON(availability)
+			},
+		).
+		HasSummary("Check page slug availability").
+		HasDescription("Check if a page slug is available within a profile (not taken).").
+		HasResponse(http.StatusOK)
+
 	routes.
 		Route("GET /{locale}/profiles/{slug}/links", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path

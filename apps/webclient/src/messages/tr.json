@@ -392,6 +392,7 @@
     "Slug must be at least 3 characters": "Slug en az 3 karakter olmalı",
     "Slug must be at most 100 characters": "Slug en fazla 100 karakter olmalı",
     "Slug can only contain lowercase letters, numbers, and hyphens": "Slug sadece küçük harf, rakam ve tire içerebilir",
+    "This slug is already taken": "Bu slug zaten kullanılıyor",
     "Title is required": "Başlık gerekli",
     "Title must be at most 200 characters": "Başlık en fazla 200 karakter olmalı",
     "Invalid URI": "Geçersiz URI",

@@ -485,6 +485,43 @@ func (s *Service) GetPageBySlug(
 	return page, nil
 }
 
+// CheckPageSlugAvailability checks if a page slug is available within a profile.
+// It optionally excludes a specific page ID (for edit scenarios).
+func (s *Service) CheckPageSlugAvailability(
+	ctx context.Context,
+	localeCode string,
+	profileSlug string,
+	pageSlug string,
+	excludePageID *string,
+) (*SlugAvailabilityResult, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	page, err := s.repo.GetProfilePageByProfileIDAndSlug(ctx, localeCode, profileID, pageSlug)
+	if err != nil {
+		// If not found, slug is available
+		return &SlugAvailabilityResult{
+			Available: true,
+			Message:   "",
+		}, nil
+	}
+
+	// If we're editing and the slug belongs to the same page, it's available
+	if excludePageID != nil && page.ID == *excludePageID {
+		return &SlugAvailabilityResult{
+			Available: true,
+			Message:   "",
+		}, nil
+	}
+
+	return &SlugAvailabilityResult{
+		Available: false,
+		Message:   "This slug is already taken",
+	}, nil
+}
+
 func (s *Service) ListLinksBySlug(
 	ctx context.Context,
 	localeCode string,

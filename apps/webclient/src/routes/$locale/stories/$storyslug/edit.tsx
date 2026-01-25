@@ -236,6 +236,7 @@ function EditStoryPage() {
           validateSlugDatePrefix
           onSave={handleSave}
           onDelete={handleDelete}
+          excludeId={story.id}
         />
       </div>
     </PageLayout>

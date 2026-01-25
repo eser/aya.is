@@ -67,6 +67,31 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 		HasDescription("Get story by slug.").
 		HasResponse(http.StatusOK)
 
+	// Check story slug availability
+	routes.
+		Route("GET /{locale}/stories/{slug}/_check", func(ctx *httpfx.Context) httpfx.Result {
+			slugParam := ctx.Request.PathValue("slug")
+			excludeIDParam := ctx.Request.URL.Query().Get("exclude_id")
+
+			var excludeID *string
+			if excludeIDParam != "" {
+				excludeID = &excludeIDParam
+			}
+
+			availability, err := storyService.CheckSlugAvailability(ctx.Request.Context(), slugParam, excludeID)
+			if err != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText(err.Error()),
+				)
+			}
+
+			return ctx.Results.JSON(availability)
+		}).
+		HasSummary("Check story slug availability").
+		HasDescription("Check if a story slug is available (not taken).").
+		HasResponse(http.StatusOK)
+
 	// Story CRUD routes (protected, requires authentication)
 
 	// Create story

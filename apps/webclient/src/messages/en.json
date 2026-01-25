@@ -425,6 +425,7 @@
     "Slug must be at least 3 characters": "Slug must be at least 3 characters",
     "Slug must be at most 100 characters": "Slug must be at most 100 characters",
     "Slug can only contain lowercase letters, numbers, and hyphens": "Slug can only contain lowercase letters, numbers, and hyphens",
+    "This slug is already taken": "This slug is already taken",
     "Title is required": "Title is required",
     "Title must be at most 200 characters": "Title must be at most 200 characters",
     "Invalid URI": "Invalid URI",

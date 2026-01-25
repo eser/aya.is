@@ -10,6 +10,7 @@ import { getProfileStory } from "./profiles/get-profile-story";
 import { getProfileMembers } from "./profiles/get-profile-members";
 import { getProfileContributions } from "./profiles/get-profile-contributions";
 import { checkProfileSlug } from "./profiles/check-profile-slug";
+import { checkPageSlug } from "./profiles/check-page-slug";
 import { createProfile } from "./profiles/create-profile";
 import { updateProfile } from "./profiles/update-profile";
 import { updateProfileTranslation } from "./profiles/update-profile-translation";
@@ -28,6 +29,7 @@ import { updateProfilePageTranslation } from "./profiles/update-profile-page-tra
 import { deleteProfilePage } from "./profiles/delete-profile-page";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
+import { checkStorySlug } from "./stories/check-story-slug";
 import { insertStory } from "./stories/insert-story";
 import { getStoryForEdit } from "./stories/get-story-for-edit";
 import { updateStory } from "./stories/update-story";
@@ -64,6 +66,7 @@ export const backend = {
   getProfileMembers,
   getProfileContributions,
   checkProfileSlug,
+  checkPageSlug,
   createProfile,
   updateProfile,
   updateProfileTranslation,
@@ -88,6 +91,7 @@ export const backend = {
   // Stories
   getStoriesByKinds,
   getStory,
+  checkStorySlug,
   insertStory,
   getStoryForEdit,
   updateStory,
@@ -127,7 +131,9 @@ export const backend = {
 
 // Individual exports for tree-shaking
 export {
+  checkPageSlug,
   checkProfileSlug,
+  checkStorySlug,
   createProfile,
   createProfileLink,
   createProfilePage,

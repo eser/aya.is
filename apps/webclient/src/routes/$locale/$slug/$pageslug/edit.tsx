@@ -213,6 +213,7 @@ function EditPagePage() {
         userKind={auth.user?.kind}
         onSave={handleSave}
         onDelete={handleDelete}
+        excludeId={page.id}
       />
     </div>
   );

@@ -223,6 +223,7 @@
     "Slug must be at least 3 characters": "El slug debe tener al menos 3 caracteres",
     "Slug must be at most 100 characters": "El slug debe tener como máximo 100 caracteres",
     "Slug can only contain lowercase letters, numbers, and hyphens": "El slug solo puede contener letras minúsculas, números y guiones",
+    "This slug is already taken": "Este slug ya está en uso",
     "Title is required": "El título es obligatorio",
     "Title must be at most 200 characters": "El título debe tener como máximo 200 caracteres",
     "Invalid URI": "URI no válida"

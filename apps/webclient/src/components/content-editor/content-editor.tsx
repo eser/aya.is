@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import {
   ArrowLeft,
+  Check,
   Images,
   Info,
+  Loader2,
   Megaphone,
   Newspaper,
   PanelLeftClose,
@@ -20,7 +22,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import type { StoryKind } from "@/modules/backend/types";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { insertTextAtCursor, MarkdownEditor, wrapSelectedText } from "./markdown-editor";
@@ -31,7 +33,14 @@ import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
 import { isAllowedURI } from "@/config";
+import { backend } from "@/modules/backend/backend";
 import { getEntityConfig } from "./entity-types";
+
+type SlugAvailability = {
+  isChecking: boolean;
+  isAvailable: boolean | null;
+  message: string | null;
+};
 
 // Schema for optional URL validation (null, empty string, or valid http/https URL)
 const optionalUrlSchema = z.union([
@@ -92,11 +101,13 @@ type ContentEditorProps = {
   onSave: (data: ContentEditorData) => Promise<void>;
   onDelete?: () => Promise<void>;
   isNew?: boolean;
+  excludeId?: string;
 };
 
 export function ContentEditor(props: ContentEditorProps) {
   const {
     locale,
+    profileSlug,
     contentType,
     initialData,
     backUrl,
@@ -105,6 +116,7 @@ export function ContentEditor(props: ContentEditorProps) {
     onSave,
     onDelete,
     isNew = false,
+    excludeId,
   } = props;
 
   const isAdmin = userKind === "admin";
@@ -144,6 +156,11 @@ export function ContentEditor(props: ContentEditorProps) {
   const [slugError, setSlugError] = React.useState<string | null>(null);
   const [titleError, setTitleError] = React.useState<string | null>(null);
   const [storyPictureUriError, setStoryPictureUriError] = React.useState<string | null>(null);
+  const [slugAvailability, setSlugAvailability] = React.useState<SlugAvailability>({
+    isChecking: false,
+    isAvailable: null,
+    message: null,
+  });
 
   // Validate slug on change
   React.useEffect(() => {
@@ -176,6 +193,60 @@ export function ContentEditor(props: ContentEditorProps) {
 
     setSlugError(null);
   }, [slug, publishedAt, status, shouldValidateSlugDatePrefix, t]);
+
+  // Debounced slug availability check
+  const unavailableMessage = t("Editor.This slug is already taken");
+  React.useEffect(() => {
+    // Only check if slug passes basic validation
+    if (slugError !== null || slug.length < 3) {
+      setSlugAvailability({ isChecking: false, isAvailable: null, message: null });
+      return;
+    }
+
+    // Skip availability check if slug hasn't changed from initial (for editing)
+    if (!isNew && slug === initialData.slug) {
+      setSlugAvailability({ isChecking: false, isAvailable: true, message: null });
+      return;
+    }
+
+    setSlugAvailability((prev) => ({ ...prev, isChecking: true }));
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        let result: { available: boolean; message?: string } | null = null;
+
+        if (contentType === "story") {
+          result = await backend.checkStorySlug(locale, slug, excludeId);
+        } else {
+          result = await backend.checkPageSlug(locale, profileSlug, slug, excludeId);
+        }
+
+        if (result !== null) {
+          setSlugAvailability({
+            isChecking: false,
+            isAvailable: result.available,
+            message: result.available ? null : (result.message ?? unavailableMessage),
+          });
+        } else {
+          setSlugAvailability({
+            isChecking: false,
+            isAvailable: null,
+            message: null,
+          });
+        }
+      } catch {
+        setSlugAvailability({
+          isChecking: false,
+          isAvailable: null,
+          message: null,
+        });
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [slug, slugError, locale, profileSlug, contentType, excludeId, isNew, initialData.slug, unavailableMessage]);
 
   // Validate title on change
   React.useEffect(() => {
@@ -255,7 +326,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
   const handleSave = async () => {
     // Check for validation errors
-    if (slugError !== null || titleError !== null) {
+    if (slugError !== null || titleError !== null || slugAvailability.isAvailable === false) {
       return;
     }
 
@@ -290,7 +361,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
   const handlePublish = async () => {
     // Check for validation errors
-    if (slugError !== null || titleError !== null) {
+    if (slugError !== null || titleError !== null || slugAvailability.isAvailable === false) {
       return;
     }
 
@@ -518,18 +589,37 @@ export function ContentEditor(props: ContentEditorProps) {
               )}
 
               {/* Slug */}
-              <Field className={styles.metadataField} data-invalid={slugError !== null || undefined}>
+              <Field
+                className={styles.metadataField}
+                data-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.isAvailable === false) || undefined}
+              >
                 <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
                   {t("Editor.Slug")}
                 </FieldLabel>
-                <Input
-                  id="slug"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder={t("Editor.url-friendly-slug")}
-                  aria-invalid={slugError !== null || undefined}
-                />
+                <div className="relative">
+                  <Input
+                    id="slug"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    placeholder={t("Editor.url-friendly-slug")}
+                    aria-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.isAvailable === false) || undefined}
+                    className="pr-8"
+                  />
+                  {slugError === null && slug.length >= 3 && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      {slugAvailability.isChecking && (
+                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                      )}
+                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
+                        <Check className="size-4 text-green-600" />
+                      )}
+                    </div>
+                  )}
+                </div>
                 {slugError !== null && <FieldError>{slugError}</FieldError>}
+                {slugError === null && !slugAvailability.isChecking && slugAvailability.isAvailable === false && slugAvailability.message !== null && (
+                  <FieldError>{slugAvailability.message}</FieldError>
+                )}
               </Field>
 
               {/* Published At - visible for published content, editable only by admin */}

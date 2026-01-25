@@ -103,6 +103,12 @@ func validateURIPrefixes(uri *string, allowedPrefixes []string) error {
 	return fmt.Errorf("%w: %s", ErrInvalidURIPrefix, strings.Join(allowedPrefixes, ", "))
 }
 
+// SlugAvailabilityResult holds the result of a slug availability check.
+type SlugAvailabilityResult struct {
+	Available bool   `json:"available"`
+	Message   string `json:"message,omitempty"`
+}
+
 type Repository interface {
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
 	GetProfileByID(ctx context.Context, localeCode string, id string) (*profiles.Profile, error)
@@ -226,6 +232,36 @@ func (s *Service) GetBySlug(
 	}
 
 	return record, nil
+}
+
+// CheckSlugAvailability checks if a story slug is available.
+// It optionally excludes a specific story ID (for edit scenarios).
+func (s *Service) CheckSlugAvailability(
+	ctx context.Context,
+	slug string,
+	excludeStoryID *string,
+) (*SlugAvailabilityResult, error) {
+	storyID, err := s.repo.GetStoryIDBySlug(ctx, slug)
+	if err != nil {
+		// If not found, slug is available
+		return &SlugAvailabilityResult{
+			Available: true,
+			Message:   "",
+		}, nil
+	}
+
+	// If we're editing and the slug belongs to the same story, it's available
+	if excludeStoryID != nil && storyID == *excludeStoryID {
+		return &SlugAvailabilityResult{
+			Available: true,
+			Message:   "",
+		}, nil
+	}
+
+	return &SlugAvailabilityResult{
+		Available: false,
+		Message:   "This slug is already taken",
+	}, nil
 }
 
 func (s *Service) List(
