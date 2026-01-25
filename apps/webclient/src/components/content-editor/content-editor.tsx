@@ -156,7 +156,7 @@ export function ContentEditor(props: ContentEditorProps) {
   const [showStoryPictureModal, setShowStoryPictureModal] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [slugError, setSlugError] = React.useState<string | null>(null);
-  const [showSlugValidation, setSlugTouched] = React.useState(!isNew);
+  const [showSlugValidation, setShowSlugValidation] = React.useState(false);
   const [slugManuallyEdited, setSlugManuallyEdited] = React.useState(false);
   const [titleError, setTitleError] = React.useState<string | null>(null);
   const [showTitleValidation, setTitleTouched] = React.useState(!isNew);
@@ -333,7 +333,7 @@ export function ContentEditor(props: ContentEditorProps) {
   // Auto-generate slug from title for new content (called on title blur)
   const generateSlugFromTitle = React.useCallback(() => {
     // Only auto-generate for new content when user hasn't manually edited the slug
-    if (!isNew || slugManuallyEdited || title === "") {
+    if (slugManuallyEdited || title.trim() === "") {
       return;
     }
 
@@ -366,7 +366,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
   const handleSave = async () => {
     // Mark fields as touched to show any validation errors
-    setSlugTouched(true);
+    setShowSlugValidation(true);
     setTitleTouched(true);
 
     // Check for empty required fields
@@ -412,7 +412,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
   const handlePublish = async () => {
     // Mark fields as touched to show any validation errors
-    setSlugTouched(true);
+    setShowSlugValidation(true);
     setTitleTouched(true);
 
     // Check for empty required fields
@@ -730,10 +730,12 @@ export function ContentEditor(props: ContentEditorProps) {
                     value={slug}
                     onChange={(e) => {
                       setSlug(e.target.value);
-                      if (!showSlugValidation) setSlugTouched(true);
+                      if (!showSlugValidation) setShowSlugValidation(true);
                       if (!slugManuallyEdited) setSlugManuallyEdited(true);
                     }}
-                    onBlur={() => setSlugTouched(true)}
+                    onBlur={() => {
+                      if (!showSlugValidation) setShowSlugValidation(true);
+                    }}
                     placeholder={t("Editor.url-friendly-slug")}
                     aria-invalid={(showSlugValidation && slugError !== null) || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
                     className="pr-8"
