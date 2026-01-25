@@ -311,6 +311,8 @@
     "Slug": "Slug",
     "Available": "Available",
     "This slug is unavailable": "This slug is unavailable",
+    "This slug is already taken": "This slug is already taken",
+    "This slug is reserved": "This slug is reserved",
     "Profile created successfully": "Profile created successfully",
     "Failed to create profile": "Failed to create profile",
     "Please select a profile type": "Please select a profile type",

@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import {
   ArrowLeft,
+  Images,
+  Info,
+  Megaphone,
+  Newspaper,
   PanelLeftClose,
   PanelLeftOpen,
-  Newspaper,
   PencilLine,
-  Megaphone,
-  Info,
-  Images,
   Presentation,
   Upload,
 } from "lucide-react";
@@ -19,27 +19,14 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { StoryKind } from "@/modules/backend/types";
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable";
-import { MarkdownEditor, wrapSelectedText, insertTextAtCursor } from "./markdown-editor";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { insertTextAtCursor, MarkdownEditor, wrapSelectedText } from "./markdown-editor";
 import { PreviewPanel } from "./preview-panel";
-import {
-  EditorToolbar,
-  type ViewMode,
-  type FormatAction,
-} from "./editor-toolbar";
-import { EditorActions, type ContentStatus } from "./editor-actions";
+import { EditorToolbar, type FormatAction, type ViewMode } from "./editor-toolbar";
+import { type ContentStatus, EditorActions } from "./editor-actions";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
@@ -68,7 +55,10 @@ function formatDatePrefix(dateString: string | null): string | null {
 }
 
 // Validate slug starts with YYYYMMDD- of publish date
-function validateSlugPrefix(slug: string, publishedAt: string | null): { valid: boolean; expectedPrefix: string | null } {
+function validateSlugPrefix(
+  slug: string,
+  publishedAt: string | null,
+): { valid: boolean; expectedPrefix: string | null } {
   const expectedPrefix = formatDatePrefix(publishedAt);
   if (expectedPrefix === null) {
     return { valid: true, expectedPrefix: null };
@@ -414,11 +404,7 @@ export function ContentEditor(props: ContentEditorProps) {
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               title={sidebarCollapsed ? t("Editor.Expand sidebar") : t("Editor.Collapse sidebar")}
             >
-              {sidebarCollapsed ? (
-                <PanelLeftOpen className="size-4" />
-              ) : (
-                <PanelLeftClose className="size-4" />
-              )}
+              {sidebarCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
             </Button>
           </div>
 
@@ -501,9 +487,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   placeholder={t("Editor.url-friendly-slug")}
                   aria-invalid={slugError !== null || undefined}
                 />
-                {slugError !== null && (
-                  <FieldError>{slugError}</FieldError>
-                )}
+                {slugError !== null && <FieldError>{slugError}</FieldError>}
               </Field>
 
               {/* Published At - visible for published content, editable only by admin */}
@@ -516,9 +500,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     id="published-at"
                     type="text"
                     value={publishedAt ?? ""}
-                    onChange={(e) =>
-                      setPublishedAt(e.target.value || null)
-                    }
+                    onChange={(e) => setPublishedAt(e.target.value || null)}
                     disabled={!isAdmin}
                   />
                 </Field>
@@ -574,9 +556,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   <Input
                     id="story-picture-uri"
                     value={storyPictureUri ?? ""}
-                    onChange={(e) =>
-                      setStoryPictureUri(e.target.value || null)
-                    }
+                    onChange={(e) => setStoryPictureUri(e.target.value || null)}
                     placeholder="https://..."
                     className="flex-1"
                     aria-invalid={storyPictureUriError !== null || undefined}
@@ -591,9 +571,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     <Upload className="size-4" />
                   </Button>
                 </div>
-                {storyPictureUriError !== null && (
-                  <FieldError>{storyPictureUriError}</FieldError>
-                )}
+                {storyPictureUriError !== null && <FieldError>{storyPictureUriError}</FieldError>}
                 {storyPictureUri !== null && storyPictureUri !== "" && storyPictureUriError === null && (
                   <img
                     src={storyPictureUri}

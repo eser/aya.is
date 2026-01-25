@@ -2,21 +2,15 @@ import * as React from "react";
 import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Building2, Check, Info, Loader2, Package, User, X } from "lucide-react";
+import { ArrowLeft, Building2, Check, Loader2, Package, User } from "lucide-react";
 import { z } from "zod";
 import type { CreateProfileInput } from "@/lib/schemas/profile";
 import { backend } from "@/modules/backend/backend";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import styles from "./create-profile-form.module.css";
 
 type ProfileKind = "individual" | "organization" | "product";
@@ -281,12 +275,10 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                       </InputGroupAddon>
                     )}
                   </InputGroup>
-                  {hasValidationError && (
-                    <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
-                  )}
-                  {!hasValidationError && isUnavailable && (
+                  {hasValidationError && <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>}
+                  {!hasValidationError && isUnavailable && slugAvailability.message !== null && (
                     <FieldDescription className="text-destructive">
-                      {slugAvailability.message}
+                      {t(`Profile.${slugAvailability.message}`, { defaultValue: slugAvailability.message })}
                     </FieldDescription>
                   )}
                 </Field>

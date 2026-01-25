@@ -21,7 +21,7 @@
 /* Profile Type Cards */
 
 .typeSection {
-  @apply space-y-4;
+  @apply space-y-4 mb-4;
 }
 
 .typeSectionLabel {

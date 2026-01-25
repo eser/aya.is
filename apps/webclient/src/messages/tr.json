@@ -279,6 +279,8 @@
     "Slug": "Slug",
     "Available": "Uygun",
     "This slug is unavailable": "Bu slug kullanılamaz",
+    "This slug is already taken": "Bu slug zaten kullanılıyor",
+    "This slug is reserved": "Bu slug ayrılmış",
     "Profile created successfully": "Profil başarıyla oluşturuldu",
     "Failed to create profile": "Profil oluşturulamadı",
     "Please select a profile type": "Lütfen bir profil türü seçin",
