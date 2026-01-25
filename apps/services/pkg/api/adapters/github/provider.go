@@ -27,9 +27,8 @@ func (p *Provider) Client() *Client {
 }
 
 // InitiateOAuth builds the OAuth URL with the given state.
-// Implements auth.Provider and profiles.LinkProvider interfaces.
-// For login: caller passes auth.GenerateRandomState()
-// For linking: caller passes profiles.CreateProfileLinkState(...)
+// Implements auth.Provider interface for login.
+// For login: caller passes auth.GenerateRandomState().
 func (p *Provider) InitiateOAuth(
 	ctx context.Context,
 	redirectURI string,
@@ -39,6 +38,22 @@ func (p *Provider) InitiateOAuth(
 
 	p.client.Logger().DebugContext(ctx, "Initiating GitHub OAuth",
 		slog.String("redirect_uri", redirectURI))
+
+	return authURL, nil
+}
+
+// InitiateProfileLinkOAuth builds the OAuth URL with expanded scope for profile linking.
+// Uses ProfileLinkScope which includes read:org for organization access.
+func (p *Provider) InitiateProfileLinkOAuth(
+	ctx context.Context,
+	redirectURI string,
+	state string,
+) (string, error) {
+	authURL := p.client.BuildAuthURL(redirectURI, state, p.client.Config().ProfileLinkScope)
+
+	p.client.Logger().DebugContext(ctx, "Initiating GitHub OAuth for profile link",
+		slog.String("redirect_uri", redirectURI),
+		slog.String("scope", p.client.Config().ProfileLinkScope))
 
 	return authURL, nil
 }

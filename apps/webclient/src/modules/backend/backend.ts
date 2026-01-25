@@ -55,7 +55,7 @@ import { search } from "./search/search";
 
 // Re-export types
 export * from "./types";
-export type { GitHubAccount } from "./profiles/get-github-accounts";
+export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
 
 // Backend API facade
 export const backend = {

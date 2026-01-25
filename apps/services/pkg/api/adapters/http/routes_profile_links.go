@@ -150,7 +150,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					encodedState,
 				)
 			case "github":
-				authURL, err = providers.GitHub.InitiateOAuth(
+				authURL, err = providers.GitHub.InitiateProfileLinkOAuth(
 					ctx.Request.Context(),
 					redirectURI,
 					encodedState,
@@ -519,7 +519,10 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			return ctx.Results.JSON(map[string]any{
-				"data":  accounts,
+				"data": map[string]any{
+					"accounts":     accounts,
+					"profile_kind": pendingConn.ProfileKind,
+				},
 				"error": nil,
 			})
 		}).

@@ -11,11 +11,16 @@ export type GitHubAccount = {
   description?: string;
 };
 
+export type GitHubAccountsResponse = {
+  accounts: GitHubAccount[];
+  profile_kind: "individual" | "organization" | "product";
+};
+
 export async function getGitHubAccounts(
   locale: string,
   slug: string,
   pendingId: string,
-): Promise<GitHubAccount[] | null> {
+): Promise<GitHubAccountsResponse | null> {
   const token = getAuthToken();
   if (token === null) return null;
 

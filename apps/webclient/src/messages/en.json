@@ -330,7 +330,8 @@
     "Description is too long": "Description is too long",
     "Select GitHub Account": "Select GitHub Account",
     "Choose which GitHub account or organization to connect.": "Choose which GitHub account or organization to connect.",
-    "Failed to load GitHub accounts": "Failed to load GitHub accounts"
+    "Failed to load GitHub accounts": "Failed to load GitHub accounts",
+    "Individual accounts not allowed": "Individual accounts not allowed"
   },
   "StoryPage": {
     "Written by": "Written by",

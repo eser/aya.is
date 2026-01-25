@@ -20,7 +20,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
-import { backend, type ProfileLink, type ProfileLinkKind, type GitHubAccount } from "@/modules/backend/backend";
+import { backend, type ProfileLink, type ProfileLinkKind, type GitHubAccount, type GitHubAccountsResponse } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -114,6 +114,7 @@ function LinksSettingsPage() {
   const [isAccountSelectionOpen, setIsAccountSelectionOpen] = React.useState(false);
   const [pendingGitHubId, setPendingGitHubId] = React.useState<string | null>(null);
   const [gitHubAccounts, setGitHubAccounts] = React.useState<GitHubAccount[]>([]);
+  const [pendingProfileKind, setPendingProfileKind] = React.useState<string | null>(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = React.useState(false);
   const [isConnectingAccount, setIsConnectingAccount] = React.useState(false);
 
@@ -160,9 +161,10 @@ function LinksSettingsPage() {
 
   const loadGitHubAccounts = async (pendingId: string) => {
     setIsLoadingAccounts(true);
-    const accounts = await backend.getGitHubAccounts(params.locale, params.slug, pendingId);
-    if (accounts !== null) {
-      setGitHubAccounts(accounts);
+    const response = await backend.getGitHubAccounts(params.locale, params.slug, pendingId);
+    if (response !== null) {
+      setGitHubAccounts(response.accounts);
+      setPendingProfileKind(response.profile_kind);
     } else {
       toast.error(t("Profile.Failed to load GitHub accounts"));
       setIsAccountSelectionOpen(false);
@@ -186,6 +188,7 @@ function LinksSettingsPage() {
       setIsAccountSelectionOpen(false);
       setPendingGitHubId(null);
       setGitHubAccounts([]);
+      setPendingProfileKind(null);
       loadLinks();
     } else {
       toast.error(t("Profile.Failed to connect"));
@@ -762,6 +765,7 @@ function LinksSettingsPage() {
           setIsAccountSelectionOpen(false);
           setPendingGitHubId(null);
           setGitHubAccounts([]);
+          setPendingProfileKind(null);
         }
       }}>
         <DialogContent className="max-w-md">
@@ -790,32 +794,44 @@ function LinksSettingsPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {gitHubAccounts.map((account) => (
-                  <button
-                    key={account.id}
-                    type="button"
-                    onClick={() => handleSelectGitHubAccount(account)}
-                    disabled={isConnectingAccount}
-                    className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <img
-                      src={account.avatar_url}
-                      alt={account.login}
-                      className="size-10 rounded-full"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{account.name || account.login}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        @{account.login}
-                        {account.type === "Organization" && (
-                          <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">
-                            {t("Profile.Organization")}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+                {gitHubAccounts.map((account) => {
+                  // For organization/product profiles, only allow selecting organizations
+                  const isDisabled = isConnectingAccount ||
+                    ((pendingProfileKind === "organization" || pendingProfileKind === "product") &&
+                      account.type === "User");
+
+                  return (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => handleSelectGitHubAccount(account)}
+                      disabled={isDisabled}
+                      className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <img
+                        src={account.avatar_url}
+                        alt={account.login}
+                        className="size-10 rounded-full"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{account.name || account.login}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          @{account.login}
+                          {account.type === "Organization" && (
+                            <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">
+                              {t("Profile.Organization")}
+                            </span>
+                          )}
+                          {account.type === "User" && (pendingProfileKind === "organization" || pendingProfileKind === "product") && (
+                            <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">
+                              {t("Profile.Individual accounts not allowed")}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -827,6 +843,7 @@ function LinksSettingsPage() {
                 setIsAccountSelectionOpen(false);
                 setPendingGitHubId(null);
                 setGitHubAccounts([]);
+                setPendingProfileKind(null);
               }}
               disabled={isConnectingAccount}
             >
