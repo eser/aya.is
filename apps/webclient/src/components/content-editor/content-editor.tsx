@@ -194,7 +194,13 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     setSlugError(null);
-  }, [slug, slugTouched, publishedAt, status, shouldValidateSlugDatePrefix, t]);
+  }, [slug, slugTouched, publishedAt, status, shouldValidateSlugDatePrefix]);
+
+  // Refs to capture current values without triggering effect re-runs
+  const statusRef = React.useRef(status);
+  const publishedAtRef = React.useRef(publishedAt);
+  statusRef.current = status;
+  publishedAtRef.current = publishedAt;
 
   // Debounced slug availability check
   React.useEffect(() => {
@@ -219,8 +225,8 @@ export function ContentEditor(props: ContentEditorProps) {
         if (contentType === "story") {
           result = await backend.checkStorySlug(locale, slug, {
             excludeId,
-            status,
-            publishedAt,
+            status: statusRef.current,
+            publishedAt: publishedAtRef.current,
           });
         } else {
           result = await backend.checkPageSlug(locale, profileSlug, slug, excludeId);
@@ -251,7 +257,7 @@ export function ContentEditor(props: ContentEditorProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slug, slugError, locale, profileSlug, contentType, excludeId, isNew, initialData.slug, status, publishedAt]);
+  }, [slug, slugError, locale, profileSlug, contentType, excludeId, isNew, initialData.slug]);
 
   // Validate title on change
   React.useEffect(() => {
@@ -264,7 +270,7 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
     setTitleError(null);
-  }, [title, titleTouched, t]);
+  }, [title, titleTouched]);
 
   // Validate story picture URI on change
   React.useEffect(() => {
