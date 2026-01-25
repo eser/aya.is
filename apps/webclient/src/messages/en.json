@@ -331,7 +331,8 @@
     "Select GitHub Account": "Select GitHub Account",
     "Choose which GitHub account or organization to connect.": "Choose which GitHub account or organization to connect.",
     "Failed to load GitHub accounts": "Failed to load GitHub accounts",
-    "Individual accounts not allowed": "Individual accounts not allowed"
+    "Individual accounts not allowed": "Individual accounts not allowed",
+    "Connecting...": "Connecting..."
   },
   "StoryPage": {
     "Written by": "Written by",

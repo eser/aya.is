@@ -490,13 +490,19 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Build response with user account and organizations
+			// Construct html_url from login if not provided
+			userHTMLURL := userInfo.HTMLURL
+			if userHTMLURL == "" {
+				userHTMLURL = "https://github.com/" + userInfo.Login
+			}
+
 			accounts := []profiles.GitHubAccount{
 				{
 					ID:        strconv.FormatInt(userInfo.ID, 10),
 					Login:     userInfo.Login,
 					Name:      userInfo.Name,
 					AvatarURL: userInfo.Avatar,
-					HTMLURL:   userInfo.HTMLURL,
+					HTMLURL:   userHTMLURL,
 					Type:      "User",
 				},
 			}
@@ -507,12 +513,18 @@ func RegisterHTTPRoutesForProfileLinks(
 					name = org.Login
 				}
 
+				// GitHub /user/orgs API doesn't return html_url, construct it from login
+				htmlURL := org.HTMLURL
+				if htmlURL == "" {
+					htmlURL = "https://github.com/" + org.Login
+				}
+
 				accounts = append(accounts, profiles.GitHubAccount{
 					ID:          strconv.FormatInt(org.ID, 10),
 					Login:       org.Login,
 					Name:        name,
 					AvatarURL:   org.Avatar,
-					HTMLURL:     org.HTMLURL,
+					HTMLURL:     htmlURL,
 					Type:        "Organization",
 					Description: org.Description,
 				})

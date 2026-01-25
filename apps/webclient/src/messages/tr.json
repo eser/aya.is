@@ -299,7 +299,8 @@
     "Select GitHub Account": "GitHub Hesabı Seçin",
     "Choose which GitHub account or organization to connect.": "Bağlanacak GitHub hesabını veya organizasyonunu seçin.",
     "Failed to load GitHub accounts": "GitHub hesapları yüklenemedi",
-    "Individual accounts not allowed": "Bireysel hesaplara izin verilmiyor"
+    "Individual accounts not allowed": "Bireysel hesaplara izin verilmiyor",
+    "Connecting...": "Bağlanıyor..."
   },
   "StoryPage": {
     "Written by": "Yazan",

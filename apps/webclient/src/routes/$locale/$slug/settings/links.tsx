@@ -117,6 +117,7 @@ function LinksSettingsPage() {
   const [pendingProfileKind, setPendingProfileKind] = React.useState<string | null>(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = React.useState(false);
   const [isConnectingAccount, setIsConnectingAccount] = React.useState(false);
+  const isReconnectingRef = React.useRef(false);
 
   const [formData, setFormData] = React.useState<LinkFormData>({
     kind: "github",
@@ -127,7 +128,7 @@ function LinksSettingsPage() {
 
   // Handle OAuth success/error from URL query params
   React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(globalThis.location.search);
     const connected = urlParams.get("connected");
     const error = urlParams.get("error");
     const pending = urlParams.get("pending");
@@ -136,7 +137,7 @@ function LinksSettingsPage() {
     if (connected !== null) {
       toast.success(t("Profile.Connected successfully", { provider: connected }));
       // Clean URL
-      window.history.replaceState({}, "", window.location.pathname);
+      window.history.replaceState({}, "", globalThis.location.pathname);
     }
 
     if (error !== null) {
@@ -146,7 +147,7 @@ function LinksSettingsPage() {
         toast.error(t("Profile.Failed to connect", { error }));
       }
       // Clean URL
-      window.history.replaceState({}, "", window.location.pathname);
+      window.history.replaceState({}, "", globalThis.location.pathname);
     }
 
     // Handle pending GitHub connection for organization profiles
@@ -155,7 +156,7 @@ function LinksSettingsPage() {
       setIsAccountSelectionOpen(true);
       loadGitHubAccounts(pendingId);
       // Clean URL
-      window.history.replaceState({}, "", window.location.pathname);
+      window.history.replaceState({}, "", globalThis.location.pathname);
     }
   }, [t]);
 
@@ -321,6 +322,9 @@ function LinksSettingsPage() {
   };
 
   const handleConnectGitHub = async () => {
+    if (isReconnectingRef.current) return;
+    isReconnectingRef.current = true;
+
     try {
       const result = await backend.initiateProfileLinkOAuth(
         params.locale,
@@ -329,16 +333,22 @@ function LinksSettingsPage() {
       );
       if (result === null) {
         toast.error(t("Profile", "Failed to connect"));
+        isReconnectingRef.current = false;
         return;
       }
-      window.location.href = result.auth_url;
+      // Navigate to OAuth provider - use replace to avoid back button issues
+      globalThis.location.replace(result.auth_url);
     } catch (error) {
       console.error("OAuth initiation failed:", error);
       toast.error(t("Profile", "Failed to connect"));
+      isReconnectingRef.current = false;
     }
   };
 
   const handleConnectYouTube = async () => {
+    if (isReconnectingRef.current) return;
+    isReconnectingRef.current = true;
+
     try {
       const result = await backend.initiateProfileLinkOAuth(
         params.locale,
@@ -347,12 +357,15 @@ function LinksSettingsPage() {
       );
       if (result === null) {
         toast.error(t("Profile", "Failed to connect"));
+        isReconnectingRef.current = false;
         return;
       }
-      window.location.href = result.auth_url;
+      // Navigate to OAuth provider - use replace to avoid back button issues
+      globalThis.location.replace(result.auth_url);
     } catch (error) {
       console.error("OAuth initiation failed:", error);
       toast.error(t("Profile", "Failed to connect"));
+      isReconnectingRef.current = false;
     }
   };
 
@@ -491,19 +504,17 @@ function LinksSettingsPage() {
           </p>
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button>
-              <Plus className="size-4 mr-1" />
-              {t("Profile.Add Link")}
-              <ChevronDown className="size-4 ml-1" />
-            </Button>
+          <DropdownMenuTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 cursor-pointer">
+            <Plus className="size-4" />
+            {t("Profile.Add Link")}
+            <ChevronDown className="size-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleConnectGitHub}>
+          <DropdownMenuContent align="end" className="w-auto">
+            <DropdownMenuItem onClick={() => handleConnectGitHub()}>
               <GitHub className="size-4 mr-2" />
               {t("Profile.Connect GitHub")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleConnectYouTube}>
+            <DropdownMenuItem onClick={() => handleConnectYouTube()}>
               <Youtube className="size-4 mr-2" />
               {t("Profile.Connect YouTube")}
             </DropdownMenuItem>
