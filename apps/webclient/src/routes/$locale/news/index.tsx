@@ -6,9 +6,9 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
-import { StoriesPageClient } from "./stories/_components/-stories-page-client";
+import { StoriesPageClient } from "../stories/_components/-stories-page-client";
 
-export const Route = createFileRoute("/$locale/news")({
+export const Route = createFileRoute("/$locale/news/")({
   validateSearch: (search: Record<string, unknown>) => {
     const offset = Number(search.offset) || 0;
     return offset > 0 ? { offset } : {};
@@ -33,13 +33,10 @@ function NewsPage() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.News")}</h1>
             {isAuthenticated && (
-              <Link
-                to="/$locale/stories/new"
-                params={{ locale }}
-              >
+              <Link to="/$locale/news/new" params={{ locale }}>
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />
-                  {t("Editor.Add Story")}
+                  {t("News.Add News")}
                 </Button>
               </Link>
             )}

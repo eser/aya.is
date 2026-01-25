@@ -142,7 +142,10 @@
   },
   "News": {
     "News item image": "News item image",
-    "No image available": "No image available"
+    "No image available": "No image available",
+    "Add News": "Add News",
+    "News created successfully": "News created successfully",
+    "Failed to create news": "Failed to create news"
   },
   "Products": {
     "Description": "Open source projects and products developed within AYA.",

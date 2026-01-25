@@ -142,7 +142,10 @@
   },
   "News": {
     "News item image": "Haber görseli",
-    "No image available": "Görsel mevcut değil"
+    "No image available": "Görsel mevcut değil",
+    "Add News": "Haber Ekle",
+    "News created successfully": "Haber başarıyla oluşturuldu",
+    "Failed to create news": "Haber oluşturulamadı"
   },
   "Products": {
     "Description": "AYA kapsamında geliştirilen açık kaynak projeler ve ürünler.",
