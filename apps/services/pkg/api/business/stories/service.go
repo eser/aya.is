@@ -82,7 +82,11 @@ func validateSlugLength(slug string, isPublished bool) *slugValidationResult {
 // validateSlugDatePrefix validates that the slug starts with YYYYMMDD- format
 // matching the provided publish date.
 // Returns severity based on status: error for published, warning for draft.
-func validateSlugDatePrefix(slug string, publishDate time.Time, isPublished bool) *slugValidationResult {
+func validateSlugDatePrefix(
+	slug string,
+	publishDate time.Time,
+	isPublished bool,
+) *slugValidationResult {
 	expectedPrefix := publishDate.Format("20060102") + "-"
 
 	// Check if slug starts with the expected date prefix
@@ -309,7 +313,6 @@ func (s *Service) CheckSlugAvailability(
 				Severity:  lengthResult.Severity,
 			}, nil
 		}
-
 		// For warnings, continue checking but remember to include the warning
 		// We'll return this warning at the end if slug is otherwise available
 	}
@@ -331,7 +334,6 @@ func (s *Service) CheckSlugAvailability(
 				Severity:  prefixResult.Severity,
 			}, nil
 		}
-
 		// For warnings, continue checking but remember to include the warning
 	}
 

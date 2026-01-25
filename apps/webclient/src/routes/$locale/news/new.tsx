@@ -12,6 +12,15 @@ export const Route = createFileRoute("/$locale/news/new")({
   component: NewNewsPage,
 });
 
+// Helper to get current date as YYYYMMDD- prefix
+function getDatePrefix(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}${month}${day}-`;
+}
+
 function NewNewsPage() {
   const params = Route.useParams();
   const navigate = useNavigate();
@@ -95,7 +104,7 @@ function NewNewsPage() {
 
   const initialData: ContentEditorData = {
     title: "",
-    slug: "",
+    slug: getDatePrefix(),
     summary: "",
     content: "",
     storyPictureUri: null,

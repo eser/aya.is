@@ -117,7 +117,7 @@ func executeTestRequest(t *testing.T, incomingTraceparent string) (string, strin
 	router := httpfx.NewRouter("/")
 
 	// Add trace ID middleware first
-	router.Use(middlewares.TracingMiddleware(logger))
+	router.Use(middlewares.TracingMiddleware(logger, ""))
 
 	// Create a test handler that logs something
 	testHandler := func(ctx *httpfx.Context) httpfx.Result {

@@ -509,10 +509,10 @@ func (s *Service) CheckPageSlugAvailability(
 	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
 	// Check minimum length
-	if len(pageSlug) < 3 {
+	if len(pageSlug) < 2 {
 		return &SlugAvailabilityResult{
 			Available: false,
-			Message:   "Slug must be at least 3 characters",
+			Message:   "Slug must be at least 2 characters",
 			Severity:  SeverityError,
 		}, nil
 	}
@@ -526,7 +526,11 @@ func (s *Service) CheckPageSlugAvailability(
 	if err != nil || page == nil {
 		// Page not found in active records, check deleted if requested
 		if includeDeleted {
-			existsDeleted, delErr := s.repo.CheckPageSlugExistsIncludingDeleted(ctx, profileID, pageSlug)
+			existsDeleted, delErr := s.repo.CheckPageSlugExistsIncludingDeleted(
+				ctx,
+				profileID,
+				pageSlug,
+			)
 			if delErr != nil {
 				return nil, delErr
 			}
@@ -699,10 +703,10 @@ func (s *Service) CheckSlugAvailability(
 	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
 	// Check minimum length
-	if len(slug) < 3 {
+	if len(slug) < 2 {
 		return &SlugAvailabilityResult{
 			Available: false,
-			Message:   "Slug must be at least 3 characters",
+			Message:   "Slug must be at least 2 characters",
 			Severity:  SeverityError,
 		}, nil
 	}

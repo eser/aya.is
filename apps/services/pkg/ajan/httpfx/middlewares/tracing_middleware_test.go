@@ -86,7 +86,7 @@ func TestTracingMiddleware(t *testing.T) { //nolint:funlen
 			}
 
 			// Create and execute the middleware
-			middleware := middlewares.TracingMiddleware(logger)
+			middleware := middlewares.TracingMiddleware(logger, "")
 			result := middleware(ctx)
 			require.NotNil(t, result)
 

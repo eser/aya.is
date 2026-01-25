@@ -220,10 +220,12 @@
   "Editor": {
     "Slug must start with": "标识符必须以此开头",
     "Slug is required": "标识符是必填项",
-    "Slug must be at least 3 characters": "标识符至少需要3个字符",
+    "Slug must be at least 2 characters": "标识符至少需要2个字符",
     "Slug must be at most 100 characters": "标识符最多100个字符",
     "Slug can only contain lowercase letters, numbers, and hyphens": "标识符只能包含小写字母、数字和连字符",
     "This slug is already taken": "此 slug 已被使用",
+    "This slug was previously used": "此 slug 之前已被使用",
+    "Slug must be at least 12 characters": "标识符至少需要12个字符",
     "Title is required": "标题是必填项",
     "Title must be at most 200 characters": "标题最多200个字符",
     "Invalid URI": "无效的URI"

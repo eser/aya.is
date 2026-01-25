@@ -45,7 +45,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 	// Used by frontend on app mount to establish session state without multiple round-trips.
 	routes.Route(
 		"GET /{locale}/sessions/_current",
-		func(ctx *httpfx.Context) httpfx.Result { //nolint:cyclop
+		func(ctx *httpfx.Context) httpfx.Result {
 			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
 			if err != nil {
 				return ctx.Results.JSON(map[string]any{

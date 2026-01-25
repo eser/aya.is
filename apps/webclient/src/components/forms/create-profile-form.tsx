@@ -88,7 +88,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
         }),
         slug: z
           .string()
-          .min(3, t("Profile.Slug must be at least 3 characters"))
+          .min(2, t("Profile.Slug must be at least 2 characters"))
           .max(50, t("Profile.Slug must be at most 50 characters"))
           .regex(/^[a-z0-9-]+$/, t("Profile.Slug can only contain lowercase letters, numbers, and hyphens")),
         title: z.string().min(1, t("Profile.Title is required")).max(100, t("Profile.Title is too long")),

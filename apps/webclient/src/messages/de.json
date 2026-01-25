@@ -220,10 +220,12 @@
   "Editor": {
     "Slug must start with": "Slug muss beginnen mit",
     "Slug is required": "Slug ist erforderlich",
-    "Slug must be at least 3 characters": "Slug muss mindestens 3 Zeichen lang sein",
+    "Slug must be at least 2 characters": "Slug muss mindestens 2 Zeichen lang sein",
     "Slug must be at most 100 characters": "Slug darf höchstens 100 Zeichen lang sein",
     "Slug can only contain lowercase letters, numbers, and hyphens": "Slug darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten",
     "This slug is already taken": "Dieser Slug ist bereits vergeben",
+    "This slug was previously used": "Dieser Slug wurde bereits verwendet",
+    "Slug must be at least 12 characters": "Slug muss mindestens 12 Zeichen lang sein",
     "Title is required": "Titel ist erforderlich",
     "Title must be at most 200 characters": "Titel darf höchstens 200 Zeichen lang sein",
     "Invalid URI": "Ungültige URI"

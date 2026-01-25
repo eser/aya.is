@@ -4,7 +4,7 @@ import { z } from "zod";
 export const createProfileSchema = z.object({
   slug: z
     .string()
-    .min(3, "Slug must be at least 3 characters")
+    .min(2, "Slug must be at least 2 characters")
     .max(50, "Slug must be at most 50 characters")
     .regex(
       /^[a-z0-9-]+$/,
@@ -28,7 +28,7 @@ export const updateProfileSchema = z.object({
 export const checkSlugSchema = z.object({
   slug: z
     .string()
-    .min(3, "Slug must be at least 3 characters")
+    .min(2, "Slug must be at least 2 characters")
     .max(50, "Slug must be at most 50 characters")
     .regex(
       /^[a-z0-9-]+$/,

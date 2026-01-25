@@ -220,10 +220,12 @@
   "Editor": {
     "Slug must start with": "スラッグは次で始まる必要があります",
     "Slug is required": "スラッグは必須です",
-    "Slug must be at least 3 characters": "スラッグは3文字以上である必要があります",
+    "Slug must be at least 2 characters": "スラッグは2文字以上である必要があります",
     "Slug must be at most 100 characters": "スラッグは100文字以下である必要があります",
     "Slug can only contain lowercase letters, numbers, and hyphens": "スラッグには小文字、数字、ハイフンのみ使用できます",
     "This slug is already taken": "このスラッグは既に使用されています",
+    "This slug was previously used": "このスラッグは以前使用されていました",
+    "Slug must be at least 12 characters": "スラッグは12文字以上である必要があります",
     "Title is required": "タイトルは必須です",
     "Title must be at most 200 characters": "タイトルは200文字以下である必要があります",
     "Invalid URI": "無効なURI"

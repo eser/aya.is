@@ -174,8 +174,8 @@ export function ContentEditor(props: ContentEditorProps) {
       setSlugError(slugTouched ? t("Editor.Slug is required") : null);
       return;
     }
-    if (slug.length < 3) {
-      setSlugError(t("Editor.Slug must be at least 3 characters"));
+    if (slug.length < 2) {
+      setSlugError(t("Editor.Slug must be at least 2 characters"));
       return;
     }
     if (slug.length > 100) {
@@ -325,14 +325,21 @@ export function ContentEditor(props: ContentEditorProps) {
 
   // Auto-generate slug from title for new content
   React.useEffect(() => {
-    if (isNew && title !== "" && slug === "") {
+    if (isNew && title !== "") {
       const generatedSlug = title
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, "")
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-")
         .trim();
-      setSlug(generatedSlug);
+
+      // Check if slug is empty or is just the date prefix (YYYYMMDD-)
+      const datePrefixPattern = /^\d{8}-$/;
+      if (slug === "" || datePrefixPattern.test(slug)) {
+        // If slug is just a date prefix, append the generated slug
+        const prefix = datePrefixPattern.test(slug) ? slug : "";
+        setSlug(prefix + generatedSlug);
+      }
     }
   }, [title, slug, isNew]);
 
