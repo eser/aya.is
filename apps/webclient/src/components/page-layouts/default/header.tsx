@@ -21,10 +21,11 @@ import { ProfileMenu } from "./profile-menu";
 // Navigation items configuration
 function useNavItems() {
   const { t } = useTranslation();
+
   return [
     { key: "news", title: t("Layout.News"), href: "/news" },
     { key: "articles", title: t("Layout.Articles"), href: "/stories" },
-    { key: "events", title: t("Layout.Events"), href: "/events" },
+    // { key: "events", title: t("Layout.Events"), href: "/events" },
     { key: "products", title: t("Layout.Products"), href: "/products" },
     { key: "elements", title: t("Layout.Elements"), href: "/elements" },
   ];

@@ -214,5 +214,15 @@
     "Development": "التطوير",
     "Use default data source": "استخدام البيانات الافتراضية",
     "Use production data source": "استخدام البيانات المنتجة"
+  },
+  "Editor": {
+    "Slug must start with": "يجب أن يبدأ المعرف بـ",
+    "Slug is required": "المعرف مطلوب",
+    "Slug must be at least 3 characters": "يجب أن يكون المعرف 3 أحرف على الأقل",
+    "Slug must be at most 100 characters": "يجب ألا يتجاوز المعرف 100 حرف",
+    "Slug can only contain lowercase letters, numbers, and hyphens": "يمكن أن يحتوي المعرف على أحرف صغيرة وأرقام وشرطات فقط",
+    "Title is required": "العنوان مطلوب",
+    "Title must be at most 200 characters": "يجب ألا يتجاوز العنوان 200 حرف",
+    "Invalid URI": "عنوان URI غير صالح"
   }
 }

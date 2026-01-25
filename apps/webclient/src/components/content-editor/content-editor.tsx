@@ -142,21 +142,53 @@ export function ContentEditor(props: ContentEditorProps) {
   const [showStoryPictureModal, setShowStoryPictureModal] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [slugError, setSlugError] = React.useState<string | null>(null);
+  const [titleError, setTitleError] = React.useState<string | null>(null);
   const [storyPictureUriError, setStoryPictureUriError] = React.useState<string | null>(null);
 
-  // Validate slug on change (only for stories with global slugs)
+  // Validate slug on change
   React.useEffect(() => {
+    // Basic slug validation
+    if (slug.length === 0) {
+      setSlugError(t("Editor.Slug is required"));
+      return;
+    }
+    if (slug.length < 3) {
+      setSlugError(t("Editor.Slug must be at least 3 characters"));
+      return;
+    }
+    if (slug.length > 100) {
+      setSlugError(t("Editor.Slug must be at most 100 characters"));
+      return;
+    }
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      setSlugError(t("Editor.Slug can only contain lowercase letters, numbers, and hyphens"));
+      return;
+    }
+
+    // Date prefix validation for stories with global slugs
     if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
       if (!valid && expectedPrefix !== null) {
         setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
-      } else {
-        setSlugError(null);
+        return;
       }
-    } else {
-      setSlugError(null);
     }
+
+    setSlugError(null);
   }, [slug, publishedAt, status, shouldValidateSlugDatePrefix, t]);
+
+  // Validate title on change
+  React.useEffect(() => {
+    if (title.length === 0) {
+      setTitleError(t("Editor.Title is required"));
+      return;
+    }
+    if (title.length > 200) {
+      setTitleError(t("Editor.Title must be at most 200 characters"));
+      return;
+    }
+    setTitleError(null);
+  }, [title, t]);
 
   // Validate story picture URI on change
   React.useEffect(() => {
@@ -222,6 +254,11 @@ export function ContentEditor(props: ContentEditorProps) {
   });
 
   const handleSave = async () => {
+    // Check for validation errors
+    if (slugError !== null || titleError !== null) {
+      return;
+    }
+
     // Validate slug prefix for published content (stories only)
     if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
@@ -252,6 +289,11 @@ export function ContentEditor(props: ContentEditorProps) {
   };
 
   const handlePublish = async () => {
+    // Check for validation errors
+    if (slugError !== null || titleError !== null) {
+      return;
+    }
+
     // Set current date/time as publish date if not set
     const effectivePublishedAt = publishedAt ?? new Date().toISOString().slice(0, 16);
 
@@ -521,7 +563,7 @@ export function ContentEditor(props: ContentEditorProps) {
               )}
 
               {/* Title */}
-              <Field className={styles.metadataField}>
+              <Field className={styles.metadataField} data-invalid={titleError !== null || undefined}>
                 <FieldLabel htmlFor="title" className={styles.metadataLabel}>
                   {t("Editor.Title")}
                 </FieldLabel>
@@ -530,7 +572,9 @@ export function ContentEditor(props: ContentEditorProps) {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t("Editor.Enter title...")}
+                  aria-invalid={titleError !== null || undefined}
                 />
+                {titleError !== null && <FieldError>{titleError}</FieldError>}
               </Field>
 
               {/* Summary */}

@@ -216,5 +216,15 @@
     "Development": "Sviluppo",
     "Use default data source": "Usare la fonte di dati predefinita",
     "Use production data source": "Usare la fonte di dati di produzione"
+  },
+  "Editor": {
+    "Slug must start with": "Lo slug deve iniziare con",
+    "Slug is required": "Lo slug è obbligatorio",
+    "Slug must be at least 3 characters": "Lo slug deve contenere almeno 3 caratteri",
+    "Slug must be at most 100 characters": "Lo slug deve contenere al massimo 100 caratteri",
+    "Slug can only contain lowercase letters, numbers, and hyphens": "Lo slug può contenere solo lettere minuscole, numeri e trattini",
+    "Title is required": "Il titolo è obbligatorio",
+    "Title must be at most 200 characters": "Il titolo deve contenere al massimo 200 caratteri",
+    "Invalid URI": "URI non valido"
   }
 }

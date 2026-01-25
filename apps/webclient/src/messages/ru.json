@@ -216,5 +216,15 @@
     "Development": "Разработка",
     "Use default data source": "Использовать данные по умолчанию",
     "Use production data source": "Использовать данные производства"
+  },
+  "Editor": {
+    "Slug must start with": "Слаг должен начинаться с",
+    "Slug is required": "Слаг обязателен",
+    "Slug must be at least 3 characters": "Слаг должен содержать не менее 3 символов",
+    "Slug must be at most 100 characters": "Слаг должен содержать не более 100 символов",
+    "Slug can only contain lowercase letters, numbers, and hyphens": "Слаг может содержать только строчные буквы, цифры и дефисы",
+    "Title is required": "Заголовок обязателен",
+    "Title must be at most 200 characters": "Заголовок должен содержать не более 200 символов",
+    "Invalid URI": "Недействительный URI"
   }
 }

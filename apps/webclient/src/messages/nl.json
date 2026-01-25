@@ -216,5 +216,15 @@
     "Development": "Ontwikkeling",
     "Use default data source": "Gebruik standaard databron",
     "Use production data source": "Gebruik productiedatabron"
+  },
+  "Editor": {
+    "Slug must start with": "Slug moet beginnen met",
+    "Slug is required": "Slug is verplicht",
+    "Slug must be at least 3 characters": "Slug moet minimaal 3 tekens bevatten",
+    "Slug must be at most 100 characters": "Slug mag maximaal 100 tekens bevatten",
+    "Slug can only contain lowercase letters, numbers, and hyphens": "Slug mag alleen kleine letters, cijfers en koppeltekens bevatten",
+    "Title is required": "Titel is verplicht",
+    "Title must be at most 200 characters": "Titel mag maximaal 200 tekens bevatten",
+    "Invalid URI": "Ongeldige URI"
   }
 }

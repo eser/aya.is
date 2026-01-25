@@ -216,5 +216,15 @@
     "Development": "開発",
     "Use default data source": "デフォルトのデータソースを使用",
     "Use production data source": "本番のデータソースを使用"
+  },
+  "Editor": {
+    "Slug must start with": "スラッグは次で始まる必要があります",
+    "Slug is required": "スラッグは必須です",
+    "Slug must be at least 3 characters": "スラッグは3文字以上である必要があります",
+    "Slug must be at most 100 characters": "スラッグは100文字以下である必要があります",
+    "Slug can only contain lowercase letters, numbers, and hyphens": "スラッグには小文字、数字、ハイフンのみ使用できます",
+    "Title is required": "タイトルは必須です",
+    "Title must be at most 200 characters": "タイトルは200文字以下である必要があります",
+    "Invalid URI": "無効なURI"
   }
 }

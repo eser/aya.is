@@ -421,6 +421,12 @@
     "Kind": "Kind",
     "News": "News",
     "Slug must start with": "Slug must start with",
+    "Slug is required": "Slug is required",
+    "Slug must be at least 3 characters": "Slug must be at least 3 characters",
+    "Slug must be at most 100 characters": "Slug must be at most 100 characters",
+    "Slug can only contain lowercase letters, numbers, and hyphens": "Slug can only contain lowercase letters, numbers, and hyphens",
+    "Title is required": "Title is required",
+    "Title must be at most 200 characters": "Title must be at most 200 characters",
     "Invalid URI": "Invalid URI",
     "URI must start with allowed prefix": "URI must start with allowed prefix"
   }
