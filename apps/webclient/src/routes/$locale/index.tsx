@@ -10,6 +10,7 @@ import { Astronaut } from "@/components/widgets/astronaut";
 import { MdxContent } from "@/components/userland/mdx-content";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/")({
@@ -17,7 +18,19 @@ export const Route = createFileRoute("/$locale/")({
     const { locale } = params;
     const introText = i18next.getFixedT(locale)("Home.IntroText");
     const compiledIntro = await compileMdx(introText);
-    return { compiledIntro };
+    return { compiledIntro, locale };
+  },
+  head: ({ loaderData }) => {
+    const { locale } = loaderData;
+    return {
+      meta: generateMetaTags({
+        title: `${siteConfig.name} - Acik Yazilim Agi`,
+        description: siteConfig.description,
+        url: buildUrl(locale),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: LocaleHomePage,
 });

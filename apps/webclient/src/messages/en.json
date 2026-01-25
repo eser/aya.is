@@ -56,7 +56,9 @@
     "Profile": "Profile",
     "Story": "Story",
     "Page": "Page",
-    "Results": "Results"
+    "Results": "Results",
+    "Results for {{query}}": "Results for {{query}}",
+    "Search for profiles, stories, and pages": "Search for profiles, stories, and pages"
   },
   "Auth": {
     "Login with GitHub": "Login with GitHub",
@@ -81,6 +83,8 @@
   },
   "Stories": {
     "Description": "Articles, announcements and content from the AYA community.",
+    "Browse articles and stories from the AYA community": "Browse articles and stories from the AYA community",
+    "Browse stories from {{profile}}": "Browse stories from {{profile}}",
     "All": "All",
     "Status": "Status",
     "Announcement": "Announcement",
@@ -99,6 +103,10 @@
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "A collection of open source projects and organizations.",
+    "Organizations and products this person contributes to.": "Organizations and products this person contributes to.",
+    "organization": "Organization",
+    "product": "Product",
+    "individual": "Individual",
     "Last update": "Last update",
     "Project Details": "Project Details",
     "Project description": "Project description",
@@ -134,6 +142,7 @@
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",
+    "Discover individuals and organizations in the AYA community": "Discover individuals and organizations in the AYA community",
     "Individuals": "Individuals",
     "Organizations": "Organizations",
     "NoProfilesFound": "No profiles found matching your criteria.",
@@ -142,15 +151,20 @@
     "SearchPlaceholder": "Search by name or description...",
     "Add Element": "Add Element"
   },
+  "Events": {
+    "Discover upcoming events and meetups": "Discover upcoming events and meetups"
+  },
   "News": {
     "News item image": "News item image",
     "No image available": "No image available",
     "Add News": "Add News",
     "News created successfully": "News created successfully",
-    "Failed to create news": "Failed to create news"
+    "Failed to create news": "Failed to create news",
+    "Latest news and updates from the AYA community": "Latest news and updates from the AYA community"
   },
   "Products": {
     "Description": "Open source projects and products developed within AYA.",
+    "Discover open source products and projects": "Discover open source products and projects",
     "SearchProductsPlaceholder": "Search products by name or description...",
     "NoProductsFound": "No products found matching your criteria.",
     "FilterByStatus": "Filter by status",

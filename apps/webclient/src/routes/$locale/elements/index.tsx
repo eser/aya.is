@@ -6,7 +6,9 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
 import { ElementsContent } from "./_components/-elements-content";
+import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/elements/")({
   loader: async ({ params }) => {
@@ -15,7 +17,21 @@ export const Route = createFileRoute("/$locale/elements/")({
       "individual",
       "organization",
     ]);
-    return { profiles: profiles ?? [], locale };
+    const t = i18next.getFixedT(locale);
+    return { profiles: profiles ?? [], locale, pageTitle: t("Layout.Elements") };
+  },
+  head: ({ loaderData }) => {
+    const { locale, pageTitle } = loaderData;
+    const t = i18next.getFixedT(locale);
+    return {
+      meta: generateMetaTags({
+        title: pageTitle,
+        description: t("Elements.Discover individuals and organizations in the AYA community"),
+        url: buildUrl(locale, "elements"),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: ElementsIndexPage,
 });

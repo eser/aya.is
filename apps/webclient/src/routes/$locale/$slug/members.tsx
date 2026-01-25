@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { MemberCard } from "@/components/userland/member-card/member-card";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
+import i18next from "i18next";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
@@ -11,7 +13,21 @@ export const Route = createFileRoute("/$locale/$slug/members")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
     const members = await backend.getProfileMembers(locale, slug);
-    return { members, locale, slug };
+    const profile = await backend.getProfile(locale, slug);
+    return { members, locale, slug, profileTitle: profile?.title ?? slug };
+  },
+  head: ({ loaderData }) => {
+    const { locale, slug, profileTitle } = loaderData;
+    const t = i18next.getFixedT(locale);
+    return {
+      meta: generateMetaTags({
+        title: `${t("Layout.Members")} - ${profileTitle}`,
+        description: t("Members.Individuals and organizations that are members of this profile."),
+        url: buildUrl(locale, slug, "members"),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: MembersPage,
 });

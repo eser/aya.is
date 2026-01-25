@@ -8,6 +8,7 @@ import { StoryContent } from "@/components/widgets/story-content";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
+import { generateMetaTags, truncateDescription } from "@/lib/seo";
 
 export const Route = createFileRoute("/$locale/stories/$storyslug/")({
   loader: async ({ params }) => {
@@ -33,7 +34,23 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
     // Get current URL for sharing
     const currentUrl = `${siteConfig.host}/${locale}/stories/${storyslug}`;
 
-    return { story, compiledContent, currentUrl };
+    return { story, compiledContent, currentUrl, locale };
+  },
+  head: ({ loaderData }) => {
+    const { story, currentUrl, locale } = loaderData;
+    return {
+      meta: generateMetaTags({
+        title: story.title ?? "Story",
+        description: truncateDescription(story.summary),
+        url: currentUrl,
+        image: story.story_picture_uri,
+        locale,
+        type: "article",
+        publishedTime: story.created_at,
+        modifiedTime: story.updated_at,
+        author: story.author_profile?.title ?? null,
+      }),
+    };
   },
   component: StoryPage,
   notFoundComponent: StoryNotFound,

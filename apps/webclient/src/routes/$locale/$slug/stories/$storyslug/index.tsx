@@ -8,6 +8,7 @@ import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+import { generateMetaTags, truncateDescription } from "@/lib/seo";
 
 const profileRoute = getRouteApi("/$locale/$slug");
 
@@ -35,6 +36,22 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     const currentUrl = `${siteConfig.host}/${locale}/${slug}/stories/${storyslug}`;
 
     return { story, compiledContent, currentUrl, locale, slug };
+  },
+  head: ({ loaderData }) => {
+    const { story, currentUrl, locale } = loaderData;
+    return {
+      meta: generateMetaTags({
+        title: story.title ?? "Story",
+        description: truncateDescription(story.summary),
+        url: currentUrl,
+        image: story.story_picture_uri,
+        locale,
+        type: "article",
+        publishedTime: story.created_at,
+        modifiedTime: story.updated_at,
+        author: story.author_profile?.title ?? null,
+      }),
+    };
   },
   component: ProfileStoryPage,
   notFoundComponent: StoryNotFound,

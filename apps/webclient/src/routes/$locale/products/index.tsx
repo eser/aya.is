@@ -6,13 +6,29 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
 import { ProductsContent } from "./_components/-products-content";
+import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/products/")({
   loader: async ({ params }) => {
     const { locale } = params;
     const products = await backend.getProfilesByKinds(locale, ["product"]);
-    return { products: products ?? [], locale };
+    const t = i18next.getFixedT(locale);
+    return { products: products ?? [], locale, pageTitle: t("Layout.Products") };
+  },
+  head: ({ loaderData }) => {
+    const { locale, pageTitle } = loaderData;
+    const t = i18next.getFixedT(locale);
+    return {
+      meta: generateMetaTags({
+        title: pageTitle,
+        description: t("Products.Discover open source products and projects"),
+        url: buildUrl(locale, "products"),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: ProductsPage,
 });

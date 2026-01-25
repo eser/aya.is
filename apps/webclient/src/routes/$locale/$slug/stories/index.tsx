@@ -3,6 +3,8 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
+import i18next from "i18next";
 
 const profileRoute = getRouteApi("/$locale/$slug");
 
@@ -14,7 +16,21 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
   loader: async ({ params }) => {
     const { slug, locale } = params;
     const stories = await backend.getProfileStories(locale, slug);
-    return { stories, slug, locale };
+    const profile = await backend.getProfile(locale, slug);
+    return { stories, slug, locale, profileTitle: profile?.title ?? slug };
+  },
+  head: ({ loaderData }) => {
+    const { locale, slug, profileTitle } = loaderData;
+    const t = i18next.getFixedT(locale);
+    return {
+      meta: generateMetaTags({
+        title: `${t("Layout.Stories")} - ${profileTitle}`,
+        description: t("Stories.Browse stories from {{profile}}", { profile: profileTitle }),
+        url: buildUrl(locale, slug, "stories"),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: ProfileStoriesIndexPage,
 });

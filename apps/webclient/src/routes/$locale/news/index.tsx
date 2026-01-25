@@ -6,7 +6,9 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
 import { StoriesPageClient } from "../stories/_components/-stories-page-client";
+import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/news/")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -16,7 +18,21 @@ export const Route = createFileRoute("/$locale/news/")({
   loader: async ({ params }) => {
     const { locale } = params;
     const news = await backend.getStoriesByKinds(locale, ["news"]);
-    return { news, locale };
+    const t = i18next.getFixedT(locale);
+    return { news, locale, pageTitle: t("Layout.News") };
+  },
+  head: ({ loaderData }) => {
+    const { locale, pageTitle } = loaderData;
+    const t = i18next.getFixedT(locale);
+    return {
+      meta: generateMetaTags({
+        title: pageTitle,
+        description: t("News.Latest news and updates from the AYA community"),
+        url: buildUrl(locale, "news"),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: NewsPage,
 });

@@ -6,7 +6,9 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
 import { StoriesPageClient } from "./_components/-stories-page-client";
+import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/stories/")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -16,7 +18,21 @@ export const Route = createFileRoute("/$locale/stories/")({
   loader: async ({ params }) => {
     const { locale } = params;
     const stories = await backend.getStoriesByKinds(locale, ["article"]);
-    return { stories, locale };
+    const t = i18next.getFixedT(locale);
+    return { stories, locale, pageTitle: t("Layout.Articles") };
+  },
+  head: ({ loaderData }) => {
+    const { locale, pageTitle } = loaderData;
+    const t = i18next.getFixedT(locale);
+    return {
+      meta: generateMetaTags({
+        title: pageTitle,
+        description: t("Stories.Browse articles and stories from the AYA community"),
+        url: buildUrl(locale, "stories"),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: StoriesIndexPage,
 });

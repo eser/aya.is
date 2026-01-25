@@ -56,7 +56,9 @@
     "Profile": "Profil",
     "Story": "Hikaye",
     "Page": "Sayfa",
-    "Results": "Sonuçlar"
+    "Results": "Sonuçlar",
+    "Results for {{query}}": "{{query}} için sonuçlar",
+    "Search for profiles, stories, and pages": "Profil, hikaye ve sayfa arayın"
   },
   "Auth": {
     "Login with GitHub": "GitHub ile Giriş",
@@ -81,6 +83,8 @@
   },
   "Stories": {
     "Description": "AYA topluluğundan makaleler, duyurular ve içerikler.",
+    "Browse articles and stories from the AYA community": "AYA topluluğundan makalelere ve hikayelere göz atın",
+    "Browse stories from {{profile}}": "{{profile}} hikayeleri",
     "All": "Tümü",
     "Status": "Durum",
     "Announcement": "Duyuru",
@@ -99,6 +103,10 @@
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "Açık kaynak projelerin ve organizasyonların bir koleksiyonu.",
+    "Organizations and products this person contributes to.": "Bu kişinin katkıda bulunduğu organizasyonlar ve ürünler.",
+    "organization": "Organizasyon",
+    "product": "Ürün",
+    "individual": "Bireysel",
     "Last update": "Son güncelleme",
     "Project Details": "Proje Detayları",
     "Project description": "Proje açıklaması",
@@ -134,6 +142,7 @@
   },
   "Elements": {
     "Description": "AYA ağındaki kişiler, organizasyonlar ve projeler.",
+    "Discover individuals and organizations in the AYA community": "AYA topluluğundaki kişileri ve organizasyonları keşfedin",
     "Individuals": "Kişiler",
     "Organizations": "Organizasyonlar",
     "NoProfilesFound": "Kriterlerinize uygun profil bulunamadı.",
@@ -142,15 +151,20 @@
     "SearchPlaceholder": "İsim veya açıklamaya göre ara...",
     "Add Element": "Bileşen Ekle"
   },
+  "Events": {
+    "Discover upcoming events and meetups": "Yaklaşan etkinlikleri ve buluşmaları keşfedin"
+  },
   "News": {
     "News item image": "Haber görseli",
     "No image available": "Görsel mevcut değil",
     "Add News": "Haber Ekle",
     "News created successfully": "Haber başarıyla oluşturuldu",
-    "Failed to create news": "Haber oluşturulamadı"
+    "Failed to create news": "Haber oluşturulamadı",
+    "Latest news and updates from the AYA community": "AYA topluluğundan en son haberler ve güncellemeler"
   },
   "Products": {
     "Description": "AYA kapsamında geliştirilen açık kaynak projeler ve ürünler.",
+    "Discover open source products and projects": "Açık kaynak ürünleri ve projeleri keşfedin",
     "SearchProductsPlaceholder": "Üretimleri isme veya açıklamaya göre ara...",
     "NoProductsFound": "Kriterlerinize uygun ürün bulunamadı.",
     "FilterByStatus": "Duruma göre filtrele",

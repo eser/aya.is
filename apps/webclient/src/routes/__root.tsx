@@ -13,9 +13,11 @@ import { EasterEgg, ResponsiveIndicator } from "@/components/page-layouts/defaul
 import {
   DEFAULT_LOCALE,
   isValidLocale,
+  siteConfig,
   type SupportedLocaleCode,
   supportedLocales,
 } from "@/config";
+import { generateMetaTags } from "@/lib/seo";
 import { parseLocaleFromPath } from "@/lib/url";
 import type { RequestContext } from "@/request-context";
 import i18n from "@/modules/i18n/i18n";
@@ -64,15 +66,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     return { requestContext: context.requestContext };
   },
   head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AYA - Acik Yazilim Agi" },
-      {
-        name: "description",
-        content: "Gonullu gelistirilen yazilimlarla olusan bir yazilim vakfi",
-      },
-    ],
+    meta: generateMetaTags({
+      title: siteConfig.name,
+      description: siteConfig.description,
+      url: siteConfig.host,
+      type: "website",
+    }),
   }),
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

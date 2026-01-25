@@ -8,8 +8,9 @@ import { backend } from "@/modules/backend/backend";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
-import { useNavigation } from "@/modules/navigation/navigation-context";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
 import type { SearchResult } from "@/modules/backend/search/search";
+import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/search/")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -32,6 +33,21 @@ export const Route = createFileRoute("/$locale/search/")({
 
     const results = await backend.search(locale, query, profileSlug);
     return { results, query, locale, profileSlug };
+  },
+  head: ({ loaderData }) => {
+    const { locale, query } = loaderData;
+    const t = i18next.getFixedT(locale);
+    const title = query !== "" ? t("Search.Results for {{query}}", { query }) : t("Search.Title", "Search");
+    return {
+      meta: generateMetaTags({
+        title,
+        description: t("Search.Search for profiles, stories, and pages"),
+        url: buildUrl(locale, "search"),
+        locale,
+        type: "website",
+        noIndex: true,
+      }),
+    };
   },
   component: SearchPage,
 });

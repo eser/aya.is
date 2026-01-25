@@ -8,6 +8,7 @@ import { compileMdx } from "@/lib/mdx";
 import { Button } from "@/components/ui/button";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+import { buildUrl, generateMetaTags, truncateDescription } from "@/lib/seo";
 
 const profileRoute = getRouteApi("/$locale/$slug");
 
@@ -18,13 +19,13 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
     // Skip if pageslug matches known routes
     const knownRoutes = ["stories", "settings", "members", "contributions"];
     if (knownRoutes.includes(pageslug)) {
-      return { page: null, compiledContent: null, notFound: true, locale, slug };
+      return { page: null, compiledContent: null, notFound: true, locale, slug, pageslug };
     }
 
     const page = await backend.getProfilePage(locale, slug, pageslug);
 
     if (page === null || page === undefined) {
-      return { page: null, compiledContent: null, notFound: true, locale, slug };
+      return { page: null, compiledContent: null, notFound: true, locale, slug, pageslug };
     }
 
     // Compile MDX content on the server
@@ -38,7 +39,24 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
       }
     }
 
-    return { page, compiledContent, notFound: false, locale, slug };
+    return { page, compiledContent, notFound: false, locale, slug, pageslug };
+  },
+  head: ({ loaderData }) => {
+    const { page, locale, slug, pageslug } = loaderData;
+    if (page === null) {
+      return { meta: [] };
+    }
+    return {
+      meta: generateMetaTags({
+        title: page.title,
+        description: truncateDescription(page.summary),
+        url: buildUrl(locale, slug, pageslug),
+        image: page.cover_picture_uri,
+        locale,
+        type: "article",
+        publishedTime: page.published_at,
+      }),
+    };
   },
   component: ProfileCustomPage,
   notFoundComponent: PageNotFound,

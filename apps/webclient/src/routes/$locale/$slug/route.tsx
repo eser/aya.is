@@ -3,6 +3,7 @@ import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
+import { buildUrl, generateMetaTags, truncateDescription } from "@/lib/seo";
 
 export const Route = createFileRoute("/$locale/$slug")({
   beforeLoad: ({ params }) => {
@@ -15,10 +16,26 @@ export const Route = createFileRoute("/$locale/$slug")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile === null) {
-      return { profile: null, notFound: true };
+      return { profile: null, notFound: true, locale, slug };
     }
 
-    return { profile, notFound: false };
+    return { profile, notFound: false, locale, slug };
+  },
+  head: ({ loaderData }) => {
+    const { profile, locale, slug } = loaderData;
+    if (profile === null) {
+      return { meta: [] };
+    }
+    return {
+      meta: generateMetaTags({
+        title: profile.title,
+        description: truncateDescription(profile.description),
+        url: buildUrl(locale, slug),
+        image: profile.profile_picture_uri,
+        locale,
+        type: "profile",
+      }),
+    };
   },
   component: ProfileRoute,
   notFoundComponent: ProfileNotFound,

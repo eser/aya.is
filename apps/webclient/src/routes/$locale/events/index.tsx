@@ -5,18 +5,34 @@ import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
+import { buildUrl, generateMetaTags } from "@/lib/seo";
+import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/events/")({
-  loader: async ({ params }) => {
+  loader: ({ params }) => {
     const { locale } = params;
+    const t = i18next.getFixedT(locale);
     // const events = await backend.getEvents(locale);
-    return { events: [], locale };
+    return { locale, pageTitle: t("Layout.Events") };
+  },
+  head: ({ loaderData }) => {
+    const { locale, pageTitle } = loaderData;
+    const t = i18next.getFixedT(locale);
+    return {
+      meta: generateMetaTags({
+        title: pageTitle,
+        description: t("Events.Discover upcoming events and meetups"),
+        url: buildUrl(locale, "events"),
+        locale,
+        type: "website",
+      }),
+    };
   },
   component: EventsPage,
 });
 
 function EventsPage() {
-  const { events, locale } = Route.useLoaderData();
+  const { locale } = Route.useLoaderData();
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 

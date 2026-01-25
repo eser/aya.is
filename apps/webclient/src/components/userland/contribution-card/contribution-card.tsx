@@ -1,15 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import type { ProfileMembership } from "@/modules/backend/types";
-import styles from "./member-card.module.css";
+import styles from "./contribution-card.module.css";
 
-export type MemberCardProps = {
+export type ContributionCardProps = {
   membership: ProfileMembership;
 };
 
-export function MemberCard(props: MemberCardProps) {
+export function ContributionCard(props: ContributionCardProps) {
   const { t } = useTranslation();
-  const memberProfile = props.membership.member_profile;
+  const profile = props.membership.profile;
   const properties = props.membership.properties;
   const githubStats = properties !== null ? properties.github : undefined;
   const videoStats = properties !== null ? properties.videos : undefined;
@@ -17,16 +17,16 @@ export function MemberCard(props: MemberCardProps) {
   return (
     <LocaleLink
       role="card"
-      to={`/${memberProfile.slug}`}
+      to={`/${profile.slug}`}
       className={styles.cardLink}
     >
-      <div className={styles.memberCard}>
-        {memberProfile.profile_picture_uri !== null &&
-          memberProfile.profile_picture_uri !== undefined && (
+      <div className={styles.contributionCard}>
+        {profile.profile_picture_uri !== null &&
+          profile.profile_picture_uri !== undefined && (
           <div className={styles.avatarContainer}>
             <img
-              src={memberProfile.profile_picture_uri}
-              alt={`${memberProfile.title}'s picture`}
+              src={profile.profile_picture_uri}
+              alt={`${profile.title}'s picture`}
               width={64}
               height={64}
               className={styles.avatar}
@@ -36,14 +36,18 @@ export function MemberCard(props: MemberCardProps) {
 
         <div className={styles.content}>
           <div className={styles.titleRow}>
-            <h3 className={styles.title}>{memberProfile.title}</h3>
+            <h3 className={styles.title}>{profile.title}</h3>
             <span className={styles.role}>
               {t(`Contributions.${props.membership.kind}`)}
             </span>
+            <span className={styles.profileKind}>
+              {t(`Contributions.${profile.kind}`)}
+            </span>
           </div>
-          {memberProfile.description !== null &&
-            memberProfile.description !== undefined && (
-            <p className={styles.description}>{memberProfile.description}</p>
+          {profile.description !== null &&
+            profile.description !== undefined &&
+            profile.description !== "" && (
+            <p className={styles.description}>{profile.description}</p>
           )}
         </div>
 

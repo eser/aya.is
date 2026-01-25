@@ -9,7 +9,7 @@
   }
 }
 
-.memberCard {
+.contributionCard {
   @apply p-6 flex items-center gap-6 flex-wrap lg:flex-nowrap;
 }
 
@@ -35,6 +35,10 @@
 
 .role {
   @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary;
+}
+
+.profileKind {
+  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground;
 }
 
 .description {
