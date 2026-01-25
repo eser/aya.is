@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { LocaleLink } from "@/components/locale-link";
 
-export const Route = createFileRoute("/$locale/$slug/settings/pages")({
+export const Route = createFileRoute("/$locale/$slug/settings/pages/")({
   component: PagesSettingsPage,
 });
 
@@ -155,7 +155,7 @@ function PagesSettingsPage() {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="font-serif text-xl font-semibold text-foreground">{t("Profile.Pages")}</h3>
           <p className="text-muted-foreground text-sm mt-1">

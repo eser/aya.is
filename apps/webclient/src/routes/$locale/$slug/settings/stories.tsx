@@ -115,7 +115,7 @@ function StoriesSettingsPage() {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="font-serif text-xl font-semibold text-foreground">{t("Layout.Stories")}</h3>
           <p className="text-muted-foreground text-sm mt-1">
