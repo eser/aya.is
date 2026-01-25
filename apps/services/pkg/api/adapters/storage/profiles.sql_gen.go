@@ -1170,6 +1170,70 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 	return items, nil
 }
 
+const listProfileLinksByProfileIDIncludingHidden = `-- name: ListProfileLinksByProfileIDIncludingHidden :many
+SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+FROM "profile_link"
+WHERE profile_id = $1
+  AND deleted_at IS NULL
+ORDER BY "order"
+`
+
+type ListProfileLinksByProfileIDIncludingHiddenParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
+}
+
+// ListProfileLinksByProfileIDIncludingHidden
+//
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	FROM "profile_link"
+//	WHERE profile_id = $1
+//	  AND deleted_at IS NULL
+//	ORDER BY "order"
+func (q *Queries) ListProfileLinksByProfileIDIncludingHidden(ctx context.Context, arg ListProfileLinksByProfileIDIncludingHiddenParams) ([]*ProfileLink, error) {
+	rows, err := q.db.QueryContext(ctx, listProfileLinksByProfileIDIncludingHidden, arg.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ProfileLink{}
+	for rows.Next() {
+		var i ProfileLink
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProfileID,
+			&i.Kind,
+			&i.Order,
+			&i.IsManaged,
+			&i.IsVerified,
+			&i.IsHidden,
+			&i.RemoteID,
+			&i.PublicID,
+			&i.URI,
+			&i.Title,
+			&i.AuthProvider,
+			&i.AuthAccessTokenScope,
+			&i.AuthAccessToken,
+			&i.AuthAccessTokenExpiresAt,
+			&i.AuthRefreshToken,
+			&i.AuthRefreshTokenExpiresAt,
+			&i.Properties,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProfileLinksForKind = `-- name: ListProfileLinksForKind :many
 SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
 FROM "profile_link" pl

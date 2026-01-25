@@ -164,6 +164,11 @@ type Repository interface { //nolint:interfacebloat
 		localeCode string,
 		profileID string,
 	) ([]*ProfileLinkBrief, error)
+	ListProfileLinksByProfileIDIncludingHidden(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+	) ([]*ProfileLinkBrief, error)
 	ListProfileContributions(
 		ctx context.Context,
 		localeCode string,
@@ -1002,8 +1007,8 @@ func (s *Service) CreateProfileLink(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	// Get next order value
-	existingLinks, err := s.repo.ListProfileLinksByProfileID(ctx, "en", profileID)
+	// Get next order value (include hidden links to avoid order conflicts)
+	existingLinks, err := s.repo.ListProfileLinksByProfileIDIncludingHidden(ctx, "en", profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
@@ -1239,8 +1244,8 @@ func (s *Service) ListProfileLinksBySlug(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	// Get brief links and convert them to full ProfileLink objects
-	briefLinks, err := s.repo.ListProfileLinksByProfileID(ctx, "en", profileID)
+	// Get brief links including hidden ones (this is for the settings page)
+	briefLinks, err := s.repo.ListProfileLinksByProfileIDIncludingHidden(ctx, "en", profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToListRecords, profileID, err)
 	}

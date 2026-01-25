@@ -831,6 +831,14 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  ORDER BY "order"
 	ListProfileLinksByProfileID(ctx context.Context, arg ListProfileLinksByProfileIDParams) ([]*ProfileLink, error)
+	//ListProfileLinksByProfileIDIncludingHidden
+	//
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  FROM "profile_link"
+	//  WHERE profile_id = $1
+	//    AND deleted_at IS NULL
+	//  ORDER BY "order"
+	ListProfileLinksByProfileIDIncludingHidden(ctx context.Context, arg ListProfileLinksByProfileIDIncludingHiddenParams) ([]*ProfileLink, error)
 	//ListProfileLinksForKind
 	//
 	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at

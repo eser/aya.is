@@ -253,6 +253,13 @@ WHERE profile_id = sqlc.arg(profile_id)
   AND deleted_at IS NULL
 ORDER BY "order";
 
+-- name: ListProfileLinksByProfileIDIncludingHidden :many
+SELECT *
+FROM "profile_link"
+WHERE profile_id = sqlc.arg(profile_id)
+  AND deleted_at IS NULL
+ORDER BY "order";
+
 -- name: GetProfileLink :one
 SELECT *
 FROM "profile_link"

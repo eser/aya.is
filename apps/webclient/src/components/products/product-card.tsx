@@ -27,7 +27,7 @@ export function ProductCard(props: ProductCardProps) {
         />
         <div className="absolute top-4 left-4">
           <Badge variant="secondary" className="bg-white/90 text-slate-700">
-            {product.kind}
+            {t(`Contributions.${product.kind}`)}
           </Badge>
         </div>
       </div>

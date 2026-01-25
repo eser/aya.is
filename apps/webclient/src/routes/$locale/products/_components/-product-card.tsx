@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ export type ProductCardProps = {
 };
 
 export function ProductCard(props: ProductCardProps) {
+  const { t } = useTranslation();
   const { product } = props;
 
   return (
@@ -28,7 +30,7 @@ export function ProductCard(props: ProductCardProps) {
           />
           <div className="absolute top-4 left-4">
             <Badge variant="secondary" className="bg-white/90 text-slate-700">
-              {product.kind}
+              {t(`Contributions.${product.kind}`)}
             </Badge>
           </div>
         </div>

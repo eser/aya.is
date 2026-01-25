@@ -78,6 +78,7 @@ type ProfileLinkBrief struct {
 	URI        string `json:"uri"`
 	Title      string `json:"title"`
 	IsVerified bool   `json:"is_verified"`
+	IsHidden   bool   `json:"is_hidden"`
 }
 
 // ProfileLinkState contains state for profile link OAuth flows.

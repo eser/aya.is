@@ -104,9 +104,9 @@
   "Contributions": {
     "A collection of open source projects and organizations.": "Açık kaynak projelerin ve organizasyonların bir koleksiyonu.",
     "Organizations and products this person contributes to.": "Bu kişinin katkıda bulunduğu organizasyonlar ve ürünler.",
-    "organization": "Organizasyon",
-    "product": "Ürün",
-    "individual": "Bireysel",
+    "organization": "organizasyon",
+    "product": "üretim",
+    "individual": "bireysel",
     "Last update": "Son güncelleme",
     "Project Details": "Proje Detayları",
     "Project description": "Proje açıklaması",

@@ -282,6 +282,36 @@ func (r *Repository) ListProfileLinksByProfileID(
 			ID:         row.ID,
 			Kind:       row.Kind,
 			IsVerified: row.IsVerified,
+			IsHidden:   row.IsHidden,
+			PublicID:   row.PublicID.String,
+			URI:        row.URI.String,
+			Title:      row.Title,
+		}
+	}
+
+	return profileLinks, nil
+}
+
+func (r *Repository) ListProfileLinksByProfileIDIncludingHidden(
+	ctx context.Context,
+	_localeCode string,
+	profileID string,
+) ([]*profiles.ProfileLinkBrief, error) {
+	rows, err := r.queries.ListProfileLinksByProfileIDIncludingHidden(
+		ctx,
+		ListProfileLinksByProfileIDIncludingHiddenParams{ProfileID: profileID},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	profileLinks := make([]*profiles.ProfileLinkBrief, len(rows))
+	for i, row := range rows {
+		profileLinks[i] = &profiles.ProfileLinkBrief{
+			ID:         row.ID,
+			Kind:       row.Kind,
+			IsVerified: row.IsVerified,
+			IsHidden:   row.IsHidden,
 			PublicID:   row.PublicID.String,
 			URI:        row.URI.String,
 			Title:      row.Title,
