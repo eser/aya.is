@@ -495,13 +495,13 @@ func (s *Service) CheckPageSlugAvailability(
 	excludePageID *string,
 ) (*SlugAvailabilityResult, error) {
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
-	if err != nil {
+	if err != nil || profileID == "" {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
 	page, err := s.repo.GetProfilePageByProfileIDAndSlug(ctx, localeCode, profileID, pageSlug)
-	if err != nil {
-		// If not found, slug is available
+	if err != nil || page == nil {
+		// If error or not found, slug is available
 		return &SlugAvailabilityResult{
 			Available: true,
 			Message:   "",

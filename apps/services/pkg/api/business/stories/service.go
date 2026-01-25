@@ -242,8 +242,8 @@ func (s *Service) CheckSlugAvailability(
 	excludeStoryID *string,
 ) (*SlugAvailabilityResult, error) {
 	storyID, err := s.repo.GetStoryIDBySlug(ctx, slug)
-	if err != nil {
-		// If not found, slug is available
+	if err != nil || storyID == "" {
+		// If error or not found, slug is available
 		return &SlugAvailabilityResult{
 			Available: true,
 			Message:   "",
