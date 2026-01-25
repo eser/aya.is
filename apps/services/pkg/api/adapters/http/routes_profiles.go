@@ -89,12 +89,19 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			slugParam := ctx.Request.PathValue("slug")
+			includeDeletedParam := ctx.Request.URL.Query().Get("include_deleted")
 
 			if slugParam == "" {
 				return ctx.Results.BadRequest(httpfx.WithPlainText("slug parameter is required"))
 			}
 
-			availability, err := profileService.CheckSlugAvailability(ctx.Request.Context(), slugParam)
+			includeDeleted := includeDeletedParam == "true"
+
+			availability, err := profileService.CheckSlugAvailability(
+				ctx.Request.Context(),
+				slugParam,
+				includeDeleted,
+			)
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
@@ -105,6 +112,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			result := map[string]any{
 				"available": availability.Available,
 				"message":   availability.Message,
+				"severity":  availability.Severity,
 			}
 
 			wrappedResponse := cursors.WrapResponseWithCursor(result, nil)
@@ -181,11 +189,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				profileSlugParam := ctx.Request.PathValue("slug")
 				pageSlugParam := ctx.Request.PathValue("pageSlug")
 				excludeIDParam := ctx.Request.URL.Query().Get("exclude_id")
+				includeDeletedParam := ctx.Request.URL.Query().Get("include_deleted")
 
 				var excludeID *string
 				if excludeIDParam != "" {
 					excludeID = &excludeIDParam
 				}
+
+				includeDeleted := includeDeletedParam == "true"
 
 				availability, err := profileService.CheckPageSlugAvailability(
 					ctx.Request.Context(),
@@ -193,6 +204,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					profileSlugParam,
 					pageSlugParam,
 					excludeID,
+					includeDeleted,
 				)
 				if err != nil {
 					return ctx.Results.Error(
@@ -204,6 +216,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				result := map[string]any{
 					"available": availability.Available,
 					"message":   availability.Message,
+					"severity":  availability.Severity,
 				}
 
 				wrappedResponse := cursors.WrapResponseWithCursor(result, nil)

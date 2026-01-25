@@ -13,6 +13,33 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+const checkPageSlugExistsIncludingDeleted = `-- name: CheckPageSlugExistsIncludingDeleted :one
+SELECT EXISTS(
+  SELECT 1 FROM "profile_page"
+  WHERE profile_id = $1
+    AND slug = $2
+) AS exists
+`
+
+type CheckPageSlugExistsIncludingDeletedParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
+	PageSlug  string `db:"page_slug" json:"page_slug"`
+}
+
+// CheckPageSlugExistsIncludingDeleted
+//
+//	SELECT EXISTS(
+//	  SELECT 1 FROM "profile_page"
+//	  WHERE profile_id = $1
+//	    AND slug = $2
+//	) AS exists
+func (q *Queries) CheckPageSlugExistsIncludingDeleted(ctx context.Context, arg CheckPageSlugExistsIncludingDeletedParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkPageSlugExistsIncludingDeleted, arg.ProfileID, arg.PageSlug)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkProfileSlugExists = `-- name: CheckProfileSlugExists :one
 SELECT EXISTS(
   SELECT 1 FROM "profile"
@@ -34,6 +61,30 @@ type CheckProfileSlugExistsParams struct {
 //	) AS exists
 func (q *Queries) CheckProfileSlugExists(ctx context.Context, arg CheckProfileSlugExistsParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, checkProfileSlugExists, arg.Slug)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const checkProfileSlugExistsIncludingDeleted = `-- name: CheckProfileSlugExistsIncludingDeleted :one
+SELECT EXISTS(
+  SELECT 1 FROM "profile"
+  WHERE slug = $1
+) AS exists
+`
+
+type CheckProfileSlugExistsIncludingDeletedParams struct {
+	Slug string `db:"slug" json:"slug"`
+}
+
+// CheckProfileSlugExistsIncludingDeleted
+//
+//	SELECT EXISTS(
+//	  SELECT 1 FROM "profile"
+//	  WHERE slug = $1
+//	) AS exists
+func (q *Queries) CheckProfileSlugExistsIncludingDeleted(ctx context.Context, arg CheckProfileSlugExistsIncludingDeletedParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkProfileSlugExistsIncludingDeleted, arg.Slug)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

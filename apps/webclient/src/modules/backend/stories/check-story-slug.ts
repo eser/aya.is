@@ -3,6 +3,7 @@ import { fetcher } from "../fetcher";
 export type CheckStorySlugResponse = {
   available: boolean;
   message?: string;
+  severity?: "error" | "warning" | "";
 };
 
 export type CheckStorySlugOptions = {

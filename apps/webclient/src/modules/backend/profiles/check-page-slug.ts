@@ -3,6 +3,7 @@ import { fetcher } from "../fetcher";
 export type CheckPageSlugResponse = {
   available: boolean;
   message?: string;
+  severity?: "error" | "warning" | "";
 };
 
 export async function checkPageSlug(

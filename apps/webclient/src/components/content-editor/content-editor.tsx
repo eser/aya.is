@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import {
+  AlertTriangle,
   ArrowLeft,
   Check,
   Images,
@@ -40,6 +41,7 @@ type SlugAvailability = {
   isChecking: boolean;
   isAvailable: boolean | null;
   message: string | null;
+  severity: "error" | "warning" | "" | null;
 };
 
 // Schema for optional URL validation (null, empty string, or valid http/https URL)
@@ -162,6 +164,7 @@ export function ContentEditor(props: ContentEditorProps) {
     isChecking: false,
     isAvailable: null,
     message: null,
+    severity: null,
   });
 
   // Validate slug on change
@@ -207,13 +210,13 @@ export function ContentEditor(props: ContentEditorProps) {
     // Only check if slug passes basic format validation (not date prefix)
     const hasBasicError = slug.length < 3 || slug.length > 100 || !/^[a-z0-9-]+$/.test(slug);
     if (hasBasicError) {
-      setSlugAvailability({ isChecking: false, isAvailable: null, message: null });
+      setSlugAvailability({ isChecking: false, isAvailable: null, message: null, severity: null });
       return;
     }
 
     // Skip availability check if slug hasn't changed from initial (for editing)
     if (!isNew && slug === initialData.slug) {
-      setSlugAvailability({ isChecking: false, isAvailable: true, message: null });
+      setSlugAvailability({ isChecking: false, isAvailable: true, message: null, severity: null });
       return;
     }
 
@@ -221,7 +224,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
     const timeoutId = setTimeout(async () => {
       try {
-        let result: { available: boolean; message?: string } | null = null;
+        let result: { available: boolean; message?: string; severity?: "error" | "warning" | "" } | null = null;
 
         if (contentType === "story") {
           result = await backend.checkStorySlug(locale, slug, {
@@ -234,16 +237,24 @@ export function ContentEditor(props: ContentEditorProps) {
         }
 
         if (result !== null) {
+          // Determine message based on severity
+          let message: string | null = null;
+          if (!result.available || result.severity === "warning") {
+            message = result.message ?? (result.available ? null : t("Editor.This slug is already taken"));
+          }
+
           setSlugAvailability({
             isChecking: false,
             isAvailable: result.available,
-            message: result.available ? null : (result.message ?? t("Editor.This slug is already taken")),
+            message,
+            severity: result.severity ?? null,
           });
         } else {
           setSlugAvailability({
             isChecking: false,
             isAvailable: null,
             message: null,
+            severity: null,
           });
         }
       } catch {
@@ -251,6 +262,7 @@ export function ContentEditor(props: ContentEditorProps) {
           isChecking: false,
           isAvailable: null,
           message: null,
+          severity: null,
         });
       }
     }, 500);
@@ -346,8 +358,10 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Check for validation errors
-    if (slugError !== null || titleError !== null || slugAvailability.isAvailable === false) {
+    // Check for validation errors - only block on errors, not warnings
+    const hasSlugError = slugError !== null ||
+      (slugAvailability.isAvailable === false && slugAvailability.severity === "error");
+    if (hasSlugError || titleError !== null) {
       return;
     }
 
@@ -390,8 +404,10 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Check for validation errors
-    if (slugError !== null || titleError !== null || slugAvailability.isAvailable === false) {
+    // Check for validation errors - only block on errors, not warnings
+    const hasSlugError = slugError !== null ||
+      (slugAvailability.isAvailable === false && slugAvailability.severity === "error");
+    if (hasSlugError || titleError !== null) {
       return;
     }
 
@@ -621,7 +637,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {/* Slug */}
               <Field
                 className={styles.metadataField}
-                data-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.isAvailable === false) || undefined}
+                data-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
               >
                 <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
                   {t("Editor.Slug")}
@@ -636,7 +652,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     }}
                     onBlur={() => setSlugTouched(true)}
                     placeholder={t("Editor.url-friendly-slug")}
-                    aria-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.isAvailable === false) || undefined}
+                    aria-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
                     className="pr-8"
                   />
                   {slug.length >= 3 && (
@@ -644,15 +660,21 @@ export function ContentEditor(props: ContentEditorProps) {
                       {slugAvailability.isChecking && (
                         <Loader2 className="size-4 animate-spin text-muted-foreground" />
                       )}
-                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
+                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true && slugAvailability.severity !== "warning" && (
                         <Check className="size-4 text-green-600" />
+                      )}
+                      {!slugAvailability.isChecking && slugAvailability.severity === "warning" && (
+                        <AlertTriangle className="size-4 text-amber-500" />
                       )}
                     </div>
                   )}
                 </div>
                 {slugError !== null && <FieldError>{slugError}</FieldError>}
-                {slugError === null && !slugAvailability.isChecking && slugAvailability.isAvailable === false && slugAvailability.message !== null && (
+                {slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "error" && slugAvailability.message !== null && (
                   <FieldError>{slugAvailability.message}</FieldError>
+                )}
+                {slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "warning" && slugAvailability.message !== null && (
+                  <p className="text-sm text-amber-600 mt-1">{slugAvailability.message}</p>
                 )}
               </Field>
 

@@ -5,6 +5,12 @@ WHERE slug = sqlc.arg(slug)
   AND deleted_at IS NULL
 LIMIT 1;
 
+-- name: GetStoryIDBySlugIncludingDeleted :one
+SELECT id
+FROM "story"
+WHERE slug = sqlc.arg(slug)
+LIMIT 1;
+
 -- name: GetStoryByID :one
 SELECT
   sqlc.embed(s),

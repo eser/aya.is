@@ -24,10 +24,17 @@ var (
 	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
 )
 
+// Severity constants for slug availability results.
+const (
+	SeverityError   = "error"
+	SeverityWarning = "warning"
+)
+
 // SlugAvailabilityResult holds the result of a slug availability check.
 type SlugAvailabilityResult struct {
-	Available bool
-	Message   string
+	Available bool   `json:"available"`
+	Message   string `json:"message,omitempty"`
+	Severity  string `json:"severity,omitempty"` // "error" | "warning" | ""
 }
 
 // Config holds the profiles service configuration.
@@ -128,6 +135,12 @@ type Repository interface { //nolint:interfacebloat
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
 	GetProfileIDByCustomDomain(ctx context.Context, domain string) (*string, error)
 	CheckProfileSlugExists(ctx context.Context, slug string) (bool, error)
+	CheckProfileSlugExistsIncludingDeleted(ctx context.Context, slug string) (bool, error)
+	CheckPageSlugExistsIncludingDeleted(
+		ctx context.Context,
+		profileID string,
+		pageSlug string,
+	) (bool, error)
 	GetProfileByID(ctx context.Context, localeCode string, id string) (*Profile, error)
 	ListProfiles(
 		ctx context.Context,
@@ -493,7 +506,17 @@ func (s *Service) CheckPageSlugAvailability(
 	profileSlug string,
 	pageSlug string,
 	excludePageID *string,
+	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
+	// Check minimum length
+	if len(pageSlug) < 3 {
+		return &SlugAvailabilityResult{
+			Available: false,
+			Message:   "Slug must be at least 3 characters",
+			Severity:  SeverityError,
+		}, nil
+	}
+
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil || profileID == "" {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
@@ -501,10 +524,25 @@ func (s *Service) CheckPageSlugAvailability(
 
 	page, err := s.repo.GetProfilePageByProfileIDAndSlug(ctx, localeCode, profileID, pageSlug)
 	if err != nil || page == nil {
-		// If error or not found, slug is available
+		// Page not found in active records, check deleted if requested
+		if includeDeleted {
+			existsDeleted, delErr := s.repo.CheckPageSlugExistsIncludingDeleted(ctx, profileID, pageSlug)
+			if delErr != nil {
+				return nil, delErr
+			}
+
+			if existsDeleted {
+				return &SlugAvailabilityResult{
+					Available: false,
+					Message:   "This slug was previously used",
+					Severity:  SeverityError,
+				}, nil
+			}
+		}
+
+		// Slug is available
 		return &SlugAvailabilityResult{
 			Available: true,
-			Message:   "",
 		}, nil
 	}
 
@@ -512,13 +550,13 @@ func (s *Service) CheckPageSlugAvailability(
 	if excludePageID != nil && page.ID == *excludePageID {
 		return &SlugAvailabilityResult{
 			Available: true,
-			Message:   "",
 		}, nil
 	}
 
 	return &SlugAvailabilityResult{
 		Available: false,
 		Message:   "This slug is already taken",
+		Severity:  SeverityError,
 	}, nil
 }
 
@@ -655,14 +693,30 @@ func (s *Service) CheckSlugExists(ctx context.Context, slug string) (bool, error
 	return exists, nil
 }
 
-func (s *Service) CheckSlugAvailability(ctx context.Context, slug string) (*SlugAvailabilityResult, error) {
+func (s *Service) CheckSlugAvailability(
+	ctx context.Context,
+	slug string,
+	includeDeleted bool,
+) (*SlugAvailabilityResult, error) {
+	// Check minimum length
+	if len(slug) < 3 {
+		return &SlugAvailabilityResult{
+			Available: false,
+			Message:   "Slug must be at least 3 characters",
+			Severity:  SeverityError,
+		}, nil
+	}
+
+	// Check forbidden slugs
 	if s.config.GetForbiddenSlugs()[slug] {
 		return &SlugAvailabilityResult{
 			Available: false,
 			Message:   "This slug is reserved",
+			Severity:  SeverityError,
 		}, nil
 	}
 
+	// Check if slug exists (active records)
 	exists, err := s.CheckSlugExists(ctx, slug)
 	if err != nil {
 		return nil, err
@@ -672,12 +726,28 @@ func (s *Service) CheckSlugAvailability(ctx context.Context, slug string) (*Slug
 		return &SlugAvailabilityResult{
 			Available: false,
 			Message:   "This slug is already taken",
+			Severity:  SeverityError,
 		}, nil
+	}
+
+	// Check if slug was used by a deleted record (optional)
+	if includeDeleted {
+		existsDeleted, err := s.repo.CheckProfileSlugExistsIncludingDeleted(ctx, slug)
+		if err != nil {
+			return nil, err
+		}
+
+		if existsDeleted {
+			return &SlugAvailabilityResult{
+				Available: false,
+				Message:   "This slug was previously used",
+				Severity:  SeverityError,
+			}, nil
+		}
 	}
 
 	return &SlugAvailabilityResult{
 		Available: true,
-		Message:   "",
 	}, nil
 }
 
@@ -1234,12 +1304,12 @@ func (s *Service) CreateProfilePage(
 	}
 
 	// Validate slug availability
-	slugResult, err := s.CheckPageSlugAvailability(ctx, localeCode, profileSlug, slug, nil)
+	slugResult, err := s.CheckPageSlugAvailability(ctx, localeCode, profileSlug, slug, nil, false)
 	if err != nil {
 		return nil, err
 	}
 
-	if !slugResult.Available {
+	if !slugResult.Available && slugResult.Severity == SeverityError {
 		return nil, fmt.Errorf("%w: %s", ErrFailedToCreateRecord, slugResult.Message)
 	}
 
@@ -1337,12 +1407,12 @@ func (s *Service) UpdateProfilePage(
 	}
 
 	// Validate slug availability (exclude current page)
-	slugResult, err := s.CheckPageSlugAvailability(ctx, "en", profileSlug, slug, &pageID)
+	slugResult, err := s.CheckPageSlugAvailability(ctx, "en", profileSlug, slug, &pageID, false)
 	if err != nil {
 		return nil, err
 	}
 
-	if !slugResult.Available {
+	if !slugResult.Available && slugResult.Severity == SeverityError {
 		return nil, fmt.Errorf("%w: %s", ErrFailedToUpdateRecord, slugResult.Message)
 	}
 

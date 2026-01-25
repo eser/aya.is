@@ -248,6 +248,30 @@ func (q *Queries) GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugPara
 	return id, err
 }
 
+const getStoryIDBySlugIncludingDeleted = `-- name: GetStoryIDBySlugIncludingDeleted :one
+SELECT id
+FROM "story"
+WHERE slug = $1
+LIMIT 1
+`
+
+type GetStoryIDBySlugIncludingDeletedParams struct {
+	Slug string `db:"slug" json:"slug"`
+}
+
+// GetStoryIDBySlugIncludingDeleted
+//
+//	SELECT id
+//	FROM "story"
+//	WHERE slug = $1
+//	LIMIT 1
+func (q *Queries) GetStoryIDBySlugIncludingDeleted(ctx context.Context, arg GetStoryIDBySlugIncludingDeletedParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getStoryIDBySlugIncludingDeleted, arg.Slug)
+	var id string
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getStoryOwnershipForUser = `-- name: GetStoryOwnershipForUser :one
 SELECT
   s.id,

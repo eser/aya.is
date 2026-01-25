@@ -12,6 +12,12 @@ SELECT EXISTS(
     AND deleted_at IS NULL
 ) AS exists;
 
+-- name: CheckProfileSlugExistsIncludingDeleted :one
+SELECT EXISTS(
+  SELECT 1 FROM "profile"
+  WHERE slug = sqlc.arg(slug)
+) AS exists;
+
 -- name: GetProfileIDByCustomDomain :one
 SELECT id
 FROM "profile"
@@ -147,6 +153,13 @@ FROM "profile_page" pp
   AND ppt.locale_code = sqlc.arg(locale_code)
 WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL
 ORDER BY pp."order";
+
+-- name: CheckPageSlugExistsIncludingDeleted :one
+SELECT EXISTS(
+  SELECT 1 FROM "profile_page"
+  WHERE profile_id = sqlc.arg(profile_id)
+    AND slug = sqlc.arg(page_slug)
+) AS exists;
 
 -- name: GetProfilePage :one
 SELECT *

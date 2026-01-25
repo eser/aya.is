@@ -74,6 +74,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			excludeIDParam := ctx.Request.URL.Query().Get("exclude_id")
 			statusParam := ctx.Request.URL.Query().Get("status")
 			publishedAtParam := ctx.Request.URL.Query().Get("published_at")
+			includeDeletedParam := ctx.Request.URL.Query().Get("include_deleted")
 
 			var excludeID *string
 			if excludeIDParam != "" {
@@ -87,12 +88,15 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				}
 			}
 
+			includeDeleted := includeDeletedParam == "true"
+
 			availability, err := storyService.CheckSlugAvailability(
 				ctx.Request.Context(),
 				slugParam,
 				excludeID,
 				statusParam,
 				publishedAt,
+				includeDeleted,
 			)
 			if err != nil {
 				return ctx.Results.Error(
@@ -104,6 +108,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			result := map[string]any{
 				"available": availability.Available,
 				"message":   availability.Message,
+				"severity":  availability.Severity,
 			}
 
 			wrappedResponse := cursors.WrapResponseWithCursor(result, nil)

@@ -9,6 +9,14 @@ import (
 )
 
 type Querier interface {
+	//CheckPageSlugExistsIncludingDeleted
+	//
+	//  SELECT EXISTS(
+	//    SELECT 1 FROM "profile_page"
+	//    WHERE profile_id = $1
+	//      AND slug = $2
+	//  ) AS exists
+	CheckPageSlugExistsIncludingDeleted(ctx context.Context, arg CheckPageSlugExistsIncludingDeletedParams) (bool, error)
 	//CheckProfileSlugExists
 	//
 	//  SELECT EXISTS(
@@ -17,6 +25,13 @@ type Querier interface {
 	//      AND deleted_at IS NULL
 	//  ) AS exists
 	CheckProfileSlugExists(ctx context.Context, arg CheckProfileSlugExistsParams) (bool, error)
+	//CheckProfileSlugExistsIncludingDeleted
+	//
+	//  SELECT EXISTS(
+	//    SELECT 1 FROM "profile"
+	//    WHERE slug = $1
+	//  ) AS exists
+	CheckProfileSlugExistsIncludingDeleted(ctx context.Context, arg CheckProfileSlugExistsIncludingDeletedParams) (bool, error)
 	// CTE-based claim: atomically selects + locks + updates.
 	// Picks up both pending events that are due AND stale processing events
 	// past their visibility timeout (crash recovery built into the claim).
@@ -638,6 +653,13 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error)
+	//GetStoryIDBySlugIncludingDeleted
+	//
+	//  SELECT id
+	//  FROM "story"
+	//  WHERE slug = $1
+	//  LIMIT 1
+	GetStoryIDBySlugIncludingDeleted(ctx context.Context, arg GetStoryIDBySlugIncludingDeletedParams) (string, error)
 	//GetStoryOwnershipForUser
 	//
 	//  SELECT

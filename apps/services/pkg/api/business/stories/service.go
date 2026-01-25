@@ -51,17 +51,55 @@ func (c *Config) GetAllowedURIPrefixes() []string {
 	return result
 }
 
+// slugValidationResult holds the result of slug format validation.
+type slugValidationResult struct {
+	Valid    bool
+	Message  string
+	Severity string
+}
+
+// validateSlugLength checks if the slug meets the minimum length requirement.
+// Returns severity based on status: error for published, warning for draft.
+func validateSlugLength(slug string, isPublished bool) *slugValidationResult {
+	const minLength = 12 // 9 (YYYYMMDD-) + 3 (minimum content)
+
+	if len(slug) >= minLength {
+		return nil // Valid
+	}
+
+	severity := SeverityWarning
+	if isPublished {
+		severity = SeverityError
+	}
+
+	return &slugValidationResult{
+		Valid:    false,
+		Message:  fmt.Sprintf("Slug must be at least %d characters", minLength),
+		Severity: severity,
+	}
+}
+
 // validateSlugDatePrefix validates that the slug starts with YYYYMMDD- format
 // matching the provided publish date.
-func validateSlugDatePrefix(slug string, publishDate time.Time) error {
+// Returns severity based on status: error for published, warning for draft.
+func validateSlugDatePrefix(slug string, publishDate time.Time, isPublished bool) *slugValidationResult {
 	expectedPrefix := publishDate.Format("20060102") + "-"
 
 	// Check if slug starts with the expected date prefix
-	if !strings.HasPrefix(slug, expectedPrefix) {
-		return fmt.Errorf("%w: expected prefix %s", ErrInvalidSlugPrefix, expectedPrefix)
+	if strings.HasPrefix(slug, expectedPrefix) {
+		return nil // Valid
 	}
 
-	return nil
+	severity := SeverityWarning
+	if isPublished {
+		severity = SeverityError
+	}
+
+	return &slugValidationResult{
+		Valid:    false,
+		Message:  "Slug must start with " + expectedPrefix,
+		Severity: severity,
+	}
 }
 
 // validateOptionalURL validates that a URL is either nil or a valid http/https URL.
@@ -103,16 +141,24 @@ func validateURIPrefixes(uri *string, allowedPrefixes []string) error {
 	return fmt.Errorf("%w: %s", ErrInvalidURIPrefix, strings.Join(allowedPrefixes, ", "))
 }
 
+// Severity constants for slug availability results.
+const (
+	SeverityError   = "error"
+	SeverityWarning = "warning"
+)
+
 // SlugAvailabilityResult holds the result of a slug availability check.
 type SlugAvailabilityResult struct {
 	Available bool   `json:"available"`
 	Message   string `json:"message,omitempty"`
+	Severity  string `json:"severity,omitempty"` // "error" | "warning" | ""
 }
 
 type Repository interface {
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
 	GetProfileByID(ctx context.Context, localeCode string, id string) (*profiles.Profile, error)
 	GetStoryIDBySlug(ctx context.Context, slug string) (string, error)
+	GetStoryIDBySlugIncludingDeleted(ctx context.Context, slug string) (string, error)
 	GetStoryByID(
 		ctx context.Context,
 		localeCode string,
@@ -234,48 +280,111 @@ func (s *Service) GetBySlug(
 	return record, nil
 }
 
-// CheckSlugAvailability checks if a story slug is available and validates the date prefix.
+// CheckSlugAvailability checks if a story slug is available and validates format requirements.
 // It optionally excludes a specific story ID (for edit scenarios).
 // When status is "published" and publishedAt is provided, it also validates the date prefix.
+// Parameters:
+//   - slug: the slug to check
+//   - excludeStoryID: story ID to exclude (for edit mode)
+//   - status: "published" or "draft"
+//   - publishedAt: publish date for date prefix validation
+//   - includeDeleted: if true, also check against deleted stories
 func (s *Service) CheckSlugAvailability(
 	ctx context.Context,
 	slug string,
 	excludeStoryID *string,
 	status string,
 	publishedAt *time.Time,
+	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
-	// Validate slug date prefix for published stories
-	if status == "published" && publishedAt != nil {
-		if err := validateSlugDatePrefix(slug, *publishedAt); err != nil {
-			expectedPrefix := publishedAt.Format("20060102") + "-"
+	isPublished := status == "published"
 
+	// Check minimum length (12 chars = 9 for date + 3 for content)
+	if lengthResult := validateSlugLength(slug, isPublished); lengthResult != nil {
+		// For errors, return immediately as unavailable
+		if lengthResult.Severity == SeverityError {
 			return &SlugAvailabilityResult{
 				Available: false,
-				Message:   "Slug must start with " + expectedPrefix,
+				Message:   lengthResult.Message,
+				Severity:  lengthResult.Severity,
+			}, nil
+		}
+
+		// For warnings, continue checking but remember to include the warning
+		// We'll return this warning at the end if slug is otherwise available
+	}
+
+	// Validate slug date prefix
+	var datePrefix time.Time
+	if publishedAt != nil {
+		datePrefix = *publishedAt
+	} else {
+		datePrefix = time.Now()
+	}
+
+	if prefixResult := validateSlugDatePrefix(slug, datePrefix, isPublished); prefixResult != nil {
+		// For errors, return immediately as unavailable
+		if prefixResult.Severity == SeverityError {
+			return &SlugAvailabilityResult{
+				Available: false,
+				Message:   prefixResult.Message,
+				Severity:  prefixResult.Severity,
+			}, nil
+		}
+
+		// For warnings, continue checking but remember to include the warning
+	}
+
+	// Check if slug is already taken (active stories)
+	storyID, err := s.repo.GetStoryIDBySlug(ctx, slug)
+	if err == nil && storyID != "" {
+		// If we're editing and the slug belongs to the same story, continue
+		if excludeStoryID == nil || storyID != *excludeStoryID {
+			return &SlugAvailabilityResult{
+				Available: false,
+				Message:   "This slug is already taken",
+				Severity:  SeverityError,
 			}, nil
 		}
 	}
 
-	storyID, err := s.repo.GetStoryIDBySlug(ctx, slug)
-	if err != nil || storyID == "" {
-		// If error or not found, slug is available
+	// Optionally check deleted stories
+	if includeDeleted {
+		deletedStoryID, err := s.repo.GetStoryIDBySlugIncludingDeleted(ctx, slug)
+		if err == nil && deletedStoryID != "" {
+			// If we're editing and it's the same story, that's fine
+			if excludeStoryID == nil || deletedStoryID != *excludeStoryID {
+				return &SlugAvailabilityResult{
+					Available: false,
+					Message:   "This slug was previously used",
+					Severity:  SeverityError,
+				}, nil
+			}
+		}
+	}
+
+	// Slug is available - but check if we have any warnings to return
+	// Re-check for warnings
+	if lengthResult := validateSlugLength(slug, isPublished); lengthResult != nil &&
+		lengthResult.Severity == SeverityWarning {
 		return &SlugAvailabilityResult{
 			Available: true,
-			Message:   "",
+			Message:   lengthResult.Message,
+			Severity:  lengthResult.Severity,
 		}, nil
 	}
 
-	// If we're editing and the slug belongs to the same story, it's available
-	if excludeStoryID != nil && storyID == *excludeStoryID {
+	if prefixResult := validateSlugDatePrefix(slug, datePrefix, isPublished); prefixResult != nil &&
+		prefixResult.Severity == SeverityWarning {
 		return &SlugAvailabilityResult{
 			Available: true,
-			Message:   "",
+			Message:   prefixResult.Message,
+			Severity:  prefixResult.Severity,
 		}, nil
 	}
 
 	return &SlugAvailabilityResult{
-		Available: false,
-		Message:   "This slug is already taken",
+		Available: true,
 	}, nil
 }
 
@@ -386,13 +495,13 @@ func (s *Service) Create(
 	isFeatured bool,
 	publishedAt *time.Time,
 ) (*Story, error) {
-	// Validate slug availability and date prefix
-	slugResult, err := s.CheckSlugAvailability(ctx, slug, nil, status, publishedAt)
+	// Validate slug availability and date prefix (only block on errors, not warnings)
+	slugResult, err := s.CheckSlugAvailability(ctx, slug, nil, status, publishedAt, false)
 	if err != nil {
 		return nil, err
 	}
 
-	if !slugResult.Available {
+	if !slugResult.Available && slugResult.Severity == SeverityError {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
 	}
 
@@ -504,13 +613,13 @@ func (s *Service) Update(
 		)
 	}
 
-	// Validate slug availability and date prefix
-	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, status, publishedAt)
+	// Validate slug availability and date prefix (only block on errors, not warnings)
+	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, status, publishedAt, false)
 	if err != nil {
 		return nil, err
 	}
 
-	if !slugResult.Available {
+	if !slugResult.Available && slugResult.Severity == SeverityError {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
 	}
 

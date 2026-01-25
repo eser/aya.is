@@ -40,6 +40,25 @@ func (r *Repository) GetStoryIDBySlug(ctx context.Context, slug string) (string,
 	return result, err //nolint:wrapcheck
 }
 
+func (r *Repository) GetStoryIDBySlugIncludingDeleted(
+	ctx context.Context,
+	slug string,
+) (string, error) {
+	row, err := r.queries.GetStoryIDBySlugIncludingDeleted(
+		ctx,
+		GetStoryIDBySlugIncludingDeletedParams{Slug: slug},
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+
+		return "", err
+	}
+
+	return row, nil
+}
+
 func (r *Repository) GetStoryByID(
 	ctx context.Context,
 	localeCode string,

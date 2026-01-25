@@ -58,6 +58,40 @@ func (r *Repository) CheckProfileSlugExists(ctx context.Context, slug string) (b
 	return result, err //nolint:wrapcheck
 }
 
+func (r *Repository) CheckProfileSlugExistsIncludingDeleted(
+	ctx context.Context,
+	slug string,
+) (bool, error) {
+	exists, err := r.queries.CheckProfileSlugExistsIncludingDeleted(
+		ctx,
+		CheckProfileSlugExistsIncludingDeletedParams{Slug: slug},
+	)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (r *Repository) CheckPageSlugExistsIncludingDeleted(
+	ctx context.Context,
+	profileID string,
+	pageSlug string,
+) (bool, error) {
+	exists, err := r.queries.CheckPageSlugExistsIncludingDeleted(
+		ctx,
+		CheckPageSlugExistsIncludingDeletedParams{
+			ProfileID: profileID,
+			PageSlug:  pageSlug,
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
 func (r *Repository) GetProfileIDByCustomDomain(
 	ctx context.Context,
 	domain string,
