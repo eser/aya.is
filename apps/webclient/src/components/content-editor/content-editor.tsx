@@ -156,9 +156,10 @@ export function ContentEditor(props: ContentEditorProps) {
   const [showStoryPictureModal, setShowStoryPictureModal] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [slugError, setSlugError] = React.useState<string | null>(null);
-  const [slugTouched, setSlugTouched] = React.useState(!isNew);
+  const [showSlugValidation, setSlugTouched] = React.useState(!isNew);
+  const [slugManuallyEdited, setSlugManuallyEdited] = React.useState(false);
   const [titleError, setTitleError] = React.useState<string | null>(null);
-  const [titleTouched, setTitleTouched] = React.useState(!isNew);
+  const [showTitleValidation, setTitleTouched] = React.useState(!isNew);
   const [storyPictureUriError, setStoryPictureUriError] = React.useState<string | null>(null);
   const [slugAvailability, setSlugAvailability] = React.useState<SlugAvailability>({
     isChecking: false,
@@ -171,7 +172,7 @@ export function ContentEditor(props: ContentEditorProps) {
   React.useEffect(() => {
     // Basic slug validation
     if (slug.length === 0) {
-      setSlugError(slugTouched ? t("Editor.Slug is required") : null);
+      setSlugError(showSlugValidation ? t("Editor.Slug is required") : null);
       return;
     }
     if (slug.length < 2) {
@@ -197,7 +198,7 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     setSlugError(null);
-  }, [slug, slugTouched, publishedAt, status, shouldValidateSlugDatePrefix]);
+  }, [slug, showSlugValidation, publishedAt, status, shouldValidateSlugDatePrefix]);
 
   // Refs to capture current values without triggering effect re-runs
   const statusRef = React.useRef(status);
@@ -217,6 +218,12 @@ export function ContentEditor(props: ContentEditorProps) {
     // Skip availability check if slug hasn't changed from initial (for editing)
     if (!isNew && slug === initialData.slug) {
       setSlugAvailability({ isChecking: false, isAvailable: true, message: null, severity: null });
+      return;
+    }
+
+    // Skip availability check if slug is untouched for new content
+    if (isNew && !showSlugValidation) {
+      setSlugAvailability({ isChecking: false, isAvailable: null, message: null, severity: null });
       return;
     }
 
@@ -270,12 +277,12 @@ export function ContentEditor(props: ContentEditorProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slug, locale, profileSlug, contentType, excludeId, isNew, initialData.slug]);
+  }, [slug, locale, profileSlug, contentType, excludeId, isNew, initialData.slug, showSlugValidation]);
 
   // Validate title on change
   React.useEffect(() => {
     if (title.length === 0) {
-      setTitleError(titleTouched ? t("Editor.Title is required") : null);
+      setTitleError(showTitleValidation ? t("Editor.Title is required") : null);
       return;
     }
     if (title.length > 200) {
@@ -283,7 +290,7 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
     setTitleError(null);
-  }, [title, titleTouched]);
+  }, [title, showTitleValidation]);
 
   // Validate story picture URI on change
   React.useEffect(() => {
@@ -323,25 +330,27 @@ export function ContentEditor(props: ContentEditorProps) {
     );
   }, [title, slug, summary, content, storyPictureUri, status, publishedAt, isFeatured, kind, initialData]);
 
-  // Auto-generate slug from title for new content
-  React.useEffect(() => {
-    if (isNew && title !== "") {
-      const generatedSlug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .trim();
-
-      // Check if slug is empty or is just the date prefix (YYYYMMDD-)
-      const datePrefixPattern = /^\d{8}-$/;
-      if (slug === "" || datePrefixPattern.test(slug)) {
-        // If slug is just a date prefix, append the generated slug
-        const prefix = datePrefixPattern.test(slug) ? slug : "";
-        setSlug(prefix + generatedSlug);
-      }
+  // Auto-generate slug from title for new content (called on title blur)
+  const generateSlugFromTitle = React.useCallback(() => {
+    // Only auto-generate for new content when user hasn't manually edited the slug
+    if (!isNew || slugManuallyEdited || title === "") {
+      return;
     }
-  }, [title, slug, isNew]);
+
+    const generatedSlug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+
+    // Get the date prefix from current slug or generate new one
+    const datePrefixPattern = /^(\d{8}-).*$/;
+    const match = slug.match(datePrefixPattern);
+    const datePrefix = match !== null ? match[1] : "";
+
+    setSlug(datePrefix + generatedSlug);
+  }, [isNew, slugManuallyEdited, title, slug]);
 
   const getCurrentData = (): ContentEditorData => ({
     title,
@@ -641,50 +650,6 @@ export function ContentEditor(props: ContentEditorProps) {
                 </div>
               )}
 
-              {/* Slug */}
-              <Field
-                className={styles.metadataField}
-                data-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
-              >
-                <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
-                  {t("Editor.Slug")}
-                </FieldLabel>
-                <div className="relative">
-                  <Input
-                    id="slug"
-                    value={slug}
-                    onChange={(e) => {
-                      setSlug(e.target.value);
-                      if (!slugTouched) setSlugTouched(true);
-                    }}
-                    onBlur={() => setSlugTouched(true)}
-                    placeholder={t("Editor.url-friendly-slug")}
-                    aria-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
-                    className="pr-8"
-                  />
-                  {slug.length >= 3 && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                      {slugAvailability.isChecking && (
-                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                      )}
-                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true && slugAvailability.severity !== "warning" && (
-                        <Check className="size-4 text-green-600" />
-                      )}
-                      {!slugAvailability.isChecking && slugAvailability.severity === "warning" && (
-                        <AlertTriangle className="size-4 text-amber-500" />
-                      )}
-                    </div>
-                  )}
-                </div>
-                {slugError !== null && <FieldError>{slugError}</FieldError>}
-                {slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "error" && slugAvailability.message !== null && (
-                  <FieldError>{slugAvailability.message}</FieldError>
-                )}
-                {slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "warning" && slugAvailability.message !== null && (
-                  <p className="text-sm text-amber-600 mt-1">{slugAvailability.message}</p>
-                )}
-              </Field>
-
               {/* Published At - visible for published content, editable only by admin */}
               {(status === "published" || isAdmin) && (
                 <Field className={styles.metadataField}>
@@ -725,9 +690,12 @@ export function ContentEditor(props: ContentEditorProps) {
                   value={title}
                   onChange={(e) => {
                     setTitle(e.target.value);
-                    if (!titleTouched) setTitleTouched(true);
+                    if (!showTitleValidation) setTitleTouched(true);
                   }}
-                  onBlur={() => setTitleTouched(true)}
+                  onBlur={() => {
+                    setTitleTouched(true);
+                    generateSlugFromTitle();
+                  }}
                   placeholder={t("Editor.Enter title...")}
                   aria-invalid={titleError !== null || undefined}
                 />
@@ -746,6 +714,51 @@ export function ContentEditor(props: ContentEditorProps) {
                   placeholder={t("Editor.Brief summary...")}
                   className="min-h-[80px]"
                 />
+              </Field>
+
+              {/* Slug */}
+              <Field
+                className={styles.metadataField}
+                data-invalid={(showSlugValidation && slugError !== null) || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
+              >
+                <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
+                  {t("Editor.Slug")}
+                </FieldLabel>
+                <div className="relative">
+                  <Input
+                    id="slug"
+                    value={slug}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      if (!showSlugValidation) setSlugTouched(true);
+                      if (!slugManuallyEdited) setSlugManuallyEdited(true);
+                    }}
+                    onBlur={() => setSlugTouched(true)}
+                    placeholder={t("Editor.url-friendly-slug")}
+                    aria-invalid={(showSlugValidation && slugError !== null) || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
+                    className="pr-8"
+                  />
+                  {showSlugValidation && slug.length >= 3 && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      {slugAvailability.isChecking && (
+                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                      )}
+                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true && slugAvailability.severity !== "warning" && (
+                        <Check className="size-4 text-green-600" />
+                      )}
+                      {!slugAvailability.isChecking && slugAvailability.severity === "warning" && (
+                        <AlertTriangle className="size-4 text-amber-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {showSlugValidation && slugError !== null && <FieldError>{slugError}</FieldError>}
+                {showSlugValidation && slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "error" && slugAvailability.message !== null && (
+                  <FieldError>{slugAvailability.message}</FieldError>
+                )}
+                {showSlugValidation && slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "warning" && slugAvailability.message !== null && (
+                  <p className="text-sm text-amber-600 mt-1">{slugAvailability.message}</p>
+                )}
               </Field>
 
               {/* Picture URI (Story Picture or Cover Picture depending on entity type) */}
