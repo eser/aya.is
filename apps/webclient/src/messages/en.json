@@ -245,6 +245,8 @@
     "Failed to load pages": "Failed to load pages",
     "Please fill in all required fields": "Please fill in all required fields",
     "Failed to create page": "Failed to create page",
+    "Page created successfully": "Page created successfully",
+    "You don't have permission to create pages for this profile.": "You don't have permission to create pages for this profile.",
     "Failed to delete page": "Failed to delete page",
     "Create New Page": "Create New Page",
     "Create a new custom page for your profile with rich content.": "Create a new custom page for your profile with rich content.",
