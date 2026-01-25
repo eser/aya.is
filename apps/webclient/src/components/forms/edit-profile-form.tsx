@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
@@ -8,14 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-// Schema for editing profile (title and description are required for the form)
-const editProfileSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
-  description: z.string().max(500, "Description is too long"),
-  pronouns: z.string().max(50, "Pronouns are too long"),
-});
+export type EditProfileInput = {
+  title: string;
+  description: string;
+  pronouns: string;
+};
 
-export type EditProfileInput = z.infer<typeof editProfileSchema>;
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error !== null && typeof error === "object" && "message" in error) {
+    return (error as { message: string }).message;
+  }
+  return String(error);
+}
 
 type EditProfileFormProps = {
   profile: Profile;
@@ -27,6 +33,19 @@ export function EditProfileForm(props: EditProfileFormProps) {
   const { t } = useTranslation();
   const isIndividual = props.profile.kind === "individual";
 
+  const localizedSchema = React.useMemo(
+    () =>
+      z.object({
+        title: z
+          .string()
+          .min(1, t("Profile.Title is required"))
+          .max(100, t("Profile.Title is too long")),
+        description: z.string().max(500, t("Profile.Description is too long")),
+        pronouns: z.string().max(50, t("Profile.Pronouns are too long")),
+      }),
+    [t],
+  );
+
   const form = useForm({
     defaultValues: {
       title: props.profile.title,
@@ -34,7 +53,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
       pronouns: props.profile.pronouns ?? "",
     },
     validators: {
-      onChange: editProfileSchema,
+      onChange: localizedSchema,
     },
     onSubmit: async ({ value }) => {
       await props.onSubmit(value);
@@ -66,7 +85,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
                 aria-invalid={hasError || undefined}
               />
               {hasError && (
-                <FieldError>{field.state.meta.errors[0]}</FieldError>
+                <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
               )}
             </Field>
           );
@@ -91,7 +110,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
                 aria-invalid={hasError || undefined}
               />
               {hasError && (
-                <FieldError>{field.state.meta.errors[0]}</FieldError>
+                <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
               )}
             </Field>
           );
@@ -116,7 +135,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
                   aria-invalid={hasError || undefined}
                 />
                 {hasError && (
-                  <FieldError>{field.state.meta.errors[0]}</FieldError>
+                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
                 )}
               </Field>
             );
