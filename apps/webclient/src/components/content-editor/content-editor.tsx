@@ -154,7 +154,9 @@ export function ContentEditor(props: ContentEditorProps) {
   const [showStoryPictureModal, setShowStoryPictureModal] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [slugError, setSlugError] = React.useState<string | null>(null);
+  const [slugTouched, setSlugTouched] = React.useState(!isNew);
   const [titleError, setTitleError] = React.useState<string | null>(null);
+  const [titleTouched, setTitleTouched] = React.useState(!isNew);
   const [storyPictureUriError, setStoryPictureUriError] = React.useState<string | null>(null);
   const [slugAvailability, setSlugAvailability] = React.useState<SlugAvailability>({
     isChecking: false,
@@ -166,7 +168,7 @@ export function ContentEditor(props: ContentEditorProps) {
   React.useEffect(() => {
     // Basic slug validation
     if (slug.length === 0) {
-      setSlugError(t("Editor.Slug is required"));
+      setSlugError(slugTouched ? t("Editor.Slug is required") : null);
       return;
     }
     if (slug.length < 3) {
@@ -192,7 +194,7 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     setSlugError(null);
-  }, [slug, publishedAt, status, shouldValidateSlugDatePrefix, t]);
+  }, [slug, slugTouched, publishedAt, status, shouldValidateSlugDatePrefix, t]);
 
   // Debounced slug availability check
   const unavailableMessage = t("Editor.This slug is already taken");
@@ -251,7 +253,7 @@ export function ContentEditor(props: ContentEditorProps) {
   // Validate title on change
   React.useEffect(() => {
     if (title.length === 0) {
-      setTitleError(t("Editor.Title is required"));
+      setTitleError(titleTouched ? t("Editor.Title is required") : null);
       return;
     }
     if (title.length > 200) {
@@ -259,7 +261,7 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
     setTitleError(null);
-  }, [title, t]);
+  }, [title, titleTouched, t]);
 
   // Validate story picture URI on change
   React.useEffect(() => {
@@ -325,6 +327,15 @@ export function ContentEditor(props: ContentEditorProps) {
   });
 
   const handleSave = async () => {
+    // Mark fields as touched to show any validation errors
+    setSlugTouched(true);
+    setTitleTouched(true);
+
+    // Check for empty required fields
+    if (slug.length === 0 || title.length === 0) {
+      return;
+    }
+
     // Check for validation errors
     if (slugError !== null || titleError !== null || slugAvailability.isAvailable === false) {
       return;
@@ -360,6 +371,15 @@ export function ContentEditor(props: ContentEditorProps) {
   };
 
   const handlePublish = async () => {
+    // Mark fields as touched to show any validation errors
+    setSlugTouched(true);
+    setTitleTouched(true);
+
+    // Check for empty required fields
+    if (slug.length === 0 || title.length === 0) {
+      return;
+    }
+
     // Check for validation errors
     if (slugError !== null || titleError !== null || slugAvailability.isAvailable === false) {
       return;
@@ -600,7 +620,11 @@ export function ContentEditor(props: ContentEditorProps) {
                   <Input
                     id="slug"
                     value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      if (!slugTouched) setSlugTouched(true);
+                    }}
+                    onBlur={() => setSlugTouched(true)}
                     placeholder={t("Editor.url-friendly-slug")}
                     aria-invalid={slugError !== null || (!slugAvailability.isChecking && slugAvailability.isAvailable === false) || undefined}
                     className="pr-8"
@@ -660,7 +684,11 @@ export function ContentEditor(props: ContentEditorProps) {
                 <Input
                   id="title"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (!titleTouched) setTitleTouched(true);
+                  }}
+                  onBlur={() => setTitleTouched(true)}
                   placeholder={t("Editor.Enter title...")}
                   aria-invalid={titleError !== null || undefined}
                 />
