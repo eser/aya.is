@@ -423,6 +423,29 @@ type Querier interface {
 	//    AND status = 'processing'
 	//    AND worker_id = $4
 	FailEvent(ctx context.Context, arg FailEventParams) (int64, error)
+	//GetAdminProfileBySlug
+	//
+	//  SELECT
+	//    p.id,
+	//    p.slug,
+	//    p.kind,
+	//    p.custom_domain,
+	//    p.profile_picture_uri,
+	//    p.pronouns,
+	//    p.properties,
+	//    p.created_at,
+	//    p.updated_at,
+	//    p.points,
+	//    COALESCE(pt.title, '') as title,
+	//    COALESCE(pt.description, '') as description,
+	//    pt.profile_id IS NOT NULL as has_translation
+	//  FROM "profile" p
+	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//    AND pt.locale_code = $1
+	//  WHERE p.slug = $2
+	//    AND p.deleted_at IS NULL
+	//  LIMIT 1
+	GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfileBySlugParams) (*GetAdminProfileBySlugRow, error)
 	//GetFromCache
 	//
 	//  SELECT value, updated_at

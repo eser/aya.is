@@ -1227,3 +1227,38 @@ func (r *Repository) CountAllProfilesForAdmin(
 
 	return count, nil
 }
+
+func (r *Repository) GetAdminProfileBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+) (*profiles.Profile, error) {
+	row, err := r.queries.GetAdminProfileBySlug(ctx, GetAdminProfileBySlugParams{
+		LocaleCode: localeCode,
+		Slug:       slug,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	hasTranslation := false
+	if ht, ok := row.HasTranslation.(bool); ok {
+		hasTranslation = ht
+	}
+
+	return &profiles.Profile{
+		ID:                row.ID,
+		Slug:              row.Slug,
+		Kind:              row.Kind,
+		CustomDomain:      vars.ToStringPtr(row.CustomDomain),
+		ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
+		Pronouns:          vars.ToStringPtr(row.Pronouns),
+		Title:             row.Title,
+		Description:       row.Description,
+		Properties:        vars.ToObject(row.Properties),
+		Points:            uint64(row.Points),
+		CreatedAt:         row.CreatedAt,
+		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
+		HasTranslation:    hasTranslation,
+	}, nil
+}

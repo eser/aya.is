@@ -20,8 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
-import { LocaleLink } from "@/components/locale-link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ProfileKind = "individual" | "organization" | "product" | "";
 
@@ -162,7 +161,6 @@ function AdminProfiles() {
                 <TableHead>{t("Admin.Kind")}</TableHead>
                 <TableHead className="text-right">{t("Admin.Points")}</TableHead>
                 <TableHead>{t("Admin.Created")}</TableHead>
-                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -171,7 +169,7 @@ function AdminProfiles() {
                   key={profile.id}
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() =>
-                    navigate({ to: `/${params.locale}/${profile.slug}` })
+                    navigate({ to: `/${params.locale}/admin/profiles/${profile.slug}` })
                   }
                 >
                   <TableCell>
@@ -206,16 +204,6 @@ function AdminProfiles() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDate(profile.created_at)}
-                  </TableCell>
-                  <TableCell>
-                    <LocaleLink
-                      to={`/admin/profiles/${profile.slug}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Button variant="ghost" size="sm">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </LocaleLink>
                   </TableCell>
                 </TableRow>
               ))}

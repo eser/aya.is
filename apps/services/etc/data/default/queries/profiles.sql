@@ -475,3 +475,25 @@ SELECT COUNT(*) as count
 FROM "profile" p
 WHERE p.deleted_at IS NULL
   AND (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')));
+
+-- name: GetAdminProfileBySlug :one
+SELECT
+  p.id,
+  p.slug,
+  p.kind,
+  p.custom_domain,
+  p.profile_picture_uri,
+  p.pronouns,
+  p.properties,
+  p.created_at,
+  p.updated_at,
+  p.points,
+  COALESCE(pt.title, '') as title,
+  COALESCE(pt.description, '') as description,
+  pt.profile_id IS NOT NULL as has_translation
+FROM "profile" p
+  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE p.slug = sqlc.arg(slug)
+  AND p.deleted_at IS NULL
+LIMIT 1;

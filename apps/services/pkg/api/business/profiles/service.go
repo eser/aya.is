@@ -363,6 +363,11 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		filterKind string,
 	) (int64, error)
+	GetAdminProfileBySlug(
+		ctx context.Context,
+		localeCode string,
+		slug string,
+	) (*Profile, error)
 }
 
 type Service struct {
@@ -504,6 +509,20 @@ func (s *Service) ListAllProfilesForAdmin(
 		Limit:  limit,
 		Offset: offset,
 	}, nil
+}
+
+// GetAdminProfileBySlug gets a single profile by slug for admin.
+func (s *Service) GetAdminProfileBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+) (*Profile, error) {
+	profile, err := s.repo.GetAdminProfileBySlug(ctx, localeCode, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	return profile, nil
 }
 
 func (s *Service) ListPagesBySlug(

@@ -1,0 +1,145 @@
+// Admin profile general info tab
+import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ExternalLink } from "lucide-react";
+import { LocaleLink } from "@/components/locale-link";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/$locale/admin/profiles/$slug/")({
+  component: AdminProfileGeneral,
+});
+
+function AdminProfileGeneral() {
+  const { t } = useTranslation();
+  const params = Route.useParams();
+
+  // Get profile from parent route
+  const parentData = Route.useRouteContext();
+  // @ts-expect-error - accessing parent route data
+  const profile = parentData.profile;
+
+  if (profile === undefined) {
+    return null;
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Profile Info Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Admin.Profile Information")}</CardTitle>
+          <CardDescription>
+            {t("Admin.Basic profile details")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t("Admin.ID")}</Label>
+              <Input value={profile.id} readOnly className="font-mono text-sm bg-muted" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("Admin.Slug")}</Label>
+              <Input value={profile.slug} readOnly className="font-mono bg-muted" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("Admin.Title")}</Label>
+            <Input
+              value={profile.title}
+              readOnly
+              className={`bg-muted ${profile.has_translation === false ? "italic text-muted-foreground" : ""}`}
+              placeholder={profile.has_translation === false ? t("Admin.no translation found") : undefined}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("Admin.Description")}</Label>
+            <Textarea
+              value={profile.description ?? ""}
+              readOnly
+              className="bg-muted resize-none"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t("Admin.Kind")}</Label>
+              <Input value={profile.kind} readOnly className="bg-muted capitalize" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("Admin.Points")}</Label>
+              <Input value={profile.points.toLocaleString()} readOnly className="bg-muted" />
+            </div>
+          </div>
+
+          {profile.pronouns !== null && profile.pronouns !== undefined && (
+            <div className="space-y-2">
+              <Label>{t("Admin.Pronouns")}</Label>
+              <Input value={profile.pronouns} readOnly className="bg-muted" />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t("Admin.Created")}</Label>
+              <Input value={formatDate(profile.created_at)} readOnly className="bg-muted" />
+            </div>
+            {profile.updated_at !== null && profile.updated_at !== undefined && (
+              <div className="space-y-2">
+                <Label>{t("Admin.Updated")}</Label>
+                <Input value={formatDate(profile.updated_at)} readOnly className="bg-muted" />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("Admin.Translation Status")}</Label>
+            <Input
+              value={profile.has_translation ? t("Admin.Has translation") : t("Admin.No translation")}
+              readOnly
+              className={`bg-muted ${profile.has_translation ? "text-green-600" : "text-orange-600"}`}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actions Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Admin.Actions")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-4">
+          <LocaleLink to={`/${profile.slug}`}>
+            <Button variant="outline">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {t("Admin.View Public Profile")}
+            </Button>
+          </LocaleLink>
+          <LocaleLink to={`/${profile.slug}/settings`}>
+            <Button variant="outline">
+              {t("Admin.Edit Profile Settings")}
+            </Button>
+          </LocaleLink>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -496,6 +496,93 @@ func (q *Queries) DeleteProfilePage(ctx context.Context, arg DeleteProfilePagePa
 	return result.RowsAffected()
 }
 
+const getAdminProfileBySlug = `-- name: GetAdminProfileBySlug :one
+SELECT
+  p.id,
+  p.slug,
+  p.kind,
+  p.custom_domain,
+  p.profile_picture_uri,
+  p.pronouns,
+  p.properties,
+  p.created_at,
+  p.updated_at,
+  p.points,
+  COALESCE(pt.title, '') as title,
+  COALESCE(pt.description, '') as description,
+  pt.profile_id IS NOT NULL as has_translation
+FROM "profile" p
+  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = $1
+WHERE p.slug = $2
+  AND p.deleted_at IS NULL
+LIMIT 1
+`
+
+type GetAdminProfileBySlugParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	Slug       string `db:"slug" json:"slug"`
+}
+
+type GetAdminProfileBySlugRow struct {
+	ID                string                `db:"id" json:"id"`
+	Slug              string                `db:"slug" json:"slug"`
+	Kind              string                `db:"kind" json:"kind"`
+	CustomDomain      sql.NullString        `db:"custom_domain" json:"custom_domain"`
+	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
+	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
+	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt         time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt         sql.NullTime          `db:"updated_at" json:"updated_at"`
+	Points            int32                 `db:"points" json:"points"`
+	Title             string                `db:"title" json:"title"`
+	Description       string                `db:"description" json:"description"`
+	HasTranslation    interface{}           `db:"has_translation" json:"has_translation"`
+}
+
+// GetAdminProfileBySlug
+//
+//	SELECT
+//	  p.id,
+//	  p.slug,
+//	  p.kind,
+//	  p.custom_domain,
+//	  p.profile_picture_uri,
+//	  p.pronouns,
+//	  p.properties,
+//	  p.created_at,
+//	  p.updated_at,
+//	  p.points,
+//	  COALESCE(pt.title, '') as title,
+//	  COALESCE(pt.description, '') as description,
+//	  pt.profile_id IS NOT NULL as has_translation
+//	FROM "profile" p
+//	  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	  AND pt.locale_code = $1
+//	WHERE p.slug = $2
+//	  AND p.deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfileBySlugParams) (*GetAdminProfileBySlugRow, error) {
+	row := q.db.QueryRowContext(ctx, getAdminProfileBySlug, arg.LocaleCode, arg.Slug)
+	var i GetAdminProfileBySlugRow
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Kind,
+		&i.CustomDomain,
+		&i.ProfilePictureURI,
+		&i.Pronouns,
+		&i.Properties,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Points,
+		&i.Title,
+		&i.Description,
+		&i.HasTranslation,
+	)
+	return &i, err
+}
+
 const getMaxProfileLinkOrder = `-- name: GetMaxProfileLinkOrder :one
 SELECT COALESCE(MAX("order"), 0) as max_order
 FROM "profile_link"
