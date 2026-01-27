@@ -153,12 +153,15 @@ export interface StoryEx extends Omit<Story, "author_profile_id" | "author_profi
 }
 
 // User Types
+export type UserKind = "admin" | "editor" | "regular" | "disabled";
+
 export interface User {
   id: string;
   github_handle: string | null;
   email: string | null;
   name: string | null;
   profile_picture_uri: string | null;
+  kind: UserKind;
   created_at: string;
 }
 
@@ -313,4 +316,35 @@ export interface ProfilePointTransaction {
   amount: number;
   balance_after: number;
   created_at: string;
+}
+
+// Pending Award Types
+export type PendingAwardStatus = "pending" | "approved" | "rejected";
+
+export interface PendingAward {
+  id: string;
+  target_profile_id: string;
+  triggering_event: string;
+  description: string;
+  amount: number;
+  status: PendingAwardStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  rejection_reason: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface PendingAwardsStats {
+  total_pending: number;
+  total_approved: number;
+  total_rejected: number;
+  points_awarded: number;
+  by_event_type: Record<string, number>;
+}
+
+// Cursor Types
+export interface CursoredResponse<T> {
+  data: T;
+  next_cursor: string | null;
 }

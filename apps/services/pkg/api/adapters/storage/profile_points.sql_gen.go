@@ -8,6 +8,8 @@ package storage
 import (
 	"context"
 	"database/sql"
+
+	"github.com/sqlc-dev/pqtype"
 )
 
 const addPointsToProfile = `-- name: AddPointsToProfile :execrows
@@ -40,6 +42,114 @@ func (q *Queries) AddPointsToProfile(ctx context.Context, arg AddPointsToProfile
 	return result.RowsAffected()
 }
 
+const approvePendingAward = `-- name: ApprovePendingAward :exec
+UPDATE "profile_point_pending_award"
+SET
+  status = 'approved',
+  reviewed_by = $1,
+  reviewed_at = NOW()
+WHERE id = $2
+  AND status = 'pending'
+`
+
+type ApprovePendingAwardParams struct {
+	ReviewedBy sql.NullString `db:"reviewed_by" json:"reviewed_by"`
+	ID         string         `db:"id" json:"id"`
+}
+
+// ApprovePendingAward
+//
+//	UPDATE "profile_point_pending_award"
+//	SET
+//	  status = 'approved',
+//	  reviewed_by = $1,
+//	  reviewed_at = NOW()
+//	WHERE id = $2
+//	  AND status = 'pending'
+func (q *Queries) ApprovePendingAward(ctx context.Context, arg ApprovePendingAwardParams) error {
+	_, err := q.db.ExecContext(ctx, approvePendingAward, arg.ReviewedBy, arg.ID)
+	return err
+}
+
+const createPendingAward = `-- name: CreatePendingAward :one
+
+INSERT INTO "profile_point_pending_award" (
+  id,
+  target_profile_id,
+  triggering_event,
+  description,
+  amount,
+  status,
+  metadata,
+  created_at
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  'pending',
+  $6,
+  NOW()
+) RETURNING id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+`
+
+type CreatePendingAwardParams struct {
+	ID              string                `db:"id" json:"id"`
+	TargetProfileID string                `db:"target_profile_id" json:"target_profile_id"`
+	TriggeringEvent string                `db:"triggering_event" json:"triggering_event"`
+	Description     string                `db:"description" json:"description"`
+	Amount          int32                 `db:"amount" json:"amount"`
+	Metadata        pqtype.NullRawMessage `db:"metadata" json:"metadata"`
+}
+
+// Pending Award Queries
+//
+//	INSERT INTO "profile_point_pending_award" (
+//	  id,
+//	  target_profile_id,
+//	  triggering_event,
+//	  description,
+//	  amount,
+//	  status,
+//	  metadata,
+//	  created_at
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5,
+//	  'pending',
+//	  $6,
+//	  NOW()
+//	) RETURNING id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+func (q *Queries) CreatePendingAward(ctx context.Context, arg CreatePendingAwardParams) (*ProfilePointPendingAward, error) {
+	row := q.db.QueryRowContext(ctx, createPendingAward,
+		arg.ID,
+		arg.TargetProfileID,
+		arg.TriggeringEvent,
+		arg.Description,
+		arg.Amount,
+		arg.Metadata,
+	)
+	var i ProfilePointPendingAward
+	err := row.Scan(
+		&i.ID,
+		&i.TargetProfileID,
+		&i.TriggeringEvent,
+		&i.Description,
+		&i.Amount,
+		&i.Status,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
+		&i.RejectionReason,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return &i, err
+}
+
 const deductPointsFromProfile = `-- name: DeductPointsFromProfile :execrows
 UPDATE "profile"
 SET
@@ -70,6 +180,121 @@ func (q *Queries) DeductPointsFromProfile(ctx context.Context, arg DeductPointsF
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const getPendingAwardByID = `-- name: GetPendingAwardByID :one
+SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+FROM "profile_point_pending_award"
+WHERE id = $1
+`
+
+type GetPendingAwardByIDParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// GetPendingAwardByID
+//
+//	SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+//	FROM "profile_point_pending_award"
+//	WHERE id = $1
+func (q *Queries) GetPendingAwardByID(ctx context.Context, arg GetPendingAwardByIDParams) (*ProfilePointPendingAward, error) {
+	row := q.db.QueryRowContext(ctx, getPendingAwardByID, arg.ID)
+	var i ProfilePointPendingAward
+	err := row.Scan(
+		&i.ID,
+		&i.TargetProfileID,
+		&i.TriggeringEvent,
+		&i.Description,
+		&i.Amount,
+		&i.Status,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
+		&i.RejectionReason,
+		&i.Metadata,
+		&i.CreatedAt,
+	)
+	return &i, err
+}
+
+const getPendingAwardsStats = `-- name: GetPendingAwardsStats :one
+SELECT
+  COUNT(*) FILTER (WHERE status = 'pending') AS total_pending,
+  COUNT(*) FILTER (WHERE status = 'approved') AS total_approved,
+  COUNT(*) FILTER (WHERE status = 'rejected') AS total_rejected,
+  COALESCE(SUM(amount) FILTER (WHERE status = 'approved'), 0) AS points_awarded
+FROM "profile_point_pending_award"
+`
+
+type GetPendingAwardsStatsRow struct {
+	TotalPending  int64       `db:"total_pending" json:"total_pending"`
+	TotalApproved int64       `db:"total_approved" json:"total_approved"`
+	TotalRejected int64       `db:"total_rejected" json:"total_rejected"`
+	PointsAwarded interface{} `db:"points_awarded" json:"points_awarded"`
+}
+
+// GetPendingAwardsStats
+//
+//	SELECT
+//	  COUNT(*) FILTER (WHERE status = 'pending') AS total_pending,
+//	  COUNT(*) FILTER (WHERE status = 'approved') AS total_approved,
+//	  COUNT(*) FILTER (WHERE status = 'rejected') AS total_rejected,
+//	  COALESCE(SUM(amount) FILTER (WHERE status = 'approved'), 0) AS points_awarded
+//	FROM "profile_point_pending_award"
+func (q *Queries) GetPendingAwardsStats(ctx context.Context) (*GetPendingAwardsStatsRow, error) {
+	row := q.db.QueryRowContext(ctx, getPendingAwardsStats)
+	var i GetPendingAwardsStatsRow
+	err := row.Scan(
+		&i.TotalPending,
+		&i.TotalApproved,
+		&i.TotalRejected,
+		&i.PointsAwarded,
+	)
+	return &i, err
+}
+
+const getPendingAwardsStatsByEventType = `-- name: GetPendingAwardsStatsByEventType :many
+SELECT
+  triggering_event,
+  COUNT(*) AS count
+FROM "profile_point_pending_award"
+WHERE status = 'pending'
+GROUP BY triggering_event
+`
+
+type GetPendingAwardsStatsByEventTypeRow struct {
+	TriggeringEvent string `db:"triggering_event" json:"triggering_event"`
+	Count           int64  `db:"count" json:"count"`
+}
+
+// GetPendingAwardsStatsByEventType
+//
+//	SELECT
+//	  triggering_event,
+//	  COUNT(*) AS count
+//	FROM "profile_point_pending_award"
+//	WHERE status = 'pending'
+//	GROUP BY triggering_event
+func (q *Queries) GetPendingAwardsStatsByEventType(ctx context.Context) ([]*GetPendingAwardsStatsByEventTypeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPendingAwardsStatsByEventType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetPendingAwardsStatsByEventTypeRow{}
+	for rows.Next() {
+		var i GetPendingAwardsStatsByEventTypeRow
+		if err := rows.Scan(&i.TriggeringEvent, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProfilePointTransactionByID = `-- name: GetProfilePointTransactionByID :one
@@ -126,6 +351,116 @@ func (q *Queries) GetProfilePoints(ctx context.Context, arg GetProfilePointsPara
 	var points int32
 	err := row.Scan(&points)
 	return points, err
+}
+
+const listPendingAwards = `-- name: ListPendingAwards :many
+SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+FROM "profile_point_pending_award"
+WHERE ($1::text IS NULL OR status = $1)
+ORDER BY created_at DESC
+LIMIT $2
+`
+
+type ListPendingAwardsParams struct {
+	Status     sql.NullString `db:"status" json:"status"`
+	LimitCount int32          `db:"limit_count" json:"limit_count"`
+}
+
+// ListPendingAwards
+//
+//	SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+//	FROM "profile_point_pending_award"
+//	WHERE ($1::text IS NULL OR status = $1)
+//	ORDER BY created_at DESC
+//	LIMIT $2
+func (q *Queries) ListPendingAwards(ctx context.Context, arg ListPendingAwardsParams) ([]*ProfilePointPendingAward, error) {
+	rows, err := q.db.QueryContext(ctx, listPendingAwards, arg.Status, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ProfilePointPendingAward{}
+	for rows.Next() {
+		var i ProfilePointPendingAward
+		if err := rows.Scan(
+			&i.ID,
+			&i.TargetProfileID,
+			&i.TriggeringEvent,
+			&i.Description,
+			&i.Amount,
+			&i.Status,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
+			&i.RejectionReason,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPendingAwardsByStatus = `-- name: ListPendingAwardsByStatus :many
+SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+FROM "profile_point_pending_award"
+WHERE status = $1
+ORDER BY created_at DESC
+LIMIT $2
+`
+
+type ListPendingAwardsByStatusParams struct {
+	Status     string `db:"status" json:"status"`
+	LimitCount int32  `db:"limit_count" json:"limit_count"`
+}
+
+// ListPendingAwardsByStatus
+//
+//	SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+//	FROM "profile_point_pending_award"
+//	WHERE status = $1
+//	ORDER BY created_at DESC
+//	LIMIT $2
+func (q *Queries) ListPendingAwardsByStatus(ctx context.Context, arg ListPendingAwardsByStatusParams) ([]*ProfilePointPendingAward, error) {
+	rows, err := q.db.QueryContext(ctx, listPendingAwardsByStatus, arg.Status, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ProfilePointPendingAward{}
+	for rows.Next() {
+		var i ProfilePointPendingAward
+		if err := rows.Scan(
+			&i.ID,
+			&i.TargetProfileID,
+			&i.TriggeringEvent,
+			&i.Description,
+			&i.Amount,
+			&i.Status,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
+			&i.RejectionReason,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listProfilePointTransactionsByProfileID = `-- name: ListProfilePointTransactionsByProfileID :many
@@ -263,4 +598,36 @@ func (q *Queries) RecordProfilePointTransaction(ctx context.Context, arg RecordP
 		&i.CreatedAt,
 	)
 	return &i, err
+}
+
+const rejectPendingAward = `-- name: RejectPendingAward :exec
+UPDATE "profile_point_pending_award"
+SET
+  status = 'rejected',
+  reviewed_by = $1,
+  reviewed_at = NOW(),
+  rejection_reason = $2
+WHERE id = $3
+  AND status = 'pending'
+`
+
+type RejectPendingAwardParams struct {
+	ReviewedBy      sql.NullString `db:"reviewed_by" json:"reviewed_by"`
+	RejectionReason sql.NullString `db:"rejection_reason" json:"rejection_reason"`
+	ID              string         `db:"id" json:"id"`
+}
+
+// RejectPendingAward
+//
+//	UPDATE "profile_point_pending_award"
+//	SET
+//	  status = 'rejected',
+//	  reviewed_by = $1,
+//	  reviewed_at = NOW(),
+//	  rejection_reason = $2
+//	WHERE id = $3
+//	  AND status = 'pending'
+func (q *Queries) RejectPendingAward(ctx context.Context, arg RejectPendingAwardParams) error {
+	_, err := q.db.ExecContext(ctx, rejectPendingAward, arg.ReviewedBy, arg.RejectionReason, arg.ID)
+	return err
 }

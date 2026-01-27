@@ -12,4 +12,14 @@ var (
 	ErrFailedToGetBalance  = errors.New("failed to get point balance")
 	ErrFailedToRecordTx    = errors.New("failed to record transaction")
 	ErrFailedToListTx      = errors.New("failed to list transactions")
+
+	// Pending award errors.
+	ErrInvalidEvent                = errors.New("invalid triggering event")
+	ErrPendingAwardNotFound        = errors.New("pending award not found")
+	ErrAwardAlreadyProcessed       = errors.New("award has already been processed")
+	ErrFailedToCreatePendingAward  = errors.New("failed to create pending award")
+	ErrFailedToListPendingAwards   = errors.New("failed to list pending awards")
+	ErrFailedToApprovePendingAward = errors.New("failed to approve pending award")
+	ErrFailedToRejectPendingAward  = errors.New("failed to reject pending award")
+	ErrFailedToGetStats            = errors.New("failed to get pending awards stats")
 )

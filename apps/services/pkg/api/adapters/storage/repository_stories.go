@@ -416,7 +416,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			CreatedAt:         profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
 			DeletedAt:         vars.ToTimePtr(profile.DeletedAt),
-			Points:            int(profile.Points),
+			Points:            uint64(profile.Points),
 		},
 		Publications: nil,
 	}
@@ -433,7 +433,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			ID                string           `db:"id"                  json:"id"`
 			Slug              string           `db:"slug"                json:"slug"`
 			Kind              string           `db:"kind"                json:"kind"`
-			Points            int              `db:"points"              json:"points"`
+			Points            uint64           `db:"points"              json:"points"`
 		} `json:"profile"`
 		ProfileTx struct {
 			Properties  *json.RawMessage `db:"properties"  json:"properties"`

@@ -18,6 +18,16 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	AddPointsToProfile(ctx context.Context, arg AddPointsToProfileParams) (int64, error)
+	//ApprovePendingAward
+	//
+	//  UPDATE "profile_point_pending_award"
+	//  SET
+	//    status = 'approved',
+	//    reviewed_by = $1,
+	//    reviewed_at = NOW()
+	//  WHERE id = $2
+	//    AND status = 'pending'
+	ApprovePendingAward(ctx context.Context, arg ApprovePendingAwardParams) error
 	//CheckPageSlugExistsIncludingDeleted
 	//
 	//  SELECT EXISTS(
@@ -145,6 +155,29 @@ type Querier interface {
 	//      $7
 	//    )
 	CreatePOWChallenge(ctx context.Context, arg CreatePOWChallengeParams) error
+	// Pending Award Queries
+	//
+	//
+	//  INSERT INTO "profile_point_pending_award" (
+	//    id,
+	//    target_profile_id,
+	//    triggering_event,
+	//    description,
+	//    amount,
+	//    status,
+	//    metadata,
+	//    created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    'pending',
+	//    $6,
+	//    NOW()
+	//  ) RETURNING id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+	CreatePendingAward(ctx context.Context, arg CreatePendingAwardParams) (*ProfilePointPendingAward, error)
 	//CreateProfile
 	//
 	//  INSERT INTO "profile" (id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties)
@@ -437,6 +470,30 @@ type Querier interface {
 	//  WHERE
 	//    id = $1
 	GetPOWChallengeByID(ctx context.Context, arg GetPOWChallengeByIDParams) (*ProtectionPowChallenge, error)
+	//GetPendingAwardByID
+	//
+	//  SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+	//  FROM "profile_point_pending_award"
+	//  WHERE id = $1
+	GetPendingAwardByID(ctx context.Context, arg GetPendingAwardByIDParams) (*ProfilePointPendingAward, error)
+	//GetPendingAwardsStats
+	//
+	//  SELECT
+	//    COUNT(*) FILTER (WHERE status = 'pending') AS total_pending,
+	//    COUNT(*) FILTER (WHERE status = 'approved') AS total_approved,
+	//    COUNT(*) FILTER (WHERE status = 'rejected') AS total_rejected,
+	//    COALESCE(SUM(amount) FILTER (WHERE status = 'approved'), 0) AS points_awarded
+	//  FROM "profile_point_pending_award"
+	GetPendingAwardsStats(ctx context.Context) (*GetPendingAwardsStatsRow, error)
+	//GetPendingAwardsStatsByEventType
+	//
+	//  SELECT
+	//    triggering_event,
+	//    COUNT(*) AS count
+	//  FROM "profile_point_pending_award"
+	//  WHERE status = 'pending'
+	//  GROUP BY triggering_event
+	GetPendingAwardsStatsByEventType(ctx context.Context) ([]*GetPendingAwardsStatsByEventTypeRow, error)
 	//GetProfileByID
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -854,6 +911,22 @@ type Querier interface {
 	//  ORDER BY pl.updated_at ASC NULLS FIRST
 	//  LIMIT $2
 	ListManagedLinksForKind(ctx context.Context, arg ListManagedLinksForKindParams) ([]*ListManagedLinksForKindRow, error)
+	//ListPendingAwards
+	//
+	//  SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+	//  FROM "profile_point_pending_award"
+	//  WHERE ($1::text IS NULL OR status = $1)
+	//  ORDER BY created_at DESC
+	//  LIMIT $2
+	ListPendingAwards(ctx context.Context, arg ListPendingAwardsParams) ([]*ProfilePointPendingAward, error)
+	//ListPendingAwardsByStatus
+	//
+	//  SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+	//  FROM "profile_point_pending_award"
+	//  WHERE status = $1
+	//  ORDER BY created_at DESC
+	//  LIMIT $2
+	ListPendingAwardsByStatus(ctx context.Context, arg ListPendingAwardsByStatusParams) ([]*ProfilePointPendingAward, error)
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
@@ -1043,6 +1116,17 @@ type Querier interface {
 	//    NOW()
 	//  ) RETURNING id, target_profile_id, origin_profile_id, transaction_type, triggering_event, description, amount, balance_after, created_at
 	RecordProfilePointTransaction(ctx context.Context, arg RecordProfilePointTransactionParams) (*ProfilePointTransaction, error)
+	//RejectPendingAward
+	//
+	//  UPDATE "profile_point_pending_award"
+	//  SET
+	//    status = 'rejected',
+	//    reviewed_by = $1,
+	//    reviewed_at = NOW(),
+	//    rejection_reason = $2
+	//  WHERE id = $3
+	//    AND status = 'pending'
+	RejectPendingAward(ctx context.Context, arg RejectPendingAwardParams) error
 	//ReleaseAdvisoryLock
 	//
 	//  SELECT pg_advisory_unlock($1::BIGINT) AS released

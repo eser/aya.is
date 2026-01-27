@@ -158,6 +158,20 @@ type ProfilePageTx struct {
 	SearchVector  interface{} `db:"search_vector" json:"search_vector"`
 }
 
+type ProfilePointPendingAward struct {
+	ID              string                `db:"id" json:"id"`
+	TargetProfileID string                `db:"target_profile_id" json:"target_profile_id"`
+	TriggeringEvent string                `db:"triggering_event" json:"triggering_event"`
+	Description     string                `db:"description" json:"description"`
+	Amount          int32                 `db:"amount" json:"amount"`
+	Status          string                `db:"status" json:"status"`
+	ReviewedBy      sql.NullString        `db:"reviewed_by" json:"reviewed_by"`
+	ReviewedAt      sql.NullTime          `db:"reviewed_at" json:"reviewed_at"`
+	RejectionReason sql.NullString        `db:"rejection_reason" json:"rejection_reason"`
+	Metadata        pqtype.NullRawMessage `db:"metadata" json:"metadata"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+}
+
 type ProfilePointTransaction struct {
 	ID              string         `db:"id" json:"id"`
 	TargetProfileID string         `db:"target_profile_id" json:"target_profile_id"`

@@ -48,7 +48,7 @@ func (s *Service) GetBalance(ctx context.Context, profileID string) (*Balance, e
 
 // GainPoints awards points to a profile (system action).
 func (s *Service) GainPoints(ctx context.Context, params GainParams) (*Transaction, error) {
-	if params.Amount <= 0 {
+	if params.Amount == 0 {
 		return nil, ErrInvalidAmount
 	}
 
@@ -73,7 +73,7 @@ func (s *Service) GainPoints(ctx context.Context, params GainParams) (*Transacti
 
 // TransferPoints transfers points between profiles.
 func (s *Service) TransferPoints(ctx context.Context, params TransferParams) (*Transaction, error) {
-	if params.Amount <= 0 {
+	if params.Amount == 0 {
 		return nil, ErrInvalidAmount
 	}
 
@@ -118,7 +118,7 @@ func (s *Service) TransferPoints(ctx context.Context, params TransferParams) (*T
 
 // SpendPoints deducts points from a profile.
 func (s *Service) SpendPoints(ctx context.Context, params SpendParams) (*Transaction, error) {
-	if params.Amount <= 0 {
+	if params.Amount == 0 {
 		return nil, ErrInvalidAmount
 	}
 
@@ -168,4 +168,142 @@ func (s *Service) ListTransactions(
 	}
 
 	return result, nil
+}
+
+// AwardForEvent creates a pending award for an event (or awards immediately if auto-approve).
+func (s *Service) AwardForEvent(
+	ctx context.Context,
+	event string,
+	targetProfileID string,
+	metadata map[string]any,
+) (*PendingAward, error) {
+	category, exists := AwardCategories[event]
+	if !exists {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidEvent, event)
+	}
+
+	// All events currently require approval
+	return s.CreatePendingAward(ctx, CreatePendingAwardParams{
+		TargetProfileID: targetProfileID,
+		TriggeringEvent: event,
+		Description:     category.Description,
+		Amount:          category.Amount,
+		Metadata:        metadata,
+	})
+}
+
+// CreatePendingAward creates a new pending award record.
+func (s *Service) CreatePendingAward(
+	ctx context.Context,
+	params CreatePendingAwardParams,
+) (*PendingAward, error) {
+	if params.Amount == 0 {
+		return nil, ErrInvalidAmount
+	}
+
+	id := s.idGenerator()
+
+	award, err := s.repo.CreatePendingAward(
+		ctx,
+		id,
+		params.TargetProfileID,
+		params.TriggeringEvent,
+		params.Description,
+		params.Amount,
+		params.Metadata,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreatePendingAward, err)
+	}
+
+	return award, nil
+}
+
+// GetPendingAward returns a pending award by ID.
+func (s *Service) GetPendingAward(ctx context.Context, id string) (*PendingAward, error) {
+	award, err := s.repo.GetPendingAwardByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrPendingAwardNotFound, err)
+	}
+
+	return award, nil
+}
+
+// ListPendingAwards returns pending awards with optional status filter.
+func (s *Service) ListPendingAwards(
+	ctx context.Context,
+	status *PendingAwardStatus,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*PendingAward], error) {
+	result, err := s.repo.ListPendingAwards(ctx, status, cursor)
+	if err != nil {
+		return cursors.Cursored[[]*PendingAward]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToListPendingAwards,
+			err,
+		)
+	}
+
+	return result, nil
+}
+
+// ApprovePendingAward approves a pending award and awards the points.
+func (s *Service) ApprovePendingAward(
+	ctx context.Context,
+	awardID string,
+	reviewerUserID string,
+) (*Transaction, error) {
+	// Get the pending award first
+	award, err := s.repo.GetPendingAwardByID(ctx, awardID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrPendingAwardNotFound, err)
+	}
+
+	if award.Status != PendingAwardStatusPending {
+		return nil, ErrAwardAlreadyProcessed
+	}
+
+	transactionID := s.idGenerator()
+
+	tx, err := s.repo.ApprovePendingAward(ctx, awardID, reviewerUserID, transactionID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToApprovePendingAward, err)
+	}
+
+	return tx, nil
+}
+
+// RejectPendingAward rejects a pending award.
+func (s *Service) RejectPendingAward(
+	ctx context.Context,
+	awardID string,
+	reviewerUserID string,
+	reason string,
+) error {
+	// Get the pending award first
+	award, err := s.repo.GetPendingAwardByID(ctx, awardID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrPendingAwardNotFound, err)
+	}
+
+	if award.Status != PendingAwardStatusPending {
+		return ErrAwardAlreadyProcessed
+	}
+
+	err = s.repo.RejectPendingAward(ctx, awardID, reviewerUserID, reason)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToRejectPendingAward, err)
+	}
+
+	return nil
+}
+
+// GetPendingAwardsStats returns statistics about pending awards.
+func (s *Service) GetPendingAwardsStats(ctx context.Context) (*PendingAwardsStats, error) {
+	stats, err := s.repo.GetPendingAwardsStats(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetStats, err)
+	}
+
+	return stats, nil
 }

@@ -1,6 +1,6 @@
 // Profile points settings
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
   Coins,
@@ -13,6 +13,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDateString } from "@/lib/date";
+
+const settingsRoute = getRouteApi("/$locale/$slug/settings");
 
 const transactionTypeIcons: Record<ProfilePointTransactionType, React.ElementType> = {
   GAIN: TrendingUp,
@@ -34,13 +36,13 @@ function PointsSettingsPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const params = Route.useParams();
-  const parentData = Route.useRouteContext();
+
+  // Get profile from parent settings route loader
+  const { profile } = settingsRoute.useLoaderData();
 
   const [transactions, setTransactions] = React.useState<ProfilePointTransaction[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  // Get profile from parent route context
-  const profile = (parentData as { profile?: { points?: number } }).profile;
   const currentBalance = profile?.points ?? 0;
 
   // Load transactions on mount

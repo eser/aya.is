@@ -1,6 +1,6 @@
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
 import { useTranslation } from "react-i18next";
-import { Globe, Instagram, Link, Linkedin, SquarePen, Youtube } from "lucide-react";
+import { Coins, Globe, Instagram, Link, Linkedin, SquarePen, Youtube } from "lucide-react";
 import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
@@ -127,6 +127,15 @@ function ProfileSidebar(props: ProfileSidebarProps) {
           </p>
         )}
       </div>
+
+      {/* Points Display */}
+      {props.profile.points > 0 && (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Coins className="size-4" />
+          <span className="font-semibold text-foreground">{props.profile.points.toLocaleString()}</span>
+          <span>{t("Profile.points")}</span>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex justify-center font-serif md:justify-start">

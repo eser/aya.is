@@ -53,6 +53,12 @@ import { handleAuthCallback } from "./auth/handle-callback";
 import { getUser } from "./users/get-user";
 import { getUsers } from "./users/get-users";
 import { search } from "./search/search";
+import { getPendingAwards } from "./admin/get-pending-awards";
+import { getPendingAwardsStats } from "./admin/get-pending-awards-stats";
+import { approvePendingAward } from "./admin/approve-pending-award";
+import { rejectPendingAward } from "./admin/reject-pending-award";
+import { bulkApprovePendingAwards } from "./admin/bulk-approve-pending-awards";
+import { bulkRejectPendingAwards } from "./admin/bulk-reject-pending-awards";
 
 // Re-export types
 export * from "./types";
@@ -136,6 +142,14 @@ export const backend = {
 
   // Search
   search,
+
+  // Admin
+  getPendingAwards,
+  getPendingAwardsStats,
+  approvePendingAward,
+  rejectPendingAward,
+  bulkApprovePendingAwards,
+  bulkRejectPendingAwards,
 };
 
 // Individual exports for tree-shaking
@@ -192,4 +206,12 @@ export {
   updateStoryTranslation,
   uploadProfilePicture,
   uploadToPresignedURL,
+
+  // Admin
+  approvePendingAward,
+  bulkApprovePendingAwards,
+  bulkRejectPendingAwards,
+  getPendingAwards,
+  getPendingAwardsStats,
+  rejectPendingAward,
 };

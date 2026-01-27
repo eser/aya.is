@@ -467,5 +467,33 @@
     "Title must be at most 200 characters": "Title must be at most 200 characters",
     "Invalid URI": "Invalid URI",
     "URI must start with allowed prefix": "URI must start with allowed prefix"
+  },
+  "Admin": {
+    "Dashboard": "Dashboard",
+    "Manage site content and settings.": "Manage site content and settings.",
+    "Point Awards": "Point Awards",
+    "Points Overview": "Points Overview",
+    "Pending": "Pending",
+    "Approved": "Approved",
+    "Rejected": "Rejected",
+    "Points Awarded": "Points Awarded",
+    "Awards awaiting review": "Awards awaiting review",
+    "Total approved awards": "Total approved awards",
+    "Total rejected awards": "Total rejected awards",
+    "Total points distributed": "Total points distributed",
+    "Pending by Event Type": "Pending by Event Type",
+    "Failed to load statistics": "Failed to load statistics",
+    "Pending Awards": "Pending Awards",
+    "Filter by status": "Filter by status",
+    "Selected": "Selected",
+    "Approve Selected": "Approve Selected",
+    "Reject Selected": "Reject Selected",
+    "No awards found": "No awards found",
+    "Event": "Event",
+    "Profile": "Profile",
+    "Amount": "Amount",
+    "Date": "Date",
+    "Status": "Status",
+    "Actions": "Actions"
   }
 }

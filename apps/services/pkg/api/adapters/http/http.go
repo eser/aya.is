@@ -128,6 +128,13 @@ func Run(
 		profileLinkProviders,
 		baseURI,
 	)
+	RegisterHTTPRoutesForAdminPoints( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		profilePointsService,
+	)
 
 	// run
 	return httpService.Start(ctx) //nolint:wrapcheck

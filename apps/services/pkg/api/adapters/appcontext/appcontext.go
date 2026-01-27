@@ -15,6 +15,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
+	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
@@ -260,6 +261,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	)
 
 	a.EventRegistry = events.NewHandlerRegistry()
+
+	// Register points event handler
+	pointsEventHandler := workers.NewPointsEventHandler(
+		a.Logger,
+		a.ProfilePointsService,
+	)
+	pointsEventHandler.RegisterHandlers(a.EventRegistry)
 
 	a.RuntimeStateService = runtime_states.NewService(a.Logger, a.Repository)
 
