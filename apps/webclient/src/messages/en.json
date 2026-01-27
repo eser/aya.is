@@ -469,6 +469,7 @@
     "URI must start with allowed prefix": "URI must start with allowed prefix"
   },
   "Admin": {
+    "Admin Area": "Admin Area",
     "Dashboard": "Dashboard",
     "Manage site content and settings.": "Manage site content and settings.",
     "Point Awards": "Point Awards",

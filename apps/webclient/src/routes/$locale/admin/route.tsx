@@ -1,5 +1,5 @@
 // Admin layout - handles admin permission check
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -7,22 +7,22 @@ import { backend } from "@/modules/backend/backend";
 
 export const Route = createFileRoute("/$locale/admin")({
   ssr: false,
-  loader: async () => {
+  loader: async ({ params }) => {
+    const { locale } = params;
+
     // Check if user is logged in and is admin
-    const session = await backend.getSessionCurrent();
+    const session = await backend.getSessionCurrent(locale);
 
-    if (session === null || session.user === null) {
-      throw redirect({ to: "/" });
+    if (!session.authenticated || session.user === undefined) {
+      throw notFound();
     }
 
-    // Get full user to check kind
-    const user = await backend.getUser(session.user.id);
-
-    if (user === null || user.kind !== "admin") {
-      throw redirect({ to: "/" });
+    // Check if user is admin
+    if (session.user.kind !== "admin") {
+      throw notFound();
     }
 
-    return { session, user };
+    return { session, user: session.user };
   },
   component: AdminLayout,
 });

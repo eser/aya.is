@@ -96,6 +96,11 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <DropdownMenuItem onClick={handleProfileClick}>
           {t("Auth.My Profile")}
         </DropdownMenuItem>
+        {user.kind === "admin" && (
+          <DropdownMenuItem onClick={() => navigate({ to: `/${locale}/admin` })}>
+            {t("Admin.Admin Area")}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={handleLogout}>
           {t("Auth.Logout")}
         </DropdownMenuItem>
