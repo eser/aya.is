@@ -45,7 +45,6 @@ import { Route as LocaleSlugStoriesIndexRouteImport } from './routes/$locale/$sl
 import { Route as LocaleSlugSettingsIndexRouteImport } from './routes/$locale/$slug/settings/index'
 import { Route as LocaleSlugPageslugIndexRouteImport } from './routes/$locale/$slug/$pageslug/index'
 import { Route as LocaleStoriesStoryslugEditRouteImport } from './routes/$locale/stories/$storyslug/edit'
-import { Route as LocaleAdminPointsPendingRouteImport } from './routes/$locale/admin/points/pending'
 import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/$slug/settings/stories'
 import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$slug/settings/points'
 import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
@@ -242,12 +241,6 @@ const LocaleStoriesStoryslugEditRoute =
     path: '/edit',
     getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
   } as any)
-const LocaleAdminPointsPendingRoute =
-  LocaleAdminPointsPendingRouteImport.update({
-    id: '/pending',
-    path: '/pending',
-    getParentRoute: () => LocaleAdminPointsRouteRoute,
-  } as any)
 const LocaleSlugSettingsStoriesRoute =
   LocaleSlugSettingsStoriesRouteImport.update({
     id: '/stories',
@@ -349,7 +342,6 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
-  '/$locale/admin/points/pending': typeof LocaleAdminPointsPendingRoute
   '/$locale/stories/$storyslug/edit': typeof LocaleStoriesStoryslugEditRoute
   '/$locale/$slug/$pageslug/': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
@@ -388,7 +380,6 @@ export interface FileRoutesByTo {
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
-  '/$locale/admin/points/pending': typeof LocaleAdminPointsPendingRoute
   '/$locale/stories/$storyslug/edit': typeof LocaleStoriesStoryslugEditRoute
   '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/settings': typeof LocaleSlugSettingsIndexRoute
@@ -439,7 +430,6 @@ export interface FileRoutesById {
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
-  '/$locale/admin/points/pending': typeof LocaleAdminPointsPendingRoute
   '/$locale/stories/$storyslug/edit': typeof LocaleStoriesStoryslugEditRoute
   '/$locale/$slug/$pageslug/': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
@@ -491,7 +481,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/stories'
-    | '/$locale/admin/points/pending'
     | '/$locale/stories/$storyslug/edit'
     | '/$locale/$slug/$pageslug/'
     | '/$locale/$slug/settings/'
@@ -530,7 +519,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/stories'
-    | '/$locale/admin/points/pending'
     | '/$locale/stories/$storyslug/edit'
     | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/settings'
@@ -580,7 +568,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/stories'
-    | '/$locale/admin/points/pending'
     | '/$locale/stories/$storyslug/edit'
     | '/$locale/$slug/$pageslug/'
     | '/$locale/$slug/settings/'
@@ -856,13 +843,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleStoriesStoryslugEditRouteImport
       parentRoute: typeof LocaleStoriesStoryslugRouteRoute
     }
-    '/$locale/admin/points/pending': {
-      id: '/$locale/admin/points/pending'
-      path: '/pending'
-      fullPath: '/$locale/admin/points/pending'
-      preLoaderRoute: typeof LocaleAdminPointsPendingRouteImport
-      parentRoute: typeof LocaleAdminPointsRouteRoute
-    }
     '/$locale/$slug/settings/stories': {
       id: '/$locale/$slug/settings/stories'
       path: '/stories'
@@ -1039,13 +1019,11 @@ const LocaleSlugRouteRouteWithChildren = LocaleSlugRouteRoute._addFileChildren(
 )
 
 interface LocaleAdminPointsRouteRouteChildren {
-  LocaleAdminPointsPendingRoute: typeof LocaleAdminPointsPendingRoute
   LocaleAdminPointsIndexRoute: typeof LocaleAdminPointsIndexRoute
 }
 
 const LocaleAdminPointsRouteRouteChildren: LocaleAdminPointsRouteRouteChildren =
   {
-    LocaleAdminPointsPendingRoute: LocaleAdminPointsPendingRoute,
     LocaleAdminPointsIndexRoute: LocaleAdminPointsIndexRoute,
   }
 

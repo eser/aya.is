@@ -29,7 +29,6 @@ export const Route = createFileRoute("/$locale/admin")({
 
 function AdminLayout() {
   const { t } = useTranslation();
-  const params = Route.useParams();
 
   return (
     <PageLayout>
@@ -65,7 +64,7 @@ function AdminLayout() {
                   "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
               }}
             >
-              {t("Admin.Point Awards")}
+              {t("Admin.Points")}
             </LocaleLink>
           </nav>
 

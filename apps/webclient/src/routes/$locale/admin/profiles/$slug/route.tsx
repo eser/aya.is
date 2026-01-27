@@ -6,7 +6,7 @@ import { backend } from "@/modules/backend/backend";
 import { SiteAvatar } from "@/components/userland";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, SquarePen } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/profiles/$slug")({
   loader: async ({ params }) => {
@@ -77,12 +77,13 @@ function AdminProfileLayout() {
           <LocaleLink to={`/${profile.slug}`}>
             <Button variant="outline" size="sm">
               <ExternalLink className="h-4 w-4 mr-2" />
-              {t("Admin.View Public Profile")}
+              {t("Admin.Visit Profile")}
             </Button>
           </LocaleLink>
           <LocaleLink to={`/${profile.slug}/settings`}>
             <Button variant="outline" size="sm">
-              {t("Admin.Edit Profile Settings")}
+              <SquarePen className="h-4 w-4 mr-2" />
+              {t("Admin.Edit Profile")}
             </Button>
           </LocaleLink>
         </div>
