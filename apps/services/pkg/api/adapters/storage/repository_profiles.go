@@ -1156,3 +1156,68 @@ func (r *Repository) GetMaxProfileLinkOrder(
 
 	return 0, nil
 }
+
+func (r *Repository) ListAllProfilesForAdmin(
+	ctx context.Context,
+	localeCode string,
+	filterKind string,
+	limit int,
+	offset int,
+) ([]*profiles.Profile, error) {
+	var filterKindSQL sql.NullString
+	if filterKind != "" {
+		filterKindSQL = sql.NullString{String: filterKind, Valid: true}
+	}
+
+	rows, err := r.queries.ListAllProfilesForAdmin(ctx, ListAllProfilesForAdminParams{
+		LocaleCode:  localeCode,
+		FilterKind:  filterKindSQL,
+		LimitCount:  int32(limit),
+		OffsetCount: int32(offset),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.Profile, 0, len(rows))
+
+	for _, row := range rows {
+		profile := &profiles.Profile{
+			ID:                row.Profile.ID,
+			Slug:              row.Profile.Slug,
+			Kind:              row.Profile.Kind,
+			CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+			ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
+			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
+			Title:             row.ProfileTx.Title,
+			Description:       row.ProfileTx.Description,
+			Properties:        vars.ToObject(row.Profile.Properties),
+			Points:            uint64(row.Profile.Points),
+			CreatedAt:         row.Profile.CreatedAt,
+			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
+			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+		}
+		result = append(result, profile)
+	}
+
+	return result, nil
+}
+
+func (r *Repository) CountAllProfilesForAdmin(
+	ctx context.Context,
+	filterKind string,
+) (int64, error) {
+	var filterKindSQL sql.NullString
+	if filterKind != "" {
+		filterKindSQL = sql.NullString{String: filterKind, Valid: true}
+	}
+
+	count, err := r.queries.CountAllProfilesForAdmin(ctx, CountAllProfilesForAdminParams{
+		FilterKind: filterKindSQL,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}

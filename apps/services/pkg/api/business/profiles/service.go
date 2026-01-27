@@ -351,6 +351,18 @@ type Repository interface { //nolint:interfacebloat
 		refreshToken *string,
 	) error
 	GetMaxProfileLinkOrder(ctx context.Context, profileID string) (int, error)
+	// Admin methods
+	ListAllProfilesForAdmin(
+		ctx context.Context,
+		localeCode string,
+		filterKind string,
+		limit int,
+		offset int,
+	) ([]*Profile, error)
+	CountAllProfilesForAdmin(
+		ctx context.Context,
+		filterKind string,
+	) (int64, error)
 }
 
 type Service struct {
@@ -458,6 +470,40 @@ func (s *Service) List(
 	}
 
 	return records, nil
+}
+
+// AdminProfileListResult holds the result of listing profiles for admin.
+type AdminProfileListResult struct {
+	Data   []*Profile `json:"data"`
+	Total  int64      `json:"total"`
+	Limit  int        `json:"limit"`
+	Offset int        `json:"offset"`
+}
+
+// ListAllProfilesForAdmin lists all profiles for admin with pagination.
+func (s *Service) ListAllProfilesForAdmin(
+	ctx context.Context,
+	localeCode string,
+	filterKind string,
+	limit int,
+	offset int,
+) (*AdminProfileListResult, error) {
+	profiles, err := s.repo.ListAllProfilesForAdmin(ctx, localeCode, filterKind, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	total, err := s.repo.CountAllProfilesForAdmin(ctx, filterKind)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return &AdminProfileListResult{
+		Data:   profiles,
+		Total:  total,
+		Limit:  limit,
+		Offset: offset,
+	}, nil
 }
 
 func (s *Service) ListPagesBySlug(

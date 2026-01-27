@@ -445,3 +445,20 @@ SELECT COALESCE(MAX("order"), 0) as max_order
 FROM "profile_link"
 WHERE profile_id = sqlc.arg(profile_id)
   AND deleted_at IS NULL;
+
+-- name: ListAllProfilesForAdmin :many
+SELECT sqlc.embed(p), sqlc.embed(pt)
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE p.deleted_at IS NULL
+  AND (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
+ORDER BY p.created_at DESC
+LIMIT sqlc.arg(limit_count)
+OFFSET sqlc.arg(offset_count);
+
+-- name: CountAllProfilesForAdmin :one
+SELECT COUNT(*) as count
+FROM "profile" p
+WHERE p.deleted_at IS NULL
+  AND (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')));

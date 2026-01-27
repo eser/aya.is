@@ -473,7 +473,7 @@
     "Dashboard": "Dashboard",
     "Manage site content and settings.": "Manage site content and settings.",
     "Point Awards": "Point Awards",
-    "Points Overview": "Points Overview",
+    "Overview": "Overview",
     "Pending": "Pending",
     "Approved": "Approved",
     "Rejected": "Rejected",
@@ -495,6 +495,21 @@
     "Amount": "Amount",
     "Date": "Date",
     "Status": "Status",
-    "Actions": "Actions"
+    "Actions": "Actions",
+    "Profiles": "Profiles",
+    "All Profiles": "All Profiles",
+    "All Kinds": "All Kinds",
+    "Individual": "Individual",
+    "Organization": "Organization",
+    "Product": "Product",
+    "No profiles found": "No profiles found",
+    "Title": "Title",
+    "Slug": "Slug",
+    "Kind": "Kind",
+    "Points": "Points",
+    "Created": "Created",
+    "Page": "Page",
+    "Previous": "Previous",
+    "Next": "Next"
   }
 }

@@ -39,6 +39,7 @@ import { Route as LocaleSlugStoriesRouteRouteImport } from './routes/$locale/$sl
 import { Route as LocaleSlugSettingsRouteRouteImport } from './routes/$locale/$slug/settings/route'
 import { Route as LocaleSlugPageslugRouteRouteImport } from './routes/$locale/$slug/$pageslug/route'
 import { Route as LocaleStoriesStoryslugIndexRouteImport } from './routes/$locale/stories/$storyslug/index'
+import { Route as LocaleAdminProfilesIndexRouteImport } from './routes/$locale/admin/profiles/index'
 import { Route as LocaleAdminPointsIndexRouteImport } from './routes/$locale/admin/points/index'
 import { Route as LocaleSlugStoriesIndexRouteImport } from './routes/$locale/$slug/stories/index'
 import { Route as LocaleSlugSettingsIndexRouteImport } from './routes/$locale/$slug/settings/index'
@@ -206,6 +207,12 @@ const LocaleStoriesStoryslugIndexRoute =
     path: '/',
     getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
   } as any)
+const LocaleAdminProfilesIndexRoute =
+  LocaleAdminProfilesIndexRouteImport.update({
+    id: '/profiles/',
+    path: '/profiles/',
+    getParentRoute: () => LocaleAdminRouteRoute,
+  } as any)
 const LocaleAdminPointsIndexRoute = LocaleAdminPointsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -326,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories/': typeof LocaleSlugStoriesIndexRoute
   '/$locale/admin/points/': typeof LocaleAdminPointsIndexRoute
+  '/$locale/admin/profiles': typeof LocaleAdminProfilesIndexRoute
   '/$locale/stories/$storyslug/': typeof LocaleStoriesStoryslugIndexRoute
   '/$locale/$slug/settings/pages/new': typeof LocaleSlugSettingsPagesNewRoute
   '/$locale/$slug/settings/pages': typeof LocaleSlugSettingsPagesIndexRoute
@@ -362,6 +370,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug/settings': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories': typeof LocaleSlugStoriesIndexRoute
   '/$locale/admin/points': typeof LocaleAdminPointsIndexRoute
+  '/$locale/admin/profiles': typeof LocaleAdminProfilesIndexRoute
   '/$locale/stories/$storyslug': typeof LocaleStoriesStoryslugIndexRoute
   '/$locale/$slug/settings/pages/new': typeof LocaleSlugSettingsPagesNewRoute
   '/$locale/$slug/settings/pages': typeof LocaleSlugSettingsPagesIndexRoute
@@ -409,6 +418,7 @@ export interface FileRoutesById {
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories/': typeof LocaleSlugStoriesIndexRoute
   '/$locale/admin/points/': typeof LocaleAdminPointsIndexRoute
+  '/$locale/admin/profiles/': typeof LocaleAdminProfilesIndexRoute
   '/$locale/stories/$storyslug/': typeof LocaleStoriesStoryslugIndexRoute
   '/$locale/$slug/settings/pages/new': typeof LocaleSlugSettingsPagesNewRoute
   '/$locale/$slug/settings/pages/': typeof LocaleSlugSettingsPagesIndexRoute
@@ -457,6 +467,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/'
     | '/$locale/$slug/stories/'
     | '/$locale/admin/points/'
+    | '/$locale/admin/profiles'
     | '/$locale/stories/$storyslug/'
     | '/$locale/$slug/settings/pages/new'
     | '/$locale/$slug/settings/pages'
@@ -493,6 +504,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings'
     | '/$locale/$slug/stories'
     | '/$locale/admin/points'
+    | '/$locale/admin/profiles'
     | '/$locale/stories/$storyslug'
     | '/$locale/$slug/settings/pages/new'
     | '/$locale/$slug/settings/pages'
@@ -539,6 +551,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/'
     | '/$locale/$slug/stories/'
     | '/$locale/admin/points/'
+    | '/$locale/admin/profiles/'
     | '/$locale/stories/$storyslug/'
     | '/$locale/$slug/settings/pages/new'
     | '/$locale/$slug/settings/pages/'
@@ -764,6 +777,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleStoriesStoryslugIndexRouteImport
       parentRoute: typeof LocaleStoriesStoryslugRouteRoute
     }
+    '/$locale/admin/profiles/': {
+      id: '/$locale/admin/profiles/'
+      path: '/profiles'
+      fullPath: '/$locale/admin/profiles'
+      preLoaderRoute: typeof LocaleAdminProfilesIndexRouteImport
+      parentRoute: typeof LocaleAdminRouteRoute
+    }
     '/$locale/admin/points/': {
       id: '/$locale/admin/points/'
       path: '/'
@@ -978,10 +998,12 @@ const LocaleAdminPointsRouteRouteWithChildren =
 
 interface LocaleAdminRouteRouteChildren {
   LocaleAdminPointsRouteRoute: typeof LocaleAdminPointsRouteRouteWithChildren
+  LocaleAdminProfilesIndexRoute: typeof LocaleAdminProfilesIndexRoute
 }
 
 const LocaleAdminRouteRouteChildren: LocaleAdminRouteRouteChildren = {
   LocaleAdminPointsRouteRoute: LocaleAdminPointsRouteRouteWithChildren,
+  LocaleAdminProfilesIndexRoute: LocaleAdminProfilesIndexRoute,
 }
 
 const LocaleAdminRouteRouteWithChildren =

@@ -441,7 +441,7 @@
     "Dashboard": "Kontrol Paneli",
     "Manage site content and settings.": "Site içeriğini ve ayarlarını yönetin.",
     "Point Awards": "Puan Ödülleri",
-    "Points Overview": "Puan Genel Bakış",
+    "Overview": "Genel Bakış",
     "Pending": "Bekleyen",
     "Approved": "Onaylanan",
     "Rejected": "Reddedilen",
@@ -463,6 +463,21 @@
     "Amount": "Miktar",
     "Date": "Tarih",
     "Status": "Durum",
-    "Actions": "İşlemler"
+    "Actions": "İşlemler",
+    "Profiles": "Profiller",
+    "All Profiles": "Tüm Profiller",
+    "All Kinds": "Tüm Türler",
+    "Individual": "Bireysel",
+    "Organization": "Organizasyon",
+    "Product": "Ürün",
+    "No profiles found": "Profil bulunamadı",
+    "Title": "Başlık",
+    "Slug": "Slug",
+    "Kind": "Tür",
+    "Points": "Puan",
+    "Created": "Oluşturulma",
+    "Page": "Sayfa",
+    "Previous": "Önceki",
+    "Next": "Sonraki"
   }
 }

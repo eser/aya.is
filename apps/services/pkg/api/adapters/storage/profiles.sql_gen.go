@@ -90,6 +90,30 @@ func (q *Queries) CheckProfileSlugExistsIncludingDeleted(ctx context.Context, ar
 	return exists, err
 }
 
+const countAllProfilesForAdmin = `-- name: CountAllProfilesForAdmin :one
+SELECT COUNT(*) as count
+FROM "profile" p
+WHERE p.deleted_at IS NULL
+  AND ($1::TEXT IS NULL OR p.kind = ANY(string_to_array($1::TEXT, ',')))
+`
+
+type CountAllProfilesForAdminParams struct {
+	FilterKind sql.NullString `db:"filter_kind" json:"filter_kind"`
+}
+
+// CountAllProfilesForAdmin
+//
+//	SELECT COUNT(*) as count
+//	FROM "profile" p
+//	WHERE p.deleted_at IS NULL
+//	  AND ($1::TEXT IS NULL OR p.kind = ANY(string_to_array($1::TEXT, ',')))
+func (q *Queries) CountAllProfilesForAdmin(ctx context.Context, arg CountAllProfilesForAdminParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countAllProfilesForAdmin, arg.FilterKind)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createProfile = `-- name: CreateProfile :exec
 INSERT INTO "profile" (id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -1092,6 +1116,88 @@ func (q *Queries) GetUserProfilePermissions(ctx context.Context, arg GetUserProf
 			&i.ProfileKind,
 			&i.MembershipKind,
 			&i.UserKind,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllProfilesForAdmin = `-- name: ListAllProfilesForAdmin :many
+SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = $1
+WHERE p.deleted_at IS NULL
+  AND ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
+ORDER BY p.created_at DESC
+LIMIT $4
+OFFSET $3
+`
+
+type ListAllProfilesForAdminParams struct {
+	LocaleCode  string         `db:"locale_code" json:"locale_code"`
+	FilterKind  sql.NullString `db:"filter_kind" json:"filter_kind"`
+	OffsetCount int32          `db:"offset_count" json:"offset_count"`
+	LimitCount  int32          `db:"limit_count" json:"limit_count"`
+}
+
+type ListAllProfilesForAdminRow struct {
+	Profile   Profile   `db:"profile" json:"profile"`
+	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
+}
+
+// ListAllProfilesForAdmin
+//
+//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	FROM "profile" p
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	  AND pt.locale_code = $1
+//	WHERE p.deleted_at IS NULL
+//	  AND ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
+//	ORDER BY p.created_at DESC
+//	LIMIT $4
+//	OFFSET $3
+func (q *Queries) ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfilesForAdminParams) ([]*ListAllProfilesForAdminRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAllProfilesForAdmin,
+		arg.LocaleCode,
+		arg.FilterKind,
+		arg.OffsetCount,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListAllProfilesForAdminRow{}
+	for rows.Next() {
+		var i ListAllProfilesForAdminRow
+		if err := rows.Scan(
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.CustomDomain,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
 		); err != nil {
 			return nil, err
 		}

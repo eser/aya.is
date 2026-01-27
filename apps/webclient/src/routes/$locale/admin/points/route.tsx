@@ -19,7 +19,7 @@ function AdminPointsLayout() {
           className="text-sm text-muted-foreground hover:text-foreground"
           activeProps={{ className: "text-sm font-medium text-foreground" }}
         >
-          {t("Admin.Dashboard")}
+          {t("Admin.Overview")}
         </LocaleLink>
         <LocaleLink
           to="/admin/points/pending"

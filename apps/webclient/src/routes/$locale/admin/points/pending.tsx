@@ -138,6 +138,19 @@ function AdminPendingAwards() {
     setIsProcessing(false);
   };
 
+  const getStatusLabel = (statusValue: PendingAwardStatus) => {
+    switch (statusValue) {
+      case "pending":
+        return t("Admin.Pending");
+      case "approved":
+        return t("Admin.Approved");
+      case "rejected":
+        return t("Admin.Rejected");
+      default:
+        return statusValue;
+    }
+  };
+
   const getStatusBadge = (awardStatus: PendingAwardStatus) => {
     switch (awardStatus) {
       case "pending":
@@ -175,7 +188,7 @@ function AdminPendingAwards() {
 
         <Select value={status} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder={t("Admin.Filter by status")} />
+            <SelectValue>{getStatusLabel(status)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="pending">{t("Admin.Pending")}</SelectItem>

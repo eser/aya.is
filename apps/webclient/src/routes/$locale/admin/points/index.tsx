@@ -28,7 +28,7 @@ function AdminPointsDashboard() {
   return (
     <div className="space-y-6">
       <h2 className="font-serif text-xl font-bold">
-        {t("Admin.Points Overview")}
+        {t("Admin.Overview")}
       </h2>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -115,6 +115,13 @@ type Querier interface {
 	//    value = EXCLUDED.value,
 	//    updated_at = NOW()
 	CopySessionPreferences(ctx context.Context, arg CopySessionPreferencesParams) error
+	//CountAllProfilesForAdmin
+	//
+	//  SELECT COUNT(*) as count
+	//  FROM "profile" p
+	//  WHERE p.deleted_at IS NULL
+	//    AND ($1::TEXT IS NULL OR p.kind = ANY(string_to_array($1::TEXT, ',')))
+	CountAllProfilesForAdmin(ctx context.Context, arg CountAllProfilesForAdminParams) (int64, error)
 	//CountPOWChallengesByIPHash
 	//
 	//  SELECT
@@ -883,6 +890,18 @@ type Querier interface {
 	//    $5
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
+	//ListAllProfilesForAdmin
+	//
+	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  FROM "profile" p
+	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//    AND pt.locale_code = $1
+	//  WHERE p.deleted_at IS NULL
+	//    AND ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
+	//  ORDER BY p.created_at DESC
+	//  LIMIT $4
+	//  OFFSET $3
+	ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfilesForAdminParams) ([]*ListAllProfilesForAdminRow, error)
 	//ListEventsByType
 	//
 	//  SELECT id, type, payload, status, retry_count, max_retries, visible_at, visibility_timeout_secs, started_at, completed_at, failed_at, created_at, updated_at, error_message, worker_id
