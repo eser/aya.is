@@ -36,7 +36,7 @@ export const STORY_CONFIG: EntityConfig = {
     {
       key: "storyPictureUri",
       apiField: "story_picture_uri",
-      labelKey: "Editor.Story Picture URI",
+      labelKey: "ContentEditor.Story Picture URI",
       required: false,
       allowedPrefixes: allowedURIPrefixes.stories,
     },
