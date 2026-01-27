@@ -1131,9 +1131,22 @@ func (q *Queries) GetUserProfilePermissions(ctx context.Context, arg GetUserProf
 }
 
 const listAllProfilesForAdmin = `-- name: ListAllProfilesForAdmin :many
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+SELECT
+  p.id,
+  p.slug,
+  p.kind,
+  p.custom_domain,
+  p.profile_picture_uri,
+  p.pronouns,
+  p.properties,
+  p.created_at,
+  p.updated_at,
+  p.points,
+  COALESCE(pt.title, '') as title,
+  COALESCE(pt.description, '') as description,
+  pt.profile_id IS NOT NULL as has_translation
 FROM "profile" p
-  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
 WHERE p.deleted_at IS NULL
   AND ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
@@ -1150,15 +1163,39 @@ type ListAllProfilesForAdminParams struct {
 }
 
 type ListAllProfilesForAdminRow struct {
-	Profile   Profile   `db:"profile" json:"profile"`
-	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
+	ID                string                `db:"id" json:"id"`
+	Slug              string                `db:"slug" json:"slug"`
+	Kind              string                `db:"kind" json:"kind"`
+	CustomDomain      sql.NullString        `db:"custom_domain" json:"custom_domain"`
+	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
+	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
+	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt         time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt         sql.NullTime          `db:"updated_at" json:"updated_at"`
+	Points            int32                 `db:"points" json:"points"`
+	Title             string                `db:"title" json:"title"`
+	Description       string                `db:"description" json:"description"`
+	HasTranslation    interface{}           `db:"has_translation" json:"has_translation"`
 }
 
 // ListAllProfilesForAdmin
 //
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	SELECT
+//	  p.id,
+//	  p.slug,
+//	  p.kind,
+//	  p.custom_domain,
+//	  p.profile_picture_uri,
+//	  p.pronouns,
+//	  p.properties,
+//	  p.created_at,
+//	  p.updated_at,
+//	  p.points,
+//	  COALESCE(pt.title, '') as title,
+//	  COALESCE(pt.description, '') as description,
+//	  pt.profile_id IS NOT NULL as has_translation
 //	FROM "profile" p
-//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
 //	WHERE p.deleted_at IS NULL
 //	  AND ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
@@ -1180,24 +1217,19 @@ func (q *Queries) ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfil
 	for rows.Next() {
 		var i ListAllProfilesForAdminRow
 		if err := rows.Scan(
-			&i.Profile.ID,
-			&i.Profile.Slug,
-			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
-			&i.Profile.ProfilePictureURI,
-			&i.Profile.Pronouns,
-			&i.Profile.Properties,
-			&i.Profile.CreatedAt,
-			&i.Profile.UpdatedAt,
-			&i.Profile.DeletedAt,
-			&i.Profile.ApprovedAt,
-			&i.Profile.Points,
-			&i.ProfileTx.ProfileID,
-			&i.ProfileTx.LocaleCode,
-			&i.ProfileTx.Title,
-			&i.ProfileTx.Description,
-			&i.ProfileTx.Properties,
-			&i.ProfileTx.SearchVector,
+			&i.ID,
+			&i.Slug,
+			&i.Kind,
+			&i.CustomDomain,
+			&i.ProfilePictureURI,
+			&i.Pronouns,
+			&i.Properties,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Points,
+			&i.Title,
+			&i.Description,
+			&i.HasTranslation,
 		); err != nil {
 			return nil, err
 		}

@@ -1,9 +1,7 @@
 // Admin profiles management page
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
-import type { Profile } from "@/modules/backend/types";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -22,7 +20,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import { LocaleLink } from "@/components/locale-link";
 
 type ProfileKind = "individual" | "organization" | "product" | "";
 
@@ -163,6 +162,7 @@ function AdminProfiles() {
                 <TableHead>{t("Admin.Kind")}</TableHead>
                 <TableHead className="text-right">{t("Admin.Points")}</TableHead>
                 <TableHead>{t("Admin.Created")}</TableHead>
+                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -179,16 +179,24 @@ function AdminProfiles() {
                       <AvatarImage
                         src={
                           profile.profile_picture_uri ??
-                          `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(profile.title)}`
+                          `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(profile.title !== "" ? profile.title : profile.slug)}`
                         }
-                        alt={profile.title}
+                        alt={profile.title !== "" ? profile.title : profile.slug}
                       />
                       <AvatarFallback>
-                        {profile.title.charAt(0).toUpperCase()}
+                        {(profile.title !== "" ? profile.title : profile.slug).charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
-                  <TableCell className="font-medium">{profile.title}</TableCell>
+                  <TableCell className="font-medium">
+                    {profile.has_translation === false ? (
+                      <span className="italic text-muted-foreground">
+                        {t("Admin.no translation found")}
+                      </span>
+                    ) : (
+                      profile.title
+                    )}
+                  </TableCell>
                   <TableCell className="font-mono text-sm text-muted-foreground">
                     @{profile.slug}
                   </TableCell>
@@ -198,6 +206,16 @@ function AdminProfiles() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDate(profile.created_at)}
+                  </TableCell>
+                  <TableCell>
+                    <LocaleLink
+                      to={`/admin/profiles/${profile.slug}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Button variant="ghost" size="sm">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </LocaleLink>
                   </TableCell>
                 </TableRow>
               ))}

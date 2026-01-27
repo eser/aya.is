@@ -1182,20 +1182,26 @@ func (r *Repository) ListAllProfilesForAdmin(
 	result := make([]*profiles.Profile, 0, len(rows))
 
 	for _, row := range rows {
+		// HasTranslation is returned as interface{} from the query, need to convert to bool
+		hasTranslation := false
+		if ht, ok := row.HasTranslation.(bool); ok {
+			hasTranslation = ht
+		}
+
 		profile := &profiles.Profile{
-			ID:                row.Profile.ID,
-			Slug:              row.Profile.Slug,
-			Kind:              row.Profile.Kind,
-			CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-			ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
-			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-			Title:             row.ProfileTx.Title,
-			Description:       row.ProfileTx.Description,
-			Properties:        vars.ToObject(row.Profile.Properties),
-			Points:            uint64(row.Profile.Points),
-			CreatedAt:         row.Profile.CreatedAt,
-			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+			ID:                row.ID,
+			Slug:              row.Slug,
+			Kind:              row.Kind,
+			CustomDomain:      vars.ToStringPtr(row.CustomDomain),
+			ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
+			Pronouns:          vars.ToStringPtr(row.Pronouns),
+			Title:             row.Title,
+			Description:       row.Description,
+			Properties:        vars.ToObject(row.Properties),
+			Points:            uint64(row.Points),
+			CreatedAt:         row.CreatedAt,
+			UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
+			HasTranslation:    hasTranslation,
 		}
 		result = append(result, profile)
 	}

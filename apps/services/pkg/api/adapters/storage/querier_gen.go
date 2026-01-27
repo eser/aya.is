@@ -892,9 +892,22 @@ type Querier interface {
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
 	//ListAllProfilesForAdmin
 	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT
+	//    p.id,
+	//    p.slug,
+	//    p.kind,
+	//    p.custom_domain,
+	//    p.profile_picture_uri,
+	//    p.pronouns,
+	//    p.properties,
+	//    p.created_at,
+	//    p.updated_at,
+	//    p.points,
+	//    COALESCE(pt.title, '') as title,
+	//    COALESCE(pt.description, '') as description,
+	//    pt.profile_id IS NOT NULL as has_translation
 	//  FROM "profile" p
-	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
 	//  WHERE p.deleted_at IS NULL
 	//    AND ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))

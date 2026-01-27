@@ -28,6 +28,7 @@ type Profile struct {
 	Title             string     `json:"title"`
 	Description       string     `json:"description"`
 	Points            uint64     `json:"points"`
+	HasTranslation    bool       `json:"has_translation"`
 }
 
 type ProfileWithChildren struct {

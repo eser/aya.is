@@ -17,6 +17,7 @@ export interface Profile {
   links?: ProfileLink[];
   pages?: ProfilePage[];
   points: number;
+  has_translation?: boolean;
   created_at: string;
   updated_at: string;
 }
