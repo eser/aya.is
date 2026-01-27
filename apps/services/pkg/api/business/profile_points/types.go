@@ -68,10 +68,17 @@ const (
 	PendingAwardStatusRejected PendingAwardStatus = "rejected"
 )
 
+// ProfileInfo holds basic profile information for display purposes.
+type ProfileInfo struct {
+	Slug  string `json:"slug"`
+	Title string `json:"title"`
+}
+
 // PendingAward represents a point award that requires approval.
 type PendingAward struct {
 	ID              string             `json:"id"`
 	TargetProfileID string             `json:"target_profile_id"`
+	TargetProfile   *ProfileInfo       `json:"target_profile,omitempty"`
 	TriggeringEvent string             `json:"triggering_event"`
 	Description     string             `json:"description"`
 	Amount          uint64             `json:"amount"`

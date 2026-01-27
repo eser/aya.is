@@ -295,8 +295,44 @@ func (r *Repository) ListPendingAwards(
 	}
 
 	result := make([]*profile_points.PendingAward, len(rows))
+
+	// Collect unique profile IDs
+	profileIDs := make([]string, 0, len(rows))
+	profileIDSet := make(map[string]struct{})
+
+	for _, row := range rows {
+		if _, exists := profileIDSet[row.TargetProfileID]; !exists {
+			profileIDSet[row.TargetProfileID] = struct{}{}
+
+			profileIDs = append(profileIDs, row.TargetProfileID)
+		}
+	}
+
+	// Fetch all profiles in a single query
+	profileMap := make(map[string]*profile_points.ProfileInfo)
+
+	if len(profileIDs) > 0 {
+		profileRows, profileErr := r.queries.GetProfilesByIDs(ctx, GetProfilesByIDsParams{
+			LocaleCode: "en",
+			Ids:        profileIDs,
+		})
+		if profileErr == nil {
+			for _, pr := range profileRows {
+				profileMap[pr.Profile.ID] = &profile_points.ProfileInfo{
+					Slug:  pr.Profile.Slug,
+					Title: pr.ProfileTx.Title,
+				}
+			}
+		}
+	}
+
+	// Map results with profile info
 	for i, row := range rows {
 		result[i] = r.rowToPendingAward(row)
+
+		if profileInfo, exists := profileMap[row.TargetProfileID]; exists {
+			result[i].TargetProfile = profileInfo
+		}
 	}
 
 	var nextCursor *string
@@ -440,6 +476,161 @@ func (r *Repository) GetPendingAwardsStats(
 		PointsAwarded: pointsAwarded,
 		ByEventType:   byEventType,
 	}, nil
+}
+
+// BulkApprovePendingAwards approves multiple pending awards in a single transaction.
+func (r *Repository) BulkApprovePendingAwards(
+	ctx context.Context,
+	awardIDs []string,
+	reviewerUserID string,
+	idGenerator profile_points.IDGenerator,
+) ([]string, error) {
+	if len(awardIDs) == 0 {
+		return []string{}, nil
+	}
+
+	// Start a database transaction
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	queriesTx := r.queries.WithTx(tx)
+
+	// Get all pending awards that are still pending
+	awards, err := queriesTx.GetPendingAwardsByIDs(ctx, GetPendingAwardsByIDsParams{
+		Ids: awardIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(awards) == 0 {
+		return []string{}, nil
+	}
+
+	// Collect IDs of awards that are actually pending
+	pendingIDs := make([]string, 0, len(awards))
+	for _, award := range awards {
+		pendingIDs = append(pendingIDs, award.ID)
+	}
+
+	// Add points to all target profiles in bulk
+	err = queriesTx.BulkAddPointsToProfiles(ctx, BulkAddPointsToProfilesParams{
+		Ids: pendingIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Mark all awards as approved in bulk
+	err = queriesTx.BulkApprovePendingAwards(ctx, BulkApprovePendingAwardsParams{
+		Ids:        pendingIDs,
+		ReviewedBy: sql.NullString{String: reviewerUserID, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Record transactions for each approved award
+	for _, award := range awards {
+		// Get the new balance for this profile
+		newBalance, balanceErr := queriesTx.GetProfilePoints(ctx, GetProfilePointsParams{
+			ProfileID: award.TargetProfileID,
+		})
+		if balanceErr != nil {
+			return nil, balanceErr
+		}
+
+		triggeringEvent := award.TriggeringEvent
+
+		_, txErr := queriesTx.RecordProfilePointTransaction(
+			ctx,
+			RecordProfilePointTransactionParams{
+				ID:              idGenerator(),
+				TargetProfileID: award.TargetProfileID,
+				OriginProfileID: sql.NullString{Valid: false},
+				TransactionType: string(profile_points.TransactionTypeGain),
+				TriggeringEvent: sql.NullString{String: triggeringEvent, Valid: true},
+				Description:     award.Description,
+				Amount:          award.Amount,
+				BalanceAfter:    newBalance,
+			},
+		)
+		if txErr != nil {
+			return nil, txErr
+		}
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return pendingIDs, nil
+}
+
+// BulkRejectPendingAwards rejects multiple pending awards in a single transaction.
+func (r *Repository) BulkRejectPendingAwards(
+	ctx context.Context,
+	awardIDs []string,
+	reviewerUserID string,
+	reason string,
+) ([]string, error) {
+	if len(awardIDs) == 0 {
+		return []string{}, nil
+	}
+
+	// Start a database transaction
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	queriesTx := r.queries.WithTx(tx)
+
+	// Get all pending awards that are still pending
+	awards, err := queriesTx.GetPendingAwardsByIDs(ctx, GetPendingAwardsByIDsParams{
+		Ids: awardIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(awards) == 0 {
+		return []string{}, nil
+	}
+
+	// Collect IDs of awards that are actually pending
+	pendingIDs := make([]string, 0, len(awards))
+	for _, award := range awards {
+		pendingIDs = append(pendingIDs, award.ID)
+	}
+
+	// Mark all awards as rejected in bulk
+	err = queriesTx.BulkRejectPendingAwards(ctx, BulkRejectPendingAwardsParams{
+		Ids:             pendingIDs,
+		ReviewedBy:      sql.NullString{String: reviewerUserID, Valid: true},
+		RejectionReason: sql.NullString{String: reason, Valid: reason != ""},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return pendingIDs, nil
 }
 
 // toMetadataMap safely converts any to map[string]any for metadata fields.

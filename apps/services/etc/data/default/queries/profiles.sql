@@ -34,6 +34,14 @@ WHERE p.id = sqlc.arg(id)
   AND p.deleted_at IS NULL
 LIMIT 1;
 
+-- name: GetProfilesByIDs :many
+SELECT sqlc.embed(p), sqlc.embed(pt)
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE p.id = ANY(sqlc.arg(ids)::TEXT[])
+  AND p.deleted_at IS NULL;
+
 -- name: GetProfileTxByID :many
 SELECT sqlc.embed(pt)
 FROM "profile_tx" pt

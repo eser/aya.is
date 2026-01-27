@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
 )
 
@@ -68,6 +69,105 @@ type ApprovePendingAwardParams struct {
 //	  AND status = 'pending'
 func (q *Queries) ApprovePendingAward(ctx context.Context, arg ApprovePendingAwardParams) error {
 	_, err := q.db.ExecContext(ctx, approvePendingAward, arg.ReviewedBy, arg.ID)
+	return err
+}
+
+const bulkAddPointsToProfiles = `-- name: BulkAddPointsToProfiles :exec
+UPDATE "profile" p
+SET
+  points = p.points + a.amount,
+  updated_at = NOW()
+FROM (
+  SELECT target_profile_id, amount
+  FROM "profile_point_pending_award"
+  WHERE id = ANY($1::TEXT[])
+    AND status = 'pending'
+) a
+WHERE p.id = a.target_profile_id
+  AND p.deleted_at IS NULL
+`
+
+type BulkAddPointsToProfilesParams struct {
+	Ids []string `db:"ids" json:"ids"`
+}
+
+// BulkAddPointsToProfiles
+//
+//	UPDATE "profile" p
+//	SET
+//	  points = p.points + a.amount,
+//	  updated_at = NOW()
+//	FROM (
+//	  SELECT target_profile_id, amount
+//	  FROM "profile_point_pending_award"
+//	  WHERE id = ANY($1::TEXT[])
+//	    AND status = 'pending'
+//	) a
+//	WHERE p.id = a.target_profile_id
+//	  AND p.deleted_at IS NULL
+func (q *Queries) BulkAddPointsToProfiles(ctx context.Context, arg BulkAddPointsToProfilesParams) error {
+	_, err := q.db.ExecContext(ctx, bulkAddPointsToProfiles, pq.Array(arg.Ids))
+	return err
+}
+
+const bulkApprovePendingAwards = `-- name: BulkApprovePendingAwards :exec
+UPDATE "profile_point_pending_award"
+SET
+  status = 'approved',
+  reviewed_by = $1,
+  reviewed_at = NOW()
+WHERE id = ANY($2::TEXT[])
+  AND status = 'pending'
+`
+
+type BulkApprovePendingAwardsParams struct {
+	ReviewedBy sql.NullString `db:"reviewed_by" json:"reviewed_by"`
+	Ids        []string       `db:"ids" json:"ids"`
+}
+
+// BulkApprovePendingAwards
+//
+//	UPDATE "profile_point_pending_award"
+//	SET
+//	  status = 'approved',
+//	  reviewed_by = $1,
+//	  reviewed_at = NOW()
+//	WHERE id = ANY($2::TEXT[])
+//	  AND status = 'pending'
+func (q *Queries) BulkApprovePendingAwards(ctx context.Context, arg BulkApprovePendingAwardsParams) error {
+	_, err := q.db.ExecContext(ctx, bulkApprovePendingAwards, arg.ReviewedBy, pq.Array(arg.Ids))
+	return err
+}
+
+const bulkRejectPendingAwards = `-- name: BulkRejectPendingAwards :exec
+UPDATE "profile_point_pending_award"
+SET
+  status = 'rejected',
+  reviewed_by = $1,
+  reviewed_at = NOW(),
+  rejection_reason = $2
+WHERE id = ANY($3::TEXT[])
+  AND status = 'pending'
+`
+
+type BulkRejectPendingAwardsParams struct {
+	ReviewedBy      sql.NullString `db:"reviewed_by" json:"reviewed_by"`
+	RejectionReason sql.NullString `db:"rejection_reason" json:"rejection_reason"`
+	Ids             []string       `db:"ids" json:"ids"`
+}
+
+// BulkRejectPendingAwards
+//
+//	UPDATE "profile_point_pending_award"
+//	SET
+//	  status = 'rejected',
+//	  reviewed_by = $1,
+//	  reviewed_at = NOW(),
+//	  rejection_reason = $2
+//	WHERE id = ANY($3::TEXT[])
+//	  AND status = 'pending'
+func (q *Queries) BulkRejectPendingAwards(ctx context.Context, arg BulkRejectPendingAwardsParams) error {
+	_, err := q.db.ExecContext(ctx, bulkRejectPendingAwards, arg.ReviewedBy, arg.RejectionReason, pq.Array(arg.Ids))
 	return err
 }
 
@@ -214,6 +314,58 @@ func (q *Queries) GetPendingAwardByID(ctx context.Context, arg GetPendingAwardBy
 		&i.CreatedAt,
 	)
 	return &i, err
+}
+
+const getPendingAwardsByIDs = `-- name: GetPendingAwardsByIDs :many
+SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+FROM "profile_point_pending_award"
+WHERE id = ANY($1::TEXT[])
+  AND status = 'pending'
+`
+
+type GetPendingAwardsByIDsParams struct {
+	Ids []string `db:"ids" json:"ids"`
+}
+
+// GetPendingAwardsByIDs
+//
+//	SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+//	FROM "profile_point_pending_award"
+//	WHERE id = ANY($1::TEXT[])
+//	  AND status = 'pending'
+func (q *Queries) GetPendingAwardsByIDs(ctx context.Context, arg GetPendingAwardsByIDsParams) ([]*ProfilePointPendingAward, error) {
+	rows, err := q.db.QueryContext(ctx, getPendingAwardsByIDs, pq.Array(arg.Ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ProfilePointPendingAward{}
+	for rows.Next() {
+		var i ProfilePointPendingAward
+		if err := rows.Scan(
+			&i.ID,
+			&i.TargetProfileID,
+			&i.TriggeringEvent,
+			&i.Description,
+			&i.Amount,
+			&i.Status,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
+			&i.RejectionReason,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPendingAwardsStats = `-- name: GetPendingAwardsStats :one

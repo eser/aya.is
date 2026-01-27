@@ -73,6 +73,24 @@ type Repository interface {
 
 	// GetPendingAwardsStats returns statistics about pending awards.
 	GetPendingAwardsStats(ctx context.Context) (*PendingAwardsStats, error)
+
+	// BulkApprovePendingAwards approves multiple pending awards in a single transaction.
+	// Returns the list of successfully approved award IDs.
+	BulkApprovePendingAwards(
+		ctx context.Context,
+		awardIDs []string,
+		reviewerUserID string,
+		idGenerator IDGenerator,
+	) ([]string, error)
+
+	// BulkRejectPendingAwards rejects multiple pending awards in a single transaction.
+	// Returns the list of successfully rejected award IDs.
+	BulkRejectPendingAwards(
+		ctx context.Context,
+		awardIDs []string,
+		reviewerUserID string,
+		reason string,
+	) ([]string, error)
 }
 
 // PendingAwardsStats holds statistics about pending awards.

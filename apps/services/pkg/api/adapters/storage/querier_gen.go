@@ -28,6 +28,42 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND status = 'pending'
 	ApprovePendingAward(ctx context.Context, arg ApprovePendingAwardParams) error
+	//BulkAddPointsToProfiles
+	//
+	//  UPDATE "profile" p
+	//  SET
+	//    points = p.points + a.amount,
+	//    updated_at = NOW()
+	//  FROM (
+	//    SELECT target_profile_id, amount
+	//    FROM "profile_point_pending_award"
+	//    WHERE id = ANY($1::TEXT[])
+	//      AND status = 'pending'
+	//  ) a
+	//  WHERE p.id = a.target_profile_id
+	//    AND p.deleted_at IS NULL
+	BulkAddPointsToProfiles(ctx context.Context, arg BulkAddPointsToProfilesParams) error
+	//BulkApprovePendingAwards
+	//
+	//  UPDATE "profile_point_pending_award"
+	//  SET
+	//    status = 'approved',
+	//    reviewed_by = $1,
+	//    reviewed_at = NOW()
+	//  WHERE id = ANY($2::TEXT[])
+	//    AND status = 'pending'
+	BulkApprovePendingAwards(ctx context.Context, arg BulkApprovePendingAwardsParams) error
+	//BulkRejectPendingAwards
+	//
+	//  UPDATE "profile_point_pending_award"
+	//  SET
+	//    status = 'rejected',
+	//    reviewed_by = $1,
+	//    reviewed_at = NOW(),
+	//    rejection_reason = $2
+	//  WHERE id = ANY($3::TEXT[])
+	//    AND status = 'pending'
+	BulkRejectPendingAwards(ctx context.Context, arg BulkRejectPendingAwardsParams) error
 	//CheckPageSlugExistsIncludingDeleted
 	//
 	//  SELECT EXISTS(
@@ -506,6 +542,13 @@ type Querier interface {
 	//  FROM "profile_point_pending_award"
 	//  WHERE id = $1
 	GetPendingAwardByID(ctx context.Context, arg GetPendingAwardByIDParams) (*ProfilePointPendingAward, error)
+	//GetPendingAwardsByIDs
+	//
+	//  SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
+	//  FROM "profile_point_pending_award"
+	//  WHERE id = ANY($1::TEXT[])
+	//    AND status = 'pending'
+	GetPendingAwardsByIDs(ctx context.Context, arg GetPendingAwardsByIDsParams) ([]*ProfilePointPendingAward, error)
 	//GetPendingAwardsStats
 	//
 	//  SELECT
@@ -650,6 +693,15 @@ type Querier interface {
 	//  FROM "profile_tx" pt
 	//  WHERE pt.profile_id = $1
 	GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDParams) ([]*GetProfileTxByIDRow, error)
+	//GetProfilesByIDs
+	//
+	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  FROM "profile" p
+	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//    AND pt.locale_code = $1
+	//  WHERE p.id = ANY($2::TEXT[])
+	//    AND p.deleted_at IS NULL
+	GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsParams) ([]*GetProfilesByIDsRow, error)
 	//GetRuntimeState
 	//
 	//  SELECT key, value, updated_at

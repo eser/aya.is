@@ -308,25 +308,40 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				results := make([]map[string]any, 0, len(body.IDs))
-
-				for _, id := range body.IDs {
-					tx, err := profilePointsService.ApprovePendingAward(
-						ctx.Request.Context(),
-						id,
-						user.ID,
+				approvedIDs, err := profilePointsService.BulkApprovePendingAwards(
+					ctx.Request.Context(),
+					body.IDs,
+					user.ID,
+				)
+				if err != nil {
+					logger.Error(
+						"failed to bulk approve pending awards",
+						"error", err,
+						"reviewer_id", user.ID,
 					)
 
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText(err.Error()),
+					)
+				}
+
+				// Build response with status for each ID
+				approvedSet := make(map[string]struct{})
+				for _, id := range approvedIDs {
+					approvedSet[id] = struct{}{}
+				}
+
+				results := make([]map[string]any, 0, len(body.IDs))
+				for _, id := range body.IDs {
 					result := map[string]any{
 						"id": id,
 					}
 
-					if err != nil {
-						result["status"] = "error"
-						result["error"] = err.Error()
-					} else {
+					if _, wasApproved := approvedSet[id]; wasApproved {
 						result["status"] = "approved"
-						result["transaction_id"] = tx.ID
+					} else {
+						result["status"] = "skipped"
 					}
 
 					results = append(results, result)
@@ -376,25 +391,41 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				results := make([]map[string]any, 0, len(body.IDs))
-
-				for _, id := range body.IDs {
-					err := profilePointsService.RejectPendingAward(
-						ctx.Request.Context(),
-						id,
-						user.ID,
-						body.Reason,
+				rejectedIDs, err := profilePointsService.BulkRejectPendingAwards(
+					ctx.Request.Context(),
+					body.IDs,
+					user.ID,
+					body.Reason,
+				)
+				if err != nil {
+					logger.Error(
+						"failed to bulk reject pending awards",
+						"error", err,
+						"reviewer_id", user.ID,
 					)
 
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText(err.Error()),
+					)
+				}
+
+				// Build response with status for each ID
+				rejectedSet := make(map[string]struct{})
+				for _, id := range rejectedIDs {
+					rejectedSet[id] = struct{}{}
+				}
+
+				results := make([]map[string]any, 0, len(body.IDs))
+				for _, id := range body.IDs {
 					result := map[string]any{
 						"id": id,
 					}
 
-					if err != nil {
-						result["status"] = "error"
-						result["error"] = err.Error()
-					} else {
+					if _, wasRejected := rejectedSet[id]; wasRejected {
 						result["status"] = "rejected"
+					} else {
+						result["status"] = "skipped"
 					}
 
 					results = append(results, result)

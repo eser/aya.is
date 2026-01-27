@@ -1,5 +1,6 @@
 // Admin points dashboard - statistics overview and pending awards management
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { LocaleLink } from "@/components/locale-link";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
@@ -304,36 +305,38 @@ function AdminPointsDashboard() {
         </div>
 
         {status === "pending" && selectedIds.size > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+          <div className="flex items-center justify-between p-3 bg-muted rounded-md">
             <span className="text-sm text-muted-foreground">
               {t("Admin.Selected")}: {selectedIds.size}
             </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleBulkApprove}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-1" />
-              ) : (
-                <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
-              )}
-              {t("Admin.Approve Selected")}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleBulkReject}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-1" />
-              ) : (
-                <XCircle className="h-4 w-4 mr-1 text-red-500" />
-              )}
-              {t("Admin.Reject Selected")}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkApprove}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
+                )}
+                {t("Admin.Approve Selected")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkReject}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                ) : (
+                  <XCircle className="h-4 w-4 mr-1 text-red-500" />
+                )}
+                {t("Admin.Reject Selected")}
+              </Button>
+            </div>
           </div>
         )}
 
@@ -379,8 +382,19 @@ function AdminPointsDashboard() {
                   <TableCell className="font-mono text-sm">
                     {award.triggering_event}
                   </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">
-                    {award.target_profile_id.slice(0, 8)}...
+                  <TableCell className="text-sm">
+                    {award.target_profile !== undefined ? (
+                      <LocaleLink
+                        to={`/${award.target_profile.slug}`}
+                        className="text-foreground hover:underline"
+                      >
+                        {award.target_profile.title}
+                      </LocaleLink>
+                    ) : (
+                      <span className="font-mono text-muted-foreground">
+                        {award.target_profile_id.slice(0, 8)}...
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium">{award.amount}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">

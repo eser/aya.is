@@ -117,6 +117,45 @@ SET
 WHERE id = sqlc.arg(id)
   AND status = 'pending';
 
+-- name: GetPendingAwardsByIDs :many
+SELECT *
+FROM "profile_point_pending_award"
+WHERE id = ANY(sqlc.arg(ids)::TEXT[])
+  AND status = 'pending';
+
+-- name: BulkApprovePendingAwards :exec
+UPDATE "profile_point_pending_award"
+SET
+  status = 'approved',
+  reviewed_by = sqlc.arg(reviewed_by),
+  reviewed_at = NOW()
+WHERE id = ANY(sqlc.arg(ids)::TEXT[])
+  AND status = 'pending';
+
+-- name: BulkRejectPendingAwards :exec
+UPDATE "profile_point_pending_award"
+SET
+  status = 'rejected',
+  reviewed_by = sqlc.arg(reviewed_by),
+  reviewed_at = NOW(),
+  rejection_reason = sqlc.narg(rejection_reason)
+WHERE id = ANY(sqlc.arg(ids)::TEXT[])
+  AND status = 'pending';
+
+-- name: BulkAddPointsToProfiles :exec
+UPDATE "profile" p
+SET
+  points = p.points + a.amount,
+  updated_at = NOW()
+FROM (
+  SELECT target_profile_id, amount
+  FROM "profile_point_pending_award"
+  WHERE id = ANY(sqlc.arg(ids)::TEXT[])
+    AND status = 'pending'
+) a
+WHERE p.id = a.target_profile_id
+  AND p.deleted_at IS NULL;
+
 -- name: GetPendingAwardsStats :one
 SELECT
   COUNT(*) FILTER (WHERE status = 'pending') AS total_pending,

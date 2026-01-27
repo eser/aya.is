@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
 )
 
@@ -1125,6 +1126,75 @@ func (q *Queries) GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDPara
 	for rows.Next() {
 		var i GetProfileTxByIDRow
 		if err := rows.Scan(
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProfilesByIDs = `-- name: GetProfilesByIDs :many
+SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = $1
+WHERE p.id = ANY($2::TEXT[])
+  AND p.deleted_at IS NULL
+`
+
+type GetProfilesByIDsParams struct {
+	LocaleCode string   `db:"locale_code" json:"locale_code"`
+	Ids        []string `db:"ids" json:"ids"`
+}
+
+type GetProfilesByIDsRow struct {
+	Profile   Profile   `db:"profile" json:"profile"`
+	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
+}
+
+// GetProfilesByIDs
+//
+//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	FROM "profile" p
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	  AND pt.locale_code = $1
+//	WHERE p.id = ANY($2::TEXT[])
+//	  AND p.deleted_at IS NULL
+func (q *Queries) GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsParams) ([]*GetProfilesByIDsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getProfilesByIDs, arg.LocaleCode, pq.Array(arg.Ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetProfilesByIDsRow{}
+	for rows.Next() {
+		var i GetProfilesByIDsRow
+		if err := rows.Scan(
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.CustomDomain,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
 			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
 			&i.ProfileTx.Title,

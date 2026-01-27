@@ -307,3 +307,50 @@ func (s *Service) GetPendingAwardsStats(ctx context.Context) (*PendingAwardsStat
 
 	return stats, nil
 }
+
+// BulkApprovePendingAwards approves multiple pending awards in a single batch operation.
+func (s *Service) BulkApprovePendingAwards(
+	ctx context.Context,
+	awardIDs []string,
+	reviewerUserID string,
+) ([]string, error) {
+	if len(awardIDs) == 0 {
+		return []string{}, nil
+	}
+
+	approvedIDs, err := s.repo.BulkApprovePendingAwards(
+		ctx,
+		awardIDs,
+		reviewerUserID,
+		s.idGenerator,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToApprovePendingAward, err)
+	}
+
+	return approvedIDs, nil
+}
+
+// BulkRejectPendingAwards rejects multiple pending awards in a single batch operation.
+func (s *Service) BulkRejectPendingAwards(
+	ctx context.Context,
+	awardIDs []string,
+	reviewerUserID string,
+	reason string,
+) ([]string, error) {
+	if len(awardIDs) == 0 {
+		return []string{}, nil
+	}
+
+	rejectedIDs, err := s.repo.BulkRejectPendingAwards(
+		ctx,
+		awardIDs,
+		reviewerUserID,
+		reason,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToRejectPendingAward, err)
+	}
+
+	return rejectedIDs, nil
+}

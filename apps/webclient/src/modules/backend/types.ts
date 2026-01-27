@@ -322,9 +322,15 @@ export interface ProfilePointTransaction {
 // Pending Award Types
 export type PendingAwardStatus = "pending" | "approved" | "rejected";
 
+export interface PendingAwardProfileInfo {
+  slug: string;
+  title: string;
+}
+
 export interface PendingAward {
   id: string;
   target_profile_id: string;
+  target_profile?: PendingAwardProfileInfo;
   triggering_event: string;
   description: string;
   amount: number;
