@@ -30,13 +30,13 @@ function AdminProfileLayout() {
   const getKindBadge = (profileKind: string) => {
     switch (profileKind) {
       case "individual":
-        return <Badge variant="secondary">{t("Admin.Individual")}</Badge>;
+        return <Badge variant="secondary">{t("Common.Individual")}</Badge>;
       case "organization":
-        return <Badge variant="default">{t("Admin.Organization")}</Badge>;
+        return <Badge variant="default">{t("Common.Organization")}</Badge>;
       case "product":
         return (
           <Badge variant="outline" className="border-blue-500 text-blue-500">
-            {t("Admin.Product")}
+            {t("Common.Product")}
           </Badge>
         );
       default:
@@ -99,7 +99,7 @@ function AdminProfileLayout() {
               "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
           }}
         >
-          {t("Admin.General")}
+          {t("Common.General")}
         </LocaleLink>
         <LocaleLink
           to={`/admin/profiles/${slug}/points`}
@@ -109,7 +109,7 @@ function AdminProfileLayout() {
               "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
           }}
         >
-          {t("Admin.Points")}
+          {t("Common.Points")}
         </LocaleLink>
       </nav>
 

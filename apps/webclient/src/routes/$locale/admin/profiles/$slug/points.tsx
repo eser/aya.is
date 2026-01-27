@@ -146,7 +146,7 @@ function AdminProfilePoints() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">{t("Admin.Amount")}</Label>
+              <Label htmlFor="amount">{t("Common.Amount")}</Label>
               <Input
                 id="amount"
                 type="number"
@@ -158,7 +158,7 @@ function AdminProfilePoints() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">{t("Admin.Description")}</Label>
+            <Label htmlFor="description">{t("Common.Description")}</Label>
             <Textarea
               id="description"
               placeholder={t("Admin.Reason for adding points...")}
@@ -204,11 +204,11 @@ function AdminProfilePoints() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("Admin.Type")}</TableHead>
-                  <TableHead>{t("Admin.Description")}</TableHead>
-                  <TableHead className="text-right">{t("Admin.Amount")}</TableHead>
+                  <TableHead>{t("Common.Type")}</TableHead>
+                  <TableHead>{t("Common.Description")}</TableHead>
+                  <TableHead className="text-right">{t("Common.Amount")}</TableHead>
                   <TableHead className="text-right">{t("Admin.Balance After")}</TableHead>
-                  <TableHead>{t("Admin.Date")}</TableHead>
+                  <TableHead>{t("Common.Date")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

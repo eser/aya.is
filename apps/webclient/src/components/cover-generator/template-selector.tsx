@@ -19,7 +19,7 @@ export function TemplateSelector(props: TemplateSelectorProps) {
 
   return (
     <div className={styles.templateSelector}>
-      <h3 className={styles.sectionTitle}>{t("CoverGenerator.Templates")}</h3>
+      <h3 className={styles.sectionTitle}>{t("CoverDesigner.Templates")}</h3>
       <div className={styles.templateGrid}>
         {templates.map((template) => (
           <TemplateCard

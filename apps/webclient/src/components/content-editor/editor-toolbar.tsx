@@ -52,15 +52,15 @@ type ToolbarButton = {
 };
 
 const formatButtons: ToolbarButton[] = [
-  { action: "bold", icon: Bold, labelKey: "Editor.Bold", shortcut: "Ctrl+B" },
-  { action: "italic", icon: Italic, labelKey: "Editor.Italic", shortcut: "Ctrl+I" },
-  { action: "h2", icon: Heading2, labelKey: "Editor.Heading 2" },
-  { action: "h3", icon: Heading3, labelKey: "Editor.Heading 3" },
-  { action: "ul", icon: List, labelKey: "Editor.Bullet List" },
-  { action: "ol", icon: ListOrdered, labelKey: "Editor.Numbered List" },
-  { action: "link", icon: Link, labelKey: "Editor.Link", shortcut: "Ctrl+K" },
-  { action: "code", icon: Code, labelKey: "Editor.Code" },
-  { action: "quote", icon: Quote, labelKey: "Editor.Quote" },
+  { action: "bold", icon: Bold, labelKey: "ContentEditor.Bold", shortcut: "Ctrl+B" },
+  { action: "italic", icon: Italic, labelKey: "ContentEditor.Italic", shortcut: "Ctrl+I" },
+  { action: "h2", icon: Heading2, labelKey: "ContentEditor.Heading 2" },
+  { action: "h3", icon: Heading3, labelKey: "ContentEditor.Heading 3" },
+  { action: "ul", icon: List, labelKey: "ContentEditor.Bullet List" },
+  { action: "ol", icon: ListOrdered, labelKey: "ContentEditor.Numbered List" },
+  { action: "link", icon: Link, labelKey: "ContentEditor.Link", shortcut: "Ctrl+K" },
+  { action: "code", icon: Code, labelKey: "ContentEditor.Code" },
+  { action: "quote", icon: Quote, labelKey: "ContentEditor.Quote" },
 ];
 
 export function EditorToolbar(props: EditorToolbarProps) {
@@ -104,9 +104,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <ImageIcon className="size-4" />
-            <span className="sr-only">{t("Editor.Insert Image")}</span>
+            <span className="sr-only">{t("ContentEditor.Insert Image")}</span>
           </TooltipTrigger>
-          <TooltipContent>{t("Editor.Insert Image")}</TooltipContent>
+          <TooltipContent>{t("ContentEditor.Insert Image")}</TooltipContent>
         </Tooltip>
       </div>
 
@@ -122,9 +122,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <PanelLeft className="size-4" />
-            <span className="sr-only">{t("Editor.Editor Only")}</span>
+            <span className="sr-only">{t("ContentEditor.Editor Only")}</span>
           </TooltipTrigger>
-          <TooltipContent>{t("Editor.Editor Only")}</TooltipContent>
+          <TooltipContent>{t("ContentEditor.Editor Only")}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -138,9 +138,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <SplitSquareVertical className="size-4" />
-            <span className="sr-only">{t("Editor.Split View")}</span>
+            <span className="sr-only">{t("ContentEditor.Split View")}</span>
           </TooltipTrigger>
-          <TooltipContent>{t("Editor.Split View")}</TooltipContent>
+          <TooltipContent>{t("ContentEditor.Split View")}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -154,9 +154,9 @@ export function EditorToolbar(props: EditorToolbarProps) {
             }
           >
             <PanelRight className="size-4" />
-            <span className="sr-only">{t("Editor.Preview Only")}</span>
+            <span className="sr-only">{t("ContentEditor.Preview Only")}</span>
           </TooltipTrigger>
-          <TooltipContent>{t("Editor.Preview Only")}</TooltipContent>
+          <TooltipContent>{t("ContentEditor.Preview Only")}</TooltipContent>
         </Tooltip>
       </ButtonGroup>
     </div>

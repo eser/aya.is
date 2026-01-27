@@ -93,7 +93,7 @@ function PointsSettingsPage() {
   return (
     <Card className="p-6">
       <div>
-        <h3 className="font-serif text-xl font-semibold text-foreground">{t("Profile.Points")}</h3>
+        <h3 className="font-serif text-xl font-semibold text-foreground">{t("Common.Points")}</h3>
         <p className="text-muted-foreground text-sm mt-1">
           {t("Profile.View your point balance and transaction history.")}
         </p>

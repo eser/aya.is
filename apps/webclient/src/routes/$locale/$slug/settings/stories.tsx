@@ -126,7 +126,7 @@ function StoriesSettingsPage() {
         <Link to="/$locale/stories/new" params={{ locale: params.locale }}>
           <Button variant="default" size="sm">
             <Plus className="mr-1.5 size-4" />
-            {t("Editor.Add Story")}
+            {t("ContentEditor.Add Story")}
           </Button>
         </Link>
       </div>
@@ -166,17 +166,17 @@ function StoriesSettingsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <LocaleLink to={`/stories/${story.slug}/edit`}>
-                        <Button variant="ghost" size="icon" title={t("Profile.Edit")}>
+                        <Button variant="ghost" size="icon" title={t("Common.Edit")}>
                           <Pencil className="size-4" />
                         </Button>
                       </LocaleLink>
                       <LocaleLink to={`/stories/${story.slug}/cover`}>
-                        <Button variant="ghost" size="icon" title={t("CoverGenerator.Design Cover")}>
+                        <Button variant="ghost" size="icon" title={t("CoverDesigner.Design Cover")}>
                           <ImagePlus className="size-4" />
                         </Button>
                       </LocaleLink>
                       <LocaleLink to={`/stories/${story.slug}`}>
-                        <Button variant="ghost" size="icon" title={t("Profile.View")}>
+                        <Button variant="ghost" size="icon" title={t("Common.View")}>
                           <ExternalLink className="size-4" />
                         </Button>
                       </LocaleLink>
@@ -202,7 +202,7 @@ function StoriesSettingsPage() {
                           />
                         )}
                       >
-                        {t("Pagination.Previous")}
+                        {t("Common.Previous")}
                       </PaginationPrevious>
                     </PaginationItem>
 
@@ -236,7 +236,7 @@ function StoriesSettingsPage() {
                           />
                         )}
                       >
-                        {t("Pagination.Next")}
+                        {t("Common.Next")}
                       </PaginationNext>
                     </PaginationItem>
                   </PaginationContent>

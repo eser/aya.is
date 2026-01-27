@@ -61,7 +61,7 @@ export function EditorActions(props: EditorActionsProps) {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon-sm">
             <MoreHorizontal className="size-4" />
-            <span className="sr-only">{t("Editor.More options")}</span>
+            <span className="sr-only">{t("ContentEditor.More options")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-auto">
@@ -69,7 +69,7 @@ export function EditorActions(props: EditorActionsProps) {
             <>
               <DropdownMenuItem onClick={onUnpublish} disabled={isSaving}>
                 <GlobeLock className="mr-2 size-4" />
-                {t("Editor.Unpublish")}
+                {t("ContentEditor.Unpublish")}
               </DropdownMenuItem>
               {canDelete && <DropdownMenuSeparator />}
             </>
@@ -80,7 +80,7 @@ export function EditorActions(props: EditorActionsProps) {
             disabled={!canDelete || isDeleting}
           >
             <Trash2 className="mr-2 size-4" />
-            {t("Editor.Delete")}
+            {t("ContentEditor.Delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -88,7 +88,7 @@ export function EditorActions(props: EditorActionsProps) {
       {!isPublished && (
         <Button variant="default" size="sm" onClick={onPublish} disabled={isSaving}>
           <Globe className="mr-1.5 size-4" />
-          {t("Editor.Publish")}
+          {t("ContentEditor.Publish")}
         </Button>
       )}
 
@@ -103,20 +103,20 @@ export function EditorActions(props: EditorActionsProps) {
         ) : (
           <Save className="mr-1.5 size-4" />
         )}
-        {t("Editor.Save")}
+        {t("ContentEditor.Save")}
       </Button>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("Editor.Delete")}?</AlertDialogTitle>
+            <AlertDialogTitle>{t("ContentEditor.Delete")}?</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("Editor.Delete Confirmation")}
+              {t("ContentEditor.Delete Confirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Profile.Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete}>{t("Editor.Delete")}</AlertDialogAction>
+            <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={onDelete}>{t("ContentEditor.Delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -143,12 +143,12 @@ function StatusBadge(props: StatusBadgeProps) {
       {isPublished ? (
         <>
           <Globe className="size-3" />
-          {t("Editor.Published")}
+          {t("ContentEditor.Published")}
         </>
       ) : (
         <>
           <GlobeLock className="size-3" />
-          {t("Editor.Draft")}
+          {t("ContentEditor.Draft")}
         </>
       )}
     </span>

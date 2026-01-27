@@ -442,7 +442,7 @@ export function SearchBar() {
           {siteConfig.environment === "development" && (
             <>
               <CommandSeparator />
-              <CommandGroup heading={t("Development.Development")}>
+              <CommandGroup heading={t("Layout.Development")}>
                 <CommandItem
                   onSelect={() => {
                     handleBackendUriChange(null);
@@ -452,7 +452,7 @@ export function SearchBar() {
                     backendUri === siteConfig.backendUri}
                 >
                   <SettingsIcon className="w-4 h-4 mr-2" />
-                  <span>{t("Development.Use default data source")}</span>
+                  <span>{t("Layout.Use default data source")}</span>
                 </CommandItem>
                 <CommandItem
                   onSelect={() => {
@@ -462,7 +462,7 @@ export function SearchBar() {
                   disabled={backendUri === "https://api.aya.is"}
                 >
                   <SettingsIcon className="w-4 h-4 mr-2" />
-                  <span>{t("Development.Use production data source")}</span>
+                  <span>{t("Layout.Use production data source")}</span>
                 </CommandItem>
               </CommandGroup>
             </>

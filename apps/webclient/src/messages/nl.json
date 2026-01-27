@@ -1,4 +1,40 @@
 {
+  "Common": {
+    "Coming soon": "Binnenkort beschikbaar",
+    "Back": "Terug",
+    "Title": "Titel",
+    "Description": "Beschrijving",
+    "Slug": "Slug",
+    "Status": "Status",
+    "Delete": "Verwijderen",
+    "Cancel": "Annuleren",
+    "Edit": "Bewerken",
+    "Save": "Opslaan",
+    "View": "Bekijken",
+    "Previous": "Vorige",
+    "Next": "Volgende",
+    "Page": "Pagina",
+    "Kind": "Type",
+    "Points": "Punten",
+    "Individual": "Individu",
+    "Organization": "Organisatie",
+    "Product": "Product",
+    "General": "Algemeen",
+    "Selected": "Geselecteerd",
+    "Pending": "In behandeling",
+    "Actions": "Acties",
+    "Amount": "Bedrag",
+    "Date": "Datum",
+    "Type": "Type",
+    "ID": "ID",
+    "Created": "Aangemaakt",
+    "Pronouns": "Voornaamwoorden",
+    "Overview": "Overzicht",
+    "Dashboard": "Dashboard",
+    "Approved": "Goedgekeurd",
+    "Rejected": "Afgewezen",
+    "Settings": "Instellingen"
+  },
   "Layout": {
     "Homepage": "Startpagina",
     "Elements": "Elementen",
@@ -21,7 +57,10 @@
     "An error occurred": "Er is een fout opgetreden",
     "Page not found": "Pagina niet gevonden",
     "The page you are looking for does not exist. Please check your spelling and try again.": "De pagina die u zoekt bestaat niet. Controleer uw spelling en probeer het opnieuw.",
-    "Dismiss": "Afwijzen"
+    "Dismiss": "Afwijzen",
+    "Development": "Ontwikkeling",
+    "Use default data source": "Gebruik standaard databron",
+    "Use production data source": "Gebruik productiedatabron"
   },
   "Loading": {
     "Loading...": "Laden...",
@@ -60,20 +99,27 @@
   },
   "Stories": {
     "All": "Alle",
-    "Status": "Status",
     "Announcement": "Aankondiging",
     "Article": "Artikel",
     "Content": "Inhoud",
     "Presentation": "Presentatie",
     "Written by": "Geschreven door",
-    "Publications": "Publicaties"
+    "Publications": "Publicaties",
+    "Reading time": "Leestijd",
+    "min read": "min lezen",
+    "Published on": "Gepubliceerd op",
+    "Share": "Delen",
+    "Copy link": "Link kopiëren",
+    "Share on WhatsApp": "Delen op WhatsApp",
+    "Share on Telegram": "Delen op Telegram",
+    "Share on LinkedIn": "Delen op LinkedIn",
+    "Share on Reddit": "Delen op Reddit",
+    "Share on X": "Delen op X",
+    "Download Markdown": "Download Markdown"
   },
   "Pagination": {
-    "Previous": "Vorige",
-    "Next": "Volgende",
-    "Page": "Pagina",
-    "of": "/",
-    "Go to page": "Ga naar pagina"
+    "Go to page": "Ga naar pagina",
+    "of": "/"
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "Een verzameling van open source projecten en organisaties.",
@@ -132,10 +178,8 @@
     "You do not have permission to edit this profile.": "You do not have permission to edit this profile.",
     "Back to Profile": "Back to Profile",
     "Checking permissions...": "Checking permissions...",
-    "Settings": "Settings",
     "Profile Settings": "Profile Settings",
     "Profile": "Profile",
-    "General": "General",
     "Translations": "Translations",
     "Social Links": "Social Links",
     "Custom Pages": "Custom Pages",
@@ -145,7 +189,6 @@
     "Available Languages": "Available Languages",
     "Languages with existing translations are highlighted.": "Languages with existing translations are highlighted.",
     "Translated": "Translated",
-    "Selected": "Selected",
     "Edit Translation": "Edit Translation",
     "Update the title and description for this language.": "Update the title and description for this language.",
     "Copy from existing translation:": "Copy from existing translation:",
@@ -163,8 +206,6 @@
     "No links added yet.": "No links added yet.",
     "Add Your First Link": "Add Your First Link",
     "Hidden": "Hidden",
-    "Edit": "Edit",
-    "Delete": "Delete",
     "Edit Link": "Edit Link",
     "Add New Link": "Add New Link",
     "Configure your social media link or website.": "Configure your social media link or website.",
@@ -177,7 +218,6 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
-    "Cancel": "Cancel",
     "Saving...": "Saving...",
     "Update Link": "Update Link",
     "Failed to load profile links": "Failed to load profile links",
@@ -198,26 +238,7 @@
     "Individuals and organizations that are members of this profile.": "Individuen en organisaties die lid zijn van dit profiel.",
     "No members found.": "Geen leden gevonden."
   },
-  "StoryPage": {
-    "Written by": "Geschreven door",
-    "Reading time": "Leestijd",
-    "min read": "min lezen",
-    "Published on": "Gepubliceerd op",
-    "Share": "Delen",
-    "Copy link": "Link kopiëren",
-    "Share on WhatsApp": "Delen op WhatsApp",
-    "Share on Telegram": "Delen op Telegram",
-    "Share on LinkedIn": "Delen op LinkedIn",
-    "Share on Reddit": "Delen op Reddit",
-    "Share on X": "Delen op X",
-    "Download Markdown": "Download Markdown"
-  },
-  "Development": {
-    "Development": "Ontwikkeling",
-    "Use default data source": "Gebruik standaard databron",
-    "Use production data source": "Gebruik productiedatabron"
-  },
-  "Editor": {
+  "ContentEditor": {
     "Slug must start with": "Slug moet beginnen met",
     "Slug is required": "Slug is verplicht",
     "Slug must be at least 2 characters": "Slug moet minimaal 2 tekens bevatten",
@@ -230,9 +251,8 @@
     "Title must be at most 200 characters": "Titel mag maximaal 200 tekens bevatten",
     "Invalid URI": "Ongeldige URI"
   },
-  "CoverGenerator": {
+  "CoverDesigner": {
     "Design Cover": "Cover ontwerpen",
-    "Back": "Terug",
     "Download": "Downloaden",
     "Set as Cover": "Instellen als cover",
     "Templates": "Sjablonen",

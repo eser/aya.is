@@ -48,26 +48,26 @@ export function PreviewPanel(props: PreviewPanelProps) {
   if (content.trim() === "") {
     return (
       <div className={styles.previewLoading}>
-        {t("Editor.Start writing to see the preview...")}
+        {t("ContentEditor.Start writing to see the preview...")}
       </div>
     );
   }
 
   if (isCompiling && compiledSource === null) {
-    return <div className={styles.previewLoading}>{t("Editor.Compiling...")}</div>;
+    return <div className={styles.previewLoading}>{t("ContentEditor.Compiling...")}</div>;
   }
 
   if (error !== null) {
     return (
       <div className={styles.previewError}>
-        <strong>{t("Editor.Preview Error")}:</strong>
+        <strong>{t("ContentEditor.Preview Error")}:</strong>
         <pre className="mt-2 whitespace-pre-wrap text-xs">{error}</pre>
       </div>
     );
   }
 
   if (compiledSource === null) {
-    return <div className={styles.previewLoading}>{t("Editor.Loading preview...")}</div>;
+    return <div className={styles.previewLoading}>{t("ContentEditor.Loading preview...")}</div>;
   }
 
   return (

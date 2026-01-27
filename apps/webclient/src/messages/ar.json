@@ -1,4 +1,40 @@
 {
+  "Common": {
+    "Coming soon": "قريباً",
+    "Back": "رجوع",
+    "Title": "العنوان",
+    "Description": "الوصف",
+    "Slug": "المعرف",
+    "Status": "الحالة",
+    "Delete": "حذف",
+    "Cancel": "إلغاء",
+    "Edit": "تعديل",
+    "Save": "حفظ",
+    "View": "عرض",
+    "Previous": "السابق",
+    "Next": "التالي",
+    "Page": "صفحة",
+    "Kind": "النوع",
+    "Points": "النقاط",
+    "Individual": "فردي",
+    "Organization": "منظمة",
+    "Product": "منتج",
+    "General": "عام",
+    "Selected": "مُختار",
+    "Pending": "معلق",
+    "Actions": "الإجراءات",
+    "Amount": "المبلغ",
+    "Date": "التاريخ",
+    "Type": "النوع",
+    "ID": "المعرف",
+    "Created": "أُنشئ",
+    "Pronouns": "الضمائر",
+    "Overview": "نظرة عامة",
+    "Dashboard": "لوحة التحكم",
+    "Approved": "موافق عليه",
+    "Rejected": "مرفوض",
+    "Settings": "الإعدادات"
+  },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
     "Elements": "العناصر",
@@ -22,7 +58,10 @@
     "An error occurred": "حدث خطأ",
     "Page not found": "الصفحة غير موجودة",
     "The page you are looking for does not exist. Please check your spelling and try again.": "الصفحة التي تبحث عنها غير موجودة. يرجى التحقق من صحة الكتابة وإعادة المحاولة.",
-    "Dismiss": "إخفاء"
+    "Dismiss": "إخفاء",
+    "Development": "التطوير",
+    "Use default data source": "استخدام البيانات الافتراضية",
+    "Use production data source": "استخدام البيانات المنتجة"
   },
   "Loading": {
     "Loading...": "جاري التحميل...",
@@ -61,20 +100,27 @@
   },
   "Stories": {
     "All": "الكل",
-    "Status": "الحالة",
     "Announcement": "إعلان",
     "Article": "مقالة",
     "Content": "محتوى",
     "Presentation": "عرض تقديمي",
-    "Written by": "من طرف",
-    "Publications": "المنشورات"
+    "Written by": "كتبه",
+    "Publications": "المنشورات",
+    "Reading time": "وقت القراءة",
+    "min read": "دقيقة قراءة",
+    "Published on": "تاريخ النشر",
+    "Share": "مشاركة",
+    "Copy link": "نسخ الرابط",
+    "Share on WhatsApp": "مشاركة على واتساب",
+    "Share on Telegram": "مشاركة على تليجرام",
+    "Share on LinkedIn": "مشاركة على لينكد إن",
+    "Share on Reddit": "مشاركة على ريديت",
+    "Share on X": "مشاركة على إكس",
+    "Download Markdown": "تحميل ماركداون"
   },
   "Pagination": {
-    "Previous": "السابق",
-    "Next": "التالي",
-    "Page": "صفحة",
-    "of": "/",
-    "Go to page": "اذهب إلى الصفحة"
+    "Go to page": "اذهب إلى الصفحة",
+    "of": "/"
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "مجموعة من مشاريع ومنظمات المصدر المفتوح.",
@@ -134,10 +180,8 @@
     "You do not have permission to edit this profile.": "You do not have permission to edit this profile.",
     "Back to Profile": "Back to Profile",
     "Checking permissions...": "Checking permissions...",
-    "Settings": "Settings",
     "Profile Settings": "Profile Settings",
     "Profile": "Profile",
-    "General": "General",
     "Translations": "Translations",
     "Social Links": "Social Links",
     "Custom Pages": "Custom Pages",
@@ -147,7 +191,6 @@
     "Available Languages": "Available Languages",
     "Languages with existing translations are highlighted.": "Languages with existing translations are highlighted.",
     "Translated": "Translated",
-    "Selected": "Selected",
     "Edit Translation": "Edit Translation",
     "Update the title and description for this language.": "Update the title and description for this language.",
     "Copy from existing translation:": "Copy from existing translation:",
@@ -165,8 +208,6 @@
     "No links added yet.": "No links added yet.",
     "Add Your First Link": "Add Your First Link",
     "Hidden": "Hidden",
-    "Edit": "Edit",
-    "Delete": "Delete",
     "Edit Link": "Edit Link",
     "Add New Link": "Add New Link",
     "Configure your social media link or website.": "Configure your social media link or website.",
@@ -179,7 +220,6 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
-    "Cancel": "Cancel",
     "Saving...": "Saving...",
     "Update Link": "Update Link",
     "Failed to load profile links": "Failed to load profile links",
@@ -196,26 +236,7 @@
     "Create custom content pages": "Create custom content pages",
     "Advanced configuration options": "Advanced configuration options"
   },
-  "StoryPage": {
-    "Written by": "كتبه",
-    "Reading time": "وقت القراءة",
-    "min read": "دقيقة قراءة",
-    "Published on": "تاريخ النشر",
-    "Share": "مشاركة",
-    "Copy link": "نسخ الرابط",
-    "Share on WhatsApp": "مشاركة على واتساب",
-    "Share on Telegram": "مشاركة على تليجرام",
-    "Share on LinkedIn": "مشاركة على لينكد إن",
-    "Share on Reddit": "مشاركة على ريديت",
-    "Share on X": "مشاركة على إكس",
-    "Download Markdown": "تحميل ماركداون"
-  },
-  "Development": {
-    "Development": "التطوير",
-    "Use default data source": "استخدام البيانات الافتراضية",
-    "Use production data source": "استخدام البيانات المنتجة"
-  },
-  "Editor": {
+  "ContentEditor": {
     "Slug must start with": "يجب أن يبدأ المعرف بـ",
     "Slug is required": "المعرف مطلوب",
     "Slug must be at least 2 characters": "يجب أن يكون المعرف 2 أحرف على الأقل",
@@ -228,9 +249,8 @@
     "Title must be at most 200 characters": "يجب ألا يتجاوز العنوان 200 حرف",
     "Invalid URI": "عنوان URI غير صالح"
   },
-  "CoverGenerator": {
+  "CoverDesigner": {
     "Design Cover": "تصميم غلاف",
-    "Back": "رجوع",
     "Download": "تحميل",
     "Set as Cover": "تعيين كغلاف",
     "Templates": "القوالب",

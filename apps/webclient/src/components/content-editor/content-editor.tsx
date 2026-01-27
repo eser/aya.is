@@ -81,9 +81,9 @@ function validateSlugPrefix(
 
 // Known API messages that need translation
 const API_MESSAGE_KEYS: Record<string, string> = {
-  "Slug must be at least 12 characters": "Editor.Slug must be at least 12 characters",
-  "This slug is already taken": "Editor.This slug is already taken",
-  "This slug was previously used": "Editor.This slug was previously used",
+  "Slug must be at least 12 characters": "ContentEditor.Slug must be at least 12 characters",
+  "This slug is already taken": "ContentEditor.This slug is already taken",
+  "This slug was previously used": "ContentEditor.This slug was previously used",
   "This slug is reserved": "Profile.This slug is reserved",
 };
 
@@ -181,19 +181,19 @@ export function ContentEditor(props: ContentEditorProps) {
   React.useEffect(() => {
     // Basic slug validation
     if (slug.length === 0) {
-      setSlugError(showSlugValidation ? t("Editor.Slug is required") : null);
+      setSlugError(showSlugValidation ? t("ContentEditor.Slug is required") : null);
       return;
     }
     if (slug.length < 2) {
-      setSlugError(t("Editor.Slug must be at least 2 characters"));
+      setSlugError(t("ContentEditor.Slug must be at least 2 characters"));
       return;
     }
     if (slug.length > 100) {
-      setSlugError(t("Editor.Slug must be at most 100 characters"));
+      setSlugError(t("ContentEditor.Slug must be at most 100 characters"));
       return;
     }
     if (!/^[a-z0-9-]+$/.test(slug)) {
-      setSlugError(t("Editor.Slug can only contain lowercase letters, numbers, and hyphens"));
+      setSlugError(t("ContentEditor.Slug can only contain lowercase letters, numbers, and hyphens"));
       return;
     }
 
@@ -201,7 +201,7 @@ export function ContentEditor(props: ContentEditorProps) {
     if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
       if (!valid && expectedPrefix !== null) {
-        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
+        setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
         return;
       }
     }
@@ -299,11 +299,11 @@ export function ContentEditor(props: ContentEditorProps) {
   // Validate title on change
   React.useEffect(() => {
     if (title.length === 0) {
-      setTitleError(showTitleValidation ? t("Editor.Title is required") : null);
+      setTitleError(showTitleValidation ? t("ContentEditor.Title is required") : null);
       return;
     }
     if (title.length > 200) {
-      setTitleError(t("Editor.Title must be at most 200 characters"));
+      setTitleError(t("ContentEditor.Title must be at most 200 characters"));
       return;
     }
     setTitleError(null);
@@ -313,7 +313,7 @@ export function ContentEditor(props: ContentEditorProps) {
   React.useEffect(() => {
     const result = optionalUrlSchema.safeParse(storyPictureUri);
     if (!result.success) {
-      setStoryPictureUriError(t("Editor.Invalid URI"));
+      setStoryPictureUriError(t("ContentEditor.Invalid URI"));
       return;
     }
 
@@ -323,7 +323,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
         setStoryPictureUriError(
-          t("Editor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
+          t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
         );
         return;
       }
@@ -398,7 +398,7 @@ export function ContentEditor(props: ContentEditorProps) {
     if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
       if (!valid && expectedPrefix !== null) {
-        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
+        setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
         return;
       }
     }
@@ -409,7 +409,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
         setStoryPictureUriError(
-          t("Editor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
+          t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
         );
         return;
       }
@@ -447,7 +447,7 @@ export function ContentEditor(props: ContentEditorProps) {
     if (shouldValidateSlugDatePrefix) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, effectivePublishedAt);
       if (!valid && expectedPrefix !== null) {
-        setSlugError(t("Editor.Slug must start with") + ` ${expectedPrefix}`);
+        setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
         return;
       }
     }
@@ -458,7 +458,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
         setStoryPictureUriError(
-          t("Editor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
+          t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
         );
         return;
       }
@@ -555,8 +555,8 @@ export function ContentEditor(props: ContentEditorProps) {
           </Link>
           <h1 className="text-lg font-semibold">
             {isNew
-              ? t(contentType === "story" ? "Editor.New Story" : "Editor.New Page")
-              : t(contentType === "story" ? "Editor.Edit Story" : "Editor.Edit Page")}
+              ? t(contentType === "story" ? "ContentEditor.New Story" : "ContentEditor.New Page")
+              : t(contentType === "story" ? "ContentEditor.Edit Story" : "ContentEditor.Edit Page")}
           </h1>
         </div>
 
@@ -584,13 +584,13 @@ export function ContentEditor(props: ContentEditorProps) {
         >
           <div className={styles.sidebarHeader}>
             <span className={cn(styles.sidebarTitle, sidebarCollapsed && "hidden")}>
-              {t("Editor.Metadata")}
+              {t("ContentEditor.Metadata")}
             </span>
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              title={sidebarCollapsed ? t("Editor.Expand sidebar") : t("Editor.Collapse sidebar")}
+              title={sidebarCollapsed ? t("ContentEditor.Expand sidebar") : t("ContentEditor.Collapse sidebar")}
             >
               {sidebarCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
             </Button>
@@ -602,7 +602,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {contentType === "story" && (
                 <Field className={styles.metadataField}>
                   <FieldLabel htmlFor="kind" className={styles.metadataLabel}>
-                    {t("Editor.Published At")}
+                    {t("ContentEditor.Published At")}
                   </FieldLabel>
                   <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)}>
                     <SelectTrigger id="kind">
@@ -615,7 +615,7 @@ export function ContentEditor(props: ContentEditorProps) {
                         {kind === "presentation" && <Presentation className="size-4" />}
                         {kind === "article" && t("Stories.Article")}
                         {kind === "announcement" && t("Stories.Announcement")}
-                        {kind === "news" && t("Editor.News")}
+                        {kind === "news" && t("ContentEditor.News")}
                         {kind === "status" && t("Stories.Status")}
                         {kind === "content" && t("Stories.Content")}
                         {kind === "presentation" && t("Stories.Presentation")}
@@ -637,7 +637,7 @@ export function ContentEditor(props: ContentEditorProps) {
                       <SelectItem value="news">
                         <span className="flex items-center gap-2">
                           <Newspaper className="size-4" />
-                          {t("Editor.News")}
+                          {t("ContentEditor.News")}
                         </span>
                       </SelectItem>
                       <SelectItem value="status">
@@ -667,7 +667,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {(status === "published" || isAdmin) && (
                 <Field className={styles.metadataField}>
                   <FieldLabel htmlFor="published-at" className={styles.metadataLabel}>
-                    {t("Editor.Published At")}
+                    {t("ContentEditor.Published At")}
                   </FieldLabel>
                   <Input
                     id="published-at"
@@ -683,7 +683,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {isAdmin && contentType === "story" && (
                 <Field className={styles.metadataField} orientation="horizontal">
                   <FieldLabel htmlFor="is-featured" className={styles.metadataLabel}>
-                    {t("Editor.Featured")}
+                    {t("ContentEditor.Featured")}
                   </FieldLabel>
                   <Switch
                     id="is-featured"
@@ -696,7 +696,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {/* Title */}
               <Field className={styles.metadataField} data-invalid={titleError !== null || undefined}>
                 <FieldLabel htmlFor="title" className={styles.metadataLabel}>
-                  {t("Editor.Title")}
+                  {t("ContentEditor.Title")}
                 </FieldLabel>
                 <Input
                   id="title"
@@ -709,7 +709,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     setTitleTouched(true);
                     generateSlugFromTitle();
                   }}
-                  placeholder={t("Editor.Enter title...")}
+                  placeholder={t("ContentEditor.Enter title...")}
                   aria-invalid={titleError !== null || undefined}
                 />
                 {titleError !== null && <FieldError>{titleError}</FieldError>}
@@ -718,13 +718,13 @@ export function ContentEditor(props: ContentEditorProps) {
               {/* Summary */}
               <Field className={styles.metadataField}>
                 <FieldLabel htmlFor="summary" className={styles.metadataLabel}>
-                  {t("Editor.Summary")}
+                  {t("ContentEditor.Summary")}
                 </FieldLabel>
                 <Textarea
                   id="summary"
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
-                  placeholder={t("Editor.Brief summary...")}
+                  placeholder={t("ContentEditor.Brief summary...")}
                   className="min-h-[80px]"
                 />
               </Field>
@@ -736,7 +736,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
               >
                 <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
-                  {t("Editor.Slug")}
+                  {t("ContentEditor.Slug")}
                 </FieldLabel>
                 <div className="relative">
                   <Input
@@ -750,7 +750,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     onBlur={() => {
                       if (!showSlugValidation) setShowSlugValidation(true);
                     }}
-                    placeholder={t("Editor.url-friendly-slug")}
+                    placeholder={t("ContentEditor.url-friendly-slug")}
                     aria-invalid={(showSlugValidation && slugError !== null) ||
                       (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
                     className="pr-8"
@@ -796,7 +796,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     variant="outline"
                     size="icon"
                     onClick={() => setShowStoryPictureModal(true)}
-                    title={t("Editor.Upload")}
+                    title={t("ContentEditor.Upload")}
                   >
                     <Upload className="size-4" />
                   </Button>
@@ -809,7 +809,7 @@ export function ContentEditor(props: ContentEditorProps) {
                         type="button"
                         variant="outline"
                         size="icon"
-                        title={t("CoverGenerator.Design Cover")}
+                        title={t("CoverDesigner.Design Cover")}
                       >
                         <ImagePlus className="size-4" />
                       </Button>
@@ -847,7 +847,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     <MarkdownEditor
                       value={content}
                       onChange={setContent}
-                      placeholder={t("Editor.Write your content in markdown...")}
+                      placeholder={t("ContentEditor.Write your content in markdown...")}
                     />
                   </div>
                 </ResizablePanel>
@@ -866,7 +866,7 @@ export function ContentEditor(props: ContentEditorProps) {
                 <MarkdownEditor
                   value={content}
                   onChange={setContent}
-                  placeholder={t("Editor.Write your content in markdown...")}
+                  placeholder={t("ContentEditor.Write your content in markdown...")}
                 />
               </div>
             )}

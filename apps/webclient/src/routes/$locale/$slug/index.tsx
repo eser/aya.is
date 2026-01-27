@@ -44,7 +44,7 @@ function ProfileIndexPage() {
           >
             <Button variant="default" size="sm">
               <Plus className="mr-1.5 size-4" />
-              {t("Editor.Add Story")}
+              {t("ContentEditor.Add Story")}
             </Button>
           </Link>
         )}

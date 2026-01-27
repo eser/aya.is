@@ -124,7 +124,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
             return (
               <Field data-invalid={hasError || undefined}>
                 <FieldLabel htmlFor={field.name}>
-                  {t("Profile.Pronouns")}
+                  {t("Common.Pronouns")}
                 </FieldLabel>
                 <Input
                   id={field.name}

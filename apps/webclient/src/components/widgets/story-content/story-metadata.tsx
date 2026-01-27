@@ -27,7 +27,7 @@ export function StoryMetadata(props: StoryMetadataProps) {
     <div className="flex flex-row gap-3 sm:gap-6 mb-8 pb-6 border-b border-border">
       <div className="flex flex-row items-center gap-1 sm:gap-2">
         <span className="text-sm font-medium text-muted-foreground">
-          {t("StoryPage.Published on")}:
+          {t("Stories.Published on")}:
         </span>
         <time
           dateTime={props.story.created_at}
@@ -39,10 +39,10 @@ export function StoryMetadata(props: StoryMetadataProps) {
 
       <div className="flex flex-row items-center gap-1 sm:gap-2">
         <span className="text-sm font-medium text-muted-foreground">
-          {t("StoryPage.Reading time")}:
+          {t("Stories.Reading time")}:
         </span>
         <span className="text-sm text-foreground">
-          {readingTime} {t("StoryPage.min read")}
+          {readingTime} {t("Stories.min read")}
         </span>
       </div>
 
@@ -54,7 +54,7 @@ export function StoryMetadata(props: StoryMetadataProps) {
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors !no-underline hover:!no-underline"
             >
               <PencilLine className="size-3.5" />
-              {t("Editor.Edit Story")}
+              {t("ContentEditor.Edit Story")}
             </Link>
           )}
         </div>

@@ -739,7 +739,7 @@ function LinksSettingsPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {t("Profile.Cancel")}
+              {t("Common.Cancel")}
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving
@@ -756,15 +756,15 @@ function LinksSettingsPage() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("Profile.Delete")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("Common.Delete")}</AlertDialogTitle>
             <AlertDialogDescription>
               {t("Profile.Are you sure you want to delete this link?")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Profile.Cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>
-              {t("Profile.Delete")}
+              {t("Common.Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -858,7 +858,7 @@ function LinksSettingsPage() {
               }}
               disabled={isConnectingAccount}
             >
-              {t("Profile.Cancel")}
+              {t("Common.Cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

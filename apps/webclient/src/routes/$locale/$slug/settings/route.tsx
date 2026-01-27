@@ -50,7 +50,7 @@ function SettingsLayout() {
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
       <div className="space-y-6">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-foreground">{t("Profile.Settings")}</h2>
+          <h2 className="font-serif text-2xl font-bold text-foreground">{t("Common.Settings")}</h2>
           <p className="text-muted-foreground">
             {t(
               "Profile.Manage your profile information, links, and preferences.",
@@ -68,7 +68,7 @@ function SettingsLayout() {
                 "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
             }}
           >
-            {t("Profile.General")}
+            {t("Common.General")}
           </LocaleLink>
           <LocaleLink
             to={`/${params.slug}/settings/pages`}
@@ -108,7 +108,7 @@ function SettingsLayout() {
                 "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
             }}
           >
-            {t("Profile.Points")}
+            {t("Common.Points")}
           </LocaleLink>
         </nav>
 

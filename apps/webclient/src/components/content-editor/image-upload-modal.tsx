@@ -68,10 +68,10 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return t("Editor.Please select a valid image file");
+      return t("ContentEditor.Please select a valid image file");
     }
     if (file.size > MAX_FILE_SIZE) {
-      return t("Editor.File size must be less than 50MB");
+      return t("ContentEditor.File size must be less than 50MB");
     }
     return null;
   };
@@ -131,7 +131,7 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
       if (presignResponse === null) {
         setUploadState({
           status: "error",
-          message: t("Editor.Failed to get upload URL"),
+          message: t("ContentEditor.Failed to get upload URL"),
         });
         return;
       }
@@ -148,7 +148,7 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
       if (!uploadSuccess) {
         setUploadState({
           status: "error",
-          message: t("Editor.Failed to upload file"),
+          message: t("ContentEditor.Failed to upload file"),
         });
         return;
       }
@@ -157,7 +157,7 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
     } catch {
       setUploadState({
         status: "error",
-        message: t("Editor.An unexpected error occurred"),
+        message: t("ContentEditor.An unexpected error occurred"),
       });
     }
   };
@@ -182,9 +182,9 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("Editor.Insert Image")}</DialogTitle>
+          <DialogTitle>{t("ContentEditor.Insert Image")}</DialogTitle>
           <DialogDescription>
-            {t("Editor.Upload an image")}
+            {t("ContentEditor.Upload an image")}
           </DialogDescription>
         </DialogHeader>
 
@@ -202,10 +202,10 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
             >
               <Upload className="mb-2 size-8 text-muted-foreground" />
               <p className="text-sm font-medium">
-                {t("Editor.Drop an image here or click to browse")}
+                {t("ContentEditor.Drop an image here or click to browse")}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t("Editor.JPEG, PNG, GIF, or WebP up to 50MB")}
+                {t("ContentEditor.JPEG, PNG, GIF, or WebP up to 50MB")}
               </p>
               <input
                 ref={fileInputRef}
@@ -234,15 +234,15 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
               </div>
 
               <Field>
-                <FieldLabel htmlFor="alt-text">{t("Editor.Alt Text")}</FieldLabel>
+                <FieldLabel htmlFor="alt-text">{t("ContentEditor.Alt Text")}</FieldLabel>
                 <Input
                   id="alt-text"
                   value={altText}
                   onChange={(e) => setAltText(e.target.value)}
-                  placeholder={t("Editor.Describe the image...")}
+                  placeholder={t("ContentEditor.Describe the image...")}
                 />
                 <FieldDescription>
-                  {t("Editor.Alt text helps with accessibility and SEO")}
+                  {t("ContentEditor.Alt text helps with accessibility and SEO")}
                 </FieldDescription>
               </Field>
             </div>
@@ -255,24 +255,24 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
           {uploadState.status === "uploading" && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
-              {t("Editor.Uploading...")}
+              {t("ContentEditor.Uploading...")}
             </div>
           )}
 
           {uploadState.status === "success" && (
             <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
               <ImageIcon className="size-4" />
-              {t("Editor.Image uploaded successfully")}
+              {t("ContentEditor.Image uploaded successfully")}
             </div>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            {t("Editor.Cancel")}
+            {t("ContentEditor.Cancel")}
           </Button>
           {uploadState.status === "success" ? (
-            <Button onClick={handleInsert}>{t("Editor.Insert")}</Button>
+            <Button onClick={handleInsert}>{t("ContentEditor.Insert")}</Button>
           ) : (
             <Button
               onClick={handleUpload}
@@ -283,12 +283,12 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
               {uploadState.status === "uploading" ? (
                 <>
                   <Loader2 className="mr-1.5 size-4 animate-spin" />
-                  {t("Editor.Uploading...")}
+                  {t("ContentEditor.Uploading...")}
                 </>
               ) : (
                 <>
                   <Upload className="mr-1.5 size-4" />
-                  {t("Editor.Upload")}
+                  {t("ContentEditor.Upload")}
                 </>
               )}
             </Button>

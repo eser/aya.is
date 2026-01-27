@@ -150,11 +150,11 @@ function AdminPointsDashboard() {
   const getStatusLabel = (statusValue: PendingAwardStatus) => {
     switch (statusValue) {
       case "pending":
-        return t("Admin.Pending");
+        return t("Common.Pending");
       case "approved":
-        return t("Admin.Approved");
+        return t("Common.Approved");
       case "rejected":
-        return t("Admin.Rejected");
+        return t("Common.Rejected");
       default:
         return statusValue;
     }
@@ -163,15 +163,15 @@ function AdminPointsDashboard() {
   const getStatusBadge = (awardStatus: PendingAwardStatus) => {
     switch (awardStatus) {
       case "pending":
-        return <Badge variant="secondary">{t("Admin.Pending")}</Badge>;
+        return <Badge variant="secondary">{t("Common.Pending")}</Badge>;
       case "approved":
         return (
           <Badge variant="default" className="bg-green-500">
-            {t("Admin.Approved")}
+            {t("Common.Approved")}
           </Badge>
         );
       case "rejected":
-        return <Badge variant="destructive">{t("Admin.Rejected")}</Badge>;
+        return <Badge variant="destructive">{t("Common.Rejected")}</Badge>;
       default:
         return null;
     }
@@ -297,9 +297,9 @@ function AdminPointsDashboard() {
               <SelectValue>{getStatusLabel(status)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="pending">{t("Admin.Pending")}</SelectItem>
-              <SelectItem value="approved">{t("Admin.Approved")}</SelectItem>
-              <SelectItem value="rejected">{t("Admin.Rejected")}</SelectItem>
+              <SelectItem value="pending">{t("Common.Pending")}</SelectItem>
+              <SelectItem value="approved">{t("Common.Approved")}</SelectItem>
+              <SelectItem value="rejected">{t("Common.Rejected")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -307,7 +307,7 @@ function AdminPointsDashboard() {
         {status === "pending" && selectedIds.size > 0 && (
           <div className="flex items-center justify-between p-3 bg-muted rounded-md">
             <span className="text-sm text-muted-foreground">
-              {t("Admin.Selected")}: {selectedIds.size}
+              {t("Common.Selected")}: {selectedIds.size}
             </span>
             <div className="flex gap-2">
               <Button
@@ -360,11 +360,11 @@ function AdminPointsDashboard() {
                 )}
                 <TableHead>{t("Admin.Event")}</TableHead>
                 <TableHead>{t("Admin.Profile")}</TableHead>
-                <TableHead>{t("Admin.Amount")}</TableHead>
-                <TableHead>{t("Admin.Date")}</TableHead>
-                <TableHead>{t("Admin.Status")}</TableHead>
+                <TableHead>{t("Common.Amount")}</TableHead>
+                <TableHead>{t("Common.Date")}</TableHead>
+                <TableHead>{t("Common.Status")}</TableHead>
                 {status === "pending" && (
-                  <TableHead className="text-right">{t("Admin.Actions")}</TableHead>
+                  <TableHead className="text-right">{t("Common.Actions")}</TableHead>
                 )}
               </TableRow>
             </TableHeader>

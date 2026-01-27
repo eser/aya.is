@@ -125,13 +125,13 @@ function StoryCoverPage() {
         <div className={styles.accessDenied}>
           <ShieldX className={styles.accessDeniedIcon} />
           <h2 className={styles.accessDeniedTitle}>
-            {t("CoverGenerator.Access Denied")}
+            {t("CoverDesigner.Access Denied")}
           </h2>
           <p className={styles.accessDeniedMessage}>
-            {t("CoverGenerator.You don't have permission to generate covers for this story.")}
+            {t("CoverDesigner.You don't have permission to generate covers for this story.")}
           </p>
           <Button variant="outline" onClick={handleBack}>
-            {t("CoverGenerator.Back to Story")}
+            {t("CoverDesigner.Back to Story")}
           </Button>
         </div>
       </PageLayout>

@@ -102,13 +102,13 @@ export function CoverGenerator(props: CoverGeneratorProps) {
   // Handle download PNG
   const handleDownloadPng = () => {
     if (canvasRef.current === null) {
-      toast.error(t("CoverGenerator.Failed to generate image"));
+      toast.error(t("CoverDesigner.Failed to generate image"));
       return;
     }
 
     const filename = `${story.slug ?? "cover"}-cover.png`;
     downloadCanvas(canvasRef.current, filename);
-    toast.success(t("CoverGenerator.Cover downloaded"));
+    toast.success(t("CoverDesigner.Cover downloaded"));
   };
 
   // Handle download SVG
@@ -116,18 +116,18 @@ export function CoverGenerator(props: CoverGeneratorProps) {
     const svgContent = renderCoverSvg(storyData, options, authorImageDataUrl);
     const filename = `${story.slug ?? "cover"}-cover.svg`;
     downloadSvg(svgContent, filename);
-    toast.success(t("CoverGenerator.Cover downloaded"));
+    toast.success(t("CoverDesigner.Cover downloaded"));
   };
 
   // Handle set as cover
   const handleSetAsCover = async () => {
     if (canvasRef.current === null) {
-      toast.error(t("CoverGenerator.Failed to generate image"));
+      toast.error(t("CoverDesigner.Failed to generate image"));
       return;
     }
 
     if (story.author_profile === null) {
-      toast.error(t("CoverGenerator.Story has no author"));
+      toast.error(t("CoverDesigner.Story has no author"));
       return;
     }
 
@@ -142,7 +142,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
       );
 
       if (!result.success || result.publicUrl === undefined) {
-        toast.error(result.error ?? t("CoverGenerator.Failed to upload image"));
+        toast.error(result.error ?? t("CoverDesigner.Failed to upload image"));
         return;
       }
 
@@ -155,14 +155,14 @@ export function CoverGenerator(props: CoverGeneratorProps) {
       );
 
       if (updateResult === null) {
-        toast.error(t("CoverGenerator.Failed to update story"));
+        toast.error(t("CoverDesigner.Failed to update story"));
         return;
       }
 
-      toast.success(t("CoverGenerator.Cover set successfully"));
+      toast.success(t("CoverDesigner.Cover set successfully"));
       props.onCoverSet?.(result.publicUrl);
     } catch {
-      toast.error(t("CoverGenerator.An error occurred"));
+      toast.error(t("CoverDesigner.An error occurred"));
     } finally {
       setIsUploading(false);
     }
@@ -178,23 +178,23 @@ export function CoverGenerator(props: CoverGeneratorProps) {
               <ArrowLeft className="size-4" />
             </Button>
           )}
-          <h1 className={styles.title}>{t("CoverGenerator.Design Cover")}</h1>
+          <h1 className={styles.title}>{t("CoverDesigner.Design Cover")}</h1>
         </div>
         <div className={styles.headerActions}>
           <DropdownMenu>
             <DropdownMenuTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
               <Download className="size-4" />
-              {t("CoverGenerator.Download")}
+              {t("CoverDesigner.Download")}
               <ChevronDown className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleDownloadPng}>
                 <FileImage className="size-4" />
-                {t("CoverGenerator.Download PNG")}
+                {t("CoverDesigner.Download PNG")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleDownloadSvg}>
                 <FileCode className="size-4" />
-                {t("CoverGenerator.Download SVG")}
+                {t("CoverDesigner.Download SVG")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -204,7 +204,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
             ) : (
               <ImagePlus className="mr-2 size-4" />
             )}
-            {t("CoverGenerator.Set as Cover")}
+            {t("CoverDesigner.Set as Cover")}
           </Button>
         </div>
       </div>

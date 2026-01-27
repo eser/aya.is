@@ -91,7 +91,7 @@ function ProfileCustomPage() {
           >
             <Button variant="outline" size="sm">
               <SquarePen className="mr-1.5 size-4" />
-              {t("Editor.Edit Page")}
+              {t("ContentEditor.Edit Page")}
             </Button>
           </Link>
         )}

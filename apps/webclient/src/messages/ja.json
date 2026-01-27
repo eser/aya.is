@@ -1,4 +1,40 @@
 {
+  "Common": {
+    "Coming soon": "近日公開",
+    "Back": "戻る",
+    "Title": "タイトル",
+    "Description": "説明",
+    "Slug": "スラッグ",
+    "Status": "ステータス",
+    "Delete": "削除",
+    "Cancel": "キャンセル",
+    "Edit": "編集",
+    "Save": "保存",
+    "View": "表示",
+    "Previous": "前へ",
+    "Next": "次へ",
+    "Page": "ページ",
+    "Kind": "種類",
+    "Points": "ポイント",
+    "Individual": "個人",
+    "Organization": "組織",
+    "Product": "製品",
+    "General": "一般",
+    "Selected": "選択済み",
+    "Pending": "保留中",
+    "Actions": "アクション",
+    "Amount": "金額",
+    "Date": "日付",
+    "Type": "タイプ",
+    "ID": "ID",
+    "Created": "作成日",
+    "Pronouns": "代名詞",
+    "Overview": "概要",
+    "Dashboard": "ダッシュボード",
+    "Approved": "承認済み",
+    "Rejected": "却下",
+    "Settings": "設定"
+  },
   "Layout": {
     "Homepage": "ホームページ",
     "Elements": "要素",
@@ -21,7 +57,10 @@
     "An error occurred": "エラーが発生しました",
     "Page not found": "ページが見つかりません",
     "The page you are looking for does not exist. Please check your spelling and try again.": "お探しのページは存在しません。ご確認の上、再度お試しください。",
-    "Dismiss": "閉じる"
+    "Dismiss": "閉じる",
+    "Development": "開発",
+    "Use default data source": "デフォルトのデータソースを使用",
+    "Use production data source": "本番のデータソースを使用"
   },
   "Loading": {
     "Loading...": "読み込み中...",
@@ -60,20 +99,27 @@
   },
   "Stories": {
     "All": "すべて",
-    "Status": "ステータス",
     "Announcement": "お知らせ",
     "Article": "記事",
     "Content": "コンテンツ",
     "Presentation": "プレゼンテーション",
-    "Written by": "作成者",
-    "Publications": "出版物"
+    "Written by": "著者",
+    "Publications": "出版物",
+    "Reading time": "読書時間",
+    "min read": "分で読める",
+    "Published on": "公開日",
+    "Share": "シェア",
+    "Copy link": "リンクをコピー",
+    "Share on WhatsApp": "WhatsAppでシェア",
+    "Share on Telegram": "Telegramでシェア",
+    "Share on LinkedIn": "LinkedInでシェア",
+    "Share on Reddit": "Redditでシェア",
+    "Share on X": "Xでシェア",
+    "Download Markdown": "Markdownをダウンロード"
   },
   "Pagination": {
-    "Previous": "前へ",
-    "Next": "次へ",
-    "Page": "ページ",
-    "of": "/",
-    "Go to page": "ページに移動"
+    "Go to page": "ページに移動",
+    "of": "/"
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "オープンソースプロジェクトと組織のコレクションです。",
@@ -132,10 +178,8 @@
     "You do not have permission to edit this profile.": "You do not have permission to edit this profile.",
     "Back to Profile": "Back to Profile",
     "Checking permissions...": "Checking permissions...",
-    "Settings": "Settings",
     "Profile Settings": "Profile Settings",
     "Profile": "Profile",
-    "General": "General",
     "Translations": "Translations",
     "Social Links": "Social Links",
     "Custom Pages": "Custom Pages",
@@ -145,7 +189,6 @@
     "Available Languages": "Available Languages",
     "Languages with existing translations are highlighted.": "Languages with existing translations are highlighted.",
     "Translated": "Translated",
-    "Selected": "Selected",
     "Edit Translation": "Edit Translation",
     "Update the title and description for this language.": "Update the title and description for this language.",
     "Copy from existing translation:": "Copy from existing translation:",
@@ -163,8 +206,6 @@
     "No links added yet.": "No links added yet.",
     "Add Your First Link": "Add Your First Link",
     "Hidden": "Hidden",
-    "Edit": "Edit",
-    "Delete": "Delete",
     "Edit Link": "Edit Link",
     "Add New Link": "Add New Link",
     "Configure your social media link or website.": "Configure your social media link or website.",
@@ -177,7 +218,6 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
-    "Cancel": "Cancel",
     "Saving...": "Saving...",
     "Update Link": "Update Link",
     "Failed to load profile links": "Failed to load profile links",
@@ -198,26 +238,7 @@
     "Individuals and organizations that are members of this profile.": "このプロフィールのメンバーである個人および組織。",
     "No members found.": "メンバーが見つかりませんでした。"
   },
-  "StoryPage": {
-    "Written by": "著者",
-    "Reading time": "読書時間",
-    "min read": "分で読める",
-    "Published on": "公開日",
-    "Share": "シェア",
-    "Copy link": "リンクをコピー",
-    "Share on WhatsApp": "WhatsAppでシェア",
-    "Share on Telegram": "Telegramでシェア",
-    "Share on LinkedIn": "LinkedInでシェア",
-    "Share on Reddit": "Redditでシェア",
-    "Share on X": "Xでシェア",
-    "Download Markdown": "Markdownをダウンロード"
-  },
-  "Development": {
-    "Development": "開発",
-    "Use default data source": "デフォルトのデータソースを使用",
-    "Use production data source": "本番のデータソースを使用"
-  },
-  "Editor": {
+  "ContentEditor": {
     "Slug must start with": "スラッグは次で始まる必要があります",
     "Slug is required": "スラッグは必須です",
     "Slug must be at least 2 characters": "スラッグは2文字以上である必要があります",
@@ -230,9 +251,8 @@
     "Title must be at most 200 characters": "タイトルは200文字以下である必要があります",
     "Invalid URI": "無効なURI"
   },
-  "CoverGenerator": {
+  "CoverDesigner": {
     "Design Cover": "カバーをデザイン",
-    "Back": "戻る",
     "Download": "ダウンロード",
     "Set as Cover": "カバーに設定",
     "Templates": "テンプレート",

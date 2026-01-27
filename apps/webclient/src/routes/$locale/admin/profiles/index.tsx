@@ -82,11 +82,11 @@ function AdminProfiles() {
   const getKindLabel = (kindValue: ProfileKind) => {
     switch (kindValue) {
       case "individual":
-        return t("Admin.Individual");
+        return t("Common.Individual");
       case "organization":
-        return t("Admin.Organization");
+        return t("Common.Organization");
       case "product":
-        return t("Admin.Product");
+        return t("Common.Product");
       default:
         return t("Admin.All Kinds");
     }
@@ -95,13 +95,13 @@ function AdminProfiles() {
   const getKindBadge = (profileKind: string) => {
     switch (profileKind) {
       case "individual":
-        return <Badge variant="secondary">{t("Admin.Individual")}</Badge>;
+        return <Badge variant="secondary">{t("Common.Individual")}</Badge>;
       case "organization":
-        return <Badge variant="default">{t("Admin.Organization")}</Badge>;
+        return <Badge variant="default">{t("Common.Organization")}</Badge>;
       case "product":
         return (
           <Badge variant="outline" className="border-blue-500 text-blue-500">
-            {t("Admin.Product")}
+            {t("Common.Product")}
           </Badge>
         );
       default:
@@ -137,11 +137,11 @@ function AdminProfiles() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">{t("Admin.All Kinds")}</SelectItem>
-            <SelectItem value="individual">{t("Admin.Individual")}</SelectItem>
+            <SelectItem value="individual">{t("Common.Individual")}</SelectItem>
             <SelectItem value="organization">
-              {t("Admin.Organization")}
+              {t("Common.Organization")}
             </SelectItem>
-            <SelectItem value="product">{t("Admin.Product")}</SelectItem>
+            <SelectItem value="product">{t("Common.Product")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -156,11 +156,11 @@ function AdminProfiles() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12"></TableHead>
-                <TableHead>{t("Admin.Title")}</TableHead>
-                <TableHead>{t("Admin.Slug")}</TableHead>
-                <TableHead>{t("Admin.Kind")}</TableHead>
-                <TableHead className="text-right">{t("Admin.Points")}</TableHead>
-                <TableHead>{t("Admin.Created")}</TableHead>
+                <TableHead>{t("Common.Title")}</TableHead>
+                <TableHead>{t("Common.Slug")}</TableHead>
+                <TableHead>{t("Common.Kind")}</TableHead>
+                <TableHead className="text-right">{t("Common.Points")}</TableHead>
+                <TableHead>{t("Common.Created")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -207,7 +207,7 @@ function AdminProfiles() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t pt-4">
               <div className="text-sm text-muted-foreground">
-                {t("Admin.Page")} {currentPage} / {totalPages}
+                {t("Common.Page")} {currentPage} / {totalPages}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -217,7 +217,7 @@ function AdminProfiles() {
                   disabled={offset === 0}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  {t("Admin.Previous")}
+                  {t("Common.Previous")}
                 </Button>
                 <Button
                   variant="outline"
@@ -225,7 +225,7 @@ function AdminProfiles() {
                   onClick={handleNextPage}
                   disabled={offset + limit >= total}
                 >
-                  {t("Admin.Next")}
+                  {t("Common.Next")}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>

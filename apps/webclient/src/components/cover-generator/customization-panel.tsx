@@ -58,36 +58,36 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
       <Accordion type="multiple" defaultValue={["colors", "content"]} className="w-full">
         {/* Colors Section */}
         <AccordionItem value="colors">
-          <AccordionTrigger>{t("CoverGenerator.Colors")}</AccordionTrigger>
+          <AccordionTrigger>{t("CoverDesigner.Colors")}</AccordionTrigger>
           <AccordionContent>
             <div className={styles.optionsGrid}>
               {/* Theme Preset */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Theme Preset")}</Label>
+                <Label>{t("CoverDesigner.Theme Preset")}</Label>
                 <Select
                   value={options.themePreset}
                   onValueChange={(value) => handleThemeChange(value as ThemePreset)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue>
-                      {options.themePreset === "light" && t("CoverGenerator.Light")}
-                      {options.themePreset === "dark" && t("CoverGenerator.Dark")}
-                      {options.themePreset === "brand" && t("CoverGenerator.Brand")}
-                      {options.themePreset === "custom" && t("CoverGenerator.Custom")}
+                      {options.themePreset === "light" && t("CoverDesigner.Light")}
+                      {options.themePreset === "dark" && t("CoverDesigner.Dark")}
+                      {options.themePreset === "brand" && t("CoverDesigner.Brand")}
+                      {options.themePreset === "custom" && t("CoverDesigner.Custom")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">{t("CoverGenerator.Light")}</SelectItem>
-                    <SelectItem value="dark">{t("CoverGenerator.Dark")}</SelectItem>
-                    <SelectItem value="brand">{t("CoverGenerator.Brand")}</SelectItem>
-                    <SelectItem value="custom">{t("CoverGenerator.Custom")}</SelectItem>
+                    <SelectItem value="light">{t("CoverDesigner.Light")}</SelectItem>
+                    <SelectItem value="dark">{t("CoverDesigner.Dark")}</SelectItem>
+                    <SelectItem value="brand">{t("CoverDesigner.Brand")}</SelectItem>
+                    <SelectItem value="custom">{t("CoverDesigner.Custom")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Background Color */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Background Color")}</Label>
+                <Label>{t("CoverDesigner.Background Color")}</Label>
                 <div className={styles.colorInputWrapper}>
                   <input
                     type="color"
@@ -105,7 +105,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Accent Color */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Accent Color")}</Label>
+                <Label>{t("CoverDesigner.Accent Color")}</Label>
                 <div className={styles.colorInputWrapper}>
                   <input
                     type="color"
@@ -123,7 +123,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Text Color */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Text Color")}</Label>
+                <Label>{t("CoverDesigner.Text Color")}</Label>
                 <div className={styles.colorInputWrapper}>
                   <input
                     type="color"
@@ -144,12 +144,12 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
         {/* Typography Section */}
         <AccordionItem value="typography">
-          <AccordionTrigger>{t("CoverGenerator.Typography")}</AccordionTrigger>
+          <AccordionTrigger>{t("CoverDesigner.Typography")}</AccordionTrigger>
           <AccordionContent>
             <div className={styles.optionsGrid}>
               {/* Heading Font */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Heading Font")}</Label>
+                <Label>{t("CoverDesigner.Heading Font")}</Label>
                 <Select
                   value={options.headingFont}
                   onValueChange={(value) => onChange({ headingFont: value as FontFamily })}
@@ -171,7 +171,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Body Font */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Body Font")}</Label>
+                <Label>{t("CoverDesigner.Body Font")}</Label>
                 <Select
                   value={options.bodyFont}
                   onValueChange={(value) => onChange({ bodyFont: value as FontFamily })}
@@ -193,7 +193,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Title Size */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Title Size")}: {options.titleSize}%</Label>
+                <Label>{t("CoverDesigner.Title Size")}: {options.titleSize}%</Label>
                 <Slider
                   className="w-full"
                   value={[options.titleSize]}
@@ -206,7 +206,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Line Spacing */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Line Spacing")}: {options.lineSpacing}%</Label>
+                <Label>{t("CoverDesigner.Line Spacing")}: {options.lineSpacing}%</Label>
                 <Slider
                   className="w-full"
                   value={[options.lineSpacing]}
@@ -219,7 +219,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Line Height */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Line Height")}: {options.lineHeight}%</Label>
+                <Label>{t("CoverDesigner.Line Height")}: {options.lineHeight}%</Label>
                 <Slider
                   className="w-full"
                   value={[options.lineHeight]}
@@ -235,32 +235,32 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
         {/* Content Section */}
         <AccordionItem value="content">
-          <AccordionTrigger>{t("CoverGenerator.Content")}</AccordionTrigger>
+          <AccordionTrigger>{t("CoverDesigner.Content")}</AccordionTrigger>
           <AccordionContent>
             <div className={styles.optionsGrid}>
               {/* Title Override */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Title Override")}</Label>
+                <Label>{t("CoverDesigner.Title Override")}</Label>
                 <Input
                   value={options.titleOverride}
                   onChange={(e) => onChange({ titleOverride: e.target.value })}
-                  placeholder={t("CoverGenerator.Leave empty for default")}
+                  placeholder={t("CoverDesigner.Leave empty for default")}
                 />
               </div>
 
               {/* Subtitle Override */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Subtitle Override")}</Label>
+                <Label>{t("CoverDesigner.Subtitle Override")}</Label>
                 <Input
                   value={options.subtitleOverride}
                   onChange={(e) => onChange({ subtitleOverride: e.target.value })}
-                  placeholder={t("CoverGenerator.Leave empty for default")}
+                  placeholder={t("CoverDesigner.Leave empty for default")}
                 />
               </div>
 
               {/* Toggles */}
               <div className={styles.optionRowInline}>
-                <Label>{t("CoverGenerator.Show Author")}</Label>
+                <Label>{t("CoverDesigner.Show Author")}</Label>
                 <Switch
                   checked={options.showAuthor}
                   onCheckedChange={(checked) => onChange({ showAuthor: checked })}
@@ -268,7 +268,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
               </div>
 
               <div className={styles.optionRowInline}>
-                <Label>{t("CoverGenerator.Show Date")}</Label>
+                <Label>{t("CoverDesigner.Show Date")}</Label>
                 <Switch
                   checked={options.showDate}
                   onCheckedChange={(checked) => onChange({ showDate: checked })}
@@ -276,7 +276,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
               </div>
 
               <div className={styles.optionRowInline}>
-                <Label>{t("CoverGenerator.Show Story Kind")}</Label>
+                <Label>{t("CoverDesigner.Show Story Kind")}</Label>
                 <Switch
                   checked={options.showStoryKind}
                   onCheckedChange={(checked) => onChange({ showStoryKind: checked })}
@@ -288,12 +288,12 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
         {/* Branding Section */}
         <AccordionItem value="branding">
-          <AccordionTrigger>{t("CoverGenerator.Branding")}</AccordionTrigger>
+          <AccordionTrigger>{t("CoverDesigner.Branding")}</AccordionTrigger>
           <AccordionContent>
             <div className={styles.optionsGrid}>
               {/* Show Logo */}
               <div className={styles.optionRowInline}>
-                <Label>{t("CoverGenerator.Show AYA Logo")}</Label>
+                <Label>{t("CoverDesigner.Show AYA Logo")}</Label>
                 <Switch
                   checked={options.showLogo}
                   onCheckedChange={(checked) => onChange({ showLogo: checked })}
@@ -302,7 +302,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Logo Position */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Logo Position")}</Label>
+                <Label>{t("CoverDesigner.Logo Position")}</Label>
                 <Select
                   value={options.logoPosition}
                   onValueChange={(value) => onChange({ logoPosition: value as LogoPosition })}
@@ -310,24 +310,24 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue>
-                      {options.logoPosition === "top-left" && t("CoverGenerator.Top Left")}
-                      {options.logoPosition === "top-right" && t("CoverGenerator.Top Right")}
-                      {options.logoPosition === "bottom-left" && t("CoverGenerator.Bottom Left")}
-                      {options.logoPosition === "bottom-right" && t("CoverGenerator.Bottom Right")}
+                      {options.logoPosition === "top-left" && t("CoverDesigner.Top Left")}
+                      {options.logoPosition === "top-right" && t("CoverDesigner.Top Right")}
+                      {options.logoPosition === "bottom-left" && t("CoverDesigner.Bottom Left")}
+                      {options.logoPosition === "bottom-right" && t("CoverDesigner.Bottom Right")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="top-left">{t("CoverGenerator.Top Left")}</SelectItem>
-                    <SelectItem value="top-right">{t("CoverGenerator.Top Right")}</SelectItem>
-                    <SelectItem value="bottom-left">{t("CoverGenerator.Bottom Left")}</SelectItem>
-                    <SelectItem value="bottom-right">{t("CoverGenerator.Bottom Right")}</SelectItem>
+                    <SelectItem value="top-left">{t("CoverDesigner.Top Left")}</SelectItem>
+                    <SelectItem value="top-right">{t("CoverDesigner.Top Right")}</SelectItem>
+                    <SelectItem value="bottom-left">{t("CoverDesigner.Bottom Left")}</SelectItem>
+                    <SelectItem value="bottom-right">{t("CoverDesigner.Bottom Right")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Logo Opacity */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Logo Opacity")}: {options.logoOpacity}%</Label>
+                <Label>{t("CoverDesigner.Logo Opacity")}: {options.logoOpacity}%</Label>
                 <Slider
                   className="w-full"
                   value={[options.logoOpacity]}
@@ -344,12 +344,12 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
         {/* Layout Section */}
         <AccordionItem value="layout">
-          <AccordionTrigger>{t("CoverGenerator.Layout")}</AccordionTrigger>
+          <AccordionTrigger>{t("CoverDesigner.Layout")}</AccordionTrigger>
           <AccordionContent>
             <div className={styles.optionsGrid}>
               {/* Padding */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Padding")}: {options.padding}px</Label>
+                <Label>{t("CoverDesigner.Padding")}: {options.padding}px</Label>
                 <Slider
                   className="w-full"
                   value={[options.padding]}
@@ -362,7 +362,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Border Radius */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Border Radius")}: {options.borderRadius}px</Label>
+                <Label>{t("CoverDesigner.Border Radius")}: {options.borderRadius}px</Label>
                 <Slider
                   className="w-full"
                   value={[options.borderRadius]}
@@ -375,24 +375,24 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Background Pattern */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverGenerator.Background Pattern")}</Label>
+                <Label>{t("CoverDesigner.Background Pattern")}</Label>
                 <Select
                   value={options.backgroundPattern}
                   onValueChange={(value) => onChange({ backgroundPattern: value as BackgroundPattern })}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue>
-                      {options.backgroundPattern === "none" && t("CoverGenerator.None")}
-                      {options.backgroundPattern === "dots" && t("CoverGenerator.Dots")}
-                      {options.backgroundPattern === "grid" && t("CoverGenerator.Grid")}
-                      {options.backgroundPattern === "diagonal" && t("CoverGenerator.Diagonal")}
+                      {options.backgroundPattern === "none" && t("CoverDesigner.None")}
+                      {options.backgroundPattern === "dots" && t("CoverDesigner.Dots")}
+                      {options.backgroundPattern === "grid" && t("CoverDesigner.Grid")}
+                      {options.backgroundPattern === "diagonal" && t("CoverDesigner.Diagonal")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">{t("CoverGenerator.None")}</SelectItem>
-                    <SelectItem value="dots">{t("CoverGenerator.Dots")}</SelectItem>
-                    <SelectItem value="grid">{t("CoverGenerator.Grid")}</SelectItem>
-                    <SelectItem value="diagonal">{t("CoverGenerator.Diagonal")}</SelectItem>
+                    <SelectItem value="none">{t("CoverDesigner.None")}</SelectItem>
+                    <SelectItem value="dots">{t("CoverDesigner.Dots")}</SelectItem>
+                    <SelectItem value="grid">{t("CoverDesigner.Grid")}</SelectItem>
+                    <SelectItem value="diagonal">{t("CoverDesigner.Diagonal")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

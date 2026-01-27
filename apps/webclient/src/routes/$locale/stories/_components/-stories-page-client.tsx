@@ -161,7 +161,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
                   aria-disabled={currentOffset <= 0}
                   className={currentOffset <= 0 ? "pointer-events-none opacity-50" : ""}
                 >
-                  {t("Pagination.Previous")}
+                  {t("Common.Previous")}
                 </PaginationPrevious>
               </PaginationItem>
 
@@ -198,7 +198,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
                   aria-disabled={currentOffset + ITEMS_PER_PAGE >= totalStories}
                   className={currentOffset + ITEMS_PER_PAGE >= totalStories ? "pointer-events-none opacity-50" : ""}
                 >
-                  {t("Pagination.Next")}
+                  {t("Common.Next")}
                 </PaginationNext>
               </PaginationItem>
             </PaginationContent>

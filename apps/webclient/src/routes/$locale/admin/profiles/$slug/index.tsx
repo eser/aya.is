@@ -48,17 +48,17 @@ function AdminProfileGeneral() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("Admin.ID")}</Label>
+              <Label>{t("Common.ID")}</Label>
               <Input value={profile.id} readOnly className="font-mono text-sm bg-muted" />
             </div>
             <div className="space-y-2">
-              <Label>{t("Admin.Slug")}</Label>
+              <Label>{t("Common.Slug")}</Label>
               <Input value={profile.slug} readOnly className="font-mono bg-muted" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>{t("Admin.Title")}</Label>
+            <Label>{t("Common.Title")}</Label>
             <Input
               value={profile.title}
               readOnly
@@ -68,7 +68,7 @@ function AdminProfileGeneral() {
           </div>
 
           <div className="space-y-2">
-            <Label>{t("Admin.Description")}</Label>
+            <Label>{t("Common.Description")}</Label>
             <Textarea
               value={profile.description ?? ""}
               readOnly
@@ -79,25 +79,25 @@ function AdminProfileGeneral() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("Admin.Kind")}</Label>
+              <Label>{t("Common.Kind")}</Label>
               <Input value={profile.kind} readOnly className="bg-muted capitalize" />
             </div>
             <div className="space-y-2">
-              <Label>{t("Admin.Points")}</Label>
+              <Label>{t("Common.Points")}</Label>
               <Input value={profile.points.toLocaleString()} readOnly className="bg-muted" />
             </div>
           </div>
 
           {profile.pronouns !== null && profile.pronouns !== undefined && (
             <div className="space-y-2">
-              <Label>{t("Admin.Pronouns")}</Label>
+              <Label>{t("Common.Pronouns")}</Label>
               <Input value={profile.pronouns} readOnly className="bg-muted" />
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>{t("Admin.Created")}</Label>
+              <Label>{t("Common.Created")}</Label>
               <Input value={formatDate(profile.created_at)} readOnly className="bg-muted" />
             </div>
             {profile.updated_at !== null && profile.updated_at !== undefined && (

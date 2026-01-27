@@ -1,4 +1,40 @@
 {
+  "Common": {
+    "Coming soon": "Prossimamente",
+    "Back": "Indietro",
+    "Title": "Titolo",
+    "Description": "Descrizione",
+    "Slug": "Slug",
+    "Status": "Stato",
+    "Delete": "Elimina",
+    "Cancel": "Annulla",
+    "Edit": "Modifica",
+    "Save": "Salva",
+    "View": "Visualizza",
+    "Previous": "Precedente",
+    "Next": "Successivo",
+    "Page": "Pagina",
+    "Kind": "Tipo",
+    "Points": "Punti",
+    "Individual": "Individuale",
+    "Organization": "Organizzazione",
+    "Product": "Prodotto",
+    "General": "Generale",
+    "Selected": "Selezionato",
+    "Pending": "In attesa",
+    "Actions": "Azioni",
+    "Amount": "Importo",
+    "Date": "Data",
+    "Type": "Tipo",
+    "ID": "ID",
+    "Created": "Creato",
+    "Pronouns": "Pronomi",
+    "Overview": "Panoramica",
+    "Dashboard": "Dashboard",
+    "Approved": "Approvato",
+    "Rejected": "Rifiutato",
+    "Settings": "Impostazioni"
+  },
   "Layout": {
     "Homepage": "Pagina iniziale",
     "Elements": "Elementi",
@@ -21,7 +57,10 @@
     "An error occurred": "Si è verificato un errore",
     "Page not found": "Pagina non trovata",
     "The page you are looking for does not exist. Please check your spelling and try again.": "La pagina che stai cercando non esiste. Per favore, controlla la tua ortografia e prova di nuovo.",
-    "Dismiss": "Ignora"
+    "Dismiss": "Ignora",
+    "Development": "Sviluppo",
+    "Use default data source": "Usare la fonte di dati predefinita",
+    "Use production data source": "Usare la fonte di dati di produzione"
   },
   "Loading": {
     "Loading...": "Caricamento...",
@@ -60,20 +99,27 @@
   },
   "Stories": {
     "All": "Tutti",
-    "Status": "Stato",
     "Announcement": "Annuncio",
     "Article": "Articolo",
     "Content": "Contenuto",
     "Presentation": "Presentazione",
     "Written by": "Scritto da",
-    "Publications": "Pubblicazioni"
+    "Publications": "Pubblicazioni",
+    "Reading time": "Tempo di lettura",
+    "min read": "min di lettura",
+    "Published on": "Pubblicato il",
+    "Share": "Condividi",
+    "Copy link": "Copia link",
+    "Share on WhatsApp": "Condividi su WhatsApp",
+    "Share on Telegram": "Condividi su Telegram",
+    "Share on LinkedIn": "Condividi su LinkedIn",
+    "Share on Reddit": "Condividi su Reddit",
+    "Share on X": "Condividi su X",
+    "Download Markdown": "Scarica Markdown"
   },
   "Pagination": {
-    "Previous": "Precedente",
-    "Next": "Successivo",
-    "Page": "Pagina",
-    "of": "di",
-    "Go to page": "Vai alla pagina"
+    "Go to page": "Vai alla pagina",
+    "of": "di"
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "Una raccolta di progetti e organizzazioni open source.",
@@ -132,10 +178,8 @@
     "You do not have permission to edit this profile.": "You do not have permission to edit this profile.",
     "Back to Profile": "Back to Profile",
     "Checking permissions...": "Checking permissions...",
-    "Settings": "Settings",
     "Profile Settings": "Profile Settings",
     "Profile": "Profile",
-    "General": "General",
     "Translations": "Translations",
     "Social Links": "Social Links",
     "Custom Pages": "Custom Pages",
@@ -145,7 +189,6 @@
     "Available Languages": "Available Languages",
     "Languages with existing translations are highlighted.": "Languages with existing translations are highlighted.",
     "Translated": "Translated",
-    "Selected": "Selected",
     "Edit Translation": "Edit Translation",
     "Update the title and description for this language.": "Update the title and description for this language.",
     "Copy from existing translation:": "Copy from existing translation:",
@@ -163,8 +206,6 @@
     "No links added yet.": "No links added yet.",
     "Add Your First Link": "Add Your First Link",
     "Hidden": "Hidden",
-    "Edit": "Edit",
-    "Delete": "Delete",
     "Edit Link": "Edit Link",
     "Add New Link": "Add New Link",
     "Configure your social media link or website.": "Configure your social media link or website.",
@@ -177,7 +218,6 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
-    "Cancel": "Cancel",
     "Saving...": "Saving...",
     "Update Link": "Update Link",
     "Failed to load profile links": "Failed to load profile links",
@@ -198,26 +238,7 @@
     "Individuals and organizations that are members of this profile.": "Individui e organizzazioni membri di questo profilo.",
     "No members found.": "Nessun membro trovato."
   },
-  "StoryPage": {
-    "Written by": "Scritto da",
-    "Reading time": "Tempo di lettura",
-    "min read": "min di lettura",
-    "Published on": "Pubblicato il",
-    "Share": "Condividi",
-    "Copy link": "Copia link",
-    "Share on WhatsApp": "Condividi su WhatsApp",
-    "Share on Telegram": "Condividi su Telegram",
-    "Share on LinkedIn": "Condividi su LinkedIn",
-    "Share on Reddit": "Condividi su Reddit",
-    "Share on X": "Condividi su X",
-    "Download Markdown": "Scarica Markdown"
-  },
-  "Development": {
-    "Development": "Sviluppo",
-    "Use default data source": "Usare la fonte di dati predefinita",
-    "Use production data source": "Usare la fonte di dati di produzione"
-  },
-  "Editor": {
+  "ContentEditor": {
     "Slug must start with": "Lo slug deve iniziare con",
     "Slug is required": "Lo slug è obbligatorio",
     "Slug must be at least 2 characters": "Lo slug deve contenere almeno 2 caratteri",
@@ -230,9 +251,8 @@
     "Title must be at most 200 characters": "Il titolo deve contenere al massimo 200 caratteri",
     "Invalid URI": "URI non valido"
   },
-  "CoverGenerator": {
+  "CoverDesigner": {
     "Design Cover": "Progetta copertina",
-    "Back": "Indietro",
     "Download": "Scarica",
     "Set as Cover": "Imposta come copertina",
     "Templates": "Modelli",

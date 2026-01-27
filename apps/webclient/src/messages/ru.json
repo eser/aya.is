@@ -1,4 +1,40 @@
 {
+  "Common": {
+    "Coming soon": "Скоро",
+    "Back": "Назад",
+    "Title": "Заголовок",
+    "Description": "Описание",
+    "Slug": "Слаг",
+    "Status": "Статус",
+    "Delete": "Удалить",
+    "Cancel": "Отмена",
+    "Edit": "Редактировать",
+    "Save": "Сохранить",
+    "View": "Просмотр",
+    "Previous": "Предыдущая",
+    "Next": "Следующая",
+    "Page": "Страница",
+    "Kind": "Тип",
+    "Points": "Баллы",
+    "Individual": "Физическое лицо",
+    "Organization": "Организация",
+    "Product": "Продукт",
+    "General": "Общее",
+    "Selected": "Выбрано",
+    "Pending": "Ожидает",
+    "Actions": "Действия",
+    "Amount": "Сумма",
+    "Date": "Дата",
+    "Type": "Тип",
+    "ID": "ID",
+    "Created": "Создано",
+    "Pronouns": "Местоимения",
+    "Overview": "Обзор",
+    "Dashboard": "Панель управления",
+    "Approved": "Одобрено",
+    "Rejected": "Отклонено",
+    "Settings": "Настройки"
+  },
   "Layout": {
     "Homepage": "Главная страница",
     "Elements": "Элементы",
@@ -21,7 +57,10 @@
     "An error occurred": "Произошла ошибка",
     "Page not found": "Страница не найдена",
     "The page you are looking for does not exist. Please check your spelling and try again.": "Страница, которую вы ищете, не существует. Пожалуйста, проверьте правильность написания и попробуйте снова.",
-    "Dismiss": "Отклонить"
+    "Dismiss": "Отклонить",
+    "Development": "Разработка",
+    "Use default data source": "Использовать данные по умолчанию",
+    "Use production data source": "Использовать данные производства"
   },
   "Loading": {
     "Loading...": "Загрузка...",
@@ -60,20 +99,27 @@
   },
   "Stories": {
     "All": "Все",
-    "Status": "Статус",
     "Announcement": "Объявление",
     "Article": "Статья",
     "Content": "Контент",
     "Presentation": "Презентация",
-    "Written by": "Написано",
-    "Publications": "Публикации"
+    "Written by": "Автор",
+    "Publications": "Публикации",
+    "Reading time": "Время чтения",
+    "min read": "мин чтения",
+    "Published on": "Опубликовано",
+    "Share": "Поделиться",
+    "Copy link": "Скопировать ссылку",
+    "Share on WhatsApp": "Поделиться в WhatsApp",
+    "Share on Telegram": "Поделиться в Telegram",
+    "Share on LinkedIn": "Поделиться в LinkedIn",
+    "Share on Reddit": "Поделиться в Reddit",
+    "Share on X": "Поделиться в X",
+    "Download Markdown": "Скачать Markdown"
   },
   "Pagination": {
-    "Previous": "Предыдущая",
-    "Next": "Следующая",
-    "Page": "Страница",
-    "of": "из",
-    "Go to page": "Перейти на страницу"
+    "Go to page": "Перейти на страницу",
+    "of": "из"
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "Коллекция проектов и организаций с открытым исходным кодом.",
@@ -132,10 +178,8 @@
     "You do not have permission to edit this profile.": "You do not have permission to edit this profile.",
     "Back to Profile": "Back to Profile",
     "Checking permissions...": "Checking permissions...",
-    "Settings": "Settings",
     "Profile Settings": "Profile Settings",
     "Profile": "Profile",
-    "General": "General",
     "Translations": "Translations",
     "Social Links": "Social Links",
     "Custom Pages": "Custom Pages",
@@ -145,7 +189,6 @@
     "Available Languages": "Available Languages",
     "Languages with existing translations are highlighted.": "Languages with existing translations are highlighted.",
     "Translated": "Translated",
-    "Selected": "Selected",
     "Edit Translation": "Edit Translation",
     "Update the title and description for this language.": "Update the title and description for this language.",
     "Copy from existing translation:": "Copy from existing translation:",
@@ -163,8 +206,6 @@
     "No links added yet.": "No links added yet.",
     "Add Your First Link": "Add Your First Link",
     "Hidden": "Hidden",
-    "Edit": "Edit",
-    "Delete": "Delete",
     "Edit Link": "Edit Link",
     "Add New Link": "Add New Link",
     "Configure your social media link or website.": "Configure your social media link or website.",
@@ -177,7 +218,6 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
-    "Cancel": "Cancel",
     "Saving...": "Saving...",
     "Update Link": "Update Link",
     "Failed to load profile links": "Failed to load profile links",
@@ -198,26 +238,7 @@
     "Individuals and organizations that are members of this profile.": "Частные лица и организации, являющиеся участниками этого профиля.",
     "No members found.": "Участники не найдены."
   },
-  "StoryPage": {
-    "Written by": "Автор",
-    "Reading time": "Время чтения",
-    "min read": "мин чтения",
-    "Published on": "Опубликовано",
-    "Share": "Поделиться",
-    "Copy link": "Скопировать ссылку",
-    "Share on WhatsApp": "Поделиться в WhatsApp",
-    "Share on Telegram": "Поделиться в Telegram",
-    "Share on LinkedIn": "Поделиться в LinkedIn",
-    "Share on Reddit": "Поделиться в Reddit",
-    "Share on X": "Поделиться в X",
-    "Download Markdown": "Скачать Markdown"
-  },
-  "Development": {
-    "Development": "Разработка",
-    "Use default data source": "Использовать данные по умолчанию",
-    "Use production data source": "Использовать данные производства"
-  },
-  "Editor": {
+  "ContentEditor": {
     "Slug must start with": "Слаг должен начинаться с",
     "Slug is required": "Слаг обязателен",
     "Slug must be at least 2 characters": "Слаг должен содержать не менее 2 символов",
@@ -230,9 +251,8 @@
     "Title must be at most 200 characters": "Заголовок должен содержать не более 200 символов",
     "Invalid URI": "Недействительный URI"
   },
-  "CoverGenerator": {
+  "CoverDesigner": {
     "Design Cover": "Оформить обложку",
-    "Back": "Назад",
     "Download": "Скачать",
     "Set as Cover": "Установить как обложку",
     "Templates": "Шаблоны",

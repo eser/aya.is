@@ -1,4 +1,40 @@
 {
+  "Common": {
+    "Coming soon": "곧 출시",
+    "Back": "뒤로",
+    "Title": "제목",
+    "Description": "설명",
+    "Slug": "슬러그",
+    "Status": "상태",
+    "Delete": "삭제",
+    "Cancel": "취소",
+    "Edit": "편집",
+    "Save": "저장",
+    "View": "보기",
+    "Previous": "이전",
+    "Next": "다음",
+    "Page": "페이지",
+    "Kind": "종류",
+    "Points": "포인트",
+    "Individual": "개인",
+    "Organization": "조직",
+    "Product": "제품",
+    "General": "일반",
+    "Selected": "선택됨",
+    "Pending": "보류 중",
+    "Actions": "작업",
+    "Amount": "금액",
+    "Date": "날짜",
+    "Type": "유형",
+    "ID": "ID",
+    "Created": "생성일",
+    "Pronouns": "대명사",
+    "Overview": "개요",
+    "Dashboard": "대시보드",
+    "Approved": "승인됨",
+    "Rejected": "거부됨",
+    "Settings": "설정"
+  },
   "Layout": {
     "Homepage": "홈페이지",
     "Elements": "요소",
@@ -21,7 +57,10 @@
     "An error occurred": "오류가 발생했습니다.",
     "Page not found": "페이지를 찾을 수 없습니다.",
     "The page you are looking for does not exist. Please check your spelling and try again.": "찾고있는 페이지가 존재하지 않습니다. 철자를 확인하고 다시 시도해주세요.",
-    "Dismiss": "닫기"
+    "Dismiss": "닫기",
+    "Development": "개발",
+    "Use default data source": "기본 데이터 소스 사용",
+    "Use production data source": "생산 데이터 소스 사용"
   },
   "Loading": {
     "Loading...": "로드 중...",
@@ -60,20 +99,27 @@
   },
   "Stories": {
     "All": "모두",
-    "Status": "상태",
     "Announcement": "공지",
     "Article": "기사",
     "Content": "콘텐츠",
     "Presentation": "프레젠테이션",
     "Written by": "작성자",
-    "Publications": "출판물"
+    "Publications": "출판물",
+    "Reading time": "읽기 시간",
+    "min read": "분 소요",
+    "Published on": "게시일",
+    "Share": "공유",
+    "Copy link": "링크 복사",
+    "Share on WhatsApp": "WhatsApp에서 공유",
+    "Share on Telegram": "Telegram에서 공유",
+    "Share on LinkedIn": "LinkedIn에서 공유",
+    "Share on Reddit": "Reddit에서 공유",
+    "Share on X": "X에서 공유",
+    "Download Markdown": "Markdown 다운로드"
   },
   "Pagination": {
-    "Previous": "이전",
-    "Next": "다음",
-    "Page": "페이지",
-    "of": "/",
-    "Go to page": "페이지로 이동"
+    "Go to page": "페이지로 이동",
+    "of": "/"
   },
   "Contributions": {
     "A collection of open source projects and organizations.": "오픈 소스 프로젝트 및 조직 모음입니다.",
@@ -132,10 +178,8 @@
     "You do not have permission to edit this profile.": "You do not have permission to edit this profile.",
     "Back to Profile": "Back to Profile",
     "Checking permissions...": "Checking permissions...",
-    "Settings": "Settings",
     "Profile Settings": "Profile Settings",
     "Profile": "Profile",
-    "General": "General",
     "Translations": "Translations",
     "Social Links": "Social Links",
     "Custom Pages": "Custom Pages",
@@ -145,7 +189,6 @@
     "Available Languages": "Available Languages",
     "Languages with existing translations are highlighted.": "Languages with existing translations are highlighted.",
     "Translated": "Translated",
-    "Selected": "Selected",
     "Edit Translation": "Edit Translation",
     "Update the title and description for this language.": "Update the title and description for this language.",
     "Copy from existing translation:": "Copy from existing translation:",
@@ -163,8 +206,6 @@
     "No links added yet.": "No links added yet.",
     "Add Your First Link": "Add Your First Link",
     "Hidden": "Hidden",
-    "Edit": "Edit",
-    "Delete": "Delete",
     "Edit Link": "Edit Link",
     "Add New Link": "Add New Link",
     "Configure your social media link or website.": "Configure your social media link or website.",
@@ -177,7 +218,6 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
-    "Cancel": "Cancel",
     "Saving...": "Saving...",
     "Update Link": "Update Link",
     "Failed to load profile links": "Failed to load profile links",
@@ -198,26 +238,7 @@
     "Individuals and organizations that are members of this profile.": "이 프로필의 멤버인 개인 및 조직.",
     "No members found.": "멤버를 찾을 수 없습니다."
   },
-  "StoryPage": {
-    "Written by": "작성자",
-    "Reading time": "읽기 시간",
-    "min read": "분 소요",
-    "Published on": "게시일",
-    "Share": "공유",
-    "Copy link": "링크 복사",
-    "Share on WhatsApp": "WhatsApp에서 공유",
-    "Share on Telegram": "Telegram에서 공유",
-    "Share on LinkedIn": "LinkedIn에서 공유",
-    "Share on Reddit": "Reddit에서 공유",
-    "Share on X": "X에서 공유",
-    "Download Markdown": "Markdown 다운로드"
-  },
-  "Development": {
-    "Development": "개발",
-    "Use default data source": "기본 데이터 소스 사용",
-    "Use production data source": "생산 데이터 소스 사용"
-  },
-  "Editor": {
+  "ContentEditor": {
     "Slug must start with": "슬러그는 다음으로 시작해야 합니다",
     "Slug is required": "슬러그는 필수입니다",
     "Slug must be at least 2 characters": "슬러그는 최소 2자 이상이어야 합니다",
@@ -230,9 +251,8 @@
     "Title must be at most 200 characters": "제목은 최대 200자까지 가능합니다",
     "Invalid URI": "잘못된 URI"
   },
-  "CoverGenerator": {
+  "CoverDesigner": {
     "Design Cover": "커버 디자인",
-    "Back": "뒤로",
     "Download": "다운로드",
     "Set as Cover": "커버로 설정",
     "Templates": "템플릿",
