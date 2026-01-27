@@ -539,6 +539,8 @@
     "All point transactions for this profile": "All point transactions for this profile",
     "No transactions found": "No transactions found",
     "Type": "Type",
-    "Balance After": "Balance After"
+    "Balance After": "Balance After",
+    "Points awarded successfully": "Points awarded successfully",
+    "Failed to award points": "Failed to award points"
   }
 }

@@ -61,6 +61,7 @@ import { bulkApprovePendingAwards } from "./admin/bulk-approve-pending-awards";
 import { bulkRejectPendingAwards } from "./admin/bulk-reject-pending-awards";
 import { getAdminProfiles } from "./admin/get-admin-profiles";
 import { getAdminProfile } from "./admin/get-admin-profile";
+import { awardAdminPoints } from "./admin/award-admin-points";
 
 // Re-export types
 export * from "./types";
@@ -146,6 +147,7 @@ export const backend = {
   search,
 
   // Admin
+  awardAdminPoints,
   getAdminProfile,
   getAdminProfiles,
   getPendingAwards,
@@ -213,6 +215,7 @@ export {
 
   // Admin
   approvePendingAward,
+  awardAdminPoints,
   bulkApprovePendingAwards,
   bulkRejectPendingAwards,
   getAdminProfile,

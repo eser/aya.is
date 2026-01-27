@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Coins, Plus, Loader2 } from "lucide-react";
+import { Coins, Plus, Loader2, CheckCircle } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/profiles/$slug/points")({
   loader: async ({ params }) => {
@@ -40,10 +40,12 @@ function AdminProfilePoints() {
   const profile = parentData.profile;
 
   const [transactions, setTransactions] = useState<ProfilePointTransaction[]>(initialTransactions);
+  const [currentBalance, setCurrentBalance] = useState(profile?.points ?? 0);
   const [isAwarding, setIsAwarding] = useState(false);
   const [awardAmount, setAwardAmount] = useState("");
   const [awardDescription, setAwardDescription] = useState("");
   const [awardError, setAwardError] = useState<string | null>(null);
+  const [awardSuccess, setAwardSuccess] = useState(false);
 
   if (profile === undefined) {
     return null;
@@ -62,11 +64,34 @@ function AdminProfilePoints() {
 
     setIsAwarding(true);
     setAwardError(null);
+    setAwardSuccess(false);
 
-    // TODO: Call admin award points API when implemented
-    // For now, show a message that this feature is coming soon
-    setAwardError(t("Admin.Award points feature coming soon"));
-    setIsAwarding(false);
+    try {
+      const newTransaction = await backend.awardAdminPoints({
+        slug: params.slug,
+        amount,
+        description: awardDescription.trim(),
+      });
+
+      if (newTransaction !== null) {
+        // Add new transaction to the list
+        setTransactions((prev) => [newTransaction, ...prev]);
+        // Update balance
+        setCurrentBalance(newTransaction.balance_after);
+        // Clear form
+        setAwardAmount("");
+        setAwardDescription("");
+        setAwardSuccess(true);
+        // Hide success message after 3 seconds
+        setTimeout(() => setAwardSuccess(false), 3000);
+      } else {
+        setAwardError(t("Admin.Failed to award points"));
+      }
+    } catch (error) {
+      setAwardError(error instanceof Error ? error.message : t("Admin.Failed to award points"));
+    } finally {
+      setIsAwarding(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -104,7 +129,7 @@ function AdminProfilePoints() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-4xl font-bold">{profile.points.toLocaleString()}</div>
+          <div className="text-4xl font-bold">{currentBalance.toLocaleString()}</div>
           <p className="text-muted-foreground">{t("Admin.Total points")}</p>
         </CardContent>
       </Card>
@@ -146,6 +171,12 @@ function AdminProfilePoints() {
           </div>
           {awardError !== null && (
             <p className="text-sm text-destructive">{awardError}</p>
+          )}
+          {awardSuccess && (
+            <p className="text-sm text-green-600 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              {t("Admin.Points awarded successfully")}
+            </p>
           )}
           <Button onClick={handleAwardPoints} disabled={isAwarding}>
             {isAwarding ? (

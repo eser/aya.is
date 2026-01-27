@@ -134,6 +134,7 @@ func Run(
 		authService,
 		userService,
 		profileService,
+		profilePointsService,
 	)
 	RegisterHTTPRoutesForAdminPoints( //nolint:contextcheck
 		routes,

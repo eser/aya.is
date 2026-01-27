@@ -507,6 +507,8 @@
     "All point transactions for this profile": "Bu profil için tüm puan işlemleri",
     "No transactions found": "İşlem bulunamadı",
     "Type": "Tür",
-    "Balance After": "Sonraki Bakiye"
+    "Balance After": "Sonraki Bakiye",
+    "Points awarded successfully": "Puanlar başarıyla verildi",
+    "Failed to award points": "Puan verme başarısız"
   }
 }

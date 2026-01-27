@@ -1,12 +1,14 @@
 package http
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
@@ -17,6 +19,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 	authService *auth.Service,
 	userService *users.Service,
 	profileService *profiles.Service,
+	profilePointsService *profile_points.Service,
 ) {
 	// List all profiles (admin only)
 	routes.
@@ -143,5 +146,110 @@ func RegisterHTTPRoutesForAdminProfiles(
 		).
 		HasSummary("Get profile by slug").
 		HasDescription("Get a single profile by slug. Admin only.").
+		HasResponse(http.StatusOK)
+
+	// Award points to a profile (admin only)
+	routes.
+		Route(
+			"POST /admin/profiles/{slug}/points",
+			AuthMiddleware(authService, userService),
+			func(ctx *httpfx.Context) httpfx.Result {
+				user, err := getUserFromContext(ctx, userService)
+				if err != nil {
+					return ctx.Results.Unauthorized(httpfx.WithPlainText(err.Error()))
+				}
+
+				if user.Kind != "admin" {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithPlainText("Admin access required"),
+					)
+				}
+
+				slug := ctx.Request.PathValue("slug")
+				if slug == "" {
+					return ctx.Results.BadRequest(
+						httpfx.WithPlainText("slug is required"),
+					)
+				}
+
+				// Parse request body
+				var body struct {
+					Amount      uint64 `json:"amount"`
+					Description string `json:"description"`
+				}
+
+				if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+					return ctx.Results.BadRequest(
+						httpfx.WithPlainText("invalid request body"),
+					)
+				}
+
+				if body.Amount == 0 {
+					return ctx.Results.BadRequest(
+						httpfx.WithPlainText("amount must be greater than 0"),
+					)
+				}
+
+				if body.Description == "" {
+					return ctx.Results.BadRequest(
+						httpfx.WithPlainText("description is required"),
+					)
+				}
+
+				// Get profile to get the ID
+				profile, err := profileService.GetBySlug(
+					ctx.Request.Context(),
+					"en",
+					slug,
+				)
+				if err != nil {
+					logger.Error(
+						"failed to get profile for awarding points",
+						"error", err,
+						"slug", slug,
+					)
+
+					return ctx.Results.NotFound(
+						httpfx.WithPlainText("profile not found"),
+					)
+				}
+
+				if profile == nil {
+					return ctx.Results.NotFound(
+						httpfx.WithPlainText("profile not found"),
+					)
+				}
+
+				// Award points using GainPoints (direct admin award)
+				triggeringEvent := "ADMIN_AWARD"
+				tx, err := profilePointsService.GainPoints(
+					ctx.Request.Context(),
+					profile_points.GainParams{
+						TargetProfileID: profile.ID,
+						Amount:          body.Amount,
+						TriggeringEvent: &triggeringEvent,
+						Description:     body.Description,
+					},
+				)
+				if err != nil {
+					logger.Error(
+						"failed to award points",
+						"error", err,
+						"slug", slug,
+						"amount", body.Amount,
+					)
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText(err.Error()),
+					)
+				}
+
+				return ctx.Results.JSON(tx)
+			},
+		).
+		HasSummary("Award points to profile").
+		HasDescription("Award points directly to a profile. Admin only.").
 		HasResponse(http.StatusOK)
 }
