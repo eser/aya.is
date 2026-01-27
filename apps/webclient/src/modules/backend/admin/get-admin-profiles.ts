@@ -1,4 +1,5 @@
-import { fetcher } from "../fetcher";
+import { getBackendUri } from "@/config";
+import { getAuthToken } from "../fetcher";
 import type { Profile } from "../types";
 
 export interface AdminProfileListResult {
@@ -18,6 +19,16 @@ export interface GetAdminProfilesParams {
 export async function getAdminProfiles(
   params: GetAdminProfilesParams = {},
 ): Promise<AdminProfileListResult | null> {
+  const token = getAuthToken();
+  if (token === null) {
+    return null;
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+
   const searchParams = new URLSearchParams();
 
   if (params.locale !== undefined) {
@@ -34,7 +45,17 @@ export async function getAdminProfiles(
   }
 
   const queryString = searchParams.toString();
-  const url = `/admin/profiles${queryString !== "" ? `?${queryString}` : ""}`;
+  const url = `${getBackendUri()}/admin/profiles${queryString !== "" ? `?${queryString}` : ""}`;
 
-  return await fetcher<AdminProfileListResult>("en", url);
+  const response = await fetch(url, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
 }
