@@ -1,6 +1,7 @@
 // Admin profile general info tab
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { backend } from "@/modules/backend/backend";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,19 +11,19 @@ import { LocaleLink } from "@/components/locale-link";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/$locale/admin/profiles/$slug/")({
+  loader: async ({ params }) => {
+    const { locale, slug } = params;
+    const profile = await backend.getAdminProfile(locale, slug);
+    return { profile };
+  },
   component: AdminProfileGeneral,
 });
 
 function AdminProfileGeneral() {
   const { t } = useTranslation();
-  const params = Route.useParams();
+  const { profile } = Route.useLoaderData();
 
-  // Get profile from parent route
-  const parentData = Route.useRouteContext();
-  // @ts-expect-error - accessing parent route data
-  const profile = parentData.profile;
-
-  if (profile === undefined) {
+  if (profile === null || profile === undefined) {
     return null;
   }
 

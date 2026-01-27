@@ -23,8 +23,11 @@ import { Coins, Plus, Loader2, CheckCircle } from "lucide-react";
 export const Route = createFileRoute("/$locale/admin/profiles/$slug/points")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
-    const transactions = await backend.listProfilePointTransactions(locale, slug);
-    return { transactions: transactions ?? [] };
+    const [profile, transactions] = await Promise.all([
+      backend.getAdminProfile(locale, slug),
+      backend.listProfilePointTransactions(locale, slug),
+    ]);
+    return { profile, transactions: transactions ?? [] };
   },
   component: AdminProfilePoints,
 });
@@ -32,12 +35,7 @@ export const Route = createFileRoute("/$locale/admin/profiles/$slug/points")({
 function AdminProfilePoints() {
   const { t } = useTranslation();
   const params = Route.useParams();
-  const { transactions: initialTransactions } = Route.useLoaderData();
-
-  // Get profile from parent route
-  const parentData = Route.useRouteContext();
-  // @ts-expect-error - accessing parent route data
-  const profile = parentData.profile;
+  const { profile, transactions: initialTransactions } = Route.useLoaderData();
 
   const [transactions, setTransactions] = useState<ProfilePointTransaction[]>(initialTransactions);
   const [currentBalance, setCurrentBalance] = useState(profile?.points ?? 0);
@@ -47,7 +45,7 @@ function AdminProfilePoints() {
   const [awardError, setAwardError] = useState<string | null>(null);
   const [awardSuccess, setAwardSuccess] = useState(false);
 
-  if (profile === undefined) {
+  if (profile === null || profile === undefined) {
     return null;
   }
 

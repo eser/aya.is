@@ -36,9 +36,11 @@ function AdminLayout() {
       <div className="container mx-auto py-8 px-4">
         <div className="space-y-6">
           <div>
-            <h1 className="font-serif text-3xl font-bold text-foreground">
-              {t("Admin.Dashboard")}
-            </h1>
+            <LocaleLink to={`/admin`}>
+              <h1 className="font-serif text-3xl font-bold text-foreground">
+                {t("Admin.Admin Area")}
+              </h1>
+            </LocaleLink>
             <p className="text-muted-foreground">
               {t("Admin.Manage site content and settings.")}
             </p>
