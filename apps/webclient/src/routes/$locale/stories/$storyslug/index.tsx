@@ -81,6 +81,7 @@ function StoryPage() {
   }, [auth.isAuthenticated, auth.isLoading, params.locale, authorProfileSlug, story.id]);
 
   const editUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/edit` : undefined;
+  const coverUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/cover` : undefined;
 
   return (
     <PageLayout>
@@ -91,6 +92,7 @@ function StoryPage() {
           currentUrl={currentUrl}
           showAuthor
           editUrl={editUrl}
+          coverUrl={coverUrl}
         />
       </section>
     </PageLayout>

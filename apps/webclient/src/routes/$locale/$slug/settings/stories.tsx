@@ -3,18 +3,19 @@ import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
-  FileText,
   ExternalLink,
-  Pencil,
-  Plus,
-  Newspaper,
-  PencilLine,
-  Megaphone,
-  Info,
-  Images,
-  Presentation,
+  FileText,
   Globe,
   GlobeLock,
+  ImagePlus,
+  Images,
+  Info,
+  Megaphone,
+  Newspaper,
+  Pencil,
+  PencilLine,
+  Plus,
+  Presentation,
 } from "lucide-react";
 import { backend, type StoryEx, type StoryKind } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
@@ -130,115 +131,120 @@ function StoriesSettingsPage() {
         </Link>
       </div>
 
-      {stories.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">{t("Profile.No stories found.")}</p>
-        </div>
-      ) : (
-        <>
-          <div className="space-y-2">
-            {currentStories.map((story) => {
-              const KindIcon = storyKindIcons[story.kind];
-              const isPublished = story.status === "published";
-
-              return (
-                <div
-                  key={story.id}
-                  className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
-                    {KindIcon !== undefined ? <KindIcon className="size-5" /> : <FileText className="size-5" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">{story.title}</p>
-                      {isPublished ? (
-                        <Globe className="size-3.5 text-green-600" />
-                      ) : (
-                        <GlobeLock className="size-3.5 text-yellow-600" />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {story.created_at !== null && formatDateString(story.created_at, locale)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <LocaleLink to={`/stories/${story.slug}/edit`}>
-                      <Button variant="ghost" size="icon" title={t("Profile.Edit")}>
-                        <Pencil className="size-4" />
-                      </Button>
-                    </LocaleLink>
-                    <LocaleLink to={`/stories/${story.slug}`}>
-                      <Button variant="ghost" size="icon" title={t("Profile.View")}>
-                        <ExternalLink className="size-4" />
-                      </Button>
-                    </LocaleLink>
-                  </div>
-                </div>
-              );
-            })}
+      {stories.length === 0
+        ? (
+          <div className="text-center py-12 border-2 border-dashed rounded-lg">
+            <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">{t("Profile.No stories found.")}</p>
           </div>
+        )
+        : (
+          <>
+            <div className="space-y-2">
+              {currentStories.map((story) => {
+                const KindIcon = storyKindIcons[story.kind];
+                const isPublished = story.status === "published";
 
-          {totalPages > 1 && (
-            <div className="mt-6 flex justify-center">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
-                      render={(linkProps) => (
-                        <Link
-                          to="/$locale/$slug/settings/stories"
-                          params={{ locale: params.locale, slug: params.slug }}
-                          search={currentPage > 2 ? { page: currentPage - 1 } : {}}
-                          {...linkProps}
-                        />
-                      )}
-                    >
-                      {t("Pagination.Previous")}
-                    </PaginationPrevious>
-                  </PaginationItem>
+                return (
+                  <div
+                    key={story.id}
+                    className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
+                      {KindIcon !== undefined ? <KindIcon className="size-5" /> : <FileText className="size-5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium truncate">{story.title}</p>
+                        {isPublished
+                          ? <Globe className="size-3.5 text-green-600" />
+                          : <GlobeLock className="size-3.5 text-yellow-600" />}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {story.created_at !== null && formatDateString(story.created_at, locale)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <LocaleLink to={`/stories/${story.slug}/edit`}>
+                        <Button variant="ghost" size="icon" title={t("Profile.Edit")}>
+                          <Pencil className="size-4" />
+                        </Button>
+                      </LocaleLink>
+                      <LocaleLink to={`/stories/${story.slug}/cover`}>
+                        <Button variant="ghost" size="icon" title={t("CoverGenerator.Design Cover")}>
+                          <ImagePlus className="size-4" />
+                        </Button>
+                      </LocaleLink>
+                      <LocaleLink to={`/stories/${story.slug}`}>
+                        <Button variant="ghost" size="icon" title={t("Profile.View")}>
+                          <ExternalLink className="size-4" />
+                        </Button>
+                      </LocaleLink>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        isActive={currentPage === page}
+            {totalPages > 1 && (
+              <div className="mt-6 flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
                         render={(linkProps) => (
                           <Link
                             to="/$locale/$slug/settings/stories"
                             params={{ locale: params.locale, slug: params.slug }}
-                            search={page > 1 ? { page } : {}}
+                            search={currentPage > 2 ? { page: currentPage - 1 } : {}}
                             {...linkProps}
                           />
                         )}
                       >
-                        {page}
-                      </PaginationLink>
+                        {t("Pagination.Previous")}
+                      </PaginationPrevious>
                     </PaginationItem>
-                  ))}
 
-                  <PaginationItem>
-                    <PaginationNext
-                      className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
-                      render={(linkProps) => (
-                        <Link
-                          to="/$locale/$slug/settings/stories"
-                          params={{ locale: params.locale, slug: params.slug }}
-                          search={{ page: currentPage + 1 }}
-                          {...linkProps}
-                        />
-                      )}
-                    >
-                      {t("Pagination.Next")}
-                    </PaginationNext>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
-        </>
-      )}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          isActive={currentPage === page}
+                          render={(linkProps) => (
+                            <Link
+                              to="/$locale/$slug/settings/stories"
+                              params={{ locale: params.locale, slug: params.slug }}
+                              search={page > 1 ? { page } : {}}
+                              {...linkProps}
+                            />
+                          )}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                        render={(linkProps) => (
+                          <Link
+                            to="/$locale/$slug/settings/stories"
+                            params={{ locale: params.locale, slug: params.slug }}
+                            search={{ page: currentPage + 1 }}
+                            {...linkProps}
+                          />
+                        )}
+                      >
+                        {t("Pagination.Next")}
+                      </PaginationNext>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
+        )}
     </Card>
   );
 }

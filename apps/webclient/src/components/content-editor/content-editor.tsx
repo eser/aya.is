@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Check,
+  ImagePlus,
   Images,
   Info,
   Loader2,
@@ -22,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import type { StoryKind } from "@/modules/backend/types";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -732,7 +732,8 @@ export function ContentEditor(props: ContentEditorProps) {
               {/* Slug */}
               <Field
                 className={styles.metadataField}
-                data-invalid={(showSlugValidation && slugError !== null) || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
+                data-invalid={(showSlugValidation && slugError !== null) ||
+                  (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
               >
                 <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
                   {t("Editor.Slug")}
@@ -750,17 +751,15 @@ export function ContentEditor(props: ContentEditorProps) {
                       if (!showSlugValidation) setShowSlugValidation(true);
                     }}
                     placeholder={t("Editor.url-friendly-slug")}
-                    aria-invalid={(showSlugValidation && slugError !== null) || (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
+                    aria-invalid={(showSlugValidation && slugError !== null) ||
+                      (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
                     className="pr-8"
                   />
                   {showSlugValidation && slug.length >= 3 && (
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                      {slugAvailability.isChecking && (
-                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                      )}
-                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true && slugAvailability.severity !== "warning" && (
-                        <Check className="size-4 text-green-600" />
-                      )}
+                      {slugAvailability.isChecking && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true &&
+                        slugAvailability.severity !== "warning" && <Check className="size-4 text-green-600" />}
                       {!slugAvailability.isChecking && slugAvailability.severity === "warning" && (
                         <AlertTriangle className="size-4 text-amber-500" />
                       )}
@@ -768,10 +767,12 @@ export function ContentEditor(props: ContentEditorProps) {
                   )}
                 </div>
                 {showSlugValidation && slugError !== null && <FieldError>{slugError}</FieldError>}
-                {showSlugValidation && slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "error" && slugAvailability.message !== null && (
+                {showSlugValidation && slugError === null && !slugAvailability.isChecking &&
+                  slugAvailability.severity === "error" && slugAvailability.message !== null && (
                   <FieldError>{slugAvailability.message}</FieldError>
                 )}
-                {showSlugValidation && slugError === null && !slugAvailability.isChecking && slugAvailability.severity === "warning" && slugAvailability.message !== null && (
+                {showSlugValidation && slugError === null && !slugAvailability.isChecking &&
+                  slugAvailability.severity === "warning" && slugAvailability.message !== null && (
                   <p className="text-sm text-amber-600 mt-1">{slugAvailability.message}</p>
                 )}
               </Field>
@@ -799,6 +800,21 @@ export function ContentEditor(props: ContentEditorProps) {
                   >
                     <Upload className="size-4" />
                   </Button>
+                  {contentType === "story" && !isNew && initialData.slug !== "" && (
+                    <Link
+                      to="/$locale/stories/$storyslug/cover"
+                      params={{ locale, storyslug: initialData.slug }}
+                    >
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        title={t("CoverGenerator.Design Cover")}
+                      >
+                        <ImagePlus className="size-4" />
+                      </Button>
+                    </Link>
+                  )}
                 </div>
                 {storyPictureUriError !== null && <FieldError>{storyPictureUriError}</FieldError>}
                 {storyPictureUri !== null && storyPictureUri !== "" && storyPictureUriError === null && (

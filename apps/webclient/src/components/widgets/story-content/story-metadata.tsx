@@ -1,12 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { PencilLine } from "lucide-react";
+import { ImagePlus, PencilLine } from "lucide-react";
 import type { StoryEx } from "@/modules/backend/types";
 import { calculateReadingTime } from "@/lib/reading-time";
 
 export type StoryMetadataProps = {
   story: StoryEx;
   editUrl?: string;
+  coverUrl?: string;
 };
 
 export function StoryMetadata(props: StoryMetadataProps) {
@@ -45,15 +46,17 @@ export function StoryMetadata(props: StoryMetadataProps) {
         </span>
       </div>
 
-      {props.editUrl !== undefined && (
-        <div className="flex-1 flex justify-end">
-          <Link
-            to={props.editUrl}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors !no-underline hover:!no-underline"
-          >
-            <PencilLine className="size-3.5" />
-            {t("Editor.Edit Story")}
-          </Link>
+      {(props.editUrl !== undefined || props.coverUrl !== undefined) && (
+        <div className="flex-1 flex justify-end gap-4">
+          {props.editUrl !== undefined && (
+            <Link
+              to={props.editUrl}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors !no-underline hover:!no-underline"
+            >
+              <PencilLine className="size-3.5" />
+              {t("Editor.Edit Story")}
+            </Link>
+          )}
         </div>
       )}
     </div>

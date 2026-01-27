@@ -1,0 +1,237 @@
+// Cover Generator Component
+// Main reusable component for generating story covers
+
+import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import type { Story } from "@/modules/backend/types.ts";
+import type { StoryData, CoverOptions, TemplateId } from "@/lib/cover-generator/types.ts";
+import { defaultCoverOptions } from "@/lib/cover-generator/types.ts";
+import { getTemplate } from "@/lib/cover-generator/templates.ts";
+import { downloadCanvas } from "@/lib/cover-generator/canvas-renderer.ts";
+import { renderCoverSvg, downloadSvg } from "@/lib/cover-generator/svg-renderer.ts";
+import { uploadCoverImage, loadImage } from "@/lib/cover-generator/upload.ts";
+import { backend } from "@/modules/backend/backend.ts";
+import { Button } from "@/components/ui/button.tsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.tsx";
+import { Download, FileCode, FileImage, ImagePlus, Loader2, ArrowLeft, ChevronDown } from "lucide-react";
+import { CanvasPreview } from "./canvas-preview.tsx";
+import { TemplateSelector } from "./template-selector.tsx";
+import { CustomizationPanel } from "./customization-panel.tsx";
+import styles from "./cover-generator.module.css";
+
+interface CoverGeneratorProps {
+  story: Story;
+  locale: string;
+  onBack?: () => void;
+  onCoverSet?: (coverUrl: string) => void;
+}
+
+export function CoverGenerator(props: CoverGeneratorProps) {
+  const { t } = useTranslation();
+  const { story, locale } = props;
+  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [authorImageDataUrl, setAuthorImageDataUrl] = React.useState<string | null>(null);
+
+  // Load author image as data URL for SVG export
+  React.useEffect(() => {
+    const loadAuthorImage = async () => {
+      if (story.author_profile?.profile_picture_uri === null || story.author_profile?.profile_picture_uri === undefined) {
+        setAuthorImageDataUrl(null);
+        return;
+      }
+
+      try {
+        const img = await loadImage(story.author_profile.profile_picture_uri);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx !== null) {
+          ctx.drawImage(img, 0, 0);
+          setAuthorImageDataUrl(canvas.toDataURL("image/png"));
+        }
+      } catch {
+        setAuthorImageDataUrl(null);
+      }
+    };
+
+    loadAuthorImage();
+  }, [story.author_profile?.profile_picture_uri]);
+
+  // Convert Story to StoryData
+  const storyData: StoryData = React.useMemo(() => ({
+    title: story.title ?? "Untitled",
+    summary: story.summary,
+    kind: story.kind,
+    authorName: story.author_profile?.title ?? null,
+    authorAvatarUrl: story.author_profile?.profile_picture_uri ?? null,
+    publishedAt: story.published_at ?? story.created_at,
+  }), [story]);
+
+  // Initialize options with template defaults
+  const [options, setOptions] = React.useState<CoverOptions>(() => ({
+    ...defaultCoverOptions,
+    ...getTemplate("classic").defaults,
+  }));
+
+  // Handle template change
+  const handleTemplateChange = (templateId: TemplateId) => {
+    const template = getTemplate(templateId);
+    setOptions((prev) => ({
+      ...prev,
+      ...template.defaults,
+      templateId,
+      // Keep user's custom text overrides
+      titleOverride: prev.titleOverride,
+      subtitleOverride: prev.subtitleOverride,
+    }));
+  };
+
+  // Handle options change
+  const handleOptionsChange = (partialOptions: Partial<CoverOptions>) => {
+    setOptions((prev) => ({ ...prev, ...partialOptions }));
+  };
+
+  // Handle download PNG
+  const handleDownloadPng = () => {
+    if (canvasRef.current === null) {
+      toast.error(t("CoverGenerator.Failed to generate image"));
+      return;
+    }
+
+    const filename = `${story.slug ?? "cover"}-cover.png`;
+    downloadCanvas(canvasRef.current, filename);
+    toast.success(t("CoverGenerator.Cover downloaded"));
+  };
+
+  // Handle download SVG
+  const handleDownloadSvg = () => {
+    const svgContent = renderCoverSvg(storyData, options, authorImageDataUrl);
+    const filename = `${story.slug ?? "cover"}-cover.svg`;
+    downloadSvg(svgContent, filename);
+    toast.success(t("CoverGenerator.Cover downloaded"));
+  };
+
+  // Handle set as cover
+  const handleSetAsCover = async () => {
+    if (canvasRef.current === null) {
+      toast.error(t("CoverGenerator.Failed to generate image"));
+      return;
+    }
+
+    if (story.author_profile === null) {
+      toast.error(t("CoverGenerator.Story has no author"));
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // Upload the cover image
+      const result = await uploadCoverImage(
+        canvasRef.current,
+        locale,
+        story.slug ?? story.id,
+      );
+
+      if (!result.success || result.publicUrl === undefined) {
+        toast.error(result.error ?? t("CoverGenerator.Failed to upload image"));
+        return;
+      }
+
+      // Update story with new cover
+      const updateResult = await backend.updateStory(
+        locale,
+        story.author_profile.slug,
+        story.id,
+        { story_picture_uri: result.publicUrl },
+      );
+
+      if (updateResult === null) {
+        toast.error(t("CoverGenerator.Failed to update story"));
+        return;
+      }
+
+      toast.success(t("CoverGenerator.Cover set successfully"));
+      props.onCoverSet?.(result.publicUrl);
+    } catch {
+      toast.error(t("CoverGenerator.An error occurred"));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      {/* Header */}
+      <div className={styles.header}>
+        <div className="flex items-center gap-3">
+          {props.onBack !== undefined && (
+            <Button variant="outline" size="icon" className="rounded-full" onClick={props.onBack}>
+              <ArrowLeft className="size-4" />
+            </Button>
+          )}
+          <h1 className={styles.title}>{t("CoverGenerator.Design Cover")}</h1>
+        </div>
+        <div className={styles.headerActions}>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+              <Download className="size-4" />
+              {t("CoverGenerator.Download")}
+              <ChevronDown className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleDownloadPng}>
+                <FileImage className="size-4" />
+                {t("CoverGenerator.Download PNG")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadSvg}>
+                <FileCode className="size-4" />
+                {t("CoverGenerator.Download SVG")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={handleSetAsCover} disabled={isUploading}>
+            {isUploading ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <ImagePlus className="mr-2 size-4" />
+            )}
+            {t("CoverGenerator.Set as Cover")}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className={styles.content}>
+        {/* Preview */}
+        <div className={styles.previewSection}>
+          <CanvasPreview
+            story={storyData}
+            options={options}
+            canvasRef={canvasRef}
+          />
+        </div>
+
+        {/* Controls */}
+        <div className={styles.controlsSection}>
+          <TemplateSelector
+            selectedTemplate={options.templateId}
+            onSelect={handleTemplateChange}
+          />
+          <CustomizationPanel
+            options={options}
+            onChange={handleOptionsChange}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

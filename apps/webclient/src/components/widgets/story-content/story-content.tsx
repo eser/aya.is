@@ -11,6 +11,7 @@ export type StoryContentProps = {
   showShare?: boolean;
   headingOffset?: number;
   editUrl?: string;
+  coverUrl?: string;
 };
 
 const headingTags = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
@@ -24,6 +25,7 @@ export function StoryContent(props: StoryContentProps) {
     showShare = true,
     headingOffset = 1,
     editUrl,
+    coverUrl,
   } = props;
 
   const TitleTag = headingTags[headingOffset - 1] ?? "h1";
@@ -32,7 +34,7 @@ export function StoryContent(props: StoryContentProps) {
     <article className="content">
       <TitleTag>{story.title}</TitleTag>
 
-      <StoryMetadata story={story} editUrl={editUrl} />
+      <StoryMetadata story={story} editUrl={editUrl} coverUrl={coverUrl} />
 
       <TextContent
         compiledContent={compiledContent}
