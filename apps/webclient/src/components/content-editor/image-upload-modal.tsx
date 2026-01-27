@@ -269,7 +269,7 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            {t("ContentEditor.Cancel")}
+            {t("Common.Cancel")}
           </Button>
           {uploadState.status === "success" ? (
             <Button onClick={handleInsert}>{t("ContentEditor.Insert")}</Button>

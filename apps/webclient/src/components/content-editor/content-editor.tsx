@@ -696,7 +696,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {/* Title */}
               <Field className={styles.metadataField} data-invalid={titleError !== null || undefined}>
                 <FieldLabel htmlFor="title" className={styles.metadataLabel}>
-                  {t("ContentEditor.Title")}
+                  {t("Common.Title")}
                 </FieldLabel>
                 <Input
                   id="title"
@@ -736,7 +736,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
               >
                 <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
-                  {t("ContentEditor.Slug")}
+                  {t("Common.Slug")}
                 </FieldLabel>
                 <div className="relative">
                   <Input

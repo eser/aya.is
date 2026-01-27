@@ -55,7 +55,7 @@ export const PAGE_CONFIG: EntityConfig = {
     {
       key: "storyPictureUri",  // Same internal key for backwards compatibility
       apiField: "cover_picture_uri",
-      labelKey: "Editor.Cover Picture URI",
+      labelKey: "ContentEditor.Cover Picture URI",
       required: false,
       allowedPrefixes: allowedURIPrefixes.profiles,
     },

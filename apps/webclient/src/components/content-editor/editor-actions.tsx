@@ -80,7 +80,7 @@ export function EditorActions(props: EditorActionsProps) {
             disabled={!canDelete || isDeleting}
           >
             <Trash2 className="mr-2 size-4" />
-            {t("ContentEditor.Delete")}
+            {t("Common.Delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -103,20 +103,20 @@ export function EditorActions(props: EditorActionsProps) {
         ) : (
           <Save className="mr-1.5 size-4" />
         )}
-        {t("ContentEditor.Save")}
+        {t("Common.Save")}
       </Button>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("ContentEditor.Delete")}?</AlertDialogTitle>
+            <AlertDialogTitle>{t("Common.Delete")}?</AlertDialogTitle>
             <AlertDialogDescription>
               {t("ContentEditor.Delete Confirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete}>{t("ContentEditor.Delete")}</AlertDialogAction>
+            <AlertDialogAction onClick={onDelete}>{t("Common.Delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
