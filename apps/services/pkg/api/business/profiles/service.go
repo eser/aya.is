@@ -911,10 +911,18 @@ func (s *Service) Update(
 	pronouns *string,
 	properties map[string]any,
 ) (*Profile, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return nil, err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !canEdit {
@@ -964,16 +972,25 @@ func (s *Service) Update(
 func (s *Service) UpdateTranslation(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	localeCode string,
 	title string,
 	description string,
 	properties map[string]any,
 ) error {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
 	}
 
 	if !canEdit {
@@ -1045,16 +1062,25 @@ func (s *Service) GetProfileTranslations(
 func (s *Service) CreateProfileLink(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	kind string,
 	uri *string,
 	title string,
 	isHidden bool,
 ) (*ProfileLink, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return nil, err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !canEdit {
@@ -1105,6 +1131,7 @@ func (s *Service) CreateProfileLink(
 func (s *Service) UpdateProfileLink(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	linkID string,
 	kind string,
@@ -1113,10 +1140,18 @@ func (s *Service) UpdateProfileLink(
 	title string,
 	isHidden bool,
 ) (*ProfileLink, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return nil, err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !canEdit {
@@ -1180,13 +1215,22 @@ func (s *Service) UpdateProfileLink(
 func (s *Service) DeleteProfileLink(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	linkID string,
 ) error {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
 	}
 
 	if !canEdit {
@@ -1286,12 +1330,21 @@ func (s *Service) GetProfileLink(
 func (s *Service) ListProfileLinksBySlug(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 ) ([]*ProfileLink, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return nil, err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !canEdit {
@@ -1349,10 +1402,18 @@ func (s *Service) CreateProfilePage(
 	coverPictureURI *string,
 	publishedAt *string,
 ) (*ProfilePage, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return nil, err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !canEdit {
@@ -1452,10 +1513,18 @@ func (s *Service) UpdateProfilePage(
 	coverPictureURI *string,
 	publishedAt *string,
 ) (*ProfilePage, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return nil, err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !canEdit {
@@ -1519,6 +1588,7 @@ func (s *Service) UpdateProfilePage(
 func (s *Service) UpdateProfilePageTranslation(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	pageID string,
 	localeCode string,
@@ -1526,10 +1596,18 @@ func (s *Service) UpdateProfilePageTranslation(
 	summary string,
 	content string,
 ) error {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
 	}
 
 	if !canEdit {
@@ -1570,13 +1648,22 @@ func (s *Service) UpdateProfilePageTranslation(
 func (s *Service) DeleteProfilePage(
 	ctx context.Context,
 	userID string,
+	userKind string,
 	profileSlug string,
 	pageID string,
 ) error {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return err
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
 	}
 
 	if !canEdit {

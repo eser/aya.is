@@ -5,6 +5,8 @@ import { LocaleLink } from "@/components/locale-link";
 import { backend } from "@/modules/backend/backend";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/profiles/$slug")({
   loader: async ({ params }) => {
@@ -51,31 +53,46 @@ function AdminProfileLayout() {
   return (
     <div className="space-y-6">
       {/* Profile Header */}
-      <div className="flex items-center gap-4">
-        <Avatar size="lg">
-          <AvatarImage
-            src={
-              profile.profile_picture_uri ??
-              `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(profile.title !== "" ? profile.title : profile.slug)}`
-            }
-            alt={profile.title !== "" ? profile.title : profile.slug}
-          />
-          <AvatarFallback>
-            {(profile.title !== "" ? profile.title : profile.slug)
-              .charAt(0)
-              .toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="flex items-center gap-2">
-            <h2
-              className={`font-serif text-2xl font-bold ${profile.has_translation === false ? "italic text-muted-foreground" : ""}`}
-            >
-              {displayTitle}
-            </h2>
-            {getKindBadge(profile.kind)}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Avatar size="lg">
+            <AvatarImage
+              src={
+                profile.profile_picture_uri ??
+                `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(profile.title !== "" ? profile.title : profile.slug)}`
+              }
+              alt={profile.title !== "" ? profile.title : profile.slug}
+            />
+            <AvatarFallback>
+              {(profile.title !== "" ? profile.title : profile.slug)
+                .charAt(0)
+                .toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2
+                className={`font-serif text-2xl font-bold ${profile.has_translation === false ? "italic text-muted-foreground" : ""}`}
+              >
+                {displayTitle}
+              </h2>
+              {getKindBadge(profile.kind)}
+            </div>
+            <p className="text-muted-foreground font-mono">@{profile.slug}</p>
           </div>
-          <p className="text-muted-foreground font-mono">@{profile.slug}</p>
+        </div>
+        <div className="flex gap-2">
+          <LocaleLink to={`/${profile.slug}`}>
+            <Button variant="outline" size="sm">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {t("Admin.View Public Profile")}
+            </Button>
+          </LocaleLink>
+          <LocaleLink to={`/${profile.slug}/settings`}>
+            <Button variant="outline" size="sm">
+              {t("Admin.Edit Profile Settings")}
+            </Button>
+          </LocaleLink>
         </div>
       </div>
 

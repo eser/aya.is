@@ -6,9 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink } from "lucide-react";
-import { LocaleLink } from "@/components/locale-link";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/$locale/admin/profiles/$slug/")({
   loader: async ({ params }) => {
@@ -119,26 +116,6 @@ function AdminProfileGeneral() {
               className={`bg-muted ${profile.has_translation ? "text-green-600" : "text-orange-600"}`}
             />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Actions Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Admin.Actions")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex gap-4">
-          <LocaleLink to={`/${profile.slug}`}>
-            <Button variant="outline">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {t("Admin.View Public Profile")}
-            </Button>
-          </LocaleLink>
-          <LocaleLink to={`/${profile.slug}/settings`}>
-            <Button variant="outline">
-              {t("Admin.Edit Profile Settings")}
-            </Button>
-          </LocaleLink>
         </CardContent>
       </Card>
     </div>

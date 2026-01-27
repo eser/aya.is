@@ -660,10 +660,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Update the translation
 			err := profileService.UpdateTranslation(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				translationLocaleParam,
 				requestBody.Title,
@@ -731,23 +741,39 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Check permissions
-			canEdit, err := profileService.CanUserEditProfile(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				slugParam,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
-					slog.String("error", err.Error()),
-					slog.String("session_id", sessionID),
-					slog.String("user_id", *session.LoggedInUserID),
-					slog.String("slug", slugParam))
-
+			// Get user to check if admin
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to check permissions"),
+					httpfx.WithPlainText("Failed to get user information"),
 				)
+			}
+
+			// Admin users can edit any profile
+			canEdit := false
+			if user.Kind == "admin" {
+				canEdit = true
+			} else {
+				// Check normal permissions
+				var err error
+				canEdit, err = profileService.CanUserEditProfile(
+					ctx.Request.Context(),
+					*session.LoggedInUserID,
+					slugParam,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
+						slog.String("error", err.Error()),
+						slog.String("session_id", sessionID),
+						slog.String("user_id", *session.LoggedInUserID),
+						slog.String("slug", slugParam))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText("Failed to check permissions"),
+					)
+				}
 			}
 
 			// Return permissions
@@ -826,10 +852,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Get all profile links for editing
 			links, err := profileService.ListProfileLinksBySlug(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 			)
 			if err != nil {
@@ -924,10 +960,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Create the profile link
 			link, err := profileService.CreateProfileLink(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				requestBody.Kind,
 				requestBody.URI,
@@ -1028,10 +1074,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Update the profile link
 			link, err := profileService.UpdateProfileLink(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				linkIDParam,
 				requestBody.Kind,
@@ -1099,10 +1155,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Delete the profile link
 			err := profileService.DeleteProfileLink(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				linkIDParam,
 			)
@@ -1169,23 +1235,39 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Check permissions first
-			canEdit, err := profileService.CanUserEditProfile(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				slugParam,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
-					slog.String("error", err.Error()),
-					slog.String("session_id", sessionID),
-					slog.String("user_id", *session.LoggedInUserID),
-					slog.String("slug", slugParam))
-
+			// Get user to check if admin
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to check permissions"),
+					httpfx.WithPlainText("Failed to get user information"),
 				)
+			}
+
+			// Admin users can edit any profile
+			canEdit := false
+			if user.Kind == "admin" {
+				canEdit = true
+			} else {
+				// Check normal permissions
+				var err error
+				canEdit, err = profileService.CanUserEditProfile(
+					ctx.Request.Context(),
+					*session.LoggedInUserID,
+					slugParam,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
+						slog.String("error", err.Error()),
+						slog.String("session_id", sessionID),
+						slog.String("user_id", *session.LoggedInUserID),
+						slog.String("slug", slugParam))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText("Failed to check permissions"),
+					)
+				}
 			}
 
 			if !canEdit {
@@ -1470,10 +1552,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Update the translation
 			err := profileService.UpdateProfilePageTranslation(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				pageIDParam,
 				translationLocaleParam,
@@ -1544,10 +1636,20 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
+			// Get user to determine kind
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to get user information"),
+				)
+			}
+
 			// Delete the profile page
 			err := profileService.DeleteProfilePage(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				user.Kind,
 				slugParam,
 				pageIDParam,
 			)

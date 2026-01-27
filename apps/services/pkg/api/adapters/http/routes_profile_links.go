@@ -74,23 +74,39 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
-			// Check if user can edit this profile
-			canEdit, err := profileService.CanUserEditProfile(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				slugParam,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
-					slog.String("error", err.Error()),
-					slog.String("session_id", sessionID),
-					slog.String("user_id", *session.LoggedInUserID),
-					slog.String("slug", slugParam))
-
+			// Get user to check if admin
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to check permissions"),
+					httpfx.WithPlainText("Failed to get user information"),
 				)
+			}
+
+			// Admin users can edit any profile
+			canEdit := false
+			if user.Kind == "admin" {
+				canEdit = true
+			} else {
+				// Check normal permissions
+				var err error
+				canEdit, err = profileService.CanUserEditProfile(
+					ctx.Request.Context(),
+					*session.LoggedInUserID,
+					slugParam,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
+						slog.String("error", err.Error()),
+						slog.String("session_id", sessionID),
+						slog.String("user_id", *session.LoggedInUserID),
+						slog.String("slug", slugParam))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText("Failed to check permissions"),
+					)
+				}
 			}
 
 			if !canEdit {
