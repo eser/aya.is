@@ -77,9 +77,9 @@ type Repository interface {
 
 // PendingAwardsStats holds statistics about pending awards.
 type PendingAwardsStats struct {
-	TotalPending  uint64
-	TotalApproved uint64
-	TotalRejected uint64
-	PointsAwarded uint64
-	ByEventType   map[string]uint64
+	TotalPending  uint64            `json:"total_pending"`
+	TotalApproved uint64            `json:"total_approved"`
+	TotalRejected uint64            `json:"total_rejected"`
+	PointsAwarded uint64            `json:"points_awarded"`
+	ByEventType   map[string]uint64 `json:"by_event_type"`
 }

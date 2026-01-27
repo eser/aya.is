@@ -15,21 +15,21 @@ const (
 
 // Transaction represents a single point transaction record.
 type Transaction struct {
-	ID              string
-	TargetProfileID string
-	OriginProfileID *string
-	TransactionType TransactionType
-	TriggeringEvent *string
-	Description     string
-	Amount          uint64
-	BalanceAfter    uint64
-	CreatedAt       time.Time
+	ID              string          `json:"id"`
+	TargetProfileID string          `json:"target_profile_id"`
+	OriginProfileID *string         `json:"origin_profile_id"`
+	TransactionType TransactionType `json:"transaction_type"`
+	TriggeringEvent *string         `json:"triggering_event"`
+	Description     string          `json:"description"`
+	Amount          uint64          `json:"amount"`
+	BalanceAfter    uint64          `json:"balance_after"`
+	CreatedAt       time.Time       `json:"created_at"`
 }
 
 // Balance represents a profile's current point balance.
 type Balance struct {
-	ProfileID string
-	Points    uint64
+	ProfileID string `json:"profile_id"`
+	Points    uint64 `json:"points"`
 }
 
 // GainParams holds parameters for awarding points.
@@ -70,17 +70,17 @@ const (
 
 // PendingAward represents a point award that requires approval.
 type PendingAward struct {
-	ID              string
-	TargetProfileID string
-	TriggeringEvent string
-	Description     string
-	Amount          uint64
-	Status          PendingAwardStatus
-	ReviewedBy      *string
-	ReviewedAt      *time.Time
-	RejectionReason *string
-	Metadata        map[string]any
-	CreatedAt       time.Time
+	ID              string             `json:"id"`
+	TargetProfileID string             `json:"target_profile_id"`
+	TriggeringEvent string             `json:"triggering_event"`
+	Description     string             `json:"description"`
+	Amount          uint64             `json:"amount"`
+	Status          PendingAwardStatus `json:"status"`
+	ReviewedBy      *string            `json:"reviewed_by"`
+	ReviewedAt      *time.Time         `json:"reviewed_at"`
+	RejectionReason *string            `json:"rejection_reason"`
+	Metadata        map[string]any     `json:"metadata"`
+	CreatedAt       time.Time          `json:"created_at"`
 }
 
 // CreatePendingAwardParams holds parameters for creating a pending award.
