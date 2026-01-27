@@ -11,6 +11,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	mcpadapter "github.com/eser/aya.is/services/pkg/api/adapters/mcp"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
@@ -27,6 +28,7 @@ func Run(
 	authService *auth.Service,
 	userService *users.Service,
 	profileService *profiles.Service,
+	profilePointsService *profile_points.Service,
 	storyService *stories.Service,
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
@@ -97,6 +99,14 @@ func Run(
 		userService,
 		profileService,
 		storyService,
+	)
+	RegisterHTTPRoutesForProfilePoints( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		profileService,
+		profilePointsService,
 	)
 	RegisterHTTPRoutesForStories( //nolint:contextcheck
 		routes,

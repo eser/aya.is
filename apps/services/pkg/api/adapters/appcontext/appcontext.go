@@ -19,6 +19,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
@@ -56,17 +57,18 @@ type AppContext struct {
 	YouTubeProvider *youtube.Provider
 
 	// Business
-	UploadService       *uploads.Service
-	AuthService         *auth.Service
-	UserService         *users.Service
-	ProfileService      *profiles.Service
-	StoryService        *stories.Service
-	SessionService      *sessions.Service
-	ProtectionService   *protection.Service
-	LinkSyncService     *linksync.Service
-	EventService        *events.Service
-	EventRegistry       *events.HandlerRegistry
-	RuntimeStateService *runtime_states.Service
+	UploadService        *uploads.Service
+	AuthService          *auth.Service
+	UserService          *users.Service
+	ProfileService       *profiles.Service
+	ProfilePointsService *profile_points.Service
+	StoryService         *stories.Service
+	SessionService       *sessions.Service
+	ProtectionService    *protection.Service
+	LinkSyncService      *linksync.Service
+	EventService         *events.Service
+	EventRegistry        *events.HandlerRegistry
+	RuntimeStateService  *runtime_states.Service
 }
 
 func New() *AppContext {
@@ -207,6 +209,11 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Repository,
 	)
 	a.StoryService = stories.NewService(a.Logger, &a.Config.Stories, a.Repository)
+	a.ProfilePointsService = profile_points.NewService(
+		a.Logger,
+		a.Repository,
+		profile_points.DefaultIDGenerator,
+	)
 
 	// UploadService (only if S3 client is available)
 	if a.S3Client != nil {

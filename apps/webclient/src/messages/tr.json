@@ -314,7 +314,19 @@
     "Choose which GitHub account or organization to connect.": "Bağlanacak GitHub hesabını veya organizasyonunu seçin.",
     "Failed to load GitHub accounts": "GitHub hesapları yüklenemedi",
     "Individual accounts not allowed": "Bireysel hesaplara izin verilmiyor",
-    "Connecting...": "Bağlanıyor..."
+    "Connecting...": "Bağlanıyor...",
+    "Points": "Puanlar",
+    "View your point balance and transaction history.": "Puan bakiyenizi ve işlem geçmişinizi görüntüleyin.",
+    "Current Balance": "Mevcut Bakiye",
+    "points": "puan",
+    "Transaction History": "İşlem Geçmişi",
+    "No transactions yet.": "Henüz işlem yok.",
+    "Balance": "Bakiye",
+    "TransactionType": {
+      "GAIN": "Kazanım",
+      "SPEND": "Harcama",
+      "TRANSFER": "Transfer"
+    }
   },
   "StoryPage": {
     "Written by": "Yazan",

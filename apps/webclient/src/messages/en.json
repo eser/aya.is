@@ -346,7 +346,19 @@
     "Choose which GitHub account or organization to connect.": "Choose which GitHub account or organization to connect.",
     "Failed to load GitHub accounts": "Failed to load GitHub accounts",
     "Individual accounts not allowed": "Individual accounts not allowed",
-    "Connecting...": "Connecting..."
+    "Connecting...": "Connecting...",
+    "Points": "Points",
+    "View your point balance and transaction history.": "View your point balance and transaction history.",
+    "Current Balance": "Current Balance",
+    "points": "points",
+    "Transaction History": "Transaction History",
+    "No transactions yet.": "No transactions yet.",
+    "Balance": "Balance",
+    "TransactionType": {
+      "GAIN": "Gain",
+      "SPEND": "Spend",
+      "TRANSFER": "Transfer"
+    }
   },
   "StoryPage": {
     "Written by": "Written by",

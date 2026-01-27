@@ -29,6 +29,7 @@ import { createProfilePage } from "./profiles/create-profile-page";
 import { updateProfilePage } from "./profiles/update-profile-page";
 import { updateProfilePageTranslation } from "./profiles/update-profile-page-translation";
 import { deleteProfilePage } from "./profiles/delete-profile-page";
+import { listProfilePointTransactions } from "./profile-points/list-profile-point-transactions";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
 import { checkStorySlug } from "./stories/check-story-slug";
@@ -92,6 +93,9 @@ export const backend = {
   updateProfilePage,
   updateProfilePageTranslation,
   deleteProfilePage,
+
+  // Profile Points
+  listProfilePointTransactions,
 
   // Stories
   getStoriesByKinds,
@@ -172,6 +176,7 @@ export {
   isPOWSolverSupported,
   listProfileLinks,
   listProfilePages,
+  listProfilePointTransactions,
   removeStory,
   removeUpload,
   search,

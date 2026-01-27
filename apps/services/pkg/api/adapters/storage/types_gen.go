@@ -87,6 +87,7 @@ type Profile struct {
 	UpdatedAt         sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt         sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	ApprovedAt        sql.NullTime          `db:"approved_at" json:"approved_at"`
+	Points            int32                 `db:"points" json:"points"`
 }
 
 type ProfileLink struct {
@@ -155,6 +156,18 @@ type ProfilePageTx struct {
 	Summary       string      `db:"summary" json:"summary"`
 	Content       string      `db:"content" json:"content"`
 	SearchVector  interface{} `db:"search_vector" json:"search_vector"`
+}
+
+type ProfilePointTransaction struct {
+	ID              string         `db:"id" json:"id"`
+	TargetProfileID string         `db:"target_profile_id" json:"target_profile_id"`
+	OriginProfileID sql.NullString `db:"origin_profile_id" json:"origin_profile_id"`
+	TransactionType string         `db:"transaction_type" json:"transaction_type"`
+	TriggeringEvent sql.NullString `db:"triggering_event" json:"triggering_event"`
+	Description     string         `db:"description" json:"description"`
+	Amount          int32          `db:"amount" json:"amount"`
+	BalanceAfter    int32          `db:"balance_after" json:"balance_after"`
+	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
 }
 
 type ProfileTx struct {

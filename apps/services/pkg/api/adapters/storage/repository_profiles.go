@@ -151,6 +151,7 @@ func (r *Repository) GetProfileByID(
 		CreatedAt:         row.Profile.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+		Points:            int(row.Profile.Points),
 	}
 
 	return result, nil
@@ -379,6 +380,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 				CreatedAt:         row.Profile_2.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
 				DeletedAt:         vars.ToTimePtr(row.Profile_2.DeletedAt),
+				Points:            int(row.Profile_2.Points),
 			},
 		}
 	}
@@ -451,6 +453,7 @@ func (r *Repository) ListProfileMembers(
 				CreatedAt:         row.Profile_2.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
 				DeletedAt:         vars.ToTimePtr(row.Profile_2.DeletedAt),
+				Points:            int(row.Profile_2.Points),
 			},
 		}
 	}

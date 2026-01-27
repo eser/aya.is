@@ -16,6 +16,7 @@ export interface Profile {
   profile_picture_uri?: string | null;
   links?: ProfileLink[];
   pages?: ProfilePage[];
+  points: number;
   created_at: string;
   updated_at: string;
 }
@@ -297,4 +298,19 @@ export interface GetPresignedURLResponse {
   key: string;
   public_url: string;
   expires_at: string;
+}
+
+// Profile Points Types
+export type ProfilePointTransactionType = "GAIN" | "TRANSFER" | "SPEND";
+
+export interface ProfilePointTransaction {
+  id: string;
+  target_profile_id: string;
+  origin_profile_id: string | null;
+  transaction_type: ProfilePointTransactionType;
+  triggering_event: string | null;
+  description: string;
+  amount: number;
+  balance_after: number;
+  created_at: string;
 }

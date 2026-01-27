@@ -9,6 +9,15 @@ import (
 )
 
 type Querier interface {
+	//AddPointsToProfile
+	//
+	//  UPDATE "profile"
+	//  SET
+	//    points = points + $1,
+	//    updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	AddPointsToProfile(ctx context.Context, arg AddPointsToProfileParams) (int64, error)
 	//CheckPageSlugExistsIncludingDeleted
 	//
 	//  SELECT EXISTS(
@@ -294,6 +303,16 @@ type Querier interface {
 	//      $15
 	//    )
 	CreateUser(ctx context.Context, arg CreateUserParams) error
+	//DeductPointsFromProfile
+	//
+	//  UPDATE "profile"
+	//  SET
+	//    points = points - $1,
+	//    updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	//    AND points >= $1
+	DeductPointsFromProfile(ctx context.Context, arg DeductPointsFromProfileParams) (int64, error)
 	//DeleteAllSessionPreferences
 	//
 	//  DELETE FROM session_preference
@@ -420,7 +439,7 @@ type Querier interface {
 	GetPOWChallengeByID(ctx context.Context, arg GetPOWChallengeByIDParams) (*ProtectionPowChallenge, error)
 	//GetProfileByID
 	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
@@ -470,7 +489,7 @@ type Querier interface {
 	//    pm.finished_at,
 	//    pm.properties as membership_properties,
 	//    pm.created_at as membership_created_at,
-	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
+	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM
 	//    "profile_membership" pm
@@ -525,6 +544,19 @@ type Querier interface {
 	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
 	GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetProfilePageByProfileIDAndSlugParams) (*GetProfilePageByProfileIDAndSlugRow, error)
+	//GetProfilePointTransactionByID
+	//
+	//  SELECT id, target_profile_id, origin_profile_id, transaction_type, triggering_event, description, amount, balance_after, created_at
+	//  FROM "profile_point_transaction"
+	//  WHERE id = $1
+	GetProfilePointTransactionByID(ctx context.Context, arg GetProfilePointTransactionByIDParams) (*ProfilePointTransaction, error)
+	//GetProfilePoints
+	//
+	//  SELECT points
+	//  FROM "profile"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	GetProfilePoints(ctx context.Context, arg GetProfilePointsParams) (int32, error)
 	//GetProfileTxByID
 	//
 	//  SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -601,7 +633,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at,
+	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -853,9 +885,9 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
-	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
+	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-	//    p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at,
+	//    p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points,
 	//    p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 	//  FROM
 	//  	"profile_membership" pm
@@ -885,9 +917,17 @@ type Querier interface {
 	//    AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
 	ListProfilePagesByProfileID(ctx context.Context, arg ListProfilePagesByProfileIDParams) ([]*ListProfilePagesByProfileIDRow, error)
+	//ListProfilePointTransactionsByProfileID
+	//
+	//  SELECT id, target_profile_id, origin_profile_id, transaction_type, triggering_event, description, amount, balance_after, created_at
+	//  FROM "profile_point_transaction"
+	//  WHERE target_profile_id = $1
+	//  ORDER BY created_at DESC
+	//  LIMIT $2
+	ListProfilePointTransactionsByProfileID(ctx context.Context, arg ListProfilePointTransactionsByProfileIDParams) ([]*ProfilePointTransaction, error)
 	//ListProfiles
 	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
@@ -923,7 +963,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.published_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at,
+	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -979,6 +1019,30 @@ type Querier interface {
 	//  WHERE
 	//    id = $1
 	MarkPOWChallengeUsed(ctx context.Context, arg MarkPOWChallengeUsedParams) error
+	//RecordProfilePointTransaction
+	//
+	//  INSERT INTO "profile_point_transaction" (
+	//    id,
+	//    target_profile_id,
+	//    origin_profile_id,
+	//    transaction_type,
+	//    triggering_event,
+	//    description,
+	//    amount,
+	//    balance_after,
+	//    created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    $6,
+	//    $7,
+	//    $8,
+	//    NOW()
+	//  ) RETURNING id, target_profile_id, origin_profile_id, transaction_type, triggering_event, description, amount, balance_after, created_at
+	RecordProfilePointTransaction(ctx context.Context, arg RecordProfilePointTransactionParams) (*ProfilePointTransaction, error)
 	//ReleaseAdvisoryLock
 	//
 	//  SELECT pg_advisory_unlock($1::BIGINT) AS released

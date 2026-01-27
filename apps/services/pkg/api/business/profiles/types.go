@@ -27,6 +27,7 @@ type Profile struct {
 	Kind              string     `json:"kind"`
 	Title             string     `json:"title"`
 	Description       string     `json:"description"`
+	Points            int        `json:"points"`
 }
 
 type ProfileWithChildren struct {
