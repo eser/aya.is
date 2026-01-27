@@ -129,13 +129,13 @@ function ProfileSidebar(props: ProfileSidebarProps) {
       </div>
 
       {/* Points Display */}
-      {props.profile.points > 0 && (
+      {/* {props.profile.points > 0 && (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Coins className="size-4" />
           <span className="font-semibold text-foreground">{props.profile.points.toLocaleString()}</span>
           <span>{t("Profile.points")}</span>
         </div>
-      )}
+      )} */}
 
       {/* Navigation */}
       <nav className="flex justify-center font-serif md:justify-start">
