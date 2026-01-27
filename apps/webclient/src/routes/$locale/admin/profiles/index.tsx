@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SiteAvatar } from "@/components/userland";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ProfileKind = "individual" | "organization" | "product" | "";
@@ -173,18 +173,12 @@ function AdminProfiles() {
                   }
                 >
                   <TableCell>
-                    <Avatar size="sm">
-                      <AvatarImage
-                        src={
-                          profile.profile_picture_uri ??
-                          `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(profile.title !== "" ? profile.title : profile.slug)}`
-                        }
-                        alt={profile.title !== "" ? profile.title : profile.slug}
-                      />
-                      <AvatarFallback>
-                        {(profile.title !== "" ? profile.title : profile.slug).charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <SiteAvatar
+                      src={profile.profile_picture_uri}
+                      name={profile.title}
+                      fallbackName={profile.slug}
+                      size="sm"
+                    />
                   </TableCell>
                   <TableCell className="font-medium">
                     {profile.has_translation === false ? (

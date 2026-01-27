@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
+import { SiteAvatar } from "@/components/userland/site-avatar";
 import type { ProfileMembership } from "@/modules/backend/types";
 import styles from "./contribution-card.module.css";
 
@@ -21,18 +22,14 @@ export function ContributionCard(props: ContributionCardProps) {
       className={styles.cardLink}
     >
       <div className={styles.contributionCard}>
-        {profile.profile_picture_uri !== null &&
-          profile.profile_picture_uri !== undefined && (
-          <div className={styles.avatarContainer}>
-            <img
-              src={profile.profile_picture_uri}
-              alt={`${profile.title}'s picture`}
-              width={64}
-              height={64}
-              className={styles.avatar}
-            />
-          </div>
-        )}
+        <div className={styles.avatarContainer}>
+          <SiteAvatar
+            src={profile.profile_picture_uri}
+            name={profile.title}
+            fallbackName={profile.slug}
+            className={styles.avatar}
+          />
+        </div>
 
         <div className={styles.content}>
           <div className={styles.titleRow}>

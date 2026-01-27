@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
+import { SiteAvatar } from "@/components/userland/site-avatar";
 import type { ProfileMembership } from "@/modules/backend/types";
 import styles from "./member-card.module.css";
 
@@ -21,18 +22,14 @@ export function MemberCard(props: MemberCardProps) {
       className={styles.cardLink}
     >
       <div className={styles.memberCard}>
-        {memberProfile.profile_picture_uri !== null &&
-          memberProfile.profile_picture_uri !== undefined && (
-          <div className={styles.avatarContainer}>
-            <img
-              src={memberProfile.profile_picture_uri}
-              alt={`${memberProfile.title}'s picture`}
-              width={64}
-              height={64}
-              className={styles.avatar}
-            />
-          </div>
-        )}
+        <div className={styles.avatarContainer}>
+          <SiteAvatar
+            src={memberProfile.profile_picture_uri}
+            name={memberProfile.title}
+            fallbackName={memberProfile.slug}
+            className={styles.avatar}
+          />
+        </div>
 
         <div className={styles.content}>
           <div className={styles.titleRow}>

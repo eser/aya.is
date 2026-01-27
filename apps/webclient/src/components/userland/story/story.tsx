@@ -10,6 +10,7 @@ import {
   Presentation,
 } from "lucide-react";
 import { LocaleLink } from "@/components/locale-link";
+import { SiteAvatar } from "@/components/userland/site-avatar";
 import { cn } from "@/lib/utils";
 import { formatDateString } from "@/lib/date";
 import type { Story as StoryType, StoryEx, StoryKind } from "@/modules/backend/types";
@@ -67,14 +68,13 @@ export function Story(props: StoryProps) {
                 {props.story.title ?? t("News.No image available")}
               </div>
             )}
-          {props.story.author_profile?.profile_picture_uri !== null &&
-            props.story.author_profile?.profile_picture_uri !== undefined && (
+          {props.story.author_profile !== null &&
+            props.story.author_profile !== undefined && (
             <div className={styles.authorAvatarContainer}>
-              <img
+              <SiteAvatar
                 src={props.story.author_profile.profile_picture_uri}
-                alt={props.story.author_profile.title ?? "Author image"}
-                width={60}
-                height={60}
+                name={props.story.author_profile.title ?? "Author"}
+                fallbackName={props.story.author_profile.slug}
                 className={styles.authorAvatarImage}
               />
             </div>

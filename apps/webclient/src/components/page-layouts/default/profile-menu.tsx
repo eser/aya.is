@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SiteAvatar } from "@/components/userland";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 
@@ -24,18 +23,15 @@ export function ProfileMenu(props: ProfileMenuProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const locale = getCurrentLanguage();
-  const [imageError, setImageError] = React.useState(false);
 
   if (!isAuthenticated || user === null) {
     return null;
   }
 
-  // Determine avatar URL with priority: GitHub avatar > DiceBear fallback
-  const fallbackAvatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name ?? "User")}`;
+  // Determine avatar URL with priority: GitHub avatar > null (SiteAvatar will use dicebear fallback)
   const githubAvatarUrl = user.github_handle !== undefined && user.github_handle !== null
     ? `https://github.com/${user.github_handle}.png?size=32`
     : null;
-  const avatarUrl = githubAvatarUrl !== null ? githubAvatarUrl : fallbackAvatarUrl;
 
   const handleProfileClick = () => {
     // Navigate to user's profile if they have one, otherwise to create profile page
@@ -50,10 +46,6 @@ export function ProfileMenu(props: ProfileMenuProps) {
     await logout();
   };
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -63,16 +55,11 @@ export function ProfileMenu(props: ProfileMenuProps) {
             variant="ghost"
             className={`relative h-8 w-8 rounded-full p-0 ${props.className !== undefined ? props.className : ""}`}
           >
-            <Avatar size="default">
-              <AvatarImage
-                src={imageError ? fallbackAvatarUrl : avatarUrl}
-                alt={user.name ?? "User avatar"}
-                onError={handleImageError}
-              />
-              <AvatarFallback>
-                {(user.name ?? "U").charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <SiteAvatar
+              src={githubAvatarUrl}
+              name={user.name ?? "User"}
+              size="default"
+            />
           </Button>
         )}
       />

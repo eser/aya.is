@@ -4,6 +4,7 @@ import { Coins, Globe, Instagram, Link, Linkedin, SquarePen, Youtube } from "luc
 import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
+import { SiteAvatar } from "@/components/userland";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 
 function findIcon(kind: string) {
@@ -61,18 +62,14 @@ function ProfileSidebar(props: ProfileSidebarProps) {
   return (
     <aside className="flex flex-col gap-4">
       {/* Profile Picture */}
-      {props.profile.profile_picture_uri !== null &&
-        props.profile.profile_picture_uri !== undefined && (
-        <div className="flex justify-center md:justify-start">
-          <img
-            src={props.profile.profile_picture_uri}
-            alt={`${props.profile.title}'s profile picture`}
-            width={280}
-            height={280}
-            className="border rounded-full"
-          />
-        </div>
-      )}
+      <div className="flex justify-center md:justify-start">
+        <SiteAvatar
+          src={props.profile.profile_picture_uri}
+          name={props.profile.title}
+          fallbackName={props.slug}
+          className="size-[280px] border"
+        />
+      </div>
 
       {/* Hero Section */}
       <div>

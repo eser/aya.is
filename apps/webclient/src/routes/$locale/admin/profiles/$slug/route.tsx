@@ -3,7 +3,7 @@ import { createFileRoute, Outlet, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { backend } from "@/modules/backend/backend";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SiteAvatar } from "@/components/userland";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
@@ -55,20 +55,12 @@ function AdminProfileLayout() {
       {/* Profile Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Avatar size="lg">
-            <AvatarImage
-              src={
-                profile.profile_picture_uri ??
-                `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(profile.title !== "" ? profile.title : profile.slug)}`
-              }
-              alt={profile.title !== "" ? profile.title : profile.slug}
-            />
-            <AvatarFallback>
-              {(profile.title !== "" ? profile.title : profile.slug)
-                .charAt(0)
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <SiteAvatar
+            src={profile.profile_picture_uri}
+            name={profile.title}
+            fallbackName={profile.slug}
+            size="lg"
+          />
           <div>
             <div className="flex items-center gap-2">
               <h2

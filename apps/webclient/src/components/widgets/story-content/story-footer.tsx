@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
+import { SiteAvatar } from "@/components/userland";
 import type { StoryEx } from "@/modules/backend/types";
 
 export type StoryFooterProps = {
@@ -24,18 +25,14 @@ export function StoryFooter(props: StoryFooterProps) {
   return (
     <div className="w-full flex items-start gap-12 pt-20 pb-10">
       <div className="w-4/6 flex flex-row gap-4 items-center">
-        {props.story.author_profile.profile_picture_uri !== null &&
-          props.story.author_profile.profile_picture_uri !== undefined && (
-          <div className="flex-none p-0.5 bg-card rounded-full shadow-md">
-            <img
-              src={props.story.author_profile.profile_picture_uri}
-              alt={props.story.author_profile.title ?? "Author image"}
-              width={72}
-              height={72}
-              className="block w-[96px] h-[96px] rounded-full object-cover border-2 border-background"
-            />
-          </div>
-        )}
+        <div className="flex-none p-0.5 bg-card rounded-full shadow-md">
+          <SiteAvatar
+            src={props.story.author_profile.profile_picture_uri}
+            name={props.story.author_profile.title ?? "Author"}
+            fallbackName={props.story.author_profile.slug}
+            className="size-24 border-2 border-background"
+          />
+        </div>
         <div>
           <div className="text-sm text-muted-foreground">
             {t("Stories.Written by")}
