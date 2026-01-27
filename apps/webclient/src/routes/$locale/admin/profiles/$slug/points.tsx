@@ -65,7 +65,7 @@ function AdminProfilePoints() {
     setAwardSuccess(false);
 
     try {
-      const newTransaction = await backend.awardAdminPoints({
+      const newTransaction = await backend.addAdminPoints({
         slug: params.slug,
         amount,
         description: awardDescription.trim(),
@@ -83,10 +83,10 @@ function AdminProfilePoints() {
         // Hide success message after 3 seconds
         setTimeout(() => setAwardSuccess(false), 3000);
       } else {
-        setAwardError(t("Admin.Failed to award points"));
+        setAwardError(t("Admin.Failed to add points"));
       }
     } catch (error) {
-      setAwardError(error instanceof Error ? error.message : t("Admin.Failed to award points"));
+      setAwardError(error instanceof Error ? error.message : t("Admin.Failed to add points"));
     } finally {
       setIsAwarding(false);
     }
@@ -132,15 +132,15 @@ function AdminProfilePoints() {
         </CardContent>
       </Card>
 
-      {/* Award Points Card */}
+      {/* Add Points Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            {t("Admin.Award Points")}
+            {t("Admin.Add Points")}
           </CardTitle>
           <CardDescription>
-            {t("Admin.Manually award points to this profile")}
+            {t("Admin.Manually add points to this profile")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -161,7 +161,7 @@ function AdminProfilePoints() {
             <Label htmlFor="description">{t("Admin.Description")}</Label>
             <Textarea
               id="description"
-              placeholder={t("Admin.Reason for awarding points...")}
+              placeholder={t("Admin.Reason for adding points...")}
               value={awardDescription}
               onChange={(e) => setAwardDescription(e.target.value)}
               rows={2}
@@ -173,7 +173,7 @@ function AdminProfilePoints() {
           {awardSuccess && (
             <p className="text-sm text-green-600 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              {t("Admin.Points awarded successfully")}
+              {t("Admin.Points added successfully")}
             </p>
           )}
           <Button onClick={handleAwardPoints} disabled={isAwarding}>
@@ -182,7 +182,7 @@ function AdminProfilePoints() {
             ) : (
               <Plus className="h-4 w-4 mr-2" />
             )}
-            {t("Admin.Award Points")}
+            {t("Admin.Add Points")}
           </Button>
         </CardContent>
       </Card>

@@ -26,7 +26,6 @@ export const Route = createFileRoute("/$locale/admin/profiles/$slug")({
 function AdminProfileLayout() {
   const { t } = useTranslation();
   const { profile, slug } = Route.useLoaderData();
-  const params = Route.useParams();
 
   const getKindBadge = (profileKind: string) => {
     switch (profileKind) {

@@ -148,7 +148,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 		HasDescription("Get a single profile by slug. Admin only.").
 		HasResponse(http.StatusOK)
 
-	// Award points to a profile (admin only)
+	// Add points to a profile (admin only)
 	routes.
 		Route(
 			"POST /admin/profiles/{slug}/points",
@@ -221,7 +221,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 					)
 				}
 
-				// Award points using GainPoints (direct admin award)
+				// Add points using GainPoints (direct admin award)
 				triggeringEvent := "ADMIN_AWARD"
 				tx, err := profilePointsService.GainPoints(
 					ctx.Request.Context(),
@@ -234,7 +234,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 				)
 				if err != nil {
 					logger.Error(
-						"failed to award points",
+						"failed to add points",
 						"error", err,
 						"slug", slug,
 						"amount", body.Amount,
@@ -249,7 +249,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 				return ctx.Results.JSON(tx)
 			},
 		).
-		HasSummary("Award points to profile").
-		HasDescription("Award points directly to a profile. Admin only.").
+		HasSummary("Add points to profile").
+		HasDescription("Add points directly to a profile. Admin only.").
 		HasResponse(http.StatusOK)
 }

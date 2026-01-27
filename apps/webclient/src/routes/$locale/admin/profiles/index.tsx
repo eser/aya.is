@@ -125,7 +125,7 @@ function AdminProfiles() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-serif text-xl font-bold">
-          {t("Admin.All Profiles")}
+          {t("Admin.Profiles")}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
             ({total})
           </span>

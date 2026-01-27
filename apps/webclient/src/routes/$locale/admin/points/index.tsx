@@ -189,11 +189,6 @@ function AdminPointsDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Overview Section */}
-      <h2 className="font-serif text-xl font-bold">
-        {t("Admin.Overview")}
-      </h2>
-
       {stats === null ? (
         <div className="text-center py-8 text-muted-foreground">
           {t("Admin.Failed to load statistics")}
@@ -204,7 +199,7 @@ function AdminPointsDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {t("Admin.Pending")}
+                  {t("Admin.Pending Awards")}
                 </CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -219,7 +214,7 @@ function AdminPointsDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {t("Admin.Approved")}
+                  {t("Admin.Approved Awards")}
                 </CardTitle>
                 <CheckCircle className="h-4 w-4 text-green-500" />
               </CardHeader>
@@ -234,7 +229,7 @@ function AdminPointsDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {t("Admin.Rejected")}
+                  {t("Admin.Rejected Awards")}
                 </CardTitle>
                 <XCircle className="h-4 w-4 text-red-500" />
               </CardHeader>
@@ -279,7 +274,7 @@ function AdminPointsDashboard() {
                       className="flex items-center justify-between py-1"
                     >
                       <span className="text-sm text-muted-foreground">{event}</span>
-                      <span className="font-medium">{count}</span>
+                      <span className="font-medium">{count as number}</span>
                     </div>
                   ))}
                 </div>
@@ -293,7 +288,7 @@ function AdminPointsDashboard() {
       <div className="space-y-4 pt-4">
         <div className="flex items-center justify-between">
           <h2 className="font-serif text-xl font-bold">
-            {t("Admin.Pending Awards")}
+            {t("Admin.Awards")}
           </h2>
 
           <Select value={status} onValueChange={handleStatusChange}>
