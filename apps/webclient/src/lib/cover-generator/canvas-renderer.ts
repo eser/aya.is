@@ -40,6 +40,7 @@ export function renderCover(
   options: CoverOptions,
   authorImage: HTMLImageElement | null,
   logoImage: HTMLImageElement | null,
+  backgroundImage: HTMLImageElement | null = null,
 ): void {
   // Clear canvas
   ctx.clearRect(0, 0, COVER_WIDTH, COVER_HEIGHT);
@@ -47,39 +48,66 @@ export function renderCover(
   // Draw based on template
   switch (options.templateId) {
     case "classic":
-      renderClassicTemplate(ctx, story, options, authorImage, logoImage);
+      renderClassicTemplate(ctx, story, options, authorImage, logoImage, backgroundImage);
       break;
     case "bold":
-      renderBoldTemplate(ctx, story, options, authorImage, logoImage);
+      renderBoldTemplate(ctx, story, options, authorImage, logoImage, backgroundImage);
       break;
     case "minimal":
-      renderMinimalTemplate(ctx, story, options, logoImage);
+      renderMinimalTemplate(ctx, story, options, authorImage, logoImage, backgroundImage);
       break;
     case "featured":
-      renderFeaturedTemplate(ctx, story, options, authorImage, logoImage);
+      renderFeaturedTemplate(ctx, story, options, authorImage, logoImage, backgroundImage);
       break;
     default:
-      renderClassicTemplate(ctx, story, options, authorImage, logoImage);
+      renderClassicTemplate(ctx, story, options, authorImage, logoImage, backgroundImage);
   }
 }
 
-// Draw background with optional pattern
+// Draw background with optional pattern and image
 function drawBackground(
   ctx: CanvasRenderingContext2D,
   options: CoverOptions,
+  backgroundImage: HTMLImageElement | null = null,
 ): void {
-  const { backgroundColor, backgroundPattern, borderRadius } = options;
+  const { backgroundColor, backgroundPattern, backgroundImageUrl, backgroundImageOpacity } = options;
 
+  // Fill solid background color first
   ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, COVER_WIDTH, COVER_HEIGHT);
 
-  if (borderRadius > 0) {
-    roundRect(ctx, 0, 0, COVER_WIDTH, COVER_HEIGHT, borderRadius);
-    ctx.fill();
-  } else {
-    ctx.fillRect(0, 0, COVER_WIDTH, COVER_HEIGHT);
+  // Draw background image if provided
+  if (backgroundImage !== null && backgroundImageUrl !== null) {
+    ctx.globalAlpha = backgroundImageOpacity / 100;
+
+    // Calculate dimensions to cover the canvas while maintaining aspect ratio
+    const imgAspect = backgroundImage.width / backgroundImage.height;
+    const canvasAspect = COVER_WIDTH / COVER_HEIGHT;
+
+    let drawWidth: number;
+    let drawHeight: number;
+    let drawX: number;
+    let drawY: number;
+
+    if (imgAspect > canvasAspect) {
+      // Image is wider - fit height, crop width
+      drawHeight = COVER_HEIGHT;
+      drawWidth = COVER_HEIGHT * imgAspect;
+      drawX = (COVER_WIDTH - drawWidth) / 2;
+      drawY = 0;
+    } else {
+      // Image is taller - fit width, crop height
+      drawWidth = COVER_WIDTH;
+      drawHeight = COVER_WIDTH / imgAspect;
+      drawX = 0;
+      drawY = (COVER_HEIGHT - drawHeight) / 2;
+    }
+
+    ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight);
+    ctx.globalAlpha = 1;
   }
 
-  // Draw pattern
+  // Draw pattern on top
   drawPattern(ctx, backgroundPattern, options);
 }
 
@@ -263,7 +291,7 @@ function drawKindBadge(
 ): void {
   if (!options.showStoryKind) return;
 
-  const kind = story.kind.charAt(0).toUpperCase() + story.kind.slice(1);
+  const kind = story.kindLabel;
   ctx.font = `600 12px ${fontFamilyMap[options.bodyFont]}`;
   const textWidth = ctx.measureText(kind).width;
   const paddingX = 12;
@@ -318,41 +346,45 @@ function renderClassicTemplate(
   options: CoverOptions,
   authorImage: HTMLImageElement | null,
   logoImage: HTMLImageElement | null,
+  backgroundImage: HTMLImageElement | null,
 ): void {
-  drawBackground(ctx, options);
+  drawBackground(ctx, options, backgroundImage);
 
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2;
 
-  // Calculate title size
-  const baseFontSize = 56;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
+  // Draw kind badge at top
+  if (options.showStoryKind) {
+    drawKindBadge(ctx, story, options, padding, padding);
+  }
 
   // Draw title (centered)
   ctx.fillStyle = options.textColor;
+  const fontSize = options.titleSize;
   ctx.font = `700 ${fontSize}px ${fontFamilyMap[options.headingFont]}`;
   ctx.textAlign = "center";
 
   const lines = wrapText(ctx, title, maxWidth);
-  const lineHeight = fontSize * (options.lineSpacing / 100);
-  const totalHeight = lines.length * lineHeight;
-  let startY = (COVER_HEIGHT - totalHeight) / 2;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
+  const totalHeight = lines.length * titleLineHeight;
+  let startY = (COVER_HEIGHT - totalHeight) / 2 + options.contentOffsetY;
 
   for (const line of lines) {
     ctx.fillText(line, COVER_WIDTH / 2, startY + fontSize);
-    startY += lineHeight;
+    startY += titleLineHeight;
   }
 
   // Draw subtitle if provided
   const subtitle = options.subtitleOverride || story.summary;
   if (subtitle !== null && subtitle.length > 0) {
+    startY += options.lineSpacing; // Add spacing between title and subtitle
     ctx.globalAlpha = 0.8;
-    ctx.font = `400 20px ${fontFamilyMap[options.bodyFont]}`;
+    ctx.font = `400 ${options.subtitleSize}px ${fontFamilyMap[options.bodyFont]}`;
     const subtitleLines = wrapText(ctx, subtitle, maxWidth * 0.8);
-    const subtitleLineHeight = 20 * (options.lineHeight / 100);
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
     for (const line of subtitleLines.slice(0, 2)) {
-      ctx.fillText(line, COVER_WIDTH / 2, startY + 40);
+      ctx.fillText(line, COVER_WIDTH / 2, startY + options.subtitleSize);
       startY += subtitleLineHeight;
     }
     ctx.globalAlpha = 1;
@@ -375,8 +407,9 @@ function renderBoldTemplate(
   options: CoverOptions,
   authorImage: HTMLImageElement | null,
   logoImage: HTMLImageElement | null,
+  backgroundImage: HTMLImageElement | null,
 ): void {
-  drawBackground(ctx, options);
+  drawBackground(ctx, options, backgroundImage);
 
   const title = options.titleOverride || story.title;
   const padding = options.padding;
@@ -388,28 +421,46 @@ function renderBoldTemplate(
   }
 
   // Draw title with accent underline
-  const baseFontSize = 52;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
-
   ctx.fillStyle = options.textColor;
+  const fontSize = options.titleSize;
   ctx.font = `800 ${fontSize}px ${fontFamilyMap[options.headingFont]}`;
   ctx.textAlign = "left";
 
   const lines = wrapText(ctx, title, maxWidth);
-  const lineHeight = fontSize * (options.lineSpacing / 100);
-  let startY = COVER_HEIGHT / 2 - (lines.length * lineHeight) / 2;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
+  let startY = COVER_HEIGHT / 2 - (lines.length * titleLineHeight) / 2 + options.contentOffsetY;
 
   for (const line of lines) {
     ctx.fillText(line, padding, startY + fontSize);
-    startY += lineHeight;
+    startY += titleLineHeight;
   }
 
   // Accent underline
   ctx.fillStyle = options.accentColor;
   ctx.fillRect(padding, startY + 10, 80, 6);
+  startY += 26; // Move past underline
+
+  // Draw subtitle if provided
+  const subtitle = options.subtitleOverride || story.summary;
+  if (subtitle !== null && subtitle.length > 0) {
+    startY += options.lineSpacing;
+    ctx.fillStyle = options.textColor;
+    ctx.globalAlpha = 0.8;
+    ctx.font = `400 ${options.subtitleSize}px ${fontFamilyMap[options.bodyFont]}`;
+    const subtitleLines = wrapText(ctx, subtitle, maxWidth);
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
+    for (const line of subtitleLines.slice(0, 2)) {
+      ctx.fillText(line, padding, startY + options.subtitleSize);
+      startY += subtitleLineHeight;
+    }
+    ctx.globalAlpha = 1;
+  }
 
   // Draw author at bottom
   drawAuthorInfo(ctx, story, options, authorImage, COVER_HEIGHT - padding - 48);
+
+  // Draw date
+  drawDate(ctx, story, options, COVER_HEIGHT - padding - 24);
 
   // Draw logo
   drawLogo(ctx, logoImage, options);
@@ -420,31 +471,57 @@ function renderMinimalTemplate(
   ctx: CanvasRenderingContext2D,
   story: StoryData,
   options: CoverOptions,
+  authorImage: HTMLImageElement | null,
   logoImage: HTMLImageElement | null,
+  backgroundImage: HTMLImageElement | null,
 ): void {
-  drawBackground(ctx, options);
+  drawBackground(ctx, options, backgroundImage);
 
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2;
 
-  // Large centered title
-  const baseFontSize = 64;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
+  // Draw kind badge at top
+  if (options.showStoryKind) {
+    drawKindBadge(ctx, story, options, padding, padding);
+  }
 
+  // Large centered title
   ctx.fillStyle = options.textColor;
+  const fontSize = options.titleSize;
   ctx.font = `700 ${fontSize}px ${fontFamilyMap[options.headingFont]}`;
   ctx.textAlign = "center";
 
   const lines = wrapText(ctx, title, maxWidth);
-  const lineHeight = fontSize * (options.lineSpacing / 100);
-  const totalHeight = lines.length * lineHeight;
-  let startY = (COVER_HEIGHT - totalHeight) / 2;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
+  const totalHeight = lines.length * titleLineHeight;
+  let startY = (COVER_HEIGHT - totalHeight) / 2 + options.contentOffsetY;
 
   for (const line of lines) {
     ctx.fillText(line, COVER_WIDTH / 2, startY + fontSize);
-    startY += lineHeight;
+    startY += titleLineHeight;
   }
+
+  // Draw subtitle if provided
+  const subtitle = options.subtitleOverride || story.summary;
+  if (subtitle !== null && subtitle.length > 0) {
+    startY += options.lineSpacing;
+    ctx.globalAlpha = 0.7;
+    ctx.font = `400 ${options.subtitleSize}px ${fontFamilyMap[options.bodyFont]}`;
+    const subtitleLines = wrapText(ctx, subtitle, maxWidth * 0.8);
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
+    for (const line of subtitleLines.slice(0, 2)) {
+      ctx.fillText(line, COVER_WIDTH / 2, startY + options.subtitleSize);
+      startY += subtitleLineHeight;
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Draw author at bottom
+  drawAuthorInfo(ctx, story, options, authorImage, COVER_HEIGHT - padding - 48);
+
+  // Draw date
+  drawDate(ctx, story, options, COVER_HEIGHT - padding - 24);
 
   // Draw logo
   drawLogo(ctx, logoImage, options);
@@ -457,44 +534,47 @@ function renderFeaturedTemplate(
   options: CoverOptions,
   authorImage: HTMLImageElement | null,
   logoImage: HTMLImageElement | null,
+  backgroundImage: HTMLImageElement | null,
 ): void {
-  drawBackground(ctx, options);
+  drawBackground(ctx, options, backgroundImage);
 
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2 - 150; // Leave space for author
 
-  // Featured badge
-  ctx.fillStyle = options.accentColor;
-  ctx.font = `700 14px ${fontFamilyMap[options.bodyFont]}`;
-  const badgeText = "FEATURED";
-  const badgeWidth = ctx.measureText(badgeText).width + 24;
-  roundRect(ctx, padding, padding, badgeWidth, 30, 4);
-  ctx.fill();
-  ctx.fillStyle = "#000000";
-  ctx.textAlign = "left";
-  ctx.fillText(badgeText, padding + 12, padding + 21);
-
-  // Draw kind badge next to featured
+  // Draw kind badge at top
   if (options.showStoryKind) {
-    drawKindBadge(ctx, story, options, padding + badgeWidth + 12, padding);
+    drawKindBadge(ctx, story, options, padding, padding);
   }
 
   // Title
-  const baseFontSize = 48;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
-
   ctx.fillStyle = options.textColor;
+  const fontSize = options.titleSize;
   ctx.font = `700 ${fontSize}px ${fontFamilyMap[options.headingFont]}`;
   ctx.textAlign = "left";
 
   const lines = wrapText(ctx, title, maxWidth);
-  const lineHeight = fontSize * (options.lineSpacing / 100);
-  let startY = 120;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
+  let startY = 120 + options.contentOffsetY;
 
   for (const line of lines.slice(0, 3)) {
     ctx.fillText(line, padding, startY + fontSize);
-    startY += lineHeight;
+    startY += titleLineHeight;
+  }
+
+  // Draw subtitle if provided
+  const subtitle = options.subtitleOverride || story.summary;
+  if (subtitle !== null && subtitle.length > 0) {
+    startY += options.lineSpacing;
+    ctx.globalAlpha = 0.8;
+    ctx.font = `400 ${options.subtitleSize}px ${fontFamilyMap[options.bodyFont]}`;
+    const subtitleLines = wrapText(ctx, subtitle, maxWidth);
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
+    for (const line of subtitleLines.slice(0, 2)) {
+      ctx.fillText(line, padding, startY + options.subtitleSize);
+      startY += subtitleLineHeight;
+    }
+    ctx.globalAlpha = 1;
   }
 
   // Large author avatar on right

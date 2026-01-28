@@ -65,15 +65,22 @@ export function CoverGenerator(props: CoverGeneratorProps) {
     loadAuthorImage();
   }, [story.author_profile?.profile_picture_uri]);
 
+  // Get localized kind label
+  const getKindLabel = (kind: string): string => {
+    const kindKey = kind.charAt(0).toUpperCase() + kind.slice(1);
+    return t(`Stories.${kindKey}`, kindKey);
+  };
+
   // Convert Story to StoryData
   const storyData: StoryData = React.useMemo(() => ({
     title: story.title ?? "Untitled",
     summary: story.summary,
     kind: story.kind,
+    kindLabel: getKindLabel(story.kind),
     authorName: story.author_profile?.title ?? null,
     authorAvatarUrl: story.author_profile?.profile_picture_uri ?? null,
     publishedAt: story.published_at ?? story.created_at,
-  }), [story]);
+  }), [story, t]);
 
   // Initialize options with template defaults
   const [options, setOptions] = React.useState<CoverOptions>(() => ({

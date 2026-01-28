@@ -27,7 +27,37 @@ export function CanvasPreview(props: CanvasPreviewProps) {
   const internalCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const [authorImage, setAuthorImage] = React.useState<HTMLImageElement | null>(null);
   const [logoImage, setLogoImage] = React.useState<HTMLImageElement | null>(null);
+  const [backgroundImage, setBackgroundImage] = React.useState<HTMLImageElement | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [fontsLoaded, setFontsLoaded] = React.useState(false);
+
+  // Wait for fonts to load
+  React.useEffect(() => {
+    const loadFonts = async () => {
+      if (typeof document !== "undefined" && document.fonts !== undefined) {
+        // Wait for all fonts to be ready
+        await document.fonts.ready;
+        // Try to load fonts explicitly if not already loaded
+        const fontsToLoad = [
+          '700 16px "Bree Serif"',
+          '400 16px "Nunito Sans Variable"',
+          '700 16px "Nunito Sans Variable"',
+        ];
+        for (const font of fontsToLoad) {
+          if (!document.fonts.check(font)) {
+            try {
+              await document.fonts.load(font);
+            } catch {
+              // Font may not be available, continue anyway
+            }
+          }
+        }
+      }
+      setFontsLoaded(true);
+    };
+
+    loadFonts();
+  }, []);
 
   // Load images on mount
   React.useEffect(() => {
@@ -58,6 +88,26 @@ export function CanvasPreview(props: CanvasPreviewProps) {
     loadImages();
   }, [props.story.authorAvatarUrl]);
 
+  // Load background image when URL changes
+  React.useEffect(() => {
+    const loadBackgroundImage = async () => {
+      if (props.options.backgroundImageUrl === null) {
+        setBackgroundImage(null);
+        return;
+      }
+
+      try {
+        const img = await loadImage(props.options.backgroundImageUrl);
+        setBackgroundImage(img);
+      } catch {
+        // Silently fail - will render without background image
+        setBackgroundImage(null);
+      }
+    };
+
+    loadBackgroundImage();
+  }, [props.options.backgroundImageUrl]);
+
   // Initialize canvas
   React.useEffect(() => {
     if (internalCanvasRef.current === null) {
@@ -73,7 +123,7 @@ export function CanvasPreview(props: CanvasPreviewProps) {
 
   // Render cover whenever options or story changes
   React.useEffect(() => {
-    if (internalCanvasRef.current === null || isLoading) return;
+    if (internalCanvasRef.current === null || isLoading || !fontsLoaded) return;
 
     const canvas = internalCanvasRef.current;
     const ctx = getContext(canvas);
@@ -82,14 +132,14 @@ export function CanvasPreview(props: CanvasPreviewProps) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(2, 2);
 
-    renderCover(ctx, props.story, props.options, authorImage, logoImage);
-  }, [props.story, props.options, authorImage, logoImage, isLoading]);
+    renderCover(ctx, props.story, props.options, authorImage, logoImage, backgroundImage);
+  }, [props.story, props.options, authorImage, logoImage, backgroundImage, isLoading, fontsLoaded]);
 
   // Get canvas data URL for display
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (internalCanvasRef.current === null || isLoading) return;
+    if (internalCanvasRef.current === null || isLoading || !fontsLoaded) return;
 
     // Use requestAnimationFrame to ensure canvas is rendered
     const animationId = requestAnimationFrame(() => {
@@ -99,11 +149,13 @@ export function CanvasPreview(props: CanvasPreviewProps) {
     });
 
     return () => cancelAnimationFrame(animationId);
-  }, [props.story, props.options, authorImage, logoImage, isLoading]);
+  }, [props.story, props.options, authorImage, logoImage, backgroundImage, isLoading, fontsLoaded]);
+
+  const showLoading = isLoading || !fontsLoaded;
 
   return (
     <div ref={containerRef} className={styles.previewContainer}>
-      {isLoading ? (
+      {showLoading ? (
         <div className={styles.previewLoading}>
           <div className={styles.previewLoadingSpinner} />
           <span>Loading preview...</span>

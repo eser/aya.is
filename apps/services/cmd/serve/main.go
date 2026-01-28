@@ -47,6 +47,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			appContext.SessionService,
 			appContext.ProtectionService,
 			appContext.UploadService,
+			appContext.UnsplashClient,
 			&http.ProfileLinkProviders{
 				YouTube:                appContext.YouTubeProvider,
 				GitHub:                 appContext.GitHubProvider,

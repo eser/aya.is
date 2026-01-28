@@ -49,6 +49,7 @@ import { updateSessionPreferences } from "./sessions/update-preferences";
 import { getPOWChallenge } from "./protection/get-pow-challenge";
 import { isPOWSolverSupported, solvePOW } from "./protection/solve-pow";
 import { getSpotlight } from "./site/get-spotlight";
+import { searchBackgroundImages } from "./site/search-background-images";
 import { handleAuthCallback } from "./auth/handle-callback";
 import { getUser } from "./users/get-user";
 import { getUsers } from "./users/get-users";
@@ -66,6 +67,13 @@ import { addAdminPoints } from "./admin/add-admin-points";
 // Re-export types
 export * from "./types";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
+export type {
+  UnsplashPhoto,
+  UnsplashPhotoUrls,
+  UnsplashPhotoUser,
+  UnsplashSearchResult,
+  SearchBackgroundImagesParams,
+} from "./site/search-background-images";
 
 // Backend API facade
 export const backend = {
@@ -135,6 +143,7 @@ export const backend = {
 
   // Site
   getSpotlight,
+  searchBackgroundImages,
 
   // Auth
   handleAuthCallback,
@@ -200,6 +209,7 @@ export {
   removeStory,
   removeUpload,
   search,
+  searchBackgroundImages,
   solvePOW,
   updateProfile,
   updateProfileLink,

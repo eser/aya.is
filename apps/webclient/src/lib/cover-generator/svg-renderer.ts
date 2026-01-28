@@ -132,7 +132,7 @@ function generateLogo(options: CoverOptions): string {
 function generateKindBadge(story: StoryData, options: CoverOptions, x: number, y: number): string {
   if (!options.showStoryKind) return "";
 
-  const kind = story.kind.charAt(0).toUpperCase() + story.kind.slice(1);
+  const kind = story.kindLabel;
   const fontSize = 12;
   const paddingX = 12;
   const paddingY = 6;
@@ -199,31 +199,36 @@ function renderClassicTemplateSvg(
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2;
 
-  const baseFontSize = 56;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
-  const lineHeight = fontSize * (options.lineSpacing / 100);
+  // Kind badge at top
+  let kindBadge = "";
+  if (options.showStoryKind) {
+    kindBadge = generateKindBadge(story, options, padding, padding);
+  }
+
+  const fontSize = options.titleSize;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
 
   const lines = wrapTextSvg(title, fontSize, maxWidth);
-  const totalHeight = lines.length * lineHeight;
-  let startY = (COVER_HEIGHT - totalHeight) / 2;
+  const totalHeight = lines.length * titleLineHeight;
+  let startY = (COVER_HEIGHT - totalHeight) / 2 + options.contentOffsetY;
 
   let titleElements = "";
   for (const line of lines) {
     titleElements += `
       <text x="${COVER_WIDTH / 2}" y="${startY + fontSize}" font-family="${escapeFontFamily(fontFamilyMap[options.headingFont])}" font-size="${fontSize}" font-weight="700" fill="${options.textColor}" text-anchor="middle">${escapeXml(line)}</text>`;
-    startY += lineHeight;
+    startY += titleLineHeight;
   }
 
   // Subtitle
   let subtitleElements = "";
   const subtitle = options.subtitleOverride || story.summary;
   if (subtitle !== null && subtitle.length > 0) {
-    const subtitleFontSize = 20;
-    const subtitleLineHeight = subtitleFontSize * (options.lineHeight / 100);
-    const subtitleLines = wrapTextSvg(subtitle, subtitleFontSize, maxWidth * 0.8);
+    startY += options.lineSpacing; // Add spacing between title and subtitle
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
+    const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth * 0.8);
     for (const line of subtitleLines.slice(0, 2)) {
       subtitleElements += `
-        <text x="${COVER_WIDTH / 2}" y="${startY + 40}" font-family="${escapeFontFamily(fontFamilyMap[options.bodyFont])}" font-size="${subtitleFontSize}" font-weight="400" fill="${options.textColor}" opacity="0.8" text-anchor="middle">${escapeXml(line)}</text>`;
+        <text x="${COVER_WIDTH / 2}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(fontFamilyMap[options.bodyFont])}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8" text-anchor="middle">${escapeXml(line)}</text>`;
       startY += subtitleLineHeight;
     }
   }
@@ -232,7 +237,7 @@ function renderClassicTemplateSvg(
   const dateInfo = generateDate(story, options, COVER_HEIGHT - padding - 24);
   const logo = generateLogo(options);
 
-  return titleElements + subtitleElements + authorInfo + dateInfo + logo;
+  return kindBadge + titleElements + subtitleElements + authorInfo + dateInfo + logo;
 }
 
 function renderBoldTemplateSvg(
@@ -251,23 +256,37 @@ function renderBoldTemplateSvg(
     content += generateKindBadge(story, options, padding, padding);
   }
 
-  const baseFontSize = 52;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
-  const lineHeight = fontSize * (options.lineSpacing / 100);
+  const fontSize = options.titleSize;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
 
   const lines = wrapTextSvg(title, fontSize, maxWidth);
-  let startY = COVER_HEIGHT / 2 - (lines.length * lineHeight) / 2;
+  let startY = COVER_HEIGHT / 2 - (lines.length * titleLineHeight) / 2 + options.contentOffsetY;
 
   for (const line of lines) {
     content += `
       <text x="${padding}" y="${startY + fontSize}" font-family="${escapeFontFamily(fontFamilyMap[options.headingFont])}" font-size="${fontSize}" font-weight="800" fill="${options.textColor}">${escapeXml(line)}</text>`;
-    startY += lineHeight;
+    startY += titleLineHeight;
   }
 
   // Accent underline
   content += `<rect x="${padding}" y="${startY + 10}" width="80" height="6" fill="${options.accentColor}"/>`;
+  startY += 26;
+
+  // Subtitle
+  const subtitle = options.subtitleOverride || story.summary;
+  if (subtitle !== null && subtitle.length > 0) {
+    startY += options.lineSpacing;
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
+    const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth);
+    for (const line of subtitleLines.slice(0, 2)) {
+      content += `
+        <text x="${padding}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(fontFamilyMap[options.bodyFont])}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8">${escapeXml(line)}</text>`;
+      startY += subtitleLineHeight;
+    }
+  }
 
   content += generateAuthorInfo(story, options, COVER_HEIGHT - padding - 48, authorImageDataUrl);
+  content += generateDate(story, options, COVER_HEIGHT - padding - 24);
   content += generateLogo(options);
 
   return content;
@@ -276,26 +295,45 @@ function renderBoldTemplateSvg(
 function renderMinimalTemplateSvg(
   story: StoryData,
   options: CoverOptions,
+  authorImageDataUrl: string | null,
 ): string {
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2;
 
-  const baseFontSize = 64;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
-  const lineHeight = fontSize * (options.lineSpacing / 100);
+  // Kind badge at top
+  let content = "";
+  if (options.showStoryKind) {
+    content += generateKindBadge(story, options, padding, padding);
+  }
+
+  const fontSize = options.titleSize;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
 
   const lines = wrapTextSvg(title, fontSize, maxWidth);
-  const totalHeight = lines.length * lineHeight;
-  let startY = (COVER_HEIGHT - totalHeight) / 2;
-
-  let content = "";
+  const totalHeight = lines.length * titleLineHeight;
+  let startY = (COVER_HEIGHT - totalHeight) / 2 + options.contentOffsetY;
   for (const line of lines) {
     content += `
       <text x="${COVER_WIDTH / 2}" y="${startY + fontSize}" font-family="${escapeFontFamily(fontFamilyMap[options.headingFont])}" font-size="${fontSize}" font-weight="700" fill="${options.textColor}" text-anchor="middle">${escapeXml(line)}</text>`;
-    startY += lineHeight;
+    startY += titleLineHeight;
   }
 
+  // Subtitle
+  const subtitle = options.subtitleOverride || story.summary;
+  if (subtitle !== null && subtitle.length > 0) {
+    startY += options.lineSpacing;
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
+    const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth * 0.8);
+    for (const line of subtitleLines.slice(0, 2)) {
+      content += `
+        <text x="${COVER_WIDTH / 2}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(fontFamilyMap[options.bodyFont])}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.7" text-anchor="middle">${escapeXml(line)}</text>`;
+      startY += subtitleLineHeight;
+    }
+  }
+
+  content += generateAuthorInfo(story, options, COVER_HEIGHT - padding - 48, authorImageDataUrl);
+  content += generateDate(story, options, COVER_HEIGHT - padding - 24);
   content += generateLogo(options);
 
   return content;
@@ -312,29 +350,34 @@ function renderFeaturedTemplateSvg(
 
   let content = "";
 
-  // Featured badge
-  const badgeText = "FEATURED";
-  const badgeWidth = badgeText.length * 14 * 0.6 + 24;
-  content += `
-    <rect x="${padding}" y="${padding}" width="${badgeWidth}" height="30" rx="4" fill="${options.accentColor}"/>
-    <text x="${padding + 12}" y="${padding + 21}" font-family="${escapeFontFamily(fontFamilyMap[options.bodyFont])}" font-size="14" font-weight="700" fill="#000000">${badgeText}</text>`;
-
-  // Kind badge
+  // Kind badge at top
   if (options.showStoryKind) {
-    content += generateKindBadge(story, options, padding + badgeWidth + 12, padding);
+    content += generateKindBadge(story, options, padding, padding);
   }
 
-  const baseFontSize = 48;
-  const fontSize = Math.round(baseFontSize * (options.titleSize / 100));
-  const lineHeight = fontSize * (options.lineSpacing / 100);
+  const fontSize = options.titleSize;
+  const titleLineHeight = fontSize * (options.lineHeight / 100);
 
   const lines = wrapTextSvg(title, fontSize, maxWidth);
-  let startY = 120;
+  let startY = 120 + options.contentOffsetY;
 
   for (const line of lines.slice(0, 3)) {
     content += `
       <text x="${padding}" y="${startY + fontSize}" font-family="${escapeFontFamily(fontFamilyMap[options.headingFont])}" font-size="${fontSize}" font-weight="700" fill="${options.textColor}">${escapeXml(line)}</text>`;
-    startY += lineHeight;
+    startY += titleLineHeight;
+  }
+
+  // Subtitle
+  const subtitle = options.subtitleOverride || story.summary;
+  if (subtitle !== null && subtitle.length > 0) {
+    startY += options.lineSpacing;
+    const subtitleLineHeight = options.subtitleSize * (options.lineHeight / 100);
+    const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth);
+    for (const line of subtitleLines.slice(0, 2)) {
+      content += `
+        <text x="${padding}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(fontFamilyMap[options.bodyFont])}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8">${escapeXml(line)}</text>`;
+      startY += subtitleLineHeight;
+    }
   }
 
   // Large author avatar on right
@@ -366,15 +409,18 @@ export function renderCoverSvg(
   story: StoryData,
   options: CoverOptions,
   authorImageDataUrl: string | null,
+  backgroundImageDataUrl: string | null = null,
 ): string {
-  const { backgroundColor, backgroundPattern, borderRadius, textColor } = options;
+  const { backgroundColor, backgroundPattern, textColor, backgroundImageUrl, backgroundImageOpacity } = options;
 
   // Background
-  let background: string;
-  if (borderRadius > 0) {
-    background = `<rect x="0" y="0" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" rx="${borderRadius}" fill="${backgroundColor}"/>`;
-  } else {
-    background = `<rect x="0" y="0" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" fill="${backgroundColor}"/>`;
+  const background = `<rect x="0" y="0" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" fill="${backgroundColor}"/>`;
+
+  // Background image
+  let backgroundImageElement = "";
+  if (backgroundImageDataUrl !== null && backgroundImageUrl !== null) {
+    const opacity = backgroundImageOpacity / 100;
+    backgroundImageElement = `<image href="${backgroundImageDataUrl}" x="0" y="0" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" preserveAspectRatio="xMidYMid slice" opacity="${opacity}"/>`;
   }
 
   // Pattern
@@ -391,7 +437,7 @@ export function renderCoverSvg(
       templateContent = renderBoldTemplateSvg(story, options, authorImageDataUrl);
       break;
     case "minimal":
-      templateContent = renderMinimalTemplateSvg(story, options);
+      templateContent = renderMinimalTemplateSvg(story, options, authorImageDataUrl);
       break;
     case "featured":
       templateContent = renderFeaturedTemplateSvg(story, options, authorImageDataUrl);
@@ -406,6 +452,7 @@ export function renderCoverSvg(
     ${patternDefs}
   </defs>
   ${background}
+  ${backgroundImageElement}
   ${patternRect}
   ${templateContent}
 </svg>`;

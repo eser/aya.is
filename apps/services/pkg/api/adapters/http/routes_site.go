@@ -3,9 +3,11 @@ package http
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
@@ -20,6 +22,7 @@ func RegisterHTTPRoutesForSite(
 	userService *users.Service,
 	profileService *profiles.Service,
 	uploadService *uploads.Service,
+	unsplashClient *unsplash.Client,
 ) {
 	routes.
 		Route(
@@ -202,5 +205,64 @@ func RegisterHTTPRoutesForSite(
 		}).
 		HasSummary("Remove Uploaded File").
 		HasDescription("Remove a previously uploaded file from S3-compatible storage.").
+		HasResponse(http.StatusOK)
+
+	// Generated backgrounds (Unsplash proxy) - public endpoint
+	routes.Route(
+		"GET /{locale}/site/generated-backgrounds/",
+		func(ctx *httpfx.Context) httpfx.Result {
+			if unsplashClient == nil {
+				return ctx.Results.Error(
+					http.StatusServiceUnavailable,
+					httpfx.WithPlainText("Background image service is not configured"),
+				)
+			}
+
+			query := ctx.Request.URL.Query().Get("query")
+			if query == "" {
+				return ctx.Results.BadRequest(httpfx.WithPlainText("Query parameter is required"))
+			}
+
+			pageStr := ctx.Request.URL.Query().Get("page")
+			page := 1
+
+			if pageStr != "" {
+				parsedPage, err := strconv.Atoi(pageStr)
+				if err == nil && parsedPage > 0 {
+					page = parsedPage
+				}
+			}
+
+			perPageStr := ctx.Request.URL.Query().Get("per_page")
+			perPage := 20
+
+			if perPageStr != "" {
+				parsedPerPage, err := strconv.Atoi(perPageStr)
+				if err == nil && parsedPerPage > 0 && parsedPerPage <= 30 {
+					perPage = parsedPerPage
+				}
+			}
+
+			result, err := unsplashClient.SearchPhotos(ctx.Request.Context(), query, page, perPage)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to search Unsplash",
+					slog.String("error", err.Error()),
+					slog.String("query", query))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText("Failed to search background images"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data":  result,
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Search Background Images").
+		HasDescription("Search for background images from Unsplash for cover generation.").
 		HasResponse(http.StatusOK)
 }

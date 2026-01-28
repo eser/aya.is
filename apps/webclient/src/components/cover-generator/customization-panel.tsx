@@ -11,6 +11,7 @@ import type {
   BackgroundPattern,
 } from "@/lib/cover-generator/types.ts";
 import { themePresets } from "@/lib/cover-generator/types.ts";
+import { BackgroundImagePicker } from "./background-image-picker.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Switch } from "@/components/ui/switch.tsx";
@@ -157,13 +158,13 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {options.headingFont === "bree-serif" && "Bree Serif"}
-                      {options.headingFont === "inter" && "Inter"}
+                      {options.headingFont === "nunito-sans" && "Nunito Sans"}
                       {options.headingFont === "system" && "System"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="bree-serif">Bree Serif</SelectItem>
-                    <SelectItem value="inter">Inter</SelectItem>
+                    <SelectItem value="nunito-sans">Nunito Sans</SelectItem>
                     <SelectItem value="system">System</SelectItem>
                   </SelectContent>
                 </Select>
@@ -179,12 +180,12 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {options.bodyFont === "bree-serif" && "Bree Serif"}
-                      {options.bodyFont === "inter" && "Inter"}
+                      {options.bodyFont === "nunito-sans" && "Nunito Sans"}
                       {options.bodyFont === "system" && "System"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="inter">Inter</SelectItem>
+                    <SelectItem value="nunito-sans">Nunito Sans</SelectItem>
                     <SelectItem value="bree-serif">Bree Serif</SelectItem>
                     <SelectItem value="system">System</SelectItem>
                   </SelectContent>
@@ -193,40 +194,53 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Title Size */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Title Size")}: {options.titleSize}%</Label>
+                <Label>{t("CoverDesigner.Title Size")}: {options.titleSize}px</Label>
                 <Slider
                   className="w-full"
                   value={[options.titleSize]}
                   onValueChange={(value) => onChange({ titleSize: Array.isArray(value) ? value[0] : value })}
-                  min={60}
-                  max={140}
-                  step={5}
+                  min={32}
+                  max={80}
+                  step={2}
                 />
               </div>
 
-              {/* Line Spacing */}
+              {/* Subtitle Size */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Line Spacing")}: {options.lineSpacing}%</Label>
+                <Label>{t("CoverDesigner.Subtitle Size")}: {options.subtitleSize}px</Label>
                 <Slider
                   className="w-full"
-                  value={[options.lineSpacing]}
-                  onValueChange={(value) => onChange({ lineSpacing: Array.isArray(value) ? value[0] : value })}
-                  min={80}
-                  max={180}
-                  step={5}
+                  value={[options.subtitleSize]}
+                  onValueChange={(value) => onChange({ subtitleSize: Array.isArray(value) ? value[0] : value })}
+                  min={12}
+                  max={32}
+                  step={2}
                 />
               </div>
 
-              {/* Line Height */}
+              {/* Line Height (multiplier) */}
               <div className={styles.optionRow}>
                 <Label>{t("CoverDesigner.Line Height")}: {options.lineHeight}%</Label>
                 <Slider
                   className="w-full"
                   value={[options.lineHeight]}
                   onValueChange={(value) => onChange({ lineHeight: Array.isArray(value) ? value[0] : value })}
-                  min={100}
-                  max={200}
+                  min={80}
+                  max={180}
                   step={5}
+                />
+              </div>
+
+              {/* Line Spacing (margin between title and subtitle) */}
+              <div className={styles.optionRow}>
+                <Label>{t("CoverDesigner.Block Spacing")}: {options.lineSpacing}px</Label>
+                <Slider
+                  className="w-full"
+                  value={[options.lineSpacing]}
+                  onValueChange={(value) => onChange({ lineSpacing: Array.isArray(value) ? value[0] : value })}
+                  min={0}
+                  max={60}
+                  step={4}
                 />
               </div>
             </div>
@@ -360,16 +374,16 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
                 />
               </div>
 
-              {/* Border Radius */}
+              {/* Vertical Position */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Border Radius")}: {options.borderRadius}px</Label>
+                <Label>{t("CoverDesigner.Vertical Position")}: {options.contentOffsetY}px</Label>
                 <Slider
                   className="w-full"
-                  value={[options.borderRadius]}
-                  onValueChange={(value) => onChange({ borderRadius: Array.isArray(value) ? value[0] : value })}
-                  min={0}
-                  max={40}
-                  step={4}
+                  value={[options.contentOffsetY]}
+                  onValueChange={(value) => onChange({ contentOffsetY: Array.isArray(value) ? value[0] : value })}
+                  min={-100}
+                  max={100}
+                  step={5}
                 />
               </div>
 
@@ -396,6 +410,31 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Background Image */}
+              <div className={styles.optionRow}>
+                <Label>{t("CoverDesigner.Background Image")}</Label>
+                <BackgroundImagePicker
+                  locale={options.locale}
+                  selectedImageUrl={options.backgroundImageUrl}
+                  onSelect={(imageUrl) => onChange({ backgroundImageUrl: imageUrl })}
+                />
+              </div>
+
+              {/* Image Opacity (only shown when an image is selected) */}
+              {options.backgroundImageUrl !== null && (
+                <div className={styles.optionRow}>
+                  <Label>{t("CoverDesigner.Image Opacity")}: {options.backgroundImageOpacity}%</Label>
+                  <Slider
+                    className="w-full"
+                    value={[options.backgroundImageOpacity]}
+                    onValueChange={(value) => onChange({ backgroundImageOpacity: Array.isArray(value) ? value[0] : value })}
+                    min={10}
+                    max={100}
+                    step={5}
+                  />
+                </div>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>

@@ -10,6 +10,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/modules/profiling"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	mcpadapter "github.com/eser/aya.is/services/pkg/api/adapters/mcp"
+	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -33,6 +34,7 @@ func Run(
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
 	uploadService *uploads.Service,
+	unsplashClient *unsplash.Client,
 	profileLinkProviders *ProfileLinkProviders,
 ) (func(), error) {
 	routes := httpfx.NewRouter("/")
@@ -91,6 +93,7 @@ func Run(
 		userService,
 		profileService,
 		uploadService,
+		unsplashClient,
 	)
 	RegisterHTTPRoutesForProfiles( //nolint:contextcheck
 		routes,

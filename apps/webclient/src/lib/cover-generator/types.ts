@@ -4,7 +4,7 @@ export type TemplateId = "classic" | "bold" | "minimal" | "featured";
 
 export type ThemePreset = "light" | "dark" | "brand" | "custom";
 
-export type FontFamily = "bree-serif" | "inter" | "system";
+export type FontFamily = "bree-serif" | "nunito-sans" | "system";
 
 export type LogoPosition =
   | "top-left"
@@ -19,6 +19,7 @@ export interface StoryData {
   title: string;
   summary: string | null;
   kind: string;
+  kindLabel: string; // Localized label for the kind
   authorName: string | null;
   authorAvatarUrl: string | null;
   publishedAt: string | null;
@@ -41,9 +42,10 @@ export interface CoverOptions {
   // Typography
   headingFont: FontFamily;
   bodyFont: FontFamily;
-  titleSize: number; // percentage scale, 100 = default
-  lineSpacing: number; // percentage scale, 100 = 1.0 line height, 120 = 1.2
-  lineHeight: number; // percentage scale for body text, 100 = 1.0, 140 = 1.4
+  titleSize: number; // font size in pixels (template-specific default)
+  subtitleSize: number; // font size in pixels (template-specific default)
+  lineHeight: number; // multiplier for line height (like CSS line-height), 100 = 1.0, 120 = 1.2
+  lineSpacing: number; // margin between title and subtitle in pixels
 
   // Content
   titleOverride: string;
@@ -59,8 +61,12 @@ export interface CoverOptions {
 
   // Layout
   padding: number; // pixels
-  borderRadius: number; // pixels
+  contentOffsetY: number; // vertical offset for content position in pixels
   backgroundPattern: BackgroundPattern;
+
+  // Background Image (from Unsplash)
+  backgroundImageUrl: string | null; // URL of the background image
+  backgroundImageOpacity: number; // 0-100
 }
 
 // Default options
@@ -72,21 +78,24 @@ export const defaultCoverOptions: CoverOptions = {
   textColor: "#ffffff",
   themePreset: "dark",
   headingFont: "bree-serif",
-  bodyFont: "inter",
-  titleSize: 100,
-  lineSpacing: 120,
-  lineHeight: 140,
+  bodyFont: "nunito-sans",
+  titleSize: 56,
+  subtitleSize: 20,
+  lineHeight: 120,
+  lineSpacing: 24,
   titleOverride: "",
   subtitleOverride: "",
   showAuthor: true,
   showDate: true,
   showStoryKind: true,
   showLogo: true,
-  logoPosition: "bottom-right",
+  logoPosition: "top-right",
   logoOpacity: 80,
   padding: 60,
-  borderRadius: 0,
+  contentOffsetY: 0,
   backgroundPattern: "none",
+  backgroundImageUrl: null,
+  backgroundImageOpacity: 50,
 };
 
 // Canvas dimensions for the cover (16:9 aspect ratio)
@@ -123,6 +132,6 @@ export const themePresets: Record<
 // Font mappings for canvas
 export const fontFamilyMap: Record<FontFamily, string> = {
   "bree-serif": '"Bree Serif", Georgia, serif',
-  inter: '"Inter", system-ui, sans-serif',
+  "nunito-sans": '"Nunito Sans Variable", system-ui, sans-serif',
   system: "system-ui, -apple-system, sans-serif",
 };

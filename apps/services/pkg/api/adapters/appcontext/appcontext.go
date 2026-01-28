@@ -15,6 +15,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
+	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
@@ -56,6 +57,7 @@ type AppContext struct {
 	GitHubClient    *github.Client
 	GitHubProvider  *github.Provider
 	YouTubeProvider *youtube.Provider
+	UnsplashClient  *unsplash.Client
 
 	// Business
 	UploadService        *uploads.Service
@@ -290,6 +292,21 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Logger,
 		a.HTTPClient,
 	)
+
+	// Unsplash client (for background images, optional)
+	if a.Config.Externals.Unsplash.IsConfigured() {
+		a.UnsplashClient = unsplash.NewClient(
+			&a.Config.Externals.Unsplash,
+			a.Logger,
+			a.HTTPClient,
+		)
+
+		a.Logger.DebugContext(
+			ctx,
+			"[AppContext] Unsplash client initialized",
+			slog.String("module", "appcontext"),
+		)
+	}
 
 	// ----------------------------------------------------
 	// Auth Providers (adapters)

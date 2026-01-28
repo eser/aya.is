@@ -4,6 +4,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
+	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -22,7 +23,8 @@ type FeatureFlags struct {
 }
 
 type ExternalsConfig struct {
-	Arcade arcade.Config `conf:"arcade"`
+	Arcade   arcade.Config   `conf:"arcade"`
+	Unsplash unsplash.Config `conf:"unsplash"`
 }
 
 type AppConfig struct {

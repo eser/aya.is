@@ -210,3 +210,72 @@
 .accessDeniedMessage {
   @apply text-muted-foreground;
 }
+
+/* Background Image Picker */
+.backgroundImagePicker {
+  @apply space-y-3;
+}
+
+.searchInputWrapper {
+  @apply flex items-center gap-2;
+}
+
+.searchInput {
+  @apply flex-1;
+}
+
+.searchButton {
+  @apply shrink-0;
+}
+
+.imageGrid {
+  @apply grid grid-cols-3 gap-2;
+}
+
+.imageGridItem {
+  @apply relative aspect-video rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-primary transition-colors;
+}
+
+.imageGridItemSelected {
+  @apply border-primary ring-2 ring-primary/50;
+}
+
+.imageGridItemImg {
+  @apply w-full h-full object-cover;
+}
+
+.imageGridItemOverlay {
+  @apply absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity;
+}
+
+.imageGridItemCheck {
+  @apply size-6 text-white;
+}
+
+.photographerAttribution {
+  @apply text-[10px] text-muted-foreground absolute bottom-0 left-0 right-0 bg-black/50 px-1 py-0.5 truncate;
+}
+
+.selectedImagePreview {
+  @apply relative rounded-lg overflow-hidden;
+}
+
+.selectedImagePreviewImg {
+  @apply w-full aspect-video object-cover rounded-lg;
+}
+
+.selectedImageClear {
+  @apply absolute top-2 right-2;
+}
+
+.loadingSpinner {
+  @apply flex items-center justify-center py-8;
+}
+
+.noResults {
+  @apply text-center text-sm text-muted-foreground py-4;
+}
+
+.searchHint {
+  @apply text-xs text-muted-foreground;
+}
