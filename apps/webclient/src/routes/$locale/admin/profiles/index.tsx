@@ -2,6 +2,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
+import { formatDateShort } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -48,7 +49,8 @@ export const Route = createFileRoute("/$locale/admin/profiles/")({
 });
 
 function AdminProfiles() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const navigate = useNavigate();
   const { kind, offset } = Route.useSearch();
   const { profiles, total, limit } = Route.useLoaderData();
@@ -107,15 +109,6 @@ function AdminProfiles() {
       default:
         return <Badge variant="outline">{profileKind}</Badge>;
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   const currentPage = Math.floor(offset / limit) + 1;
@@ -197,7 +190,7 @@ function AdminProfiles() {
                     {profile.points.toLocaleString()}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatDate(profile.created_at)}
+                    {formatDateShort(new Date(profile.created_at), locale)}
                   </TableCell>
                 </TableRow>
               ))}

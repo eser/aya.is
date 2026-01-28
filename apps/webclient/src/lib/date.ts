@@ -1,34 +1,81 @@
-// Date utility functions
+// Date utility functions - locale-aware date formatting
 
-export const MONTHS = [
-  "Oca",
-  "Şub",
-  "Mar",
-  "Nis",
-  "May",
-  "Haz",
-  "Tem",
-  "Ağu",
-  "Eyl",
-  "Eki",
-  "Kas",
-  "Ara",
-];
-
-export function getMonthName(date: Date) {
-  return MONTHS[new Date(date).getMonth()];
+/**
+ * Format date in long format (e.g., "January 28, 2026")
+ */
+export function formatDateLong(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
-export function formatDate(date: Date, locale: string) {
-  return date.toLocaleDateString(locale);
+/**
+ * Format date in short format (e.g., "Jan 28, 2026")
+ */
+export function formatDateShort(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
-export function formatDateString(dateString: string | null, locale: string) {
+/**
+ * Format datetime in long format (e.g., "January 28, 2026, 14:30")
+ */
+export function formatDateTimeLong(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Format datetime in short format (e.g., "Jan 28, 2026, 14:30")
+ */
+export function formatDateTimeShort(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Format month and year (e.g., "January 2026")
+ */
+export function formatMonthYear(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "long",
+  });
+}
+
+/**
+ * Format month short name (e.g., "Jan")
+ */
+export function formatMonthShort(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
+    month: "short",
+  });
+}
+
+/**
+ * Format date from string (returns empty string if null)
+ */
+export function formatDateString(dateString: string | null, locale: string): string {
   if (dateString === null) {
     return "";
   }
 
-  return formatDate(new Date(dateString), locale);
+  return formatDateShort(new Date(dateString), locale);
 }
 
 /**
@@ -70,11 +117,4 @@ export function parseDateFromSlug(slug: string | null): Date | null {
   }
 
   return date;
-}
-
-export function formatMonthYear(date: Date, locale: string): string {
-  return date.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "long",
-  });
 }

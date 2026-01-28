@@ -4,7 +4,7 @@
  */
 import { formatFrontmatter } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
-import { formatDate, parseDateFromSlug } from "@/lib/date";
+import { formatDateShort, parseDateFromSlug } from "@/lib/date";
 import { backend } from "@/modules/backend/backend";
 import type { StoryEx } from "@/modules/backend/types";
 
@@ -25,7 +25,7 @@ export function generateNewsListingMarkdown(
     const slug = item.slug ?? "";
     const summary = item.summary ?? "";
     const publishDate = item.slug !== null ? parseDateFromSlug(item.slug) : null;
-    const dateStr = publishDate !== null ? formatDate(publishDate, locale) : "";
+    const dateStr = publishDate !== null ? formatDateShort(publishDate, locale) : "";
 
     let line = `- [${title}](/${locale}/news/${slug}.md)`;
     if (dateStr !== "") {

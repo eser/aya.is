@@ -178,7 +178,7 @@ function generateDate(story: StoryData, options: CoverOptions, y: number): strin
   if (!options.showDate || story.publishedAt === null) return "";
 
   const date = new Date(story.publishedAt);
-  const formattedDate = date.toLocaleDateString("en-US", {
+  const formattedDate = date.toLocaleDateString(options.locale, {
     year: "numeric",
     month: "short",
     day: "numeric",

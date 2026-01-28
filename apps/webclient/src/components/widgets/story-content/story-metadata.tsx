@@ -14,14 +14,7 @@ export function StoryMetadata(props: StoryMetadataProps) {
   const { t, i18n } = useTranslation();
 
   const readingTime = calculateReadingTime(props.story.content);
-
-  // Format the published date
   const publishedDate = new Date(props.story.created_at);
-  const formattedDate = publishedDate.toLocaleDateString(i18n.language, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 
   return (
     <div className="flex flex-row gap-3 sm:gap-6 mb-8 pb-6 border-b border-border">
@@ -33,7 +26,7 @@ export function StoryMetadata(props: StoryMetadataProps) {
           dateTime={props.story.created_at}
           className="text-sm text-foreground"
         >
-          {formattedDate}
+          {t("Common.DateLong", { date: publishedDate })}
         </time>
       </div>
 

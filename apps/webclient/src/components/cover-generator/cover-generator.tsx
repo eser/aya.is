@@ -79,6 +79,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
   const [options, setOptions] = React.useState<CoverOptions>(() => ({
     ...defaultCoverOptions,
     ...getTemplate("classic").defaults,
+    locale,
   }));
 
   // Handle template change
@@ -88,7 +89,8 @@ export function CoverGenerator(props: CoverGeneratorProps) {
       ...prev,
       ...template.defaults,
       templateId,
-      // Keep user's custom text overrides
+      // Keep user's custom text overrides and locale
+      locale: prev.locale,
       titleOverride: prev.titleOverride,
       subtitleOverride: prev.subtitleOverride,
     }));

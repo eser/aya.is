@@ -5,6 +5,32 @@ import resourcesToBackend from "i18next-resources-to-backend";
 
 import { DEFAULT_LOCALE, FALLBACK_LOCALE, SUPPORTED_LOCALES } from "@/config";
 
+// Helper function to format relative time using Intl.RelativeTimeFormat
+function formatRelativeTime(date: Date, locale: string): string {
+  const now = new Date();
+  const diffInSeconds = Math.floor((date.getTime() - now.getTime()) / 1000);
+  const absDiff = Math.abs(diffInSeconds);
+
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+
+  if (absDiff < 60) {
+    return rtf.format(diffInSeconds, "second");
+  }
+  if (absDiff < 3600) {
+    return rtf.format(Math.floor(diffInSeconds / 60), "minute");
+  }
+  if (absDiff < 86400) {
+    return rtf.format(Math.floor(diffInSeconds / 3600), "hour");
+  }
+  if (absDiff < 2592000) {
+    return rtf.format(Math.floor(diffInSeconds / 86400), "day");
+  }
+  if (absDiff < 31536000) {
+    return rtf.format(Math.floor(diffInSeconds / 2592000), "month");
+  }
+  return rtf.format(Math.floor(diffInSeconds / 31536000), "year");
+}
+
 // Dynamic import for translation files
 const loadResources = resourcesToBackend(
   (language: string) => import(`@/messages/${language}.json`),
@@ -22,6 +48,59 @@ i18n
 
     interpolation: {
       escapeValue: false, // React already escapes values
+      // Custom format function for date/time formatting
+      format: (value, format, lng) => {
+        if (value instanceof Date) {
+          const locale = lng ?? DEFAULT_LOCALE;
+
+          switch (format) {
+            case "date-long":
+              return value.toLocaleDateString(locale, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
+            case "date-short":
+              return value.toLocaleDateString(locale, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              });
+            case "date-only":
+              return value.toLocaleDateString(locale);
+            case "datetime-long":
+              return value.toLocaleDateString(locale, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+            case "datetime-short":
+              return value.toLocaleDateString(locale, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+            case "month-year":
+              return value.toLocaleDateString(locale, {
+                year: "numeric",
+                month: "long",
+              });
+            case "month-short":
+              return value.toLocaleDateString(locale, {
+                month: "short",
+              });
+            case "relative":
+              return formatRelativeTime(value, locale);
+            default:
+              return value.toLocaleDateString(locale);
+          }
+        }
+        return String(value);
+      },
     },
 
     detection: {

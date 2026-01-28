@@ -33,7 +33,15 @@
     "Dashboard": "대시보드",
     "Approved": "승인됨",
     "Rejected": "거부됨",
-    "Settings": "설정"
+    "Settings": "설정",
+    "DateLong": "{{date, date-long}}",
+    "DateShort": "{{date, date-short}}",
+    "DateOnly": "{{date, date-only}}",
+    "DateTimeLong": "{{date, datetime-long}}",
+    "DateTimeShort": "{{date, datetime-short}}",
+    "MonthYear": "{{date, month-year}}",
+    "MonthShort": "{{date, month-short}}",
+    "RelativeTime": "{{date, relative}}"
   },
   "Layout": {
     "Homepage": "홈페이지",

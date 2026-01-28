@@ -2,6 +2,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
+import { formatDateTimeLong } from "@/lib/date";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -17,23 +18,13 @@ export const Route = createFileRoute("/$locale/admin/profiles/$slug/")({
 });
 
 function AdminProfileGeneral() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const { profile } = Route.useLoaderData();
 
   if (profile === null || profile === undefined) {
     return null;
   }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   return (
     <div className="space-y-6">
@@ -98,12 +89,12 @@ function AdminProfileGeneral() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t("Common.Created")}</Label>
-              <Input value={formatDate(profile.created_at)} readOnly className="bg-muted" />
+              <Input value={formatDateTimeLong(new Date(profile.created_at), locale)} readOnly className="bg-muted" />
             </div>
             {profile.updated_at !== null && profile.updated_at !== undefined && (
               <div className="space-y-2">
                 <Label>{t("Admin.Updated")}</Label>
-                <Input value={formatDate(profile.updated_at)} readOnly className="bg-muted" />
+                <Input value={formatDateTimeLong(new Date(profile.updated_at), locale)} readOnly className="bg-muted" />
               </div>
             )}
           </div>

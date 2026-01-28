@@ -3,7 +3,7 @@
  */
 import { formatFrontmatter } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
-import { formatDate, parseDateFromSlug } from "@/lib/date";
+import { formatDateShort, parseDateFromSlug } from "@/lib/date";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { backend } from "@/modules/backend/backend";
 import type { StoryEx } from "@/modules/backend/types";
@@ -19,7 +19,7 @@ export function generateGlobalStoryMarkdown(story: StoryEx, locale: string): str
   const frontmatter = formatFrontmatter({
     title: story.title ?? "Untitled",
     author: story.author_profile?.title ?? "Unknown",
-    publish_date: formatDate(dateToFormat, locale),
+    publish_date: formatDateShort(dateToFormat, locale),
     reading_time: `${calculateReadingTime(story.content)} min`,
     kind: story.kind,
     status: story.status,

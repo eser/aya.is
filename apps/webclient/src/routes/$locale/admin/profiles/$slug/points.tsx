@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
+import { formatDateTimeShort } from "@/lib/date";
 import type { ProfilePointTransaction } from "@/modules/backend/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -33,7 +34,8 @@ export const Route = createFileRoute("/$locale/admin/profiles/$slug/points")({
 });
 
 function AdminProfilePoints() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const params = Route.useParams();
   const { profile, transactions: initialTransactions } = Route.useLoaderData();
 
@@ -90,17 +92,6 @@ function AdminProfilePoints() {
     } finally {
       setIsAwarding(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   const getTransactionTypeBadge = (type: string) => {
@@ -241,7 +232,7 @@ function AdminProfilePoints() {
                       {tx.balance_after.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(tx.created_at)}
+                      {formatDateTimeShort(new Date(tx.created_at), locale)}
                     </TableCell>
                   </TableRow>
                 ))}

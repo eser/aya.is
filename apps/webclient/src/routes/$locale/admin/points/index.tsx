@@ -4,6 +4,7 @@ import { LocaleLink } from "@/components/locale-link";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
+import { formatDateTimeShort } from "@/lib/date";
 import type { PendingAward, PendingAwardStatus } from "@/modules/backend/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,8 @@ export const Route = createFileRoute("/$locale/admin/points/")({
 });
 
 function AdminPointsDashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const navigate = useNavigate();
   const { status } = Route.useSearch();
   const { stats, awards: initialAwards } = Route.useLoaderData();
@@ -175,17 +177,6 @@ function AdminPointsDashboard() {
       default:
         return null;
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   return (
@@ -398,7 +389,7 @@ function AdminPointsDashboard() {
                   </TableCell>
                   <TableCell className="font-medium">{award.amount}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatDate(award.created_at)}
+                    {formatDateTimeShort(new Date(award.created_at), locale)}
                   </TableCell>
                   <TableCell>{getStatusBadge(award.status)}</TableCell>
                   {status === "pending" && (

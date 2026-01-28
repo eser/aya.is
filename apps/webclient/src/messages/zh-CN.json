@@ -33,7 +33,15 @@
     "Dashboard": "仪表板",
     "Approved": "已批准",
     "Rejected": "已拒绝",
-    "Settings": "设置"
+    "Settings": "设置",
+    "DateLong": "{{date, date-long}}",
+    "DateShort": "{{date, date-short}}",
+    "DateOnly": "{{date, date-only}}",
+    "DateTimeLong": "{{date, datetime-long}}",
+    "DateTimeShort": "{{date, datetime-short}}",
+    "MonthYear": "{{date, month-year}}",
+    "MonthShort": "{{date, month-short}}",
+    "RelativeTime": "{{date, relative}}"
   },
   "Layout": {
     "Homepage": "首页",

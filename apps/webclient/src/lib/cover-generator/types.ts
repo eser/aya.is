@@ -26,6 +26,9 @@ export interface StoryData {
 
 // Customization options for the cover
 export interface CoverOptions {
+  // Locale for date formatting
+  locale: string;
+
   // Template
   templateId: TemplateId;
 
@@ -62,6 +65,7 @@ export interface CoverOptions {
 
 // Default options
 export const defaultCoverOptions: CoverOptions = {
+  locale: "en",
   templateId: "classic",
   backgroundColor: "#1a1a2e",
   accentColor: "#e94560",

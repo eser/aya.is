@@ -1,4 +1,4 @@
-import { getMonthName } from "@/lib/date";
+import { formatMonthShort } from "@/lib/date";
 import styles from "./list-item.module.css";
 
 export type ListItemData = {
@@ -18,6 +18,7 @@ export type ListItemProps = {
 
 export function ListItem(props: ListItemProps) {
   const date = new Date(props.item.date);
+  const locale = props.locale ?? "en";
 
   return (
     <div className={styles.listItem}>
@@ -25,7 +26,7 @@ export function ListItem(props: ListItemProps) {
         <div className={styles.date}>
           <span className={styles.day}>{date.getDate()}</span>
           <span className={styles.monthYear}>
-            {getMonthName(date)} {date.getFullYear()}
+            {formatMonthShort(date, locale)} {date.getFullYear()}
           </span>
         </div>
       </div>
