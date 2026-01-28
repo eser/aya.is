@@ -28,7 +28,7 @@ export async function uploadCoverImage(
     const presignResponse = await backend.getPresignedURL(locale, {
       filename,
       content_type: "image/png",
-      purpose: "cover-image",
+      purpose: "story-picture",
     });
 
     if (presignResponse === null) {

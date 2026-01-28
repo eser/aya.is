@@ -289,7 +289,7 @@ export interface StoryPermissions {
 }
 
 // Upload Types
-export type UploadPurpose = "content-image" | "cover-image" | "profile-picture";
+export type UploadPurpose = "content-image" | "story-picture" | "profile-picture";
 
 export interface GetPresignedURLRequest {
   filename: string;

@@ -896,7 +896,7 @@ export function ContentEditor(props: ContentEditorProps) {
         onOpenChange={setShowStoryPictureModal}
         onImageInsert={handleStoryPictureInsert}
         locale={locale}
-        purpose="cover-image"
+        purpose="story-picture"
       />
     </div>
   );

@@ -160,7 +160,12 @@ export function CoverGenerator(props: CoverGeneratorProps) {
         locale,
         story.author_profile.slug,
         story.id,
-        { story_picture_uri: result.publicUrl },
+        {
+          slug: story.slug ?? "",
+          status: story.status,
+          story_picture_uri: result.publicUrl,
+          published_at: story.published_at,
+        },
       );
 
       if (updateResult === null) {
