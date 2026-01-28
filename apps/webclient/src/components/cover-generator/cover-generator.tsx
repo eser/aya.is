@@ -156,7 +156,9 @@ export function CoverGenerator(props: CoverGeneratorProps) {
       }
 
       // Update story with new cover
-      const updateResult = await backend.updateStory(
+      // Note: backend.updateStory returns null on success when no data is returned
+      // The fetcher throws on error, so reaching here means success
+      await backend.updateStory(
         locale,
         story.author_profile.slug,
         story.id,
@@ -168,15 +170,11 @@ export function CoverGenerator(props: CoverGeneratorProps) {
         },
       );
 
-      if (updateResult === null) {
-        toast.error(t("CoverDesigner.Failed to update story"));
-        return;
-      }
-
       toast.success(t("CoverDesigner.Cover set successfully"));
       props.onCoverSet?.(result.publicUrl);
-    } catch {
-      toast.error(t("CoverDesigner.An error occurred"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t("CoverDesigner.An error occurred");
+      toast.error(message);
     } finally {
       setIsUploading(false);
     }
