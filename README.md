@@ -55,6 +55,17 @@ $ git clone git@github.com:eser/aya.is.git
 $ cd aya.is
 ```
 
+Backend servisi için gerekli ortam değişkenlerini ayarlayın:
+
+```bash
+# .env.local dosyası oluşturun (bu dosya git'e eklenmez)
+$ cat > apps/services/.env.local << EOF
+AUTH__JWT_SECRET=herhangi-bir-gizli-anahtar
+EOF
+```
+
+> **Not:** `AUTH__JWT_SECRET` kimlik doğrulama için zorunludur. Geliştirme ortamında herhangi bir değer kullanabilirsiniz.
+
 Projeyi başlatmak için Make komutlarını kullanın:
 
 ```bash
