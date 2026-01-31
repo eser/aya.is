@@ -46,7 +46,15 @@ WORKDIR /srv/monorepo
 ## ------------------------------------------------------------
 FROM base AS development-runner
 
+WORKDIR /srv/monorepo
+
+# Copy services source files for initial startup
+COPY apps/services/ ./apps/services/
+
 WORKDIR /srv/monorepo/apps/services
+
+# Download dependencies
+RUN go mod download
 
 EXPOSE 8080
 

@@ -66,6 +66,8 @@ services:
       SITE_URI: http://localhost:8080
       LOG__LEVEL: INFO
       LOG__PRETTY: false
+      # JWT secret for development (generate a secure one for production)
+      AUTH__JWT_SECRET: dev-secret-change-in-production
       # Database connection with both protocol and DSN
       CONN__targets__default__protocol: postgres
       CONN__targets__default__dsn: postgres://postgres:s3cr3t@postgres:5432/postgres?sslmode=disable
