@@ -159,14 +159,24 @@ function ProfileSidebar(props: ProfileSidebarProps) {
 
           {(props.profile.kind === "organization" ||
             props.profile.kind === "product") && (
-            <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
-              <LocaleLink
-                to={`/${props.slug}/members`}
-                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
-              >
-                {t("Layout.Members")}
-              </LocaleLink>
-            </li>
+            <>
+              <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
+                <LocaleLink
+                  to={`/${props.slug}/members`}
+                  className="no-underline transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  {t("Layout.Members")}
+                </LocaleLink>
+              </li>
+              <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
+                <LocaleLink
+                  to={`/${props.slug}/links`}
+                  className="no-underline transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  {t("Layout.Links")}
+                </LocaleLink>
+              </li>
+            </>
           )}
 
           {props.profile.pages?.map((page) => (

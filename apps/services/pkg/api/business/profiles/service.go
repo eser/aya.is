@@ -253,6 +253,8 @@ type Repository interface { //nolint:interfacebloat
 		uri *string,
 		title string,
 		isHidden bool,
+		isFeatured bool,
+		visibility LinkVisibility,
 	) (*ProfileLink, error)
 	UpdateProfileLink(
 		ctx context.Context,
@@ -262,8 +264,33 @@ type Repository interface { //nolint:interfacebloat
 		uri *string,
 		title string,
 		isHidden bool,
+		isFeatured bool,
+		visibility LinkVisibility,
 	) error
+	GetMembershipBetweenProfiles(
+		ctx context.Context,
+		profileID string,
+		memberProfileID string,
+	) (MembershipKind, error)
 	DeleteProfileLink(ctx context.Context, id string) error
+	ListFeaturedProfileLinksByProfileID(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+	) ([]*ProfileLinkBrief, error)
+	ListAllProfileLinksByProfileID(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+	) ([]*ProfileLinkBrief, error)
+	UpsertProfileLinkTx(
+		ctx context.Context,
+		profileLinkID string,
+		localeCode string,
+		title string,
+		group *string,
+		description *string,
+	) error
 	// Profile Page methods
 	GetProfilePage(ctx context.Context, id string) (*ProfilePage, error)
 	CreateProfilePage(
@@ -381,6 +408,66 @@ func NewService(logger *logfx.Logger, config *Config, repo Repository) *Service 
 	return &Service{logger: logger, config: config, repo: repo, idGenerator: DefaultIDGenerator}
 }
 
+// CanViewLink checks if a viewer has permission to see a link based on its visibility.
+// If viewerProfileID is empty, only public links are visible.
+func (s *Service) CanViewLink(
+	ctx context.Context,
+	link *ProfileLinkBrief,
+	targetProfileID string,
+	viewerProfileID string,
+) bool {
+	// Public links are always visible
+	if link.Visibility == LinkVisibilityPublic || link.Visibility == "" {
+		return true
+	}
+
+	// Anonymous viewers can only see public links
+	if viewerProfileID == "" {
+		return false
+	}
+
+	// Get viewer's membership with the target profile
+	membershipKind, err := s.repo.GetMembershipBetweenProfiles(
+		ctx,
+		targetProfileID,
+		viewerProfileID,
+	)
+	if err != nil {
+		// No membership found
+		return false
+	}
+
+	// Check if membership level is sufficient
+	minRequired := MinMembershipForVisibility[link.Visibility]
+	if minRequired == "" {
+		// No minimum required (shouldn't happen for non-public)
+		return true
+	}
+
+	viewerLevel := MembershipKindLevel[membershipKind]
+	requiredLevel := MembershipKindLevel[minRequired]
+
+	return viewerLevel >= requiredLevel
+}
+
+// FilterVisibleLinks filters a list of links to only include those visible to the viewer.
+func (s *Service) FilterVisibleLinks(
+	ctx context.Context,
+	links []*ProfileLinkBrief,
+	targetProfileID string,
+	viewerProfileID string,
+) []*ProfileLinkBrief {
+	result := make([]*ProfileLinkBrief, 0, len(links))
+
+	for _, link := range links {
+		if s.CanViewLink(ctx, link, targetProfileID, viewerProfileID) {
+			result = append(result, link)
+		}
+	}
+
+	return result
+}
+
 func (s *Service) GetByID(ctx context.Context, localeCode string, id string) (*Profile, error) {
 	record, err := s.repo.GetProfileByID(ctx, localeCode, id)
 	if err != nil {
@@ -409,6 +496,16 @@ func (s *Service) GetBySlugEx(
 	localeCode string,
 	slug string,
 ) (*ProfileWithChildren, error) {
+	return s.GetBySlugExWithViewer(ctx, localeCode, slug, "")
+}
+
+// GetBySlugExWithViewer returns a profile with children, filtering links based on viewer's membership.
+func (s *Service) GetBySlugExWithViewer(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	viewerProfileID string,
+) (*ProfileWithChildren, error) {
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
@@ -433,10 +530,13 @@ func (s *Service) GetBySlugEx(
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
 
+	// Filter links based on viewer's membership
+	filteredLinks := s.FilterVisibleLinks(ctx, links, profileID, viewerProfileID)
+
 	result := &ProfileWithChildren{
 		Profile: record,
 		Pages:   pages,
-		Links:   links,
+		Links:   filteredLinks,
 	}
 
 	return result, nil
@@ -1068,6 +1168,8 @@ func (s *Service) CreateProfileLink(
 	uri *string,
 	title string,
 	isHidden bool,
+	isFeatured bool,
+	visibility LinkVisibility,
 ) (*ProfileLink, error) {
 	// Admin users can edit any profile
 	canEdit := false
@@ -1109,6 +1211,11 @@ func (s *Service) CreateProfileLink(
 	// Generate new link ID
 	linkID := s.idGenerator()
 
+	// Default visibility to public if not specified
+	if visibility == "" {
+		visibility = LinkVisibilityPublic
+	}
+
 	// Create the link
 	link, err := s.repo.CreateProfileLink(
 		ctx,
@@ -1119,6 +1226,8 @@ func (s *Service) CreateProfileLink(
 		uri,
 		title,
 		isHidden,
+		isFeatured,
+		visibility,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
@@ -1139,6 +1248,8 @@ func (s *Service) UpdateProfileLink(
 	uri *string,
 	title string,
 	isHidden bool,
+	isFeatured bool,
+	visibility LinkVisibility,
 ) (*ProfileLink, error) {
 	// Admin users can edit any profile
 	canEdit := false
@@ -1189,15 +1300,30 @@ func (s *Service) UpdateProfileLink(
 	}
 
 	// For managed links, preserve the original title, URI, and kind
-	// Users can only change order and visibility for managed links
+	// Users can only change order, visibility, and hidden status for managed links
 	if existingLink.IsManaged {
 		kind = existingLink.Kind
 		title = existingLink.Title
 		uri = existingLink.URI
 	}
 
+	// Default visibility to public if not specified
+	if visibility == "" {
+		visibility = LinkVisibilityPublic
+	}
+
 	// Update the link
-	err = s.repo.UpdateProfileLink(ctx, linkID, kind, order, uri, title, isHidden)
+	err = s.repo.UpdateProfileLink(
+		ctx,
+		linkID,
+		kind,
+		order,
+		uri,
+		title,
+		isHidden,
+		isFeatured,
+		visibility,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
 	}
@@ -1830,4 +1956,121 @@ func (s *Service) CreateOAuthProfileLink(
 // GetMaxProfileLinkOrder returns the maximum order value for profile links.
 func (s *Service) GetMaxProfileLinkOrder(ctx context.Context, profileID string) (int, error) {
 	return s.repo.GetMaxProfileLinkOrder(ctx, profileID)
+}
+
+// ListFeaturedLinksBySlug returns featured profile links visible to the viewer.
+func (s *Service) ListFeaturedLinksBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	viewerProfileID string,
+) ([]*ProfileLinkBrief, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	links, err := s.repo.ListFeaturedProfileLinksByProfileID(ctx, localeCode, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Filter links based on viewer's membership
+	return s.FilterVisibleLinks(ctx, links, profileID, viewerProfileID), nil
+}
+
+// ListAllLinksBySlug returns all profile links visible to the viewer.
+func (s *Service) ListAllLinksBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	viewerProfileID string,
+) ([]*ProfileLinkBrief, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	links, err := s.repo.ListAllProfileLinksByProfileID(ctx, localeCode, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Filter links based on viewer's membership
+	return s.FilterVisibleLinks(ctx, links, profileID, viewerProfileID), nil
+}
+
+// UpsertProfileLinkTranslation creates or updates a profile link translation.
+func (s *Service) UpsertProfileLinkTranslation(
+	ctx context.Context,
+	userID string,
+	userKind string,
+	profileSlug string,
+	linkID string,
+	localeCode string,
+	title string,
+	group *string,
+	description *string,
+) error {
+	// Admin users can edit any profile
+	canEdit := false
+	if userKind == "admin" {
+		canEdit = true
+	} else {
+		// Check authorization
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot edit profile %s",
+			ErrUnauthorized,
+			userID,
+			profileSlug,
+		)
+	}
+
+	// Verify the link exists
+	existingLink, err := s.repo.GetProfileLink(ctx, linkID)
+	if err != nil {
+		return fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, linkID, err)
+	}
+
+	if existingLink == nil {
+		return fmt.Errorf("%w: link %s not found", ErrFailedToGetRecord, linkID)
+	}
+
+	// Verify profile ownership
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if existingLink.ProfileID != profileID {
+		return fmt.Errorf(
+			"%w: link %s does not belong to profile %s",
+			ErrUnauthorized,
+			linkID,
+			profileSlug,
+		)
+	}
+
+	// Upsert the translation
+	err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, group, description)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(linkID: %s, locale: %s): %w",
+			ErrFailedToUpdateRecord,
+			linkID,
+			localeCode,
+			err,
+		)
+	}
+
+	return nil
 }

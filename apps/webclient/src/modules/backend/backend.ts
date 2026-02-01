@@ -18,6 +18,7 @@ import { uploadProfilePicture } from "./profiles/upload-profile-picture";
 import { updateProfilePicture } from "./profiles/update-profile-picture";
 import { getProfileTranslations } from "./profiles/get-profile-translations";
 import { listProfileLinks } from "./profiles/list-profile-links";
+import { getProfileLinks } from "./profiles/get-profile-links";
 import { createProfileLink } from "./profiles/create-profile-link";
 import { updateProfileLink } from "./profiles/update-profile-link";
 import { deleteProfileLink } from "./profiles/delete-profile-link";
@@ -97,6 +98,7 @@ export const backend = {
 
   // Profile Links
   listProfileLinks,
+  getProfileLinks,
   createProfileLink,
   updateProfileLink,
   deleteProfileLink,
@@ -203,6 +205,7 @@ export {
   handleAuthCallback,
   insertStory,
   isPOWSolverSupported,
+  getProfileLinks,
   listProfileLinks,
   listProfilePages,
   listProfilePointTransactions,

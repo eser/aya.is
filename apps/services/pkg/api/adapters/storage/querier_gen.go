@@ -236,6 +236,8 @@ type Querier interface {
 	//    is_managed,
 	//    is_verified,
 	//    is_hidden,
+	//    is_featured,
+	//    visibility,
 	//    remote_id,
 	//    public_id,
 	//    uri,
@@ -265,9 +267,27 @@ type Querier interface {
 	//    $15,
 	//    $16,
 	//    $17,
+	//    $18,
+	//    $19,
 	//    NOW()
-	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 	CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error)
+	//CreateProfileLinkTx
+	//
+	//  INSERT INTO "profile_link_tx" (
+	//    profile_link_id,
+	//    locale_code,
+	//    title,
+	//    "group",
+	//    description
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5
+	//  )
+	CreateProfileLinkTx(ctx context.Context, arg CreateProfileLinkTxParams) error
 	//CreateProfilePage
 	//
 	//  INSERT INTO "profile_page" (
@@ -521,6 +541,16 @@ type Querier interface {
 	//  WHERE profile_id = $1
 	//    AND deleted_at IS NULL
 	GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileLinkOrderParams) (interface{}, error)
+	//GetMembershipBetweenProfiles
+	//
+	//  SELECT pm.kind
+	//  FROM "profile_membership" pm
+	//  WHERE pm.profile_id = $1
+	//    AND pm.member_profile_id = $2
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	//  LIMIT 1
+	GetMembershipBetweenProfiles(ctx context.Context, arg GetMembershipBetweenProfilesParams) (string, error)
 	//GetPOWChallengeByID
 	//
 	//  SELECT
@@ -595,14 +625,14 @@ type Querier interface {
 	GetProfileIDBySlug(ctx context.Context, arg GetProfileIDBySlugParams) (string, error)
 	//GetProfileLink
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 	//  FROM "profile_link"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*ProfileLink, error)
 	//GetProfileLinkByRemoteID
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND kind = $2
@@ -610,6 +640,14 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLinkByRemoteIDParams) (*ProfileLink, error)
+	//GetProfileLinkTx
+	//
+	//  SELECT profile_link_id, locale_code, title, "group", description
+	//  FROM "profile_link_tx"
+	//  WHERE profile_link_id = $1
+	//    AND locale_code = $2
+	//  LIMIT 1
+	GetProfileLinkTx(ctx context.Context, arg GetProfileLinkTxParams) (*ProfileLinkTx, error)
 	//GetProfileMembershipsByMemberProfileID
 	//
 	//  SELECT
@@ -965,6 +1003,28 @@ type Querier interface {
 	//    $5
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
+	//ListAllProfileLinksByProfileID
+	//
+	//  SELECT
+	//    pl.id,
+	//    pl.kind,
+	//    pl.public_id,
+	//    pl.uri,
+	//    pl.is_verified,
+	//    pl.is_hidden,
+	//    pl.is_featured,
+	//    pl.visibility,
+	//    COALESCE(plt.title, pl.title) as title,
+	//    COALESCE(plt.group, '') as "group",
+	//    COALESCE(plt.description, '') as description
+	//  FROM "profile_link" pl
+	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//      AND plt.locale_code = $1
+	//  WHERE pl.profile_id = $2
+	//    AND pl.is_hidden = FALSE
+	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl."order"
+	ListAllProfileLinksByProfileID(ctx context.Context, arg ListAllProfileLinksByProfileIDParams) ([]*ListAllProfileLinksByProfileIDRow, error)
 	//ListAllProfilesForAdmin
 	//
 	//  SELECT
@@ -998,6 +1058,29 @@ type Querier interface {
 	//  ORDER BY created_at DESC
 	//  LIMIT $2
 	ListEventsByType(ctx context.Context, arg ListEventsByTypeParams) ([]*EventQueue, error)
+	//ListFeaturedProfileLinksByProfileID
+	//
+	//  SELECT
+	//    pl.id,
+	//    pl.kind,
+	//    pl.public_id,
+	//    pl.uri,
+	//    pl.is_verified,
+	//    pl.is_hidden,
+	//    pl.is_featured,
+	//    pl.visibility,
+	//    COALESCE(plt.title, pl.title) as title,
+	//    COALESCE(plt.group, '') as "group",
+	//    COALESCE(plt.description, '') as description
+	//  FROM "profile_link" pl
+	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//      AND plt.locale_code = $1
+	//  WHERE pl.profile_id = $2
+	//    AND pl.is_featured = TRUE
+	//    AND pl.is_hidden = FALSE
+	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl."order"
+	ListFeaturedProfileLinksByProfileID(ctx context.Context, arg ListFeaturedProfileLinksByProfileIDParams) ([]*ListFeaturedProfileLinksByProfileIDRow, error)
 	//ListManagedLinksForKind
 	//
 	//  SELECT
@@ -1036,7 +1119,7 @@ type Querier interface {
 	ListPendingAwardsByStatus(ctx context.Context, arg ListPendingAwardsByStatusParams) ([]*ProfilePointPendingAward, error)
 	//ListProfileLinksByProfileID
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND is_hidden = FALSE
@@ -1045,7 +1128,7 @@ type Querier interface {
 	ListProfileLinksByProfileID(ctx context.Context, arg ListProfileLinksByProfileIDParams) ([]*ProfileLink, error)
 	//ListProfileLinksByProfileIDIncludingHidden
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND deleted_at IS NULL
@@ -1053,7 +1136,7 @@ type Querier interface {
 	ListProfileLinksByProfileIDIncludingHidden(ctx context.Context, arg ListProfileLinksByProfileIDIncludingHiddenParams) ([]*ProfileLink, error)
 	//ListProfileLinksForKind
 	//
-	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
+	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    AND p.deleted_at IS NULL
@@ -1428,8 +1511,10 @@ type Querier interface {
 	//    uri = $3,
 	//    title = $4,
 	//    is_hidden = $5,
+	//    is_featured = $6,
+	//    visibility = $7,
 	//    updated_at = NOW()
-	//  WHERE id = $6
+	//  WHERE id = $8
 	//    AND deleted_at IS NULL
 	UpdateProfileLink(ctx context.Context, arg UpdateProfileLinkParams) (int64, error)
 	//UpdateProfileLinkOAuthTokens
@@ -1459,6 +1544,16 @@ type Querier interface {
 	//  WHERE id = $4
 	//    AND deleted_at IS NULL
 	UpdateProfileLinkTokens(ctx context.Context, arg UpdateProfileLinkTokensParams) (int64, error)
+	//UpdateProfileLinkTx
+	//
+	//  UPDATE "profile_link_tx"
+	//  SET
+	//    title = $1,
+	//    "group" = $2,
+	//    description = $3
+	//  WHERE profile_link_id = $4
+	//    AND locale_code = $5
+	UpdateProfileLinkTx(ctx context.Context, arg UpdateProfileLinkTxParams) (int64, error)
 	//UpdateProfilePage
 	//
 	//  UPDATE "profile_page"
@@ -1562,6 +1657,25 @@ type Querier interface {
 	//  WHERE id = $12
 	//    AND deleted_at IS NULL
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
+	//UpsertProfileLinkTx
+	//
+	//  INSERT INTO "profile_link_tx" (
+	//    profile_link_id,
+	//    locale_code,
+	//    title,
+	//    "group",
+	//    description
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5
+	//  ) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
+	//    title = EXCLUDED.title,
+	//    "group" = EXCLUDED."group",
+	//    description = EXCLUDED.description
+	UpsertProfileLinkTx(ctx context.Context, arg UpsertProfileLinkTxParams) error
 	//UpsertProfilePageTx
 	//
 	//  INSERT INTO "profile_page_tx" (

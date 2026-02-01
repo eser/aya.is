@@ -33,6 +33,15 @@ export type ProfileLinkKind =
   | "discord"
   | "telegram";
 
+export type LinkVisibility =
+  | "public"
+  | "followers"
+  | "sponsors"
+  | "contributors"
+  | "maintainers"
+  | "leads"
+  | "owners";
+
 export interface ProfileLink {
   id: string;
   kind: ProfileLinkKind;
@@ -40,11 +49,14 @@ export interface ProfileLink {
   order: number;
   is_managed: boolean;
   is_verified: boolean;
-  is_hidden: boolean;
+  is_featured: boolean;
+  visibility: LinkVisibility;
   remote_id?: string | null;
   public_id?: string | null;
   uri?: string | null;
   title: string;
+  group?: string | null;
+  description?: string | null;
   created_at: string;
   updated_at?: string | null;
 }
@@ -213,6 +225,7 @@ export interface CreateProfileLinkInput {
   kind: string;
   uri: string;
   title?: string;
+  visibility?: LinkVisibility;
 }
 
 export interface UpdateProfileLinkInput {
@@ -220,6 +233,7 @@ export interface UpdateProfileLinkInput {
   uri?: string;
   title?: string;
   sort_order?: number;
+  visibility?: LinkVisibility;
 }
 
 export interface CreateProfilePageInput {

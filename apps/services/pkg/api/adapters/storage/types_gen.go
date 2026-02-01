@@ -112,6 +112,8 @@ type ProfileLink struct {
 	CreatedAt                 time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt                 sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt                 sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	Visibility                string                `db:"visibility" json:"visibility"`
+	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 }
 
 type ProfileLinkImport struct {
@@ -122,6 +124,14 @@ type ProfileLinkImport struct {
 	CreatedAt     time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt     sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt     sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+}
+
+type ProfileLinkTx struct {
+	ProfileLinkID string         `db:"profile_link_id" json:"profile_link_id"`
+	LocaleCode    string         `db:"locale_code" json:"locale_code"`
+	Title         string         `db:"title" json:"title"`
+	Group         sql.NullString `db:"group" json:"group"`
+	Description   sql.NullString `db:"description" json:"description"`
 }
 
 type ProfileMembership struct {

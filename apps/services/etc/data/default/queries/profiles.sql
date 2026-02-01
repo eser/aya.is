@@ -283,6 +283,8 @@ INSERT INTO "profile_link" (
   is_managed,
   is_verified,
   is_hidden,
+  is_featured,
+  visibility,
   remote_id,
   public_id,
   uri,
@@ -302,6 +304,8 @@ INSERT INTO "profile_link" (
   sqlc.arg(is_managed),
   sqlc.arg(is_verified),
   sqlc.arg(is_hidden),
+  sqlc.arg(is_featured),
+  sqlc.arg(visibility),
   sqlc.narg(remote_id),
   sqlc.narg(public_id),
   sqlc.narg(uri),
@@ -323,6 +327,8 @@ SET
   uri = sqlc.narg(uri),
   title = sqlc.arg(title),
   is_hidden = sqlc.arg(is_hidden),
+  is_featured = sqlc.arg(is_featured),
+  visibility = sqlc.arg(visibility),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
@@ -454,6 +460,15 @@ FROM "profile_link"
 WHERE profile_id = sqlc.arg(profile_id)
   AND deleted_at IS NULL;
 
+-- name: GetMembershipBetweenProfiles :one
+SELECT pm.kind
+FROM "profile_membership" pm
+WHERE pm.profile_id = sqlc.arg(profile_id)
+  AND pm.member_profile_id = sqlc.arg(member_profile_id)
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+LIMIT 1;
+
 -- name: ListAllProfilesForAdmin :many
 SELECT
   p.id,
@@ -505,3 +520,95 @@ FROM "profile" p
 WHERE p.slug = sqlc.arg(slug)
   AND p.deleted_at IS NULL
 LIMIT 1;
+
+-- name: ListFeaturedProfileLinksByProfileID :many
+SELECT
+  pl.id,
+  pl.kind,
+  pl.public_id,
+  pl.uri,
+  pl.is_verified,
+  pl.is_hidden,
+  pl.is_featured,
+  pl.visibility,
+  COALESCE(plt.title, pl.title) as title,
+  COALESCE(plt.group, '') as "group",
+  COALESCE(plt.description, '') as description
+FROM "profile_link" pl
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = sqlc.arg(locale_code)
+WHERE pl.profile_id = sqlc.arg(profile_id)
+  AND pl.is_featured = TRUE
+  AND pl.is_hidden = FALSE
+  AND pl.deleted_at IS NULL
+ORDER BY pl."order";
+
+-- name: ListAllProfileLinksByProfileID :many
+SELECT
+  pl.id,
+  pl.kind,
+  pl.public_id,
+  pl.uri,
+  pl.is_verified,
+  pl.is_hidden,
+  pl.is_featured,
+  pl.visibility,
+  COALESCE(plt.title, pl.title) as title,
+  COALESCE(plt.group, '') as "group",
+  COALESCE(plt.description, '') as description
+FROM "profile_link" pl
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = sqlc.arg(locale_code)
+WHERE pl.profile_id = sqlc.arg(profile_id)
+  AND pl.is_hidden = FALSE
+  AND pl.deleted_at IS NULL
+ORDER BY pl."order";
+
+-- name: GetProfileLinkTx :one
+SELECT *
+FROM "profile_link_tx"
+WHERE profile_link_id = sqlc.arg(profile_link_id)
+  AND locale_code = sqlc.arg(locale_code)
+LIMIT 1;
+
+-- name: CreateProfileLinkTx :exec
+INSERT INTO "profile_link_tx" (
+  profile_link_id,
+  locale_code,
+  title,
+  "group",
+  description
+) VALUES (
+  sqlc.arg(profile_link_id),
+  sqlc.arg(locale_code),
+  sqlc.arg(title),
+  sqlc.narg(link_group),
+  sqlc.narg(description)
+);
+
+-- name: UpdateProfileLinkTx :execrows
+UPDATE "profile_link_tx"
+SET
+  title = sqlc.arg(title),
+  "group" = sqlc.narg(link_group),
+  description = sqlc.narg(description)
+WHERE profile_link_id = sqlc.arg(profile_link_id)
+  AND locale_code = sqlc.arg(locale_code);
+
+-- name: UpsertProfileLinkTx :exec
+INSERT INTO "profile_link_tx" (
+  profile_link_id,
+  locale_code,
+  title,
+  "group",
+  description
+) VALUES (
+  sqlc.arg(profile_link_id),
+  sqlc.arg(locale_code),
+  sqlc.arg(title),
+  sqlc.narg(link_group),
+  sqlc.narg(description)
+) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
+  title = EXCLUDED.title,
+  "group" = EXCLUDED."group",
+  description = EXCLUDED.description;

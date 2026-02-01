@@ -156,7 +156,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               {isSubmitting || props.isSubmitting
-                ? t("Loading.Saving...")
+                ? t("Common.Saving...")
                 : t("Profile.Save Changes")}
             </Button>
           </div>

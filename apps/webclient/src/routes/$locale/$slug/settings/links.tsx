@@ -18,15 +18,15 @@ import {
   BadgeCheck,
   MoreHorizontal,
   RefreshCw,
+  Star,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
-import { backend, type ProfileLink, type ProfileLinkKind, type GitHubAccount, type GitHubAccountsResponse } from "@/modules/backend/backend";
+import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount, type GitHubAccountsResponse } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -91,8 +92,19 @@ type LinkFormData = {
   kind: ProfileLinkKind;
   title: string;
   uri: string;
-  is_hidden: boolean;
+  is_featured: boolean;
+  visibility: LinkVisibility;
 };
+
+const VISIBILITY_OPTIONS: { value: LinkVisibility; labelKey: string }[] = [
+  { value: "public", labelKey: "Profile.Visibility.public" },
+  { value: "followers", labelKey: "Profile.Visibility.followers" },
+  { value: "sponsors", labelKey: "Profile.Visibility.sponsors" },
+  { value: "contributors", labelKey: "Profile.Visibility.contributors" },
+  { value: "maintainers", labelKey: "Profile.Visibility.maintainers" },
+  { value: "leads", labelKey: "Profile.Visibility.leads" },
+  { value: "owners", labelKey: "Profile.Visibility.owners" },
+];
 
 function LinksSettingsPage() {
   const { t } = useTranslation();
@@ -123,7 +135,8 @@ function LinksSettingsPage() {
     kind: "github",
     title: "",
     uri: "",
-    is_hidden: false,
+    is_featured: true,
+    visibility: "public",
   });
 
   // Handle OAuth success/error from URL query params
@@ -221,7 +234,8 @@ function LinksSettingsPage() {
       kind: "github",
       title: "",
       uri: "",
-      is_hidden: false,
+      is_featured: true,
+      visibility: "public",
     });
     setIsDialogOpen(true);
   };
@@ -232,7 +246,8 @@ function LinksSettingsPage() {
       kind: link.kind,
       title: link.title,
       uri: link.uri ?? "",
-      is_hidden: link.is_hidden,
+      is_featured: link.is_featured,
+      visibility: link.visibility ?? "public",
     });
     setIsDialogOpen(true);
   };
@@ -261,7 +276,8 @@ function LinksSettingsPage() {
           order: editingLink.order,
           uri: formData.uri || null,
           title: formData.title,
-          is_hidden: formData.is_hidden,
+          is_featured: formData.is_featured,
+          visibility: formData.visibility,
         },
       );
 
@@ -278,7 +294,8 @@ function LinksSettingsPage() {
         kind: formData.kind,
         uri: formData.uri || null,
         title: formData.title,
-        is_hidden: formData.is_hidden,
+        is_featured: formData.is_featured,
+        visibility: formData.visibility,
       });
 
       if (result !== null) {
@@ -443,7 +460,8 @@ function LinksSettingsPage() {
           order: newOrder,
           uri: link.uri ?? null,
           title: link.title,
-          is_hidden: link.is_hidden,
+          is_featured: link.is_featured,
+          visibility: link.visibility ?? "public",
         });
       }
       return Promise.resolve(null);
@@ -584,10 +602,16 @@ function LinksSettingsPage() {
                         {t("Profile.Connected")}
                       </span>
                     )}
-                    {link.is_hidden && (
+                    {link.is_featured && (
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
+                        <Star className="size-3" />
+                        {t("Profile.Featured")}
+                      </span>
+                    )}
+                    {link.visibility !== undefined && link.visibility !== "public" && (
                       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                         <EyeOff className="size-3" />
-                        {t("Profile.Hidden")}
+                        {t(`Profile.Visibility.${link.visibility}`)}
                       </span>
                     )}
                   </div>
@@ -723,17 +747,42 @@ function LinksSettingsPage() {
               </FieldDescription>
             </Field>
 
-            <Field orientation="horizontal">
-              <Checkbox
-                id="link-hidden"
-                checked={formData.is_hidden}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({ ...prev, is_hidden: checked === true }))
-                }
-              />
-              <FieldLabel htmlFor="link-hidden" className="font-normal cursor-pointer">
-                {t("Profile.Hide this link from your public profile.")}
-              </FieldLabel>
+            <Field>
+              <FieldLabel htmlFor="link-visibility">{t("Profile.Link Visibility")}</FieldLabel>
+              <Select
+                value={formData.visibility}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, visibility: value as LinkVisibility }))}
+              >
+                <SelectTrigger id="link-visibility">
+                  <SelectValue placeholder={t("Profile.Select visibility")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {VISIBILITY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {t(option.labelKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>
+                {t("Profile.Visibility Description." + formData.visibility)}
+              </FieldDescription>
+            </Field>
+
+            <Field>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <FieldLabel htmlFor="link-featured">{t("Profile.Featured Link")}</FieldLabel>
+                  <FieldDescription>
+                    {t("Profile.Show this link in the sidebar.")}
+                  </FieldDescription>
+                </div>
+                <Switch
+                  id="link-featured"
+                  checked={formData.is_featured}
+                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_featured: checked }))}
+                />
+              </div>
             </Field>
           </div>
 
@@ -743,7 +792,7 @@ function LinksSettingsPage() {
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving
-                ? t("Profile.Saving...")
+                ? t("Common.Saving...")
                 : editingLink !== null
                   ? t("Profile.Update Link")
                   : t("Profile.Add Link")}

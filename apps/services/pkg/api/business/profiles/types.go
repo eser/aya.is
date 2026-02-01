@@ -14,6 +14,54 @@ func DefaultIDGenerator() RecordID {
 	return RecordID(lib.IDsGenerateUnique())
 }
 
+// LinkVisibility defines who can see a profile link.
+// Each level corresponds to a minimum membership level required to view.
+type LinkVisibility string
+
+const (
+	LinkVisibilityPublic       LinkVisibility = "public"       // Everyone can see
+	LinkVisibilityFollowers    LinkVisibility = "followers"    // Followers and above
+	LinkVisibilitySponsors     LinkVisibility = "sponsors"     // Sponsors and above
+	LinkVisibilityContributors LinkVisibility = "contributors" // Contributors and above
+	LinkVisibilityMaintainers  LinkVisibility = "maintainers"  // Maintainers and above
+	LinkVisibilityLeads        LinkVisibility = "leads"        // Leads and above
+	LinkVisibilityOwners       LinkVisibility = "owners"       // Owners only
+)
+
+// MembershipKind represents the type of membership a profile has with another.
+type MembershipKind string
+
+const (
+	MembershipKindFollower    MembershipKind = "follower"
+	MembershipKindSponsor     MembershipKind = "sponsor"
+	MembershipKindContributor MembershipKind = "contributor"
+	MembershipKindMaintainer  MembershipKind = "maintainer"
+	MembershipKindLead        MembershipKind = "lead"
+	MembershipKindOwner       MembershipKind = "owner"
+)
+
+// MembershipKindLevel returns the privilege level of a membership kind.
+// Higher values mean more privileges.
+var MembershipKindLevel = map[MembershipKind]int{
+	MembershipKindFollower:    1,
+	MembershipKindSponsor:     2,
+	MembershipKindContributor: 3,
+	MembershipKindMaintainer:  4,
+	MembershipKindLead:        5,
+	MembershipKindOwner:       6,
+}
+
+// MinMembershipForVisibility maps visibility levels to minimum membership required.
+var MinMembershipForVisibility = map[LinkVisibility]MembershipKind{
+	LinkVisibilityPublic:       "",                        // no membership required
+	LinkVisibilityFollowers:    MembershipKindFollower,    // followers+
+	LinkVisibilitySponsors:     MembershipKindSponsor,     // sponsors+
+	LinkVisibilityContributors: MembershipKindContributor, // contributors+
+	LinkVisibilityMaintainers:  MembershipKindMaintainer,  // maintainers+
+	LinkVisibilityLeads:        MembershipKindLead,        // leads+
+	LinkVisibilityOwners:       MembershipKindOwner,       // owners only
+}
+
 type Profile struct {
 	CreatedAt         time.Time  `json:"created_at"`
 	Properties        any        `json:"properties"`
@@ -57,30 +105,38 @@ type ProfilePageBrief struct {
 }
 
 type ProfileLink struct {
-	ID         string     `json:"id"`
-	Kind       string     `json:"kind"`
-	ProfileID  string     `json:"profile_id"`
-	Order      int        `json:"order"`
-	IsManaged  bool       `json:"is_managed"`
-	IsVerified bool       `json:"is_verified"`
-	IsHidden   bool       `json:"is_hidden"`
-	RemoteID   *string    `json:"remote_id"`
-	PublicID   *string    `json:"public_id"`
-	URI        *string    `json:"uri"`
-	Title      string     `json:"title"`
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  *time.Time `json:"updated_at"`
-	DeletedAt  *time.Time `json:"deleted_at"`
+	ID          string         `json:"id"`
+	Kind        string         `json:"kind"`
+	ProfileID   string         `json:"profile_id"`
+	Order       int            `json:"order"`
+	IsManaged   bool           `json:"is_managed"`
+	IsVerified  bool           `json:"is_verified"`
+	IsHidden    bool           `json:"is_hidden"`
+	IsFeatured  bool           `json:"is_featured"`
+	Visibility  LinkVisibility `json:"visibility"`
+	RemoteID    *string        `json:"remote_id"`
+	PublicID    *string        `json:"public_id"`
+	URI         *string        `json:"uri"`
+	Title       string         `json:"title"`
+	Group       *string        `json:"group"`
+	Description *string        `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   *time.Time     `json:"updated_at"`
+	DeletedAt   *time.Time     `json:"deleted_at"`
 }
 
 type ProfileLinkBrief struct {
-	ID         string `json:"id"`
-	Kind       string `json:"kind"`
-	PublicID   string `json:"public_id"`
-	URI        string `json:"uri"`
-	Title      string `json:"title"`
-	IsVerified bool   `json:"is_verified"`
-	IsHidden   bool   `json:"is_hidden"`
+	ID          string         `json:"id"`
+	Kind        string         `json:"kind"`
+	PublicID    string         `json:"public_id"`
+	URI         string         `json:"uri"`
+	Title       string         `json:"title"`
+	Group       string         `json:"group"`
+	Description string         `json:"description"`
+	IsVerified  bool           `json:"is_verified"`
+	IsHidden    bool           `json:"is_hidden"`
+	IsFeatured  bool           `json:"is_featured"`
+	Visibility  LinkVisibility `json:"visibility"`
 }
 
 // ProfileLinkState contains state for profile link OAuth flows.
@@ -154,6 +210,14 @@ type ProfileTx struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Properties  any    `json:"properties"`
+}
+
+type ProfileLinkTx struct {
+	ProfileLinkID string  `json:"profile_link_id"`
+	LocaleCode    string  `json:"locale_code"`
+	Title         string  `json:"title"`
+	Group         *string `json:"group"`
+	Description   *string `json:"description"`
 }
 
 // SpotlightItem represents an item in the spotlight section.

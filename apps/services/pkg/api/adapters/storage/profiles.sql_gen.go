@@ -156,6 +156,8 @@ INSERT INTO "profile_link" (
   is_managed,
   is_verified,
   is_hidden,
+  is_featured,
+  visibility,
   remote_id,
   public_id,
   uri,
@@ -185,8 +187,10 @@ INSERT INTO "profile_link" (
   $15,
   $16,
   $17,
+  $18,
+  $19,
   NOW()
-) RETURNING id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+) RETURNING id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 `
 
 type CreateProfileLinkParams struct {
@@ -197,6 +201,8 @@ type CreateProfileLinkParams struct {
 	IsManaged                 bool           `db:"is_managed" json:"is_managed"`
 	IsVerified                bool           `db:"is_verified" json:"is_verified"`
 	IsHidden                  bool           `db:"is_hidden" json:"is_hidden"`
+	IsFeatured                bool           `db:"is_featured" json:"is_featured"`
+	Visibility                string         `db:"visibility" json:"visibility"`
 	RemoteID                  sql.NullString `db:"remote_id" json:"remote_id"`
 	PublicID                  sql.NullString `db:"public_id" json:"public_id"`
 	URI                       sql.NullString `db:"uri" json:"uri"`
@@ -219,6 +225,8 @@ type CreateProfileLinkParams struct {
 //	  is_managed,
 //	  is_verified,
 //	  is_hidden,
+//	  is_featured,
+//	  visibility,
 //	  remote_id,
 //	  public_id,
 //	  uri,
@@ -248,8 +256,10 @@ type CreateProfileLinkParams struct {
 //	  $15,
 //	  $16,
 //	  $17,
+//	  $18,
+//	  $19,
 //	  NOW()
-//	) RETURNING id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	) RETURNING id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error) {
 	row := q.db.QueryRowContext(ctx, createProfileLink,
 		arg.ID,
@@ -259,6 +269,8 @@ func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkPa
 		arg.IsManaged,
 		arg.IsVerified,
 		arg.IsHidden,
+		arg.IsFeatured,
+		arg.Visibility,
 		arg.RemoteID,
 		arg.PublicID,
 		arg.URI,
@@ -293,8 +305,60 @@ func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Visibility,
+		&i.IsFeatured,
 	)
 	return &i, err
+}
+
+const createProfileLinkTx = `-- name: CreateProfileLinkTx :exec
+INSERT INTO "profile_link_tx" (
+  profile_link_id,
+  locale_code,
+  title,
+  "group",
+  description
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+)
+`
+
+type CreateProfileLinkTxParams struct {
+	ProfileLinkID string         `db:"profile_link_id" json:"profile_link_id"`
+	LocaleCode    string         `db:"locale_code" json:"locale_code"`
+	Title         string         `db:"title" json:"title"`
+	LinkGroup     sql.NullString `db:"link_group" json:"link_group"`
+	Description   sql.NullString `db:"description" json:"description"`
+}
+
+// CreateProfileLinkTx
+//
+//	INSERT INTO "profile_link_tx" (
+//	  profile_link_id,
+//	  locale_code,
+//	  title,
+//	  "group",
+//	  description
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5
+//	)
+func (q *Queries) CreateProfileLinkTx(ctx context.Context, arg CreateProfileLinkTxParams) error {
+	_, err := q.db.ExecContext(ctx, createProfileLinkTx,
+		arg.ProfileLinkID,
+		arg.LocaleCode,
+		arg.Title,
+		arg.LinkGroup,
+		arg.Description,
+	)
+	return err
 }
 
 const createProfilePage = `-- name: CreateProfilePage :one
@@ -608,6 +672,37 @@ func (q *Queries) GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileL
 	return max_order, err
 }
 
+const getMembershipBetweenProfiles = `-- name: GetMembershipBetweenProfiles :one
+SELECT pm.kind
+FROM "profile_membership" pm
+WHERE pm.profile_id = $1
+  AND pm.member_profile_id = $2
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+LIMIT 1
+`
+
+type GetMembershipBetweenProfilesParams struct {
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString `db:"member_profile_id" json:"member_profile_id"`
+}
+
+// GetMembershipBetweenProfiles
+//
+//	SELECT pm.kind
+//	FROM "profile_membership" pm
+//	WHERE pm.profile_id = $1
+//	  AND pm.member_profile_id = $2
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	LIMIT 1
+func (q *Queries) GetMembershipBetweenProfiles(ctx context.Context, arg GetMembershipBetweenProfilesParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getMembershipBetweenProfiles, arg.ProfileID, arg.MemberProfileID)
+	var kind string
+	err := row.Scan(&kind)
+	return kind, err
+}
+
 const getProfileByID = `-- name: GetProfileByID :one
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
@@ -716,7 +811,7 @@ func (q *Queries) GetProfileIDBySlug(ctx context.Context, arg GetProfileIDBySlug
 }
 
 const getProfileLink = `-- name: GetProfileLink :one
-SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 FROM "profile_link"
 WHERE id = $1
   AND deleted_at IS NULL
@@ -728,7 +823,7 @@ type GetProfileLinkParams struct {
 
 // GetProfileLink
 //
-//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 //	FROM "profile_link"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
@@ -757,12 +852,14 @@ func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Visibility,
+		&i.IsFeatured,
 	)
 	return &i, err
 }
 
 const getProfileLinkByRemoteID = `-- name: GetProfileLinkByRemoteID :one
-SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 FROM "profile_link"
 WHERE profile_id = $1
   AND kind = $2
@@ -779,7 +876,7 @@ type GetProfileLinkByRemoteIDParams struct {
 
 // GetProfileLinkByRemoteID
 //
-//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 //	FROM "profile_link"
 //	WHERE profile_id = $1
 //	  AND kind = $2
@@ -811,6 +908,41 @@ func (q *Queries) GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLi
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Visibility,
+		&i.IsFeatured,
+	)
+	return &i, err
+}
+
+const getProfileLinkTx = `-- name: GetProfileLinkTx :one
+SELECT profile_link_id, locale_code, title, "group", description
+FROM "profile_link_tx"
+WHERE profile_link_id = $1
+  AND locale_code = $2
+LIMIT 1
+`
+
+type GetProfileLinkTxParams struct {
+	ProfileLinkID string `db:"profile_link_id" json:"profile_link_id"`
+	LocaleCode    string `db:"locale_code" json:"locale_code"`
+}
+
+// GetProfileLinkTx
+//
+//	SELECT profile_link_id, locale_code, title, "group", description
+//	FROM "profile_link_tx"
+//	WHERE profile_link_id = $1
+//	  AND locale_code = $2
+//	LIMIT 1
+func (q *Queries) GetProfileLinkTx(ctx context.Context, arg GetProfileLinkTxParams) (*ProfileLinkTx, error) {
+	row := q.db.QueryRowContext(ctx, getProfileLinkTx, arg.ProfileLinkID, arg.LocaleCode)
+	var i ProfileLinkTx
+	err := row.Scan(
+		&i.ProfileLinkID,
+		&i.LocaleCode,
+		&i.Title,
+		&i.Group,
+		&i.Description,
 	)
 	return &i, err
 }
@@ -1287,6 +1419,103 @@ func (q *Queries) GetUserProfilePermissions(ctx context.Context, arg GetUserProf
 	return items, nil
 }
 
+const listAllProfileLinksByProfileID = `-- name: ListAllProfileLinksByProfileID :many
+SELECT
+  pl.id,
+  pl.kind,
+  pl.public_id,
+  pl.uri,
+  pl.is_verified,
+  pl.is_hidden,
+  pl.is_featured,
+  pl.visibility,
+  COALESCE(plt.title, pl.title) as title,
+  COALESCE(plt.group, '') as "group",
+  COALESCE(plt.description, '') as description
+FROM "profile_link" pl
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = $1
+WHERE pl.profile_id = $2
+  AND pl.is_hidden = FALSE
+  AND pl.deleted_at IS NULL
+ORDER BY pl."order"
+`
+
+type ListAllProfileLinksByProfileIDParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ProfileID  string `db:"profile_id" json:"profile_id"`
+}
+
+type ListAllProfileLinksByProfileIDRow struct {
+	ID          string         `db:"id" json:"id"`
+	Kind        string         `db:"kind" json:"kind"`
+	PublicID    sql.NullString `db:"public_id" json:"public_id"`
+	URI         sql.NullString `db:"uri" json:"uri"`
+	IsVerified  bool           `db:"is_verified" json:"is_verified"`
+	IsHidden    bool           `db:"is_hidden" json:"is_hidden"`
+	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
+	Visibility  string         `db:"visibility" json:"visibility"`
+	Title       string         `db:"title" json:"title"`
+	Group       string         `db:"group" json:"group"`
+	Description string         `db:"description" json:"description"`
+}
+
+// ListAllProfileLinksByProfileID
+//
+//	SELECT
+//	  pl.id,
+//	  pl.kind,
+//	  pl.public_id,
+//	  pl.uri,
+//	  pl.is_verified,
+//	  pl.is_hidden,
+//	  pl.is_featured,
+//	  pl.visibility,
+//	  COALESCE(plt.title, pl.title) as title,
+//	  COALESCE(plt.group, '') as "group",
+//	  COALESCE(plt.description, '') as description
+//	FROM "profile_link" pl
+//	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+//	    AND plt.locale_code = $1
+//	WHERE pl.profile_id = $2
+//	  AND pl.is_hidden = FALSE
+//	  AND pl.deleted_at IS NULL
+//	ORDER BY pl."order"
+func (q *Queries) ListAllProfileLinksByProfileID(ctx context.Context, arg ListAllProfileLinksByProfileIDParams) ([]*ListAllProfileLinksByProfileIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAllProfileLinksByProfileID, arg.LocaleCode, arg.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListAllProfileLinksByProfileIDRow{}
+	for rows.Next() {
+		var i ListAllProfileLinksByProfileIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Kind,
+			&i.PublicID,
+			&i.URI,
+			&i.IsVerified,
+			&i.IsHidden,
+			&i.IsFeatured,
+			&i.Visibility,
+			&i.Title,
+			&i.Group,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAllProfilesForAdmin = `-- name: ListAllProfilesForAdmin :many
 SELECT
   p.id,
@@ -1401,8 +1630,107 @@ func (q *Queries) ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfil
 	return items, nil
 }
 
+const listFeaturedProfileLinksByProfileID = `-- name: ListFeaturedProfileLinksByProfileID :many
+SELECT
+  pl.id,
+  pl.kind,
+  pl.public_id,
+  pl.uri,
+  pl.is_verified,
+  pl.is_hidden,
+  pl.is_featured,
+  pl.visibility,
+  COALESCE(plt.title, pl.title) as title,
+  COALESCE(plt.group, '') as "group",
+  COALESCE(plt.description, '') as description
+FROM "profile_link" pl
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = $1
+WHERE pl.profile_id = $2
+  AND pl.is_featured = TRUE
+  AND pl.is_hidden = FALSE
+  AND pl.deleted_at IS NULL
+ORDER BY pl."order"
+`
+
+type ListFeaturedProfileLinksByProfileIDParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ProfileID  string `db:"profile_id" json:"profile_id"`
+}
+
+type ListFeaturedProfileLinksByProfileIDRow struct {
+	ID          string         `db:"id" json:"id"`
+	Kind        string         `db:"kind" json:"kind"`
+	PublicID    sql.NullString `db:"public_id" json:"public_id"`
+	URI         sql.NullString `db:"uri" json:"uri"`
+	IsVerified  bool           `db:"is_verified" json:"is_verified"`
+	IsHidden    bool           `db:"is_hidden" json:"is_hidden"`
+	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
+	Visibility  string         `db:"visibility" json:"visibility"`
+	Title       string         `db:"title" json:"title"`
+	Group       string         `db:"group" json:"group"`
+	Description string         `db:"description" json:"description"`
+}
+
+// ListFeaturedProfileLinksByProfileID
+//
+//	SELECT
+//	  pl.id,
+//	  pl.kind,
+//	  pl.public_id,
+//	  pl.uri,
+//	  pl.is_verified,
+//	  pl.is_hidden,
+//	  pl.is_featured,
+//	  pl.visibility,
+//	  COALESCE(plt.title, pl.title) as title,
+//	  COALESCE(plt.group, '') as "group",
+//	  COALESCE(plt.description, '') as description
+//	FROM "profile_link" pl
+//	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+//	    AND plt.locale_code = $1
+//	WHERE pl.profile_id = $2
+//	  AND pl.is_featured = TRUE
+//	  AND pl.is_hidden = FALSE
+//	  AND pl.deleted_at IS NULL
+//	ORDER BY pl."order"
+func (q *Queries) ListFeaturedProfileLinksByProfileID(ctx context.Context, arg ListFeaturedProfileLinksByProfileIDParams) ([]*ListFeaturedProfileLinksByProfileIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, listFeaturedProfileLinksByProfileID, arg.LocaleCode, arg.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListFeaturedProfileLinksByProfileIDRow{}
+	for rows.Next() {
+		var i ListFeaturedProfileLinksByProfileIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Kind,
+			&i.PublicID,
+			&i.URI,
+			&i.IsVerified,
+			&i.IsHidden,
+			&i.IsFeatured,
+			&i.Visibility,
+			&i.Title,
+			&i.Group,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProfileLinksByProfileID = `-- name: ListProfileLinksByProfileID :many
-SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 FROM "profile_link"
 WHERE profile_id = $1
   AND is_hidden = FALSE
@@ -1416,7 +1744,7 @@ type ListProfileLinksByProfileIDParams struct {
 
 // ListProfileLinksByProfileID
 //
-//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 //	FROM "profile_link"
 //	WHERE profile_id = $1
 //	  AND is_hidden = FALSE
@@ -1453,6 +1781,8 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.Visibility,
+			&i.IsFeatured,
 		); err != nil {
 			return nil, err
 		}
@@ -1468,7 +1798,7 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 }
 
 const listProfileLinksByProfileIDIncludingHidden = `-- name: ListProfileLinksByProfileIDIncludingHidden :many
-SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 FROM "profile_link"
 WHERE profile_id = $1
   AND deleted_at IS NULL
@@ -1481,7 +1811,7 @@ type ListProfileLinksByProfileIDIncludingHiddenParams struct {
 
 // ListProfileLinksByProfileIDIncludingHidden
 //
-//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 //	FROM "profile_link"
 //	WHERE profile_id = $1
 //	  AND deleted_at IS NULL
@@ -1517,6 +1847,8 @@ func (q *Queries) ListProfileLinksByProfileIDIncludingHidden(ctx context.Context
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.Visibility,
+			&i.IsFeatured,
 		); err != nil {
 			return nil, err
 		}
@@ -1532,7 +1864,7 @@ func (q *Queries) ListProfileLinksByProfileIDIncludingHidden(ctx context.Context
 }
 
 const listProfileLinksForKind = `-- name: ListProfileLinksForKind :many
-SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
+SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
   AND p.deleted_at IS NULL
@@ -1547,7 +1879,7 @@ type ListProfileLinksForKindParams struct {
 
 // ListProfileLinksForKind
 //
-//	SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
+//	SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  AND p.deleted_at IS NULL
@@ -1585,6 +1917,8 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.Visibility,
+			&i.IsFeatured,
 		); err != nil {
 			return nil, err
 		}
@@ -2166,18 +2500,22 @@ SET
   uri = $3,
   title = $4,
   is_hidden = $5,
+  is_featured = $6,
+  visibility = $7,
   updated_at = NOW()
-WHERE id = $6
+WHERE id = $8
   AND deleted_at IS NULL
 `
 
 type UpdateProfileLinkParams struct {
-	Kind      string         `db:"kind" json:"kind"`
-	LinkOrder int32          `db:"link_order" json:"link_order"`
-	URI       sql.NullString `db:"uri" json:"uri"`
-	Title     string         `db:"title" json:"title"`
-	IsHidden  bool           `db:"is_hidden" json:"is_hidden"`
-	ID        string         `db:"id" json:"id"`
+	Kind       string         `db:"kind" json:"kind"`
+	LinkOrder  int32          `db:"link_order" json:"link_order"`
+	URI        sql.NullString `db:"uri" json:"uri"`
+	Title      string         `db:"title" json:"title"`
+	IsHidden   bool           `db:"is_hidden" json:"is_hidden"`
+	IsFeatured bool           `db:"is_featured" json:"is_featured"`
+	Visibility string         `db:"visibility" json:"visibility"`
+	ID         string         `db:"id" json:"id"`
 }
 
 // UpdateProfileLink
@@ -2189,8 +2527,10 @@ type UpdateProfileLinkParams struct {
 //	  uri = $3,
 //	  title = $4,
 //	  is_hidden = $5,
+//	  is_featured = $6,
+//	  visibility = $7,
 //	  updated_at = NOW()
-//	WHERE id = $6
+//	WHERE id = $8
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfileLink(ctx context.Context, arg UpdateProfileLinkParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateProfileLink,
@@ -2199,6 +2539,8 @@ func (q *Queries) UpdateProfileLink(ctx context.Context, arg UpdateProfileLinkPa
 		arg.URI,
 		arg.Title,
 		arg.IsHidden,
+		arg.IsFeatured,
+		arg.Visibility,
 		arg.ID,
 	)
 	if err != nil {
@@ -2259,6 +2601,47 @@ func (q *Queries) UpdateProfileLinkOAuthTokens(ctx context.Context, arg UpdatePr
 		arg.AuthRefreshToken,
 		arg.AuthAccessTokenScope,
 		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateProfileLinkTx = `-- name: UpdateProfileLinkTx :execrows
+UPDATE "profile_link_tx"
+SET
+  title = $1,
+  "group" = $2,
+  description = $3
+WHERE profile_link_id = $4
+  AND locale_code = $5
+`
+
+type UpdateProfileLinkTxParams struct {
+	Title         string         `db:"title" json:"title"`
+	LinkGroup     sql.NullString `db:"link_group" json:"link_group"`
+	Description   sql.NullString `db:"description" json:"description"`
+	ProfileLinkID string         `db:"profile_link_id" json:"profile_link_id"`
+	LocaleCode    string         `db:"locale_code" json:"locale_code"`
+}
+
+// UpdateProfileLinkTx
+//
+//	UPDATE "profile_link_tx"
+//	SET
+//	  title = $1,
+//	  "group" = $2,
+//	  description = $3
+//	WHERE profile_link_id = $4
+//	  AND locale_code = $5
+func (q *Queries) UpdateProfileLinkTx(ctx context.Context, arg UpdateProfileLinkTxParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateProfileLinkTx,
+		arg.Title,
+		arg.LinkGroup,
+		arg.Description,
+		arg.ProfileLinkID,
+		arg.LocaleCode,
 	)
 	if err != nil {
 		return 0, err
@@ -2391,6 +2774,62 @@ func (q *Queries) UpdateProfileTx(ctx context.Context, arg UpdateProfileTxParams
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const upsertProfileLinkTx = `-- name: UpsertProfileLinkTx :exec
+INSERT INTO "profile_link_tx" (
+  profile_link_id,
+  locale_code,
+  title,
+  "group",
+  description
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
+  title = EXCLUDED.title,
+  "group" = EXCLUDED."group",
+  description = EXCLUDED.description
+`
+
+type UpsertProfileLinkTxParams struct {
+	ProfileLinkID string         `db:"profile_link_id" json:"profile_link_id"`
+	LocaleCode    string         `db:"locale_code" json:"locale_code"`
+	Title         string         `db:"title" json:"title"`
+	LinkGroup     sql.NullString `db:"link_group" json:"link_group"`
+	Description   sql.NullString `db:"description" json:"description"`
+}
+
+// UpsertProfileLinkTx
+//
+//	INSERT INTO "profile_link_tx" (
+//	  profile_link_id,
+//	  locale_code,
+//	  title,
+//	  "group",
+//	  description
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5
+//	) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
+//	  title = EXCLUDED.title,
+//	  "group" = EXCLUDED."group",
+//	  description = EXCLUDED.description
+func (q *Queries) UpsertProfileLinkTx(ctx context.Context, arg UpsertProfileLinkTxParams) error {
+	_, err := q.db.ExecContext(ctx, upsertProfileLinkTx,
+		arg.ProfileLinkID,
+		arg.LocaleCode,
+		arg.Title,
+		arg.LinkGroup,
+		arg.Description,
+	)
+	return err
 }
 
 const upsertProfilePageTx = `-- name: UpsertProfilePageTx :exec

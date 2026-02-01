@@ -284,6 +284,7 @@ func (r *Repository) ListProfileLinksByProfileID(
 			Kind:       row.Kind,
 			IsVerified: row.IsVerified,
 			IsHidden:   row.IsHidden,
+			Visibility: profiles.LinkVisibility(row.Visibility),
 			PublicID:   row.PublicID.String,
 			URI:        row.URI.String,
 			Title:      row.Title,
@@ -313,6 +314,7 @@ func (r *Repository) ListProfileLinksByProfileIDIncludingHidden(
 			Kind:       row.Kind,
 			IsVerified: row.IsVerified,
 			IsHidden:   row.IsHidden,
+			Visibility: profiles.LinkVisibility(row.Visibility),
 			PublicID:   row.PublicID.String,
 			URI:        row.URI.String,
 			Title:      row.Title,
@@ -737,6 +739,8 @@ func (r *Repository) GetProfileLink(
 		IsManaged:  row.IsManaged,
 		IsVerified: row.IsVerified,
 		IsHidden:   row.IsHidden,
+		IsFeatured: row.IsFeatured,
+		Visibility: profiles.LinkVisibility(row.Visibility),
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
@@ -758,6 +762,8 @@ func (r *Repository) CreateProfileLink(
 	uri *string,
 	title string,
 	isHidden bool,
+	isFeatured bool,
+	visibility profiles.LinkVisibility,
 ) (*profiles.ProfileLink, error) {
 	row, err := r.queries.CreateProfileLink(ctx, CreateProfileLinkParams{
 		ID:                        id,
@@ -767,6 +773,8 @@ func (r *Repository) CreateProfileLink(
 		IsManaged:                 false, // For manually added links
 		IsVerified:                false, // Will be verified later if needed
 		IsHidden:                  isHidden,
+		IsFeatured:                isFeatured,
+		Visibility:                string(visibility),
 		RemoteID:                  sql.NullString{Valid: false},
 		PublicID:                  sql.NullString{Valid: false},
 		URI:                       vars.ToSQLNullString(uri),
@@ -790,6 +798,8 @@ func (r *Repository) CreateProfileLink(
 		IsManaged:  row.IsManaged,
 		IsVerified: row.IsVerified,
 		IsHidden:   row.IsHidden,
+		IsFeatured: row.IsFeatured,
+		Visibility: profiles.LinkVisibility(row.Visibility),
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
@@ -810,14 +820,18 @@ func (r *Repository) UpdateProfileLink(
 	uri *string,
 	title string,
 	isHidden bool,
+	isFeatured bool,
+	visibility profiles.LinkVisibility,
 ) error {
 	params := UpdateProfileLinkParams{
-		ID:        id,
-		Kind:      kind,
-		LinkOrder: int32(order),
-		URI:       vars.ToSQLNullString(uri),
-		Title:     title,
-		IsHidden:  isHidden,
+		ID:         id,
+		Kind:       kind,
+		LinkOrder:  int32(order),
+		URI:        vars.ToSQLNullString(uri),
+		Title:      title,
+		IsHidden:   isHidden,
+		IsFeatured: isFeatured,
+		Visibility: string(visibility),
 	}
 
 	_, err := r.queries.UpdateProfileLink(ctx, params)
@@ -1020,6 +1034,8 @@ func (r *Repository) GetProfileLinkByRemoteID(
 		IsManaged:  row.IsManaged,
 		IsVerified: row.IsVerified,
 		IsHidden:   row.IsHidden,
+		IsFeatured: row.IsFeatured,
+		Visibility: profiles.LinkVisibility(row.Visibility),
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
@@ -1066,6 +1082,8 @@ func (r *Repository) CreateOAuthProfileLink(
 		IsManaged:                true,  // OAuth links are managed
 		IsVerified:               true,  // OAuth links are verified
 		IsHidden:                 false, // Show by default
+		IsFeatured:               true,  // Featured by default
+		Visibility:               string(profiles.LinkVisibilityPublic),
 		RemoteID:                 sql.NullString{String: remoteID, Valid: true},
 		PublicID:                 sql.NullString{String: publicID, Valid: true},
 		URI:                      sql.NullString{String: uri, Valid: true},
@@ -1091,6 +1109,8 @@ func (r *Repository) CreateOAuthProfileLink(
 		IsManaged:  row.IsManaged,
 		IsVerified: row.IsVerified,
 		IsHidden:   row.IsHidden,
+		IsFeatured: row.IsFeatured,
+		Visibility: profiles.LinkVisibility(row.Visibility),
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
@@ -1261,4 +1281,115 @@ func (r *Repository) GetAdminProfileBySlug(
 		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
 		HasTranslation:    hasTranslation,
 	}, nil
+}
+
+func (r *Repository) GetMembershipBetweenProfiles(
+	ctx context.Context,
+	profileID string,
+	memberProfileID string,
+) (profiles.MembershipKind, error) {
+	kind, err := r.queries.GetMembershipBetweenProfiles(ctx, GetMembershipBetweenProfilesParams{
+		ProfileID:       profileID,
+		MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+
+		return "", err
+	}
+
+	return profiles.MembershipKind(kind), nil
+}
+
+func (r *Repository) ListFeaturedProfileLinksByProfileID(
+	ctx context.Context,
+	localeCode string,
+	profileID string,
+) ([]*profiles.ProfileLinkBrief, error) {
+	rows, err := r.queries.ListFeaturedProfileLinksByProfileID(
+		ctx,
+		ListFeaturedProfileLinksByProfileIDParams{
+			LocaleCode: localeCode,
+			ProfileID:  profileID,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	profileLinks := make([]*profiles.ProfileLinkBrief, len(rows))
+	for i, row := range rows {
+		profileLinks[i] = &profiles.ProfileLinkBrief{
+			ID:          row.ID,
+			Kind:        row.Kind,
+			IsVerified:  row.IsVerified,
+			IsHidden:    row.IsHidden,
+			IsFeatured:  row.IsFeatured,
+			Visibility:  profiles.LinkVisibility(row.Visibility),
+			PublicID:    row.PublicID.String,
+			URI:         row.URI.String,
+			Title:       row.Title,
+			Group:       row.Group,
+			Description: row.Description,
+		}
+	}
+
+	return profileLinks, nil
+}
+
+func (r *Repository) ListAllProfileLinksByProfileID(
+	ctx context.Context,
+	localeCode string,
+	profileID string,
+) ([]*profiles.ProfileLinkBrief, error) {
+	rows, err := r.queries.ListAllProfileLinksByProfileID(
+		ctx,
+		ListAllProfileLinksByProfileIDParams{
+			LocaleCode: localeCode,
+			ProfileID:  profileID,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	profileLinks := make([]*profiles.ProfileLinkBrief, len(rows))
+	for i, row := range rows {
+		profileLinks[i] = &profiles.ProfileLinkBrief{
+			ID:          row.ID,
+			Kind:        row.Kind,
+			IsVerified:  row.IsVerified,
+			IsHidden:    row.IsHidden,
+			IsFeatured:  row.IsFeatured,
+			Visibility:  profiles.LinkVisibility(row.Visibility),
+			PublicID:    row.PublicID.String,
+			URI:         row.URI.String,
+			Title:       row.Title,
+			Group:       row.Group,
+			Description: row.Description,
+		}
+	}
+
+	return profileLinks, nil
+}
+
+func (r *Repository) UpsertProfileLinkTx(
+	ctx context.Context,
+	profileLinkID string,
+	localeCode string,
+	title string,
+	group *string,
+	description *string,
+) error {
+	params := UpsertProfileLinkTxParams{
+		ProfileLinkID: profileLinkID,
+		LocaleCode:    localeCode,
+		Title:         title,
+		LinkGroup:     vars.ToSQLNullString(group),
+		Description:   vars.ToSQLNullString(description),
+	}
+
+	return r.queries.UpsertProfileLinkTx(ctx, params)
 }

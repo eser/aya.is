@@ -918,11 +918,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Parse request body
 			var requestBody struct {
-				Kind     string  `json:"kind"`
-				URI      *string `json:"uri"`
-				Title    string  `json:"title"`
-				IsHidden bool    `json:"is_hidden"`
+				Kind       string  `json:"kind"`
+				URI        *string `json:"uri"`
+				Title      string  `json:"title"`
+				IsFeatured bool    `json:"is_featured"`
+				Visibility string  `json:"visibility"`
 			}
+			requestBody.IsFeatured = true // default to true
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
 				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
@@ -951,6 +953,11 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid link kind"))
 			}
 
+			// Default visibility to public if not specified
+			if requestBody.Visibility == "" {
+				requestBody.Visibility = string(profiles.LinkVisibilityPublic)
+			}
+
 			// Get user ID from session
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
@@ -969,7 +976,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Create the profile link
+			// Create the profile link (isHidden defaults to false)
 			link, err := profileService.CreateProfileLink(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
@@ -978,7 +985,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Kind,
 				requestBody.URI,
 				requestBody.Title,
-				requestBody.IsHidden,
+				false, // isHidden - deprecated, always false
+				requestBody.IsFeatured,
+				profiles.LinkVisibility(requestBody.Visibility),
 			)
 			if err != nil {
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
@@ -1031,12 +1040,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Parse request body
 			var requestBody struct {
-				Kind     string  `json:"kind"`
-				Order    int     `json:"order"`
-				URI      *string `json:"uri"`
-				Title    string  `json:"title"`
-				IsHidden bool    `json:"is_hidden"`
+				Kind       string  `json:"kind"`
+				Order      int     `json:"order"`
+				URI        *string `json:"uri"`
+				Title      string  `json:"title"`
+				IsFeatured bool    `json:"is_featured"`
+				Visibility string  `json:"visibility"`
 			}
+			requestBody.IsFeatured = true // default to true
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
 				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
@@ -1065,6 +1076,11 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid link kind"))
 			}
 
+			// Default visibility to public if not specified
+			if requestBody.Visibility == "" {
+				requestBody.Visibility = string(profiles.LinkVisibilityPublic)
+			}
+
 			// Get user ID from session
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
@@ -1083,7 +1099,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Update the profile link
+			// Update the profile link (isHidden deprecated, always false)
 			link, err := profileService.UpdateProfileLink(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
@@ -1094,7 +1110,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Order,
 				requestBody.URI,
 				requestBody.Title,
-				requestBody.IsHidden,
+				false, // isHidden - deprecated, always false
+				requestBody.IsFeatured,
+				profiles.LinkVisibility(requestBody.Visibility),
 			)
 			if err != nil {
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {

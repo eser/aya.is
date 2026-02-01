@@ -1,13 +1,14 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
-import type { ProfileLink } from "../types";
+import type { ProfileLink, LinkVisibility } from "../types";
 
 export type UpdateProfileLinkRequest = {
   kind: string;
   order: number;
   uri?: string | null;
   title: string;
-  is_hidden: boolean;
+  is_featured?: boolean;
+  visibility?: LinkVisibility;
 };
 
 export async function updateProfileLink(

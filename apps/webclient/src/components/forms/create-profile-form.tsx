@@ -27,19 +27,19 @@ const PROFILE_TYPES: ProfileTypeOption[] = [
   {
     kind: "individual",
     icon: User,
-    titleKey: "Profile.Individual",
+    titleKey: "Common.Individual",
     descKey: "Profile.Your personal profile",
   },
   {
     kind: "organization",
     icon: Building2,
-    titleKey: "Profile.Organization",
+    titleKey: "Common.Organization",
     descKey: "Profile.For user groups and teams",
   },
   {
     kind: "product",
     icon: Package,
-    titleKey: "Profile.Product",
+    titleKey: "Common.Product",
     descKey: "Profile.For apps, projects, tools and services",
   },
 ];
@@ -259,7 +259,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
             {(field) => (
               <Field>
                 <FieldLabel htmlFor={field.name}>
-                  {t("Profile.Title")}
+                  {t("Common.Title")}
                 </FieldLabel>
                 <Input
                   id={field.name}
@@ -291,7 +291,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
             {(field) => (
               <Field>
                 <FieldLabel htmlFor={field.name}>
-                  {t("Profile.Description")}
+                  {t("Common.Description")}
                 </FieldLabel>
                 <Textarea
                   id={field.name}
@@ -317,7 +317,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
               return (
                 <Field data-invalid={isInvalid || undefined}>
                   <FieldLabel htmlFor={field.name}>
-                    {t("Profile.Slug")}
+                    {t("Common.Slug")}
                   </FieldLabel>
                   <InputGroup>
                     <InputGroupAddon>
