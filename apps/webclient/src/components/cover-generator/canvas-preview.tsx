@@ -74,9 +74,9 @@ export function CanvasPreview(props: CanvasPreviewProps) {
         }
       }
 
-      // Load logo
+      // Load logo with text color for matching appearance
       try {
-        const logo = await loadLogoImage();
+        const logo = await loadLogoImage(props.options.textColor);
         setLogoImage(logo);
       } catch {
         // Silently fail - will render without logo
@@ -86,7 +86,7 @@ export function CanvasPreview(props: CanvasPreviewProps) {
     };
 
     loadImages();
-  }, [props.story.authorAvatarUrl]);
+  }, [props.story.authorAvatarUrl, props.options.textColor]);
 
   // Load background image when URL changes
   React.useEffect(() => {
