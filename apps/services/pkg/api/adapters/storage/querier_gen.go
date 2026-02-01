@@ -235,13 +235,11 @@ type Querier interface {
 	//    "order",
 	//    is_managed,
 	//    is_verified,
-	//    is_hidden,
 	//    is_featured,
 	//    visibility,
 	//    remote_id,
 	//    public_id,
 	//    uri,
-	//    title,
 	//    auth_provider,
 	//    auth_access_token_scope,
 	//    auth_access_token,
@@ -267,10 +265,8 @@ type Querier interface {
 	//    $15,
 	//    $16,
 	//    $17,
-	//    $18,
-	//    $19,
 	//    NOW()
-	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 	CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error)
 	//CreateProfileLinkTx
 	//
@@ -625,14 +621,16 @@ type Querier interface {
 	GetProfileIDBySlug(ctx context.Context, arg GetProfileIDBySlugParams) (string, error)
 	//GetProfileLink
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
-	//  FROM "profile_link"
-	//  WHERE id = $1
-	//    AND deleted_at IS NULL
-	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*ProfileLink, error)
+	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, plt.profile_link_id, plt.locale_code, plt.title, plt."group", plt.description
+	//  FROM "profile_link" pl
+	//    INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//      AND plt.locale_code = $1
+	//  WHERE pl.id = $2
+	//    AND pl.deleted_at IS NULL
+	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*GetProfileLinkRow, error)
 	//GetProfileLinkByRemoteID
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND kind = $2
@@ -1011,17 +1009,16 @@ type Querier interface {
 	//    pl.public_id,
 	//    pl.uri,
 	//    pl.is_verified,
-	//    pl.is_hidden,
+	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
-	//    COALESCE(plt.title, pl.title) as title,
-	//    COALESCE(plt.group, '') as "group",
+	//    plt.title,
+	//    COALESCE(plt."group", '') as "group",
 	//    COALESCE(plt.description, '') as description
 	//  FROM "profile_link" pl
-	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//    INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
 	//  WHERE pl.profile_id = $2
-	//    AND pl.is_hidden = FALSE
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
 	ListAllProfileLinksByProfileID(ctx context.Context, arg ListAllProfileLinksByProfileIDParams) ([]*ListAllProfileLinksByProfileIDRow, error)
@@ -1066,18 +1063,17 @@ type Querier interface {
 	//    pl.public_id,
 	//    pl.uri,
 	//    pl.is_verified,
-	//    pl.is_hidden,
+	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
-	//    COALESCE(plt.title, pl.title) as title,
-	//    COALESCE(plt.group, '') as "group",
+	//    plt.title,
+	//    COALESCE(plt."group", '') as "group",
 	//    COALESCE(plt.description, '') as description
 	//  FROM "profile_link" pl
-	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//    INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
 	//  WHERE pl.profile_id = $2
 	//    AND pl.is_featured = TRUE
-	//    AND pl.is_hidden = FALSE
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
 	ListFeaturedProfileLinksByProfileID(ctx context.Context, arg ListFeaturedProfileLinksByProfileIDParams) ([]*ListFeaturedProfileLinksByProfileIDRow, error)
@@ -1119,31 +1115,26 @@ type Querier interface {
 	ListPendingAwardsByStatus(ctx context.Context, arg ListPendingAwardsByStatusParams) ([]*ProfilePointPendingAward, error)
 	//ListProfileLinksByProfileID
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
-	//  FROM "profile_link"
-	//  WHERE profile_id = $1
-	//    AND is_hidden = FALSE
-	//    AND deleted_at IS NULL
-	//  ORDER BY "order"
-	ListProfileLinksByProfileID(ctx context.Context, arg ListProfileLinksByProfileIDParams) ([]*ProfileLink, error)
-	//ListProfileLinksByProfileIDIncludingHidden
-	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
-	//  FROM "profile_link"
-	//  WHERE profile_id = $1
-	//    AND deleted_at IS NULL
-	//  ORDER BY "order"
-	ListProfileLinksByProfileIDIncludingHidden(ctx context.Context, arg ListProfileLinksByProfileIDIncludingHiddenParams) ([]*ProfileLink, error)
-	//ListProfileLinksForKind
-	//
-	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured
+	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, plt.profile_link_id, plt.locale_code, plt.title, plt."group", plt.description
 	//  FROM "profile_link" pl
-	//    INNER JOIN "profile" p ON p.id = pl.profile_id
-	//    AND p.deleted_at IS NULL
-	//  WHERE pl.kind = $1
+	//    INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//      AND plt.locale_code = $1
+	//  WHERE pl.profile_id = $2
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
-	ListProfileLinksForKind(ctx context.Context, arg ListProfileLinksForKindParams) ([]*ProfileLink, error)
+	ListProfileLinksByProfileID(ctx context.Context, arg ListProfileLinksByProfileIDParams) ([]*ListProfileLinksByProfileIDRow, error)
+	//ListProfileLinksForKind
+	//
+	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, plt.profile_link_id, plt.locale_code, plt.title, plt."group", plt.description
+	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
+	//      AND p.deleted_at IS NULL
+	//    INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//      AND plt.locale_code = $1
+	//  WHERE pl.kind = $2
+	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl."order"
+	ListProfileLinksForKind(ctx context.Context, arg ListProfileLinksForKindParams) ([]*ListProfileLinksForKindRow, error)
 	//ListProfileMemberships
 	//
 	//  SELECT
@@ -1509,12 +1500,10 @@ type Querier interface {
 	//    kind = $1,
 	//    "order" = $2,
 	//    uri = $3,
-	//    title = $4,
-	//    is_hidden = $5,
-	//    is_featured = $6,
-	//    visibility = $7,
+	//    is_featured = $4,
+	//    visibility = $5,
 	//    updated_at = NOW()
-	//  WHERE id = $8
+	//  WHERE id = $6
 	//    AND deleted_at IS NULL
 	UpdateProfileLink(ctx context.Context, arg UpdateProfileLinkParams) (int64, error)
 	//UpdateProfileLinkOAuthTokens
@@ -1523,14 +1512,13 @@ type Querier interface {
 	//  SET
 	//    public_id = $1,
 	//    uri = $2,
-	//    title = $3,
-	//    auth_access_token = $4,
-	//    auth_access_token_expires_at = $5,
-	//    auth_refresh_token = $6,
-	//    auth_access_token_scope = $7,
+	//    auth_access_token = $3,
+	//    auth_access_token_expires_at = $4,
+	//    auth_refresh_token = $5,
+	//    auth_access_token_scope = $6,
 	//    is_verified = TRUE,
 	//    updated_at = NOW()
-	//  WHERE id = $8
+	//  WHERE id = $7
 	//    AND deleted_at IS NULL
 	UpdateProfileLinkOAuthTokens(ctx context.Context, arg UpdateProfileLinkOAuthTokensParams) (int64, error)
 	//UpdateProfileLinkTokens

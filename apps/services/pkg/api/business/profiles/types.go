@@ -111,15 +111,14 @@ type ProfileLink struct {
 	Order       int            `json:"order"`
 	IsManaged   bool           `json:"is_managed"`
 	IsVerified  bool           `json:"is_verified"`
-	IsHidden    bool           `json:"is_hidden"`
 	IsFeatured  bool           `json:"is_featured"`
 	Visibility  LinkVisibility `json:"visibility"`
 	RemoteID    *string        `json:"remote_id"`
 	PublicID    *string        `json:"public_id"`
 	URI         *string        `json:"uri"`
-	Title       string         `json:"title"`
-	Group       *string        `json:"group"`
-	Description *string        `json:"description"`
+	Title       string         `json:"title"`       // From profile_link_tx
+	Group       *string        `json:"group"`       // From profile_link_tx
+	Description *string        `json:"description"` // From profile_link_tx
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   *time.Time     `json:"updated_at"`
 	DeletedAt   *time.Time     `json:"deleted_at"`
@@ -128,13 +127,14 @@ type ProfileLink struct {
 type ProfileLinkBrief struct {
 	ID          string         `json:"id"`
 	Kind        string         `json:"kind"`
+	Order       int            `json:"order"`
 	PublicID    string         `json:"public_id"`
 	URI         string         `json:"uri"`
-	Title       string         `json:"title"`
-	Group       string         `json:"group"`
-	Description string         `json:"description"`
+	Title       string         `json:"title"`       // From profile_link_tx
+	Group       string         `json:"group"`       // From profile_link_tx
+	Description string         `json:"description"` // From profile_link_tx
+	IsManaged   bool           `json:"is_managed"`
 	IsVerified  bool           `json:"is_verified"`
-	IsHidden    bool           `json:"is_hidden"`
 	IsFeatured  bool           `json:"is_featured"`
 	Visibility  LinkVisibility `json:"visibility"`
 }

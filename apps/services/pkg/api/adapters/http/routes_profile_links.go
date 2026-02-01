@@ -385,6 +385,7 @@ func RegisterHTTPRoutesForProfileLinks(
 				err = profileService.UpdateProfileLinkOAuthTokens(
 					ctx.Request.Context(),
 					existingLink.ID,
+					stateObj.Locale,
 					result.Username,
 					result.URI,
 					result.Name,
@@ -421,6 +422,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					linkKind,
 					profileID,
 					newOrder,
+					stateObj.Locale,
 					result.RemoteID,
 					result.Username,
 					result.URI,
@@ -636,6 +638,7 @@ func RegisterHTTPRoutesForProfileLinks(
 				err = profileService.UpdateProfileLinkOAuthTokens(
 					ctx.Request.Context(),
 					existingLink.ID,
+					pendingConn.Locale,
 					reqBody.Login,
 					reqBody.HTMLURL,
 					reqBody.Name,
@@ -664,6 +667,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					"github",
 					profileID,
 					maxOrder+1,
+					pendingConn.Locale,
 					reqBody.AccountID,
 					reqBody.Login,
 					reqBody.HTMLURL,

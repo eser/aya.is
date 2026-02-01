@@ -1,10 +1,16 @@
 -- +goose Up
--- Add visibility and featured flag columns
+-- Add visibility and featured flag columns, drop is_hidden and title (moved to profile_link_tx)
 ALTER TABLE "profile_link"
 ADD COLUMN "visibility" TEXT DEFAULT 'public' NOT NULL;
 
 ALTER TABLE "profile_link"
 ADD COLUMN "is_featured" BOOLEAN DEFAULT TRUE NOT NULL;
+
+ALTER TABLE "profile_link"
+DROP COLUMN IF EXISTS "is_hidden";
+
+ALTER TABLE "profile_link"
+DROP COLUMN IF EXISTS "title";
 
 -- Create translation table for profile links
 CREATE TABLE IF NOT EXISTS "profile_link_tx" (
@@ -31,3 +37,5 @@ DROP INDEX IF EXISTS "profile_link_visibility_idx";
 DROP TABLE IF EXISTS "profile_link_tx";
 ALTER TABLE "profile_link" DROP COLUMN IF EXISTS "is_featured";
 ALTER TABLE "profile_link" DROP COLUMN IF EXISTS "visibility";
+ALTER TABLE "profile_link" ADD COLUMN IF NOT EXISTS "is_hidden" BOOLEAN DEFAULT FALSE NOT NULL;
+ALTER TABLE "profile_link" ADD COLUMN IF NOT EXISTS "title" TEXT NOT NULL DEFAULT '';

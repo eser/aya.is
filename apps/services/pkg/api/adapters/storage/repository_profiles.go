@@ -266,12 +266,15 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 
 func (r *Repository) ListProfileLinksByProfileID(
 	ctx context.Context,
-	_localeCode string,
+	localeCode string,
 	profileID string,
 ) ([]*profiles.ProfileLinkBrief, error) {
 	rows, err := r.queries.ListProfileLinksByProfileID(
 		ctx,
-		ListProfileLinksByProfileIDParams{ProfileID: profileID},
+		ListProfileLinksByProfileIDParams{
+			LocaleCode: localeCode,
+			ProfileID:  profileID,
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -280,44 +283,18 @@ func (r *Repository) ListProfileLinksByProfileID(
 	profileLinks := make([]*profiles.ProfileLinkBrief, len(rows))
 	for i, row := range rows {
 		profileLinks[i] = &profiles.ProfileLinkBrief{
-			ID:         row.ID,
-			Kind:       row.Kind,
-			IsVerified: row.IsVerified,
-			IsHidden:   row.IsHidden,
-			Visibility: profiles.LinkVisibility(row.Visibility),
-			PublicID:   row.PublicID.String,
-			URI:        row.URI.String,
-			Title:      row.Title,
-		}
-	}
-
-	return profileLinks, nil
-}
-
-func (r *Repository) ListProfileLinksByProfileIDIncludingHidden(
-	ctx context.Context,
-	_localeCode string,
-	profileID string,
-) ([]*profiles.ProfileLinkBrief, error) {
-	rows, err := r.queries.ListProfileLinksByProfileIDIncludingHidden(
-		ctx,
-		ListProfileLinksByProfileIDIncludingHiddenParams{ProfileID: profileID},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	profileLinks := make([]*profiles.ProfileLinkBrief, len(rows))
-	for i, row := range rows {
-		profileLinks[i] = &profiles.ProfileLinkBrief{
-			ID:         row.ID,
-			Kind:       row.Kind,
-			IsVerified: row.IsVerified,
-			IsHidden:   row.IsHidden,
-			Visibility: profiles.LinkVisibility(row.Visibility),
-			PublicID:   row.PublicID.String,
-			URI:        row.URI.String,
-			Title:      row.Title,
+			ID:          row.ID,
+			Kind:        row.Kind,
+			Order:       int(row.Order),
+			IsManaged:   row.IsManaged,
+			IsVerified:  row.IsVerified,
+			IsFeatured:  row.IsFeatured,
+			Visibility:  profiles.LinkVisibility(row.Visibility),
+			PublicID:    row.PublicID.String,
+			URI:         row.URI.String,
+			Title:       row.Title,
+			Group:       row.Group.String,
+			Description: row.Description.String,
 		}
 	}
 
@@ -720,9 +697,13 @@ func (r *Repository) GetProfileTxByID(
 
 func (r *Repository) GetProfileLink(
 	ctx context.Context,
+	localeCode string,
 	id string,
 ) (*profiles.ProfileLink, error) {
-	row, err := r.queries.GetProfileLink(ctx, GetProfileLinkParams{ID: id})
+	row, err := r.queries.GetProfileLink(ctx, GetProfileLinkParams{
+		LocaleCode: localeCode,
+		ID:         id,
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil //nolint:nilnil
@@ -732,22 +713,23 @@ func (r *Repository) GetProfileLink(
 	}
 
 	result := &profiles.ProfileLink{
-		ID:         row.ID,
-		Kind:       row.Kind,
-		ProfileID:  row.ProfileID,
-		Order:      int(row.Order),
-		IsManaged:  row.IsManaged,
-		IsVerified: row.IsVerified,
-		IsHidden:   row.IsHidden,
-		IsFeatured: row.IsFeatured,
-		Visibility: profiles.LinkVisibility(row.Visibility),
-		RemoteID:   vars.ToStringPtr(row.RemoteID),
-		PublicID:   vars.ToStringPtr(row.PublicID),
-		URI:        vars.ToStringPtr(row.URI),
-		Title:      row.Title,
-		CreatedAt:  row.CreatedAt,
-		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
+		ID:          row.ID,
+		Kind:        row.Kind,
+		ProfileID:   row.ProfileID,
+		Order:       int(row.Order),
+		IsManaged:   row.IsManaged,
+		IsVerified:  row.IsVerified,
+		IsFeatured:  row.IsFeatured,
+		Visibility:  profiles.LinkVisibility(row.Visibility),
+		RemoteID:    vars.ToStringPtr(row.RemoteID),
+		PublicID:    vars.ToStringPtr(row.PublicID),
+		URI:         vars.ToStringPtr(row.URI),
+		Title:       row.Title,
+		Group:       vars.ToStringPtr(row.Group),
+		Description: vars.ToStringPtr(row.Description),
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:   vars.ToTimePtr(row.DeletedAt),
 	}
 
 	return result, nil
@@ -760,8 +742,6 @@ func (r *Repository) CreateProfileLink(
 	profileID string,
 	order int,
 	uri *string,
-	title string,
-	isHidden bool,
 	isFeatured bool,
 	visibility profiles.LinkVisibility,
 ) (*profiles.ProfileLink, error) {
@@ -772,13 +752,11 @@ func (r *Repository) CreateProfileLink(
 		LinkOrder:                 int32(order),
 		IsManaged:                 false, // For manually added links
 		IsVerified:                false, // Will be verified later if needed
-		IsHidden:                  isHidden,
 		IsFeatured:                isFeatured,
 		Visibility:                string(visibility),
 		RemoteID:                  sql.NullString{Valid: false},
 		PublicID:                  sql.NullString{Valid: false},
 		URI:                       vars.ToSQLNullString(uri),
-		Title:                     title,
 		AuthProvider:              sql.NullString{Valid: false},
 		AuthAccessTokenScope:      sql.NullString{Valid: false},
 		AuthAccessToken:           sql.NullString{Valid: false},
@@ -797,13 +775,11 @@ func (r *Repository) CreateProfileLink(
 		Order:      int(row.Order),
 		IsManaged:  row.IsManaged,
 		IsVerified: row.IsVerified,
-		IsHidden:   row.IsHidden,
 		IsFeatured: row.IsFeatured,
 		Visibility: profiles.LinkVisibility(row.Visibility),
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
-		Title:      row.Title,
 		CreatedAt:  row.CreatedAt,
 		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
@@ -818,8 +794,6 @@ func (r *Repository) UpdateProfileLink(
 	kind string,
 	order int,
 	uri *string,
-	title string,
-	isHidden bool,
 	isFeatured bool,
 	visibility profiles.LinkVisibility,
 ) error {
@@ -828,8 +802,6 @@ func (r *Repository) UpdateProfileLink(
 		Kind:       kind,
 		LinkOrder:  int32(order),
 		URI:        vars.ToSQLNullString(uri),
-		Title:      title,
-		IsHidden:   isHidden,
 		IsFeatured: isFeatured,
 		Visibility: string(visibility),
 	}
@@ -1033,13 +1005,11 @@ func (r *Repository) GetProfileLinkByRemoteID(
 		Order:      int(row.Order),
 		IsManaged:  row.IsManaged,
 		IsVerified: row.IsVerified,
-		IsHidden:   row.IsHidden,
 		IsFeatured: row.IsFeatured,
 		Visibility: profiles.LinkVisibility(row.Visibility),
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
-		Title:      row.Title,
 		CreatedAt:  row.CreatedAt,
 		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
@@ -1057,7 +1027,6 @@ func (r *Repository) CreateOAuthProfileLink(
 	remoteID string,
 	publicID string,
 	uri string,
-	title string,
 	authProvider string,
 	authScope string,
 	accessToken string,
@@ -1079,15 +1048,13 @@ func (r *Repository) CreateOAuthProfileLink(
 		Kind:                     kind,
 		ProfileID:                profileID,
 		LinkOrder:                int32(order),
-		IsManaged:                true,  // OAuth links are managed
-		IsVerified:               true,  // OAuth links are verified
-		IsHidden:                 false, // Show by default
-		IsFeatured:               true,  // Featured by default
+		IsManaged:                true, // OAuth links are managed
+		IsVerified:               true, // OAuth links are verified
+		IsFeatured:               true, // Featured by default
 		Visibility:               string(profiles.LinkVisibilityPublic),
 		RemoteID:                 sql.NullString{String: remoteID, Valid: true},
 		PublicID:                 sql.NullString{String: publicID, Valid: true},
 		URI:                      sql.NullString{String: uri, Valid: true},
-		Title:                    title,
 		AuthProvider:             sql.NullString{String: authProvider, Valid: true},
 		AuthAccessTokenScope:     sql.NullString{String: authScope, Valid: true},
 		AuthAccessToken:          sql.NullString{String: accessToken, Valid: true},
@@ -1108,13 +1075,11 @@ func (r *Repository) CreateOAuthProfileLink(
 		Order:      int(row.Order),
 		IsManaged:  row.IsManaged,
 		IsVerified: row.IsVerified,
-		IsHidden:   row.IsHidden,
 		IsFeatured: row.IsFeatured,
 		Visibility: profiles.LinkVisibility(row.Visibility),
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
-		Title:      row.Title,
 		CreatedAt:  row.CreatedAt,
 		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
@@ -1128,7 +1093,6 @@ func (r *Repository) UpdateProfileLinkOAuthTokens(
 	id string,
 	publicID string,
 	uri string,
-	title string,
 	authScope string,
 	accessToken string,
 	accessTokenExpiresAt *sql.NullTime,
@@ -1148,7 +1112,6 @@ func (r *Repository) UpdateProfileLinkOAuthTokens(
 		ID:                       id,
 		PublicID:                 sql.NullString{String: publicID, Valid: true},
 		URI:                      sql.NullString{String: uri, Valid: true},
-		Title:                    title,
 		AuthAccessTokenScope:     sql.NullString{String: authScope, Valid: true},
 		AuthAccessToken:          sql.NullString{String: accessToken, Valid: true},
 		AuthAccessTokenExpiresAt: expiresAtSQL,
@@ -1324,8 +1287,8 @@ func (r *Repository) ListFeaturedProfileLinksByProfileID(
 		profileLinks[i] = &profiles.ProfileLinkBrief{
 			ID:          row.ID,
 			Kind:        row.Kind,
+			IsManaged:   row.IsManaged,
 			IsVerified:  row.IsVerified,
-			IsHidden:    row.IsHidden,
 			IsFeatured:  row.IsFeatured,
 			Visibility:  profiles.LinkVisibility(row.Visibility),
 			PublicID:    row.PublicID.String,
@@ -1360,8 +1323,8 @@ func (r *Repository) ListAllProfileLinksByProfileID(
 		profileLinks[i] = &profiles.ProfileLinkBrief{
 			ID:          row.ID,
 			Kind:        row.Kind,
+			IsManaged:   row.IsManaged,
 			IsVerified:  row.IsVerified,
-			IsHidden:    row.IsHidden,
 			IsFeatured:  row.IsFeatured,
 			Visibility:  profiles.LinkVisibility(row.Visibility),
 			PublicID:    row.PublicID.String,
@@ -1373,6 +1336,16 @@ func (r *Repository) ListAllProfileLinksByProfileID(
 	}
 
 	return profileLinks, nil
+}
+
+// ListProfileLinksByProfileIDForEditing returns all profile links for editing (settings page).
+// This is an alias for ListAllProfileLinksByProfileID since we need all links for editing.
+func (r *Repository) ListProfileLinksByProfileIDForEditing(
+	ctx context.Context,
+	localeCode string,
+	profileID string,
+) ([]*profiles.ProfileLinkBrief, error) {
+	return r.ListAllProfileLinksByProfileID(ctx, localeCode, profileID)
 }
 
 func (r *Repository) UpsertProfileLinkTx(

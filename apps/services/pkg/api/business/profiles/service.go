@@ -164,7 +164,7 @@ type Repository interface { //nolint:interfacebloat
 		localeCode string,
 		profileID string,
 	) ([]*ProfileLinkBrief, error)
-	ListProfileLinksByProfileIDIncludingHidden(
+	ListProfileLinksByProfileIDForEditing(
 		ctx context.Context,
 		localeCode string,
 		profileID string,
@@ -243,7 +243,7 @@ type Repository interface { //nolint:interfacebloat
 		profileID string,
 	) ([]*ProfileTx, error)
 	// Profile Link methods
-	GetProfileLink(ctx context.Context, id string) (*ProfileLink, error)
+	GetProfileLink(ctx context.Context, localeCode string, id string) (*ProfileLink, error)
 	CreateProfileLink(
 		ctx context.Context,
 		id string,
@@ -251,8 +251,6 @@ type Repository interface { //nolint:interfacebloat
 		profileID string,
 		order int,
 		uri *string,
-		title string,
-		isHidden bool,
 		isFeatured bool,
 		visibility LinkVisibility,
 	) (*ProfileLink, error)
@@ -262,8 +260,6 @@ type Repository interface { //nolint:interfacebloat
 		kind string,
 		order int,
 		uri *string,
-		title string,
-		isHidden bool,
 		isFeatured bool,
 		visibility LinkVisibility,
 	) error
@@ -359,7 +355,6 @@ type Repository interface { //nolint:interfacebloat
 		remoteID string,
 		publicID string,
 		uri string,
-		title string,
 		authProvider string,
 		authScope string,
 		accessToken string,
@@ -371,7 +366,6 @@ type Repository interface { //nolint:interfacebloat
 		id string,
 		publicID string,
 		uri string,
-		title string,
 		authScope string,
 		accessToken string,
 		accessTokenExpiresAt *sql.NullTime,
@@ -1161,13 +1155,13 @@ func (s *Service) GetProfileTranslations(
 // CreateProfileLink creates a new profile link with authorization check.
 func (s *Service) CreateProfileLink(
 	ctx context.Context,
+	localeCode string,
 	userID string,
 	userKind string,
 	profileSlug string,
 	kind string,
 	uri *string,
 	title string,
-	isHidden bool,
 	isFeatured bool,
 	visibility LinkVisibility,
 ) (*ProfileLink, error) {
@@ -1200,8 +1194,8 @@ func (s *Service) CreateProfileLink(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	// Get next order value (include hidden links to avoid order conflicts)
-	existingLinks, err := s.repo.ListProfileLinksByProfileIDIncludingHidden(ctx, "en", profileID)
+	// Get next order value
+	existingLinks, err := s.repo.ListProfileLinksByProfileID(ctx, localeCode, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
@@ -1224,8 +1218,6 @@ func (s *Service) CreateProfileLink(
 		profileID,
 		order,
 		uri,
-		title,
-		isHidden,
 		isFeatured,
 		visibility,
 	)
@@ -1233,12 +1225,22 @@ func (s *Service) CreateProfileLink(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
+	// Create the translation for this link
+	err = s.repo.UpsertProfileLinkTx(ctx, string(linkID), localeCode, title, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	}
+
+	// Set the title from the translation
+	link.Title = title
+
 	return link, nil
 }
 
 // UpdateProfileLink updates an existing profile link with authorization check.
 func (s *Service) UpdateProfileLink(
 	ctx context.Context,
+	localeCode string,
 	userID string,
 	userKind string,
 	profileSlug string,
@@ -1247,7 +1249,6 @@ func (s *Service) UpdateProfileLink(
 	order int,
 	uri *string,
 	title string,
-	isHidden bool,
 	isFeatured bool,
 	visibility LinkVisibility,
 ) (*ProfileLink, error) {
@@ -1275,7 +1276,7 @@ func (s *Service) UpdateProfileLink(
 	}
 
 	// Verify the link exists and belongs to the profile
-	existingLink, err := s.repo.GetProfileLink(ctx, linkID)
+	existingLink, err := s.repo.GetProfileLink(ctx, localeCode, linkID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, linkID, err)
 	}
@@ -1299,11 +1300,10 @@ func (s *Service) UpdateProfileLink(
 		)
 	}
 
-	// For managed links, preserve the original title, URI, and kind
-	// Users can only change order, visibility, and hidden status for managed links
+	// For managed links, preserve the original URI and kind
+	// Users can only change order, visibility for managed links
 	if existingLink.IsManaged {
 		kind = existingLink.Kind
-		title = existingLink.Title
 		uri = existingLink.URI
 	}
 
@@ -1319,8 +1319,6 @@ func (s *Service) UpdateProfileLink(
 		kind,
 		order,
 		uri,
-		title,
-		isHidden,
 		isFeatured,
 		visibility,
 	)
@@ -1328,8 +1326,16 @@ func (s *Service) UpdateProfileLink(
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
 	}
 
+	// Update the translation (only for non-managed links)
+	if !existingLink.IsManaged {
+		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, nil, nil)
+		if err != nil {
+			return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
+		}
+	}
+
 	// Return updated link
-	updatedLink, err := s.repo.GetProfileLink(ctx, linkID)
+	updatedLink, err := s.repo.GetProfileLink(ctx, localeCode, linkID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, linkID, err)
 	}
@@ -1369,7 +1375,7 @@ func (s *Service) DeleteProfileLink(
 	}
 
 	// Verify the link exists and belongs to the profile
-	existingLink, err := s.repo.GetProfileLink(ctx, linkID)
+	existingLink, err := s.repo.GetProfileLink(ctx, "en", linkID)
 	if err != nil {
 		return fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, linkID, err)
 	}
@@ -1405,6 +1411,7 @@ func (s *Service) DeleteProfileLink(
 // GetProfileLink retrieves a specific profile link with authorization check.
 func (s *Service) GetProfileLink(
 	ctx context.Context,
+	localeCode string,
 	userID string,
 	profileSlug string,
 	linkID string,
@@ -1425,7 +1432,7 @@ func (s *Service) GetProfileLink(
 	}
 
 	// Get the link
-	link, err := s.repo.GetProfileLink(ctx, linkID)
+	link, err := s.repo.GetProfileLink(ctx, localeCode, linkID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, linkID, err)
 	}
@@ -1455,6 +1462,7 @@ func (s *Service) GetProfileLink(
 // ListProfileLinksBySlug retrieves all profile links for editing (includes hidden links).
 func (s *Service) ListProfileLinksBySlug(
 	ctx context.Context,
+	localeCode string,
 	userID string,
 	userKind string,
 	profileSlug string,
@@ -1488,8 +1496,8 @@ func (s *Service) ListProfileLinksBySlug(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	// Get brief links including hidden ones (this is for the settings page)
-	briefLinks, err := s.repo.ListProfileLinksByProfileIDIncludingHidden(ctx, "en", profileID)
+	// Get all links for editing (this is for the settings page)
+	briefLinks, err := s.repo.ListProfileLinksByProfileIDForEditing(ctx, localeCode, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToListRecords, profileID, err)
 	}
@@ -1499,7 +1507,7 @@ func (s *Service) ListProfileLinksBySlug(
 	links := make([]*ProfileLink, 0, len(briefLinks))
 
 	for _, briefLink := range briefLinks {
-		fullLink, err := s.repo.GetProfileLink(ctx, briefLink.ID)
+		fullLink, err := s.repo.GetProfileLink(ctx, localeCode, briefLink.ID)
 		if err != nil {
 			return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, briefLink.ID, err)
 		}
@@ -1917,6 +1925,7 @@ func (s *Service) GetProfileLinkByRemoteID(
 func (s *Service) UpdateProfileLinkOAuthTokens(
 	ctx context.Context,
 	id string,
+	localeCode string,
 	publicID string,
 	uri string,
 	title string,
@@ -1925,9 +1934,16 @@ func (s *Service) UpdateProfileLinkOAuthTokens(
 	accessTokenExpiresAt *sql.NullTime,
 	refreshToken *string,
 ) error {
-	return s.repo.UpdateProfileLinkOAuthTokens(
-		ctx, id, publicID, uri, title, authScope, accessToken, accessTokenExpiresAt, refreshToken,
+	// Update OAuth tokens
+	err := s.repo.UpdateProfileLinkOAuthTokens(
+		ctx, id, publicID, uri, authScope, accessToken, accessTokenExpiresAt, refreshToken,
 	)
+	if err != nil {
+		return err
+	}
+
+	// Update/create translation for the title
+	return s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil)
 }
 
 // CreateOAuthProfileLink creates a new OAuth-connected profile link.
@@ -1937,6 +1953,7 @@ func (s *Service) CreateOAuthProfileLink(
 	kind string,
 	profileID string,
 	order int,
+	localeCode string,
 	remoteID string,
 	publicID string,
 	uri string,
@@ -1947,10 +1964,22 @@ func (s *Service) CreateOAuthProfileLink(
 	accessTokenExpiresAt *sql.NullTime,
 	refreshToken *string,
 ) (*ProfileLink, error) {
-	return s.repo.CreateOAuthProfileLink(
-		ctx, id, kind, profileID, order, remoteID, publicID, uri, title,
+	// Create the OAuth profile link
+	link, err := s.repo.CreateOAuthProfileLink(
+		ctx, id, kind, profileID, order, remoteID, publicID, uri,
 		authProvider, authScope, accessToken, accessTokenExpiresAt, refreshToken,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create translation for the title
+	err = s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return link, nil
 }
 
 // GetMaxProfileLinkOrder returns the maximum order value for profile links.
@@ -2036,7 +2065,7 @@ func (s *Service) UpsertProfileLinkTranslation(
 	}
 
 	// Verify the link exists
-	existingLink, err := s.repo.GetProfileLink(ctx, linkID)
+	existingLink, err := s.repo.GetProfileLink(ctx, localeCode, linkID)
 	if err != nil {
 		return fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, linkID, err)
 	}

@@ -137,10 +137,12 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: ListProfileLinksForKind :many
-SELECT pl.*
+SELECT pl.*, plt.*
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
-  AND p.deleted_at IS NULL
+    AND p.deleted_at IS NULL
+  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = sqlc.arg(locale_code)
 WHERE pl.kind = sqlc.arg(kind)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
@@ -254,25 +256,21 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: ListProfileLinksByProfileID :many
-SELECT *
-FROM "profile_link"
-WHERE profile_id = sqlc.arg(profile_id)
-  AND is_hidden = FALSE
-  AND deleted_at IS NULL
-ORDER BY "order";
-
--- name: ListProfileLinksByProfileIDIncludingHidden :many
-SELECT *
-FROM "profile_link"
-WHERE profile_id = sqlc.arg(profile_id)
-  AND deleted_at IS NULL
-ORDER BY "order";
+SELECT pl.*, plt.*
+FROM "profile_link" pl
+  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = sqlc.arg(locale_code)
+WHERE pl.profile_id = sqlc.arg(profile_id)
+  AND pl.deleted_at IS NULL
+ORDER BY pl."order";
 
 -- name: GetProfileLink :one
-SELECT *
-FROM "profile_link"
-WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL;
+SELECT pl.*, plt.*
+FROM "profile_link" pl
+  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = sqlc.arg(locale_code)
+WHERE pl.id = sqlc.arg(id)
+  AND pl.deleted_at IS NULL;
 
 -- name: CreateProfileLink :one
 INSERT INTO "profile_link" (
@@ -282,13 +280,11 @@ INSERT INTO "profile_link" (
   "order",
   is_managed,
   is_verified,
-  is_hidden,
   is_featured,
   visibility,
   remote_id,
   public_id,
   uri,
-  title,
   auth_provider,
   auth_access_token_scope,
   auth_access_token,
@@ -303,13 +299,11 @@ INSERT INTO "profile_link" (
   sqlc.arg(link_order),
   sqlc.arg(is_managed),
   sqlc.arg(is_verified),
-  sqlc.arg(is_hidden),
   sqlc.arg(is_featured),
   sqlc.arg(visibility),
   sqlc.narg(remote_id),
   sqlc.narg(public_id),
   sqlc.narg(uri),
-  sqlc.arg(title),
   sqlc.narg(auth_provider),
   sqlc.narg(auth_access_token_scope),
   sqlc.narg(auth_access_token),
@@ -325,8 +319,6 @@ SET
   kind = sqlc.arg(kind),
   "order" = sqlc.arg(link_order),
   uri = sqlc.narg(uri),
-  title = sqlc.arg(title),
-  is_hidden = sqlc.arg(is_hidden),
   is_featured = sqlc.arg(is_featured),
   visibility = sqlc.arg(visibility),
   updated_at = NOW()
@@ -444,7 +436,6 @@ UPDATE "profile_link"
 SET
   public_id = sqlc.narg(public_id),
   uri = sqlc.narg(uri),
-  title = sqlc.arg(title),
   auth_access_token = sqlc.narg(auth_access_token),
   auth_access_token_expires_at = sqlc.narg(auth_access_token_expires_at),
   auth_refresh_token = sqlc.narg(auth_refresh_token),
@@ -528,18 +519,17 @@ SELECT
   pl.public_id,
   pl.uri,
   pl.is_verified,
-  pl.is_hidden,
+  pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  COALESCE(plt.title, pl.title) as title,
-  COALESCE(plt.group, '') as "group",
+  plt.title,
+  COALESCE(plt."group", '') as "group",
   COALESCE(plt.description, '') as description
 FROM "profile_link" pl
-  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.is_featured = TRUE
-  AND pl.is_hidden = FALSE
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
 
@@ -550,17 +540,16 @@ SELECT
   pl.public_id,
   pl.uri,
   pl.is_verified,
-  pl.is_hidden,
+  pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  COALESCE(plt.title, pl.title) as title,
-  COALESCE(plt.group, '') as "group",
+  plt.title,
+  COALESCE(plt."group", '') as "group",
   COALESCE(plt.description, '') as description
 FROM "profile_link" pl
-  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
 WHERE pl.profile_id = sqlc.arg(profile_id)
-  AND pl.is_hidden = FALSE
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
 

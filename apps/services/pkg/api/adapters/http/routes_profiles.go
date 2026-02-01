@@ -841,6 +841,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
+			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Get user ID from session
@@ -864,6 +865,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			// Get all profile links for editing
 			links, err := profileService.ListProfileLinksBySlug(
 				ctx.Request.Context(),
+				localeParam,
 				*session.LoggedInUserID,
 				user.Kind,
 				slugParam,
@@ -914,6 +916,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
+			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Parse request body
@@ -976,16 +979,16 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Create the profile link (isHidden defaults to false)
+			// Create the profile link
 			link, err := profileService.CreateProfileLink(
 				ctx.Request.Context(),
+				localeParam,
 				*session.LoggedInUserID,
 				user.Kind,
 				slugParam,
 				requestBody.Kind,
 				requestBody.URI,
 				requestBody.Title,
-				false, // isHidden - deprecated, always false
 				requestBody.IsFeatured,
 				profiles.LinkVisibility(requestBody.Visibility),
 			)
@@ -1035,6 +1038,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
+			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 			linkIDParam := ctx.Request.PathValue("linkId")
 
@@ -1099,9 +1103,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Update the profile link (isHidden deprecated, always false)
+			// Update the profile link
 			link, err := profileService.UpdateProfileLink(
 				ctx.Request.Context(),
+				localeParam,
 				*session.LoggedInUserID,
 				user.Kind,
 				slugParam,
@@ -1110,7 +1115,6 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Order,
 				requestBody.URI,
 				requestBody.Title,
-				false, // isHidden - deprecated, always false
 				requestBody.IsFeatured,
 				profiles.LinkVisibility(requestBody.Visibility),
 			)

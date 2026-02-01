@@ -678,59 +678,93 @@ function LinksSettingsPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <Field>
-              <FieldLabel htmlFor="link-type">{t("Profile.Link Type")}</FieldLabel>
-              <Select
-                value={formData.kind}
-                onValueChange={(value) => handleKindChange(value as ProfileLinkKind)}
-                disabled={editingLink?.is_managed === true}
-              >
-                <SelectTrigger id="link-type">
-                  <SelectValue placeholder={t("Profile.Select link type")}>
-                    {(() => {
-                      const config = getLinkTypeConfig(formData.kind);
-                      const IconComp = config.icon;
+            {/* Row 1: Link Type + Visibility */}
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel htmlFor="link-type">{t("Profile.Link Type")}</FieldLabel>
+                <Select
+                  value={formData.kind}
+                  onValueChange={(value) => handleKindChange(value as ProfileLinkKind)}
+                  disabled={editingLink?.is_managed === true}
+                >
+                  <SelectTrigger id="link-type">
+                    <SelectValue placeholder={t("Profile.Select link type")}>
+                      {(() => {
+                        const config = getLinkTypeConfig(formData.kind);
+                        const IconComp = config.icon;
+                        return (
+                          <div className="flex items-center gap-2">
+                            <IconComp className="size-4" />
+                            <span>{config.label}</span>
+                          </div>
+                        );
+                      })()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LINK_TYPES.map((linkType) => {
+                      const IconComp = linkType.icon;
                       return (
-                        <div className="flex items-center gap-2">
-                          <IconComp className="size-4" />
-                          <span>{config.label}</span>
-                        </div>
+                        <SelectItem key={linkType.kind} value={linkType.kind}>
+                          <div className="flex items-center gap-2">
+                            <IconComp className="size-4" />
+                            <span>{linkType.label}</span>
+                          </div>
+                        </SelectItem>
                       );
-                    })()}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {LINK_TYPES.map((linkType) => {
-                    const IconComp = linkType.icon;
-                    return (
-                      <SelectItem key={linkType.kind} value={linkType.kind}>
-                        <div className="flex items-center gap-2">
-                          <IconComp className="size-4" />
-                          <span>{linkType.label}</span>
-                        </div>
+                    })}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="link-visibility">{t("Profile.Link Visibility")}</FieldLabel>
+                <Select
+                  value={formData.visibility}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, visibility: value as LinkVisibility }))}
+                >
+                  <SelectTrigger id="link-visibility">
+                    <SelectValue placeholder={t("Profile.Select visibility")}>
+                      {t(`Profile.Visibility.${formData.visibility}`)}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VISIBILITY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {t(option.labelKey)}
                       </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </Field>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
 
-            <Field>
-              <FieldLabel htmlFor="link-title">{t("Profile.Display Title")}</FieldLabel>
-              <Input
-                id="link-title"
-                value={formData.title}
-                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder={getLinkTypeConfig(formData.kind).label}
-                disabled={editingLink?.is_managed === true}
-              />
-              <FieldDescription>
-                {editingLink?.is_managed === true
-                  ? t("Profile.This field is managed automatically and cannot be edited.")
-                  : t("Profile.A friendly name for this link.")}
-              </FieldDescription>
-            </Field>
+            {/* Row 2: Title + Featured toggle */}
+            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+              <Field>
+                <FieldLabel htmlFor="link-title">{t("Profile.Display Title")}</FieldLabel>
+                <Input
+                  id="link-title"
+                  value={formData.title}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder={getLinkTypeConfig(formData.kind).label}
+                  disabled={editingLink?.is_managed === true}
+                />
+              </Field>
 
+              <div className="flex items-center gap-2 pb-0.5">
+                <Switch
+                  id="link-featured"
+                  checked={formData.is_featured}
+                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_featured: checked }))}
+                />
+                <FieldLabel htmlFor="link-featured" className="cursor-pointer">
+                  {t("Profile.Featured")}
+                </FieldLabel>
+              </div>
+            </div>
+
+            {/* Row 3: URL */}
             <Field>
               <FieldLabel htmlFor="link-uri">{t("Profile.URL")}</FieldLabel>
               <Input
@@ -740,49 +774,11 @@ function LinksSettingsPage() {
                 placeholder={getLinkTypeConfig(formData.kind).placeholder}
                 disabled={editingLink?.is_managed === true}
               />
-              <FieldDescription>
-                {editingLink?.is_managed === true
-                  ? t("Profile.This field is managed automatically and cannot be edited.")
-                  : t("Profile.The full URL to your profile or website.")}
-              </FieldDescription>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="link-visibility">{t("Profile.Link Visibility")}</FieldLabel>
-              <Select
-                value={formData.visibility}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, visibility: value as LinkVisibility }))}
-              >
-                <SelectTrigger id="link-visibility">
-                  <SelectValue placeholder={t("Profile.Select visibility")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {VISIBILITY_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {t(option.labelKey)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldDescription>
-                {t("Profile.Visibility Description." + formData.visibility)}
-              </FieldDescription>
-            </Field>
-
-            <Field>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <FieldLabel htmlFor="link-featured">{t("Profile.Featured Link")}</FieldLabel>
-                  <FieldDescription>
-                    {t("Profile.Show this link in the sidebar.")}
-                  </FieldDescription>
-                </div>
-                <Switch
-                  id="link-featured"
-                  checked={formData.is_featured}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_featured: checked }))}
-                />
-              </div>
+              {editingLink?.is_managed === true && (
+                <FieldDescription>
+                  {t("Profile.This field is managed automatically and cannot be edited.")}
+                </FieldDescription>
+              )}
             </Field>
           </div>
 
