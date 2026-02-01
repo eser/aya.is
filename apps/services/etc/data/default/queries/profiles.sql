@@ -137,12 +137,20 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: ListProfileLinksForKind :many
-SELECT pl.*, plt.*
+SELECT
+  pl.*,
+  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
+  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
+  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  plt."group" as "group",
+  plt.description as description
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
     AND p.deleted_at IS NULL
-  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
+  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
+    AND plt_en.locale_code = 'en'
 WHERE pl.kind = sqlc.arg(kind)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
@@ -256,19 +264,35 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: ListProfileLinksByProfileID :many
-SELECT pl.*, plt.*
+SELECT
+  pl.*,
+  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
+  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
+  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  plt."group" as "group",
+  plt.description as description
 FROM "profile_link" pl
-  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
+  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
+    AND plt_en.locale_code = 'en'
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
 
 -- name: GetProfileLink :one
-SELECT pl.*, plt.*
+SELECT
+  pl.*,
+  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
+  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
+  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  plt."group" as "group",
+  plt.description as description
 FROM "profile_link" pl
-  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
+  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
+    AND plt_en.locale_code = 'en'
 WHERE pl.id = sqlc.arg(id)
   AND pl.deleted_at IS NULL;
 
@@ -522,12 +546,14 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  plt.title,
-  COALESCE(plt."group", '') as "group",
-  COALESCE(plt.description, '') as description
+  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt."group", plt_en."group", '') as "group",
+  COALESCE(plt.description, plt_en.description, '') as description
 FROM "profile_link" pl
-  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
+  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
+    AND plt_en.locale_code = 'en'
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.is_featured = TRUE
   AND pl.deleted_at IS NULL
@@ -543,12 +569,14 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  plt.title,
-  COALESCE(plt."group", '') as "group",
-  COALESCE(plt.description, '') as description
+  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt."group", plt_en."group", '') as "group",
+  COALESCE(plt.description, plt_en.description, '') as description
 FROM "profile_link" pl
-  INNER JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
+  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
+    AND plt_en.locale_code = 'en'
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";

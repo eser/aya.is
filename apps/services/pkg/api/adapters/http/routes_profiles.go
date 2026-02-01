@@ -921,11 +921,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Parse request body
 			var requestBody struct {
-				Kind       string  `json:"kind"`
-				URI        *string `json:"uri"`
-				Title      string  `json:"title"`
-				IsFeatured bool    `json:"is_featured"`
-				Visibility string  `json:"visibility"`
+				Kind        string  `json:"kind"`
+				URI         *string `json:"uri"`
+				Title       string  `json:"title"`
+				Group       *string `json:"group"`
+				Description *string `json:"description"`
+				IsFeatured  bool    `json:"is_featured"`
+				Visibility  string  `json:"visibility"`
 			}
 			requestBody.IsFeatured = true // default to true
 
@@ -989,6 +991,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Kind,
 				requestBody.URI,
 				requestBody.Title,
+				requestBody.Group,
+				requestBody.Description,
 				requestBody.IsFeatured,
 				profiles.LinkVisibility(requestBody.Visibility),
 			)
@@ -1044,12 +1048,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Parse request body
 			var requestBody struct {
-				Kind       string  `json:"kind"`
-				Order      int     `json:"order"`
-				URI        *string `json:"uri"`
-				Title      string  `json:"title"`
-				IsFeatured bool    `json:"is_featured"`
-				Visibility string  `json:"visibility"`
+				Kind        string  `json:"kind"`
+				Order       int     `json:"order"`
+				URI         *string `json:"uri"`
+				Title       string  `json:"title"`
+				Group       *string `json:"group"`
+				Description *string `json:"description"`
+				IsFeatured  bool    `json:"is_featured"`
+				Visibility  string  `json:"visibility"`
 			}
 			requestBody.IsFeatured = true // default to true
 
@@ -1115,6 +1121,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Order,
 				requestBody.URI,
 				requestBody.Title,
+				requestBody.Group,
+				requestBody.Description,
 				requestBody.IsFeatured,
 				profiles.LinkVisibility(requestBody.Visibility),
 			)

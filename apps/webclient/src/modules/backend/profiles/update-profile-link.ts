@@ -7,6 +7,8 @@ export type UpdateProfileLinkRequest = {
   order: number;
   uri?: string | null;
   title: string;
+  group?: string | null;
+  description?: string | null;
   is_featured?: boolean;
   visibility?: LinkVisibility;
 };

@@ -21,11 +21,12 @@ import {
   Star,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
-import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount, type GitHubAccountsResponse } from "@/modules/backend/backend";
+import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   Select,
@@ -92,6 +93,8 @@ type LinkFormData = {
   kind: ProfileLinkKind;
   title: string;
   uri: string;
+  group: string;
+  description: string;
   is_featured: boolean;
   visibility: LinkVisibility;
 };
@@ -135,6 +138,8 @@ function LinksSettingsPage() {
     kind: "github",
     title: "",
     uri: "",
+    group: "",
+    description: "",
     is_featured: true,
     visibility: "public",
   });
@@ -234,6 +239,8 @@ function LinksSettingsPage() {
       kind: "github",
       title: "",
       uri: "",
+      group: "",
+      description: "",
       is_featured: true,
       visibility: "public",
     });
@@ -246,6 +253,8 @@ function LinksSettingsPage() {
       kind: link.kind,
       title: link.title,
       uri: link.uri ?? "",
+      group: link.group ?? "",
+      description: link.description ?? "",
       is_featured: link.is_featured,
       visibility: link.visibility ?? "public",
     });
@@ -276,6 +285,8 @@ function LinksSettingsPage() {
           order: editingLink.order,
           uri: formData.uri || null,
           title: formData.title,
+          group: formData.group || null,
+          description: formData.description || null,
           is_featured: formData.is_featured,
           visibility: formData.visibility,
         },
@@ -294,6 +305,8 @@ function LinksSettingsPage() {
         kind: formData.kind,
         uri: formData.uri || null,
         title: formData.title,
+        group: formData.group || null,
+        description: formData.description || null,
         is_featured: formData.is_featured,
         visibility: formData.visibility,
       });
@@ -779,6 +792,32 @@ function LinksSettingsPage() {
                   {t("Profile.This field is managed automatically and cannot be edited.")}
                 </FieldDescription>
               )}
+            </Field>
+
+            {/* Row 4: Group */}
+            <Field>
+              <FieldLabel htmlFor="link-group">{t("Profile.Link Group")}</FieldLabel>
+              <Input
+                id="link-group"
+                value={formData.group}
+                onChange={(e) => setFormData((prev) => ({ ...prev, group: e.target.value }))}
+                placeholder={t("Profile.Group name (optional)")}
+              />
+              <FieldDescription>
+                {t("Profile.Links with the same group will be displayed together.")}
+              </FieldDescription>
+            </Field>
+
+            {/* Row 5: Description */}
+            <Field>
+              <FieldLabel htmlFor="link-description">{t("Profile.Link Description")}</FieldLabel>
+              <Textarea
+                id="link-description"
+                value={formData.description}
+                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                placeholder={t("Profile.Description (optional)")}
+                rows={2}
+              />
             </Field>
           </div>
 

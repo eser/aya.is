@@ -1162,6 +1162,8 @@ func (s *Service) CreateProfileLink(
 	kind string,
 	uri *string,
 	title string,
+	group *string,
+	description *string,
 	isFeatured bool,
 	visibility LinkVisibility,
 ) (*ProfileLink, error) {
@@ -1226,13 +1228,15 @@ func (s *Service) CreateProfileLink(
 	}
 
 	// Create the translation for this link
-	err = s.repo.UpsertProfileLinkTx(ctx, string(linkID), localeCode, title, nil, nil)
+	err = s.repo.UpsertProfileLinkTx(ctx, string(linkID), localeCode, title, group, description)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
 	// Set the title from the translation
 	link.Title = title
+	link.Group = group
+	link.Description = description
 
 	return link, nil
 }
@@ -1249,6 +1253,8 @@ func (s *Service) UpdateProfileLink(
 	order int,
 	uri *string,
 	title string,
+	group *string,
+	description *string,
 	isFeatured bool,
 	visibility LinkVisibility,
 ) (*ProfileLink, error) {
@@ -1326,9 +1332,15 @@ func (s *Service) UpdateProfileLink(
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
 	}
 
-	// Update the translation (only for non-managed links)
+	// Update the translation (only for non-managed links, but group/description can be updated for all)
 	if !existingLink.IsManaged {
-		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, nil, nil)
+		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, group, description)
+		if err != nil {
+			return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
+		}
+	} else {
+		// For managed links, still allow updating group and description
+		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, existingLink.Title, group, description)
 		if err != nil {
 			return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
 		}
