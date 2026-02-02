@@ -1083,6 +1083,7 @@ func (s *Service) CanUserEditProfile(
 // Update updates profile main fields (profile_picture_uri, pronouns, properties).
 func (s *Service) Update(
 	ctx context.Context,
+	localeCode string,
 	userID string,
 	userKind string,
 	profileSlug string,
@@ -1148,8 +1149,8 @@ func (s *Service) Update(
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToUpdateRecord, profileID, err)
 	}
 
-	// Return updated profile (use default locale for now)
-	profile, err := s.repo.GetProfileByID(ctx, "en", profileID)
+	// Return updated profile
+	profile, err := s.repo.GetProfileByID(ctx, localeCode, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}

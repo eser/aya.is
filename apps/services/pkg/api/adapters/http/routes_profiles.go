@@ -614,19 +614,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				}
 			}
 
-			// Prepare response
-			response := map[string]any{
-				"id":          profile.ID,
-				"slug":        profile.Slug,
-				"kind":        profile.Kind,
-				"title":       profile.Title,
-				"description": profile.Description,
-				"created_at":  profile.CreatedAt,
-			}
-
 			// Wrap response in the expected format for the frontend fetcher
 			wrappedResponse := map[string]any{
-				"data":  response,
+				"data":  profile,
 				"error": nil,
 			}
 
@@ -651,6 +641,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
+			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Parse request body
@@ -687,6 +678,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			// Update the profile
 			profile, err := profileService.Update(
 				ctx.Request.Context(),
+				localeParam,
 				*session.LoggedInUserID,
 				user.Kind,
 				slugParam,
@@ -756,11 +748,21 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			// Validate required fields
-			if requestBody.Title == "" || requestBody.Description == "" {
-				return ctx.Results.BadRequest(
-					httpfx.WithErrorMessage("Title and description are required"),
-				)
+			// Sanitize inputs - trim whitespace
+			requestBody.Title = strings.TrimSpace(requestBody.Title)
+			requestBody.Description = strings.TrimSpace(requestBody.Description)
+
+			// Validate title (required)
+			if len(requestBody.Title) == 0 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
+			}
+			if len(requestBody.Title) > 100 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
+			}
+
+			// Validate description (optional but has max length)
+			if len(requestBody.Description) > 500 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Description is too long"))
 			}
 
 			// Get user ID from session
