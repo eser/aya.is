@@ -17,16 +17,22 @@ export const Route = createFileRoute("/$locale/elements/")({
       "individual",
       "organization",
     ]);
-    const t = i18next.getFixedT(locale);
-    return { profiles: profiles ?? [], locale, pageTitle: t("Layout.Elements") };
-  },
-  head: ({ loaderData }) => {
-    const { locale, pageTitle } = loaderData;
+
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
     const t = i18next.getFixedT(locale);
     return {
+      profiles: profiles ?? [],
+      locale,
+      translatedTitle: t("Layout.Elements"),
+      translatedDescription: t("Elements.Discover individuals and organizations in the AYA community"),
+    };
+  },
+  head: ({ loaderData }) => {
+    const { locale, translatedTitle, translatedDescription } = loaderData;
+    return {
       meta: generateMetaTags({
-        title: pageTitle,
-        description: t("Elements.Discover individuals and organizations in the AYA community"),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, "elements"),
         locale,
         type: "website",

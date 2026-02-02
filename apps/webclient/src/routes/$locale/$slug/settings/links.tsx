@@ -109,6 +109,35 @@ const VISIBILITY_OPTIONS: { value: LinkVisibility; labelKey: string }[] = [
   { value: "owners", labelKey: "Profile.Visibility.owners" },
 ];
 
+// Helper to group links by their group field
+function groupLinksByGroup(links: ProfileLink[]): Record<string, ProfileLink[]> {
+  const groups: Record<string, ProfileLink[]> = {};
+
+  for (const link of links) {
+    const groupKey = link.group ?? "";
+    if (groups[groupKey] === undefined) {
+      groups[groupKey] = [];
+    }
+    groups[groupKey].push(link);
+  }
+
+  // Sort links within each group by order
+  for (const key of Object.keys(groups)) {
+    groups[key].sort((a, b) => a.order - b.order);
+  }
+
+  return groups;
+}
+
+// Get sorted group names (ungrouped first, then alphabetically)
+function getSortedGroupNames(groups: Record<string, ProfileLink[]>): string[] {
+  return Object.keys(groups).sort((a, b) => {
+    if (a === "") return -1;
+    if (b === "") return 1;
+    return a.localeCompare(b);
+  });
+}
+
 function LinksSettingsPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
@@ -224,14 +253,16 @@ function LinksSettingsPage() {
     setIsLoading(true);
     const result = await backend.listProfileLinks(params.locale, params.slug);
     if (result !== null) {
-      // Sort by order
-      const sorted = [...result].sort((a, b) => a.order - b.order);
-      setLinks(sorted);
+      setLinks(result);
     } else {
       toast.error(t("Profile.Failed to load profile links"));
     }
     setIsLoading(false);
   };
+
+  // Group links for display
+  const groupedLinks = groupLinksByGroup(links);
+  const groupNames = getSortedGroupNames(groupedLinks);
 
   const handleOpenAddDialog = () => {
     setEditingLink(null);
@@ -407,11 +438,12 @@ function LinksSettingsPage() {
     }
   };
 
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, linkId: string) => {
+  // Drag and drop handlers - works within groups only
+  const handleDragStart = (e: React.DragEvent, linkId: string, groupKey: string) => {
     setDraggedId(linkId);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", linkId);
+    e.dataTransfer.setData("group", groupKey);
     // Add a slight delay to allow the drag image to be captured
     setTimeout(() => {
       const element = document.querySelector(`[data-link-id="${linkId}"]`);
@@ -433,11 +465,15 @@ function LinksSettingsPage() {
     setDragOverId(null);
   };
 
-  const handleDragOver = (e: React.DragEvent, linkId: string) => {
+  const handleDragOver = (e: React.DragEvent, linkId: string, targetGroupKey: string) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    if (linkId !== draggedId) {
+    const sourceGroupKey = e.dataTransfer.getData("group");
+    // Only allow drop within the same group
+    if (sourceGroupKey === targetGroupKey && linkId !== draggedId) {
+      e.dataTransfer.dropEffect = "move";
       setDragOverId(linkId);
+    } else {
+      e.dataTransfer.dropEffect = "none";
     }
   };
 
@@ -445,34 +481,58 @@ function LinksSettingsPage() {
     setDragOverId(null);
   };
 
-  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+  const handleDrop = async (e: React.DragEvent, targetId: string, targetGroupKey: string) => {
     e.preventDefault();
     setDragOverId(null);
 
     if (draggedId === null || draggedId === targetId) return;
 
-    const draggedIndex = links.findIndex((l) => l.id === draggedId);
-    const targetIndex = links.findIndex((l) => l.id === targetId);
+    // Get the group's links
+    const groupLinks = groupedLinks[targetGroupKey];
+    if (groupLinks === undefined) return;
+
+    const draggedLink = groupLinks.find((l) => l.id === draggedId);
+    const targetLink = groupLinks.find((l) => l.id === targetId);
+
+    if (draggedLink === undefined || targetLink === undefined) return;
+
+    // Verify both links are in the same group
+    const draggedGroup = draggedLink.group ?? "";
+    const targetGroup = targetLink.group ?? "";
+    if (draggedGroup !== targetGroup) return;
+
+    const draggedIndex = groupLinks.findIndex((l) => l.id === draggedId);
+    const targetIndex = groupLinks.findIndex((l) => l.id === targetId);
 
     if (draggedIndex === -1 || targetIndex === -1) return;
 
-    // Reorder locally first for immediate feedback
-    const newLinks = [...links];
-    const [draggedItem] = newLinks.splice(draggedIndex, 1);
-    newLinks.splice(targetIndex, 0, draggedItem);
+    // Reorder within the group
+    const newGroupLinks = [...groupLinks];
+    const [draggedItem] = newGroupLinks.splice(draggedIndex, 1);
+    newGroupLinks.splice(targetIndex, 0, draggedItem);
 
-    // Update local state immediately
+    // Update local state immediately for feedback
+    const newLinks = links.map((link) => {
+      const newIndex = newGroupLinks.findIndex((gl) => gl.id === link.id);
+      if (newIndex !== -1) {
+        return { ...link, order: newIndex + 1 };
+      }
+      return link;
+    });
     setLinks(newLinks);
 
-    // Update orders on backend
-    const updatePromises = newLinks.map((link, index) => {
+    // Update orders on backend for affected links in this group
+    const updatePromises = newGroupLinks.map((link, index) => {
       const newOrder = index + 1;
-      if (link.order !== newOrder) {
+      const originalLink = groupLinks.find((l) => l.id === link.id);
+      if (originalLink !== undefined && originalLink.order !== newOrder) {
         return backend.updateProfileLink(params.locale, params.slug, link.id, {
           kind: link.kind,
           order: newOrder,
           uri: link.uri ?? null,
           title: link.title,
+          group: link.group ?? null,
+          description: link.description ?? null,
           is_featured: link.is_featured,
           visibility: link.visibility ?? "public",
         });
@@ -483,11 +543,9 @@ function LinksSettingsPage() {
     try {
       await Promise.all(updatePromises);
       toast.success(t("Profile.Links reordered successfully"));
-      // Reload to get fresh data from server
       loadLinks();
     } catch {
       toast.error(t("Profile.Failed to reorder links"));
-      // Reload to restore original order
       loadLinks();
     }
   };
@@ -578,103 +636,115 @@ function LinksSettingsPage() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-2">
-          {links.map((link) => {
-            const config = getLinkTypeConfig(link.kind);
-            const IconComponent = config.icon;
-            const isDragOver = dragOverId === link.id;
+        <div className="space-y-6">
+          {groupNames.map((groupName) => (
+            <div key={groupName || "ungrouped"}>
+              {/* Group header - only show for named groups */}
+              {groupName !== "" && (
+                <h4 className="text-sm font-medium text-muted-foreground mb-2 px-1">
+                  {groupName}
+                </h4>
+              )}
+              <div className="space-y-2">
+                {groupedLinks[groupName].map((link) => {
+                  const config = getLinkTypeConfig(link.kind);
+                  const IconComponent = config.icon;
+                  const isDragOver = dragOverId === link.id;
 
-            return (
-              <div
-                key={link.id}
-                data-link-id={link.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, link.id)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleDragOver(e, link.id)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, link.id)}
-                className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
-                  isDragOver
-                    ? "border-primary bg-primary/5 border-dashed"
-                    : "hover:bg-muted/50"
-                }`}
-              >
-                <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
-                  <GripVertical className="size-5" />
-                </div>
-                <div className="flex items-center justify-center size-10 rounded-full bg-muted shrink-0">
-                  <IconComponent className="size-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium truncate">{link.title}</p>
-                    {link.is_verified && link.is_managed && (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded">
-                        <BadgeCheck className="size-3" />
-                        {t("Profile.Connected")}
-                      </span>
-                    )}
-                    {link.is_featured && (
-                      <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
-                        <Star className="size-3" />
-                        {t("Profile.Featured")}
-                      </span>
-                    )}
-                    {link.visibility !== undefined && link.visibility !== "public" && (
-                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                        <EyeOff className="size-3" />
-                        {t(`Profile.Visibility.${link.visibility}`)}
-                      </span>
-                    )}
-                  </div>
-                  {link.uri !== null && link.uri !== "" && (
-                    <p className="text-sm text-muted-foreground truncate">{link.uri}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                      onClick={(e) => e.stopPropagation()}
+                  return (
+                    <div
+                      key={link.id}
+                      data-link-id={link.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, link.id, groupName)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => handleDragOver(e, link.id, groupName)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, link.id, groupName)}
+                      className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
+                        isDragOver
+                          ? "border-primary bg-primary/5 border-dashed"
+                          : "hover:bg-muted/50"
+                      }`}
                     >
-                      <MoreHorizontal className="size-4" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-auto">
-                      {link.is_managed && (
-                        <>
-                          <DropdownMenuItem
-                            onClick={() => handleReconnect(link)}
+                      <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+                        <GripVertical className="size-5" />
+                      </div>
+                      <div className="flex items-center justify-center size-10 rounded-full bg-muted shrink-0">
+                        <IconComponent className="size-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium truncate">{link.title}</p>
+                          {link.is_verified && link.is_managed && (
+                            <span className="inline-flex items-center gap-1 text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded">
+                              <BadgeCheck className="size-3" />
+                              {t("Profile.Connected")}
+                            </span>
+                          )}
+                          {link.is_featured && (
+                            <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
+                              <Star className="size-3" />
+                              {t("Profile.Featured")}
+                            </span>
+                          )}
+                          {link.visibility !== undefined && link.visibility !== "public" && (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                              <EyeOff className="size-3" />
+                              {t(`Profile.Visibility.${link.visibility}`)}
+                            </span>
+                          )}
+                        </div>
+                        {link.uri !== null && link.uri !== "" && (
+                          <p className="text-sm text-muted-foreground truncate">{link.uri}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <RefreshCw className="size-4" />
-                            {t("Profile.Reconnect")}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                        </>
-                      )}
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => handleOpenDeleteDialog(link)}
-                      >
-                        <Trash2 className="size-4" />
-                        {t("Profile.Remove Connection")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenEditDialog(link);
-                    }}
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                </div>
+                            <MoreHorizontal className="size-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-auto">
+                            {link.is_managed && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => handleReconnect(link)}
+                                >
+                                  <RefreshCw className="size-4" />
+                                  {t("Profile.Reconnect")}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => handleOpenDeleteDialog(link)}
+                            >
+                              <Trash2 className="size-4" />
+                              {t("Profile.Remove Connection")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditDialog(link);
+                          }}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
 

@@ -27,21 +27,24 @@ export const Route = createFileRoute("/$locale/search/")({
     const domainConfig = requestContext?.domainConfiguration;
     const profileSlug = domainConfig?.type === "custom-domain" ? domainConfig.profileSlug : undefined;
 
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
+    const t = i18next.getFixedT(locale);
+    const translatedTitle = query !== "" ? t("Search.Results for {{query}}", { query }) : t("Search.Title", "Search");
+    const translatedDescription = t("Search.Search for profiles, stories, and pages");
+
     if (query.length === 0) {
-      return { results: null, query: "", locale, profileSlug };
+      return { results: null, query: "", locale, profileSlug, translatedTitle, translatedDescription };
     }
 
     const results = await backend.search(locale, query, profileSlug);
-    return { results, query, locale, profileSlug };
+    return { results, query, locale, profileSlug, translatedTitle, translatedDescription };
   },
   head: ({ loaderData }) => {
-    const { locale, query } = loaderData;
-    const t = i18next.getFixedT(locale);
-    const title = query !== "" ? t("Search.Results for {{query}}", { query }) : t("Search.Title", "Search");
+    const { locale, translatedTitle, translatedDescription } = loaderData;
     return {
       meta: generateMetaTags({
-        title,
-        description: t("Search.Search for profiles, stories, and pages"),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, "search"),
         locale,
         type: "website",

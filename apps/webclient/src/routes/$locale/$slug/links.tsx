@@ -46,15 +46,28 @@ export const Route = createFileRoute("/$locale/$slug/links")({
     const { locale, slug } = params;
     const links = await backend.getProfileLinks(locale, slug);
     const profile = await backend.getProfile(locale, slug);
-    return { links, locale, slug, profileTitle: profile?.title ?? slug };
+
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
+    // where i18next.getFixedT may return keys instead of translations on client
+    const t = i18next.getFixedT(locale);
+    const translatedTitle = `${t("Layout.Links")} - ${profile?.title ?? slug}`;
+    const translatedDescription = t("Links.All links associated with this profile.");
+
+    return {
+      links,
+      locale,
+      slug,
+      profileTitle: profile?.title ?? slug,
+      translatedTitle,
+      translatedDescription,
+    };
   },
   head: ({ loaderData }) => {
-    const { locale, slug, profileTitle } = loaderData;
-    const t = i18next.getFixedT(locale);
+    const { locale, slug, translatedTitle, translatedDescription } = loaderData;
     return {
       meta: generateMetaTags({
-        title: `${t("Layout.Links")} - ${profileTitle}`,
-        description: t("Links.All links associated with this profile."),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, slug, "links"),
         locale,
         type: "website",
@@ -101,7 +114,7 @@ function LinksPage() {
                   {groupName !== "" && (
                     <h3 className="text-lg font-semibold mb-4">{groupName}</h3>
                   )}
-                  <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
                     {groupedLinks[groupName].map((link) => (
                       <LinkCard key={link.id} link={link} t={t} />
                     ))}
@@ -144,38 +157,49 @@ function LinkCard(props: LinkCardProps) {
   const config = getLinkTypeConfig(link.kind);
   const IconComponent = config.icon;
 
-  return (
-    <Card className="p-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center justify-center size-12 rounded-full bg-muted shrink-0">
-          <IconComponent className="size-6" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-medium">{link.title}</p>
-            {link.visibility !== undefined && link.visibility !== "public" && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                <EyeOff className="size-3" />
-                {t(`Profile.Visibility.${link.visibility}`)}
-              </span>
-            )}
-          </div>
-          {link.description !== null && link.description !== "" && (
-            <p className="text-sm text-muted-foreground mt-1">{link.description}</p>
-          )}
-          {link.uri !== null && link.uri !== "" && (
-            <a
-              href={link.uri}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-1"
-            >
-              {link.uri}
-              <ExternalLink className="size-3" />
-            </a>
-          )}
-        </div>
+  const cardContent = (
+    <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center size-9 rounded-full bg-muted shrink-0">
+        <IconComponent className="size-4" />
       </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-sm">{link.title}</p>
+          {link.visibility !== undefined && link.visibility !== "public" && (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+              <EyeOff className="size-3" />
+              {t(`Profile.Visibility.${link.visibility}`)}
+            </span>
+          )}
+        </div>
+        {link.description !== null && link.description !== "" && (
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{link.description}</p>
+        )}
+      </div>
+      {link.uri !== null && link.uri !== "" && (
+        <ExternalLink className="size-4 text-muted-foreground shrink-0" />
+      )}
+    </div>
+  );
+
+  if (link.uri !== null && link.uri !== "") {
+    return (
+      <a
+        href={link.uri}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
+      >
+        <Card className="px-3 py-2.5 hover:bg-muted/50 transition-colors cursor-pointer">
+          {cardContent}
+        </Card>
+      </a>
+    );
+  }
+
+  return (
+    <Card className="px-3 py-2.5">
+      {cardContent}
     </Card>
   );
 }

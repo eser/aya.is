@@ -11,17 +11,22 @@ import i18next from "i18next";
 export const Route = createFileRoute("/$locale/events/")({
   loader: ({ params }) => {
     const { locale } = params;
-    const t = i18next.getFixedT(locale);
     // const events = await backend.getEvents(locale);
-    return { locale, pageTitle: t("Layout.Events") };
-  },
-  head: ({ loaderData }) => {
-    const { locale, pageTitle } = loaderData;
+
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
     const t = i18next.getFixedT(locale);
     return {
+      locale,
+      translatedTitle: t("Layout.Events"),
+      translatedDescription: t("Events.Discover upcoming events and meetups"),
+    };
+  },
+  head: ({ loaderData }) => {
+    const { locale, translatedTitle, translatedDescription } = loaderData;
+    return {
       meta: generateMetaTags({
-        title: pageTitle,
-        description: t("Events.Discover upcoming events and meetups"),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, "events"),
         locale,
         type: "website",

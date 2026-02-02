@@ -14,16 +14,22 @@ export const Route = createFileRoute("/$locale/products/")({
   loader: async ({ params }) => {
     const { locale } = params;
     const products = await backend.getProfilesByKinds(locale, ["product"]);
-    const t = i18next.getFixedT(locale);
-    return { products: products ?? [], locale, pageTitle: t("Layout.Products") };
-  },
-  head: ({ loaderData }) => {
-    const { locale, pageTitle } = loaderData;
+
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
     const t = i18next.getFixedT(locale);
     return {
+      products: products ?? [],
+      locale,
+      translatedTitle: t("Layout.Products"),
+      translatedDescription: t("Products.Discover open source products and projects"),
+    };
+  },
+  head: ({ loaderData }) => {
+    const { locale, translatedTitle, translatedDescription } = loaderData;
+    return {
       meta: generateMetaTags({
-        title: pageTitle,
-        description: t("Products.Discover open source products and projects"),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, "products"),
         locale,
         type: "website",

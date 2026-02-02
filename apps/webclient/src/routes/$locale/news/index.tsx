@@ -18,16 +18,22 @@ export const Route = createFileRoute("/$locale/news/")({
   loader: async ({ params }) => {
     const { locale } = params;
     const news = await backend.getStoriesByKinds(locale, ["news"]);
-    const t = i18next.getFixedT(locale);
-    return { news, locale, pageTitle: t("Layout.News") };
-  },
-  head: ({ loaderData }) => {
-    const { locale, pageTitle } = loaderData;
+
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
     const t = i18next.getFixedT(locale);
     return {
+      news,
+      locale,
+      translatedTitle: t("Layout.News"),
+      translatedDescription: t("News.Latest news and updates from the AYA community"),
+    };
+  },
+  head: ({ loaderData }) => {
+    const { locale, translatedTitle, translatedDescription } = loaderData;
+    return {
       meta: generateMetaTags({
-        title: pageTitle,
-        description: t("News.Latest news and updates from the AYA community"),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, "news"),
         locale,
         type: "website",

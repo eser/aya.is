@@ -17,15 +17,25 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
     const { slug, locale } = params;
     const stories = await backend.getProfileStories(locale, slug);
     const profile = await backend.getProfile(locale, slug);
-    return { stories, slug, locale, profileTitle: profile?.title ?? slug };
-  },
-  head: ({ loaderData }) => {
-    const { locale, slug, profileTitle } = loaderData;
+    const profileTitle = profile?.title ?? slug;
+
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
     const t = i18next.getFixedT(locale);
     return {
+      stories,
+      slug,
+      locale,
+      profileTitle,
+      translatedTitle: `${t("Layout.Stories")} - ${profileTitle}`,
+      translatedDescription: t("Stories.Browse stories from {{profile}}", { profile: profileTitle }),
+    };
+  },
+  head: ({ loaderData }) => {
+    const { locale, slug, translatedTitle, translatedDescription } = loaderData;
+    return {
       meta: generateMetaTags({
-        title: `${t("Layout.Stories")} - ${profileTitle}`,
-        description: t("Stories.Browse stories from {{profile}}", { profile: profileTitle }),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, slug, "stories"),
         locale,
         type: "website",

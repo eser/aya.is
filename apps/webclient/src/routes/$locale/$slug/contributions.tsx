@@ -14,15 +14,28 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
     const { locale, slug } = params;
     const contributions = await backend.getProfileContributions(locale, slug);
     const profile = await backend.getProfile(locale, slug);
-    return { contributions, locale, slug, profileTitle: profile?.title ?? slug };
+
+    // Pre-translate strings in loader (server-side) to avoid hydration issues
+    // where i18next.getFixedT may return keys instead of translations on client
+    const t = i18next.getFixedT(locale);
+    const translatedTitle = `${t("Layout.Contributions")} - ${profile?.title ?? slug}`;
+    const translatedDescription = t("Contributions.Organizations and products this person contributes to.");
+
+    return {
+      contributions,
+      locale,
+      slug,
+      profileTitle: profile?.title ?? slug,
+      translatedTitle,
+      translatedDescription,
+    };
   },
   head: ({ loaderData }) => {
-    const { locale, slug, profileTitle } = loaderData;
-    const t = i18next.getFixedT(locale);
+    const { locale, slug, translatedTitle, translatedDescription } = loaderData;
     return {
       meta: generateMetaTags({
-        title: `${t("Layout.Contributions")} - ${profileTitle}`,
-        description: t("Contributions.Organizations and products this person contributes to."),
+        title: translatedTitle,
+        description: translatedDescription,
         url: buildUrl(locale, slug, "contributions"),
         locale,
         type: "website",
