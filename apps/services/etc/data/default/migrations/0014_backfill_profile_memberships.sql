@@ -3,7 +3,7 @@
 
 -- Create a function to generate ULID-like IDs (26 char, Crockford base32)
 -- Note: This is a simplified version - real ULIDs have more precise timestamp encoding
-CREATE OR REPLACE FUNCTION generate_ulid() RETURNS TEXT AS $$
+CREATE OR REPLACE FUNCTION generate_ulid() RETURNS TEXT AS $func$
 DECLARE
   timestamp_part TEXT;
   random_part TEXT;
@@ -29,7 +29,7 @@ BEGIN
 
   RETURN timestamp_part || random_part;
 END;
-$$ LANGUAGE plpgsql;
+$func$ LANGUAGE plpgsql;
 
 -- For individual profiles: create self-membership where the profile is its own owner
 INSERT INTO "profile_membership" ("id", "profile_id", "member_profile_id", "kind", "started_at", "created_at")

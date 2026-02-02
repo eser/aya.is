@@ -176,14 +176,15 @@ function AccessSettingsPage() {
   };
 
   const handleAddMember = async () => {
-    if (selectedUser === null || selectedUser.individual_profile_id === null) {
+    if (selectedUser === null || selectedUser.individual_profile_id === null || selectedUser.individual_profile_id === undefined) {
       toast.error(t("Profile.Please select a user"));
       return;
     }
 
     setIsSaving(true);
+    const profileId = selectedUser.individual_profile_id;
     const success = await backend.addProfileMembership(params.locale, params.slug, {
-      member_profile_id: selectedUser.individual_profile_id,
+      member_profile_id: profileId,
       kind: selectedKind,
     });
 
