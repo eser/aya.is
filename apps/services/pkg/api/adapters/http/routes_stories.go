@@ -52,7 +52,23 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			record, err := storyService.GetBySlug(ctx.Request.Context(), localeParam, slugParam)
+			// Try to get viewer's user ID from session (optional - not required)
+			var viewerUserID *string
+
+			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
+			if err == nil && sessionID != "" {
+				session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+				if sessionErr == nil && session != nil && session.LoggedInUserID != nil {
+					viewerUserID = session.LoggedInUserID
+				}
+			}
+
+			record, err := storyService.GetBySlugForViewer(
+				ctx.Request.Context(),
+				localeParam,
+				slugParam,
+				viewerUserID,
+			)
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,

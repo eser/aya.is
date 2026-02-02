@@ -59,6 +59,37 @@ func (r *Repository) GetStoryIDBySlugIncludingDeleted(
 	return row, nil
 }
 
+func (r *Repository) GetStoryIDBySlugForViewer(
+	ctx context.Context,
+	slug string,
+	viewerUserID *string,
+) (string, error) {
+	params := GetStoryIDBySlugForViewerParams{
+		Slug: slug,
+		ViewerUserID: sql.NullString{
+			String: "",
+			Valid:  false,
+		},
+	}
+	if viewerUserID != nil {
+		params.ViewerUserID = sql.NullString{
+			String: *viewerUserID,
+			Valid:  true,
+		}
+	}
+
+	row, err := r.queries.GetStoryIDBySlugForViewer(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+
+		return "", err
+	}
+
+	return row, nil
+}
+
 func (r *Repository) GetStoryByID(
 	ctx context.Context,
 	localeCode string,

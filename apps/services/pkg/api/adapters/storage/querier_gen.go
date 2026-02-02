@@ -924,8 +924,32 @@ type Querier interface {
 	//  FROM "story"
 	//  WHERE slug = $1
 	//    AND deleted_at IS NULL
+	//    AND status = 'published'
 	//  LIMIT 1
 	GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error)
+	// Returns story ID if:
+	//   1. Story is published, OR
+	//   2. Viewer is admin, OR
+	//   3. Viewer is the author (individual profile owner)
+	//   4. Viewer is owner/lead/editor of the author profile
+	//
+	//  SELECT s.id
+	//  FROM "story" s
+	//  LEFT JOIN "user" u ON u.id = $1::CHAR(26)
+	//  LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+	//    AND pm.member_profile_id = u.individual_profile_id
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	//  WHERE s.slug = $2
+	//    AND s.deleted_at IS NULL
+	//    AND (
+	//      s.status = 'published'
+	//      OR u.kind = 'admin'
+	//      OR s.author_profile_id = u.individual_profile_id
+	//      OR pm.kind IN ('owner', 'lead', 'editor')
+	//    )
+	//  LIMIT 1
+	GetStoryIDBySlugForViewer(ctx context.Context, arg GetStoryIDBySlugForViewerParams) (string, error)
 	//GetStoryIDBySlugIncludingDeleted
 	//
 	//  SELECT id

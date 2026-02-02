@@ -307,11 +307,26 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				// slugParam := ctx.Request.PathValue("slug")
 				storySlugParam := ctx.Request.PathValue("storySlug")
 
+				// Try to get viewer's user ID from session (optional - not required)
+				var viewerUserID *string
+
+				sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
+				if err == nil && sessionID != "" {
+					session, sessionErr := userService.GetSessionByID(
+						ctx.Request.Context(),
+						sessionID,
+					)
+					if sessionErr == nil && session != nil && session.LoggedInUserID != nil {
+						viewerUserID = session.LoggedInUserID
+					}
+				}
+
 				// TODO(@eser) pass profile slug too for getting story by profile slug and story slug
-				record, err := storyService.GetBySlug(
+				record, err := storyService.GetBySlugForViewer(
 					ctx.Request.Context(),
 					localeParam,
 					storySlugParam,
+					viewerUserID,
 				)
 				if err != nil {
 					return ctx.Results.Error(
@@ -320,9 +335,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					)
 				}
 
-				// if record == nil {
-				// 	return ctx.Results.NotFound(httpfx.WithErrorMessage("story not found"))
-				// }
+				if record == nil {
+					return ctx.Results.NotFound(httpfx.WithErrorMessage("story not found"))
+				}
 
 				wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 

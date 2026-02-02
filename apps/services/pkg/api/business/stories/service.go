@@ -162,6 +162,11 @@ type Repository interface {
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
 	GetProfileByID(ctx context.Context, localeCode string, id string) (*profiles.Profile, error)
 	GetStoryIDBySlug(ctx context.Context, slug string) (string, error)
+	GetStoryIDBySlugForViewer(
+		ctx context.Context,
+		slug string,
+		viewerUserID *string,
+	) (string, error)
 	GetStoryIDBySlugIncludingDeleted(ctx context.Context, slug string) (string, error)
 	GetStoryByID(
 		ctx context.Context,
@@ -274,6 +279,36 @@ func (s *Service) GetBySlug(
 	storyID, err := s.repo.GetStoryIDBySlug(ctx, slug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	if storyID == "" {
+		return nil, nil //nolint:nilnil
+	}
+
+	record, err := s.repo.GetStoryByID(ctx, localeCode, storyID, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w(story_id: %s): %w", ErrFailedToGetRecord, storyID, err)
+	}
+
+	return record, nil
+}
+
+// GetBySlugForViewer returns a story by slug, respecting viewer permissions.
+// - Published stories are visible to everyone
+// - Non-published stories are visible to admins, authors, and profile editors.
+func (s *Service) GetBySlugForViewer(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	viewerUserID *string,
+) (*StoryWithChildren, error) {
+	storyID, err := s.repo.GetStoryIDBySlugForViewer(ctx, slug, viewerUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	if storyID == "" {
+		return nil, nil //nolint:nilnil
 	}
 
 	record, err := s.repo.GetStoryByID(ctx, localeCode, storyID, nil)

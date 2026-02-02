@@ -230,6 +230,7 @@ SELECT id
 FROM "story"
 WHERE slug = $1
   AND deleted_at IS NULL
+  AND status = 'published'
 LIMIT 1
 `
 
@@ -243,9 +244,67 @@ type GetStoryIDBySlugParams struct {
 //	FROM "story"
 //	WHERE slug = $1
 //	  AND deleted_at IS NULL
+//	  AND status = 'published'
 //	LIMIT 1
 func (q *Queries) GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, getStoryIDBySlug, arg.Slug)
+	var id string
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getStoryIDBySlugForViewer = `-- name: GetStoryIDBySlugForViewer :one
+SELECT s.id
+FROM "story" s
+LEFT JOIN "user" u ON u.id = $1::CHAR(26)
+LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+  AND pm.member_profile_id = u.individual_profile_id
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE s.slug = $2
+  AND s.deleted_at IS NULL
+  AND (
+    s.status = 'published'
+    OR u.kind = 'admin'
+    OR s.author_profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'editor')
+  )
+LIMIT 1
+`
+
+type GetStoryIDBySlugForViewerParams struct {
+	ViewerUserID sql.NullString `db:"viewer_user_id" json:"viewer_user_id"`
+	Slug         string         `db:"slug" json:"slug"`
+}
+
+// Returns story ID if:
+//
+//  1. Story is published, OR
+//
+//  2. Viewer is admin, OR
+//
+//  3. Viewer is the author (individual profile owner)
+//
+//  4. Viewer is owner/lead/editor of the author profile
+//
+//     SELECT s.id
+//     FROM "story" s
+//     LEFT JOIN "user" u ON u.id = $1::CHAR(26)
+//     LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+//     AND pm.member_profile_id = u.individual_profile_id
+//     AND pm.deleted_at IS NULL
+//     AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//     WHERE s.slug = $2
+//     AND s.deleted_at IS NULL
+//     AND (
+//     s.status = 'published'
+//     OR u.kind = 'admin'
+//     OR s.author_profile_id = u.individual_profile_id
+//     OR pm.kind IN ('owner', 'lead', 'editor')
+//     )
+//     LIMIT 1
+func (q *Queries) GetStoryIDBySlugForViewer(ctx context.Context, arg GetStoryIDBySlugForViewerParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getStoryIDBySlugForViewer, arg.ViewerUserID, arg.Slug)
 	var id string
 	err := row.Scan(&id)
 	return id, err

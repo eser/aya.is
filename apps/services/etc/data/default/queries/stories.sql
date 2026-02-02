@@ -3,6 +3,30 @@ SELECT id
 FROM "story"
 WHERE slug = sqlc.arg(slug)
   AND deleted_at IS NULL
+  AND status = 'published'
+LIMIT 1;
+
+-- name: GetStoryIDBySlugForViewer :one
+-- Returns story ID if:
+--   1. Story is published, OR
+--   2. Viewer is admin, OR
+--   3. Viewer is the author (individual profile owner)
+--   4. Viewer is owner/lead/editor of the author profile
+SELECT s.id
+FROM "story" s
+LEFT JOIN "user" u ON u.id = sqlc.narg(viewer_user_id)::CHAR(26)
+LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+  AND pm.member_profile_id = u.individual_profile_id
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE s.slug = sqlc.arg(slug)
+  AND s.deleted_at IS NULL
+  AND (
+    s.status = 'published'
+    OR u.kind = 'admin'
+    OR s.author_profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'editor')
+  )
 LIMIT 1;
 
 -- name: GetStoryIDBySlugIncludingDeleted :one
