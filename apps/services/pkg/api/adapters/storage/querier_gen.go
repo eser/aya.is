@@ -274,6 +274,7 @@ type Querier interface {
 	//    profile_link_id,
 	//    locale_code,
 	//    title,
+	//    icon,
 	//    "group",
 	//    description
 	//  ) VALUES (
@@ -281,7 +282,8 @@ type Querier interface {
 	//    $2,
 	//    $3,
 	//    $4,
-	//    $5
+	//    $5,
+	//    $6
 	//  )
 	CreateProfileLinkTx(ctx context.Context, arg CreateProfileLinkTxParams) error
 	//CreateProfilePage
@@ -626,6 +628,7 @@ type Querier interface {
 	//    COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
 	//    COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
 	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
 	//    plt."group" as "group",
 	//    plt.description as description
 	//  FROM "profile_link" pl
@@ -648,7 +651,7 @@ type Querier interface {
 	GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLinkByRemoteIDParams) (*ProfileLink, error)
 	//GetProfileLinkTx
 	//
-	//  SELECT profile_link_id, locale_code, title, "group", description
+	//  SELECT profile_link_id, locale_code, title, "group", description, icon
 	//  FROM "profile_link_tx"
 	//  WHERE profile_link_id = $1
 	//    AND locale_code = $2
@@ -1021,6 +1024,7 @@ type Querier interface {
 	//    pl.is_featured,
 	//    pl.visibility,
 	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
 	//    COALESCE(plt."group", plt_en."group", '') as "group",
 	//    COALESCE(plt.description, plt_en.description, '') as description
 	//  FROM "profile_link" pl
@@ -1077,6 +1081,7 @@ type Querier interface {
 	//    pl.is_featured,
 	//    pl.visibility,
 	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
 	//    COALESCE(plt."group", plt_en."group", '') as "group",
 	//    COALESCE(plt.description, plt_en.description, '') as description
 	//  FROM "profile_link" pl
@@ -1132,6 +1137,7 @@ type Querier interface {
 	//    COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
 	//    COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
 	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
 	//    plt."group" as "group",
 	//    plt.description as description
 	//  FROM "profile_link" pl
@@ -1565,10 +1571,11 @@ type Querier interface {
 	//  UPDATE "profile_link_tx"
 	//  SET
 	//    title = $1,
-	//    "group" = $2,
-	//    description = $3
-	//  WHERE profile_link_id = $4
-	//    AND locale_code = $5
+	//    icon = $2,
+	//    "group" = $3,
+	//    description = $4
+	//  WHERE profile_link_id = $5
+	//    AND locale_code = $6
 	UpdateProfileLinkTx(ctx context.Context, arg UpdateProfileLinkTxParams) (int64, error)
 	//UpdateProfilePage
 	//
@@ -1679,6 +1686,7 @@ type Querier interface {
 	//    profile_link_id,
 	//    locale_code,
 	//    title,
+	//    icon,
 	//    "group",
 	//    description
 	//  ) VALUES (
@@ -1686,9 +1694,11 @@ type Querier interface {
 	//    $2,
 	//    $3,
 	//    $4,
-	//    $5
+	//    $5,
+	//    $6
 	//  ) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
 	//    title = EXCLUDED.title,
+	//    icon = EXCLUDED.icon,
 	//    "group" = EXCLUDED."group",
 	//    description = EXCLUDED.description
 	UpsertProfileLinkTx(ctx context.Context, arg UpsertProfileLinkTxParams) error

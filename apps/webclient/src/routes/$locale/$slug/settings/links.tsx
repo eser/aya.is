@@ -92,6 +92,7 @@ function getLinkTypeConfig(kind: ProfileLinkKind): LinkTypeConfig {
 type LinkFormData = {
   kind: ProfileLinkKind;
   title: string;
+  icon: string;
   uri: string;
   group: string;
   description: string;
@@ -166,6 +167,7 @@ function LinksSettingsPage() {
   const [formData, setFormData] = React.useState<LinkFormData>({
     kind: "github",
     title: "",
+    icon: "",
     uri: "",
     group: "",
     description: "",
@@ -269,6 +271,7 @@ function LinksSettingsPage() {
     setFormData({
       kind: "github",
       title: "",
+      icon: "",
       uri: "",
       group: "",
       description: "",
@@ -283,6 +286,7 @@ function LinksSettingsPage() {
     setFormData({
       kind: link.kind,
       title: link.title,
+      icon: link.icon ?? "",
       uri: link.uri ?? "",
       group: link.group ?? "",
       description: link.description ?? "",
@@ -316,6 +320,7 @@ function LinksSettingsPage() {
           order: editingLink.order,
           uri: formData.uri || null,
           title: formData.title,
+          icon: formData.icon || null,
           group: formData.group || null,
           description: formData.description || null,
           is_featured: formData.is_featured,
@@ -336,6 +341,7 @@ function LinksSettingsPage() {
         kind: formData.kind,
         uri: formData.uri || null,
         title: formData.title,
+        icon: formData.icon || null,
         group: formData.group || null,
         description: formData.description || null,
         is_featured: formData.is_featured,
@@ -531,6 +537,7 @@ function LinksSettingsPage() {
           order: newOrder,
           uri: link.uri ?? null,
           title: link.title,
+          icon: link.icon ?? null,
           group: link.group ?? null,
           description: link.description ?? null,
           is_featured: link.is_featured,
@@ -650,6 +657,7 @@ function LinksSettingsPage() {
                   const config = getLinkTypeConfig(link.kind);
                   const IconComponent = config.icon;
                   const isDragOver = dragOverId === link.id;
+                  const hasCustomIcon = link.icon !== undefined && link.icon !== null && link.icon !== "";
 
                   return (
                     <div
@@ -671,7 +679,9 @@ function LinksSettingsPage() {
                         <GripVertical className="size-5" />
                       </div>
                       <div className="flex items-center justify-center size-10 rounded-full bg-muted shrink-0">
-                        <IconComponent className="size-5" />
+                        {hasCustomIcon
+                          ? <span className="text-lg leading-none">{link.icon}</span>
+                          : <IconComponent className="size-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -822,8 +832,8 @@ function LinksSettingsPage() {
               </Field>
             </div>
 
-            {/* Row 2: Title + Featured toggle */}
-            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+            {/* Row 2: Title + Icon + Featured toggle */}
+            <div className="grid grid-cols-[1fr_80px_auto] gap-4 items-end">
               <Field>
                 <FieldLabel htmlFor="link-title">{t("Profile.Display Title")}</FieldLabel>
                 <Input
@@ -832,6 +842,18 @@ function LinksSettingsPage() {
                   onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder={getLinkTypeConfig(formData.kind).label}
                   disabled={editingLink?.is_managed === true}
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="link-icon">{t("Profile.Icon")}</FieldLabel>
+                <Input
+                  id="link-icon"
+                  value={formData.icon}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, icon: e.target.value }))}
+                  placeholder="🔗"
+                  maxLength={4}
+                  className="text-center"
                 />
               </Field>
 

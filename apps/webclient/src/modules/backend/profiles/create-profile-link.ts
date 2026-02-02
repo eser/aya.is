@@ -6,6 +6,7 @@ export type CreateProfileLinkRequest = {
   kind: string;
   uri?: string | null;
   title: string;
+  icon?: string | null;
   group?: string | null;
   description?: string | null;
   is_featured?: boolean;

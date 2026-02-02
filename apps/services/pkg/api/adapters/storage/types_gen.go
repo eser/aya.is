@@ -130,6 +130,7 @@ type ProfileLinkTx struct {
 	Title         string         `db:"title" json:"title"`
 	Group         sql.NullString `db:"group" json:"group"`
 	Description   sql.NullString `db:"description" json:"description"`
+	Icon          sql.NullString `db:"icon" json:"icon"`
 }
 
 type ProfileMembership struct {

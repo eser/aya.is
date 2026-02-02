@@ -55,6 +55,7 @@ export interface ProfileLink {
   public_id?: string | null;
   uri?: string | null;
   title: string;
+  icon?: string | null; // Custom emoticon or initials - if not specified, kind-based icon is used
   group?: string | null;
   description?: string | null;
   created_at: string;

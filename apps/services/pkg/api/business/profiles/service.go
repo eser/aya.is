@@ -284,6 +284,7 @@ type Repository interface { //nolint:interfacebloat
 		profileLinkID string,
 		localeCode string,
 		title string,
+		icon *string,
 		group *string,
 		description *string,
 	) error
@@ -1177,6 +1178,7 @@ func (s *Service) CreateProfileLink(
 	kind string,
 	uri *string,
 	title string,
+	icon *string,
 	group *string,
 	description *string,
 	isFeatured bool,
@@ -1243,13 +1245,22 @@ func (s *Service) CreateProfileLink(
 	}
 
 	// Create the translation for this link
-	err = s.repo.UpsertProfileLinkTx(ctx, string(linkID), localeCode, title, group, description)
+	err = s.repo.UpsertProfileLinkTx(
+		ctx,
+		string(linkID),
+		localeCode,
+		title,
+		icon,
+		group,
+		description,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
 	// Set the title from the translation
 	link.Title = title
+	link.Icon = icon
 	link.Group = group
 	link.Description = description
 
@@ -1268,6 +1279,7 @@ func (s *Service) UpdateProfileLink(
 	order int,
 	uri *string,
 	title string,
+	icon *string,
 	group *string,
 	description *string,
 	isFeatured bool,
@@ -1347,15 +1359,15 @@ func (s *Service) UpdateProfileLink(
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
 	}
 
-	// Update the translation (only for non-managed links, but group/description can be updated for all)
+	// Update the translation (only for non-managed links, but icon/group/description can be updated for all)
 	if !existingLink.IsManaged {
-		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, group, description)
+		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, icon, group, description)
 		if err != nil {
 			return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
 		}
 	} else {
-		// For managed links, still allow updating group and description
-		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, existingLink.Title, group, description)
+		// For managed links, still allow updating icon, group and description
+		err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, existingLink.Title, icon, group, description)
 		if err != nil {
 			return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToUpdateRecord, linkID, err)
 		}
@@ -1969,8 +1981,8 @@ func (s *Service) UpdateProfileLinkOAuthTokens(
 		return err
 	}
 
-	// Update/create translation for the title
-	return s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil)
+	// Update/create translation for the title (icon, group, description are nil for OAuth links)
+	return s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil, nil)
 }
 
 // CreateOAuthProfileLink creates a new OAuth-connected profile link.
@@ -2000,8 +2012,8 @@ func (s *Service) CreateOAuthProfileLink(
 		return nil, err
 	}
 
-	// Create translation for the title
-	err = s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil)
+	// Create translation for the title (icon, group, description are nil for OAuth links)
+	err = s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -2065,6 +2077,7 @@ func (s *Service) UpsertProfileLinkTranslation(
 	linkID string,
 	localeCode string,
 	title string,
+	icon *string,
 	group *string,
 	description *string,
 ) error {
@@ -2117,7 +2130,7 @@ func (s *Service) UpsertProfileLinkTranslation(
 	}
 
 	// Upsert the translation
-	err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, group, description)
+	err = s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, icon, group, description)
 	if err != nil {
 		return fmt.Errorf(
 			"%w(linkID: %s, locale: %s): %w",

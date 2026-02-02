@@ -269,6 +269,7 @@ SELECT
   COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
   COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   plt."group" as "group",
   plt.description as description
 FROM "profile_link" pl
@@ -286,6 +287,7 @@ SELECT
   COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
   COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   plt."group" as "group",
   plt.description as description
 FROM "profile_link" pl
@@ -547,6 +549,7 @@ SELECT
   pl.is_featured,
   pl.visibility,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   COALESCE(plt."group", plt_en."group", '') as "group",
   COALESCE(plt.description, plt_en.description, '') as description
 FROM "profile_link" pl
@@ -570,6 +573,7 @@ SELECT
   pl.is_featured,
   pl.visibility,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   COALESCE(plt."group", plt_en."group", '') as "group",
   COALESCE(plt.description, plt_en.description, '') as description
 FROM "profile_link" pl
@@ -593,12 +597,14 @@ INSERT INTO "profile_link_tx" (
   profile_link_id,
   locale_code,
   title,
+  icon,
   "group",
   description
 ) VALUES (
   sqlc.arg(profile_link_id),
   sqlc.arg(locale_code),
   sqlc.arg(title),
+  sqlc.narg(icon),
   sqlc.narg(link_group),
   sqlc.narg(description)
 );
@@ -607,6 +613,7 @@ INSERT INTO "profile_link_tx" (
 UPDATE "profile_link_tx"
 SET
   title = sqlc.arg(title),
+  icon = sqlc.narg(icon),
   "group" = sqlc.narg(link_group),
   description = sqlc.narg(description)
 WHERE profile_link_id = sqlc.arg(profile_link_id)
@@ -617,15 +624,18 @@ INSERT INTO "profile_link_tx" (
   profile_link_id,
   locale_code,
   title,
+  icon,
   "group",
   description
 ) VALUES (
   sqlc.arg(profile_link_id),
   sqlc.arg(locale_code),
   sqlc.arg(title),
+  sqlc.narg(icon),
   sqlc.narg(link_group),
   sqlc.narg(description)
 ) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
   title = EXCLUDED.title,
+  icon = EXCLUDED.icon,
   "group" = EXCLUDED."group",
   description = EXCLUDED.description;

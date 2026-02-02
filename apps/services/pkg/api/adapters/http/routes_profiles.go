@@ -937,6 +937,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Kind        string  `json:"kind"`
 				URI         *string `json:"uri"`
 				Title       string  `json:"title"`
+				Icon        *string `json:"icon"`
 				Group       *string `json:"group"`
 				Description *string `json:"description"`
 				IsFeatured  bool    `json:"is_featured"`
@@ -1003,6 +1004,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Kind,
 				requestBody.URI,
 				requestBody.Title,
+				requestBody.Icon,
 				requestBody.Group,
 				requestBody.Description,
 				requestBody.IsFeatured,
@@ -1064,6 +1066,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Order       int     `json:"order"`
 				URI         *string `json:"uri"`
 				Title       string  `json:"title"`
+				Icon        *string `json:"icon"`
 				Group       *string `json:"group"`
 				Description *string `json:"description"`
 				IsFeatured  bool    `json:"is_featured"`
@@ -1132,6 +1135,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Order,
 				requestBody.URI,
 				requestBody.Title,
+				requestBody.Icon,
 				requestBody.Group,
 				requestBody.Description,
 				requestBody.IsFeatured,

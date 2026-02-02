@@ -157,10 +157,15 @@ function LinkCard(props: LinkCardProps) {
   const config = getLinkTypeConfig(link.kind);
   const IconComponent = config.icon;
 
+  // Use custom icon if specified, otherwise fall back to kind-based icon
+  const hasCustomIcon = link.icon !== undefined && link.icon !== null && link.icon !== "";
+
   const cardContent = (
     <div className="flex items-center gap-3">
       <div className="flex items-center justify-center size-9 rounded-full bg-muted shrink-0">
-        <IconComponent className="size-4" />
+        {hasCustomIcon
+          ? <span className="text-base leading-none">{link.icon}</span>
+          : <IconComponent className="size-4" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">

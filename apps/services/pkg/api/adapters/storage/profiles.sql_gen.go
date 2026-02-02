@@ -302,6 +302,7 @@ INSERT INTO "profile_link_tx" (
   profile_link_id,
   locale_code,
   title,
+  icon,
   "group",
   description
 ) VALUES (
@@ -309,7 +310,8 @@ INSERT INTO "profile_link_tx" (
   $2,
   $3,
   $4,
-  $5
+  $5,
+  $6
 )
 `
 
@@ -317,6 +319,7 @@ type CreateProfileLinkTxParams struct {
 	ProfileLinkID string         `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode    string         `db:"locale_code" json:"locale_code"`
 	Title         string         `db:"title" json:"title"`
+	Icon          sql.NullString `db:"icon" json:"icon"`
 	LinkGroup     sql.NullString `db:"link_group" json:"link_group"`
 	Description   sql.NullString `db:"description" json:"description"`
 }
@@ -327,6 +330,7 @@ type CreateProfileLinkTxParams struct {
 //	  profile_link_id,
 //	  locale_code,
 //	  title,
+//	  icon,
 //	  "group",
 //	  description
 //	) VALUES (
@@ -334,13 +338,15 @@ type CreateProfileLinkTxParams struct {
 //	  $2,
 //	  $3,
 //	  $4,
-//	  $5
+//	  $5,
+//	  $6
 //	)
 func (q *Queries) CreateProfileLinkTx(ctx context.Context, arg CreateProfileLinkTxParams) error {
 	_, err := q.db.ExecContext(ctx, createProfileLinkTx,
 		arg.ProfileLinkID,
 		arg.LocaleCode,
 		arg.Title,
+		arg.Icon,
 		arg.LinkGroup,
 		arg.Description,
 	)
@@ -802,6 +808,7 @@ SELECT
   COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
   COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   plt."group" as "group",
   plt.description as description
 FROM "profile_link" pl
@@ -843,6 +850,7 @@ type GetProfileLinkRow struct {
 	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
+	Icon                      string                `db:"icon" json:"icon"`
 	Group                     sql.NullString        `db:"group" json:"group"`
 	Description               sql.NullString        `db:"description" json:"description"`
 }
@@ -854,6 +862,7 @@ type GetProfileLinkRow struct {
 //	  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
 //	  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
 //	  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+//	  COALESCE(plt.icon, plt_en.icon, '') as icon,
 //	  plt."group" as "group",
 //	  plt.description as description
 //	FROM "profile_link" pl
@@ -891,6 +900,7 @@ func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) 
 		&i.ProfileLinkID,
 		&i.LocaleCode,
 		&i.Title,
+		&i.Icon,
 		&i.Group,
 		&i.Description,
 	)
@@ -952,7 +962,7 @@ func (q *Queries) GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLi
 }
 
 const getProfileLinkTx = `-- name: GetProfileLinkTx :one
-SELECT profile_link_id, locale_code, title, "group", description
+SELECT profile_link_id, locale_code, title, "group", description, icon
 FROM "profile_link_tx"
 WHERE profile_link_id = $1
   AND locale_code = $2
@@ -966,7 +976,7 @@ type GetProfileLinkTxParams struct {
 
 // GetProfileLinkTx
 //
-//	SELECT profile_link_id, locale_code, title, "group", description
+//	SELECT profile_link_id, locale_code, title, "group", description, icon
 //	FROM "profile_link_tx"
 //	WHERE profile_link_id = $1
 //	  AND locale_code = $2
@@ -980,6 +990,7 @@ func (q *Queries) GetProfileLinkTx(ctx context.Context, arg GetProfileLinkTxPara
 		&i.Title,
 		&i.Group,
 		&i.Description,
+		&i.Icon,
 	)
 	return &i, err
 }
@@ -1467,6 +1478,7 @@ SELECT
   pl.is_featured,
   pl.visibility,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   COALESCE(plt."group", plt_en."group", '') as "group",
   COALESCE(plt.description, plt_en.description, '') as description
 FROM "profile_link" pl
@@ -1494,6 +1506,7 @@ type ListAllProfileLinksByProfileIDRow struct {
 	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
 	Visibility  string         `db:"visibility" json:"visibility"`
 	Title       string         `db:"title" json:"title"`
+	Icon        string         `db:"icon" json:"icon"`
 	Group       string         `db:"group" json:"group"`
 	Description string         `db:"description" json:"description"`
 }
@@ -1510,6 +1523,7 @@ type ListAllProfileLinksByProfileIDRow struct {
 //	  pl.is_featured,
 //	  pl.visibility,
 //	  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+//	  COALESCE(plt.icon, plt_en.icon, '') as icon,
 //	  COALESCE(plt."group", plt_en."group", '') as "group",
 //	  COALESCE(plt.description, plt_en.description, '') as description
 //	FROM "profile_link" pl
@@ -1539,6 +1553,7 @@ func (q *Queries) ListAllProfileLinksByProfileID(ctx context.Context, arg ListAl
 			&i.IsFeatured,
 			&i.Visibility,
 			&i.Title,
+			&i.Icon,
 			&i.Group,
 			&i.Description,
 		); err != nil {
@@ -1680,6 +1695,7 @@ SELECT
   pl.is_featured,
   pl.visibility,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   COALESCE(plt."group", plt_en."group", '') as "group",
   COALESCE(plt.description, plt_en.description, '') as description
 FROM "profile_link" pl
@@ -1708,6 +1724,7 @@ type ListFeaturedProfileLinksByProfileIDRow struct {
 	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
 	Visibility  string         `db:"visibility" json:"visibility"`
 	Title       string         `db:"title" json:"title"`
+	Icon        string         `db:"icon" json:"icon"`
 	Group       string         `db:"group" json:"group"`
 	Description string         `db:"description" json:"description"`
 }
@@ -1724,6 +1741,7 @@ type ListFeaturedProfileLinksByProfileIDRow struct {
 //	  pl.is_featured,
 //	  pl.visibility,
 //	  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+//	  COALESCE(plt.icon, plt_en.icon, '') as icon,
 //	  COALESCE(plt."group", plt_en."group", '') as "group",
 //	  COALESCE(plt.description, plt_en.description, '') as description
 //	FROM "profile_link" pl
@@ -1754,6 +1772,7 @@ func (q *Queries) ListFeaturedProfileLinksByProfileID(ctx context.Context, arg L
 			&i.IsFeatured,
 			&i.Visibility,
 			&i.Title,
+			&i.Icon,
 			&i.Group,
 			&i.Description,
 		); err != nil {
@@ -1776,6 +1795,7 @@ SELECT
   COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
   COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
   COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_en.icon, '') as icon,
   plt."group" as "group",
   plt.description as description
 FROM "profile_link" pl
@@ -1818,6 +1838,7 @@ type ListProfileLinksByProfileIDRow struct {
 	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
+	Icon                      string                `db:"icon" json:"icon"`
 	Group                     sql.NullString        `db:"group" json:"group"`
 	Description               sql.NullString        `db:"description" json:"description"`
 }
@@ -1829,6 +1850,7 @@ type ListProfileLinksByProfileIDRow struct {
 //	  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
 //	  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
 //	  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+//	  COALESCE(plt.icon, plt_en.icon, '') as icon,
 //	  plt."group" as "group",
 //	  plt.description as description
 //	FROM "profile_link" pl
@@ -1873,6 +1895,7 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 			&i.ProfileLinkID,
 			&i.LocaleCode,
 			&i.Title,
+			&i.Icon,
 			&i.Group,
 			&i.Description,
 		); err != nil {
@@ -2679,14 +2702,16 @@ const updateProfileLinkTx = `-- name: UpdateProfileLinkTx :execrows
 UPDATE "profile_link_tx"
 SET
   title = $1,
-  "group" = $2,
-  description = $3
-WHERE profile_link_id = $4
-  AND locale_code = $5
+  icon = $2,
+  "group" = $3,
+  description = $4
+WHERE profile_link_id = $5
+  AND locale_code = $6
 `
 
 type UpdateProfileLinkTxParams struct {
 	Title         string         `db:"title" json:"title"`
+	Icon          sql.NullString `db:"icon" json:"icon"`
 	LinkGroup     sql.NullString `db:"link_group" json:"link_group"`
 	Description   sql.NullString `db:"description" json:"description"`
 	ProfileLinkID string         `db:"profile_link_id" json:"profile_link_id"`
@@ -2698,13 +2723,15 @@ type UpdateProfileLinkTxParams struct {
 //	UPDATE "profile_link_tx"
 //	SET
 //	  title = $1,
-//	  "group" = $2,
-//	  description = $3
-//	WHERE profile_link_id = $4
-//	  AND locale_code = $5
+//	  icon = $2,
+//	  "group" = $3,
+//	  description = $4
+//	WHERE profile_link_id = $5
+//	  AND locale_code = $6
 func (q *Queries) UpdateProfileLinkTx(ctx context.Context, arg UpdateProfileLinkTxParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateProfileLinkTx,
 		arg.Title,
+		arg.Icon,
 		arg.LinkGroup,
 		arg.Description,
 		arg.ProfileLinkID,
@@ -2848,6 +2875,7 @@ INSERT INTO "profile_link_tx" (
   profile_link_id,
   locale_code,
   title,
+  icon,
   "group",
   description
 ) VALUES (
@@ -2855,9 +2883,11 @@ INSERT INTO "profile_link_tx" (
   $2,
   $3,
   $4,
-  $5
+  $5,
+  $6
 ) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
   title = EXCLUDED.title,
+  icon = EXCLUDED.icon,
   "group" = EXCLUDED."group",
   description = EXCLUDED.description
 `
@@ -2866,6 +2896,7 @@ type UpsertProfileLinkTxParams struct {
 	ProfileLinkID string         `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode    string         `db:"locale_code" json:"locale_code"`
 	Title         string         `db:"title" json:"title"`
+	Icon          sql.NullString `db:"icon" json:"icon"`
 	LinkGroup     sql.NullString `db:"link_group" json:"link_group"`
 	Description   sql.NullString `db:"description" json:"description"`
 }
@@ -2876,6 +2907,7 @@ type UpsertProfileLinkTxParams struct {
 //	  profile_link_id,
 //	  locale_code,
 //	  title,
+//	  icon,
 //	  "group",
 //	  description
 //	) VALUES (
@@ -2883,9 +2915,11 @@ type UpsertProfileLinkTxParams struct {
 //	  $2,
 //	  $3,
 //	  $4,
-//	  $5
+//	  $5,
+//	  $6
 //	) ON CONFLICT (profile_link_id, locale_code) DO UPDATE SET
 //	  title = EXCLUDED.title,
+//	  icon = EXCLUDED.icon,
 //	  "group" = EXCLUDED."group",
 //	  description = EXCLUDED.description
 func (q *Queries) UpsertProfileLinkTx(ctx context.Context, arg UpsertProfileLinkTxParams) error {
@@ -2893,6 +2927,7 @@ func (q *Queries) UpsertProfileLinkTx(ctx context.Context, arg UpsertProfileLink
 		arg.ProfileLinkID,
 		arg.LocaleCode,
 		arg.Title,
+		arg.Icon,
 		arg.LinkGroup,
 		arg.Description,
 	)

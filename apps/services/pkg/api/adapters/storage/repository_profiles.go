@@ -293,6 +293,7 @@ func (r *Repository) ListProfileLinksByProfileID(
 			PublicID:    row.PublicID.String,
 			URI:         row.URI.String,
 			Title:       row.Title,
+			Icon:        row.Icon,
 			Group:       row.Group.String,
 			Description: row.Description.String,
 		}
@@ -712,6 +713,12 @@ func (r *Repository) GetProfileLink(
 		return nil, err
 	}
 
+	// Convert Icon string to *string (empty string -> nil)
+	var iconPtr *string
+	if row.Icon != "" {
+		iconPtr = &row.Icon
+	}
+
 	result := &profiles.ProfileLink{
 		ID:          row.ID,
 		Kind:        row.Kind,
@@ -725,6 +732,7 @@ func (r *Repository) GetProfileLink(
 		PublicID:    vars.ToStringPtr(row.PublicID),
 		URI:         vars.ToStringPtr(row.URI),
 		Title:       row.Title,
+		Icon:        iconPtr,
 		Group:       vars.ToStringPtr(row.Group),
 		Description: vars.ToStringPtr(row.Description),
 		CreatedAt:   row.CreatedAt,
@@ -1294,6 +1302,7 @@ func (r *Repository) ListFeaturedProfileLinksByProfileID(
 			PublicID:    row.PublicID.String,
 			URI:         row.URI.String,
 			Title:       row.Title,
+			Icon:        row.Icon,
 			Group:       row.Group,
 			Description: row.Description,
 		}
@@ -1330,6 +1339,7 @@ func (r *Repository) ListAllProfileLinksByProfileID(
 			PublicID:    row.PublicID.String,
 			URI:         row.URI.String,
 			Title:       row.Title,
+			Icon:        row.Icon,
 			Group:       row.Group,
 			Description: row.Description,
 		}
@@ -1353,6 +1363,7 @@ func (r *Repository) UpsertProfileLinkTx(
 	profileLinkID string,
 	localeCode string,
 	title string,
+	icon *string,
 	group *string,
 	description *string,
 ) error {
@@ -1360,6 +1371,7 @@ func (r *Repository) UpsertProfileLinkTx(
 		ProfileLinkID: profileLinkID,
 		LocaleCode:    localeCode,
 		Title:         title,
+		Icon:          vars.ToSQLNullString(icon),
 		LinkGroup:     vars.ToSQLNullString(group),
 		Description:   vars.ToSQLNullString(description),
 	}

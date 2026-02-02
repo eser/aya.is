@@ -117,6 +117,7 @@ type ProfileLink struct {
 	PublicID    *string        `json:"public_id"`
 	URI         *string        `json:"uri"`
 	Title       string         `json:"title"`       // From profile_link_tx
+	Icon        *string        `json:"icon"`        // From profile_link_tx - custom emoticon or initials
 	Group       *string        `json:"group"`       // From profile_link_tx
 	Description *string        `json:"description"` // From profile_link_tx
 	CreatedAt   time.Time      `json:"created_at"`
@@ -131,6 +132,7 @@ type ProfileLinkBrief struct {
 	PublicID    string         `json:"public_id"`
 	URI         string         `json:"uri"`
 	Title       string         `json:"title"`       // From profile_link_tx
+	Icon        string         `json:"icon"`        // From profile_link_tx - custom emoticon or initials
 	Group       string         `json:"group"`       // From profile_link_tx
 	Description string         `json:"description"` // From profile_link_tx
 	IsManaged   bool           `json:"is_managed"`
@@ -216,6 +218,7 @@ type ProfileLinkTx struct {
 	ProfileLinkID string  `json:"profile_link_id"`
 	LocaleCode    string  `json:"locale_code"`
 	Title         string  `json:"title"`
+	Icon          *string `json:"icon"`
 	Group         *string `json:"group"`
 	Description   *string `json:"description"`
 }
