@@ -72,7 +72,7 @@ WHERE p.kind IN ('organization', 'product')
   AND NOT EXISTS (
     SELECT 1 FROM "profile_membership" pm
     WHERE pm.profile_id = p.id
-      AND pm.kind = 'owner'
+      AND pm.member_profile_id = u.individual_profile_id
       AND pm.deleted_at IS NULL
   )
 ORDER BY p.id, s.created_at ASC;
