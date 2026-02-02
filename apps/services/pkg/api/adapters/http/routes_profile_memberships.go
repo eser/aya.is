@@ -71,7 +71,12 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			return ctx.Results.Ok(httpfx.WithJSON(memberships))
+			// Ensure we always return a JSON array, never 204 No Content
+			if memberships == nil {
+				memberships = []*profiles.ProfileMembershipWithMember{}
+			}
+
+			return ctx.Results.JSON(memberships)
 		},
 	).HasDescription("List profile memberships for settings page")
 
@@ -93,7 +98,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			query := ctx.Request.URL.Query().Get("q")
 
 			if query == "" {
-				return ctx.Results.Ok(httpfx.WithJSON([]any{}))
+				return ctx.Results.JSON([]any{})
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
@@ -132,7 +137,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			return ctx.Results.Ok(httpfx.WithJSON(results))
+			return ctx.Results.JSON(results)
 		},
 	).HasDescription("Search users for adding as profile members")
 
@@ -201,7 +206,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			return ctx.Results.Ok(httpfx.WithJSON(map[string]string{"status": "ok"}))
+			return ctx.Results.JSON(map[string]string{"status": "ok"})
 		},
 	).HasDescription("Add a new membership to a profile")
 
@@ -272,7 +277,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 				return ctx.Results.Error(statusCode, httpfx.WithPlainText(err.Error()))
 			}
 
-			return ctx.Results.Ok(httpfx.WithJSON(map[string]string{"status": "ok"}))
+			return ctx.Results.JSON(map[string]string{"status": "ok"})
 		},
 	).HasDescription("Update a membership's access level")
 
@@ -331,7 +336,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 				return ctx.Results.Error(statusCode, httpfx.WithPlainText(err.Error()))
 			}
 
-			return ctx.Results.Ok(httpfx.WithJSON(map[string]string{"status": "ok"}))
+			return ctx.Results.JSON(map[string]string{"status": "ok"})
 		},
 	).HasDescription("Delete a membership from a profile")
 }
