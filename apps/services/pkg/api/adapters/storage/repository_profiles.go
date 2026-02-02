@@ -707,6 +707,39 @@ func (r *Repository) GetProfileMembershipByID(
 	}, nil
 }
 
+func (r *Repository) GetProfileMembershipByProfileAndMember(
+	ctx context.Context,
+	profileID string,
+	memberProfileID string,
+) (*profiles.ProfileMembership, error) {
+	row, err := r.queries.GetProfileMembershipByProfileAndMember(
+		ctx,
+		GetProfileMembershipByProfileAndMemberParams{
+			ProfileID:       profileID,
+			MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
+		},
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return &profiles.ProfileMembership{
+		ID:              row.ID,
+		ProfileID:       row.ProfileID,
+		MemberProfileID: vars.ToStringPtr(row.MemberProfileID),
+		Kind:            row.Kind,
+		Properties:      vars.ToObject(row.Properties),
+		StartedAt:       vars.ToTimePtr(row.StartedAt),
+		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
+	}, nil
+}
+
 func (r *Repository) UpdateProfileMembership(
 	ctx context.Context,
 	id string,

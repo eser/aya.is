@@ -556,6 +556,23 @@ FROM "profile_membership" pm
 WHERE pm.id = sqlc.arg(id)
   AND pm.deleted_at IS NULL;
 
+-- name: GetProfileMembershipByProfileAndMember :one
+SELECT
+  pm.id,
+  pm.profile_id,
+  pm.member_profile_id,
+  pm.kind,
+  pm.properties,
+  pm.started_at,
+  pm.finished_at,
+  pm.created_at,
+  pm.updated_at
+FROM "profile_membership" pm
+WHERE pm.profile_id = sqlc.arg(profile_id)
+  AND pm.member_profile_id = sqlc.arg(member_profile_id)
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW());
+
 -- name: UpdateProfileMembership :execrows
 UPDATE "profile_membership"
 SET

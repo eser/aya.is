@@ -191,6 +191,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				user.Kind,
+				user.IndividualProfileID,
 				slugParam,
 				input.MemberProfileID,
 				input.Kind,
@@ -200,10 +201,12 @@ func RegisterHTTPRoutesForProfileMemberships(
 					slog.String("error", err.Error()),
 					slog.String("slug", slugParam))
 
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
-				)
+				statusCode := http.StatusInternalServerError
+				if errors.Is(err, profiles.ErrCannotAssignHigherRole) {
+					statusCode = http.StatusForbidden
+				}
+
+				return ctx.Results.Error(statusCode, httpfx.WithErrorMessage(err.Error()))
 			}
 
 			return ctx.Results.JSON(map[string]string{"status": "ok"})
@@ -270,8 +273,11 @@ func RegisterHTTPRoutesForProfileMemberships(
 					slog.String("membershipID", membershipID))
 
 				statusCode := http.StatusInternalServerError
-				if errors.Is(err, profiles.ErrCannotRemoveLastOwner) {
-					statusCode = http.StatusBadRequest
+				if errors.Is(err, profiles.ErrCannotRemoveLastOwner) ||
+					errors.Is(err, profiles.ErrCannotModifyOwnRole) ||
+					errors.Is(err, profiles.ErrCannotAssignHigherRole) ||
+					errors.Is(err, profiles.ErrCannotModifyHigherMember) {
+					statusCode = http.StatusForbidden
 				}
 
 				return ctx.Results.Error(statusCode, httpfx.WithErrorMessage(err.Error()))

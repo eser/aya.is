@@ -1176,6 +1176,75 @@ func (q *Queries) GetProfileMembershipByID(ctx context.Context, arg GetProfileMe
 	return &i, err
 }
 
+const getProfileMembershipByProfileAndMember = `-- name: GetProfileMembershipByProfileAndMember :one
+SELECT
+  pm.id,
+  pm.profile_id,
+  pm.member_profile_id,
+  pm.kind,
+  pm.properties,
+  pm.started_at,
+  pm.finished_at,
+  pm.created_at,
+  pm.updated_at
+FROM "profile_membership" pm
+WHERE pm.profile_id = $1
+  AND pm.member_profile_id = $2
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+`
+
+type GetProfileMembershipByProfileAndMemberParams struct {
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString `db:"member_profile_id" json:"member_profile_id"`
+}
+
+type GetProfileMembershipByProfileAndMemberRow struct {
+	ID              string                `db:"id" json:"id"`
+	ProfileID       string                `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString        `db:"member_profile_id" json:"member_profile_id"`
+	Kind            string                `db:"kind" json:"kind"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
+	FinishedAt      sql.NullTime          `db:"finished_at" json:"finished_at"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
+}
+
+// GetProfileMembershipByProfileAndMember
+//
+//	SELECT
+//	  pm.id,
+//	  pm.profile_id,
+//	  pm.member_profile_id,
+//	  pm.kind,
+//	  pm.properties,
+//	  pm.started_at,
+//	  pm.finished_at,
+//	  pm.created_at,
+//	  pm.updated_at
+//	FROM "profile_membership" pm
+//	WHERE pm.profile_id = $1
+//	  AND pm.member_profile_id = $2
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+func (q *Queries) GetProfileMembershipByProfileAndMember(ctx context.Context, arg GetProfileMembershipByProfileAndMemberParams) (*GetProfileMembershipByProfileAndMemberRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfileMembershipByProfileAndMember, arg.ProfileID, arg.MemberProfileID)
+	var i GetProfileMembershipByProfileAndMemberRow
+	err := row.Scan(
+		&i.ID,
+		&i.ProfileID,
+		&i.MemberProfileID,
+		&i.Kind,
+		&i.Properties,
+		&i.StartedAt,
+		&i.FinishedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
 const getProfileMembershipsByMemberProfileID = `-- name: GetProfileMembershipsByMemberProfileID :many
 SELECT
   pm.id as membership_id,

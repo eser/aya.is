@@ -410,6 +410,11 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		id string,
 	) (*ProfileMembership, error)
+	GetProfileMembershipByProfileAndMember(
+		ctx context.Context,
+		profileID string,
+		memberProfileID string,
+	) (*ProfileMembership, error)
 	UpdateProfileMembership(
 		ctx context.Context,
 		id string,
@@ -2225,9 +2230,23 @@ var (
 	ErrCannotRemoveIndividualSelf = errors.New(
 		"cannot remove yourself from your individual profile",
 	)
-	ErrMembershipNotFound    = errors.New("membership not found")
-	ErrInvalidMembershipKind = errors.New("invalid membership kind")
+	ErrMembershipNotFound       = errors.New("membership not found")
+	ErrInvalidMembershipKind    = errors.New("invalid membership kind")
+	ErrCannotModifyOwnRole      = errors.New("cannot modify your own membership role")
+	ErrCannotAssignHigherRole   = errors.New("cannot assign a role higher than your own")
+	ErrCannotModifyHigherMember = errors.New("cannot modify a member with higher role than yours")
 )
+
+// membershipRoleLevel defines the hierarchy of membership roles.
+// Higher number = higher privilege level.
+var membershipRoleLevel = map[string]int{
+	"follower":    1,
+	"sponsor":     2,
+	"contributor": 3,
+	"maintainer":  4,
+	"lead":        5,
+	"owner":       6,
+}
 
 // ListMembershipsForSettings lists all memberships for a profile (for settings page).
 func (s *Service) ListMembershipsForSettings(
@@ -2271,7 +2290,7 @@ func (s *Service) ListMembershipsForSettings(
 }
 
 // UpdateMembership updates the kind of an existing membership.
-func (s *Service) UpdateMembership(
+func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	userKind string,
@@ -2289,11 +2308,30 @@ func (s *Service) UpdateMembership(
 		return ErrInvalidMembershipKind
 	}
 
-	// Check authorization
-	canEdit := userKind == "admin"
-	if !canEdit {
-		var err error
+	// Get the membership first to check ownership
+	membership, err := s.repo.GetProfileMembershipByID(ctx, membershipID)
+	if err != nil {
+		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToGetRecord, membershipID, err)
+	}
 
+	if membership == nil {
+		return ErrMembershipNotFound
+	}
+
+	// SECURITY: Prevent self-modification (users cannot change their own role)
+	// Exception: Admins can modify anything
+	if userKind != "admin" && userIndividualProfileID != nil {
+		if membership.MemberProfileID != nil &&
+			*membership.MemberProfileID == *userIndividualProfileID {
+			return ErrCannotModifyOwnRole
+		}
+	}
+
+	// Check authorization
+	isAdmin := userKind == "admin"
+
+	canEdit := isAdmin
+	if !canEdit {
 		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
 		if err != nil {
 			return err
@@ -2309,14 +2347,36 @@ func (s *Service) UpdateMembership(
 		)
 	}
 
-	// Get the membership
-	membership, err := s.repo.GetProfileMembershipByID(ctx, membershipID)
-	if err != nil {
-		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToGetRecord, membershipID, err)
-	}
+	// SECURITY: Non-admin users can only assign roles at or below their own level
+	// and can only modify members at or below their level
+	if !isAdmin && userIndividualProfileID != nil {
+		// Get the requesting user's membership level
+		userMembership, membershipErr := s.repo.GetProfileMembershipByProfileAndMember(
+			ctx,
+			membership.ProfileID,
+			*userIndividualProfileID,
+		)
+		if membershipErr != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, membershipErr)
+		}
 
-	if membership == nil {
-		return ErrMembershipNotFound
+		userLevel := 0
+		if userMembership != nil {
+			userLevel = membershipRoleLevel[userMembership.Kind]
+		}
+
+		// Check: Cannot assign a role higher than your own
+		newRoleLevel := membershipRoleLevel[newKind]
+		if newRoleLevel > userLevel {
+			return ErrCannotAssignHigherRole
+		}
+
+		// Check: Cannot modify a member who has a higher or equal role than you
+		// (except for demoting yourself, which is already blocked above)
+		targetCurrentLevel := membershipRoleLevel[membership.Kind]
+		if targetCurrentLevel >= userLevel {
+			return ErrCannotModifyHigherMember
+		}
 	}
 
 	// Check if trying to change to 'owner' on individual profile - not allowed
@@ -2341,9 +2401,9 @@ func (s *Service) UpdateMembership(
 
 	// If changing from owner to something else, check we're not removing the last owner
 	if membership.Kind == "owner" && newKind != "owner" {
-		ownerCount, err := s.repo.CountProfileOwners(ctx, membership.ProfileID)
-		if err != nil {
-			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+		ownerCount, countErr := s.repo.CountProfileOwners(ctx, membership.ProfileID)
+		if countErr != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, countErr)
 		}
 
 		if ownerCount <= 1 {
@@ -2484,10 +2544,11 @@ func (s *Service) SearchUsersForMembership(
 }
 
 // AddMembership adds a new membership to a profile.
-func (s *Service) AddMembership(
+func (s *Service) AddMembership( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	userKind string,
+	userIndividualProfileID *string,
 	profileSlug string,
 	memberProfileID string,
 	kind string,
@@ -2501,8 +2562,10 @@ func (s *Service) AddMembership(
 		return ErrInvalidMembershipKind
 	}
 
-	// Check authorization - only owners can add new owners
-	canEdit := userKind == "admin"
+	// Check authorization
+	isAdmin := userKind == "admin"
+
+	canEdit := isAdmin
 	if !canEdit {
 		var err error
 
@@ -2524,6 +2587,30 @@ func (s *Service) AddMembership(
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	// SECURITY: Non-admin users can only assign roles at or below their own level
+	if !isAdmin && userIndividualProfileID != nil {
+		// Get the requesting user's membership level
+		userMembership, membershipErr := s.repo.GetProfileMembershipByProfileAndMember(
+			ctx,
+			profileID,
+			*userIndividualProfileID,
+		)
+		if membershipErr != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, membershipErr)
+		}
+
+		userLevel := 0
+		if userMembership != nil {
+			userLevel = membershipRoleLevel[userMembership.Kind]
+		}
+
+		// Check: Cannot assign a role higher than your own
+		newRoleLevel := membershipRoleLevel[kind]
+		if newRoleLevel > userLevel {
+			return ErrCannotAssignHigherRole
+		}
 	}
 
 	// Check if trying to add 'owner' to individual profile - not allowed

@@ -711,6 +711,24 @@ type Querier interface {
 	//  WHERE pm.id = $1
 	//    AND pm.deleted_at IS NULL
 	GetProfileMembershipByID(ctx context.Context, arg GetProfileMembershipByIDParams) (*GetProfileMembershipByIDRow, error)
+	//GetProfileMembershipByProfileAndMember
+	//
+	//  SELECT
+	//    pm.id,
+	//    pm.profile_id,
+	//    pm.member_profile_id,
+	//    pm.kind,
+	//    pm.properties,
+	//    pm.started_at,
+	//    pm.finished_at,
+	//    pm.created_at,
+	//    pm.updated_at
+	//  FROM "profile_membership" pm
+	//  WHERE pm.profile_id = $1
+	//    AND pm.member_profile_id = $2
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	GetProfileMembershipByProfileAndMember(ctx context.Context, arg GetProfileMembershipByProfileAndMemberParams) (*GetProfileMembershipByProfileAndMemberRow, error)
 	//GetProfileMembershipsByMemberProfileID
 	//
 	//  SELECT
