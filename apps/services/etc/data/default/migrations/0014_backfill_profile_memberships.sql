@@ -33,24 +33,8 @@ END;
 $$ LANGUAGE plpgsql;
 -- +goose StatementEnd
 
--- For individual profiles: create self-membership where the profile is its own owner
-INSERT INTO "profile_membership" ("id", "profile_id", "member_profile_id", "kind", "started_at", "created_at")
-SELECT
-  generate_ulid(),
-  p.id,
-  p.id,
-  'owner',
-  p.created_at,
-  NOW()
-FROM "profile" p
-WHERE p.kind = 'individual'
-  AND p.deleted_at IS NULL
-  AND NOT EXISTS (
-    SELECT 1 FROM "profile_membership" pm
-    WHERE pm.profile_id = p.id
-      AND pm.member_profile_id = p.id
-      AND pm.deleted_at IS NULL
-  );
+-- NOTE: Individual profiles do NOT need membership records.
+-- Ownership is implicit: the user whose individual_profile_id matches the profile ID is the owner.
 
 -- For org/product profiles: create owner membership linking to the creator's individual profile
 -- Links profiles to the user whose individual_profile_id matches stories they authored for that profile
@@ -81,11 +65,9 @@ ORDER BY p.id, s.created_at ASC;
 DROP FUNCTION IF EXISTS generate_ulid();
 
 -- +goose Down
--- Remove memberships created by this migration
--- Note: This only removes 'owner' memberships that have matching self-references for individual profiles
+-- Remove owner memberships created by this migration for org/product profiles
 DELETE FROM "profile_membership" pm
 USING "profile" p
 WHERE pm.profile_id = p.id
-  AND pm.member_profile_id = p.id
   AND pm.kind = 'owner'
-  AND p.kind = 'individual';
+  AND p.kind IN ('organization', 'product');

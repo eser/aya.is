@@ -2319,6 +2319,26 @@ func (s *Service) UpdateMembership(
 		return ErrMembershipNotFound
 	}
 
+	// Check if trying to change to 'owner' on individual profile - not allowed
+	if newKind == "owner" {
+		profile, profileErr := s.repo.GetProfileByID(ctx, "en", membership.ProfileID)
+		if profileErr != nil {
+			return fmt.Errorf(
+				"%w(profileID: %s): %w",
+				ErrFailedToGetRecord,
+				membership.ProfileID,
+				profileErr,
+			)
+		}
+
+		if profile.Kind == "individual" {
+			return fmt.Errorf(
+				"%w: cannot set 'owner' on individual profiles",
+				ErrInvalidMembershipKind,
+			)
+		}
+	}
+
 	// If changing from owner to something else, check we're not removing the last owner
 	if membership.Kind == "owner" && newKind != "owner" {
 		ownerCount, err := s.repo.CountProfileOwners(ctx, membership.ProfileID)
@@ -2504,6 +2524,22 @@ func (s *Service) AddMembership(
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	// Check if trying to add 'owner' to individual profile - not allowed
+	// Individual profiles have implicit ownership through user.individual_profile_id
+	if kind == "owner" {
+		profile, profileErr := s.repo.GetProfileByID(ctx, "en", profileID)
+		if profileErr != nil {
+			return fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, profileErr)
+		}
+
+		if profile.Kind == "individual" {
+			return fmt.Errorf(
+				"%w: cannot add 'owner' to individual profiles",
+				ErrInvalidMembershipKind,
+			)
+		}
 	}
 
 	// Create the membership

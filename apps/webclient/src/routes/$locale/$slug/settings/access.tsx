@@ -1,6 +1,6 @@
 // Profile access/memberships settings
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -53,6 +53,8 @@ export const Route = createFileRoute("/$locale/$slug/settings/access")({
   component: AccessSettingsPage,
 });
 
+const settingsRoute = getRouteApi("/$locale/$slug/settings");
+
 type MembershipKindConfig = {
   kind: MembershipKind;
   labelKey: string;
@@ -84,6 +86,13 @@ function getInitials(name: string | null | undefined, slug: string): string {
 function AccessSettingsPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
+  const { profile } = settingsRoute.useLoaderData();
+
+  // For individual profiles, 'owner' is implicit - don't allow adding it
+  const isIndividual = profile?.kind === "individual";
+  const availableKinds = isIndividual
+    ? MEMBERSHIP_KINDS.filter((mk) => mk.kind !== "owner")
+    : MEMBERSHIP_KINDS;
 
   const [memberships, setMemberships] = React.useState<ProfileMembershipWithMember[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -431,7 +440,7 @@ function AccessSettingsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MEMBERSHIP_KINDS.map((mk) => {
+                  {availableKinds.map((mk) => {
                     const Icon = mk.icon;
                     return (
                       <SelectItem key={mk.kind} value={mk.kind}>
