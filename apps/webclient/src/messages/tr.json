@@ -457,6 +457,7 @@
     "Member removed successfully": "Üye başarıyla kaldırıldı",
     "Failed to remove member": "Üye kaldırılamadı",
     "Failed to load memberships": "Üyelikler yüklenemedi",
+    "Cannot change the access level of the only owner.": "Tek sahip olan kullanıcının yetki seviyesi değiştirilemez.",
     "MembershipKind": {
       "owner": "Sahip",
       "lead": "Lider",

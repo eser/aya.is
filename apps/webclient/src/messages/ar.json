@@ -282,6 +282,10 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
+    "Link Group": "مجموعة الرابط",
+    "Group name (optional)": "اسم المجموعة (اختياري)",
+    "Link Description": "وصف الرابط",
+    "Description (optional)": "الوصف (اختياري)",
     "Failed to load profile links": "Failed to load profile links",
     "Link updated successfully": "Link updated successfully",
     "Link created successfully": "Link created successfully",
@@ -453,6 +457,7 @@
     "Member removed successfully": "تمت إزالة العضو بنجاح",
     "Failed to remove member": "فشل في إزالة العضو",
     "Failed to load memberships": "فشل في تحميل العضويات",
+    "Cannot change the access level of the only owner.": "لا يمكن تغيير مستوى الوصول للمالك الوحيد.",
     "MembershipKind": {
       "owner": "مالك",
       "lead": "قائد",

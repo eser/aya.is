@@ -282,6 +282,10 @@
     "URL": "URL",
     "The full URL to your profile or website.": "您的个人资料或网站的完整 URL。",
     "Hide this link from your public profile.": "在您的公开个人资料中隐藏此链接。",
+    "Link Group": "链接分组",
+    "Group name (optional)": "分组名称（可选）",
+    "Link Description": "链接描述",
+    "Description (optional)": "描述（可选）",
     "Failed to load profile links": "加载个人资料链接失败",
     "Link updated successfully": "链接更新成功",
     "Link created successfully": "链接创建成功",
@@ -453,6 +457,7 @@
     "Member removed successfully": "成员移除成功",
     "Failed to remove member": "移除成员失败",
     "Failed to load memberships": "加载成员资格失败",
+    "Cannot change the access level of the only owner.": "无法更改唯一所有者的访问级别。",
     "MembershipKind": {
       "owner": "所有者",
       "lead": "负责人",

@@ -282,6 +282,10 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
+    "Link Group": "링크 그룹",
+    "Group name (optional)": "그룹 이름 (선택사항)",
+    "Link Description": "링크 설명",
+    "Description (optional)": "설명 (선택사항)",
     "Failed to load profile links": "Failed to load profile links",
     "Link updated successfully": "Link updated successfully",
     "Link created successfully": "Link created successfully",
@@ -453,6 +457,7 @@
     "Member removed successfully": "멤버가 성공적으로 제거되었습니다",
     "Failed to remove member": "멤버 제거 실패",
     "Failed to load memberships": "멤버십 로드 실패",
+    "Cannot change the access level of the only owner.": "유일한 소유자의 접근 수준은 변경할 수 없습니다.",
     "MembershipKind": {
       "owner": "소유자",
       "lead": "리드",

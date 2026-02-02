@@ -26,7 +26,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import {
   Dialog,
@@ -437,7 +436,16 @@ function AccessSettingsPage() {
               <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
               <Select value={selectedKind} onValueChange={(value) => setSelectedKind(value as MembershipKind)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  {(() => {
+                    const config = getMembershipKindConfig(selectedKind);
+                    const Icon = config.icon;
+                    return (
+                      <div className={styles.kindOption}>
+                        <Icon className={`size-4 ${config.color}`} />
+                        <span>{t(config.labelKey)}</span>
+                      </div>
+                    );
+                  })()}
                 </SelectTrigger>
                 <SelectContent>
                   {availableKinds.map((mk) => {
@@ -477,51 +485,83 @@ function AccessSettingsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {editingMembership !== null && (
-            <div className={styles.editDialogContent}>
-              <div className={styles.selectedUser}>
-                <Avatar className="size-10">
-                  <AvatarImage
-                    src={editingMembership.member_profile?.profile_picture_uri ?? undefined}
-                    alt={editingMembership.member_profile?.title ?? ""}
-                  />
-                  <AvatarFallback>
-                    {getInitials(editingMembership.member_profile?.title, editingMembership.member_profile?.slug ?? "")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className={styles.searchResultInfo}>
-                  <p className={styles.searchResultName}>
-                    {editingMembership.member_profile?.title}
-                  </p>
-                  <p className={styles.searchResultSlug}>
-                    @{editingMembership.member_profile?.slug}
-                  </p>
+          {editingMembership !== null && (() => {
+            const ownerCount = memberships.filter((m) => m.kind === "owner").length;
+            const isOnlyOwner = editingMembership.kind === "owner" && ownerCount === 1;
+
+            return (
+              <div className={styles.editDialogContent}>
+                <div className={styles.selectedUser}>
+                  <Avatar className="size-10">
+                    <AvatarImage
+                      src={editingMembership.member_profile?.profile_picture_uri ?? undefined}
+                      alt={editingMembership.member_profile?.title ?? ""}
+                    />
+                    <AvatarFallback>
+                      {getInitials(editingMembership.member_profile?.title, editingMembership.member_profile?.slug ?? "")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className={styles.searchResultInfo}>
+                    <p className={styles.searchResultName}>
+                      {editingMembership.member_profile?.title}
+                    </p>
+                    <p className={styles.searchResultSlug}>
+                      @{editingMembership.member_profile?.slug}
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.kindField}>
+                  <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
+                  {isOnlyOwner ? (
+                    <div className={styles.onlyOwnerNotice}>
+                      {(() => {
+                        const config = getMembershipKindConfig(editKind);
+                        const Icon = config.icon;
+                        return (
+                          <div className={styles.kindOption}>
+                            <Icon className={`size-4 ${config.color}`} />
+                            <span>{t(config.labelKey)}</span>
+                          </div>
+                        );
+                      })()}
+                      <p className={styles.onlyOwnerText}>
+                        {t("Profile.Cannot change the access level of the only owner.")}
+                      </p>
+                    </div>
+                  ) : (
+                    <Select value={editKind} onValueChange={(value) => setEditKind(value as MembershipKind)}>
+                      <SelectTrigger>
+                        {(() => {
+                          const config = getMembershipKindConfig(editKind);
+                          const Icon = config.icon;
+                          return (
+                            <div className={styles.kindOption}>
+                              <Icon className={`size-4 ${config.color}`} />
+                              <span>{t(config.labelKey)}</span>
+                            </div>
+                          );
+                        })()}
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MEMBERSHIP_KINDS.map((mk) => {
+                          const Icon = mk.icon;
+                          return (
+                            <SelectItem key={mk.kind} value={mk.kind}>
+                              <div className={styles.kindOption}>
+                                <Icon className={`size-4 ${mk.color}`} />
+                                <span>{t(mk.labelKey)}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
-
-              <div className={styles.kindField}>
-                <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
-                <Select value={editKind} onValueChange={(value) => setEditKind(value as MembershipKind)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MEMBERSHIP_KINDS.map((mk) => {
-                      const Icon = mk.icon;
-                      return (
-                        <SelectItem key={mk.kind} value={mk.kind}>
-                          <div className={styles.kindOption}>
-                            <Icon className={`size-4 ${mk.color}`} />
-                            <span>{t(mk.labelKey)}</span>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>

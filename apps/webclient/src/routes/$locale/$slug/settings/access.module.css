@@ -5,7 +5,7 @@
 }
 
 .header {
-  @apply flex items-center justify-between mb-6;
+  @apply flex items-center justify-between;
 }
 
 .title {
@@ -124,4 +124,12 @@
 /* Edit Dialog */
 .editDialogContent {
   @apply space-y-4 py-4;
+}
+
+.onlyOwnerNotice {
+  @apply space-y-2;
+}
+
+.onlyOwnerText {
+  @apply text-sm text-muted-foreground;
 }

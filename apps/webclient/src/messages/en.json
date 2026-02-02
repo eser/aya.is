@@ -457,6 +457,7 @@
     "Member removed successfully": "Member removed successfully",
     "Failed to remove member": "Failed to remove member",
     "Failed to load memberships": "Failed to load memberships",
+    "Cannot change the access level of the only owner.": "Cannot change the access level of the only owner.",
     "MembershipKind": {
       "owner": "Owner",
       "lead": "Lead",

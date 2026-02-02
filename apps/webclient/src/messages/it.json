@@ -282,6 +282,10 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
+    "Link Group": "Gruppo link",
+    "Group name (optional)": "Nome del gruppo (facoltativo)",
+    "Link Description": "Descrizione del link",
+    "Description (optional)": "Descrizione (facoltativo)",
     "Failed to load profile links": "Failed to load profile links",
     "Link updated successfully": "Link updated successfully",
     "Link created successfully": "Link created successfully",
@@ -453,6 +457,7 @@
     "Member removed successfully": "Membro rimosso con successo",
     "Failed to remove member": "Impossibile rimuovere il membro",
     "Failed to load memberships": "Impossibile caricare le iscrizioni",
+    "Cannot change the access level of the only owner.": "Impossibile modificare il livello di accesso dell'unico proprietario.",
     "MembershipKind": {
       "owner": "Proprietario",
       "lead": "Responsabile",

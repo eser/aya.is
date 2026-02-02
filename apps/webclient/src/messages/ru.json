@@ -282,6 +282,10 @@
     "URL": "URL",
     "The full URL to your profile or website.": "The full URL to your profile or website.",
     "Hide this link from your public profile.": "Hide this link from your public profile.",
+    "Link Group": "Группа ссылок",
+    "Group name (optional)": "Название группы (необязательно)",
+    "Link Description": "Описание ссылки",
+    "Description (optional)": "Описание (необязательно)",
     "Failed to load profile links": "Failed to load profile links",
     "Link updated successfully": "Link updated successfully",
     "Link created successfully": "Link created successfully",
@@ -453,6 +457,7 @@
     "Member removed successfully": "Участник успешно удалён",
     "Failed to remove member": "Не удалось удалить участника",
     "Failed to load memberships": "Не удалось загрузить членства",
+    "Cannot change the access level of the only owner.": "Невозможно изменить уровень доступа единственного владельца.",
     "MembershipKind": {
       "owner": "Владелец",
       "lead": "Руководитель",
