@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "Inconnu"
   },
   "Layout": {
     "Homepage": "Page d'accueil",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "Accès",
+    "Manage who has access to this profile and their permission levels.": "Gérez qui a accès à ce profil et leurs niveaux de permissions.",
+    "Add Member": "Ajouter un membre",
+    "No members added yet.": "Aucun membre ajouté pour l'instant.",
+    "Add Your First Member": "Ajoutez votre premier membre",
+    "Search for a user by their username, email, or name.": "Recherchez un utilisateur par son nom d'utilisateur, email ou nom.",
+    "Search users...": "Rechercher des utilisateurs...",
+    "Please select a user": "Veuillez sélectionner un utilisateur",
+    "Member added successfully": "Membre ajouté avec succès",
+    "Failed to add member": "Échec de l'ajout du membre",
+    "Edit Access Level": "Modifier le niveau d'accès",
+    "Change the access level for this member.": "Modifiez le niveau d'accès pour ce membre.",
+    "Access Level": "Niveau d'accès",
+    "Membership updated successfully": "Adhésion mise à jour avec succès",
+    "Failed to update membership": "Échec de la mise à jour de l'adhésion",
+    "Remove Member": "Supprimer le membre",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "Êtes-vous sûr de vouloir supprimer ce membre ? Il perdra l'accès à ce profil.",
+    "Member removed successfully": "Membre supprimé avec succès",
+    "Failed to remove member": "Échec de la suppression du membre",
+    "Failed to load memberships": "Échec du chargement des adhésions",
+    "MembershipKind": {
+      "owner": "Propriétaire",
+      "lead": "Chef de file",
+      "maintainer": "Mainteneur",
+      "contributor": "Contributeur",
+      "sponsor": "Sponsor",
+      "follower": "Abonné"
     }
   },
   "ContentEditor": {

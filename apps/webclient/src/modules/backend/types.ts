@@ -119,6 +119,42 @@ export interface ProfileMembership {
   member_profile: Profile;
 }
 
+// Type alias for MembershipKind (same as ProfileMembershipKind)
+export type MembershipKind = ProfileMembershipKind;
+
+// Brief profile for membership display
+export interface ProfileBrief {
+  id: string;
+  slug: string;
+  kind: string;
+  profile_picture_uri?: string | null;
+  title: string;
+  description?: string | null;
+}
+
+// Membership with member profile details for settings
+export interface ProfileMembershipWithMember {
+  id: string;
+  profile_id: string;
+  member_profile_id?: string | null;
+  kind: MembershipKind;
+  properties?: Record<string, unknown> | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+  member_profile?: ProfileBrief | null;
+}
+
+// User search result for adding memberships
+export interface UserSearchResult {
+  user_id: string;
+  email: string;
+  name?: string | null;
+  individual_profile_id?: string | null;
+  profile?: ProfileBrief | null;
+}
+
 export interface ProfilePermissions {
   can_view: boolean;
   can_edit: boolean;

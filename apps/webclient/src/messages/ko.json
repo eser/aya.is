@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "알 수 없음"
   },
   "Layout": {
     "Homepage": "홈페이지",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "접근",
+    "Manage who has access to this profile and their permission levels.": "이 프로필에 대한 접근 권한을 가진 사용자와 권한 수준을 관리합니다.",
+    "Add Member": "멤버 추가",
+    "No members added yet.": "아직 추가된 멤버가 없습니다.",
+    "Add Your First Member": "첫 번째 멤버 추가",
+    "Search for a user by their username, email, or name.": "사용자 이름, 이메일 또는 이름으로 사용자를 검색합니다.",
+    "Search users...": "사용자 검색...",
+    "Please select a user": "사용자를 선택해 주세요",
+    "Member added successfully": "멤버가 성공적으로 추가되었습니다",
+    "Failed to add member": "멤버 추가 실패",
+    "Edit Access Level": "접근 수준 편집",
+    "Change the access level for this member.": "이 멤버의 접근 수준을 변경합니다.",
+    "Access Level": "접근 수준",
+    "Membership updated successfully": "멤버십이 성공적으로 업데이트되었습니다",
+    "Failed to update membership": "멤버십 업데이트 실패",
+    "Remove Member": "멤버 제거",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "이 멤버를 제거하시겠습니까? 이 프로필에 대한 접근 권한을 잃게 됩니다.",
+    "Member removed successfully": "멤버가 성공적으로 제거되었습니다",
+    "Failed to remove member": "멤버 제거 실패",
+    "Failed to load memberships": "멤버십 로드 실패",
+    "MembershipKind": {
+      "owner": "소유자",
+      "lead": "리드",
+      "maintainer": "관리자",
+      "contributor": "기여자",
+      "sponsor": "후원자",
+      "follower": "팔로워"
     }
   },
   "ContentEditor": {

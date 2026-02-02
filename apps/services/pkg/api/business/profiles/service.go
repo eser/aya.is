@@ -231,6 +231,14 @@ type Repository interface { //nolint:interfacebloat
 		description string,
 		properties map[string]any,
 	) error
+	CreateProfileMembership(
+		ctx context.Context,
+		id string,
+		profileID string,
+		memberProfileID *string,
+		kind string,
+		properties map[string]any,
+	) error
 	GetProfileOwnershipForUser(
 		ctx context.Context,
 		userID string,
@@ -392,6 +400,35 @@ type Repository interface { //nolint:interfacebloat
 		localeCode string,
 		slug string,
 	) (*Profile, error)
+	// Membership management methods
+	ListProfileMembershipsForSettings(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+	) ([]*ProfileMembershipWithMember, error)
+	GetProfileMembershipByID(
+		ctx context.Context,
+		id string,
+	) (*ProfileMembership, error)
+	UpdateProfileMembership(
+		ctx context.Context,
+		id string,
+		kind string,
+	) error
+	DeleteProfileMembership(
+		ctx context.Context,
+		id string,
+	) error
+	CountProfileOwners(
+		ctx context.Context,
+		profileID string,
+	) (int64, error)
+	SearchUsersForMembership(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+		query string,
+	) ([]*UserSearchResult, error)
 }
 
 type Service struct {
@@ -987,6 +1024,31 @@ func (s *Service) Create(
 	}
 
 	return profile, nil
+}
+
+// CreateProfileMembership creates a membership record linking a member profile to a profile.
+// This establishes the relationship (e.g., owner, maintainer) between profiles.
+func (s *Service) CreateProfileMembership(
+	ctx context.Context,
+	profileID string,
+	memberProfileID *string,
+	kind string,
+) error {
+	membershipID := s.idGenerator()
+
+	err := s.repo.CreateProfileMembership(
+		ctx,
+		string(membershipID),
+		profileID,
+		memberProfileID,
+		kind,
+		nil, // No additional properties for now
+	)
+	if err != nil {
+		return fmt.Errorf("%w: membership: %w", ErrFailedToCreateRecord, err)
+	}
+
+	return nil
 }
 
 // CanUserEditProfile checks if a user has permission to edit a profile.
@@ -2151,6 +2213,312 @@ func (s *Service) UpsertProfileLinkTranslation(
 			localeCode,
 			err,
 		)
+	}
+
+	return nil
+}
+
+// Profile Membership Management
+
+var (
+	ErrCannotRemoveLastOwner      = errors.New("cannot remove the last owner")
+	ErrCannotRemoveIndividualSelf = errors.New(
+		"cannot remove yourself from your individual profile",
+	)
+	ErrMembershipNotFound    = errors.New("membership not found")
+	ErrInvalidMembershipKind = errors.New("invalid membership kind")
+)
+
+// ListMembershipsForSettings lists all memberships for a profile (for settings page).
+func (s *Service) ListMembershipsForSettings(
+	ctx context.Context,
+	localeCode string,
+	userID string,
+	userKind string,
+	profileSlug string,
+) ([]*ProfileMembershipWithMember, error) {
+	// Check authorization (only owners and admins can access)
+	canEdit := userKind == "admin"
+	if !canEdit {
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if !canEdit {
+		return nil, fmt.Errorf(
+			"%w: user %s cannot manage memberships for profile %s",
+			ErrUnauthorized,
+			userID,
+			profileSlug,
+		)
+	}
+
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	memberships, err := s.repo.ListProfileMembershipsForSettings(ctx, localeCode, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToListRecords, profileID, err)
+	}
+
+	return memberships, nil
+}
+
+// UpdateMembership updates the kind of an existing membership.
+func (s *Service) UpdateMembership(
+	ctx context.Context,
+	userID string,
+	userKind string,
+	userIndividualProfileID *string,
+	profileSlug string,
+	membershipID string,
+	newKind string,
+) error {
+	// Validate kind
+	validKinds := map[string]bool{
+		"owner": true, "lead": true, "maintainer": true,
+		"contributor": true, "sponsor": true, "follower": true,
+	}
+	if !validKinds[newKind] {
+		return ErrInvalidMembershipKind
+	}
+
+	// Check authorization
+	canEdit := userKind == "admin"
+	if !canEdit {
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot manage memberships for profile %s",
+			ErrUnauthorized,
+			userID,
+			profileSlug,
+		)
+	}
+
+	// Get the membership
+	membership, err := s.repo.GetProfileMembershipByID(ctx, membershipID)
+	if err != nil {
+		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToGetRecord, membershipID, err)
+	}
+
+	if membership == nil {
+		return ErrMembershipNotFound
+	}
+
+	// If changing from owner to something else, check we're not removing the last owner
+	if membership.Kind == "owner" && newKind != "owner" {
+		ownerCount, err := s.repo.CountProfileOwners(ctx, membership.ProfileID)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+		}
+
+		if ownerCount <= 1 {
+			return ErrCannotRemoveLastOwner
+		}
+	}
+
+	// Update the membership
+	err = s.repo.UpdateProfileMembership(ctx, membershipID, newKind)
+	if err != nil {
+		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, membershipID, err)
+	}
+
+	return nil
+}
+
+// DeleteMembership deletes a membership with validation.
+func (s *Service) DeleteMembership(
+	ctx context.Context,
+	userID string,
+	userKind string,
+	userIndividualProfileID *string,
+	profileSlug string,
+	membershipID string,
+) error {
+	// Check authorization
+	canEdit := userKind == "admin"
+	if !canEdit {
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot manage memberships for profile %s",
+			ErrUnauthorized,
+			userID,
+			profileSlug,
+		)
+	}
+
+	// Get the membership
+	membership, err := s.repo.GetProfileMembershipByID(ctx, membershipID)
+	if err != nil {
+		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToGetRecord, membershipID, err)
+	}
+
+	if membership == nil {
+		return ErrMembershipNotFound
+	}
+
+	// Get profile to check if it's an individual profile
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	profile, err := s.repo.GetProfileByID(ctx, "en", profileID)
+	if err != nil {
+		return fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Prevent removing self from individual profile if it matches user's individual_profile_id
+	if profile != nil && profile.Kind == "individual" {
+		if userIndividualProfileID != nil && *userIndividualProfileID == profileID {
+			if membership.MemberProfileID != nil &&
+				*membership.MemberProfileID == *userIndividualProfileID {
+				return ErrCannotRemoveIndividualSelf
+			}
+		}
+	}
+
+	// If removing an owner, check we're not removing the last owner
+	if membership.Kind == "owner" {
+		ownerCount, err := s.repo.CountProfileOwners(ctx, membership.ProfileID)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+		}
+
+		if ownerCount <= 1 {
+			return ErrCannotRemoveLastOwner
+		}
+	}
+
+	// Delete the membership
+	err = s.repo.DeleteProfileMembership(ctx, membershipID)
+	if err != nil {
+		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToDeleteRecord, membershipID, err)
+	}
+
+	return nil
+}
+
+// SearchUsersForMembership searches users for adding as members.
+func (s *Service) SearchUsersForMembership(
+	ctx context.Context,
+	localeCode string,
+	userID string,
+	userKind string,
+	profileSlug string,
+	query string,
+) ([]*UserSearchResult, error) {
+	// Check authorization
+	canEdit := userKind == "admin"
+	if !canEdit {
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if !canEdit {
+		return nil, fmt.Errorf(
+			"%w: user %s cannot manage memberships for profile %s",
+			ErrUnauthorized,
+			userID,
+			profileSlug,
+		)
+	}
+
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	results, err := s.repo.SearchUsersForMembership(ctx, localeCode, profileID, query)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return results, nil
+}
+
+// AddMembership adds a new membership to a profile.
+func (s *Service) AddMembership(
+	ctx context.Context,
+	userID string,
+	userKind string,
+	profileSlug string,
+	memberProfileID string,
+	kind string,
+) error {
+	// Validate kind
+	validKinds := map[string]bool{
+		"owner": true, "lead": true, "maintainer": true,
+		"contributor": true, "sponsor": true, "follower": true,
+	}
+	if !validKinds[kind] {
+		return ErrInvalidMembershipKind
+	}
+
+	// Check authorization - only owners can add new owners
+	canEdit := userKind == "admin"
+	if !canEdit {
+		var err error
+
+		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot manage memberships for profile %s",
+			ErrUnauthorized,
+			userID,
+			profileSlug,
+		)
+	}
+
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	// Create the membership
+	membershipID := s.idGenerator()
+
+	err = s.repo.CreateProfileMembership(
+		ctx,
+		string(membershipID),
+		profileID,
+		&memberProfileID,
+		kind,
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
 	return nil

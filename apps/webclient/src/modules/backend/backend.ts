@@ -26,6 +26,11 @@ import { initiateProfileLinkOAuth } from "./profiles/initiate-profile-link-oauth
 import { getGitHubAccounts } from "./profiles/get-github-accounts";
 import { finalizeGitHubConnection } from "./profiles/finalize-github-connection";
 import { listProfilePages } from "./profiles/list-profile-pages";
+import { listProfileMemberships } from "./profiles/list-profile-memberships";
+import { searchUsersForMembership } from "./profiles/search-users-for-membership";
+import { addProfileMembership } from "./profiles/add-profile-membership";
+import { updateProfileMembership } from "./profiles/update-profile-membership";
+import { deleteProfileMembership } from "./profiles/delete-profile-membership";
 import { createProfilePage } from "./profiles/create-profile-page";
 import { updateProfilePage } from "./profiles/update-profile-page";
 import { updateProfilePageTranslation } from "./profiles/update-profile-page-translation";
@@ -105,6 +110,13 @@ export const backend = {
   initiateProfileLinkOAuth,
   getGitHubAccounts,
   finalizeGitHubConnection,
+
+  // Profile Memberships
+  listProfileMemberships,
+  searchUsersForMembership,
+  addProfileMembership,
+  updateProfileMembership,
+  deleteProfileMembership,
 
   // Profile Pages
   listProfilePages,
@@ -207,8 +219,13 @@ export {
   isPOWSolverSupported,
   getProfileLinks,
   listProfileLinks,
+  listProfileMemberships,
   listProfilePages,
   listProfilePointTransactions,
+  addProfileMembership,
+  deleteProfileMembership,
+  searchUsersForMembership,
+  updateProfileMembership,
   removeStory,
   removeUpload,
   search,

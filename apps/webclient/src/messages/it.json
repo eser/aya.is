@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "Sconosciuto"
   },
   "Layout": {
     "Homepage": "Pagina iniziale",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "Accesso",
+    "Manage who has access to this profile and their permission levels.": "Gestisci chi ha accesso a questo profilo e i loro livelli di autorizzazione.",
+    "Add Member": "Aggiungi membro",
+    "No members added yet.": "Nessun membro aggiunto ancora.",
+    "Add Your First Member": "Aggiungi il tuo primo membro",
+    "Search for a user by their username, email, or name.": "Cerca un utente per nome utente, email o nome.",
+    "Search users...": "Cerca utenti...",
+    "Please select a user": "Seleziona un utente",
+    "Member added successfully": "Membro aggiunto con successo",
+    "Failed to add member": "Impossibile aggiungere il membro",
+    "Edit Access Level": "Modifica livello di accesso",
+    "Change the access level for this member.": "Modifica il livello di accesso per questo membro.",
+    "Access Level": "Livello di accesso",
+    "Membership updated successfully": "Iscrizione aggiornata con successo",
+    "Failed to update membership": "Impossibile aggiornare l'iscrizione",
+    "Remove Member": "Rimuovi membro",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "Sei sicuro di voler rimuovere questo membro? Perderà l'accesso a questo profilo.",
+    "Member removed successfully": "Membro rimosso con successo",
+    "Failed to remove member": "Impossibile rimuovere il membro",
+    "Failed to load memberships": "Impossibile caricare le iscrizioni",
+    "MembershipKind": {
+      "owner": "Proprietario",
+      "lead": "Responsabile",
+      "maintainer": "Manutentore",
+      "contributor": "Contributore",
+      "sponsor": "Sponsor",
+      "follower": "Follower"
     }
   },
   "ContentEditor": {

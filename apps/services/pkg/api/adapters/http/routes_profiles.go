@@ -551,6 +551,52 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 						slog.String("profile_id", profile.ID),
 					)
 				}
+
+				// Create self-membership for individual profile (profile is its own owner)
+				membershipErr := profileService.CreateProfileMembership(
+					ctx.Request.Context(),
+					profile.ID,
+					&profile.ID, // Self-reference: member_profile_id = profile_id
+					"owner",
+				)
+				if membershipErr != nil {
+					logger.ErrorContext(
+						ctx.Request.Context(),
+						"Failed to create profile membership for individual profile",
+						slog.String("error", membershipErr.Error()),
+						slog.String("session_id", sessionID),
+						slog.String("user_id", user.ID),
+						slog.String("profile_id", profile.ID),
+					)
+				}
+			} else {
+				// For org/product profiles, create membership with creator's individual profile as owner
+				if user.IndividualProfileID != nil {
+					membershipErr := profileService.CreateProfileMembership(
+						ctx.Request.Context(),
+						profile.ID,
+						user.IndividualProfileID,
+						"owner",
+					)
+					if membershipErr != nil {
+						logger.ErrorContext(
+							ctx.Request.Context(),
+							"Failed to create profile membership for org/product profile",
+							slog.String("error", membershipErr.Error()),
+							slog.String("session_id", sessionID),
+							slog.String("user_id", user.ID),
+							slog.String("profile_id", profile.ID),
+						)
+					}
+				} else {
+					logger.WarnContext(
+						ctx.Request.Context(),
+						"User has no individual profile, cannot create membership for org/product profile",
+						slog.String("session_id", sessionID),
+						slog.String("user_id", user.ID),
+						slog.String("profile_id", profile.ID),
+					)
+				}
 			}
 
 			// Prepare response

@@ -176,13 +176,50 @@ type PendingGitHubConnection struct {
 }
 
 type ProfileMembership struct {
-	Properties    any        `json:"properties"`
-	Profile       *Profile   `json:"profile"`
-	MemberProfile *Profile   `json:"member_profile"`
-	StartedAt     *time.Time `json:"started_at"`
-	FinishedAt    *time.Time `json:"finished_at"`
-	ID            string     `json:"id"`
-	Kind          string     `json:"kind"`
+	Properties      any        `json:"properties"`
+	Profile         *Profile   `json:"profile"`
+	MemberProfile   *Profile   `json:"member_profile"`
+	StartedAt       *time.Time `json:"started_at"`
+	FinishedAt      *time.Time `json:"finished_at"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       *time.Time `json:"updated_at"`
+	ID              string     `json:"id"`
+	ProfileID       string     `json:"profile_id"`
+	MemberProfileID *string    `json:"member_profile_id"`
+	Kind            string     `json:"kind"`
+}
+
+// ProfileBrief is a lightweight profile representation for lists and references.
+type ProfileBrief struct {
+	ID                string  `json:"id"`
+	Slug              string  `json:"slug"`
+	Kind              string  `json:"kind"`
+	ProfilePictureURI *string `json:"profile_picture_uri"`
+	Title             string  `json:"title"`
+	Description       string  `json:"description"`
+}
+
+// ProfileMembershipWithMember includes membership data with member profile details.
+type ProfileMembershipWithMember struct {
+	ID              string        `json:"id"`
+	ProfileID       string        `json:"profile_id"`
+	MemberProfileID *string       `json:"member_profile_id"`
+	Kind            string        `json:"kind"`
+	Properties      any           `json:"properties"`
+	StartedAt       *time.Time    `json:"started_at"`
+	FinishedAt      *time.Time    `json:"finished_at"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       *time.Time    `json:"updated_at"`
+	MemberProfile   *ProfileBrief `json:"member_profile"`
+}
+
+// UserSearchResult represents a user search result for adding memberships.
+type UserSearchResult struct {
+	UserID              string        `json:"user_id"`
+	Email               string        `json:"email"`
+	Name                *string       `json:"name"`
+	IndividualProfileID *string       `json:"individual_profile_id"`
+	Profile             *ProfileBrief `json:"profile"`
 }
 
 type ExternalPost struct {

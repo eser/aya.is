@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "غير معروف"
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "الوصول",
+    "Manage who has access to this profile and their permission levels.": "إدارة من لديه حق الوصول إلى هذا الملف الشخصي ومستويات صلاحياتهم.",
+    "Add Member": "إضافة عضو",
+    "No members added yet.": "لم تتم إضافة أعضاء بعد.",
+    "Add Your First Member": "أضف عضوك الأول",
+    "Search for a user by their username, email, or name.": "ابحث عن مستخدم باسم المستخدم أو البريد الإلكتروني أو الاسم.",
+    "Search users...": "البحث عن المستخدمين...",
+    "Please select a user": "يرجى اختيار مستخدم",
+    "Member added successfully": "تمت إضافة العضو بنجاح",
+    "Failed to add member": "فشل في إضافة العضو",
+    "Edit Access Level": "تعديل مستوى الوصول",
+    "Change the access level for this member.": "تغيير مستوى الوصول لهذا العضو.",
+    "Access Level": "مستوى الوصول",
+    "Membership updated successfully": "تم تحديث العضوية بنجاح",
+    "Failed to update membership": "فشل في تحديث العضوية",
+    "Remove Member": "إزالة العضو",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "هل أنت متأكد من أنك تريد إزالة هذا العضو؟ سيفقد الوصول إلى هذا الملف الشخصي.",
+    "Member removed successfully": "تمت إزالة العضو بنجاح",
+    "Failed to remove member": "فشل في إزالة العضو",
+    "Failed to load memberships": "فشل في تحميل العضويات",
+    "MembershipKind": {
+      "owner": "مالك",
+      "lead": "قائد",
+      "maintainer": "مشرف",
+      "contributor": "مساهم",
+      "sponsor": "راعي",
+      "follower": "متابع"
     }
   },
   "ContentEditor": {

@@ -115,6 +115,34 @@ func (q *Queries) CountAllProfilesForAdmin(ctx context.Context, arg CountAllProf
 	return count, err
 }
 
+const countProfileOwners = `-- name: CountProfileOwners :one
+SELECT COUNT(*) as owner_count
+FROM "profile_membership" pm
+WHERE pm.profile_id = $1
+  AND pm.kind = 'owner'
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+`
+
+type CountProfileOwnersParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
+}
+
+// CountProfileOwners
+//
+//	SELECT COUNT(*) as owner_count
+//	FROM "profile_membership" pm
+//	WHERE pm.profile_id = $1
+//	  AND pm.kind = 'owner'
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+func (q *Queries) CountProfileOwners(ctx context.Context, arg CountProfileOwnersParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countProfileOwners, arg.ProfileID)
+	var owner_count int64
+	err := row.Scan(&owner_count)
+	return owner_count, err
+}
+
 const createProfile = `-- name: CreateProfile :exec
 INSERT INTO "profile" (id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -353,6 +381,64 @@ func (q *Queries) CreateProfileLinkTx(ctx context.Context, arg CreateProfileLink
 	return err
 }
 
+const createProfileMembership = `-- name: CreateProfileMembership :exec
+INSERT INTO "profile_membership" (
+  "id",
+  "profile_id",
+  "member_profile_id",
+  "kind",
+  "properties",
+  "started_at",
+  "created_at"
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  NOW(),
+  NOW()
+)
+`
+
+type CreateProfileMembershipParams struct {
+	ID              string                `db:"id" json:"id"`
+	ProfileID       string                `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString        `db:"member_profile_id" json:"member_profile_id"`
+	Kind            string                `db:"kind" json:"kind"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+}
+
+// CreateProfileMembership
+//
+//	INSERT INTO "profile_membership" (
+//	  "id",
+//	  "profile_id",
+//	  "member_profile_id",
+//	  "kind",
+//	  "properties",
+//	  "started_at",
+//	  "created_at"
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5,
+//	  NOW(),
+//	  NOW()
+//	)
+func (q *Queries) CreateProfileMembership(ctx context.Context, arg CreateProfileMembershipParams) error {
+	_, err := q.db.ExecContext(ctx, createProfileMembership,
+		arg.ID,
+		arg.ProfileID,
+		arg.MemberProfileID,
+		arg.Kind,
+		arg.Properties,
+	)
+	return err
+}
+
 const createProfilePage = `-- name: CreateProfilePage :one
 INSERT INTO "profile_page" (
   id,
@@ -522,6 +608,35 @@ type DeleteProfileLinkParams struct {
 //	  AND deleted_at IS NULL
 func (q *Queries) DeleteProfileLink(ctx context.Context, arg DeleteProfileLinkParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, deleteProfileLink, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteProfileMembership = `-- name: DeleteProfileMembership :execrows
+UPDATE "profile_membership"
+SET
+  deleted_at = NOW(),
+  finished_at = NOW()
+WHERE id = $1
+  AND deleted_at IS NULL
+`
+
+type DeleteProfileMembershipParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// DeleteProfileMembership
+//
+//	UPDATE "profile_membership"
+//	SET
+//	  deleted_at = NOW(),
+//	  finished_at = NOW()
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) DeleteProfileMembership(ctx context.Context, arg DeleteProfileMembershipParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteProfileMembership, arg.ID)
 	if err != nil {
 		return 0, err
 	}
@@ -993,6 +1108,70 @@ func (q *Queries) GetProfileLinkTx(ctx context.Context, arg GetProfileLinkTxPara
 		&i.Group,
 		&i.Description,
 		&i.Icon,
+	)
+	return &i, err
+}
+
+const getProfileMembershipByID = `-- name: GetProfileMembershipByID :one
+SELECT
+  pm.id,
+  pm.profile_id,
+  pm.member_profile_id,
+  pm.kind,
+  pm.properties,
+  pm.started_at,
+  pm.finished_at,
+  pm.created_at,
+  pm.updated_at
+FROM "profile_membership" pm
+WHERE pm.id = $1
+  AND pm.deleted_at IS NULL
+`
+
+type GetProfileMembershipByIDParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+type GetProfileMembershipByIDRow struct {
+	ID              string                `db:"id" json:"id"`
+	ProfileID       string                `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString        `db:"member_profile_id" json:"member_profile_id"`
+	Kind            string                `db:"kind" json:"kind"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
+	FinishedAt      sql.NullTime          `db:"finished_at" json:"finished_at"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
+}
+
+// GetProfileMembershipByID
+//
+//	SELECT
+//	  pm.id,
+//	  pm.profile_id,
+//	  pm.member_profile_id,
+//	  pm.kind,
+//	  pm.properties,
+//	  pm.started_at,
+//	  pm.finished_at,
+//	  pm.created_at,
+//	  pm.updated_at
+//	FROM "profile_membership" pm
+//	WHERE pm.id = $1
+//	  AND pm.deleted_at IS NULL
+func (q *Queries) GetProfileMembershipByID(ctx context.Context, arg GetProfileMembershipByIDParams) (*GetProfileMembershipByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfileMembershipByID, arg.ID)
+	var i GetProfileMembershipByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.ProfileID,
+		&i.MemberProfileID,
+		&i.Kind,
+		&i.Properties,
+		&i.StartedAt,
+		&i.FinishedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return &i, err
 }
@@ -2188,6 +2367,145 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 	return items, nil
 }
 
+const listProfileMembershipsForSettings = `-- name: ListProfileMembershipsForSettings :many
+SELECT
+  pm.id,
+  pm.profile_id,
+  pm.member_profile_id,
+  pm.kind,
+  pm.properties,
+  pm.started_at,
+  pm.finished_at,
+  pm.created_at,
+  pm.updated_at,
+  mp.id, mp.slug, mp.kind, mp.custom_domain, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
+  mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
+FROM "profile_membership" pm
+INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
+  AND mp.deleted_at IS NULL
+INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
+  AND mpt.locale_code = $1
+WHERE pm.profile_id = $2
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+ORDER BY
+  CASE pm.kind
+    WHEN 'owner' THEN 1
+    WHEN 'lead' THEN 2
+    WHEN 'maintainer' THEN 3
+    WHEN 'contributor' THEN 4
+    WHEN 'sponsor' THEN 5
+    WHEN 'follower' THEN 6
+    ELSE 7
+  END,
+  pm.created_at ASC
+`
+
+type ListProfileMembershipsForSettingsParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ProfileID  string `db:"profile_id" json:"profile_id"`
+}
+
+type ListProfileMembershipsForSettingsRow struct {
+	ID              string                `db:"id" json:"id"`
+	ProfileID       string                `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString        `db:"member_profile_id" json:"member_profile_id"`
+	Kind            string                `db:"kind" json:"kind"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
+	FinishedAt      sql.NullTime          `db:"finished_at" json:"finished_at"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
+	Profile         Profile               `db:"profile" json:"profile"`
+	ProfileTx       ProfileTx             `db:"profile_tx" json:"profile_tx"`
+}
+
+// ListProfileMembershipsForSettings
+//
+//	SELECT
+//	  pm.id,
+//	  pm.profile_id,
+//	  pm.member_profile_id,
+//	  pm.kind,
+//	  pm.properties,
+//	  pm.started_at,
+//	  pm.finished_at,
+//	  pm.created_at,
+//	  pm.updated_at,
+//	  mp.id, mp.slug, mp.kind, mp.custom_domain, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
+//	  mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
+//	FROM "profile_membership" pm
+//	INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
+//	  AND mp.deleted_at IS NULL
+//	INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
+//	  AND mpt.locale_code = $1
+//	WHERE pm.profile_id = $2
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	ORDER BY
+//	  CASE pm.kind
+//	    WHEN 'owner' THEN 1
+//	    WHEN 'lead' THEN 2
+//	    WHEN 'maintainer' THEN 3
+//	    WHEN 'contributor' THEN 4
+//	    WHEN 'sponsor' THEN 5
+//	    WHEN 'follower' THEN 6
+//	    ELSE 7
+//	  END,
+//	  pm.created_at ASC
+func (q *Queries) ListProfileMembershipsForSettings(ctx context.Context, arg ListProfileMembershipsForSettingsParams) ([]*ListProfileMembershipsForSettingsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listProfileMembershipsForSettings, arg.LocaleCode, arg.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListProfileMembershipsForSettingsRow{}
+	for rows.Next() {
+		var i ListProfileMembershipsForSettingsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProfileID,
+			&i.MemberProfileID,
+			&i.Kind,
+			&i.Properties,
+			&i.StartedAt,
+			&i.FinishedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.CustomDomain,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
+			&i.Profile.HideRelations,
+			&i.Profile.HideLinks,
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProfilePagesByProfileID = `-- name: ListProfilePagesByProfileID :many
 SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 FROM "profile_page" pp
@@ -2565,6 +2883,134 @@ func (q *Queries) SearchProfiles(ctx context.Context, arg SearchProfilesParams) 
 	return items, nil
 }
 
+const searchUsersForMembership = `-- name: SearchUsersForMembership :many
+SELECT
+  u.id as user_id,
+  u.email,
+  u.name,
+  u.individual_profile_id,
+  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+FROM "user" u
+INNER JOIN "profile" p ON p.id = u.individual_profile_id
+  AND p.deleted_at IS NULL
+INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = $1
+WHERE u.deleted_at IS NULL
+  AND u.individual_profile_id IS NOT NULL
+  AND (
+    u.email ILIKE '%' || $2 || '%'
+    OR u.name ILIKE '%' || $2 || '%'
+    OR p.slug ILIKE '%' || $2 || '%'
+    OR pt.title ILIKE '%' || $2 || '%'
+  )
+  -- Exclude users already members of this profile
+  AND NOT EXISTS (
+    SELECT 1 FROM "profile_membership" pm
+    WHERE pm.profile_id = $3
+      AND pm.member_profile_id = u.individual_profile_id
+      AND pm.deleted_at IS NULL
+      AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+  )
+ORDER BY u.name ASC
+LIMIT 10
+`
+
+type SearchUsersForMembershipParams struct {
+	LocaleCode string         `db:"locale_code" json:"locale_code"`
+	Query      sql.NullString `db:"query" json:"query"`
+	ProfileID  string         `db:"profile_id" json:"profile_id"`
+}
+
+type SearchUsersForMembershipRow struct {
+	UserID              string         `db:"user_id" json:"user_id"`
+	Email               sql.NullString `db:"email" json:"email"`
+	Name                string         `db:"name" json:"name"`
+	IndividualProfileID sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
+	Profile             Profile        `db:"profile" json:"profile"`
+	ProfileTx           ProfileTx      `db:"profile_tx" json:"profile_tx"`
+}
+
+// SearchUsersForMembership
+//
+//	SELECT
+//	  u.id as user_id,
+//	  u.email,
+//	  u.name,
+//	  u.individual_profile_id,
+//	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+//	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	FROM "user" u
+//	INNER JOIN "profile" p ON p.id = u.individual_profile_id
+//	  AND p.deleted_at IS NULL
+//	INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	  AND pt.locale_code = $1
+//	WHERE u.deleted_at IS NULL
+//	  AND u.individual_profile_id IS NOT NULL
+//	  AND (
+//	    u.email ILIKE '%' || $2 || '%'
+//	    OR u.name ILIKE '%' || $2 || '%'
+//	    OR p.slug ILIKE '%' || $2 || '%'
+//	    OR pt.title ILIKE '%' || $2 || '%'
+//	  )
+//	  -- Exclude users already members of this profile
+//	  AND NOT EXISTS (
+//	    SELECT 1 FROM "profile_membership" pm
+//	    WHERE pm.profile_id = $3
+//	      AND pm.member_profile_id = u.individual_profile_id
+//	      AND pm.deleted_at IS NULL
+//	      AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	  )
+//	ORDER BY u.name ASC
+//	LIMIT 10
+func (q *Queries) SearchUsersForMembership(ctx context.Context, arg SearchUsersForMembershipParams) ([]*SearchUsersForMembershipRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchUsersForMembership, arg.LocaleCode, arg.Query, arg.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SearchUsersForMembershipRow{}
+	for rows.Next() {
+		var i SearchUsersForMembershipRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Email,
+			&i.Name,
+			&i.IndividualProfileID,
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.CustomDomain,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
+			&i.Profile.HideRelations,
+			&i.Profile.HideLinks,
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateProfile = `-- name: UpdateProfile :execrows
 UPDATE "profile"
 SET
@@ -2757,6 +3203,36 @@ func (q *Queries) UpdateProfileLinkTx(ctx context.Context, arg UpdateProfileLink
 		arg.ProfileLinkID,
 		arg.LocaleCode,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateProfileMembership = `-- name: UpdateProfileMembership :execrows
+UPDATE "profile_membership"
+SET
+  kind = $1,
+  updated_at = NOW()
+WHERE id = $2
+  AND deleted_at IS NULL
+`
+
+type UpdateProfileMembershipParams struct {
+	Kind string `db:"kind" json:"kind"`
+	ID   string `db:"id" json:"id"`
+}
+
+// UpdateProfileMembership
+//
+//	UPDATE "profile_membership"
+//	SET
+//	  kind = $1,
+//	  updated_at = NOW()
+//	WHERE id = $2
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateProfileMembership(ctx context.Context, arg UpdateProfileMembershipParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateProfileMembership, arg.Kind, arg.ID)
 	if err != nil {
 		return 0, err
 	}

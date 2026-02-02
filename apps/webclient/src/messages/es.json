@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "Desconocido"
   },
   "Layout": {
     "Homepage": "Página de inicio",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "Acceso",
+    "Manage who has access to this profile and their permission levels.": "Gestiona quién tiene acceso a este perfil y sus niveles de permisos.",
+    "Add Member": "Añadir miembro",
+    "No members added yet.": "Aún no se han añadido miembros.",
+    "Add Your First Member": "Añade tu primer miembro",
+    "Search for a user by their username, email, or name.": "Busca un usuario por su nombre de usuario, correo electrónico o nombre.",
+    "Search users...": "Buscar usuarios...",
+    "Please select a user": "Por favor, selecciona un usuario",
+    "Member added successfully": "Miembro añadido correctamente",
+    "Failed to add member": "Error al añadir miembro",
+    "Edit Access Level": "Editar nivel de acceso",
+    "Change the access level for this member.": "Cambia el nivel de acceso para este miembro.",
+    "Access Level": "Nivel de acceso",
+    "Membership updated successfully": "Membresía actualizada correctamente",
+    "Failed to update membership": "Error al actualizar membresía",
+    "Remove Member": "Eliminar miembro",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "¿Estás seguro de que quieres eliminar a este miembro? Perderá el acceso a este perfil.",
+    "Member removed successfully": "Miembro eliminado correctamente",
+    "Failed to remove member": "Error al eliminar miembro",
+    "Failed to load memberships": "Error al cargar membresías",
+    "MembershipKind": {
+      "owner": "Propietario",
+      "lead": "Líder",
+      "maintainer": "Mantenedor",
+      "contributor": "Colaborador",
+      "sponsor": "Patrocinador",
+      "follower": "Seguidor"
     }
   },
   "ContentEditor": {

@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "Неизвестно"
   },
   "Layout": {
     "Homepage": "Главная страница",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "Доступ",
+    "Manage who has access to this profile and their permission levels.": "Управляйте тем, кто имеет доступ к этому профилю и их уровнями разрешений.",
+    "Add Member": "Добавить участника",
+    "No members added yet.": "Участники ещё не добавлены.",
+    "Add Your First Member": "Добавьте первого участника",
+    "Search for a user by their username, email, or name.": "Найдите пользователя по имени пользователя, электронной почте или имени.",
+    "Search users...": "Поиск пользователей...",
+    "Please select a user": "Пожалуйста, выберите пользователя",
+    "Member added successfully": "Участник успешно добавлен",
+    "Failed to add member": "Не удалось добавить участника",
+    "Edit Access Level": "Изменить уровень доступа",
+    "Change the access level for this member.": "Измените уровень доступа для этого участника.",
+    "Access Level": "Уровень доступа",
+    "Membership updated successfully": "Членство успешно обновлено",
+    "Failed to update membership": "Не удалось обновить членство",
+    "Remove Member": "Удалить участника",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "Вы уверены, что хотите удалить этого участника? Он потеряет доступ к этому профилю.",
+    "Member removed successfully": "Участник успешно удалён",
+    "Failed to remove member": "Не удалось удалить участника",
+    "Failed to load memberships": "Не удалось загрузить членства",
+    "MembershipKind": {
+      "owner": "Владелец",
+      "lead": "Руководитель",
+      "maintainer": "Сопровождающий",
+      "contributor": "Участник",
+      "sponsor": "Спонсор",
+      "follower": "Подписчик"
     }
   },
   "ContentEditor": {

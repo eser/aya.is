@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "不明"
   },
   "Layout": {
     "Homepage": "ホームページ",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "アクセス",
+    "Manage who has access to this profile and their permission levels.": "このプロフィールへのアクセス権を持つユーザーとその権限レベルを管理します。",
+    "Add Member": "メンバーを追加",
+    "No members added yet.": "まだメンバーが追加されていません。",
+    "Add Your First Member": "最初のメンバーを追加",
+    "Search for a user by their username, email, or name.": "ユーザー名、メール、または名前でユーザーを検索します。",
+    "Search users...": "ユーザーを検索...",
+    "Please select a user": "ユーザーを選択してください",
+    "Member added successfully": "メンバーが正常に追加されました",
+    "Failed to add member": "メンバーの追加に失敗しました",
+    "Edit Access Level": "アクセスレベルを編集",
+    "Change the access level for this member.": "このメンバーのアクセスレベルを変更します。",
+    "Access Level": "アクセスレベル",
+    "Membership updated successfully": "メンバーシップが正常に更新されました",
+    "Failed to update membership": "メンバーシップの更新に失敗しました",
+    "Remove Member": "メンバーを削除",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "このメンバーを削除してもよろしいですか？このプロフィールへのアクセス権を失います。",
+    "Member removed successfully": "メンバーが正常に削除されました",
+    "Failed to remove member": "メンバーの削除に失敗しました",
+    "Failed to load memberships": "メンバーシップの読み込みに失敗しました",
+    "MembershipKind": {
+      "owner": "所有者",
+      "lead": "リード",
+      "maintainer": "メンテナー",
+      "contributor": "貢献者",
+      "sponsor": "スポンサー",
+      "follower": "フォロワー"
     }
   },
   "ContentEditor": {

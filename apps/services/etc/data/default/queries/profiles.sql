@@ -488,6 +488,129 @@ WHERE pm.profile_id = sqlc.arg(profile_id)
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 LIMIT 1;
 
+-- name: CreateProfileMembership :exec
+INSERT INTO "profile_membership" (
+  "id",
+  "profile_id",
+  "member_profile_id",
+  "kind",
+  "properties",
+  "started_at",
+  "created_at"
+) VALUES (
+  sqlc.arg(id),
+  sqlc.arg(profile_id),
+  sqlc.narg(member_profile_id),
+  sqlc.arg(kind),
+  sqlc.narg(properties),
+  NOW(),
+  NOW()
+);
+
+-- name: ListProfileMembershipsForSettings :many
+SELECT
+  pm.id,
+  pm.profile_id,
+  pm.member_profile_id,
+  pm.kind,
+  pm.properties,
+  pm.started_at,
+  pm.finished_at,
+  pm.created_at,
+  pm.updated_at,
+  sqlc.embed(mp),
+  sqlc.embed(mpt)
+FROM "profile_membership" pm
+INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
+  AND mp.deleted_at IS NULL
+INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
+  AND mpt.locale_code = sqlc.arg(locale_code)
+WHERE pm.profile_id = sqlc.arg(profile_id)
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+ORDER BY
+  CASE pm.kind
+    WHEN 'owner' THEN 1
+    WHEN 'lead' THEN 2
+    WHEN 'maintainer' THEN 3
+    WHEN 'contributor' THEN 4
+    WHEN 'sponsor' THEN 5
+    WHEN 'follower' THEN 6
+    ELSE 7
+  END,
+  pm.created_at ASC;
+
+-- name: GetProfileMembershipByID :one
+SELECT
+  pm.id,
+  pm.profile_id,
+  pm.member_profile_id,
+  pm.kind,
+  pm.properties,
+  pm.started_at,
+  pm.finished_at,
+  pm.created_at,
+  pm.updated_at
+FROM "profile_membership" pm
+WHERE pm.id = sqlc.arg(id)
+  AND pm.deleted_at IS NULL;
+
+-- name: UpdateProfileMembership :execrows
+UPDATE "profile_membership"
+SET
+  kind = sqlc.arg(kind),
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: DeleteProfileMembership :execrows
+UPDATE "profile_membership"
+SET
+  deleted_at = NOW(),
+  finished_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: CountProfileOwners :one
+SELECT COUNT(*) as owner_count
+FROM "profile_membership" pm
+WHERE pm.profile_id = sqlc.arg(profile_id)
+  AND pm.kind = 'owner'
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW());
+
+-- name: SearchUsersForMembership :many
+SELECT
+  u.id as user_id,
+  u.email,
+  u.name,
+  u.individual_profile_id,
+  sqlc.embed(p),
+  sqlc.embed(pt)
+FROM "user" u
+INNER JOIN "profile" p ON p.id = u.individual_profile_id
+  AND p.deleted_at IS NULL
+INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE u.deleted_at IS NULL
+  AND u.individual_profile_id IS NOT NULL
+  AND (
+    u.email ILIKE '%' || sqlc.arg(query) || '%'
+    OR u.name ILIKE '%' || sqlc.arg(query) || '%'
+    OR p.slug ILIKE '%' || sqlc.arg(query) || '%'
+    OR pt.title ILIKE '%' || sqlc.arg(query) || '%'
+  )
+  -- Exclude users already members of this profile
+  AND NOT EXISTS (
+    SELECT 1 FROM "profile_membership" pm
+    WHERE pm.profile_id = sqlc.arg(profile_id)
+      AND pm.member_profile_id = u.individual_profile_id
+      AND pm.deleted_at IS NULL
+      AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+  )
+ORDER BY u.name ASC
+LIMIT 10;
+
 -- name: ListAllProfilesForAdmin :many
 SELECT
   p.id,

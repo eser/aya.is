@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "Unbekannt"
   },
   "Layout": {
     "Homepage": "Startseite",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "Zugriff",
+    "Manage who has access to this profile and their permission levels.": "Verwalten Sie, wer Zugriff auf dieses Profil hat und welche Berechtigungsstufen sie haben.",
+    "Add Member": "Mitglied hinzufügen",
+    "No members added yet.": "Noch keine Mitglieder hinzugefügt.",
+    "Add Your First Member": "Fügen Sie Ihr erstes Mitglied hinzu",
+    "Search for a user by their username, email, or name.": "Suchen Sie einen Benutzer nach Benutzername, E-Mail oder Name.",
+    "Search users...": "Benutzer suchen...",
+    "Please select a user": "Bitte wählen Sie einen Benutzer aus",
+    "Member added successfully": "Mitglied erfolgreich hinzugefügt",
+    "Failed to add member": "Mitglied konnte nicht hinzugefügt werden",
+    "Edit Access Level": "Zugriffsebene bearbeiten",
+    "Change the access level for this member.": "Ändern Sie die Zugriffsebene für dieses Mitglied.",
+    "Access Level": "Zugriffsebene",
+    "Membership updated successfully": "Mitgliedschaft erfolgreich aktualisiert",
+    "Failed to update membership": "Mitgliedschaft konnte nicht aktualisiert werden",
+    "Remove Member": "Mitglied entfernen",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten? Es verliert den Zugriff auf dieses Profil.",
+    "Member removed successfully": "Mitglied erfolgreich entfernt",
+    "Failed to remove member": "Mitglied konnte nicht entfernt werden",
+    "Failed to load memberships": "Mitgliedschaften konnten nicht geladen werden",
+    "MembershipKind": {
+      "owner": "Eigentümer",
+      "lead": "Leitung",
+      "maintainer": "Maintainer",
+      "contributor": "Mitwirkender",
+      "sponsor": "Sponsor",
+      "follower": "Follower"
     }
   },
   "ContentEditor": {

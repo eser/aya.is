@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "Onbekend"
   },
   "Layout": {
     "Homepage": "Startpagina",
@@ -431,6 +432,34 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Access": "Toegang",
+    "Manage who has access to this profile and their permission levels.": "Beheer wie toegang heeft tot dit profiel en hun machtigingsniveaus.",
+    "Add Member": "Lid toevoegen",
+    "No members added yet.": "Nog geen leden toegevoegd.",
+    "Add Your First Member": "Voeg je eerste lid toe",
+    "Search for a user by their username, email, or name.": "Zoek een gebruiker op gebruikersnaam, e-mail of naam.",
+    "Search users...": "Gebruikers zoeken...",
+    "Please select a user": "Selecteer een gebruiker",
+    "Member added successfully": "Lid succesvol toegevoegd",
+    "Failed to add member": "Lid toevoegen mislukt",
+    "Edit Access Level": "Toegangsniveau bewerken",
+    "Change the access level for this member.": "Wijzig het toegangsniveau voor dit lid.",
+    "Access Level": "Toegangsniveau",
+    "Membership updated successfully": "Lidmaatschap succesvol bijgewerkt",
+    "Failed to update membership": "Lidmaatschap bijwerken mislukt",
+    "Remove Member": "Lid verwijderen",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "Weet je zeker dat je dit lid wilt verwijderen? Ze verliezen de toegang tot dit profiel.",
+    "Member removed successfully": "Lid succesvol verwijderd",
+    "Failed to remove member": "Lid verwijderen mislukt",
+    "Failed to load memberships": "Lidmaatschappen laden mislukt",
+    "MembershipKind": {
+      "owner": "Eigenaar",
+      "lead": "Leider",
+      "maintainer": "Beheerder",
+      "contributor": "Bijdrager",
+      "sponsor": "Sponsor",
+      "follower": "Volger"
     }
   },
   "ContentEditor": {

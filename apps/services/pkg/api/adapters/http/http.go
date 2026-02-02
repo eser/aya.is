@@ -131,6 +131,13 @@ func Run(
 		profileLinkProviders,
 		baseURI,
 	)
+	RegisterHTTPRoutesForProfileMemberships( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		profileService,
+	)
 	RegisterHTTPRoutesForAdminProfiles( //nolint:contextcheck
 		routes,
 		logger,

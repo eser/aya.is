@@ -42,7 +42,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Unknown": "未知"
   },
   "Layout": {
     "Homepage": "首页",
@@ -431,6 +432,34 @@
       "GAIN": "获得",
       "SPEND": "花费",
       "TRANSFER": "转账"
+    },
+    "Access": "访问权限",
+    "Manage who has access to this profile and their permission levels.": "管理谁可以访问此个人资料及其权限级别。",
+    "Add Member": "添加成员",
+    "No members added yet.": "尚未添加成员。",
+    "Add Your First Member": "添加您的第一个成员",
+    "Search for a user by their username, email, or name.": "按用户名、电子邮件或姓名搜索用户。",
+    "Search users...": "搜索用户...",
+    "Please select a user": "请选择一个用户",
+    "Member added successfully": "成员添加成功",
+    "Failed to add member": "添加成员失败",
+    "Edit Access Level": "编辑访问级别",
+    "Change the access level for this member.": "更改此成员的访问级别。",
+    "Access Level": "访问级别",
+    "Membership updated successfully": "成员资格更新成功",
+    "Failed to update membership": "更新成员资格失败",
+    "Remove Member": "移除成员",
+    "Are you sure you want to remove this member? They will lose access to this profile.": "您确定要移除此成员吗？他们将失去对此个人资料的访问权限。",
+    "Member removed successfully": "成员移除成功",
+    "Failed to remove member": "移除成员失败",
+    "Failed to load memberships": "加载成员资格失败",
+    "MembershipKind": {
+      "owner": "所有者",
+      "lead": "负责人",
+      "maintainer": "维护者",
+      "contributor": "贡献者",
+      "sponsor": "赞助者",
+      "follower": "关注者"
     }
   },
   "ContentEditor": {

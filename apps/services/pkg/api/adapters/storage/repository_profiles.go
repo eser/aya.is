@@ -613,6 +613,168 @@ func (r *Repository) UpsertProfileTx(
 	return nil
 }
 
+func (r *Repository) CreateProfileMembership(
+	ctx context.Context,
+	id string,
+	profileID string,
+	memberProfileID *string,
+	kind string,
+	properties map[string]any,
+) error {
+	params := CreateProfileMembershipParams{
+		ID:              id,
+		ProfileID:       profileID,
+		MemberProfileID: vars.ToSQLNullString(memberProfileID),
+		Kind:            kind,
+		Properties:      vars.ToSQLNullRawMessage(properties),
+	}
+
+	err := r.queries.CreateProfileMembership(ctx, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) ListProfileMembershipsForSettings(
+	ctx context.Context,
+	localeCode string,
+	profileID string,
+) ([]*profiles.ProfileMembershipWithMember, error) {
+	rows, err := r.queries.ListProfileMembershipsForSettings(
+		ctx,
+		ListProfileMembershipsForSettingsParams{
+			LocaleCode: localeCode,
+			ProfileID:  profileID,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.ProfileMembershipWithMember, 0, len(rows))
+
+	for _, row := range rows {
+		membership := &profiles.ProfileMembershipWithMember{
+			ID:              row.ID,
+			ProfileID:       row.ProfileID,
+			MemberProfileID: vars.ToStringPtr(row.MemberProfileID),
+			Kind:            row.Kind,
+			Properties:      vars.ToObject(row.Properties),
+			StartedAt:       vars.ToTimePtr(row.StartedAt),
+			FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+			CreatedAt:       row.CreatedAt,
+			UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
+			MemberProfile: &profiles.ProfileBrief{
+				ID:                row.Profile.ID,
+				Slug:              row.Profile.Slug,
+				Kind:              row.Profile.Kind,
+				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
+				Title:             row.ProfileTx.Title,
+				Description:       row.ProfileTx.Description,
+			},
+		}
+		result = append(result, membership)
+	}
+
+	return result, nil
+}
+
+func (r *Repository) GetProfileMembershipByID(
+	ctx context.Context,
+	id string,
+) (*profiles.ProfileMembership, error) {
+	row, err := r.queries.GetProfileMembershipByID(ctx, GetProfileMembershipByIDParams{ID: id})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return &profiles.ProfileMembership{
+		ID:              row.ID,
+		ProfileID:       row.ProfileID,
+		MemberProfileID: vars.ToStringPtr(row.MemberProfileID),
+		Kind:            row.Kind,
+		Properties:      vars.ToObject(row.Properties),
+		StartedAt:       vars.ToTimePtr(row.StartedAt),
+		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
+	}, nil
+}
+
+func (r *Repository) UpdateProfileMembership(
+	ctx context.Context,
+	id string,
+	kind string,
+) error {
+	_, err := r.queries.UpdateProfileMembership(ctx, UpdateProfileMembershipParams{
+		ID:   id,
+		Kind: kind,
+	})
+
+	return err
+}
+
+func (r *Repository) DeleteProfileMembership(
+	ctx context.Context,
+	id string,
+) error {
+	_, err := r.queries.DeleteProfileMembership(ctx, DeleteProfileMembershipParams{ID: id})
+
+	return err
+}
+
+func (r *Repository) CountProfileOwners(
+	ctx context.Context,
+	profileID string,
+) (int64, error) {
+	return r.queries.CountProfileOwners(ctx, CountProfileOwnersParams{ProfileID: profileID})
+}
+
+func (r *Repository) SearchUsersForMembership(
+	ctx context.Context,
+	localeCode string,
+	profileID string,
+	query string,
+) ([]*profiles.UserSearchResult, error) {
+	rows, err := r.queries.SearchUsersForMembership(ctx, SearchUsersForMembershipParams{
+		LocaleCode: localeCode,
+		ProfileID:  profileID,
+		Query:      sql.NullString{String: query, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.UserSearchResult, 0, len(rows))
+
+	for _, row := range rows {
+		name := row.Name
+		user := &profiles.UserSearchResult{
+			UserID:              row.UserID,
+			Email:               row.Email.String,
+			Name:                &name,
+			IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
+			Profile: &profiles.ProfileBrief{
+				ID:                row.Profile.ID,
+				Slug:              row.Profile.Slug,
+				Kind:              row.Profile.Kind,
+				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
+				Title:             row.ProfileTx.Title,
+				Description:       row.ProfileTx.Description,
+			},
+		}
+		result = append(result, user)
+	}
+
+	return result, nil
+}
+
 func (r *Repository) GetProfileOwnershipForUser(
 	ctx context.Context,
 	userID string,

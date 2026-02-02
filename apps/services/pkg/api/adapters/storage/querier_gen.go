@@ -169,6 +169,15 @@ type Querier interface {
 	//    AND created_at > NOW() - INTERVAL '1 hour'
 	//    AND used = FALSE
 	CountPOWChallengesByIPHash(ctx context.Context, arg CountPOWChallengesByIPHashParams) (int64, error)
+	//CountProfileOwners
+	//
+	//  SELECT COUNT(*) as owner_count
+	//  FROM "profile_membership" pm
+	//  WHERE pm.profile_id = $1
+	//    AND pm.kind = 'owner'
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	CountProfileOwners(ctx context.Context, arg CountProfileOwnersParams) (int64, error)
 	//CreateLinkImport
 	//
 	//  INSERT INTO "profile_link_import" (id, profile_link_id, remote_id, properties, created_at)
@@ -286,6 +295,26 @@ type Querier interface {
 	//    $6
 	//  )
 	CreateProfileLinkTx(ctx context.Context, arg CreateProfileLinkTxParams) error
+	//CreateProfileMembership
+	//
+	//  INSERT INTO "profile_membership" (
+	//    "id",
+	//    "profile_id",
+	//    "member_profile_id",
+	//    "kind",
+	//    "properties",
+	//    "started_at",
+	//    "created_at"
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    NOW(),
+	//    NOW()
+	//  )
+	CreateProfileMembership(ctx context.Context, arg CreateProfileMembershipParams) error
 	//CreateProfilePage
 	//
 	//  INSERT INTO "profile_page" (
@@ -426,6 +455,15 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	DeleteProfileLink(ctx context.Context, arg DeleteProfileLinkParams) (int64, error)
+	//DeleteProfileMembership
+	//
+	//  UPDATE "profile_membership"
+	//  SET
+	//    deleted_at = NOW(),
+	//    finished_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	DeleteProfileMembership(ctx context.Context, arg DeleteProfileMembershipParams) (int64, error)
 	//DeleteProfilePage
 	//
 	//  UPDATE "profile_page"
@@ -657,6 +695,22 @@ type Querier interface {
 	//    AND locale_code = $2
 	//  LIMIT 1
 	GetProfileLinkTx(ctx context.Context, arg GetProfileLinkTxParams) (*ProfileLinkTx, error)
+	//GetProfileMembershipByID
+	//
+	//  SELECT
+	//    pm.id,
+	//    pm.profile_id,
+	//    pm.member_profile_id,
+	//    pm.kind,
+	//    pm.properties,
+	//    pm.started_at,
+	//    pm.finished_at,
+	//    pm.created_at,
+	//    pm.updated_at
+	//  FROM "profile_membership" pm
+	//  WHERE pm.id = $1
+	//    AND pm.deleted_at IS NULL
+	GetProfileMembershipByID(ctx context.Context, arg GetProfileMembershipByIDParams) (*GetProfileMembershipByIDRow, error)
 	//GetProfileMembershipsByMemberProfileID
 	//
 	//  SELECT
@@ -1195,6 +1249,40 @@ type Querier interface {
 	//      AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
 	//      AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
 	ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error)
+	//ListProfileMembershipsForSettings
+	//
+	//  SELECT
+	//    pm.id,
+	//    pm.profile_id,
+	//    pm.member_profile_id,
+	//    pm.kind,
+	//    pm.properties,
+	//    pm.started_at,
+	//    pm.finished_at,
+	//    pm.created_at,
+	//    pm.updated_at,
+	//    mp.id, mp.slug, mp.kind, mp.custom_domain, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
+	//    mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
+	//  FROM "profile_membership" pm
+	//  INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
+	//    AND mp.deleted_at IS NULL
+	//  INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
+	//    AND mpt.locale_code = $1
+	//  WHERE pm.profile_id = $2
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	//  ORDER BY
+	//    CASE pm.kind
+	//      WHEN 'owner' THEN 1
+	//      WHEN 'lead' THEN 2
+	//      WHEN 'maintainer' THEN 3
+	//      WHEN 'contributor' THEN 4
+	//      WHEN 'sponsor' THEN 5
+	//      WHEN 'follower' THEN 6
+	//      ELSE 7
+	//    END,
+	//    pm.created_at ASC
+	ListProfileMembershipsForSettings(ctx context.Context, arg ListProfileMembershipsForSettingsParams) ([]*ListProfileMembershipsForSettingsRow, error)
 	//ListProfilePagesByProfileID
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
@@ -1457,6 +1545,39 @@ type Querier interface {
 	//  ORDER BY rank DESC
 	//  LIMIT $4
 	SearchStories(ctx context.Context, arg SearchStoriesParams) ([]*SearchStoriesRow, error)
+	//SearchUsersForMembership
+	//
+	//  SELECT
+	//    u.id as user_id,
+	//    u.email,
+	//    u.name,
+	//    u.individual_profile_id,
+	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  FROM "user" u
+	//  INNER JOIN "profile" p ON p.id = u.individual_profile_id
+	//    AND p.deleted_at IS NULL
+	//  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//    AND pt.locale_code = $1
+	//  WHERE u.deleted_at IS NULL
+	//    AND u.individual_profile_id IS NOT NULL
+	//    AND (
+	//      u.email ILIKE '%' || $2 || '%'
+	//      OR u.name ILIKE '%' || $2 || '%'
+	//      OR p.slug ILIKE '%' || $2 || '%'
+	//      OR pt.title ILIKE '%' || $2 || '%'
+	//    )
+	//    -- Exclude users already members of this profile
+	//    AND NOT EXISTS (
+	//      SELECT 1 FROM "profile_membership" pm
+	//      WHERE pm.profile_id = $3
+	//        AND pm.member_profile_id = u.individual_profile_id
+	//        AND pm.deleted_at IS NULL
+	//        AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	//    )
+	//  ORDER BY u.name ASC
+	//  LIMIT 10
+	SearchUsersForMembership(ctx context.Context, arg SearchUsersForMembershipParams) ([]*SearchUsersForMembershipRow, error)
 	//SetInCache
 	//
 	//  INSERT INTO "cache" (key, value, updated_at)
@@ -1579,6 +1700,15 @@ type Querier interface {
 	//  WHERE profile_link_id = $5
 	//    AND locale_code = $6
 	UpdateProfileLinkTx(ctx context.Context, arg UpdateProfileLinkTxParams) (int64, error)
+	//UpdateProfileMembership
+	//
+	//  UPDATE "profile_membership"
+	//  SET
+	//    kind = $1,
+	//    updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateProfileMembership(ctx context.Context, arg UpdateProfileMembershipParams) (int64, error)
 	//UpdateProfilePage
 	//
 	//  UPDATE "profile_page"
