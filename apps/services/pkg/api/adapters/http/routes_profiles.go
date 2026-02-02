@@ -64,6 +64,11 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithPlainText("slug parameter is required"))
 			}
 
+			// NOTE: GetBySlugEx returns only featured links (is_featured=true) and filters
+			// by visibility. Since we don't pass a viewerProfileID, only public links are
+			// returned. To enable visibility-based filtering for logged-in users (e.g.,
+			// showing "followers-only" links to followers), we would need to optionally
+			// detect the session and pass the viewer's profile ID.
 			record, err := profileService.GetBySlugEx(
 				ctx.Request.Context(),
 				localeParam,
@@ -234,10 +239,18 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			records, err := profileService.ListLinksBySlug(
+			// Return all links (including non-featured) for the dedicated links page.
+			// The empty viewerProfileID means only public links are returned.
+			// NOTE: The service has visibility filtering logic (CanViewLink, FilterVisibleLinks)
+			// that can show different links based on viewer's membership level (follower,
+			// sponsor, etc.). To enable this, we would need to optionally detect the session
+			// and pass the viewer's profile ID here. Currently, all public endpoints only
+			// show visibility=public links.
+			records, err := profileService.ListAllLinksBySlug(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
+				"", // Empty = anonymous viewer, only public links visible
 			)
 			if err != nil {
 				return ctx.Results.Error(
@@ -250,8 +263,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			return ctx.Results.JSON(wrappedResponse)
 		}).
-		HasSummary("List profile links by profile slug").
-		HasDescription("List profile links by profile slug.").
+		HasSummary("List all profile links by profile slug").
+		HasDescription("List all profile links by profile slug.").
 		HasResponse(http.StatusOK)
 
 	routes.
@@ -929,7 +942,6 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				IsFeatured  bool    `json:"is_featured"`
 				Visibility  string  `json:"visibility"`
 			}
-			requestBody.IsFeatured = true // default to true
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
 				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
@@ -1057,7 +1069,6 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				IsFeatured  bool    `json:"is_featured"`
 				Visibility  string  `json:"visibility"`
 			}
-			requestBody.IsFeatured = true // default to true
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
 				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))

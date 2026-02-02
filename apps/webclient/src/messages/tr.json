@@ -193,7 +193,6 @@
     "Stars": "Yıldız"
   },
   "Links": {
-    "All Links": "Tüm Bağlantılar",
     "All links associated with this profile.": "Bu profille ilişkili tüm bağlantılar.",
     "No links found.": "Bağlantı bulunamadı.",
     "Ungrouped": "Gruplanmamış"
@@ -284,7 +283,6 @@
     "Hide this link from your public profile.": "Bu bağlantıyı herkese açık profilinizden gizleyin.",
     "Link Group": "Bağlantı Grubu",
     "Group name (optional)": "Grup adı (isteğe bağlı)",
-    "Links with the same group will be displayed together.": "Aynı gruba sahip bağlantılar birlikte görüntülenecektir.",
     "Link Description": "Bağlantı Açıklaması",
     "Description (optional)": "Açıklama (isteğe bağlı)",
     "Failed to load profile links": "Profil bağlantıları yüklenemedi",

@@ -345,10 +345,10 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/$locale/$slug/': typeof LocaleSlugIndexRoute
   '/$locale/elements/': typeof LocaleElementsIndexRoute
-  '/$locale/events': typeof LocaleEventsIndexRoute
-  '/$locale/news': typeof LocaleNewsIndexRoute
-  '/$locale/products': typeof LocaleProductsIndexRoute
-  '/$locale/search': typeof LocaleSearchIndexRoute
+  '/$locale/events/': typeof LocaleEventsIndexRoute
+  '/$locale/news/': typeof LocaleNewsIndexRoute
+  '/$locale/products/': typeof LocaleProductsIndexRoute
+  '/$locale/search/': typeof LocaleSearchIndexRoute
   '/$locale/stories/': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/admin/profiles/$slug': typeof LocaleAdminProfilesSlugRouteRouteWithChildren
@@ -362,11 +362,11 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories/': typeof LocaleSlugStoriesIndexRoute
   '/$locale/admin/points/': typeof LocaleAdminPointsIndexRoute
-  '/$locale/admin/profiles': typeof LocaleAdminProfilesIndexRoute
+  '/$locale/admin/profiles/': typeof LocaleAdminProfilesIndexRoute
   '/$locale/stories/$storyslug/': typeof LocaleStoriesStoryslugIndexRoute
   '/$locale/$slug/settings/pages/new': typeof LocaleSlugSettingsPagesNewRoute
   '/$locale/admin/profiles/$slug/points': typeof LocaleAdminProfilesSlugPointsRoute
-  '/$locale/$slug/settings/pages': typeof LocaleSlugSettingsPagesIndexRoute
+  '/$locale/$slug/settings/pages/': typeof LocaleSlugSettingsPagesIndexRoute
   '/$locale/$slug/stories/$storyslug/': typeof LocaleSlugStoriesStoryslugIndexRoute
   '/$locale/admin/profiles/$slug/': typeof LocaleAdminProfilesSlugIndexRoute
 }
@@ -490,10 +490,10 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/$locale/$slug/'
     | '/$locale/elements/'
-    | '/$locale/events'
-    | '/$locale/news'
-    | '/$locale/products'
-    | '/$locale/search'
+    | '/$locale/events/'
+    | '/$locale/news/'
+    | '/$locale/products/'
+    | '/$locale/search/'
     | '/$locale/stories/'
     | '/$locale/$slug/stories/$storyslug'
     | '/$locale/admin/profiles/$slug'
@@ -507,11 +507,11 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/'
     | '/$locale/$slug/stories/'
     | '/$locale/admin/points/'
-    | '/$locale/admin/profiles'
+    | '/$locale/admin/profiles/'
     | '/$locale/stories/$storyslug/'
     | '/$locale/$slug/settings/pages/new'
     | '/$locale/admin/profiles/$slug/points'
-    | '/$locale/$slug/settings/pages'
+    | '/$locale/$slug/settings/pages/'
     | '/$locale/$slug/stories/$storyslug/'
     | '/$locale/admin/profiles/$slug/'
   fileRoutesByTo: FileRoutesByTo
@@ -682,28 +682,28 @@ declare module '@tanstack/react-router' {
     '/$locale/search/': {
       id: '/$locale/search/'
       path: '/search'
-      fullPath: '/$locale/search'
+      fullPath: '/$locale/search/'
       preLoaderRoute: typeof LocaleSearchIndexRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/products/': {
       id: '/$locale/products/'
       path: '/products'
-      fullPath: '/$locale/products'
+      fullPath: '/$locale/products/'
       preLoaderRoute: typeof LocaleProductsIndexRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/news/': {
       id: '/$locale/news/'
       path: '/news'
-      fullPath: '/$locale/news'
+      fullPath: '/$locale/news/'
       preLoaderRoute: typeof LocaleNewsIndexRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/events/': {
       id: '/$locale/events/'
       path: '/events'
-      fullPath: '/$locale/events'
+      fullPath: '/$locale/events/'
       preLoaderRoute: typeof LocaleEventsIndexRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
@@ -836,7 +836,7 @@ declare module '@tanstack/react-router' {
     '/$locale/admin/profiles/': {
       id: '/$locale/admin/profiles/'
       path: '/profiles'
-      fullPath: '/$locale/admin/profiles'
+      fullPath: '/$locale/admin/profiles/'
       preLoaderRoute: typeof LocaleAdminProfilesIndexRouteImport
       parentRoute: typeof LocaleAdminRouteRoute
     }
@@ -941,7 +941,7 @@ declare module '@tanstack/react-router' {
     '/$locale/$slug/settings/pages/': {
       id: '/$locale/$slug/settings/pages/'
       path: '/pages'
-      fullPath: '/$locale/$slug/settings/pages'
+      fullPath: '/$locale/$slug/settings/pages/'
       preLoaderRoute: typeof LocaleSlugSettingsPagesIndexRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
@@ -1195,13 +1195,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

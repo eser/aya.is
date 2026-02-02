@@ -43,13 +43,15 @@ function MembersPage() {
 
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
-      <div className="content">
-        <h2>{t("Layout.Members")}</h2>
-        <p className="text-muted-foreground mb-6">
-          {t(
-            "Members.Individuals and organizations that are members of this profile.",
-          )}
-        </p>
+      <div className="space-y-6">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Members")}</h2>
+          <p className="text-muted-foreground">
+            {t(
+              "Members.Individuals and organizations that are members of this profile.",
+            )}
+          </p>
+        </div>
 
         {members !== null && members.length > 0
           ? (

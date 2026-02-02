@@ -53,7 +53,7 @@ export const Route = createFileRoute("/$locale/$slug/links")({
     const t = i18next.getFixedT(locale);
     return {
       meta: generateMetaTags({
-        title: `${t("Links.All Links")} - ${profileTitle}`,
+        title: `${t("Layout.Links")} - ${profileTitle}`,
         description: t("Links.All links associated with this profile."),
         url: buildUrl(locale, slug, "links"),
         locale,
@@ -76,32 +76,30 @@ function LinksPage() {
   // Group links by their group field
   const groupedLinks = groupLinksByGroup(links ?? []);
   const groupNames = Object.keys(groupedLinks).sort((a, b) => {
-    // Put "ungrouped" (empty string key) at the end
-    if (a === "") return 1;
-    if (b === "") return -1;
+    // Put "ungrouped" (empty string key) at the TOP
+    if (a === "") return -1;
+    if (b === "") return 1;
     return a.localeCompare(b);
   });
 
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
-      <div className="content">
-        <h2>{t("Links.All Links")}</h2>
-        <p className="text-muted-foreground mb-6">
-          {t("Links.All links associated with this profile.")}
-        </p>
+      <div className="space-y-6">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Links")}</h2>
+          <p className="text-muted-foreground">
+            {t("Links.All links associated with this profile.")}
+          </p>
+        </div>
 
         {links !== null && links.length > 0
           ? (
             <div className="space-y-8">
               {groupNames.map((groupName) => (
                 <div key={groupName || "ungrouped"}>
+                  {/* Only show header for named groups, not for ungrouped */}
                   {groupName !== "" && (
                     <h3 className="text-lg font-semibold mb-4">{groupName}</h3>
-                  )}
-                  {groupName === "" && groupNames.length > 1 && (
-                    <h3 className="text-lg font-semibold mb-4 text-muted-foreground">
-                      {t("Links.Ungrouped")}
-                    </h3>
                   )}
                   <div className="flex flex-col gap-3">
                     {groupedLinks[groupName].map((link) => (

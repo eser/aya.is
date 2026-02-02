@@ -404,6 +404,20 @@ func NewService(logger *logfx.Logger, config *Config, repo Repository) *Service 
 
 // CanViewLink checks if a viewer has permission to see a link based on its visibility.
 // If viewerProfileID is empty, only public links are visible.
+//
+// Visibility levels and required membership:
+//   - "public": visible to everyone (no membership required)
+//   - "followers": visible to followers and above
+//   - "sponsors": visible to sponsors and above
+//   - "contributors": visible to contributors and above
+//   - "maintainers": visible to maintainers and above
+//   - "leads": visible to leads and above
+//   - "owners": visible to owners only
+//
+// NOTE: Currently, public API endpoints (GET /profiles/{slug}, GET /profiles/{slug}/links)
+// don't pass a viewerProfileID, so only public links are returned. To enable visibility
+// filtering for logged-in users, the HTTP routes would need to optionally detect the
+// session and pass the viewer's profile ID.
 func (s *Service) CanViewLink(
 	ctx context.Context,
 	link *ProfileLinkBrief,
@@ -519,7 +533,8 @@ func (s *Service) GetBySlugExWithViewer(
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
 
-	links, err := s.repo.ListProfileLinksByProfileID(ctx, localeCode, record.ID)
+	// Only include featured links for the profile sidebar
+	links, err := s.repo.ListFeaturedProfileLinksByProfileID(ctx, localeCode, record.ID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}

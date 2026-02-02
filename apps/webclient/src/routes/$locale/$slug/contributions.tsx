@@ -43,13 +43,15 @@ function ContributionsPage() {
 
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
-      <div className="content">
-        <h2>{t("Layout.Contributions")}</h2>
-        <p className="text-muted-foreground mb-6">
-          {t(
-            "Contributions.Organizations and products this person contributes to.",
-          )}
-        </p>
+      <div className="space-y-6">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Contributions")}</h2>
+          <p className="text-muted-foreground">
+            {t(
+              "Contributions.Organizations and products this person contributes to.",
+            )}
+          </p>
+        </div>
 
         {contributions !== null && contributions.length > 0
           ? (

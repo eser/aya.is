@@ -803,9 +803,6 @@ function LinksSettingsPage() {
                 onChange={(e) => setFormData((prev) => ({ ...prev, group: e.target.value }))}
                 placeholder={t("Profile.Group name (optional)")}
               />
-              <FieldDescription>
-                {t("Profile.Links with the same group will be displayed together.")}
-              </FieldDescription>
             </Field>
 
             {/* Row 5: Description */}

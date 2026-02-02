@@ -193,7 +193,6 @@
     "Stars": "Stars"
   },
   "Links": {
-    "All Links": "All Links",
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
@@ -284,7 +283,6 @@
     "Hide this link from your public profile.": "Hide this link from your public profile.",
     "Link Group": "Link Group",
     "Group name (optional)": "Group name (optional)",
-    "Links with the same group will be displayed together.": "Links with the same group will be displayed together.",
     "Link Description": "Link Description",
     "Description (optional)": "Description (optional)",
     "Failed to load profile links": "Failed to load profile links",
