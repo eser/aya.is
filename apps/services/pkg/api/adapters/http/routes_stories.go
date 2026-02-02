@@ -36,7 +36,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -56,13 +56,13 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
-			// if record == nil {
-			// 	return ctx.Results.NotFound(httpfx.WithPlainText("story not found"))
-			// }
+			if record == nil {
+				return ctx.Results.NotFound(httpfx.WithErrorMessage("story not found"))
+			}
 
 			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 
@@ -106,7 +106,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -135,7 +135,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -211,7 +211,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -220,7 +220,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -245,7 +245,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				if strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText(
+						httpfx.WithErrorMessage(
 							"You do not have permission to create stories for this profile",
 						),
 					)
@@ -259,7 +259,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to create story"),
+					httpfx.WithErrorMessage("Failed to create story"),
 				)
 			}
 
@@ -283,7 +283,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -294,7 +294,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -312,14 +312,14 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to check permissions"),
+					httpfx.WithErrorMessage("Failed to check permissions"),
 				)
 			}
 
 			if !canEdit {
 				return ctx.Results.Error(
 					http.StatusForbidden,
-					httpfx.WithPlainText("You do not have permission to edit this story"),
+					httpfx.WithErrorMessage("You do not have permission to edit this story"),
 				)
 			}
 
@@ -332,12 +332,12 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get story"),
+					httpfx.WithErrorMessage("Failed to get story"),
 				)
 			}
 
 			if story == nil {
-				return ctx.Results.NotFound(httpfx.WithPlainText("Story not found"))
+				return ctx.Results.NotFound(httpfx.WithErrorMessage("Story not found"))
 			}
 
 			wrappedResponse := map[string]any{
@@ -360,7 +360,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -439,7 +439,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				if strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this story"),
+						httpfx.WithErrorMessage("You do not have permission to edit this story"),
 					)
 				}
 
@@ -451,7 +451,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to update story"),
+					httpfx.WithErrorMessage("Failed to update story"),
 				)
 			}
 
@@ -475,7 +475,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -489,18 +489,18 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			if requestBody.Title == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Title is required"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -517,7 +517,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				if strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this story"),
+						httpfx.WithErrorMessage("You do not have permission to edit this story"),
 					)
 				}
 
@@ -530,7 +530,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to update story translation"),
+					httpfx.WithErrorMessage("Failed to update story translation"),
 				)
 			}
 
@@ -557,7 +557,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -567,7 +567,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -580,7 +580,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				if strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to delete this story"),
+						httpfx.WithErrorMessage("You do not have permission to delete this story"),
 					)
 				}
 
@@ -592,7 +592,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to delete story"),
+					httpfx.WithErrorMessage("Failed to delete story"),
 				)
 			}
 
@@ -619,7 +619,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -629,7 +629,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -647,7 +647,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to check permissions"),
+					httpfx.WithErrorMessage("Failed to check permissions"),
 				)
 			}
 

@@ -32,7 +32,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -51,7 +51,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -75,7 +75,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			redirectURI := queryString.Get("redirect_uri")
 
 			// if redirectURI == "" {
-			// 	return ctx.Results.BadRequest(httpfx.WithPlainText("redirect_uri is required"))
+			// 	return ctx.Results.BadRequest(httpfx.WithErrorMessage("redirect_uri is required"))
 			// }
 
 			// Initiate auth flow
@@ -88,7 +88,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Auth initiation failed"),
+					httpfx.WithErrorMessage("Auth initiation failed"),
 				)
 			}
 
@@ -118,11 +118,11 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				redirectURI := queryString.Get("redirect_uri")
 
 				if code == "" {
-					return ctx.Results.BadRequest(httpfx.WithPlainText("code is required"))
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("code is required"))
 				}
 
 				if state == "" {
-					return ctx.Results.BadRequest(httpfx.WithPlainText("state is required"))
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("state is required"))
 				}
 
 				result, err := authService.AuthHandleCallback(
@@ -138,7 +138,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Auth callback failed"),
+						httpfx.WithErrorMessage("Auth callback failed"),
 					)
 				}
 
@@ -208,7 +208,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			// Get current token from Authorization header
 			authHeader := ctx.Request.Header.Get("Authorization")
 			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-				return ctx.Results.Unauthorized(httpfx.WithPlainText("No token provided"))
+				return ctx.Results.Unauthorized(httpfx.WithErrorMessage("No token provided"))
 			}
 
 			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
@@ -217,15 +217,15 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			result, err := authService.RefreshToken(ctx.Request.Context(), tokenStr)
 			if err != nil {
 				if errors.Is(err, auth.ErrInvalidToken) {
-					return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid token"))
+					return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Invalid token"))
 				}
 				if errors.Is(err, auth.ErrSessionExpired) {
-					return ctx.Results.Unauthorized(httpfx.WithPlainText("Session expired"))
+					return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Session expired"))
 				}
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to refresh token"),
+					httpfx.WithErrorMessage("Failed to refresh token"),
 				)
 			}
 

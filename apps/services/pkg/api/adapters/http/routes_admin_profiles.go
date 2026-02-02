@@ -30,13 +30,13 @@ func RegisterHTTPRoutesForAdminProfiles(
 				// Check admin permission
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithPlainText(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
 				}
 
 				if user.Kind != "admin" {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("Admin access required"),
+						httpfx.WithErrorMessage("Admin access required"),
 					)
 				}
 
@@ -82,7 +82,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
@@ -101,20 +101,20 @@ func RegisterHTTPRoutesForAdminProfiles(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithPlainText(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
 				}
 
 				if user.Kind != "admin" {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("Admin access required"),
+						httpfx.WithErrorMessage("Admin access required"),
 					)
 				}
 
 				slug := ctx.Request.PathValue("slug")
 				if slug == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithPlainText("slug is required"),
+						httpfx.WithErrorMessage("slug is required"),
 					)
 				}
 
@@ -137,7 +137,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 					)
 
 					return ctx.Results.NotFound(
-						httpfx.WithPlainText("profile not found"),
+						httpfx.WithErrorMessage("profile not found"),
 					)
 				}
 
@@ -156,20 +156,20 @@ func RegisterHTTPRoutesForAdminProfiles(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithPlainText(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
 				}
 
 				if user.Kind != "admin" {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("Admin access required"),
+						httpfx.WithErrorMessage("Admin access required"),
 					)
 				}
 
 				slug := ctx.Request.PathValue("slug")
 				if slug == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithPlainText("slug is required"),
+						httpfx.WithErrorMessage("slug is required"),
 					)
 				}
 
@@ -181,19 +181,19 @@ func RegisterHTTPRoutesForAdminProfiles(
 
 				if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
 					return ctx.Results.BadRequest(
-						httpfx.WithPlainText("invalid request body"),
+						httpfx.WithErrorMessage("invalid request body"),
 					)
 				}
 
 				if body.Amount == 0 {
 					return ctx.Results.BadRequest(
-						httpfx.WithPlainText("amount must be greater than 0"),
+						httpfx.WithErrorMessage("amount must be greater than 0"),
 					)
 				}
 
 				if body.Description == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithPlainText("description is required"),
+						httpfx.WithErrorMessage("description is required"),
 					)
 				}
 
@@ -211,13 +211,13 @@ func RegisterHTTPRoutesForAdminProfiles(
 					)
 
 					return ctx.Results.NotFound(
-						httpfx.WithPlainText("profile not found"),
+						httpfx.WithErrorMessage("profile not found"),
 					)
 				}
 
 				if profile == nil {
 					return ctx.Results.NotFound(
-						httpfx.WithPlainText("profile not found"),
+						httpfx.WithErrorMessage("profile not found"),
 					)
 				}
 
@@ -242,7 +242,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 

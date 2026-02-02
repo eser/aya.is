@@ -47,7 +47,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -59,7 +59,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Validate provider
 			if providerParam != "youtube" && providerParam != "github" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText(
+					httpfx.WithErrorMessage(
 						"Unsupported provider. Supported: 'youtube', 'github'.",
 					),
 				)
@@ -70,7 +70,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -79,7 +79,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -104,7 +104,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to check permissions"),
+						httpfx.WithErrorMessage("Failed to check permissions"),
 					)
 				}
 			}
@@ -112,7 +112,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			if !canEdit {
 				return ctx.Results.Error(
 					http.StatusForbidden,
-					httpfx.WithPlainText("You do not have permission to edit this profile"),
+					httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 				)
 			}
 
@@ -121,7 +121,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			if err != nil || profile == nil {
 				return ctx.Results.Error(
 					http.StatusNotFound,
-					httpfx.WithPlainText("Profile not found"),
+					httpfx.WithErrorMessage("Profile not found"),
 				)
 			}
 
@@ -152,7 +152,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to initiate OAuth flow"),
+					httpfx.WithErrorMessage("Failed to initiate OAuth flow"),
 				)
 			}
 
@@ -181,7 +181,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to initiate OAuth flow"),
+					httpfx.WithErrorMessage("Failed to initiate OAuth flow"),
 				)
 			}
 
@@ -217,14 +217,14 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Validate required parameters (state needed for redirect origin)
 			if stateParam == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Missing required OAuth state parameter"),
+					httpfx.WithErrorMessage("Missing required OAuth state parameter"),
 				)
 			}
 
 			// Validate provider
 			if providerParam != "youtube" && providerParam != "github" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Unsupported provider"),
+					httpfx.WithErrorMessage("Unsupported provider"),
 				)
 			}
 
@@ -236,7 +236,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					slog.String("provider", providerParam))
 
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Invalid OAuth state"),
+					httpfx.WithErrorMessage("Invalid OAuth state"),
 				)
 			}
 
@@ -294,7 +294,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Check for missing code
 			if code == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Missing authorization code"),
+					httpfx.WithErrorMessage("Missing authorization code"),
 				)
 			}
 
@@ -468,7 +468,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			pendingID := ctx.Request.URL.Query().Get("pending_id")
 			if pendingID == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Missing pending_id parameter"),
+					httpfx.WithErrorMessage("Missing pending_id parameter"),
 				)
 			}
 
@@ -476,7 +476,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			pendingConn := providers.PendingConnectionStore.Get(pendingID)
 			if pendingConn == nil {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Pending connection not found or expired"),
+					httpfx.WithErrorMessage("Pending connection not found or expired"),
 				)
 			}
 
@@ -491,7 +491,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to fetch GitHub account info"),
+					httpfx.WithErrorMessage("Failed to fetch GitHub account info"),
 				)
 			}
 
@@ -579,13 +579,13 @@ func RegisterHTTPRoutesForProfileLinks(
 
 			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Invalid request body"),
+					httpfx.WithErrorMessage("Invalid request body"),
 				)
 			}
 
 			if reqBody.PendingID == "" || reqBody.AccountID == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Missing required fields"),
+					httpfx.WithErrorMessage("Missing required fields"),
 				)
 			}
 
@@ -593,14 +593,14 @@ func RegisterHTTPRoutesForProfileLinks(
 			pendingConn := providers.PendingConnectionStore.Get(reqBody.PendingID)
 			if pendingConn == nil {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Pending connection not found or expired"),
+					httpfx.WithErrorMessage("Pending connection not found or expired"),
 				)
 			}
 
 			// Verify the pending connection is for this profile
 			if pendingConn.ProfileSlug != slugParam {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Pending connection does not match profile"),
+					httpfx.WithErrorMessage("Pending connection does not match profile"),
 				)
 			}
 
@@ -612,7 +612,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			if err != nil || profileID == "" {
 				return ctx.Results.Error(
 					http.StatusNotFound,
-					httpfx.WithPlainText("Profile not found"),
+					httpfx.WithErrorMessage("Profile not found"),
 				)
 			}
 
@@ -629,7 +629,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to check existing link"),
+					httpfx.WithErrorMessage("Failed to check existing link"),
 				)
 			}
 
@@ -653,7 +653,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to update link"),
+						httpfx.WithErrorMessage("Failed to update link"),
 					)
 				}
 			} else {
@@ -684,7 +684,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to create link"),
+						httpfx.WithErrorMessage("Failed to create link"),
 					)
 				}
 			}

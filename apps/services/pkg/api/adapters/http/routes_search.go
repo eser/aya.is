@@ -21,7 +21,7 @@ func RegisterHTTPRoutesForSearch(
 			// get query parameter
 			query := ctx.Request.URL.Query().Get("q")
 			if query == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("q parameter is required"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("q parameter is required"))
 			}
 
 			// get limit parameter (default 20, max 100)
@@ -51,7 +51,7 @@ func RegisterHTTPRoutesForSearch(
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 

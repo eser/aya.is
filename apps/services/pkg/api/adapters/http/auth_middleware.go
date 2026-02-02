@@ -21,7 +21,7 @@ func AuthMiddleware(authService *auth.Service, userService *users.Service) httpf
 		authHeader := ctx.Request.Header.Get(AuthHeader)
 
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			return ctx.Results.Unauthorized(httpfx.WithPlainText("Unauthorized"))
+			return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Unauthorized"))
 		}
 
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
@@ -35,27 +35,27 @@ func AuthMiddleware(authService *auth.Service, userService *users.Service) httpf
 			return []byte(authService.Config.JwtSecret), nil
 		})
 		if err != nil {
-			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid token"))
+			return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Invalid token"))
 		}
 
 		if !token.Valid {
-			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid token"))
+			return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Invalid token"))
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid claims"))
+			return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Invalid claims"))
 		}
 
 		sessionID, _ := claims["session_id"].(string)
 		if sessionID == "" {
-			return ctx.Results.Unauthorized(httpfx.WithPlainText("No session"))
+			return ctx.Results.Unauthorized(httpfx.WithErrorMessage("No session"))
 		}
 
 		// Load session from repository
 		session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 		if err != nil || session == nil || session.Status != users.SessionStatusActive {
-			return ctx.Results.Unauthorized(httpfx.WithPlainText("Session invalid"))
+			return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Session invalid"))
 		}
 
 		// Update last activity and user agent

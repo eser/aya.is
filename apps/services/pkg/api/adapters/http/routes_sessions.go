@@ -140,7 +140,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -149,7 +149,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusNotFound,
-					httpfx.WithPlainText("Session not found"),
+					httpfx.WithErrorMessage("Session not found"),
 				)
 			}
 
@@ -165,7 +165,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				if userErr != nil {
 					return ctx.Results.Error(
 						http.StatusNotFound,
-						httpfx.WithPlainText("User not found"),
+						httpfx.WithErrorMessage("User not found"),
 					)
 				}
 
@@ -242,7 +242,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			// Parse request body
 			var req CreateSessionRequest
 			if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			// Get client IP
@@ -252,7 +252,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			if protectionService.IsPOWChallengeEnabled() {
 				if req.POWChallengeID == "" || req.Nonce == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithPlainText("PoW challenge ID and nonce are required"),
+						httpfx.WithErrorMessage("PoW challenge ID and nonce are required"),
 					)
 				}
 
@@ -271,27 +271,27 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 					case errors.Is(err, protection.ErrPOWChallengeNotFound):
 						return ctx.Results.Error(
 							http.StatusForbidden,
-							httpfx.WithPlainText("Invalid PoW challenge"),
+							httpfx.WithErrorMessage("Invalid PoW challenge"),
 						)
 					case errors.Is(err, protection.ErrPOWChallengeExpired):
 						return ctx.Results.Error(
 							http.StatusForbidden,
-							httpfx.WithPlainText("PoW challenge expired"),
+							httpfx.WithErrorMessage("PoW challenge expired"),
 						)
 					case errors.Is(err, protection.ErrPOWChallengeUsed):
 						return ctx.Results.Error(
 							http.StatusForbidden,
-							httpfx.WithPlainText("PoW challenge already used"),
+							httpfx.WithErrorMessage("PoW challenge already used"),
 						)
 					case errors.Is(err, protection.ErrPOWChallengeInvalid):
 						return ctx.Results.Error(
 							http.StatusForbidden,
-							httpfx.WithPlainText("Invalid PoW solution"),
+							httpfx.WithErrorMessage("Invalid PoW solution"),
 						)
 					default:
 						return ctx.Results.Error(
 							http.StatusInternalServerError,
-							httpfx.WithPlainText("PoW verification failed"),
+							httpfx.WithErrorMessage("PoW verification failed"),
 						)
 					}
 				}
@@ -304,7 +304,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				if errors.Is(err, sessions.ErrRateLimitExceeded) {
 					return ctx.Results.Error(
 						http.StatusTooManyRequests,
-						httpfx.WithPlainText("Rate limit exceeded. Please try again later."),
+						httpfx.WithErrorMessage("Rate limit exceeded. Please try again later."),
 					)
 				}
 
@@ -313,7 +313,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to create session"),
+					httpfx.WithErrorMessage("Failed to create session"),
 				)
 			}
 
@@ -359,7 +359,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
 			if err != nil {
 				return ctx.Results.Unauthorized(
-					httpfx.WithPlainText("No session found"),
+					httpfx.WithErrorMessage("No session found"),
 				)
 			}
 
@@ -369,14 +369,14 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
 				return ctx.Results.Unauthorized(
-					httpfx.WithPlainText("Invalid session"),
+					httpfx.WithErrorMessage("Invalid session"),
 				)
 			}
 
 			// Parse request body
 			var req UpdatePreferencesRequest
 			if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			// Update preferences
@@ -390,7 +390,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				if err != nil {
 					if errors.Is(err, sessions.ErrInvalidPreferenceValue) {
 						return ctx.Results.BadRequest(
-							httpfx.WithPlainText("Invalid theme value"),
+							httpfx.WithErrorMessage("Invalid theme value"),
 						)
 					}
 
@@ -400,7 +400,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to update theme"),
+						httpfx.WithErrorMessage("Failed to update theme"),
 					)
 				}
 			}
@@ -415,7 +415,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				if err != nil {
 					if errors.Is(err, sessions.ErrInvalidPreferenceValue) {
 						return ctx.Results.BadRequest(
-							httpfx.WithPlainText("Invalid locale value"),
+							httpfx.WithErrorMessage("Invalid locale value"),
 						)
 					}
 
@@ -425,7 +425,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to update locale"),
+						httpfx.WithErrorMessage("Failed to update locale"),
 					)
 				}
 			}
@@ -440,7 +440,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				if err != nil {
 					if errors.Is(err, sessions.ErrInvalidPreferenceValue) {
 						return ctx.Results.BadRequest(
-							httpfx.WithPlainText("Invalid timezone value"),
+							httpfx.WithErrorMessage("Invalid timezone value"),
 						)
 					}
 
@@ -450,7 +450,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to update timezone"),
+						httpfx.WithErrorMessage("Failed to update timezone"),
 					)
 				}
 			}
@@ -479,7 +479,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -487,7 +487,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if err != nil || session == nil || session.LoggedInUserID == nil {
 				return ctx.Results.Unauthorized(
-					httpfx.WithPlainText("User not logged in"),
+					httpfx.WithErrorMessage("User not logged in"),
 				)
 			}
 
@@ -503,7 +503,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to list sessions"),
+					httpfx.WithErrorMessage("Failed to list sessions"),
 				)
 			}
 
@@ -542,7 +542,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -550,14 +550,16 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			targetSessionID := ctx.Request.PathValue("sessionId")
 			if targetSessionID == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Session ID is required"),
+					httpfx.WithErrorMessage("Session ID is required"),
 				)
 			}
 
 			// Prevent terminating current session (use logout instead)
 			if targetSessionID == currentSessionID {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Cannot terminate current session. Use logout instead."),
+					httpfx.WithErrorMessage(
+						"Cannot terminate current session. Use logout instead.",
+					),
 				)
 			}
 
@@ -565,7 +567,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			session, err := userService.GetSessionByID(ctx.Request.Context(), currentSessionID)
 			if err != nil || session == nil || session.LoggedInUserID == nil {
 				return ctx.Results.Unauthorized(
-					httpfx.WithPlainText("User not logged in"),
+					httpfx.WithErrorMessage("User not logged in"),
 				)
 			}
 
@@ -583,7 +585,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to terminate session"),
+					httpfx.WithErrorMessage("Failed to terminate session"),
 				)
 			}
 

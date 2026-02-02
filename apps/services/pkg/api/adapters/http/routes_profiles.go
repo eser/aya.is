@@ -35,13 +35,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			filterKind, filterKindOk := cursor.Filters["kind"]
 			if !filterKindOk {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("filter_kind is required"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("filter_kind is required"))
 			}
 
 			kinds := strings.SplitSeq(filterKind, ",")
 			for kind := range kinds {
 				if kind != "individual" && kind != "organization" && kind != "product" {
-					return ctx.Results.BadRequest(httpfx.WithPlainText("filter_kind is invalid"))
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("filter_kind is invalid"))
 				}
 			}
 
@@ -49,7 +49,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -66,7 +66,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			slugParam := ctx.Request.PathValue("slug")
 
 			if slugParam == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("slug parameter is required"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("slug parameter is required"))
 			}
 
 			// NOTE: GetBySlugEx returns only featured links (is_featured=true) and filters
@@ -82,7 +82,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -102,7 +102,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			includeDeletedParam := ctx.Request.URL.Query().Get("include_deleted")
 
 			if slugParam == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("slug parameter is required"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("slug parameter is required"))
 			}
 
 			includeDeleted := includeDeletedParam == "true"
@@ -115,7 +115,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -147,7 +147,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -177,7 +177,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
@@ -219,7 +219,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
@@ -260,7 +260,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -288,7 +288,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -316,12 +316,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
 				// if record == nil {
-				// 	return ctx.Results.NotFound(httpfx.WithPlainText("story not found"))
+				// 	return ctx.Results.NotFound(httpfx.WithErrorMessage("story not found"))
 				// }
 
 				wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
@@ -351,7 +351,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
@@ -380,7 +380,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
@@ -401,7 +401,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -631,7 +631,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -656,7 +656,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -665,7 +665,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -685,7 +685,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -697,7 +697,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to update profile"),
+					httpfx.WithErrorMessage("Failed to update profile"),
 				)
 			}
 
@@ -722,7 +722,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -738,13 +738,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			// Validate required fields
 			if requestBody.Title == "" || requestBody.Description == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Title and description are required"),
+					httpfx.WithErrorMessage("Title and description are required"),
 				)
 			}
 
@@ -753,7 +753,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -762,7 +762,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -781,7 +781,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -794,7 +794,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to update profile translation"),
+					httpfx.WithErrorMessage("Failed to update profile translation"),
 				)
 			}
 
@@ -822,7 +822,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -834,7 +834,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -843,7 +843,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -868,7 +868,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to check permissions"),
+						httpfx.WithErrorMessage("Failed to check permissions"),
 					)
 				}
 			}
@@ -907,7 +907,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to retrieve profile translations"),
+					httpfx.WithErrorMessage("Failed to retrieve profile translations"),
 				)
 			}
 
@@ -933,7 +933,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -946,7 +946,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -955,7 +955,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -971,7 +971,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -983,7 +983,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to retrieve profile links"),
+					httpfx.WithErrorMessage("Failed to retrieve profile links"),
 				)
 			}
 
@@ -1008,7 +1008,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1029,13 +1029,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			// Validate required fields
 			if requestBody.Kind == "" || requestBody.Title == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Kind and title are required"),
+					httpfx.WithErrorMessage("Kind and title are required"),
 				)
 			}
 
@@ -1052,7 +1052,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				"telegram":  true,
 			}
 			if !validKinds[requestBody.Kind] {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid link kind"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid link kind"))
 			}
 
 			// Default visibility to public if not specified
@@ -1065,7 +1065,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1074,7 +1074,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -1098,7 +1098,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -1110,7 +1110,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to create profile link"),
+					httpfx.WithErrorMessage("Failed to create profile link"),
 				)
 			}
 
@@ -1135,7 +1135,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1158,13 +1158,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			// Validate required fields
 			if requestBody.Kind == "" || requestBody.Title == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Kind and title are required"),
+					httpfx.WithErrorMessage("Kind and title are required"),
 				)
 			}
 
@@ -1181,7 +1181,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				"telegram":  true,
 			}
 			if !validKinds[requestBody.Kind] {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid link kind"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid link kind"))
 			}
 
 			// Default visibility to public if not specified
@@ -1194,7 +1194,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1203,7 +1203,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -1229,7 +1229,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -1242,7 +1242,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to update profile link"),
+					httpfx.WithErrorMessage("Failed to update profile link"),
 				)
 			}
 
@@ -1267,7 +1267,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1280,7 +1280,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1289,7 +1289,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -1305,7 +1305,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -1318,7 +1318,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to delete profile link"),
+					httpfx.WithErrorMessage("Failed to delete profile link"),
 				)
 			}
 
@@ -1347,7 +1347,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1360,7 +1360,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1369,7 +1369,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -1394,7 +1394,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to check permissions"),
+						httpfx.WithErrorMessage("Failed to check permissions"),
 					)
 				}
 			}
@@ -1402,7 +1402,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !canEdit {
 				return ctx.Results.Error(
 					http.StatusForbidden,
-					httpfx.WithPlainText("You do not have permission to edit this profile"),
+					httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 				)
 			}
 
@@ -1421,7 +1421,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to retrieve profile pages"),
+					httpfx.WithErrorMessage("Failed to retrieve profile pages"),
 				)
 			}
 
@@ -1446,7 +1446,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1510,7 +1510,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1519,7 +1519,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -1541,7 +1541,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -1553,7 +1553,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to create profile page"),
+					httpfx.WithErrorMessage("Failed to create profile page"),
 				)
 			}
 
@@ -1578,7 +1578,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1654,7 +1654,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -1667,7 +1667,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to update profile page"),
+					httpfx.WithErrorMessage("Failed to update profile page"),
 				)
 			}
 
@@ -1692,7 +1692,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1709,13 +1709,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			// Validate required fields
 			if requestBody.Title == "" || requestBody.Summary == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Title and summary are required"),
+					httpfx.WithErrorMessage("Title and summary are required"),
 				)
 			}
 
@@ -1724,7 +1724,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1733,7 +1733,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -1753,7 +1753,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -1767,7 +1767,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to update profile page translation"),
+					httpfx.WithErrorMessage("Failed to update profile page translation"),
 				)
 			}
 
@@ -1795,7 +1795,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -1808,7 +1808,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1817,7 +1817,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -1833,7 +1833,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText("You do not have permission to edit this profile"),
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
 					)
 				}
 
@@ -1846,7 +1846,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to delete profile page"),
+					httpfx.WithErrorMessage("Failed to delete profile page"),
 				)
 			}
 

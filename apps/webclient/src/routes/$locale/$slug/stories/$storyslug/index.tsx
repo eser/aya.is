@@ -38,6 +38,9 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     return { story, compiledContent, currentUrl, locale, slug };
   },
   head: ({ loaderData }) => {
+    if (loaderData === undefined) {
+      return { meta: [] };
+    }
     const { story, currentUrl, locale } = loaderData;
     return {
       meta: generateMetaTags({

@@ -40,7 +40,7 @@ func RegisterHTTPRoutesForSite(
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
@@ -91,7 +91,7 @@ func RegisterHTTPRoutesForSite(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -102,13 +102,13 @@ func RegisterHTTPRoutesForSite(
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			if requestBody.Filename == "" || requestBody.ContentType == "" ||
 				requestBody.Purpose == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Filename, content_type, and purpose are required"),
+					httpfx.WithErrorMessage("Filename, content_type, and purpose are required"),
 				)
 			}
 
@@ -116,7 +116,7 @@ func RegisterHTTPRoutesForSite(
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -138,7 +138,7 @@ func RegisterHTTPRoutesForSite(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to generate upload URL"),
+					httpfx.WithErrorMessage("Failed to generate upload URL"),
 				)
 			}
 
@@ -162,20 +162,20 @@ func RegisterHTTPRoutesForSite(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
 			keyParam := ctx.Request.PathValue("key")
 			if keyParam == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Key is required"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Key is required"))
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -189,7 +189,7 @@ func RegisterHTTPRoutesForSite(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to remove file"),
+					httpfx.WithErrorMessage("Failed to remove file"),
 				)
 			}
 
@@ -214,13 +214,15 @@ func RegisterHTTPRoutesForSite(
 			if unsplashClient == nil {
 				return ctx.Results.Error(
 					http.StatusServiceUnavailable,
-					httpfx.WithPlainText("Background image service is not configured"),
+					httpfx.WithErrorMessage("Background image service is not configured"),
 				)
 			}
 
 			query := ctx.Request.URL.Query().Get("query")
 			if query == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Query parameter is required"))
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Query parameter is required"),
+				)
 			}
 
 			pageStr := ctx.Request.URL.Query().Get("page")
@@ -251,7 +253,7 @@ func RegisterHTTPRoutesForSite(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to search background images"),
+					httpfx.WithErrorMessage("Failed to search background images"),
 				)
 			}
 

@@ -30,7 +30,7 @@ func RegisterHTTPRoutesForProfilePoints(
 
 				if slugParam == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithPlainText("slug parameter is required"),
+						httpfx.WithErrorMessage("slug parameter is required"),
 					)
 				}
 
@@ -39,14 +39,14 @@ func RegisterHTTPRoutesForProfilePoints(
 				if !ok {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Session ID not found in context"),
+						httpfx.WithErrorMessage("Session ID not found in context"),
 					)
 				}
 
 				// Get session to get user ID
 				session, err := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 				if err != nil || session == nil || session.LoggedInUserID == nil {
-					return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid session"))
+					return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Invalid session"))
 				}
 
 				// Get user to check if admin
@@ -54,7 +54,7 @@ func RegisterHTTPRoutesForProfilePoints(
 				if userErr != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText("Failed to get user information"),
+						httpfx.WithErrorMessage("Failed to get user information"),
 					)
 				}
 
@@ -73,7 +73,7 @@ func RegisterHTTPRoutesForProfilePoints(
 					if err != nil {
 						return ctx.Results.Error(
 							http.StatusInternalServerError,
-							httpfx.WithPlainText(err.Error()),
+							httpfx.WithErrorMessage(err.Error()),
 						)
 					}
 				}
@@ -81,7 +81,7 @@ func RegisterHTTPRoutesForProfilePoints(
 				if !canEdit {
 					return ctx.Results.Error(
 						http.StatusForbidden,
-						httpfx.WithPlainText(
+						httpfx.WithErrorMessage(
 							"You do not have permission to view this profile's transactions",
 						),
 					)
@@ -96,12 +96,12 @@ func RegisterHTTPRoutesForProfilePoints(
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 
 				if profile == nil {
-					return ctx.Results.NotFound(httpfx.WithPlainText("profile not found"))
+					return ctx.Results.NotFound(httpfx.WithErrorMessage("profile not found"))
 				}
 
 				cursor := cursors.NewCursorFromRequest(ctx.Request)
@@ -121,7 +121,7 @@ func RegisterHTTPRoutesForProfilePoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithPlainText(err.Error()),
+						httpfx.WithErrorMessage(err.Error()),
 					)
 				}
 

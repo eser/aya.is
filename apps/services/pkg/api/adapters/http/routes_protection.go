@@ -40,7 +40,7 @@ func RegisterHTTPRoutesForProtection(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to create PoW challenge"),
+					httpfx.WithErrorMessage("Failed to create PoW challenge"),
 				)
 			}
 

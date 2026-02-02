@@ -30,7 +30,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -41,7 +41,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -49,7 +49,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -67,7 +67,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to list memberships"),
+					httpfx.WithErrorMessage("Failed to list memberships"),
 				)
 			}
 
@@ -89,7 +89,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -105,7 +105,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -113,7 +113,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -133,7 +133,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to search users"),
+					httpfx.WithErrorMessage("Failed to search users"),
 				)
 			}
 
@@ -150,7 +150,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -160,7 +160,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -168,7 +168,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -178,12 +178,12 @@ func RegisterHTTPRoutesForProfileMemberships(
 			}
 
 			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			if input.MemberProfileID == "" || input.Kind == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("member_profile_id and kind are required"),
+					httpfx.WithErrorMessage("member_profile_id and kind are required"),
 				)
 			}
 
@@ -202,7 +202,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText(err.Error()),
+					httpfx.WithErrorMessage(err.Error()),
 				)
 			}
 
@@ -219,7 +219,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -230,7 +230,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -238,7 +238,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -247,11 +247,11 @@ func RegisterHTTPRoutesForProfileMemberships(
 			}
 
 			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			if input.Kind == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("kind is required"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("kind is required"))
 			}
 
 			err := profileService.UpdateMembership(
@@ -274,7 +274,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 					statusCode = http.StatusBadRequest
 				}
 
-				return ctx.Results.Error(statusCode, httpfx.WithPlainText(err.Error()))
+				return ctx.Results.Error(statusCode, httpfx.WithErrorMessage(err.Error()))
 			}
 
 			return ctx.Results.JSON(map[string]string{"status": "ok"})
@@ -290,7 +290,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if !ok {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Session ID not found in context"),
+					httpfx.WithErrorMessage("Session ID not found in context"),
 				)
 			}
 
@@ -301,7 +301,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -309,7 +309,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
@@ -333,7 +333,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 					statusCode = http.StatusBadRequest
 				}
 
-				return ctx.Results.Error(statusCode, httpfx.WithPlainText(err.Error()))
+				return ctx.Results.Error(statusCode, httpfx.WithErrorMessage(err.Error()))
 			}
 
 			return ctx.Results.JSON(map[string]string{"status": "ok"})

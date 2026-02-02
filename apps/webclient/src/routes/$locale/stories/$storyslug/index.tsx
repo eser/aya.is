@@ -37,6 +37,9 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
     return { story, compiledContent, currentUrl, locale };
   },
   head: ({ loaderData }) => {
+    if (loaderData === undefined) {
+      return { meta: [] };
+    }
     const { story, currentUrl, locale } = loaderData;
     return {
       meta: generateMetaTags({
