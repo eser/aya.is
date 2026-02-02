@@ -52,6 +52,17 @@ $ git clone git@github.com:eser/aya.is.git
 $ cd aya.is
 ```
 
+Set up the required environment variables for the backend service:
+
+```bash
+# Create .env.local file (this file is gitignored)
+$ cat > apps/services/.env.local << EOF
+AUTH__JWT_SECRET=any-secret-key-here
+EOF
+```
+
+> **Note:** `AUTH__JWT_SECRET` is required for authentication. You can use any value for local development.
+
 Use Make commands to start the project:
 
 ```bash
