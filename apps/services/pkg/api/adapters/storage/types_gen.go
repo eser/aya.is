@@ -88,6 +88,8 @@ type Profile struct {
 	DeletedAt         sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	ApprovedAt        sql.NullTime          `db:"approved_at" json:"approved_at"`
 	Points            int32                 `db:"points" json:"points"`
+	HideRelations     bool                  `db:"hide_relations" json:"hide_relations"`
+	HideLinks         bool                  `db:"hide_links" json:"hide_links"`
 }
 
 type ProfileLink struct {

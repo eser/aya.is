@@ -152,6 +152,8 @@ func (r *Repository) GetProfileByID(
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
 		Points:            uint64(row.Profile.Points),
+		HideRelations:     row.Profile.HideRelations,
+		HideLinks:         row.Profile.HideLinks,
 	}
 
 	return result, nil
@@ -190,6 +192,8 @@ func (r *Repository) ListProfiles(
 			CreatedAt:         row.Profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+			HideRelations:     row.Profile.HideRelations,
+			HideLinks:         row.Profile.HideLinks,
 		}
 	}
 

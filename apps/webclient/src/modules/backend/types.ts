@@ -18,6 +18,8 @@ export interface Profile {
   pages?: ProfilePage[];
   points: number;
   has_translation?: boolean;
+  hide_relations?: boolean; // Hides Members/Contributions from sidebar
+  hide_links?: boolean; // Hides Links from sidebar
   created_at: string;
   updated_at: string;
 }

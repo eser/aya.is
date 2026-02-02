@@ -77,6 +77,8 @@ type Profile struct {
 	Description       string     `json:"description"`
 	Points            uint64     `json:"points"`
 	HasTranslation    bool       `json:"has_translation"`
+	HideRelations     bool       `json:"hide_relations"` // Hides Members/Contributions from sidebar
+	HideLinks         bool       `json:"hide_links"`     // Hides Links from sidebar
 }
 
 type ProfileWithChildren struct {
