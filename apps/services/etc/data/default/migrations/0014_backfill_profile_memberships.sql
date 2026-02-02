@@ -63,7 +63,8 @@ SELECT DISTINCT ON (p.id)
   p.created_at,
   NOW()
 FROM "profile" p
-INNER JOIN "story" s ON s.profile_id = p.id AND s.deleted_at IS NULL
+INNER JOIN "story_publication" sp ON sp.profile_id = p.id
+INNER JOIN "story" s ON s.id = sp.story_id AND s.deleted_at IS NULL
 INNER JOIN "user" u ON u.individual_profile_id = s.author_profile_id AND u.deleted_at IS NULL
 WHERE p.kind IN ('organization', 'product')
   AND p.deleted_at IS NULL
