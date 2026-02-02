@@ -18,7 +18,7 @@ BEGIN
   -- Encode timestamp (10 chars)
   timestamp_part := '';
   FOR i IN 1..10 LOOP
-    timestamp_part := substring(chars FROM ((ms % 32) + 1) FOR 1) || timestamp_part;
+    timestamp_part := substring(chars FROM ((ms % 32) + 1)::INT FOR 1) || timestamp_part;
     ms := ms / 32;
   END LOOP;
 
