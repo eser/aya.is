@@ -33,7 +33,7 @@ import { type ContentStatus, EditorActions } from "./editor-actions";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
-import { slugify } from "@/lib/slugify";
+import { sanitizeSlug, slugify } from "@/lib/slugify";
 import { isAllowedURI } from "@/config";
 import { backend } from "@/modules/backend/backend";
 import { getEntityConfig } from "./entity-types";
@@ -743,7 +743,8 @@ export function ContentEditor(props: ContentEditorProps) {
                     id="slug"
                     value={slug}
                     onChange={(e) => {
-                      setSlug(e.target.value);
+                      const sanitized = sanitizeSlug(e.target.value);
+                      setSlug(sanitized);
                       if (!showSlugValidation) setShowSlugValidation(true);
                       if (!slugManuallyEdited) setSlugManuallyEdited(true);
                     }}

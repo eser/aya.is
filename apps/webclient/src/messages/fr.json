@@ -402,6 +402,7 @@
     "Slug can only contain lowercase letters, numbers, and hyphens": "Slug can only contain lowercase letters, numbers, and hyphens",
     "Title is required": "Title is required",
     "Title is too long": "Title is too long",
+    "Description is required": "La description est obligatoire",
     "Description is too long": "Description is too long",
     "Select GitHub Account": "Select GitHub Account",
     "Choose which GitHub account or organization to connect.": "Choose which GitHub account or organization to connect.",

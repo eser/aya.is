@@ -3,16 +3,21 @@ package http
 import (
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
+
+// Slug validation regex for stories.
+var storySlugRegex = regexp.MustCompile(`^[a-z0-9-]+$`)
 
 func RegisterHTTPRoutesForStories( //nolint:funlen
 	routes *httpfx.Router,
@@ -150,14 +155,56 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			if requestBody.Slug == "" || requestBody.Kind == "" ||
-				requestBody.Title == "" || requestBody.Status == "" {
+			// Sanitize inputs
+			requestBody.Slug = lib.SanitizeSlug(strings.TrimSpace(requestBody.Slug))
+			requestBody.Kind = strings.TrimSpace(requestBody.Kind)
+			requestBody.Title = strings.TrimSpace(requestBody.Title)
+			requestBody.Summary = strings.TrimSpace(requestBody.Summary)
+			requestBody.Status = strings.TrimSpace(requestBody.Status)
+
+			// Validate kind
+			validKinds := map[string]bool{
+				"article": true, "announcement": true, "news": true,
+				"status": true, "content": true, "presentation": true,
+			}
+			if !validKinds[requestBody.Kind] {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid story kind"))
+			}
+
+			// Validate slug
+			if len(requestBody.Slug) < 2 {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Slug, kind, title, and status are required"),
+					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
+			}
+			if len(requestBody.Slug) > 100 {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
+				)
+			}
+			if !storySlugRegex.MatchString(requestBody.Slug) {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage(
+						"Slug can only contain lowercase letters, numbers, and hyphens",
+					),
+				)
+			}
+
+			// Validate title
+			if len(requestBody.Title) == 0 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
+			}
+			if len(requestBody.Title) > 200 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
+			}
+
+			// Validate status
+			validStatuses := map[string]bool{"draft": true, "published": true}
+			if !validStatuses[requestBody.Status] {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid status"))
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
@@ -328,20 +375,43 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			if requestBody.Slug == "" || requestBody.Status == "" {
+			// Sanitize inputs
+			requestBody.Slug = lib.SanitizeSlug(strings.TrimSpace(requestBody.Slug))
+			requestBody.Status = strings.TrimSpace(requestBody.Status)
+
+			// Validate slug
+			if len(requestBody.Slug) < 2 {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Slug and status are required"),
+					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
+			}
+			if len(requestBody.Slug) > 100 {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
+				)
+			}
+			if !storySlugRegex.MatchString(requestBody.Slug) {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage(
+						"Slug can only contain lowercase letters, numbers, and hyphens",
+					),
+				)
+			}
+
+			// Validate status
+			validStatuses := map[string]bool{"draft": true, "published": true}
+			if !validStatuses[requestBody.Status] {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid status"))
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -350,7 +420,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 

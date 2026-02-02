@@ -3,6 +3,10 @@ module github.com/eser/aya.is/services
 go 1.24.4
 
 require (
+	github.com/aws/aws-sdk-go-v2 v1.41.1
+	github.com/aws/aws-sdk-go-v2/config v1.32.7
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.7
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.95.1
 	github.com/getkin/kin-openapi v0.132.0
 	github.com/go-rod/rod v0.116.2
 	github.com/golang-jwt/jwt/v5 v5.2.2
@@ -28,6 +32,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
 	golang.org/x/net v0.47.0
+	golang.org/x/text v0.31.0
 	modernc.org/sqlite v1.38.0
 )
 
@@ -60,10 +65,7 @@ require (
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/ashanbrown/forbidigo/v2 v2.1.0 // indirect
 	github.com/ashanbrown/makezero/v2 v2.0.1 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.41.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.4 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.32.7 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.7 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.17 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.17 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.17 // indirect
@@ -73,7 +75,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.17 // indirect
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.95.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.30.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.13 // indirect
@@ -312,7 +313,6 @@ require (
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
 	golang.org/x/term v0.37.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	golang.org/x/tools/go/expect v0.1.1-deprecated // indirect
 	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect

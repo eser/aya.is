@@ -3,9 +3,11 @@ package http
 import (
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -13,6 +15,9 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
+
+// Slug validation regex for pages.
+var pageSlugRegex = regexp.MustCompile(`^[a-z0-9-]+$`)
 
 func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	routes *httpfx.Router,
@@ -412,30 +417,59 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			// Validate required fields
-			if requestBody.Kind == "" || requestBody.Slug == "" || requestBody.Title == "" ||
-				requestBody.Description == "" {
-				return ctx.Results.BadRequest(
-					httpfx.WithPlainText(
-						"All fields (kind, slug, title, description) are required",
-					),
-				)
-			}
+			// Sanitize inputs - trim whitespace
+			requestBody.Kind = strings.TrimSpace(requestBody.Kind)
+			requestBody.Slug = strings.TrimSpace(strings.ToLower(requestBody.Slug))
+			requestBody.Title = strings.TrimSpace(requestBody.Title)
+			requestBody.Description = strings.TrimSpace(requestBody.Description)
 
 			// Validate kind
 			if requestBody.Kind != "individual" && requestBody.Kind != "organization" &&
 				requestBody.Kind != "product" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid profile kind"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid profile kind"))
+			}
+
+			// Validate slug
+			if len(requestBody.Slug) < 2 {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
+				)
+			}
+			if len(requestBody.Slug) > 50 {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Slug must be at most 50 characters"),
+				)
+			}
+			slugRegex := regexp.MustCompile(`^[a-z0-9-]+$`)
+			if !slugRegex.MatchString(requestBody.Slug) {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage(
+						"Slug can only contain lowercase letters, numbers, and hyphens",
+					),
+				)
+			}
+
+			// Validate title
+			if len(requestBody.Title) == 0 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
+			}
+			if len(requestBody.Title) > 100 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
+			}
+
+			// Validate description (optional but has max length)
+			if len(requestBody.Description) > 500 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Description is too long"))
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -444,14 +478,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
 			// Check individual profile restriction
 			if requestBody.Kind == "individual" && user.IndividualProfileID != nil {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("User already has an individual profile"),
+					httpfx.WithErrorMessage("User already has an individual profile"),
 				)
 			}
 
@@ -460,12 +494,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to check slug availability"),
+					httpfx.WithErrorMessage("Failed to check slug availability"),
 				)
 			}
 
 			if exists {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Slug is already taken"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Slug is already taken"))
 			}
 
 			// Create the profile
@@ -490,7 +524,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to create profile"),
+					httpfx.WithErrorMessage("Failed to create profile"),
 				)
 			}
 
@@ -1381,14 +1415,44 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			// Validate required fields
-			if requestBody.Slug == "" || requestBody.Title == "" || requestBody.Summary == "" {
+			// Sanitize inputs
+			requestBody.Slug = lib.SanitizeSlug(strings.TrimSpace(requestBody.Slug))
+			requestBody.Title = strings.TrimSpace(requestBody.Title)
+			requestBody.Summary = strings.TrimSpace(requestBody.Summary)
+
+			// Validate slug
+			if len(requestBody.Slug) < 2 {
 				return ctx.Results.BadRequest(
-					httpfx.WithPlainText("Slug, title and summary are required"),
+					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
+			}
+			if len(requestBody.Slug) > 100 {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
+				)
+			}
+			if !pageSlugRegex.MatchString(requestBody.Slug) {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage(
+						"Slug can only contain lowercase letters, numbers, and hyphens",
+					),
+				)
+			}
+
+			// Validate title
+			if len(requestBody.Title) == 0 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
+			}
+			if len(requestBody.Title) > 200 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
+			}
+
+			// Validate summary (required for pages)
+			if len(requestBody.Summary) == 0 {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Summary is required"))
 			}
 
 			// Get user ID from session
@@ -1481,12 +1545,29 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			// Validate required fields
-			if requestBody.Slug == "" {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Slug is required"))
+			// Sanitize inputs
+			requestBody.Slug = lib.SanitizeSlug(strings.TrimSpace(requestBody.Slug))
+
+			// Validate slug
+			if len(requestBody.Slug) < 2 {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
+				)
+			}
+			if len(requestBody.Slug) > 100 {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
+				)
+			}
+			if !pageSlugRegex.MatchString(requestBody.Slug) {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage(
+						"Slug can only contain lowercase letters, numbers, and hyphens",
+					),
+				)
 			}
 
 			// Get user ID from session
@@ -1494,7 +1575,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if sessionErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get session information"),
+					httpfx.WithErrorMessage("Failed to get session information"),
 				)
 			}
 
@@ -1503,7 +1584,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithPlainText("Failed to get user information"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 

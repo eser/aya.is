@@ -36,6 +36,11 @@ func WithPlainText(body string) ResultOption {
 	}
 }
 
+// WithErrorMessage wraps an error message in a JSON response with {"error": "message"} format.
+func WithErrorMessage(message string) ResultOption {
+	return WithJSON(map[string]string{"error": message})
+}
+
 func WithJSON(body any) ResultOption {
 	return func(result *Result) {
 		encoded, err := json.Marshal(body)

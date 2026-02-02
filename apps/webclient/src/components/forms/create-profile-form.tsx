@@ -6,7 +6,7 @@ import { ArrowLeft, Building2, Check, Loader2, Package, User } from "lucide-reac
 import { z } from "zod";
 import type { CreateProfileInput } from "@/lib/schemas/profile";
 import { backend } from "@/modules/backend/backend";
-import { slugify } from "@/lib/slugify";
+import { sanitizeSlug, slugify } from "@/lib/slugify";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
@@ -112,7 +112,14 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
       onChange: localizedSchema,
     },
     onSubmit: async ({ value }) => {
-      await props.onSubmit(value);
+      // Sanitize values before submission
+      const sanitizedValue = {
+        kind: value.kind,
+        slug: slugify(value.slug),
+        title: value.title.trim(),
+        description: value.description?.trim() ?? "",
+      };
+      await props.onSubmit(sanitizedValue);
     },
   });
 
@@ -166,9 +173,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
   };
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const sanitized = e.target.value
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-");
+    const sanitized = sanitizeSlug(e.target.value);
     setSlugValue(sanitized);
     form.setFieldValue("slug", sanitized);
     if (!slugManuallyEdited) setSlugManuallyEdited(true);

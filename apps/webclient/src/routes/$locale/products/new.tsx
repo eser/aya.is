@@ -41,21 +41,29 @@ function NewProductProfilePage() {
   const hasIndividualProfile = auth.user.individual_profile_slug !== undefined;
 
   const handleSubmit = async (data: CreateProfileInput) => {
-    const result = await backend.createProfile(params.locale, {
-      kind: data.kind,
-      slug: data.slug,
-      title: data.title,
-      description: data.description ?? "",
-    });
-
-    if (result !== null) {
-      toast.success(t("Profile.Profile created successfully"));
-      navigate({
-        to: "/$locale/$slug",
-        params: { locale: params.locale, slug: data.slug },
+    try {
+      const result = await backend.createProfile(params.locale, {
+        kind: data.kind,
+        slug: data.slug,
+        title: data.title,
+        description: data.description ?? "",
       });
-    } else {
-      toast.error(t("Profile.Failed to create profile"));
+
+      if (result !== null) {
+        toast.success(t("Profile.Profile created successfully"));
+        navigate({
+          to: "/$locale/$slug",
+          params: { locale: params.locale, slug: data.slug },
+        });
+      } else {
+        toast.error(t("Profile.Failed to create profile"));
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error(t("Profile.Failed to create profile"));
+      }
     }
   };
 

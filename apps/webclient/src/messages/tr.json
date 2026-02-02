@@ -406,6 +406,7 @@
     "Slug can only contain lowercase letters, numbers, and hyphens": "Slug yalnızca küçük harf, rakam ve tire içerebilir",
     "Title is required": "Başlık gereklidir",
     "Title is too long": "Başlık çok uzun",
+    "Description is required": "Açıklama gereklidir",
     "Description is too long": "Açıklama çok uzun",
     "Select GitHub Account": "GitHub Hesabı Seçin",
     "Choose which GitHub account or organization to connect.": "Bağlanacak GitHub hesabını veya organizasyonunu seçin.",
