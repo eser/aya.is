@@ -749,14 +749,15 @@ type Querier interface {
 	//      ELSE false
 	//    END as can_edit
 	//  FROM "profile" p
+	//  CROSS JOIN "user" u
 	//  LEFT JOIN "profile_membership" pm ON p.id = pm.profile_id
+	//    AND pm.member_profile_id = u.individual_profile_id
 	//    AND pm.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
-	//  LEFT JOIN "profile" up ON pm.member_profile_id = up.id AND up.deleted_at IS NULL
-	//  LEFT JOIN "user" u ON up.id = u.individual_profile_id
 	//  WHERE u.id = $1
 	//    AND p.slug = $2
 	//    AND p.deleted_at IS NULL
+	//    AND u.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileOwnershipForUser(ctx context.Context, arg GetProfileOwnershipForUserParams) (*GetProfileOwnershipForUserRow, error)
 	//GetProfilePage

@@ -795,16 +795,11 @@ func (r *Repository) GetProfileOwnershipForUser(
 		return nil, err
 	}
 
-	userKind := ""
-	if row.UserKind.Valid {
-		userKind = row.UserKind.String
-	}
-
 	result := &profiles.ProfileOwnership{
 		ProfileID:   row.ID,
 		ProfileSlug: row.Slug,
 		ProfileKind: row.ProfileKind,
-		UserKind:    userKind,
+		UserKind:    row.UserKind,
 		CanEdit:     row.CanEdit,
 	}
 
