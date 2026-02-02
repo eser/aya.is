@@ -70,6 +70,8 @@ SET
   profile_picture_uri = COALESCE(sqlc.narg(profile_picture_uri), profile_picture_uri),
   pronouns = COALESCE(sqlc.narg(pronouns), pronouns),
   properties = COALESCE(sqlc.narg(properties), properties),
+  hide_relations = COALESCE(sqlc.narg(hide_relations), hide_relations),
+  hide_links = COALESCE(sqlc.narg(hide_links), hide_links),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;

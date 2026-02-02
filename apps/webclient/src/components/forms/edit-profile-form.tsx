@@ -74,7 +74,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
           return (
             <Field data-invalid={hasError || undefined}>
               <FieldLabel htmlFor={field.name}>
-                {t("Profile.Title")}
+                {t("Common.Title")}
               </FieldLabel>
               <Input
                 id={field.name}
@@ -98,7 +98,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
           return (
             <Field data-invalid={hasError || undefined}>
               <FieldLabel htmlFor={field.name}>
-                {t("Profile.Description")}
+                {t("Common.Description")}
               </FieldLabel>
               <Textarea
                 id={field.name}

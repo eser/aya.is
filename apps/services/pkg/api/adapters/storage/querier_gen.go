@@ -1523,8 +1523,10 @@ type Querier interface {
 	//    profile_picture_uri = COALESCE($1, profile_picture_uri),
 	//    pronouns = COALESCE($2, pronouns),
 	//    properties = COALESCE($3, properties),
+	//    hide_relations = COALESCE($4, hide_relations),
+	//    hide_links = COALESCE($5, hide_links),
 	//    updated_at = NOW()
-	//  WHERE id = $4
+	//  WHERE id = $6
 	//    AND deleted_at IS NULL
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	//UpdateProfileLink

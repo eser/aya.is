@@ -2571,8 +2571,10 @@ SET
   profile_picture_uri = COALESCE($1, profile_picture_uri),
   pronouns = COALESCE($2, pronouns),
   properties = COALESCE($3, properties),
+  hide_relations = COALESCE($4, hide_relations),
+  hide_links = COALESCE($5, hide_links),
   updated_at = NOW()
-WHERE id = $4
+WHERE id = $6
   AND deleted_at IS NULL
 `
 
@@ -2580,6 +2582,8 @@ type UpdateProfileParams struct {
 	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
 	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
+	HideRelations     sql.NullBool          `db:"hide_relations" json:"hide_relations"`
+	HideLinks         sql.NullBool          `db:"hide_links" json:"hide_links"`
 	ID                string                `db:"id" json:"id"`
 }
 
@@ -2590,14 +2594,18 @@ type UpdateProfileParams struct {
 //	  profile_picture_uri = COALESCE($1, profile_picture_uri),
 //	  pronouns = COALESCE($2, pronouns),
 //	  properties = COALESCE($3, properties),
+//	  hide_relations = COALESCE($4, hide_relations),
+//	  hide_links = COALESCE($5, hide_links),
 //	  updated_at = NOW()
-//	WHERE id = $4
+//	WHERE id = $6
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateProfile,
 		arg.ProfilePictureURI,
 		arg.Pronouns,
 		arg.Properties,
+		arg.HideRelations,
+		arg.HideLinks,
 		arg.ID,
 	)
 	if err != nil {

@@ -597,10 +597,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				ProfilePictureURI *string        `json:"profile_picture_uri"`
 				Pronouns          *string        `json:"pronouns"`
 				Properties        map[string]any `json:"properties"`
+				HideRelations     *bool          `json:"hide_relations"`
+				HideLinks         *bool          `json:"hide_links"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithPlainText("Invalid request body"))
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
 			// Get user ID from session
@@ -630,6 +632,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.ProfilePictureURI,
 				requestBody.Pronouns,
 				requestBody.Properties,
+				requestBody.HideRelations,
+				requestBody.HideLinks,
 			)
 			if err != nil {
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {

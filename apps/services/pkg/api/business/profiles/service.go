@@ -212,6 +212,8 @@ type Repository interface { //nolint:interfacebloat
 		profilePictureURI *string,
 		pronouns *string,
 		properties map[string]any,
+		hideRelations *bool,
+		hideLinks *bool,
 	) error
 	UpdateProfileTx(
 		ctx context.Context,
@@ -1020,6 +1022,8 @@ func (s *Service) Update(
 	profilePictureURI *string,
 	pronouns *string,
 	properties map[string]any,
+	hideRelations *bool,
+	hideLinks *bool,
 ) (*Profile, error) {
 	// Admin users can edit any profile
 	canEdit := false
@@ -1064,7 +1068,15 @@ func (s *Service) Update(
 	}
 
 	// Update the profile
-	err = s.repo.UpdateProfile(ctx, profileID, profilePictureURI, pronouns, properties)
+	err = s.repo.UpdateProfile(
+		ctx,
+		profileID,
+		profilePictureURI,
+		pronouns,
+		properties,
+		hideRelations,
+		hideLinks,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToUpdateRecord, profileID, err)
 	}

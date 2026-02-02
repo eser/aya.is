@@ -545,12 +545,16 @@ func (r *Repository) UpdateProfile(
 	profilePictureURI *string,
 	pronouns *string,
 	properties map[string]any,
+	hideRelations *bool,
+	hideLinks *bool,
 ) error {
 	params := UpdateProfileParams{
 		ID:                id,
 		ProfilePictureURI: vars.ToSQLNullString(profilePictureURI),
 		Pronouns:          vars.ToSQLNullString(pronouns),
 		Properties:        vars.ToSQLNullRawMessage(properties),
+		HideRelations:     vars.ToSQLNullBool(hideRelations),
+		HideLinks:         vars.ToSQLNullBool(hideLinks),
 	}
 
 	_, err := r.queries.UpdateProfile(ctx, params)

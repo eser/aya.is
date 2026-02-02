@@ -55,6 +55,25 @@ func ToSQLNullTime(t *time.Time) sql.NullTime {
 	}
 }
 
+func ToBoolPtr(b sql.NullBool) *bool {
+	if b.Valid {
+		return &b.Bool
+	}
+
+	return nil
+}
+
+func ToSQLNullBool(b *bool) sql.NullBool {
+	if b != nil {
+		return sql.NullBool{Bool: *b, Valid: true}
+	}
+
+	return sql.NullBool{
+		Bool:  false,
+		Valid: false,
+	}
+}
+
 func ToRawMessage(m pqtype.NullRawMessage) []byte {
 	if m.Valid {
 		return m.RawMessage
