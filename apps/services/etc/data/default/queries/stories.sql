@@ -11,7 +11,7 @@ LIMIT 1;
 --   1. Story is published, OR
 --   2. Viewer is admin, OR
 --   3. Viewer is the author (individual profile owner)
---   4. Viewer is owner/lead/editor of the author profile
+--   4. Viewer is owner/lead/maintainer of the author profile
 SELECT s.id
 FROM "story" s
 LEFT JOIN "user" u ON u.id = sqlc.narg(viewer_user_id)::CHAR(26)
@@ -25,7 +25,7 @@ WHERE s.slug = sqlc.arg(slug)
     s.status = 'published'
     OR u.kind = 'admin'
     OR s.author_profile_id = u.individual_profile_id
-    OR pm.kind IN ('owner', 'lead', 'editor')
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
   )
 LIMIT 1;
 
@@ -205,7 +205,7 @@ SELECT
   CASE
     WHEN u.kind = 'admin' THEN true
     WHEN s.author_profile_id = u.individual_profile_id THEN true
-    WHEN pm.kind IN ('owner', 'lead', 'editor') THEN true
+    WHEN pm.kind IN ('owner', 'lead', 'maintainer') THEN true
     ELSE false
   END as can_edit
 FROM "story" s
