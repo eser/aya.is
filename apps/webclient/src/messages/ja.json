@@ -549,7 +549,16 @@
     "Title is required": "タイトルは必須です",
     "Title must be at most 200 characters": "タイトルは200文字以下である必要があります",
     "Invalid URI": "無効なURI",
-    "URI must start with allowed prefix": "URI must start with allowed prefix"
+    "URI must start with allowed prefix": "URI must start with allowed prefix",
+    "Select profiles to publish to": "公開先のプロフィールを選択",
+    "Failed to remove publication": "公開の削除に失敗しました",
+    "Failed to add publication": "公開の追加に失敗しました",
+    "Failed to update publication": "公開の更新に失敗しました",
+    "Remove featured": "注目を解除",
+    "Mark as featured": "注目に設定",
+    "No profiles available": "利用可能なプロフィールがありません",
+    "Unpublish from all profiles first": "先にすべてのプロフィールから公開を解除してください",
+    "you": "あなた"
   },
   "Admin": {
     "Admin Area": "管理エリア",

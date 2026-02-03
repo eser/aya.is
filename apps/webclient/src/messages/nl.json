@@ -549,7 +549,16 @@
     "Title is required": "Titel is verplicht",
     "Title must be at most 200 characters": "Titel mag maximaal 200 tekens bevatten",
     "Invalid URI": "Ongeldige URI",
-    "URI must start with allowed prefix": "URI must start with allowed prefix"
+    "URI must start with allowed prefix": "URI must start with allowed prefix",
+    "Select profiles to publish to": "Selecteer profielen om naar te publiceren",
+    "Failed to remove publication": "Publicatie verwijderen mislukt",
+    "Failed to add publication": "Publicatie toevoegen mislukt",
+    "Failed to update publication": "Publicatie bijwerken mislukt",
+    "Remove featured": "Uitgelicht verwijderen",
+    "Mark as featured": "Markeren als uitgelicht",
+    "No profiles available": "Geen profielen beschikbaar",
+    "Unpublish from all profiles first": "Eerst van alle profielen depubliceren",
+    "you": "jij"
   },
   "Admin": {
     "Admin Area": "Beheergebied",

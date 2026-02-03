@@ -549,7 +549,16 @@
     "Title is required": "El título es obligatorio",
     "Title must be at most 200 characters": "El título debe tener como máximo 200 caracteres",
     "Invalid URI": "URI no válida",
-    "URI must start with allowed prefix": "URI must start with allowed prefix"
+    "URI must start with allowed prefix": "URI must start with allowed prefix",
+    "Select profiles to publish to": "Seleccionar perfiles para publicar",
+    "Failed to remove publication": "Error al eliminar la publicación",
+    "Failed to add publication": "Error al agregar la publicación",
+    "Failed to update publication": "Error al actualizar la publicación",
+    "Remove featured": "Quitar destacado",
+    "Mark as featured": "Marcar como destacado",
+    "No profiles available": "No hay perfiles disponibles",
+    "Unpublish from all profiles first": "Despublicar de todos los perfiles primero",
+    "you": "tú"
   },
   "Admin": {
     "Admin Area": "Área de administración",

@@ -233,6 +233,7 @@ function EditStoryPage() {
           storyId={story.id}
           initialPublications={editData.publications ?? []}
           accessibleProfiles={auth.user?.accessible_profiles ?? []}
+          individualProfile={auth.user?.individual_profile}
         />
       </div>
     </PageLayout>

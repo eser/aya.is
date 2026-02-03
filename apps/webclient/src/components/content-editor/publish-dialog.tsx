@@ -13,7 +13,15 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { StoryPublication } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/sessions/types";
+import type { IndividualProfile } from "@/lib/auth/auth-context";
 import { backend } from "@/modules/backend/backend";
+
+type ProfileRow = {
+  id: string;
+  slug: string;
+  title: string;
+  profile_picture_uri?: string | null;
+};
 
 type PublishDialogProps = {
   open: boolean;
@@ -23,6 +31,8 @@ type PublishDialogProps = {
   storyId: string;
   publications: StoryPublication[];
   accessibleProfiles: AccessibleProfile[];
+  individualProfile?: IndividualProfile;
+  isNew?: boolean;
   onPublicationsChange: (publications: StoryPublication[]) => void;
 };
 
@@ -35,19 +45,44 @@ export function PublishDialog(props: PublishDialogProps) {
     storyId,
     publications,
     accessibleProfiles,
+    individualProfile,
+    isNew = false,
     onPublicationsChange,
   } = props;
 
   const { t } = useTranslation();
   const [loadingProfileIds, setLoadingProfileIds] = React.useState<Set<string>>(new Set());
 
-  // Filter accessible profiles to those with edit-capable roles
-  const editableProfiles = React.useMemo(() => {
+  // Build the ordered profile list: individual first, then org/product profiles
+  const allProfiles = React.useMemo(() => {
     const editRoles = new Set(["owner", "lead", "maintainer", "contributor"]);
-    return accessibleProfiles.filter(
-      (p) => editRoles.has(p.membership_kind),
-    );
-  }, [accessibleProfiles]);
+    const orgProfiles: ProfileRow[] = accessibleProfiles
+      .filter((p) => editRoles.has(p.membership_kind))
+      .map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        profile_picture_uri: p.profile_picture_uri,
+      }));
+
+    const result: ProfileRow[] = [];
+
+    // Add individual profile on top if available (and not already in org list)
+    if (individualProfile !== undefined) {
+      const alreadyInList = orgProfiles.some((p) => p.id === individualProfile.id);
+      if (!alreadyInList) {
+        result.push({
+          id: individualProfile.id,
+          slug: individualProfile.slug,
+          title: individualProfile.title,
+          profile_picture_uri: individualProfile.profile_picture_uri,
+        });
+      }
+    }
+
+    result.push(...orgProfiles);
+    return result;
+  }, [accessibleProfiles, individualProfile]);
 
   // Map of profileId -> publication for quick lookup
   const publicationByProfileId = React.useMemo(() => {
@@ -58,7 +93,7 @@ export function PublishDialog(props: PublishDialogProps) {
     return map;
   }, [publications]);
 
-  const handleTogglePublication = async (profile: AccessibleProfile) => {
+  const handleTogglePublication = async (profile: ProfileRow) => {
     const existingPub = publicationByProfileId.get(profile.id);
     setLoadingProfileIds((prev) => new Set([...prev, profile.id]));
 
@@ -145,10 +180,11 @@ export function PublishDialog(props: PublishDialogProps) {
         </DialogHeader>
 
         <div className="space-y-1 py-2">
-          {editableProfiles.map((profile) => {
+          {allProfiles.map((profile) => {
             const pub = publicationByProfileId.get(profile.id);
             const isPublished = pub !== undefined;
             const isLoading = loadingProfileIds.has(profile.id);
+            const isIndividual = individualProfile !== undefined && profile.id === individualProfile.id;
 
             return (
               <div
@@ -166,7 +202,14 @@ export function PublishDialog(props: PublishDialogProps) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{profile.title}</span>
+                    <span className="text-sm font-medium">
+                      {profile.title}
+                      {isIndividual && (
+                        <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                          ({t("ContentEditor.you")})
+                        </span>
+                      )}
+                    </span>
                     <span className="text-xs text-muted-foreground">@{profile.slug}</span>
                   </div>
                 </div>
@@ -200,7 +243,7 @@ export function PublishDialog(props: PublishDialogProps) {
             );
           })}
 
-          {editableProfiles.length === 0 && (
+          {allProfiles.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
               {t("ContentEditor.No profiles available")}
             </p>

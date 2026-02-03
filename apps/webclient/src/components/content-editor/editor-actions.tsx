@@ -93,7 +93,7 @@ export function EditorActions(props: EditorActionsProps) {
 
       <Button variant="default" size="sm" onClick={onOpenPublishDialog} disabled={isSaving}>
         <Globe className="mr-1.5 size-4" />
-        {t("ContentEditor.Publish")}
+        {t("ContentEditor.Publish")}...
       </Button>
 
       <Button

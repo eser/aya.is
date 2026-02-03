@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import type { StoryKind, StoryPublication } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/sessions/types";
+import type { IndividualProfile } from "@/lib/auth/auth-context";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { insertTextAtCursor, MarkdownEditor, wrapSelectedText } from "./markdown-editor";
 import { PreviewPanel } from "./preview-panel";
@@ -114,6 +115,7 @@ type ContentEditorProps = {
   storyId?: string;
   initialPublications?: StoryPublication[];
   accessibleProfiles?: AccessibleProfile[];
+  individualProfile?: IndividualProfile;
 };
 
 export function ContentEditor(props: ContentEditorProps) {
@@ -132,6 +134,7 @@ export function ContentEditor(props: ContentEditorProps) {
     storyId,
     initialPublications = [],
     accessibleProfiles = [],
+    individualProfile,
   } = props;
 
   const isAdmin = userKind === "admin";
@@ -821,6 +824,8 @@ export function ContentEditor(props: ContentEditorProps) {
           storyId={storyId}
           publications={publications}
           accessibleProfiles={accessibleProfiles}
+          individualProfile={individualProfile}
+          isNew={isNew}
           onPublicationsChange={setPublications}
         />
       )}

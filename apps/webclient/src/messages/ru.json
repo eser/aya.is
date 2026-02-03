@@ -549,7 +549,16 @@
     "Title is required": "Заголовок обязателен",
     "Title must be at most 200 characters": "Заголовок должен содержать не более 200 символов",
     "Invalid URI": "Недействительный URI",
-    "URI must start with allowed prefix": "URI must start with allowed prefix"
+    "URI must start with allowed prefix": "URI must start with allowed prefix",
+    "Select profiles to publish to": "Выберите профили для публикации",
+    "Failed to remove publication": "Не удалось удалить публикацию",
+    "Failed to add publication": "Не удалось добавить публикацию",
+    "Failed to update publication": "Не удалось обновить публикацию",
+    "Remove featured": "Убрать из избранного",
+    "Mark as featured": "Отметить как избранное",
+    "No profiles available": "Нет доступных профилей",
+    "Unpublish from all profiles first": "Сначала снимите публикацию со всех профилей",
+    "you": "вы"
   },
   "Admin": {
     "Admin Area": "Панель администратора",

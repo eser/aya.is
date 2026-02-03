@@ -140,6 +140,8 @@ function NewNewsPage() {
           validateSlugDatePrefix
           onSave={handleSave}
           isNew
+          accessibleProfiles={auth.user?.accessible_profiles ?? []}
+          individualProfile={auth.user?.individual_profile}
         />
       </div>
     </PageLayout>

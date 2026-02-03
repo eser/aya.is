@@ -549,7 +549,16 @@
     "Title is required": "العنوان مطلوب",
     "Title must be at most 200 characters": "يجب ألا يتجاوز العنوان 200 حرف",
     "Invalid URI": "عنوان URI غير صالح",
-    "URI must start with allowed prefix": "يجب أن يبدأ الرابط ببادئة مسموح بها"
+    "URI must start with allowed prefix": "يجب أن يبدأ الرابط ببادئة مسموح بها",
+    "Select profiles to publish to": "اختر الملفات الشخصية للنشر فيها",
+    "Failed to remove publication": "فشل في إزالة النشر",
+    "Failed to add publication": "فشل في إضافة النشر",
+    "Failed to update publication": "فشل في تحديث النشر",
+    "Remove featured": "إزالة التمييز",
+    "Mark as featured": "تعيين كمميز",
+    "No profiles available": "لا توجد ملفات شخصية متاحة",
+    "Unpublish from all profiles first": "قم بإلغاء النشر من جميع الملفات الشخصية أولاً",
+    "you": "أنت"
   },
   "Admin": {
     "Admin Area": "منطقة الإدارة",

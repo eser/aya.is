@@ -549,7 +549,16 @@
     "Title is required": "제목은 필수입니다",
     "Title must be at most 200 characters": "제목은 최대 200자까지 가능합니다",
     "Invalid URI": "잘못된 URI",
-    "URI must start with allowed prefix": "URI must start with allowed prefix"
+    "URI must start with allowed prefix": "URI must start with allowed prefix",
+    "Select profiles to publish to": "게시할 프로필을 선택하세요",
+    "Failed to remove publication": "게시 삭제에 실패했습니다",
+    "Failed to add publication": "게시 추가에 실패했습니다",
+    "Failed to update publication": "게시 업데이트에 실패했습니다",
+    "Remove featured": "추천 해제",
+    "Mark as featured": "추천으로 표시",
+    "No profiles available": "사용 가능한 프로필이 없습니다",
+    "Unpublish from all profiles first": "먼저 모든 프로필에서 게시를 취소하세요",
+    "you": "나"
   },
   "Admin": {
     "Admin Area": "관리 영역",

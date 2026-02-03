@@ -549,7 +549,16 @@
     "Title is required": "Başlık gerekli",
     "Title must be at most 200 characters": "Başlık en fazla 200 karakter olmalı",
     "Invalid URI": "Geçersiz URI",
-    "URI must start with allowed prefix": "URI izin verilen prefix ile başlamalı"
+    "URI must start with allowed prefix": "URI izin verilen prefix ile başlamalı",
+    "Select profiles to publish to": "Yayınlanacak profilleri seçin",
+    "Failed to remove publication": "Yayın kaldırılamadı",
+    "Failed to add publication": "Yayın eklenemedi",
+    "Failed to update publication": "Yayın güncellenemedi",
+    "Remove featured": "Öne çıkarmayı kaldır",
+    "Mark as featured": "Öne çıkar",
+    "No profiles available": "Kullanılabilir profil yok",
+    "Unpublish from all profiles first": "Önce tüm profillerden yayını kaldırın",
+    "you": "sen"
   },
   "Admin": {
     "Admin Area": "Yönetim Paneli",
