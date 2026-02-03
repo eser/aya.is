@@ -21,6 +21,7 @@ type ProfileRow = {
   slug: string;
   title: string;
   profile_picture_uri?: string | null;
+  canFeature: boolean;
 };
 
 type PublishDialogProps = {
@@ -52,10 +53,12 @@ export function PublishDialog(props: PublishDialogProps) {
 
   const { t } = useTranslation();
   const [loadingProfileIds, setLoadingProfileIds] = React.useState<Set<string>>(new Set());
+  const [featured, setFeatured] = React.useState<Record<string, boolean>>({});
 
   // Build the ordered profile list: individual first, then org/product profiles
   const allProfiles = React.useMemo(() => {
     const editRoles = new Set(["owner", "lead", "maintainer", "contributor"]);
+    const featureRoles = new Set(["owner", "lead", "maintainer"]);
     const orgProfiles: ProfileRow[] = accessibleProfiles
       .filter((p) => editRoles.has(p.membership_kind))
       .map((p) => ({
@@ -63,6 +66,7 @@ export function PublishDialog(props: PublishDialogProps) {
         slug: p.slug,
         title: p.title,
         profile_picture_uri: p.profile_picture_uri,
+        canFeature: featureRoles.has(p.membership_kind),
       }));
 
     const result: ProfileRow[] = [];
@@ -76,6 +80,7 @@ export function PublishDialog(props: PublishDialogProps) {
           slug: individualProfile.slug,
           title: individualProfile.title,
           profile_picture_uri: individualProfile.profile_picture_uri,
+          canFeature: true,
         });
       }
     }
@@ -114,12 +119,12 @@ export function PublishDialog(props: PublishDialogProps) {
           toast.error(t("ContentEditor.Failed to remove publication"));
         }
       } else {
-        // Add publication
+        // Add publication with featured intent
         const result = await backend.addStoryPublication(
           locale,
           profileSlug,
           storyId,
-          { profile_id: profile.id },
+          { profile_id: profile.id, is_featured: featured[profile.id] === true },
         );
 
         if (result !== null) {
@@ -137,30 +142,50 @@ export function PublishDialog(props: PublishDialogProps) {
     }
   };
 
-  const handleToggleFeatured = async (pub: StoryPublication) => {
-    setLoadingProfileIds((prev) => new Set([...prev, pub.profile_id]));
+  const isFeatured = (profileId: string): boolean => {
+    // Local state takes precedence, then fall back to publication data
+    if (featured[profileId] !== undefined) {
+      return featured[profileId];
+    }
+    const pub = publicationByProfileId.get(profileId);
+    return pub !== undefined && pub.is_featured;
+  };
 
+  const handleToggleFeatured = async (profileId: string) => {
+    const newValue = !isFeatured(profileId);
+    setFeatured((prev) => ({ ...prev, [profileId]: newValue }));
+
+    const pub = publicationByProfileId.get(profileId);
+    if (pub === undefined) {
+      // Not yet published — local state is enough
+      return;
+    }
+
+    // Already published — persist to backend
+    setLoadingProfileIds((prev) => new Set([...prev, profileId]));
     try {
       const result = await backend.updateStoryPublication(
         locale,
         profileSlug,
         storyId,
         pub.id,
-        { is_featured: !pub.is_featured },
+        { is_featured: newValue },
       );
 
       if (result !== null) {
         const updated = publications.map((p) =>
-          p.id === pub.id ? { ...p, is_featured: !p.is_featured } : p,
+          p.id === pub.id ? { ...p, is_featured: newValue } : p,
         );
         onPublicationsChange(updated);
       } else {
+        // Revert local state on failure
+        setFeatured((prev) => ({ ...prev, [profileId]: !newValue }));
         toast.error(t("ContentEditor.Failed to update publication"));
       }
     } finally {
       setLoadingProfileIds((prev) => {
         const next = new Set(prev);
-        next.delete(pub.profile_id);
+        next.delete(profileId);
         return next;
       });
     }
@@ -215,18 +240,18 @@ export function PublishDialog(props: PublishDialogProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {isPublished && (
+                  {profile.canFeature && (
                     <button
                       type="button"
-                      onClick={() => handleToggleFeatured(pub)}
+                      onClick={() => handleToggleFeatured(profile.id)}
                       disabled={isLoading}
                       className="p-1 rounded hover:bg-muted"
-                      title={pub.is_featured
+                      title={isFeatured(profile.id)
                         ? t("ContentEditor.Remove featured")
                         : t("ContentEditor.Mark as featured")}
                     >
                       <Star
-                        className={`size-4 ${pub.is_featured ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                        className={`size-4 ${isFeatured(profile.id) ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
                       />
                     </button>
                   )}
