@@ -9,7 +9,7 @@ import { buildUrl, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/events/")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const { locale } = params;
     // const events = await backend.getEvents(locale);
 
