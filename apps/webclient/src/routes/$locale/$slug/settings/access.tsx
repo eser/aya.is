@@ -16,6 +16,7 @@ import {
   Star,
 } from "lucide-react";
 import { backend, type ProfileMembershipWithMember, type UserSearchResult, type MembershipKind } from "@/modules/backend/backend";
+import { useAuth } from "@/lib/auth/auth-context";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,12 @@ function AccessSettingsPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
   const { profile } = settingsRoute.useLoaderData();
+  const { user } = useAuth();
+
+  // Determine the viewing user's role for this profile
+  const isAdmin = user?.kind === "admin";
+  const viewerMembership = user?.accessible_profiles?.find((p) => p.slug === params.slug);
+  const isViewerOwner = isAdmin || viewerMembership?.membership_kind === "owner";
 
   // For individual profiles, 'owner' is implicit - don't allow adding it
   const isIndividual = profile?.kind === "individual";
@@ -307,6 +314,15 @@ function AccessSettingsPage() {
             const IconComponent = config.icon;
             const memberProfile = membership.member_profile;
 
+            const isMemberOwner = membership.kind === "owner";
+            const ownerCount = memberships.filter((m) => m.kind === "owner").length;
+            const isLastOwner = isMemberOwner && ownerCount === 1;
+
+            // Non-owners (and non-admins) cannot edit/delete owners
+            const canEditMember = isMemberOwner ? isViewerOwner : true;
+            // Last owner cannot be deleted by anyone
+            const canDeleteMember = isLastOwner ? false : canEditMember;
+
             return (
               <div key={membership.id} className={styles.memberItem}>
                 <Avatar className={styles.memberAvatar}>
@@ -333,6 +349,7 @@ function AccessSettingsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleOpenEditDialog(membership)}
+                    disabled={!canEditMember}
                   >
                     {t("Common.Edit")}
                   </Button>
@@ -340,6 +357,7 @@ function AccessSettingsPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleOpenDeleteDialog(membership)}
+                    disabled={!canDeleteMember}
                   >
                     <Trash2 className="size-4" />
                   </Button>
