@@ -78,7 +78,7 @@ func (r *Repository) RecordTransaction(
 
 	case profile_points.TransactionTypeTransfer:
 		if originProfileID == nil {
-			return nil, errors.New("origin profile ID required for transfer")
+			return nil, profile_points.ErrMissingOriginProfile
 		}
 
 		// Deduct from origin

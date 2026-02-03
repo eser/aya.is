@@ -4,7 +4,7 @@
 import type {
   POWSolverRequest,
   POWSolverResponse,
-} from "@/modules/backend/protection/types.ts";
+} from "@/modules/backend/types";
 
 /**
  * Check if a hash has at least n leading zero bits

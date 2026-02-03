@@ -19,9 +19,8 @@ import {
 import { siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config";
 import { useNavigation } from "@/modules/navigation/navigation-context";
 import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
-import { getSpotlight, type SpotlightItem } from "@/modules/backend/site/get-spotlight";
-import { search } from "@/modules/backend/search/search";
-import type { SearchResult } from "@/modules/backend/search/search";
+import { getSpotlight, search } from "@/modules/backend/backend";
+import type { SpotlightItem, SearchResult } from "@/modules/backend/types";
 import {
   BookOpenIcon,
   BoxesIcon,

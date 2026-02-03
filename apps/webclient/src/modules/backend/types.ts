@@ -408,3 +408,51 @@ export interface CursoredResponse<T> {
   data: T;
   next_cursor: string | null;
 }
+
+// Spotlight Types (for command palette)
+export interface SpotlightItem {
+  icon: string;
+  to: string;
+  title: string;
+}
+
+// Search Result Types
+export interface SearchResult {
+  type: "profile" | "story" | "page";
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  image_uri: string | null;
+  profile_slug: string | null;
+  profile_title: string | null;
+  kind: string | null;
+  rank: number;
+}
+
+// POW (Proof of Work) Types
+export interface POWChallenge {
+  pow_challenge_id: string;
+  prefix: string;
+  difficulty: number;
+  expires_at: string;
+}
+
+export interface POWChallengeDisabled {
+  enabled: false;
+}
+
+export interface POWSolution {
+  nonce: string;
+}
+
+export interface POWSolverRequest {
+  prefix: string;
+  difficulty: number;
+}
+
+export interface POWSolverResponse {
+  nonce: string;
+  iterations: number;
+  elapsed_ms: number;
+}

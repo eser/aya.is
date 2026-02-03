@@ -6,9 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  updateSessionPreferences,
-} from "@/modules/backend/sessions";
+import { updateSessionPreferences } from "@/modules/backend/backend";
 import { useAuth } from "@/lib/auth/auth-context";
 
 type Theme = "dark" | "light" | "system";

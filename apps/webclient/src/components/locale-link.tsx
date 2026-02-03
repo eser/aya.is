@@ -37,22 +37,19 @@ interface LocaleLinkProps extends Omit<LinkProps, "to"> {
  * - Main domain: /path becomes /en/path (if locale is not default TR)
  * - Custom domain: /path becomes /tr/path (if locale is not default EN)
  */
-export function LocaleLink({
-  to,
-  locale,
-  children,
-  ...props
-}: LocaleLinkProps) {
+export function LocaleLink(props: LocaleLinkProps) {
   const { locale: currentLocale, isCustomDomain } = useNavigation();
 
-  const href = localizedUrl(to, {
-    locale: locale || currentLocale,
+  const href = localizedUrl(props.to, {
+    locale: props.locale ?? currentLocale,
     isCustomDomain,
     currentLocale,
   });
 
+  const { to: _to, locale: _locale, children, ...restProps } = props;
+
   return (
-    <Link to={href} {...props}>
+    <Link to={href} {...restProps}>
       {children}
     </Link>
   );

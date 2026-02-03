@@ -1,6 +1,28 @@
 package uploads
 
-import "time"
+import (
+	"context"
+	"time"
+)
+
+// StorageClient defines the interface for object storage operations.
+// This interface allows the business layer to remain decoupled from specific
+// storage implementations (e.g., S3, R2, local filesystem).
+type StorageClient interface {
+	// GeneratePresignedUploadURL generates a pre-signed URL for uploading a file.
+	GeneratePresignedUploadURL(
+		ctx context.Context,
+		key string,
+		contentType string,
+		expiresIn time.Duration,
+	) (string, error)
+
+	// GetPublicURL returns the public URL for a given key.
+	GetPublicURL(key string) string
+
+	// RemoveObject deletes an object from storage.
+	RemoveObject(ctx context.Context, key string) error
+}
 
 // Purpose represents the intended use of an uploaded file.
 type Purpose string

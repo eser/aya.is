@@ -1,6 +1,6 @@
 import * as React from "react";
-import { getSessionCurrent } from "@/modules/backend/sessions/get-session-current";
-import type { SessionPreferences } from "@/modules/backend/sessions/types";
+import { getSessionCurrent } from "@/modules/backend/backend";
+import type { SessionPreferences } from "@/modules/backend/types";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
 import {

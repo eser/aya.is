@@ -73,7 +73,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
               {user.github_handle !== undefined &&
                 user.github_handle !== null && (
                 <p className="text-xs leading-none text-muted-foreground">
-                  @{user.github_handle}
+                  {user.github_handle}@github
                 </p>
               )}
             </div>

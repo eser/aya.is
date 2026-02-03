@@ -1,8 +1,6 @@
 import { useCallback } from "react";
-import {
-  updateSessionPreferences,
-} from "@/modules/backend/sessions";
-import type { SessionPreferences } from "@/modules/backend/sessions/types.ts";
+import { updateSessionPreferences } from "@/modules/backend/backend";
+import type { SessionPreferences } from "@/modules/backend/types";
 import { useAuth } from "@/lib/auth/auth-context";
 
 type Theme = "dark" | "light" | "system";

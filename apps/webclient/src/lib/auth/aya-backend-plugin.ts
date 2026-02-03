@@ -2,6 +2,25 @@ import type { BetterAuthPlugin } from "better-auth";
 import { createAuthEndpoint } from "better-auth/plugins";
 import { getBackendUri } from "@/config";
 
+const BEARER_PREFIX = "Bearer ";
+
+/**
+ * Extracts the token from a Bearer authorization header.
+ * Returns null if the header is missing or doesn't start with "Bearer ".
+ */
+function extractBearerToken(authHeader: string | null | undefined): string | null {
+  if (authHeader === null || authHeader === undefined) {
+    return null;
+  }
+
+  if (!authHeader.startsWith(BEARER_PREFIX)) {
+    return null;
+  }
+
+  const token = authHeader.slice(BEARER_PREFIX.length);
+  return token.length > 0 ? token : null;
+}
+
 /**
  * Custom BetterAuth plugin that proxies auth operations to api.aya.is
  *
@@ -90,10 +109,9 @@ export const ayaBackendPlugin = () => {
         "/session",
         { method: "GET" },
         async (ctx) => {
-          const authHeader = ctx.request?.headers.get("authorization");
-          const token = authHeader !== null && authHeader !== undefined ? authHeader.replace("Bearer ", "") : null;
+          const token = extractBearerToken(ctx.request?.headers.get("authorization"));
 
-          if (token === null || token === "") {
+          if (token === null) {
             return ctx.json({ session: null });
           }
 
@@ -126,10 +144,9 @@ export const ayaBackendPlugin = () => {
         "/refresh",
         { method: "POST" },
         async (ctx) => {
-          const authHeader = ctx.request?.headers.get("authorization");
-          const token = authHeader !== null && authHeader !== undefined ? authHeader.replace("Bearer ", "") : null;
+          const token = extractBearerToken(ctx.request?.headers.get("authorization"));
 
-          if (token === null || token === "") {
+          if (token === null) {
             return ctx.json({ error: "No token provided" }, { status: 401 });
           }
 
@@ -167,11 +184,10 @@ export const ayaBackendPlugin = () => {
         "/logout",
         { method: "POST" },
         async (ctx) => {
-          const authHeader = ctx.request?.headers.get("authorization");
-          const token = authHeader !== null && authHeader !== undefined ? authHeader.replace("Bearer ", "") : null;
+          const token = extractBearerToken(ctx.request?.headers.get("authorization"));
           const backendUri = getBackendUri();
 
-          if (token !== null && token !== "") {
+          if (token !== null) {
             try {
               const body = await ctx.request?.json().catch(() => ({}));
               const locale = body?.locale ?? "tr";

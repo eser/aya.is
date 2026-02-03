@@ -10,7 +10,6 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
-	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 )
 
 const (
@@ -47,15 +46,15 @@ var allowedContentTypes = map[Purpose][]string{ //nolint:gochecknoglobals
 
 // Service handles upload operations.
 type Service struct {
-	logger   *logfx.Logger
-	s3Client *s3client.Client
+	logger        *logfx.Logger
+	storageClient StorageClient
 }
 
 // NewService creates a new upload service.
-func NewService(logger *logfx.Logger, s3Client *s3client.Client) *Service {
+func NewService(logger *logfx.Logger, storageClient StorageClient) *Service {
 	return &Service{
-		logger:   logger,
-		s3Client: s3Client,
+		logger:        logger,
+		storageClient: storageClient,
 	}
 }
 
@@ -82,7 +81,7 @@ func (s *Service) GenerateUploadURL(
 	// Generate presigned URL
 	expiresAt := time.Now().Add(DefaultPresignExpiration)
 
-	uploadURL, err := s.s3Client.GeneratePresignedUploadURL(
+	uploadURL, err := s.storageClient.GeneratePresignedUploadURL(
 		ctx,
 		key,
 		req.ContentType,
@@ -93,7 +92,7 @@ func (s *Service) GenerateUploadURL(
 	}
 
 	// Get public URL
-	publicURL := s.s3Client.GetPublicURL(key)
+	publicURL := s.storageClient.GetPublicURL(key)
 
 	return &PresignedURLResponse{
 		UploadURL: uploadURL,
@@ -105,7 +104,7 @@ func (s *Service) GenerateUploadURL(
 
 // RemoveObject removes an uploaded file.
 func (s *Service) RemoveObject(ctx context.Context, key string) error {
-	err := s.s3Client.RemoveObject(ctx, key)
+	err := s.storageClient.RemoveObject(ctx, key)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToRemoveObject, err)
 	}

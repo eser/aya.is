@@ -3,7 +3,6 @@ package workers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -46,7 +45,7 @@ func (h *PointsEventHandler) HandleNewStory(ctx context.Context, event *events.E
 	}
 
 	if payload.ProfileID == "" {
-		return errors.New("profile_id is required in event payload")
+		return profile_points.ErrMissingProfileID
 	}
 
 	h.logger.Info(

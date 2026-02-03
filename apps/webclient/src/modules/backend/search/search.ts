@@ -1,17 +1,8 @@
 import { fetcher } from "../fetcher";
+import type { SearchResult } from "../types";
 
-export interface SearchResult {
-  type: "profile" | "story" | "page";
-  id: string;
-  slug: string;
-  title: string;
-  summary: string | null;
-  image_uri: string | null;
-  profile_slug: string | null;
-  profile_title: string | null;
-  kind: string | null;
-  rank: number;
-}
+// Re-export for backward compatibility
+export type { SearchResult } from "../types";
 
 export async function search(
   locale: string,

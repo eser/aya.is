@@ -1,10 +1,8 @@
 import { fetcher } from "../fetcher";
+import type { SpotlightItem } from "../types";
 
-export interface SpotlightItem {
-  icon: string;
-  to: string;
-  title: string;
-}
+// Re-export for backward compatibility
+export type { SpotlightItem } from "../types";
 
 export type GetSpotlightData = SpotlightItem[];
 

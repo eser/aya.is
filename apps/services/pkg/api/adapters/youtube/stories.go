@@ -370,14 +370,14 @@ func (p *Provider) fetchVideoMetadata(
 
 		resp, err := p.httpClient.Do(req)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 		}
 
 		body, _ := io.ReadAll(resp.Body)
 		resp.Body.Close() //nolint:errcheck
 
 		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("status %d", resp.StatusCode)
+			return nil, fmt.Errorf("%w: status %d", ErrFailedToFetchVideos, resp.StatusCode)
 		}
 
 		var videosResp struct {
@@ -385,7 +385,7 @@ func (p *Provider) fetchVideoMetadata(
 		}
 
 		if err := json.Unmarshal(body, &videosResp); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 		}
 
 		for _, rawItem := range videosResp.Items {
@@ -393,7 +393,7 @@ func (p *Provider) fetchVideoMetadata(
 
 			err := json.Unmarshal(rawItem, &item)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 			}
 
 			id, _ := item["id"].(string)

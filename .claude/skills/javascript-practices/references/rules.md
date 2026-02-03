@@ -544,6 +544,71 @@ Rationale:
 
 ---
 
+## String Prefix Extraction
+
+### Extract Value After Known Prefix
+
+Scope: JS/TS (HTTP headers, URIs, file paths, protocol strings)
+
+Rule: When extracting a value after a known prefix, use `startsWith()` to validate
+and `slice()` to extract. Never use `replace(prefix, "")` which can modify content
+in the middle or at unexpected positions.
+
+Correct:
+
+```typescript
+// Generic helper for any prefix extraction
+function extractAfterPrefix(
+  value: string | null | undefined,
+  prefix: string,
+): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (!value.startsWith(prefix)) {
+    return null;
+  }
+
+  const extracted = value.slice(prefix.length);
+  return extracted.length > 0 ? extracted : null;
+}
+
+// Usage examples
+const BEARER_PREFIX = "Bearer ";
+const token = extractAfterPrefix(authHeader, BEARER_PREFIX);
+
+const DATA_URI_PREFIX = "data:image/png;base64,";
+const base64Data = extractAfterPrefix(uri, DATA_URI_PREFIX);
+
+const FILE_PROTOCOL = "file://";
+const filePath = extractAfterPrefix(url, FILE_PROTOCOL);
+```
+
+Incorrect:
+
+```typescript
+// ❌ Using replace - doesn't validate prefix position
+const token = authHeader?.replace("Bearer ", "") ?? null;
+// "xBearer token" → "xtoken" (wrong!)
+
+// ❌ Using optional chaining with replace
+const path = uri?.replace("file://", "") ?? null;
+// "s3://file://bucket" → "s3://bucket" (wrong!)
+
+// ❌ Hardcoded slice without prefix validation
+const token = authHeader?.slice(7) ?? null;
+// Doesn't check if "Bearer " actually exists
+```
+
+Rationale:
+- `replace()` replaces first occurrence anywhere in the string, not just at start
+- `startsWith()` + `slice()` is explicit about the expected format
+- Validates the prefix is present before extracting
+- Empty values after prefix are explicitly handled
+
+---
+
 ## Deno Project Scripting
 
 ### Scripts Location

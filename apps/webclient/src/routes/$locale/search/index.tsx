@@ -5,11 +5,11 @@ import { useCallback, useState } from "react";
 import { FileText, Newspaper, ScrollText, Search, User } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
+import type { SearchResult } from "@/modules/backend/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
-import type { SearchResult } from "@/modules/backend/search/search";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/search/")({
