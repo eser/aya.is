@@ -15,8 +15,8 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
     const contributions = await backend.getProfileContributions(locale, slug);
     const profile = await backend.getProfile(locale, slug);
 
-    // Pre-translate strings in loader (server-side) to avoid hydration issues
-    // where i18next.getFixedT may return keys instead of translations on client
+    // Ensure locale translations are loaded before translating
+    await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = `${t("Layout.Contributions")} - ${profile?.title ?? slug}`;
     const translatedDescription = t("Contributions.Organizations and products this person contributes to.");

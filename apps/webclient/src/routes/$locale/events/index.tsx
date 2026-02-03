@@ -13,7 +13,8 @@ export const Route = createFileRoute("/$locale/events/")({
     const { locale } = params;
     // const events = await backend.getEvents(locale);
 
-    // Pre-translate strings in loader (server-side) to avoid hydration issues
+    // Ensure locale translations are loaded before translating
+    await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     return {
       locale,

@@ -27,7 +27,8 @@ export const Route = createFileRoute("/$locale/search/")({
     const domainConfig = requestContext?.domainConfiguration;
     const profileSlug = domainConfig?.type === "custom-domain" ? domainConfig.profileSlug : undefined;
 
-    // Pre-translate strings in loader (server-side) to avoid hydration issues
+    // Ensure locale translations are loaded before translating
+    await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = query !== "" ? t("Search.Results for {{query}}", { query }) : t("Search.Title", "Search");
     const translatedDescription = t("Search.Search for profiles, stories, and pages");

@@ -19,7 +19,8 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
     const profile = await backend.getProfile(locale, slug);
     const profileTitle = profile?.title ?? slug;
 
-    // Pre-translate strings in loader (server-side) to avoid hydration issues
+    // Ensure locale translations are loaded before translating
+    await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     return {
       stories,

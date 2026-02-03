@@ -99,7 +99,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
                 >
                   {profile.title}
                   <span className="ml-auto text-xs text-muted-foreground">
-                    {t(`Profile.${profile.kind}`)}
+                    {t(`Contributions.${profile.kind}`)}
                   </span>
                 </DropdownMenuItem>
               ))}

@@ -16,6 +16,7 @@ import i18next from "i18next";
 export const Route = createFileRoute("/$locale/")({
   loader: async ({ params }) => {
     const { locale } = params;
+    await i18next.loadLanguages(locale);
     const introText = i18next.getFixedT(locale)("Home.IntroText");
     const compiledIntro = await compileMdx(introText);
     return { compiledIntro, locale };

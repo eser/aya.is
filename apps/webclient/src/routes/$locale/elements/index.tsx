@@ -18,7 +18,8 @@ export const Route = createFileRoute("/$locale/elements/")({
       "organization",
     ]);
 
-    // Pre-translate strings in loader (server-side) to avoid hydration issues
+    // Ensure locale translations are loaded before translating
+    await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     return {
       profiles: profiles ?? [],
