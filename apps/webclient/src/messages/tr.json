@@ -11,6 +11,7 @@
     "Edit": "Düzenle",
     "Save": "Kaydet",
     "Saving...": "Kaydediliyor...",
+    "Apply": "Uygula",
     "View": "Görüntüle",
     "Previous": "Önceki",
     "Next": "Sonraki",
@@ -558,7 +559,8 @@
     "Mark as featured": "Öne çıkar",
     "No profiles available": "Kullanılabilir profil yok",
     "Unpublish from all profiles first": "Önce tüm profillerden yayını kaldırın",
-    "you": "sen"
+    "you": "sen",
+    "Some changes could not be applied": "Bazı değişiklikler uygulanamadı"
   },
   "Admin": {
     "Admin Area": "Yönetim Paneli",

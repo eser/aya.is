@@ -11,6 +11,7 @@
     "Edit": "تعديل",
     "Save": "حفظ",
     "Saving...": "جارٍ الحفظ...",
+    "Apply": "تطبيق",
     "View": "عرض",
     "Previous": "السابق",
     "Next": "التالي",
@@ -558,7 +559,8 @@
     "Mark as featured": "تعيين كمميز",
     "No profiles available": "لا توجد ملفات شخصية متاحة",
     "Unpublish from all profiles first": "قم بإلغاء النشر من جميع الملفات الشخصية أولاً",
-    "you": "أنت"
+    "you": "أنت",
+    "Some changes could not be applied": "تعذر تطبيق بعض التغييرات"
   },
   "Admin": {
     "Admin Area": "منطقة الإدارة",

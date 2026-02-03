@@ -11,6 +11,7 @@
     "Edit": "編集",
     "Save": "保存",
     "Saving...": "保存中...",
+    "Apply": "適用",
     "View": "表示",
     "Previous": "前へ",
     "Next": "次へ",
@@ -558,7 +559,8 @@
     "Mark as featured": "注目に設定",
     "No profiles available": "利用可能なプロフィールがありません",
     "Unpublish from all profiles first": "先にすべてのプロフィールから公開を解除してください",
-    "you": "あなた"
+    "you": "あなた",
+    "Some changes could not be applied": "一部の変更を適用できませんでした"
   },
   "Admin": {
     "Admin Area": "管理エリア",

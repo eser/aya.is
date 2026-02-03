@@ -6,10 +6,12 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { StoryPublication } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/sessions/types";
@@ -22,6 +24,11 @@ type ProfileRow = {
   title: string;
   profile_picture_uri?: string | null;
   canFeature: boolean;
+};
+
+type ProfileState = {
+  published: boolean;
+  featured: boolean;
 };
 
 type PublishDialogProps = {
@@ -52,10 +59,9 @@ export function PublishDialog(props: PublishDialogProps) {
   } = props;
 
   const { t } = useTranslation();
-  const [loadingProfileIds, setLoadingProfileIds] = React.useState<Set<string>>(new Set());
-  const [featured, setFeatured] = React.useState<Record<string, boolean>>({});
+  const [isApplying, setIsApplying] = React.useState(false);
 
-  // Build the ordered profile list: individual first, then org/product profiles
+  // Build the ordered profile list
   const allProfiles = React.useMemo(() => {
     const editRoles = new Set(["owner", "lead", "maintainer", "contributor"]);
     const featureRoles = new Set(["owner", "lead", "maintainer"]);
@@ -71,7 +77,6 @@ export function PublishDialog(props: PublishDialogProps) {
 
     const result: ProfileRow[] = [];
 
-    // Add individual profile on top if available (and not already in org list)
     if (individualProfile !== undefined) {
       const alreadyInList = orgProfiles.some((p) => p.id === individualProfile.id);
       if (!alreadyInList) {
@@ -98,96 +103,107 @@ export function PublishDialog(props: PublishDialogProps) {
     return map;
   }, [publications]);
 
-  const handleTogglePublication = async (profile: ProfileRow) => {
-    const existingPub = publicationByProfileId.get(profile.id);
-    setLoadingProfileIds((prev) => new Set([...prev, profile.id]));
+  // Local draft state — initialized from current publications when dialog opens
+  const [draft, setDraft] = React.useState<Record<string, ProfileState>>({});
 
-    try {
-      if (existingPub !== undefined) {
+  React.useEffect(() => {
+    if (open) {
+      const initial: Record<string, ProfileState> = {};
+      for (const profile of allProfiles) {
+        const pub = publicationByProfileId.get(profile.id);
+        initial[profile.id] = {
+          published: pub !== undefined,
+          featured: pub !== undefined ? pub.is_featured : false,
+        };
+      }
+      setDraft(initial);
+    }
+  }, [open, allProfiles, publicationByProfileId]);
+
+  // Check if anything changed from current state
+  const hasChanges = React.useMemo(() => {
+    for (const profile of allProfiles) {
+      const current = draft[profile.id];
+      if (current === undefined) {
+        continue;
+      }
+      const pub = publicationByProfileId.get(profile.id);
+      const wasPublished = pub !== undefined;
+      const wasFeatured = pub !== undefined ? pub.is_featured : false;
+
+      if (current.published !== wasPublished || current.featured !== wasFeatured) {
+        return true;
+      }
+    }
+    return false;
+  }, [draft, allProfiles, publicationByProfileId]);
+
+  const handleApply = async () => {
+    setIsApplying(true);
+    let updatedPublications = [...publications];
+    let hadError = false;
+
+    for (const profile of allProfiles) {
+      const current = draft[profile.id];
+      if (current === undefined) {
+        continue;
+      }
+      const pub = publicationByProfileId.get(profile.id);
+      const wasPublished = pub !== undefined;
+      const wasFeatured = pub !== undefined ? pub.is_featured : false;
+
+      if (!wasPublished && current.published) {
+        // Add publication
+        const result = await backend.addStoryPublication(
+          locale,
+          profileSlug,
+          storyId,
+          { profile_id: profile.id, is_featured: current.featured },
+        );
+        if (result !== null) {
+          updatedPublications = [...updatedPublications, result];
+        } else {
+          hadError = true;
+        }
+      } else if (wasPublished && !current.published) {
         // Remove publication
         const result = await backend.removeStoryPublication(
           locale,
           profileSlug,
           storyId,
-          existingPub.id,
+          pub.id,
         );
-
         if (result !== null) {
-          const updated = publications.filter((p) => p.id !== existingPub.id);
-          onPublicationsChange(updated);
+          updatedPublications = updatedPublications.filter((p) => p.id !== pub.id);
         } else {
-          toast.error(t("ContentEditor.Failed to remove publication"));
+          hadError = true;
         }
-      } else {
-        // Add publication with featured intent
-        const result = await backend.addStoryPublication(
+      } else if (wasPublished && current.published && current.featured !== wasFeatured) {
+        // Update featured
+        const result = await backend.updateStoryPublication(
           locale,
           profileSlug,
           storyId,
-          { profile_id: profile.id, is_featured: featured[profile.id] === true },
+          pub.id,
+          { is_featured: current.featured },
         );
-
         if (result !== null) {
-          onPublicationsChange([...publications, result]);
+          updatedPublications = updatedPublications.map((p) =>
+            p.id === pub.id ? { ...p, is_featured: current.featured } : p,
+          );
         } else {
-          toast.error(t("ContentEditor.Failed to add publication"));
+          hadError = true;
         }
       }
-    } finally {
-      setLoadingProfileIds((prev) => {
-        const next = new Set(prev);
-        next.delete(profile.id);
-        return next;
-      });
-    }
-  };
-
-  const isFeatured = (profileId: string): boolean => {
-    // Local state takes precedence, then fall back to publication data
-    if (featured[profileId] !== undefined) {
-      return featured[profileId];
-    }
-    const pub = publicationByProfileId.get(profileId);
-    return pub !== undefined && pub.is_featured;
-  };
-
-  const handleToggleFeatured = async (profileId: string) => {
-    const newValue = !isFeatured(profileId);
-    setFeatured((prev) => ({ ...prev, [profileId]: newValue }));
-
-    const pub = publicationByProfileId.get(profileId);
-    if (pub === undefined) {
-      // Not yet published — local state is enough
-      return;
     }
 
-    // Already published — persist to backend
-    setLoadingProfileIds((prev) => new Set([...prev, profileId]));
-    try {
-      const result = await backend.updateStoryPublication(
-        locale,
-        profileSlug,
-        storyId,
-        pub.id,
-        { is_featured: newValue },
-      );
+    onPublicationsChange(updatedPublications);
+    setIsApplying(false);
 
-      if (result !== null) {
-        const updated = publications.map((p) =>
-          p.id === pub.id ? { ...p, is_featured: newValue } : p,
-        );
-        onPublicationsChange(updated);
-      } else {
-        // Revert local state on failure
-        setFeatured((prev) => ({ ...prev, [profileId]: !newValue }));
-        toast.error(t("ContentEditor.Failed to update publication"));
-      }
-    } finally {
-      setLoadingProfileIds((prev) => {
-        const next = new Set(prev);
-        next.delete(profileId);
-        return next;
-      });
+    if (hadError) {
+      toast.error(t("ContentEditor.Some changes could not be applied"));
+    } else {
+      onOpenChange(false);
     }
   };
 
@@ -206,9 +222,10 @@ export function PublishDialog(props: PublishDialogProps) {
 
         <div className="space-y-1 py-2">
           {allProfiles.map((profile) => {
-            const pub = publicationByProfileId.get(profile.id);
-            const isPublished = pub !== undefined;
-            const isLoading = loadingProfileIds.has(profile.id);
+            const state = draft[profile.id];
+            if (state === undefined) {
+              return null;
+            }
             const isIndividual = individualProfile !== undefined && profile.id === individualProfile.id;
 
             return (
@@ -243,26 +260,29 @@ export function PublishDialog(props: PublishDialogProps) {
                   {profile.canFeature && (
                     <button
                       type="button"
-                      onClick={() => handleToggleFeatured(profile.id)}
-                      disabled={isLoading}
+                      onClick={() => setDraft((prev) => ({
+                        ...prev,
+                        [profile.id]: { ...prev[profile.id], featured: !state.featured },
+                      }))}
+                      disabled={isApplying}
                       className="p-1 rounded hover:bg-muted"
-                      title={isFeatured(profile.id)
+                      title={state.featured
                         ? t("ContentEditor.Remove featured")
                         : t("ContentEditor.Mark as featured")}
                     >
                       <Star
-                        className={`size-4 ${isFeatured(profile.id) ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                        className={`size-4 ${state.featured ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
                       />
                     </button>
                   )}
-                  {isLoading ? (
-                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                  ) : (
-                    <Switch
-                      checked={isPublished}
-                      onCheckedChange={() => handleTogglePublication(profile)}
-                    />
-                  )}
+                  <Switch
+                    checked={state.published}
+                    disabled={isApplying}
+                    onCheckedChange={(checked) => setDraft((prev) => ({
+                      ...prev,
+                      [profile.id]: { ...prev[profile.id], published: checked },
+                    }))}
+                  />
                 </div>
               </div>
             );
@@ -274,6 +294,16 @@ export function PublishDialog(props: PublishDialogProps) {
             </p>
           )}
         </div>
+
+        <DialogFooter>
+          <Button
+            onClick={handleApply}
+            disabled={isApplying || !hasChanges}
+          >
+            {isApplying && <Loader2 className="mr-1.5 size-4 animate-spin" />}
+            {t("Common.Apply")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

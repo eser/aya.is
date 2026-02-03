@@ -11,6 +11,7 @@
     "Edit": "Edit",
     "Save": "Save",
     "Saving...": "Saving...",
+    "Apply": "Apply",
     "View": "View",
     "Previous": "Previous",
     "Next": "Next",
@@ -558,7 +559,8 @@
     "Mark as featured": "Mark as featured",
     "No profiles available": "No profiles available",
     "Unpublish from all profiles first": "Unpublish from all profiles first",
-    "you": "you"
+    "you": "you",
+    "Some changes could not be applied": "Some changes could not be applied"
   },
   "Admin": {
     "Admin Area": "Admin Area",

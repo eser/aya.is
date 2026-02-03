@@ -11,6 +11,7 @@
     "Edit": "Редактировать",
     "Save": "Сохранить",
     "Saving...": "Сохранение...",
+    "Apply": "Применить",
     "View": "Просмотр",
     "Previous": "Предыдущая",
     "Next": "Следующая",
@@ -558,7 +559,8 @@
     "Mark as featured": "Отметить как избранное",
     "No profiles available": "Нет доступных профилей",
     "Unpublish from all profiles first": "Сначала снимите публикацию со всех профилей",
-    "you": "вы"
+    "you": "вы",
+    "Some changes could not be applied": "Некоторые изменения не удалось применить"
   },
   "Admin": {
     "Admin Area": "Панель администратора",

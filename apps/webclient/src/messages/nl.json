@@ -11,6 +11,7 @@
     "Edit": "Bewerken",
     "Save": "Opslaan",
     "Saving...": "Opslaan...",
+    "Apply": "Toepassen",
     "View": "Bekijken",
     "Previous": "Vorige",
     "Next": "Volgende",
@@ -558,7 +559,8 @@
     "Mark as featured": "Markeren als uitgelicht",
     "No profiles available": "Geen profielen beschikbaar",
     "Unpublish from all profiles first": "Eerst van alle profielen depubliceren",
-    "you": "jij"
+    "you": "jij",
+    "Some changes could not be applied": "Sommige wijzigingen konden niet worden toegepast"
   },
   "Admin": {
     "Admin Area": "Beheergebied",

@@ -11,6 +11,7 @@
     "Edit": "编辑",
     "Save": "保存",
     "Saving...": "保存中...",
+    "Apply": "应用",
     "View": "查看",
     "Previous": "上一页",
     "Next": "下一页",
@@ -558,7 +559,8 @@
     "Mark as featured": "标记为精选",
     "No profiles available": "没有可用的个人资料",
     "Unpublish from all profiles first": "请先从所有个人资料取消发布",
-    "you": "你"
+    "you": "你",
+    "Some changes could not be applied": "部分更改无法应用"
   },
   "Admin": {
     "Admin Area": "管理区域",

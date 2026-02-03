@@ -11,6 +11,7 @@
     "Edit": "Bearbeiten",
     "Save": "Speichern",
     "Saving...": "Speichern...",
+    "Apply": "Anwenden",
     "View": "Ansehen",
     "Previous": "Vorherige",
     "Next": "Nächste",
@@ -558,7 +559,8 @@
     "Mark as featured": "Als hervorgehoben markieren",
     "No profiles available": "Keine Profile verfügbar",
     "Unpublish from all profiles first": "Zuerst von allen Profilen zurückziehen",
-    "you": "du"
+    "you": "du",
+    "Some changes could not be applied": "Einige Änderungen konnten nicht angewendet werden"
   },
   "Admin": {
     "Admin Area": "Administrationsbereich",
