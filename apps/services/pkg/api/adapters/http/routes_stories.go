@@ -760,6 +760,16 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 					)
 				}
 
+				if strings.Contains(err.Error(), "membership access") ||
+					strings.Contains(err.Error(), "sufficient role") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to publish to this profile",
+						),
+					)
+				}
+
 				logger.ErrorContext(ctx.Request.Context(), "Add publication failed",
 					slog.String("error", err.Error()),
 					slog.String("session_id", sessionID),
@@ -832,6 +842,16 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 					)
 				}
 
+				if strings.Contains(err.Error(), "membership access") ||
+					strings.Contains(err.Error(), "sufficient role") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to update this publication on this profile",
+						),
+					)
+				}
+
 				logger.ErrorContext(ctx.Request.Context(), "Update publication failed",
 					slog.String("error", err.Error()),
 					slog.String("session_id", sessionID),
@@ -897,6 +917,15 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 						http.StatusForbidden,
 						httpfx.WithErrorMessage(
 							"You do not have permission to remove this publication",
+						),
+					)
+				}
+
+				if strings.Contains(err.Error(), "membership access") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to unpublish from this profile",
 						),
 					)
 				}

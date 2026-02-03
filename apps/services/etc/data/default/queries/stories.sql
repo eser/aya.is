@@ -289,6 +289,14 @@ WHERE sp.story_id = sqlc.arg(story_id)
   AND sp.deleted_at IS NULL
 ORDER BY sp.created_at;
 
+-- name: GetStoryPublicationProfileID :one
+-- Returns the profile_id for a specific publication (used for auth checks).
+SELECT profile_id
+FROM story_publication
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: UpdateStoryPublication :execrows
 UPDATE story_publication
 SET
@@ -315,3 +323,26 @@ FROM story_publication
 WHERE story_id = sqlc.arg(story_id)
   AND deleted_at IS NULL
   AND published_at IS NOT NULL;
+
+-- name: GetUserMembershipForProfile :one
+-- Returns the membership kind a user has for a specific profile.
+-- Used to verify a user has access to publish to a target profile.
+-- Returns:
+--   'admin' if the user is an admin
+--   'owner' if the target profile is the user's individual profile
+--   the membership kind (owner/lead/maintainer/contributor) if they have membership
+--   '' if no membership
+SELECT
+  CAST(CASE
+    WHEN u.kind = 'admin' THEN 'admin'
+    WHEN u.individual_profile_id = sqlc.arg(profile_id)::CHAR(26) THEN 'owner'
+    ELSE COALESCE(pm.kind, '')
+  END AS TEXT) as membership_kind
+FROM "user" u
+LEFT JOIN "profile_membership" pm ON pm.profile_id = sqlc.arg(profile_id)::CHAR(26)
+  AND pm.member_profile_id = u.individual_profile_id
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE u.id = sqlc.arg(user_id)
+  AND u.deleted_at IS NULL
+LIMIT 1;

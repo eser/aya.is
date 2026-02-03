@@ -452,6 +452,84 @@ func (q *Queries) GetStoryOwnershipForUser(ctx context.Context, arg GetStoryOwne
 	return &i, err
 }
 
+const getStoryPublicationProfileID = `-- name: GetStoryPublicationProfileID :one
+SELECT profile_id
+FROM story_publication
+WHERE id = $1
+  AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetStoryPublicationProfileIDParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// Returns the profile_id for a specific publication (used for auth checks).
+//
+//	SELECT profile_id
+//	FROM story_publication
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetStoryPublicationProfileID(ctx context.Context, arg GetStoryPublicationProfileIDParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getStoryPublicationProfileID, arg.ID)
+	var profile_id string
+	err := row.Scan(&profile_id)
+	return profile_id, err
+}
+
+const getUserMembershipForProfile = `-- name: GetUserMembershipForProfile :one
+SELECT
+  CAST(CASE
+    WHEN u.kind = 'admin' THEN 'admin'
+    WHEN u.individual_profile_id = $1::CHAR(26) THEN 'owner'
+    ELSE COALESCE(pm.kind, '')
+  END AS TEXT) as membership_kind
+FROM "user" u
+LEFT JOIN "profile_membership" pm ON pm.profile_id = $1::CHAR(26)
+  AND pm.member_profile_id = u.individual_profile_id
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE u.id = $2
+  AND u.deleted_at IS NULL
+LIMIT 1
+`
+
+type GetUserMembershipForProfileParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
+	UserID    string `db:"user_id" json:"user_id"`
+}
+
+// Returns the membership kind a user has for a specific profile.
+// Used to verify a user has access to publish to a target profile.
+// Returns:
+//
+//	 'admin' if the user is an admin
+//	 'owner' if the target profile is the user's individual profile
+//	 the membership kind (owner/lead/maintainer/contributor) if they have membership
+//	 '' if no membership
+//
+//	SELECT
+//	  CAST(CASE
+//	    WHEN u.kind = 'admin' THEN 'admin'
+//	    WHEN u.individual_profile_id = $1::CHAR(26) THEN 'owner'
+//	    ELSE COALESCE(pm.kind, '')
+//	  END AS TEXT) as membership_kind
+//	FROM "user" u
+//	LEFT JOIN "profile_membership" pm ON pm.profile_id = $1::CHAR(26)
+//	  AND pm.member_profile_id = u.individual_profile_id
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	WHERE u.id = $2
+//	  AND u.deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetUserMembershipForProfile(ctx context.Context, arg GetUserMembershipForProfileParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getUserMembershipForProfile, arg.ProfileID, arg.UserID)
+	var membership_kind string
+	err := row.Scan(&membership_kind)
+	return membership_kind, err
+}
+
 const insertStory = `-- name: InsertStory :one
 INSERT INTO "story" (
   id,

@@ -432,6 +432,24 @@ func (r *Repository) ListStoryPublications(
 	return result, nil
 }
 
+func (r *Repository) GetStoryPublicationProfileID(
+	ctx context.Context,
+	publicationID string,
+) (string, error) {
+	params := GetStoryPublicationProfileIDParams{ID: publicationID}
+
+	profileID, err := r.queries.GetStoryPublicationProfileID(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+
+		return "", err
+	}
+
+	return profileID, nil
+}
+
 func (r *Repository) UpdateStoryPublication(
 	ctx context.Context,
 	id string,
@@ -485,6 +503,28 @@ func (r *Repository) GetStoryFirstPublishedAt(
 	}
 
 	return nil, nil //nolint:nilnil
+}
+
+func (r *Repository) GetUserMembershipForProfile(
+	ctx context.Context,
+	userID string,
+	profileID string,
+) (string, error) {
+	params := GetUserMembershipForProfileParams{
+		UserID:    userID,
+		ProfileID: profileID,
+	}
+
+	kind, err := r.queries.GetUserMembershipForProfile(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+
+		return "", err
+	}
+
+	return kind, nil
 }
 
 func (r *Repository) InvalidateStorySlugCache(ctx context.Context, slug string) error {

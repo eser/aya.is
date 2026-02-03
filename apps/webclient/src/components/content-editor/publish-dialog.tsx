@@ -143,58 +143,62 @@ export function PublishDialog(props: PublishDialogProps) {
     let updatedPublications = [...publications];
     let hadError = false;
 
-    for (const profile of allProfiles) {
-      const current = draft[profile.id];
-      if (current === undefined) {
-        continue;
-      }
-      const pub = publicationByProfileId.get(profile.id);
-      const wasPublished = pub !== undefined;
-      const wasFeatured = pub !== undefined ? pub.is_featured : false;
+    try {
+      for (const profile of allProfiles) {
+        const current = draft[profile.id];
+        if (current === undefined) {
+          continue;
+        }
+        const pub = publicationByProfileId.get(profile.id);
+        const wasPublished = pub !== undefined;
+        const wasFeatured = pub !== undefined ? pub.is_featured : false;
 
-      if (!wasPublished && current.published) {
-        // Add publication
-        const result = await backend.addStoryPublication(
-          locale,
-          profileSlug,
-          storyId,
-          { profile_id: profile.id, is_featured: current.featured },
-        );
-        if (result !== null) {
-          updatedPublications = [...updatedPublications, result];
-        } else {
-          hadError = true;
-        }
-      } else if (wasPublished && !current.published) {
-        // Remove publication
-        const result = await backend.removeStoryPublication(
-          locale,
-          profileSlug,
-          storyId,
-          pub.id,
-        );
-        if (result !== null) {
-          updatedPublications = updatedPublications.filter((p) => p.id !== pub.id);
-        } else {
-          hadError = true;
-        }
-      } else if (wasPublished && current.published && current.featured !== wasFeatured) {
-        // Update featured
-        const result = await backend.updateStoryPublication(
-          locale,
-          profileSlug,
-          storyId,
-          pub.id,
-          { is_featured: current.featured },
-        );
-        if (result !== null) {
-          updatedPublications = updatedPublications.map((p) =>
-            p.id === pub.id ? { ...p, is_featured: current.featured } : p,
+        if (!wasPublished && current.published) {
+          // Add publication
+          const result = await backend.addStoryPublication(
+            locale,
+            profileSlug,
+            storyId,
+            { profile_id: profile.id, is_featured: current.featured },
           );
-        } else {
-          hadError = true;
+          if (result !== null) {
+            updatedPublications = [...updatedPublications, result];
+          } else {
+            hadError = true;
+          }
+        } else if (wasPublished && !current.published) {
+          // Remove publication
+          const result = await backend.removeStoryPublication(
+            locale,
+            profileSlug,
+            storyId,
+            pub.id,
+          );
+          if (result !== null) {
+            updatedPublications = updatedPublications.filter((p) => p.id !== pub.id);
+          } else {
+            hadError = true;
+          }
+        } else if (wasPublished && current.published && current.featured !== wasFeatured) {
+          // Update featured
+          const result = await backend.updateStoryPublication(
+            locale,
+            profileSlug,
+            storyId,
+            pub.id,
+            { is_featured: current.featured },
+          );
+          if (result !== null) {
+            updatedPublications = updatedPublications.map((p) =>
+              p.id === pub.id ? { ...p, is_featured: current.featured } : p,
+            );
+          } else {
+            hadError = true;
+          }
         }
       }
+    } catch {
+      hadError = true;
     }
 
     onPublicationsChange(updatedPublications);

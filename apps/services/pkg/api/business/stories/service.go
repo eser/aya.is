@@ -27,6 +27,12 @@ var (
 	ErrHasActivePublications = errors.New(
 		"story has active publications, unpublish from all profiles first",
 	)
+	ErrNoProfileAccess = errors.New(
+		"user does not have membership access to the target profile",
+	)
+	ErrInsufficientProfileRole = errors.New(
+		"user does not have sufficient role for this operation",
+	)
 )
 
 // Config holds the stories service configuration.
@@ -245,6 +251,7 @@ type Repository interface {
 		localeCode string,
 		storyID string,
 	) ([]*StoryPublication, error)
+	GetStoryPublicationProfileID(ctx context.Context, publicationID string) (string, error)
 	UpdateStoryPublication(
 		ctx context.Context,
 		id string,
@@ -253,6 +260,11 @@ type Repository interface {
 	RemoveStoryPublication(ctx context.Context, id string) error
 	CountStoryPublications(ctx context.Context, storyID string) (int64, error)
 	GetStoryFirstPublishedAt(ctx context.Context, storyID string) (*time.Time, error)
+	GetUserMembershipForProfile(
+		ctx context.Context,
+		userID string,
+		profileID string,
+	) (string, error)
 	InvalidateStorySlugCache(ctx context.Context, slug string) error
 }
 
@@ -655,6 +667,30 @@ func (s *Service) Create(
 			return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 		}
 
+		// Verify user has membership access to the target profile (contributor+)
+		membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, profileID)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"%w(userID: %s, profileID: %s): %w",
+				ErrFailedToGetRecord,
+				userID,
+				profileID,
+				err,
+			)
+		}
+
+		publishRoles := map[string]bool{
+			"admin": true, "owner": true, "lead": true, "maintainer": true, "contributor": true,
+		}
+		if !publishRoles[membershipKind] {
+			return nil, fmt.Errorf(
+				"%w: user %s has no publish access to profile %s",
+				ErrNoProfileAccess,
+				userID,
+				profileID,
+			)
+		}
+
 		publicationID := s.idGenerator()
 		now := time.Now()
 
@@ -823,7 +859,7 @@ func (s *Service) AddPublication(
 	ctx context.Context,
 	userID string,
 	storyID string,
-	profileSlug string,
+	profileID string,
 	localeCode string,
 	isFeatured bool,
 ) (*StoryPublication, error) {
@@ -842,10 +878,43 @@ func (s *Service) AddPublication(
 		)
 	}
 
-	// Get the profile ID
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	// Check user has membership access to the target profile (contributor+)
+	membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, profileID)
 	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+		return nil, fmt.Errorf(
+			"%w(userID: %s, profileID: %s): %w",
+			ErrFailedToGetRecord,
+			userID,
+			profileID,
+			err,
+		)
+	}
+
+	publishRoles := map[string]bool{
+		"admin": true, "owner": true, "lead": true, "maintainer": true, "contributor": true,
+	}
+	if !publishRoles[membershipKind] {
+		return nil, fmt.Errorf(
+			"%w: user %s has no publish access to profile %s",
+			ErrNoProfileAccess,
+			userID,
+			profileID,
+		)
+	}
+
+	// Check featured permission (maintainer+)
+	if isFeatured {
+		featureRoles := map[string]bool{
+			"admin": true, "owner": true, "lead": true, "maintainer": true,
+		}
+		if !featureRoles[membershipKind] {
+			return nil, fmt.Errorf(
+				"%w: user %s cannot feature on profile %s (requires maintainer+)",
+				ErrInsufficientProfileRole,
+				userID,
+				profileID,
+			)
+		}
 	}
 
 	// Create the publication
@@ -921,6 +990,42 @@ func (s *Service) RemovePublication(
 		)
 	}
 
+	// Check user has membership access to the publication's profile (contributor+)
+	pubProfileID, err := s.repo.GetStoryPublicationProfileID(ctx, publicationID)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(publicationID: %s): %w",
+			ErrFailedToGetRecord,
+			publicationID,
+			err,
+		)
+	}
+
+	if pubProfileID != "" {
+		membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, pubProfileID)
+		if err != nil {
+			return fmt.Errorf(
+				"%w(userID: %s, profileID: %s): %w",
+				ErrFailedToGetRecord,
+				userID,
+				pubProfileID,
+				err,
+			)
+		}
+
+		publishRoles := map[string]bool{
+			"admin": true, "owner": true, "lead": true, "maintainer": true, "contributor": true,
+		}
+		if !publishRoles[membershipKind] {
+			return fmt.Errorf(
+				"%w: user %s has no access to profile %s",
+				ErrNoProfileAccess,
+				userID,
+				pubProfileID,
+			)
+		}
+	}
+
 	// Remove the publication
 	err = s.repo.RemoveStoryPublication(ctx, publicationID)
 	if err != nil {
@@ -957,6 +1062,42 @@ func (s *Service) UpdatePublication(
 			userID,
 			storyID,
 		)
+	}
+
+	// Check user has membership access to the publication's profile (maintainer+ for featured)
+	pubProfileID, err := s.repo.GetStoryPublicationProfileID(ctx, publicationID)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(publicationID: %s): %w",
+			ErrFailedToGetRecord,
+			publicationID,
+			err,
+		)
+	}
+
+	if pubProfileID != "" {
+		membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, pubProfileID)
+		if err != nil {
+			return fmt.Errorf(
+				"%w(userID: %s, profileID: %s): %w",
+				ErrFailedToGetRecord,
+				userID,
+				pubProfileID,
+				err,
+			)
+		}
+
+		featureRoles := map[string]bool{
+			"admin": true, "owner": true, "lead": true, "maintainer": true,
+		}
+		if !featureRoles[membershipKind] {
+			return fmt.Errorf(
+				"%w: user %s cannot toggle featured on profile %s (requires maintainer+)",
+				ErrInsufficientProfileRole,
+				userID,
+				pubProfileID,
+			)
+		}
 	}
 
 	err = s.repo.UpdateStoryPublication(ctx, publicationID, isFeatured)
