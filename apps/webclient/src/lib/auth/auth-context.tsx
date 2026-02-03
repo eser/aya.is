@@ -1,6 +1,7 @@
 import * as React from "react";
 import { getSessionCurrent } from "@/modules/backend/backend";
 import type { SessionPreferences } from "@/modules/backend/types";
+import type { AccessibleProfile } from "@/modules/backend/sessions/types";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
 import {
@@ -18,6 +19,7 @@ export type User = {
   github_handle?: string;
   individual_profile_id?: string;
   individual_profile_slug?: string;
+  accessible_profiles?: AccessibleProfile[];
 };
 
 type AuthContextValue = {
@@ -71,10 +73,11 @@ export function AuthProvider(props: AuthProviderProps) {
         result.expires_at ?? Date.now() + 24 * 60 * 60 * 1000,
       );
 
-      // Combine user data with profile slug if available
+      // Combine user data with profile slug and accessible profiles
       const userData: User | null = result.user !== undefined ? {
         ...result.user,
         individual_profile_slug: result.selected_profile?.slug,
+        accessible_profiles: result.accessible_profiles,
       } : null;
 
       localStorage.setItem(

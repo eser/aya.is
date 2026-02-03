@@ -27,6 +27,15 @@ export interface PreferencesResponse {
 /**
  * Response from GET /sessions/_current consolidated endpoint
  */
+export interface AccessibleProfile {
+  id: string;
+  slug: string;
+  kind: string;
+  title: string;
+  profile_picture_uri?: string | null;
+  membership_kind: string;
+}
+
 export interface SessionCurrentResponse {
   authenticated: boolean;
   token?: string;
@@ -47,5 +56,6 @@ export interface SessionCurrentResponse {
     description?: string;
     profile_picture_uri?: string;
   };
+  accessible_profiles?: AccessibleProfile[];
   preferences?: SessionPreferences;
 }

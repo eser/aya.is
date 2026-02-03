@@ -102,7 +102,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				"preferences":      prefs,
 			}
 
-			// If user has an individual profile, fetch it
+			// If user has an individual profile, fetch it and their accessible profiles
 			if user != nil && user.IndividualProfileID != nil {
 				locale := ctx.Request.PathValue("locale")
 				profile, profileErr := profileService.GetByID(
@@ -119,6 +119,32 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 						"description":         profile.Description,
 						"profile_picture_uri": profile.ProfilePictureURI,
 					}
+				}
+
+				// Fetch profiles where user is a member
+				memberships, membershipErr := profileService.GetMembershipsByUserProfileID(
+					ctx.Request.Context(),
+					locale,
+					*user.IndividualProfileID,
+				)
+				if membershipErr == nil && len(memberships) > 0 {
+					accessibleProfiles := make([]map[string]any, 0, len(memberships))
+					for _, m := range memberships {
+						if m.Profile == nil {
+							continue
+						}
+
+						accessibleProfiles = append(accessibleProfiles, map[string]any{
+							"id":                  m.Profile.ID,
+							"slug":                m.Profile.Slug,
+							"kind":                m.Profile.Kind,
+							"title":               m.Profile.Title,
+							"profile_picture_uri": m.Profile.ProfilePictureURI,
+							"membership_kind":     m.Kind,
+						})
+					}
+
+					response["accessible_profiles"] = accessibleProfiles
 				}
 			}
 
