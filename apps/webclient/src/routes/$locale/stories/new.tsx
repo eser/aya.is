@@ -105,7 +105,6 @@ function NewStoryPage() {
     summary: "",
     content: "",
     storyPictureUri: null,
-    status: "draft",
     kind: "article",
   };
 
@@ -117,15 +116,12 @@ function NewStoryPage() {
       summary: data.summary,
       content: data.content,
       story_picture_uri: data.storyPictureUri,
-      status: data.status,
-      is_featured: data.isFeatured ?? false,
-      published_at: data.publishedAt,
     });
 
     if (result !== null) {
       toast.success("Story created successfully");
       navigate({
-        to: "/$locale/stories/$storyslug",
+        to: "/$locale/stories/$storyslug/edit",
         params: {
           locale: params.locale,
           storyslug: data.slug,
@@ -149,6 +145,7 @@ function NewStoryPage() {
           validateSlugDatePrefix
           onSave={handleSave}
           isNew
+          accessibleProfiles={auth.user?.accessible_profiles ?? []}
         />
       </div>
     </PageLayout>

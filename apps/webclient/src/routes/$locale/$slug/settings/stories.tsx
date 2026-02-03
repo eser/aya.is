@@ -143,7 +143,7 @@ function StoriesSettingsPage() {
             <div className="space-y-2">
               {currentStories.map((story) => {
                 const KindIcon = storyKindIcons[story.kind];
-                const isPublished = story.status === "published";
+                const isPublished = story.publications.length > 0;
 
                 return (
                   <div

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -93,13 +94,18 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 		Route("GET /{locale}/stories/{slug}/_check", func(ctx *httpfx.Context) httpfx.Result {
 			slugParam := ctx.Request.PathValue("slug")
 			excludeIDParam := ctx.Request.URL.Query().Get("exclude_id")
-			statusParam := ctx.Request.URL.Query().Get("status")
+			storyIDParam := ctx.Request.URL.Query().Get("story_id")
 			publishedAtParam := ctx.Request.URL.Query().Get("published_at")
 			includeDeletedParam := ctx.Request.URL.Query().Get("include_deleted")
 
 			var excludeID *string
 			if excludeIDParam != "" {
 				excludeID = &excludeIDParam
+			}
+
+			var storyID *string
+			if storyIDParam != "" {
+				storyID = &storyIDParam
 			}
 
 			var publishedAt *time.Time
@@ -115,7 +121,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				ctx.Request.Context(),
 				slugParam,
 				excludeID,
-				statusParam,
+				storyID,
 				publishedAt,
 				includeDeleted,
 			)
@@ -159,15 +165,13 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			profileSlugParam := ctx.Request.PathValue("slug")
 
 			var requestBody struct {
-				Slug            string     `json:"slug"`
-				Kind            string     `json:"kind"`
-				Title           string     `json:"title"`
-				Summary         string     `json:"summary"`
-				Content         string     `json:"content"`
-				StoryPictureURI *string    `json:"story_picture_uri"`
-				Status          string     `json:"status"`
-				IsFeatured      bool       `json:"is_featured"`
-				PublishedAt     *time.Time `json:"published_at"`
+				Slug              string   `json:"slug"`
+				Kind              string   `json:"kind"`
+				Title             string   `json:"title"`
+				Summary           string   `json:"summary"`
+				Content           string   `json:"content"`
+				StoryPictureURI   *string  `json:"story_picture_uri"`
+				PublishToProfiles []string `json:"publish_to_profiles"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -179,7 +183,6 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			requestBody.Kind = strings.TrimSpace(requestBody.Kind)
 			requestBody.Title = strings.TrimSpace(requestBody.Title)
 			requestBody.Summary = strings.TrimSpace(requestBody.Summary)
-			requestBody.Status = strings.TrimSpace(requestBody.Status)
 
 			// Validate kind
 			validKinds := map[string]bool{
@@ -217,12 +220,6 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
 			}
 
-			// Validate status
-			validStatuses := map[string]bool{"draft": true, "published": true}
-			if !validStatuses[requestBody.Status] {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid status"))
-			}
-
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
 				return ctx.Results.Error(
@@ -245,17 +242,14 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				*session.LoggedInUserID,
 				user.Kind,
 				profileSlugParam,
-				profileSlugParam,
 				localeParam,
 				requestBody.Slug,
 				requestBody.Kind,
-				requestBody.Status,
 				requestBody.Title,
 				requestBody.Summary,
 				requestBody.Content,
 				requestBody.StoryPictureURI,
-				requestBody.IsFeatured,
-				requestBody.PublishedAt,
+				requestBody.PublishToProfiles,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {
@@ -383,11 +377,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			var requestBody struct {
-				Slug            string     `json:"slug"`
-				Status          string     `json:"status"`
-				IsFeatured      bool       `json:"is_featured"`
-				StoryPictureURI *string    `json:"story_picture_uri"`
-				PublishedAt     *time.Time `json:"published_at"`
+				Slug            string  `json:"slug"`
+				StoryPictureURI *string `json:"story_picture_uri"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -396,7 +387,6 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 			// Sanitize inputs
 			requestBody.Slug = lib.SanitizeSlug(strings.TrimSpace(requestBody.Slug))
-			requestBody.Status = strings.TrimSpace(requestBody.Status)
 
 			// Validate slug
 			if len(requestBody.Slug) < 2 {
@@ -415,12 +405,6 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 						"Slug can only contain lowercase letters, numbers, and hyphens",
 					),
 				)
-			}
-
-			// Validate status
-			validStatuses := map[string]bool{"draft": true, "published": true}
-			if !validStatuses[requestBody.Status] {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid status"))
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
@@ -446,10 +430,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				user.Kind,
 				storyIDParam,
 				requestBody.Slug,
-				requestBody.Status,
-				requestBody.IsFeatured,
 				requestBody.StoryPictureURI,
-				requestBody.PublishedAt,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {
@@ -479,7 +460,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			return ctx.Results.JSON(wrappedResponse)
 		}).
 		HasSummary("Update Story").
-		HasDescription("Update story main fields (slug, status, featured, picture).").
+		HasDescription("Update story main fields (slug, picture).").
 		HasResponse(http.StatusOK)
 
 	// Update story translation
@@ -600,6 +581,15 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 					)
 				}
 
+				if errors.Is(err, stories.ErrHasActivePublications) {
+					return ctx.Results.Error(
+						http.StatusConflict,
+						httpfx.WithErrorMessage(
+							"Cannot delete story with active publications. Unpublish from all profiles first.",
+						),
+					)
+				}
+
 				logger.ErrorContext(ctx.Request.Context(), "Story deletion failed",
 					slog.String("error", err.Error()),
 					slog.String("session_id", sessionID),
@@ -680,5 +670,261 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 		}).
 		HasSummary("Check Story Edit Permissions").
 		HasDescription("Check if the authenticated user can edit the specified story.").
+		HasResponse(http.StatusOK)
+
+	// --- Story Publication CRUD routes ---
+
+	// List publications for a story
+	routes.Route(
+		"GET /{locale}/profiles/{slug}/_stories/{storyId}/publications",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			localeParam := ctx.Request.PathValue("locale")
+			storyIDParam := ctx.Request.PathValue("storyId")
+
+			publications, err := storyService.ListPublications(
+				ctx.Request.Context(),
+				localeParam,
+				storyIDParam,
+			)
+			if err != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to list publications"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data":  publications,
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("List Story Publications").
+		HasDescription("List all publications for a story with profile info.").
+		HasResponse(http.StatusOK)
+
+	// Add publication
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_stories/{storyId}/publications",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			localeParam := ctx.Request.PathValue("locale")
+			storyIDParam := ctx.Request.PathValue("storyId")
+
+			var requestBody struct {
+				ProfileID  string `json:"profile_id"`
+				IsFeatured bool   `json:"is_featured"`
+			}
+
+			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
+			}
+
+			if requestBody.ProfileID == "" {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("profile_id is required"))
+			}
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			publication, err := storyService.AddPublication(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				storyIDParam,
+				requestBody.ProfileID,
+				localeParam,
+				requestBody.IsFeatured,
+			)
+			if err != nil {
+				if strings.Contains(err.Error(), "unauthorized") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to publish this story",
+						),
+					)
+				}
+
+				logger.ErrorContext(ctx.Request.Context(), "Add publication failed",
+					slog.String("error", err.Error()),
+					slog.String("session_id", sessionID),
+					slog.String("user_id", *session.LoggedInUserID),
+					slog.String("story_id", storyIDParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to add publication"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data":  publication,
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Add Story Publication").
+		HasDescription("Publish a story to a profile.").
+		HasResponse(http.StatusOK)
+
+	// Update publication (is_featured)
+	routes.Route(
+		"PATCH /{locale}/profiles/{slug}/_stories/{storyId}/publications/{publicationId}",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			storyIDParam := ctx.Request.PathValue("storyId")
+			publicationIDParam := ctx.Request.PathValue("publicationId")
+
+			var requestBody struct {
+				IsFeatured bool `json:"is_featured"`
+			}
+
+			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
+			}
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			err := storyService.UpdatePublication(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				storyIDParam,
+				publicationIDParam,
+				requestBody.IsFeatured,
+			)
+			if err != nil {
+				if strings.Contains(err.Error(), "unauthorized") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to update this publication",
+						),
+					)
+				}
+
+				logger.ErrorContext(ctx.Request.Context(), "Update publication failed",
+					slog.String("error", err.Error()),
+					slog.String("session_id", sessionID),
+					slog.String("user_id", *session.LoggedInUserID),
+					slog.String("story_id", storyIDParam),
+					slog.String("publication_id", publicationIDParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to update publication"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data": map[string]any{
+					"success": true,
+					"message": "Publication updated successfully",
+				},
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Update Story Publication").
+		HasDescription("Update a story publication (e.g. is_featured).").
+		HasResponse(http.StatusOK)
+
+	// Remove publication
+	routes.Route(
+		"DELETE /{locale}/profiles/{slug}/_stories/{storyId}/publications/{publicationId}",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			localeParam := ctx.Request.PathValue("locale")
+			storyIDParam := ctx.Request.PathValue("storyId")
+			publicationIDParam := ctx.Request.PathValue("publicationId")
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			err := storyService.RemovePublication(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				storyIDParam,
+				publicationIDParam,
+				localeParam,
+			)
+			if err != nil {
+				if strings.Contains(err.Error(), "unauthorized") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to remove this publication",
+						),
+					)
+				}
+
+				logger.ErrorContext(ctx.Request.Context(), "Remove publication failed",
+					slog.String("error", err.Error()),
+					slog.String("session_id", sessionID),
+					slog.String("user_id", *session.LoggedInUserID),
+					slog.String("story_id", storyIDParam),
+					slog.String("publication_id", publicationIDParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to remove publication"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data": map[string]any{
+					"success": true,
+					"message": "Publication removed successfully",
+				},
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Remove Story Publication").
+		HasDescription("Remove a story publication (unpublish from a profile).").
 		HasResponse(http.StatusOK)
 }

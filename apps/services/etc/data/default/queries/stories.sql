@@ -1,14 +1,17 @@
 -- name: GetStoryIDBySlug :one
-SELECT id
-FROM "story"
-WHERE slug = sqlc.arg(slug)
-  AND deleted_at IS NULL
-  AND status = 'published'
+SELECT s.id
+FROM "story" s
+WHERE s.slug = sqlc.arg(slug)
+  AND s.deleted_at IS NULL
+  AND EXISTS (
+    SELECT 1 FROM story_publication sp
+    WHERE sp.story_id = s.id AND sp.deleted_at IS NULL
+  )
 LIMIT 1;
 
 -- name: GetStoryIDBySlugForViewer :one
 -- Returns story ID if:
---   1. Story is published, OR
+--   1. Story has at least one active publication, OR
 --   2. Viewer is admin, OR
 --   3. Viewer is the author (individual profile owner)
 --   4. Viewer is owner/lead/maintainer of the author profile
@@ -22,7 +25,7 @@ LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
 WHERE s.slug = sqlc.arg(slug)
   AND s.deleted_at IS NULL
   AND (
-    s.status = 'published'
+    EXISTS (SELECT 1 FROM story_publication sp WHERE sp.story_id = s.id AND sp.deleted_at IS NULL)
     OR u.kind = 'admin'
     OR s.author_profile_id = u.individual_profile_id
     OR pm.kind IN ('owner', 'lead', 'maintainer')
@@ -68,40 +71,22 @@ WHERE s.id = sqlc.arg(id)
   AND s.deleted_at IS NULL
 LIMIT 1;
 
--- -- name: ListStories :many
--- SELECT sqlc.embed(s), sqlc.embed(st), sqlc.embed(p), sqlc.embed(pt)
--- FROM "story" s
---   INNER JOIN "story_tx" st ON st.story_id = s.id
---   AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
---   AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
---   AND st.locale_code = sqlc.arg(locale_code)
---   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
---   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
--- WHERE s.deleted_at IS NULL
--- ORDER BY s.created_at DESC;
-
 -- name: InsertStory :one
 INSERT INTO "story" (
   id,
   author_profile_id,
   slug,
   kind,
-  status,
-  is_featured,
   story_picture_uri,
   properties,
-  published_at,
   created_at
 ) VALUES (
   sqlc.arg(id),
   sqlc.arg(author_profile_id),
   sqlc.arg(slug),
   sqlc.arg(kind),
-  sqlc.arg(status),
-  sqlc.arg(is_featured),
   sqlc.narg(story_picture_uri),
   sqlc.narg(properties),
-  sqlc.narg(published_at),
   NOW()
 ) RETURNING *;
 
@@ -126,6 +111,8 @@ INSERT INTO "story_publication" (
   story_id,
   profile_id,
   kind,
+  is_featured,
+  published_at,
   properties,
   created_at
 ) VALUES (
@@ -133,6 +120,8 @@ INSERT INTO "story_publication" (
   sqlc.arg(story_id),
   sqlc.arg(profile_id),
   sqlc.arg(kind),
+  sqlc.arg(is_featured),
+  sqlc.narg(published_at),
   sqlc.narg(properties),
   NOW()
 ) RETURNING *;
@@ -141,10 +130,7 @@ INSERT INTO "story_publication" (
 UPDATE "story"
 SET
   slug = sqlc.arg(slug),
-  status = sqlc.arg(status),
-  is_featured = sqlc.arg(is_featured),
   story_picture_uri = sqlc.narg(story_picture_uri),
-  published_at = sqlc.narg(published_at),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
@@ -274,7 +260,58 @@ FROM "story" s
     AND pt.locale_code = sqlc.arg(locale_code)
 WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
   AND s.deleted_at IS NULL
-  AND s.status = 'published'
+  AND EXISTS (
+    SELECT 1 FROM story_publication sp
+    WHERE sp.story_id = s.id AND sp.deleted_at IS NULL
+  )
   AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
 ORDER BY rank DESC
 LIMIT sqlc.arg(limit_count);
+
+-- name: ListStoryPublications :many
+-- Lists all publications for a story with profile info (for publish popup)
+SELECT
+  sp.id,
+  sp.story_id,
+  sp.profile_id,
+  sp.kind,
+  sp.is_featured,
+  sp.published_at,
+  sp.created_at,
+  p.slug as profile_slug,
+  pt.title as profile_title,
+  p.profile_picture_uri,
+  p.kind as profile_kind
+FROM story_publication sp
+  INNER JOIN "profile" p ON p.id = sp.profile_id AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
+WHERE sp.story_id = sqlc.arg(story_id)
+  AND sp.deleted_at IS NULL
+ORDER BY sp.created_at;
+
+-- name: UpdateStoryPublication :execrows
+UPDATE story_publication
+SET
+  is_featured = sqlc.arg(is_featured),
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: RemoveStoryPublication :execrows
+UPDATE story_publication
+SET deleted_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: CountStoryPublications :one
+SELECT COUNT(*) as count
+FROM story_publication
+WHERE story_id = sqlc.arg(story_id)
+  AND deleted_at IS NULL;
+
+-- name: GetStoryFirstPublishedAt :one
+SELECT MIN(published_at) as first_published_at
+FROM story_publication
+WHERE story_id = sqlc.arg(story_id)
+  AND deleted_at IS NULL
+  AND published_at IS NOT NULL;

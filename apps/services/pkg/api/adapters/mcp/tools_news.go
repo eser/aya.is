@@ -24,7 +24,6 @@ type newsBrief struct {
 	Slug            string  `json:"slug"`
 	Title           string  `json:"title"`
 	Summary         string  `json:"summary"`
-	IsFeatured      bool    `json:"is_featured"`
 	StoryPictureURI *string `json:"story_picture_uri,omitempty"`
 	AuthorName      *string `json:"author_name,omitempty"`
 	AuthorSlug      *string `json:"author_slug,omitempty"`
@@ -45,7 +44,6 @@ type getNewsOutput struct {
 	Title           string             `json:"title"`
 	Summary         string             `json:"summary"`
 	Content         string             `json:"content"`
-	IsFeatured      bool               `json:"is_featured"`
 	StoryPictureURI *string            `json:"story_picture_uri,omitempty"`
 	AuthorName      *string            `json:"author_name,omitempty"`
 	AuthorSlug      *string            `json:"author_slug,omitempty"`
@@ -131,7 +129,6 @@ func createListNewsHandler(
 				Slug:            story.Slug,
 				Title:           story.Title,
 				Summary:         story.Summary,
-				IsFeatured:      story.IsFeatured,
 				StoryPictureURI: story.StoryPictureURI,
 			}
 
@@ -182,7 +179,6 @@ func createGetNewsHandler(
 			Title:           result.Title,
 			Summary:         result.Summary,
 			Content:         result.Content,
-			IsFeatured:      result.IsFeatured,
 			StoryPictureURI: result.StoryPictureURI,
 			Publications:    make([]publicationBrief, 0, len(result.Publications)),
 		}

@@ -9,23 +9,27 @@ import (
 )
 
 var (
-	ErrCannotGetFromCache     = errors.New("cannot get from cache")
-	ErrCannotSetToCache       = errors.New("cannot set to cache")
-	ErrCannotExecuteCachingFn = errors.New("cannot execute caching function")
+	ErrCannotGetFromCache        = errors.New("cannot get from cache")
+	ErrCannotSetToCache          = errors.New("cannot set to cache")
+	ErrCannotInvalidateFromCache = errors.New("cannot invalidate from cache")
+	ErrCannotExecuteCachingFn    = errors.New("cannot execute caching function")
 )
 
 type Cache struct {
-	getter func(ctx context.Context, key string, target any) (bool, error)
-	setter func(ctx context.Context, key string, value any) error
+	getter  func(ctx context.Context, key string, target any) (bool, error)
+	setter  func(ctx context.Context, key string, value any) error
+	remover func(ctx context.Context, key string) error
 }
 
 func NewCache(
 	getter func(ctx context.Context, key string, target any) (bool, error),
 	setter func(ctx context.Context, key string, value any) error,
+	remover func(ctx context.Context, key string) error,
 ) *Cache {
 	return &Cache{
-		getter: getter,
-		setter: setter,
+		getter:  getter,
+		setter:  setter,
+		remover: remover,
 	}
 }
 
@@ -47,6 +51,15 @@ func (c *Cache) Set(ctx context.Context, key string, value any) error {
 	err := c.setter(ctx, key, value)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrCannotSetToCache, err)
+	}
+
+	return nil
+}
+
+func (c *Cache) Invalidate(ctx context.Context, key string) error {
+	err := c.remover(ctx, key)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrCannotInvalidateFromCache, err)
 	}
 
 	return nil

@@ -130,8 +130,6 @@ function EditPagePage() {
     summary: page.summary ?? "",
     content: page.content ?? "",
     storyPictureUri: page.cover_picture_uri ?? null,
-    status: "published",
-    publishedAt: page.published_at ?? null,
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -144,7 +142,7 @@ function EditPagePage() {
         slug: data.slug,
         order: page.sort_order,
         cover_picture_uri: data.storyPictureUri ?? null,
-        published_at: data.publishedAt ?? null,
+        published_at: null,
       },
     );
 

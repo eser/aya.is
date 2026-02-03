@@ -100,7 +100,6 @@ function NewNewsPage() {
     summary: "",
     content: "",
     storyPictureUri: null,
-    status: "draft",
     kind: "news",
   };
 
@@ -112,9 +111,6 @@ function NewNewsPage() {
       summary: data.summary,
       content: data.content,
       story_picture_uri: data.storyPictureUri,
-      status: data.status,
-      is_featured: data.isFeatured ?? false,
-      published_at: data.publishedAt,
     });
 
     if (result !== null) {

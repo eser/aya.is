@@ -2,8 +2,8 @@ export {
   ContentEditor,
   type ContentEditorData,
   type ContentType,
-  type ContentStatus,
 } from "./content-editor";
+export { PublishDialog } from "./publish-dialog";
 export { MarkdownEditor } from "./markdown-editor";
 export { PreviewPanel } from "./preview-panel";
 export { EditorToolbar, type ViewMode, type FormatAction } from "./editor-toolbar";

@@ -8,7 +8,7 @@ export type CheckStorySlugResponse = {
 
 export type CheckStorySlugOptions = {
   excludeId?: string;
-  status?: string;
+  storyId?: string;
   publishedAt?: string | null;
 };
 
@@ -23,8 +23,8 @@ export async function checkStorySlug(
     params.set("exclude_id", options.excludeId);
   }
 
-  if (options?.status !== undefined) {
-    params.set("status", options.status);
+  if (options?.storyId !== undefined) {
+    params.set("story_id", options.storyId);
   }
 
   if (options?.publishedAt !== undefined && options.publishedAt !== null) {

@@ -22,7 +22,7 @@ export function generateGlobalStoryMarkdown(story: StoryEx, locale: string): str
     publish_date: formatDateShort(dateToFormat, locale),
     reading_time: `${calculateReadingTime(story.content)} min`,
     kind: story.kind,
-    status: story.status,
+    status: story.publications.length > 0 ? "published" : "draft",
   });
 
   return `${frontmatter}\n\n${story.content}`;

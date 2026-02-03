@@ -23,8 +23,6 @@ type storyBrief struct {
 	Title           string  `json:"title"`
 	Summary         string  `json:"summary"`
 	Kind            string  `json:"kind"`
-	Status          string  `json:"status"`
-	IsFeatured      bool    `json:"is_featured"`
 	StoryPictureURI *string `json:"story_picture_uri,omitempty"`
 	AuthorName      *string `json:"author_name,omitempty"`
 	AuthorSlug      *string `json:"author_slug,omitempty"`
@@ -51,8 +49,6 @@ type getStoryOutput struct {
 	Summary         string             `json:"summary"`
 	Content         string             `json:"content"`
 	Kind            string             `json:"kind"`
-	Status          string             `json:"status"`
-	IsFeatured      bool               `json:"is_featured"`
 	StoryPictureURI *string            `json:"story_picture_uri,omitempty"`
 	AuthorName      *string            `json:"author_name,omitempty"`
 	AuthorSlug      *string            `json:"author_slug,omitempty"`
@@ -138,8 +134,6 @@ func createListStoriesHandler(
 				Title:           story.Title,
 				Summary:         story.Summary,
 				Kind:            story.Kind,
-				Status:          story.Status,
-				IsFeatured:      story.IsFeatured,
 				StoryPictureURI: story.StoryPictureURI,
 			}
 
@@ -187,8 +181,6 @@ func createGetStoryHandler(
 			Summary:         result.Summary,
 			Content:         result.Content,
 			Kind:            result.Kind,
-			Status:          result.Status,
-			IsFeatured:      result.IsFeatured,
 			StoryPictureURI: result.StoryPictureURI,
 			Publications:    make([]publicationBrief, 0, len(result.Publications)),
 		}

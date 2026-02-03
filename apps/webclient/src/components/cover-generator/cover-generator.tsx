@@ -79,7 +79,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
     kindLabel: getKindLabel(story.kind),
     authorName: story.author_profile?.title ?? null,
     authorAvatarUrl: story.author_profile?.profile_picture_uri ?? null,
-    publishedAt: story.published_at ?? story.created_at,
+    publishedAt: story.created_at,
   }), [story, t]);
 
   // Initialize options with template defaults
@@ -164,9 +164,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
         story.id,
         {
           slug: story.slug ?? "",
-          status: story.status,
           story_picture_uri: result.publicUrl,
-          published_at: story.published_at,
         },
       );
 

@@ -148,10 +148,7 @@ function EditStoryPage() {
     summary: editData.summary ?? "",
     content: editData.content,
     storyPictureUri: editData.story_picture_uri,
-    status: editData.status === "published" ? "published" : "draft",
     kind: (editData.kind as ContentEditorData["kind"]) ?? "article",
-    isFeatured: editData.is_featured,
-    publishedAt: editData.published_at,
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -162,11 +159,7 @@ function EditStoryPage() {
       story.id,
       {
         slug: data.slug,
-        status: data.status,
-        is_featured: data.isFeatured ?? editData.is_featured,
         story_picture_uri: data.storyPictureUri,
-        kind: data.kind,
-        published_at: data.publishedAt,
       },
     );
 
@@ -237,6 +230,9 @@ function EditStoryPage() {
           onSave={handleSave}
           onDelete={handleDelete}
           excludeId={story.id}
+          storyId={story.id}
+          initialPublications={editData.publications ?? []}
+          accessibleProfiles={auth.user?.accessible_profiles ?? []}
         />
       </div>
     </PageLayout>

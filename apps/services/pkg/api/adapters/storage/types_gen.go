@@ -277,25 +277,24 @@ type Story struct {
 	AuthorProfileID sql.NullString        `db:"author_profile_id" json:"author_profile_id"`
 	Slug            string                `db:"slug" json:"slug"`
 	Kind            string                `db:"kind" json:"kind"`
-	Status          string                `db:"status" json:"status"`
-	IsFeatured      bool                  `db:"is_featured" json:"is_featured"`
 	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
-	PublishedAt     sql.NullTime          `db:"published_at" json:"published_at"`
 }
 
 type StoryPublication struct {
-	ID         string                `db:"id" json:"id"`
-	StoryID    string                `db:"story_id" json:"story_id"`
-	ProfileID  string                `db:"profile_id" json:"profile_id"`
-	Kind       string                `db:"kind" json:"kind"`
-	Properties pqtype.NullRawMessage `db:"properties" json:"properties"`
-	CreatedAt  time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt  sql.NullTime          `db:"updated_at" json:"updated_at"`
-	DeletedAt  sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	ID          string                `db:"id" json:"id"`
+	StoryID     string                `db:"story_id" json:"story_id"`
+	ProfileID   string                `db:"profile_id" json:"profile_id"`
+	Kind        string                `db:"kind" json:"kind"`
+	Properties  pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt   time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt   sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt   sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	IsFeatured  bool                  `db:"is_featured" json:"is_featured"`
+	PublishedAt sql.NullTime          `db:"published_at" json:"published_at"`
 }
 
 type StoryTx struct {

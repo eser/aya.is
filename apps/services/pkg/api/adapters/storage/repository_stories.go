@@ -190,7 +190,7 @@ func (r *Repository) ListStoriesOfPublication(
 	return wrappedResponse, nil
 }
 
-// CRUD methods for stories
+// Story CRUD methods
 
 func (r *Repository) InsertStory(
 	ctx context.Context,
@@ -198,22 +198,16 @@ func (r *Repository) InsertStory(
 	authorProfileID string,
 	slug string,
 	kind string,
-	status string,
-	isFeatured bool,
 	storyPictureURI *string,
 	properties map[string]any,
-	publishedAt *time.Time,
 ) (*stories.Story, error) {
 	params := InsertStoryParams{
 		ID:              id,
 		AuthorProfileID: sql.NullString{String: authorProfileID, Valid: true},
 		Slug:            slug,
 		Kind:            kind,
-		Status:          status,
-		IsFeatured:      isFeatured,
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
 		Properties:      vars.ToSQLNullRawMessage(properties),
-		PublishedAt:     vars.ToSQLNullTime(publishedAt),
 	}
 
 	row, err := r.queries.InsertStory(ctx, params)
@@ -226,10 +220,7 @@ func (r *Repository) InsertStory(
 		AuthorProfileID: vars.ToStringPtr(row.AuthorProfileID),
 		Slug:            row.Slug,
 		Kind:            row.Kind,
-		Status:          row.Status,
-		IsFeatured:      row.IsFeatured,
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
-		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -260,14 +251,18 @@ func (r *Repository) InsertStoryPublication(
 	storyID string,
 	profileID string,
 	kind string,
+	isFeatured bool,
+	publishedAt *time.Time,
 	properties map[string]any,
 ) error {
 	params := InsertStoryPublicationParams{
-		ID:         id,
-		StoryID:    storyID,
-		ProfileID:  profileID,
-		Kind:       kind,
-		Properties: vars.ToSQLNullRawMessage(properties),
+		ID:          id,
+		StoryID:     storyID,
+		ProfileID:   profileID,
+		Kind:        kind,
+		IsFeatured:  isFeatured,
+		PublishedAt: vars.ToSQLNullTime(publishedAt),
+		Properties:  vars.ToSQLNullRawMessage(properties),
 	}
 
 	_, err := r.queries.InsertStoryPublication(ctx, params)
@@ -279,18 +274,12 @@ func (r *Repository) UpdateStory(
 	ctx context.Context,
 	id string,
 	slug string,
-	status string,
-	isFeatured bool,
 	storyPictureURI *string,
-	publishedAt *time.Time,
 ) error {
 	params := UpdateStoryParams{
 		ID:              id,
 		Slug:            slug,
-		Status:          status,
-		IsFeatured:      isFeatured,
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
-		PublishedAt:     vars.ToSQLNullTime(publishedAt),
 	}
 
 	_, err := r.queries.UpdateStory(ctx, params)
@@ -369,14 +358,11 @@ func (r *Repository) GetStoryForEdit(
 		AuthorProfileID: vars.ToStringPtr(row.AuthorProfileID),
 		Slug:            row.Slug,
 		Kind:            row.Kind,
-		Status:          row.Status,
-		IsFeatured:      row.IsFeatured,
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
 		Title:           row.Title,
 		Summary:         row.Summary,
 		Content:         row.Content,
 		CreatedAt:       row.CreatedAt,
-		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
 }
@@ -409,6 +395,102 @@ func (r *Repository) GetStoryOwnershipForUser(
 	}, nil
 }
 
+// Publication management methods
+
+func (r *Repository) ListStoryPublications(
+	ctx context.Context,
+	localeCode string,
+	storyID string,
+) ([]*stories.StoryPublication, error) {
+	params := ListStoryPublicationsParams{
+		LocaleCode: localeCode,
+		StoryID:    storyID,
+	}
+
+	rows, err := r.queries.ListStoryPublications(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*stories.StoryPublication, len(rows))
+	for i, row := range rows {
+		result[i] = &stories.StoryPublication{
+			ID:                row.ID,
+			StoryID:           row.StoryID,
+			ProfileID:         row.ProfileID,
+			ProfileSlug:       row.ProfileSlug,
+			ProfileTitle:      row.ProfileTitle,
+			ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
+			ProfileKind:       row.ProfileKind,
+			Kind:              row.Kind,
+			IsFeatured:        row.IsFeatured,
+			PublishedAt:       vars.ToTimePtr(row.PublishedAt),
+			CreatedAt:         row.CreatedAt,
+		}
+	}
+
+	return result, nil
+}
+
+func (r *Repository) UpdateStoryPublication(
+	ctx context.Context,
+	id string,
+	isFeatured bool,
+) error {
+	params := UpdateStoryPublicationParams{
+		ID:         id,
+		IsFeatured: isFeatured,
+	}
+
+	_, err := r.queries.UpdateStoryPublication(ctx, params)
+
+	return err
+}
+
+func (r *Repository) RemoveStoryPublication(ctx context.Context, id string) error {
+	params := RemoveStoryPublicationParams{ID: id}
+	_, err := r.queries.RemoveStoryPublication(ctx, params)
+
+	return err
+}
+
+func (r *Repository) CountStoryPublications(ctx context.Context, storyID string) (int64, error) {
+	params := CountStoryPublicationsParams{StoryID: storyID}
+
+	return r.queries.CountStoryPublications(ctx, params)
+}
+
+func (r *Repository) GetStoryFirstPublishedAt(
+	ctx context.Context,
+	storyID string,
+) (*time.Time, error) {
+	params := GetStoryFirstPublishedAtParams{StoryID: storyID}
+
+	result, err := r.queries.GetStoryFirstPublishedAt(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	if result == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	// The result is interface{} from sqlc; try to cast to time.Time
+	if t, ok := result.(time.Time); ok {
+		return &t, nil
+	}
+
+	return nil, nil //nolint:nilnil
+}
+
+func (r *Repository) InvalidateStorySlugCache(ctx context.Context, slug string) error {
+	return r.cache.Invalidate(ctx, "story_id_by_slug:"+slug)
+}
+
 func (r *Repository) parseStoryWithChildren( //nolint:funlen
 	profile Profile,
 	profileTx ProfileTx,
@@ -422,15 +504,12 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			AuthorProfileID: vars.ToStringPtr(story.AuthorProfileID),
 			Slug:            story.Slug,
 			Kind:            story.Kind,
-			Status:          story.Status,
-			IsFeatured:      story.IsFeatured,
 			StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
 			Title:           storyTx.Title,
 			Summary:         storyTx.Summary,
 			Content:         storyTx.Content,
 			Properties:      vars.ToObject(story.Properties),
 			CreatedAt:       story.CreatedAt,
-			PublishedAt:     vars.ToTimePtr(story.PublishedAt),
 			UpdatedAt:       vars.ToTimePtr(story.UpdatedAt),
 			DeletedAt:       vars.ToTimePtr(story.DeletedAt),
 		},

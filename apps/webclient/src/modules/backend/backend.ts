@@ -45,6 +45,10 @@ import { updateStory } from "./stories/update-story";
 import { updateStoryTranslation } from "./stories/update-story-translation";
 import { removeStory } from "./stories/remove-story";
 import { getStoryPermissions } from "./stories/get-story-permissions";
+import { listStoryPublications } from "./stories/list-story-publications";
+import { addStoryPublication } from "./stories/add-story-publication";
+import { updateStoryPublication } from "./stories/update-story-publication";
+import { removeStoryPublication } from "./stories/remove-story-publication";
 import { getPresignedURL } from "./uploads/get-presigned-url";
 import { uploadToPresignedURL } from "./uploads/upload-to-presigned-url";
 import { removeUpload } from "./uploads/remove-upload";
@@ -138,6 +142,10 @@ export const backend = {
   updateStoryTranslation,
   removeStory,
   getStoryPermissions,
+  listStoryPublications,
+  addStoryPublication,
+  updateStoryPublication,
+  removeStoryPublication,
 
   // Uploads
   getPresignedURL,

@@ -16,22 +16,24 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
 
-export type ContentStatus = "draft" | "published";
-
 type EditorActionsProps = {
-  status: ContentStatus;
+  publicationCount: number;
   isSaving: boolean;
   isDeleting: boolean;
   hasChanges: boolean;
   onSave: () => void;
-  onPublish: () => void;
-  onUnpublish: () => void;
+  onOpenPublishDialog: () => void;
   onDelete: () => void;
   canDelete?: boolean;
 };
@@ -39,23 +41,23 @@ type EditorActionsProps = {
 export function EditorActions(props: EditorActionsProps) {
   const { t } = useTranslation();
   const {
-    status,
+    publicationCount,
     isSaving,
     isDeleting,
     hasChanges,
     onSave,
-    onPublish,
-    onUnpublish,
+    onOpenPublishDialog,
     onDelete,
     canDelete = true,
   } = props;
 
-  const isPublished = status === "published";
+  const isPublished = publicationCount > 0;
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+  const canActuallyDelete = canDelete && !isPublished;
 
   return (
     <div className="flex items-center gap-3">
-      <StatusBadge status={status} />
+      <StatusBadge publicationCount={publicationCount} />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -65,32 +67,34 @@ export function EditorActions(props: EditorActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-auto">
-          {isPublished && (
-            <>
-              <DropdownMenuItem onClick={onUnpublish} disabled={isSaving}>
-                <GlobeLock className="mr-2 size-4" />
-                {t("ContentEditor.Unpublish")}
-              </DropdownMenuItem>
-              {canDelete && <DropdownMenuSeparator />}
-            </>
-          )}
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={!canDelete || isDeleting}
-          >
-            <Trash2 className="mr-2 size-4" />
-            {t("Common.Delete")}
-          </DropdownMenuItem>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setShowDeleteDialog(true)}
+                    disabled={!canActuallyDelete || isDeleting}
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    {t("Common.Delete")}
+                  </DropdownMenuItem>
+                </div>
+              </TooltipTrigger>
+              {!canActuallyDelete && isPublished && (
+                <TooltipContent>
+                  {t("ContentEditor.Unpublish from all profiles first")}
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {!isPublished && (
-        <Button variant="default" size="sm" onClick={onPublish} disabled={isSaving}>
-          <Globe className="mr-1.5 size-4" />
-          {t("ContentEditor.Publish")}
-        </Button>
-      )}
+      <Button variant="default" size="sm" onClick={onOpenPublishDialog} disabled={isSaving}>
+        <Globe className="mr-1.5 size-4" />
+        {t("ContentEditor.Publish")}
+      </Button>
 
       <Button
         variant="outline"
@@ -125,13 +129,13 @@ export function EditorActions(props: EditorActionsProps) {
 }
 
 type StatusBadgeProps = {
-  status: ContentStatus;
+  publicationCount: number;
 };
 
 function StatusBadge(props: StatusBadgeProps) {
   const { t } = useTranslation();
-  const { status } = props;
-  const isPublished = status === "published";
+  const { publicationCount } = props;
+  const isPublished = publicationCount > 0;
 
   return (
     <span
@@ -144,6 +148,7 @@ function StatusBadge(props: StatusBadgeProps) {
         <>
           <Globe className="size-3" />
           {t("ContentEditor.Published")}
+          {publicationCount > 1 && ` (${publicationCount})`}
         </>
       ) : (
         <>

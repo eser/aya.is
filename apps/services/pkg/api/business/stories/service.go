@@ -14,16 +14,19 @@ import (
 )
 
 var (
-	ErrFailedToGetRecord    = errors.New("failed to get record")
-	ErrFailedToListRecords  = errors.New("failed to list records")
-	ErrFailedToInsertRecord = errors.New("failed to insert record")
-	ErrFailedToUpdateRecord = errors.New("failed to update record")
-	ErrFailedToRemoveRecord = errors.New("failed to remove record")
-	ErrUnauthorized         = errors.New("unauthorized")
-	ErrStoryNotFound        = errors.New("story not found")
-	ErrInvalidSlugPrefix    = errors.New("slug must start with YYYYMMDD of publish date")
-	ErrInvalidURI           = errors.New("invalid URI")
-	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
+	ErrFailedToGetRecord     = errors.New("failed to get record")
+	ErrFailedToListRecords   = errors.New("failed to list records")
+	ErrFailedToInsertRecord  = errors.New("failed to insert record")
+	ErrFailedToUpdateRecord  = errors.New("failed to update record")
+	ErrFailedToRemoveRecord  = errors.New("failed to remove record")
+	ErrUnauthorized          = errors.New("unauthorized")
+	ErrStoryNotFound         = errors.New("story not found")
+	ErrInvalidSlugPrefix     = errors.New("slug must start with YYYYMMDD of publish date")
+	ErrInvalidURI            = errors.New("invalid URI")
+	ErrInvalidURIPrefix      = errors.New("URI must start with allowed prefix")
+	ErrHasActivePublications = errors.New(
+		"story has active publications, unpublish from all profiles first",
+	)
 )
 
 // Config holds the stories service configuration.
@@ -59,7 +62,7 @@ type slugValidationResult struct {
 }
 
 // validateSlugLength checks if the slug meets the minimum length requirement.
-// Returns severity based on status: error for published, warning for draft.
+// Returns severity based on publication state: error for published, warning for draft.
 func validateSlugLength(slug string, isPublished bool) *slugValidationResult {
 	const minLength = 12 // 9 (YYYYMMDD-) + 3 (minimum content)
 
@@ -81,7 +84,7 @@ func validateSlugLength(slug string, isPublished bool) *slugValidationResult {
 
 // validateSlugDatePrefix validates that the slug starts with YYYYMMDD- format
 // matching the provided publish date.
-// Returns severity based on status: error for published, warning for draft.
+// Returns severity based on publication state: error for published, warning for draft.
 func validateSlugDatePrefix(
 	slug string,
 	publishDate time.Time,
@@ -179,18 +182,15 @@ type Repository interface {
 		localeCode string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*StoryWithChildren], error)
-	// CRUD methods
+	// Story CRUD methods
 	InsertStory(
 		ctx context.Context,
 		id string,
 		authorProfileID string,
 		slug string,
 		kind string,
-		status string,
-		isFeatured bool,
 		storyPictureURI *string,
 		properties map[string]any,
-		publishedAt *time.Time,
 	) (*Story, error)
 	InsertStoryTx(
 		ctx context.Context,
@@ -206,16 +206,15 @@ type Repository interface {
 		storyID string,
 		profileID string,
 		kind string,
+		isFeatured bool,
+		publishedAt *time.Time,
 		properties map[string]any,
 	) error
 	UpdateStory(
 		ctx context.Context,
 		id string,
 		slug string,
-		status string,
-		isFeatured bool,
 		storyPictureURI *string,
-		publishedAt *time.Time,
 	) error
 	UpdateStoryTx(
 		ctx context.Context,
@@ -240,6 +239,21 @@ type Repository interface {
 		userID string,
 		storyID string,
 	) (*StoryOwnership, error)
+	// Publication management methods
+	ListStoryPublications(
+		ctx context.Context,
+		localeCode string,
+		storyID string,
+	) ([]*StoryPublication, error)
+	UpdateStoryPublication(
+		ctx context.Context,
+		id string,
+		isFeatured bool,
+	) error
+	RemoveStoryPublication(ctx context.Context, id string) error
+	CountStoryPublications(ctx context.Context, storyID string) (int64, error)
+	GetStoryFirstPublishedAt(ctx context.Context, storyID string) (*time.Time, error)
+	InvalidateStorySlugCache(ctx context.Context, slug string) error
 }
 
 type Service struct {
@@ -294,8 +308,8 @@ func (s *Service) GetBySlug(
 }
 
 // GetBySlugForViewer returns a story by slug, respecting viewer permissions.
-// - Published stories are visible to everyone
-// - Non-published stories are visible to admins, authors, and profile editors.
+// - Stories with active publications are visible to everyone
+// - Other stories are visible to admins, authors, and profile editors.
 func (s *Service) GetBySlugForViewer(
 	ctx context.Context,
 	localeCode string,
@@ -321,22 +335,30 @@ func (s *Service) GetBySlugForViewer(
 
 // CheckSlugAvailability checks if a story slug is available and validates format requirements.
 // It optionally excludes a specific story ID (for edit scenarios).
-// When status is "published" and publishedAt is provided, it also validates the date prefix.
+// When the story has publications, it validates the date prefix strictly.
 // Parameters:
 //   - slug: the slug to check
 //   - excludeStoryID: story ID to exclude (for edit mode)
-//   - status: "published" or "draft"
+//   - storyID: optional story ID to check publication state
 //   - publishedAt: publish date for date prefix validation
 //   - includeDeleted: if true, also check against deleted stories
 func (s *Service) CheckSlugAvailability(
 	ctx context.Context,
 	slug string,
 	excludeStoryID *string,
-	status string,
+	storyID *string,
 	publishedAt *time.Time,
 	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
-	isPublished := status == "published"
+	// Determine if story is published by checking its publications
+	isPublished := false
+
+	if storyID != nil {
+		count, err := s.repo.CountStoryPublications(ctx, *storyID)
+		if err == nil && count > 0 {
+			isPublished = true
+		}
+	}
 
 	// Check minimum length (12 chars = 9 for date + 3 for content)
 	if lengthResult := validateSlugLength(slug, isPublished); lengthResult != nil {
@@ -356,6 +378,14 @@ func (s *Service) CheckSlugAvailability(
 	var datePrefix time.Time
 	if publishedAt != nil {
 		datePrefix = *publishedAt
+	} else if storyID != nil {
+		// Try to get the first published_at from publications
+		firstPublishedAt, err := s.repo.GetStoryFirstPublishedAt(ctx, *storyID)
+		if err == nil && firstPublishedAt != nil {
+			datePrefix = *firstPublishedAt
+		} else {
+			datePrefix = time.Now()
+		}
 	} else {
 		datePrefix = time.Now()
 	}
@@ -373,10 +403,10 @@ func (s *Service) CheckSlugAvailability(
 	}
 
 	// Check if slug is already taken (active stories)
-	storyID, err := s.repo.GetStoryIDBySlug(ctx, slug)
-	if err == nil && storyID != "" {
+	existingStoryID, err := s.repo.GetStoryIDBySlug(ctx, slug)
+	if err == nil && existingStoryID != "" {
 		// If we're editing and the slug belongs to the same story, continue
-		if excludeStoryID == nil || storyID != *excludeStoryID {
+		if excludeStoryID == nil || existingStoryID != *excludeStoryID {
 			return &SlugAvailabilityResult{
 				Available: false,
 				Message:   "This slug is already taken",
@@ -500,43 +530,70 @@ func (s *Service) CanUserEditStory(
 	return ownership.CanEdit, nil
 }
 
-// GetForEdit retrieves a story for editing (raw content, no compilation).
+// GetForEdit retrieves a story for editing with its publications.
 func (s *Service) GetForEdit(
 	ctx context.Context,
 	localeCode string,
 	storyID string,
-) (*StoryForEdit, error) {
+) (*StoryForEditWithPublications, error) {
 	story, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
 	}
 
-	return story, nil
+	if story == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	publications, err := s.repo.ListStoryPublications(ctx, localeCode, storyID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToListRecords, storyID, err)
+	}
+
+	return &StoryForEditWithPublications{
+		StoryForEdit: story,
+		Publications: publications,
+	}, nil
 }
 
-// Create creates a new story with its translation and publication.
+// Create creates a new story with its translation. Optionally publishes to profiles.
 func (s *Service) Create(
 	ctx context.Context,
 	userID string,
 	userKind string,
 	authorProfileSlug string,
-	publicationProfileSlug string,
 	localeCode string,
 	slug string,
 	kind string,
-	status string,
 	title string,
 	summary string,
 	content string,
 	storyPictureURI *string,
-	isFeatured bool,
-	publishedAt *time.Time,
+	publishToProfileSlugs []string,
 ) (*Story, error) {
+	// Determine if the story will be published (for slug validation)
+	isPublishing := len(publishToProfileSlugs) > 0
+
+	status := "draft"
+
+	if isPublishing {
+		status = "published"
+	}
+
 	// Validate slug availability and date prefix (only block on errors, not warnings)
-	slugResult, err := s.CheckSlugAvailability(ctx, slug, nil, status, publishedAt, false)
+	var publishedAt *time.Time
+
+	if isPublishing {
+		now := time.Now()
+		publishedAt = &now
+	}
+
+	slugResult, err := s.CheckSlugAvailability(ctx, slug, nil, nil, publishedAt, false)
 	if err != nil {
 		return nil, err
 	}
+
+	_ = status // used conceptually for slug validation
 
 	if !slugResult.Available && slugResult.Severity == SeverityError {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
@@ -561,17 +618,6 @@ func (s *Service) Create(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, authorProfileSlug, err)
 	}
 
-	// Get publication profile ID
-	publicationProfileID, err := s.repo.GetProfileIDBySlug(ctx, publicationProfileSlug)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"%w(slug: %s): %w",
-			ErrFailedToGetRecord,
-			publicationProfileSlug,
-			err,
-		)
-	}
-
 	// Generate new story ID
 	storyID := s.idGenerator()
 
@@ -582,11 +628,8 @@ func (s *Service) Create(
 		authorProfileID,
 		slug,
 		kind,
-		status,
-		isFeatured,
 		storyPictureURI,
 		nil, // No additional properties for now
-		publishedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
@@ -605,35 +648,42 @@ func (s *Service) Create(
 		return nil, fmt.Errorf("%w: translation: %w", ErrFailedToInsertRecord, err)
 	}
 
-	// Create story publication (link story to profile)
-	publicationID := s.idGenerator()
+	// Create publications for each target profile
+	for _, profileSlug := range publishToProfileSlugs {
+		profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+		if err != nil {
+			return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+		}
 
-	err = s.repo.InsertStoryPublication(
-		ctx,
-		string(publicationID),
-		string(storyID),
-		publicationProfileID,
-		"original", // publication kind
-		nil,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%w: publication: %w", ErrFailedToInsertRecord, err)
+		publicationID := s.idGenerator()
+		now := time.Now()
+
+		err = s.repo.InsertStoryPublication(
+			ctx,
+			string(publicationID),
+			string(storyID),
+			profileID,
+			"original",
+			false, // is_featured
+			&now,
+			nil,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("%w: publication: %w", ErrFailedToInsertRecord, err)
+		}
 	}
 
 	return story, nil
 }
 
-// Update updates an existing story.
+// Update updates an existing story (slug and picture only).
 func (s *Service) Update(
 	ctx context.Context,
 	userID string,
 	userKind string,
 	storyID string,
 	slug string,
-	status string,
-	isFeatured bool,
 	storyPictureURI *string,
-	publishedAt *time.Time,
 ) (*StoryForEdit, error) {
 	// Check authorization
 	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
@@ -651,7 +701,7 @@ func (s *Service) Update(
 	}
 
 	// Validate slug availability and date prefix (only block on errors, not warnings)
-	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, status, publishedAt, false)
+	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, &storyID, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -674,7 +724,7 @@ func (s *Service) Update(
 	}
 
 	// Update the story
-	err = s.repo.UpdateStory(ctx, storyID, slug, status, isFeatured, storyPictureURI, publishedAt)
+	err = s.repo.UpdateStory(ctx, storyID, slug, storyPictureURI)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToUpdateRecord, storyID, err)
 	}
@@ -728,7 +778,7 @@ func (s *Service) UpdateTranslation(
 	return nil
 }
 
-// Delete soft-deletes a story.
+// Delete soft-deletes a story. Fails if the story has active publications.
 func (s *Service) Delete(
 	ctx context.Context,
 	userID string,
@@ -749,6 +799,16 @@ func (s *Service) Delete(
 		)
 	}
 
+	// Check for active publications
+	count, err := s.repo.CountStoryPublications(ctx, storyID)
+	if err != nil {
+		return fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
+	}
+
+	if count > 0 {
+		return ErrHasActivePublications
+	}
+
 	// Delete the story
 	err = s.repo.RemoveStory(ctx, storyID)
 	if err != nil {
@@ -756,4 +816,172 @@ func (s *Service) Delete(
 	}
 
 	return nil
+}
+
+// AddPublication publishes a story to a profile.
+func (s *Service) AddPublication(
+	ctx context.Context,
+	userID string,
+	storyID string,
+	profileSlug string,
+	localeCode string,
+	isFeatured bool,
+) (*StoryPublication, error) {
+	// Check story edit permission
+	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !canEdit {
+		return nil, fmt.Errorf(
+			"%w: user %s cannot edit story %s",
+			ErrUnauthorized,
+			userID,
+			storyID,
+		)
+	}
+
+	// Get the profile ID
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	// Create the publication
+	publicationID := s.idGenerator()
+	now := time.Now()
+
+	err = s.repo.InsertStoryPublication(
+		ctx,
+		string(publicationID),
+		storyID,
+		profileID,
+		"original",
+		isFeatured,
+		&now,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
+	}
+
+	// Invalidate the story slug cache so it becomes publicly findable
+	// We need to get the story's slug first
+	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
+	if err == nil && storyForEdit != nil {
+		_ = s.repo.InvalidateStorySlugCache(ctx, storyForEdit.Slug)
+	}
+
+	// Return the created publication with profile info
+	publications, err := s.repo.ListStoryPublications(ctx, localeCode, storyID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	// Find the one we just created
+	for _, pub := range publications {
+		if pub.ID == string(publicationID) {
+			return pub, nil
+		}
+	}
+
+	// Fallback: return a basic publication object
+	return &StoryPublication{
+		ID:          string(publicationID),
+		StoryID:     storyID,
+		ProfileID:   profileID,
+		Kind:        "original",
+		IsFeatured:  isFeatured,
+		PublishedAt: &now,
+		CreatedAt:   now,
+	}, nil
+}
+
+// RemovePublication unpublishes a story from a profile.
+func (s *Service) RemovePublication(
+	ctx context.Context,
+	userID string,
+	storyID string,
+	publicationID string,
+	localeCode string,
+) error {
+	// Check story edit permission
+	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
+	if err != nil {
+		return err
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot edit story %s",
+			ErrUnauthorized,
+			userID,
+			storyID,
+		)
+	}
+
+	// Remove the publication
+	err = s.repo.RemoveStoryPublication(ctx, publicationID)
+	if err != nil {
+		return fmt.Errorf("%w(publicationID: %s): %w", ErrFailedToRemoveRecord, publicationID, err)
+	}
+
+	// Invalidate slug cache
+	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
+	if err == nil && storyForEdit != nil {
+		_ = s.repo.InvalidateStorySlugCache(ctx, storyForEdit.Slug)
+	}
+
+	return nil
+}
+
+// UpdatePublication updates a story publication's properties.
+func (s *Service) UpdatePublication(
+	ctx context.Context,
+	userID string,
+	storyID string,
+	publicationID string,
+	isFeatured bool,
+) error {
+	// Check story edit permission
+	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
+	if err != nil {
+		return err
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot edit story %s",
+			ErrUnauthorized,
+			userID,
+			storyID,
+		)
+	}
+
+	err = s.repo.UpdateStoryPublication(ctx, publicationID, isFeatured)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(publicationID: %s): %w",
+			ErrFailedToUpdateRecord,
+			publicationID,
+			err,
+		)
+	}
+
+	return nil
+}
+
+// ListPublications returns all publications for a story.
+func (s *Service) ListPublications(
+	ctx context.Context,
+	localeCode string,
+	storyID string,
+) ([]*StoryPublication, error) {
+	publications, err := s.repo.ListStoryPublications(ctx, localeCode, storyID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToListRecords, storyID, err)
+	}
+
+	return publications, nil
 }

@@ -185,8 +185,6 @@ export interface Story {
   title: string | null;
   summary: string | null;
   content: string;
-  status: "draft" | "published";
-  is_featured: boolean;
   author_profile_id: string | null;
   author_profile: Profile | null;
   created_at: string;
@@ -301,18 +299,12 @@ export interface InsertStoryInput {
   summary?: string;
   content: string;
   story_picture_uri?: string | null;
-  status: "draft" | "published";
-  is_featured?: boolean;
-  published_at?: string | null;
+  publish_to_profiles?: string[];
 }
 
 export interface UpdateStoryInput {
   slug: string;
-  status: "draft" | "published";
-  is_featured?: boolean;
   story_picture_uri?: string | null;
-  kind?: StoryKind;
-  published_at?: string | null;
 }
 
 export interface UpdateStoryTranslationInput {
@@ -321,20 +313,32 @@ export interface UpdateStoryTranslationInput {
   content: string;
 }
 
+export interface StoryPublication {
+  id: string;
+  story_id: string;
+  profile_id: string;
+  profile_slug: string;
+  profile_title: string;
+  profile_picture_uri: string | null;
+  profile_kind: string;
+  kind: string;
+  is_featured: boolean;
+  published_at: string | null;
+  created_at: string;
+}
+
 export interface StoryEditData {
   id: string;
   kind: StoryKind;
   slug: string | null;
   story_picture_uri: string | null;
-  status: string;
-  is_featured: boolean;
   title: string | null;
   summary: string | null;
   content: string;
   author_profile_id: string | null;
   created_at: string;
-  published_at: string | null;
   updated_at: string | null;
+  publications?: StoryPublication[];
 }
 
 export interface StoryPermissions {

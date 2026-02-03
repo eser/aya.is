@@ -38,7 +38,6 @@ function NewPagePage() {
     summary: "",
     content: "",
     storyPictureUri: null,
-    status: "draft",
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -51,7 +50,7 @@ function NewPagePage() {
         summary: data.summary,
         content: data.content,
         cover_picture_uri: data.storyPictureUri,
-        published_at: data.publishedAt,
+        published_at: null,
       },
     );
 

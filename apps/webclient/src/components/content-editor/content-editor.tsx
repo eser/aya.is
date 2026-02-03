@@ -22,14 +22,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import type { StoryKind } from "@/modules/backend/types";
+import type { StoryKind, StoryPublication } from "@/modules/backend/types";
+import type { AccessibleProfile } from "@/modules/backend/sessions/types";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { insertTextAtCursor, MarkdownEditor, wrapSelectedText } from "./markdown-editor";
 import { PreviewPanel } from "./preview-panel";
 import { EditorToolbar, type FormatAction, type ViewMode } from "./editor-toolbar";
-import { type ContentStatus, EditorActions } from "./editor-actions";
+import { EditorActions } from "./editor-actions";
+import { PublishDialog } from "./publish-dialog";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
@@ -95,9 +96,6 @@ export type ContentEditorData = {
   summary: string;
   content: string;
   storyPictureUri?: string | null;
-  status: ContentStatus;
-  publishedAt?: string | null;
-  isFeatured?: boolean;
   kind?: StoryKind;
 };
 
@@ -113,6 +111,9 @@ type ContentEditorProps = {
   onDelete?: () => Promise<void>;
   isNew?: boolean;
   excludeId?: string;
+  storyId?: string;
+  initialPublications?: StoryPublication[];
+  accessibleProfiles?: AccessibleProfile[];
 };
 
 export function ContentEditor(props: ContentEditorProps) {
@@ -128,6 +129,9 @@ export function ContentEditor(props: ContentEditorProps) {
     onDelete,
     isNew = false,
     excludeId,
+    storyId,
+    initialPublications = [],
+    accessibleProfiles = [],
   } = props;
 
   const isAdmin = userKind === "admin";
@@ -146,16 +150,27 @@ export function ContentEditor(props: ContentEditorProps) {
   const [storyPictureUri, setStoryPictureUri] = React.useState(
     initialData.storyPictureUri ?? null,
   );
-  const [status, setStatus] = React.useState<ContentStatus>(initialData.status);
-  const [publishedAt, setPublishedAt] = React.useState(
-    initialData.publishedAt ?? null,
-  );
-  const [isFeatured, setIsFeatured] = React.useState(
-    initialData.isFeatured ?? false,
-  );
   const [kind, setKind] = React.useState<StoryKind>(
     initialData.kind ?? "article",
   );
+
+  // Publication state
+  const [publications, setPublications] = React.useState<StoryPublication[]>(initialPublications);
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = React.useState(false);
+
+  // Derive published state from publications
+  const isPublished = publications.length > 0;
+  const earliestPublishedAt = React.useMemo(() => {
+    let earliest: string | null = null;
+    for (const pub of publications) {
+      if (pub.published_at !== null) {
+        if (earliest === null || pub.published_at < earliest) {
+          earliest = pub.published_at;
+        }
+      }
+    }
+    return earliest;
+  }, [publications]);
 
   // UI state
   const [viewMode, setViewMode] = React.useState<ViewMode>("split");
@@ -165,7 +180,7 @@ export function ContentEditor(props: ContentEditorProps) {
   const [showStoryPictureModal, setShowStoryPictureModal] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [slugError, setSlugError] = React.useState<string | null>(null);
-  const [showSlugValidation, setShowSlugValidation] = React.useState(false);
+  const [showSlugValidation, setShowSlugValidation] = React.useState(!isNew);
   const [slugManuallyEdited, setSlugManuallyEdited] = React.useState(!isNew);
   const [titleError, setTitleError] = React.useState<string | null>(null);
   const [showTitleValidation, setTitleTouched] = React.useState(!isNew);
@@ -197,9 +212,9 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Date prefix validation for stories with global slugs
-    if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
-      const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
+    // Date prefix validation for published stories
+    if (shouldValidateSlugDatePrefix && isPublished && earliestPublishedAt !== null) {
+      const { valid, expectedPrefix } = validateSlugPrefix(slug, earliestPublishedAt);
       if (!valid && expectedPrefix !== null) {
         setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
         return;
@@ -207,13 +222,7 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     setSlugError(null);
-  }, [slug, showSlugValidation, publishedAt, status, shouldValidateSlugDatePrefix]);
-
-  // Refs to capture current values without triggering effect re-runs
-  const statusRef = React.useRef(status);
-  const publishedAtRef = React.useRef(publishedAt);
-  statusRef.current = status;
-  publishedAtRef.current = publishedAt;
+  }, [slug, showSlugValidation, earliestPublishedAt, isPublished, shouldValidateSlugDatePrefix]);
 
   // Debounced slug availability check
   React.useEffect(() => {
@@ -245,8 +254,8 @@ export function ContentEditor(props: ContentEditorProps) {
         if (contentType === "story") {
           result = await backend.checkStorySlug(locale, slug, {
             excludeId,
-            status: statusRef.current,
-            publishedAt: publishedAtRef.current,
+            storyId,
+            publishedAt: earliestPublishedAt,
           });
         } else {
           result = await backend.checkPageSlug(locale, profileSlug, slug, {
@@ -294,7 +303,7 @@ export function ContentEditor(props: ContentEditorProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slug, locale, profileSlug, contentType, excludeId, isNew, initialData.slug, showSlugValidation]);
+  }, [slug, locale, profileSlug, contentType, excludeId, storyId, isNew, initialData.slug, showSlugValidation, earliestPublishedAt]);
 
   // Validate title on change
   React.useEffect(() => {
@@ -340,12 +349,9 @@ export function ContentEditor(props: ContentEditorProps) {
       summary !== initialData.summary ||
       content !== initialData.content ||
       storyPictureUri !== (initialData.storyPictureUri ?? null) ||
-      status !== initialData.status ||
-      publishedAt !== (initialData.publishedAt ?? null) ||
-      isFeatured !== (initialData.isFeatured ?? false) ||
       kind !== (initialData.kind ?? "article")
     );
-  }, [title, slug, summary, content, storyPictureUri, status, publishedAt, isFeatured, kind, initialData]);
+  }, [title, slug, summary, content, storyPictureUri, kind, initialData]);
 
   // Auto-generate slug from title for new content (called on title blur)
   const generateSlugFromTitle = React.useCallback(() => {
@@ -371,9 +377,6 @@ export function ContentEditor(props: ContentEditorProps) {
     summary,
     content,
     storyPictureUri,
-    status,
-    publishedAt,
-    isFeatured,
     kind,
   });
 
@@ -395,8 +398,8 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     // Validate slug prefix for published content (stories only)
-    if (shouldValidateSlugDatePrefix && status === "published" && publishedAt !== null) {
-      const { valid, expectedPrefix } = validateSlugPrefix(slug, publishedAt);
+    if (shouldValidateSlugDatePrefix && isPublished && earliestPublishedAt !== null) {
+      const { valid, expectedPrefix } = validateSlugPrefix(slug, earliestPublishedAt);
       if (!valid && expectedPrefix !== null) {
         setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
         return;
@@ -418,67 +421,6 @@ export function ContentEditor(props: ContentEditorProps) {
     setIsSaving(true);
     try {
       await onSave(getCurrentData());
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handlePublish = async () => {
-    // Mark fields as touched to show any validation errors
-    setShowSlugValidation(true);
-    setTitleTouched(true);
-
-    // Check for empty required fields
-    if (slug.length === 0 || title.length === 0) {
-      return;
-    }
-
-    // Check for validation errors - only block on errors, not warnings
-    const hasSlugError = slugError !== null ||
-      (slugAvailability.isAvailable === false && slugAvailability.severity === "error");
-    if (hasSlugError || titleError !== null) {
-      return;
-    }
-
-    // Set current date/time as publish date if not set
-    const effectivePublishedAt = publishedAt ?? new Date().toISOString().slice(0, 16);
-
-    // Validate slug prefix (stories only)
-    if (shouldValidateSlugDatePrefix) {
-      const { valid, expectedPrefix } = validateSlugPrefix(slug, effectivePublishedAt);
-      if (!valid && expectedPrefix !== null) {
-        setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
-        return;
-      }
-    }
-
-    // Validate URI prefix for non-admin users
-    if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
-      const prefixes = imageFieldConfig.allowedPrefixes;
-
-      if (!isAllowedURI(storyPictureUri, prefixes)) {
-        setStoryPictureUriError(
-          t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
-        );
-        return;
-      }
-    }
-
-    setStatus("published");
-    setPublishedAt(effectivePublishedAt);
-    setIsSaving(true);
-    try {
-      await onSave({ ...getCurrentData(), status: "published", publishedAt: effectivePublishedAt });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleUnpublish = async () => {
-    setStatus("draft");
-    setIsSaving(true);
-    try {
-      await onSave({ ...getCurrentData(), status: "draft" });
     } finally {
       setIsSaving(false);
     }
@@ -561,13 +503,12 @@ export function ContentEditor(props: ContentEditorProps) {
         </div>
 
         <EditorActions
-          status={status}
+          publicationCount={publications.length}
           isSaving={isSaving}
           isDeleting={isDeleting}
           hasChanges={hasChanges}
           onSave={handleSave}
-          onPublish={handlePublish}
-          onUnpublish={handleUnpublish}
+          onOpenPublishDialog={() => setIsPublishDialogOpen(true)}
           onDelete={handleDelete}
           canDelete={!isNew && onDelete !== undefined && isAdmin}
         />
@@ -602,7 +543,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {contentType === "story" && (
                 <Field className={styles.metadataField}>
                   <FieldLabel htmlFor="kind" className={styles.metadataLabel}>
-                    {t("ContentEditor.Published At")}
+                    {t("ContentEditor.Kind")}
                   </FieldLabel>
                   <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)}>
                     <SelectTrigger id="kind">
@@ -660,36 +601,6 @@ export function ContentEditor(props: ContentEditorProps) {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </Field>
-              )}
-
-              {/* Published At - visible for published content, editable only by admin */}
-              {(status === "published" || isAdmin) && (
-                <Field className={styles.metadataField}>
-                  <FieldLabel htmlFor="published-at" className={styles.metadataLabel}>
-                    {t("ContentEditor.Published At")}
-                  </FieldLabel>
-                  <Input
-                    id="published-at"
-                    type="text"
-                    value={publishedAt ?? ""}
-                    onChange={(e) => setPublishedAt(e.target.value || null)}
-                    disabled={!isAdmin}
-                  />
-                </Field>
-              )}
-
-              {/* Is Featured - Admin only */}
-              {isAdmin && contentType === "story" && (
-                <Field className={styles.metadataField} orientation="horizontal">
-                  <FieldLabel htmlFor="is-featured" className={styles.metadataLabel}>
-                    {t("ContentEditor.Featured")}
-                  </FieldLabel>
-                  <Switch
-                    id="is-featured"
-                    checked={isFeatured}
-                    onCheckedChange={setIsFeatured}
-                  />
                 </Field>
               )}
 
@@ -899,8 +810,20 @@ export function ContentEditor(props: ContentEditorProps) {
         locale={locale}
         purpose="story-picture"
       />
+
+      {/* Publish Dialog */}
+      {contentType === "story" && storyId !== undefined && (
+        <PublishDialog
+          open={isPublishDialogOpen}
+          onOpenChange={setIsPublishDialogOpen}
+          locale={locale}
+          profileSlug={profileSlug}
+          storyId={storyId}
+          publications={publications}
+          accessibleProfiles={accessibleProfiles}
+          onPublicationsChange={setPublications}
+        />
+      )}
     </div>
   );
 }
-
-export type { ContentStatus };

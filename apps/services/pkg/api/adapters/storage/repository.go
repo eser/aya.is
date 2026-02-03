@@ -140,6 +140,9 @@ func NewRepositoryFromNamed(
 
 			return nil
 		},
+		func(ctx context.Context, key string) error {
+			return repository.CacheRemove(ctx, key)
+		},
 	)
 
 	return repository, nil
