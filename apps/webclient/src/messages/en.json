@@ -109,6 +109,7 @@
   "Auth": {
     "Login with GitHub": "Login with GitHub",
     "My Profile": "My Profile",
+    "Profiles": "Profiles",
     "Logout": "Logout",
     "Authenticating": "Authenticating...",
     "PleaseWait": "Please wait",

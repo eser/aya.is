@@ -109,6 +109,7 @@
   "Auth": {
     "Login with GitHub": "GitHub로 로그인",
     "My Profile": "내 프로필",
+    "Profiles": "프로필 목록",
     "Logout": "로그아웃",
     "Authenticating": "Authenticating...",
     "PleaseWait": "Please wait",

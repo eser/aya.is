@@ -109,6 +109,7 @@
   "Auth": {
     "Login with GitHub": "使用 GitHub 登录",
     "My Profile": "我的资料",
+    "Profiles": "资料列表",
     "Logout": "退出登录",
     "Authenticating": "正在验证...",
     "PleaseWait": "请稍候",

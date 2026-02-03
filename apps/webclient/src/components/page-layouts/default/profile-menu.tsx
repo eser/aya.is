@@ -83,19 +83,15 @@ export function ProfileMenu(props: ProfileMenuProps) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        {user.accessible_profiles !== undefined && user.accessible_profiles.length > 0 ? (
+        <DropdownMenuItem onClick={handleProfileClick}>
+          {t("Auth.My Profile")}
+        </DropdownMenuItem>
+        {user.accessible_profiles !== undefined && user.accessible_profiles.length > 0 && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              {t("Auth.My Profile")}
+              {t("Auth.Profiles")}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={handleProfileClick}>
-                {user.name}
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {t("Profile.Individual")}
-                </span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               {user.accessible_profiles.map((profile) => (
                 <DropdownMenuItem
                   key={profile.id}
@@ -103,16 +99,12 @@ export function ProfileMenu(props: ProfileMenuProps) {
                 >
                   {profile.title}
                   <span className="ml-auto text-xs text-muted-foreground">
-                    {profile.kind}
+                    {t(`Profile.${profile.kind}`)}
                   </span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuSubContent>
           </DropdownMenuSub>
-        ) : (
-          <DropdownMenuItem onClick={handleProfileClick}>
-            {t("Auth.My Profile")}
-          </DropdownMenuItem>
         )}
         {user.kind === "admin" && (
           <DropdownMenuItem onClick={() => navigate({ to: `/${locale}/admin` })}>

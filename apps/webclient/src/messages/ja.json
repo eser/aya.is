@@ -109,6 +109,7 @@
   "Auth": {
     "Login with GitHub": "GitHubでログイン",
     "My Profile": "マイプロフィール",
+    "Profiles": "プロフィール一覧",
     "Logout": "ログアウト",
     "Authenticating": "Authenticating...",
     "PleaseWait": "Please wait",
