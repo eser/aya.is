@@ -546,7 +546,7 @@ export function ContentEditor(props: ContentEditorProps) {
               {contentType === "story" && (
                 <Field className={styles.metadataField}>
                   <FieldLabel htmlFor="kind" className={styles.metadataLabel}>
-                    {t("ContentEditor.Kind")}
+                    {t("Common.Kind")}
                   </FieldLabel>
                   <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)}>
                     <SelectTrigger id="kind">
