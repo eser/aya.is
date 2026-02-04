@@ -68,7 +68,7 @@ function StoriesSettingsPage() {
 
   const loadStories = async () => {
     setIsLoading(true);
-    const result = await backend.getProfileStories(params.locale, params.slug);
+    const result = await backend.getProfileAuthoredStories(params.locale, params.slug);
     if (result !== null) {
       // Sort by created_at descending
       const sorted = [...result].sort((a, b) => {

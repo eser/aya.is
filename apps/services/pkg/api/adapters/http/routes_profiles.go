@@ -300,6 +300,35 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 	routes.
 		Route(
+			"GET /{locale}/profiles/{slug}/stories-authored",
+			func(ctx *httpfx.Context) httpfx.Result {
+				// get variables from path
+				localeParam := ctx.Request.PathValue("locale")
+				slugParam := ctx.Request.PathValue("slug")
+				cursor := cursors.NewCursorFromRequest(ctx.Request)
+
+				records, err := storyService.ListByAuthorProfileSlug(
+					ctx.Request.Context(),
+					localeParam,
+					slugParam,
+					cursor,
+				)
+				if err != nil {
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithErrorMessage(err.Error()),
+					)
+				}
+
+				return ctx.Results.JSON(records)
+			},
+		).
+		HasSummary("List stories authored by profile slug").
+		HasDescription("List stories authored by profile slug, including unpublished.").
+		HasResponse(http.StatusOK)
+
+	routes.
+		Route(
 			"GET /{locale}/profiles/{slug}/stories/{storySlug}",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path

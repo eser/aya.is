@@ -190,6 +190,52 @@ func (r *Repository) ListStoriesOfPublication(
 	return wrappedResponse, nil
 }
 
+func (r *Repository) ListStoriesByAuthorProfileID(
+	ctx context.Context,
+	localeCode string,
+	authorProfileID string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*stories.StoryWithChildren], error) {
+	var wrappedResponse cursors.Cursored[[]*stories.StoryWithChildren]
+
+	rows, err := r.queries.ListStoriesByAuthorProfileID(
+		ctx,
+		ListStoriesByAuthorProfileIDParams{
+			LocaleCode:      localeCode,
+			AuthorProfileID: authorProfileID,
+			FilterKind:      vars.MapValueToNullString(cursor.Filters, "kind"),
+		},
+	)
+	if err != nil {
+		return wrappedResponse, err
+	}
+
+	result := make([]*stories.StoryWithChildren, len(rows))
+
+	for i, row := range rows {
+		storyWithChildren, err := r.parseStoryWithChildrenOptionalPublications(
+			row.Profile,
+			row.ProfileTx,
+			row.Story,
+			row.StoryTx,
+			row.Publications,
+		)
+		if err != nil {
+			return wrappedResponse, err
+		}
+
+		result[i] = storyWithChildren
+	}
+
+	wrappedResponse.Data = result
+
+	if len(result) == cursor.Limit {
+		wrappedResponse.CursorPtr = &result[len(result)-1].ID
+	}
+
+	return wrappedResponse, nil
+}
+
 // Story CRUD methods
 
 func (r *Repository) InsertStory(
@@ -529,6 +575,50 @@ func (r *Repository) GetUserMembershipForProfile(
 
 func (r *Repository) InvalidateStorySlugCache(ctx context.Context, slug string) error {
 	return r.cache.Invalidate(ctx, "story_id_by_slug:"+slug)
+}
+
+func (r *Repository) parseStoryWithChildrenOptionalPublications(
+	profile Profile,
+	profileTx ProfileTx,
+	story Story,
+	storyTx StoryTx,
+	publications json.RawMessage,
+) (*stories.StoryWithChildren, error) {
+	if publications == nil || string(publications) == "null" {
+		return &stories.StoryWithChildren{
+			Story: &stories.Story{
+				ID:              story.ID,
+				AuthorProfileID: vars.ToStringPtr(story.AuthorProfileID),
+				Slug:            story.Slug,
+				Kind:            story.Kind,
+				StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
+				Title:           storyTx.Title,
+				Summary:         storyTx.Summary,
+				Content:         storyTx.Content,
+				Properties:      vars.ToObject(story.Properties),
+				CreatedAt:       story.CreatedAt,
+				UpdatedAt:       vars.ToTimePtr(story.UpdatedAt),
+				DeletedAt:       vars.ToTimePtr(story.DeletedAt),
+			},
+			AuthorProfile: &profiles.Profile{
+				ID:                profile.ID,
+				Slug:              profile.Slug,
+				Kind:              profile.Kind,
+				ProfilePictureURI: vars.ToStringPtr(profile.ProfilePictureURI),
+				Pronouns:          vars.ToStringPtr(profile.Pronouns),
+				Title:             profileTx.Title,
+				Description:       profileTx.Description,
+				Properties:        vars.ToObject(profile.Properties),
+				CreatedAt:         profile.CreatedAt,
+				UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
+				DeletedAt:         vars.ToTimePtr(profile.DeletedAt),
+				Points:            uint64(profile.Points),
+			},
+			Publications: []*profiles.Profile{},
+		}, nil
+	}
+
+	return r.parseStoryWithChildren(profile, profileTx, story, storyTx, publications)
 }
 
 func (r *Repository) parseStoryWithChildren( //nolint:funlen

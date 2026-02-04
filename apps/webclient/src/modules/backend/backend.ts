@@ -6,6 +6,7 @@ import { getProfile } from "./profiles/get-profile";
 import { getProfilePage } from "./profiles/get-profile-page";
 import { getProfilePermissions } from "./profiles/get-profile-permissions";
 import { getProfileStories } from "./profiles/get-profile-stories";
+import { getProfileAuthoredStories } from "./profiles/get-profile-authored-stories";
 import { getProfileStory } from "./profiles/get-profile-story";
 import { getProfileMembers } from "./profiles/get-profile-members";
 import { getProfileContributions } from "./profiles/get-profile-contributions";
@@ -93,6 +94,7 @@ export const backend = {
   getProfilePage,
   getProfilePermissions,
   getProfileStories,
+  getProfileAuthoredStories,
   getProfileStory,
   getProfileMembers,
   getProfileContributions,
@@ -211,6 +213,7 @@ export {
   getProfilePage,
   getProfilePermissions,
   getProfilesByKinds,
+  getProfileAuthoredStories,
   getProfileStories,
   getProfileStory,
   getProfileTranslations,

@@ -188,6 +188,12 @@ type Repository interface {
 		localeCode string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*StoryWithChildren], error)
+	ListStoriesByAuthorProfileID(
+		ctx context.Context,
+		localeCode string,
+		authorProfileID string,
+		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*StoryWithChildren], error)
 	// Story CRUD methods
 	InsertStory(
 		ctx context.Context,
@@ -505,6 +511,39 @@ func (s *Service) ListByPublicationProfileSlug(
 	records, err := s.repo.ListStoriesOfPublication(
 		ctx,
 		localeCode,
+		cursor,
+	)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToListRecords,
+			err,
+		)
+	}
+
+	return records, nil
+}
+
+func (s *Service) ListByAuthorProfileSlug(
+	ctx context.Context,
+	localeCode string,
+	authorProfileSlug string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*StoryWithChildren], error) {
+	authorProfileID, err := s.repo.GetProfileIDBySlug(ctx, authorProfileSlug)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			authorProfileSlug,
+			err,
+		)
+	}
+
+	records, err := s.repo.ListStoriesByAuthorProfileID(
+		ctx,
+		localeCode,
+		authorProfileID,
 		cursor,
 	)
 	if err != nil {

@@ -730,7 +730,7 @@ func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) er
 	return err
 }
 
-const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
+const listStoriesByAuthorProfileID = `-- name: ListStoriesByAuthorProfileID :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
@@ -738,13 +738,21 @@ SELECT
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications
 FROM "story" s
-  INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = $1
+  INNER JOIN "story_tx" st ON st.id = (
+    SELECT stx.id FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
   AND p1.approved_at IS NOT NULL
   AND p1.deleted_at IS NULL
-  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
-  AND p1t.locale_code = $1
+  INNER JOIN "profile_tx" p1t ON p1t.id = (
+    SELECT ptx.id FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN LATERAL (
     SELECT JSONB_AGG(
       JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
@@ -753,8 +761,178 @@ FROM "story" s
       INNER JOIN "profile" p2 ON p2.id = sp.profile_id
       AND p2.approved_at IS NOT NULL
       AND p2.deleted_at IS NULL
-      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
-      AND p2t.locale_code = $1
+      INNER JOIN "profile_tx" p2t ON p2t.id = (
+        SELECT ptx2.id FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+        LIMIT 1
+      )
+    WHERE sp.story_id = s.id
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+WHERE s.author_profile_id = $2::CHAR(26)
+  AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
+  AND s.deleted_at IS NULL
+ORDER BY s.created_at DESC
+`
+
+type ListStoriesByAuthorProfileIDParams struct {
+	LocaleCode      string         `db:"locale_code" json:"locale_code"`
+	AuthorProfileID string         `db:"author_profile_id" json:"author_profile_id"`
+	FilterKind      sql.NullString `db:"filter_kind" json:"filter_kind"`
+}
+
+type ListStoriesByAuthorProfileIDRow struct {
+	Story        Story           `db:"story" json:"story"`
+	StoryTx      StoryTx         `db:"story_tx" json:"story_tx"`
+	Profile      Profile         `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx       `db:"profile_tx" json:"profile_tx"`
+	Publications json.RawMessage `db:"publications" json:"publications"`
+}
+
+// Lists all stories authored by a profile, including unpublished ones.
+// Uses locale fallback: prefers the requested locale, falls back to any translation.
+// Publications are included as optional data (LEFT JOIN).
+//
+//	SELECT
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+//	  pb.publications
+//	FROM "story" s
+//	  INNER JOIN "story_tx" st ON st.id = (
+//	    SELECT stx.id FROM "story_tx" stx
+//	    WHERE stx.story_id = s.id
+//	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+//	  AND p1.approved_at IS NOT NULL
+//	  AND p1.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" p1t ON p1t.id = (
+//	    SELECT ptx.id FROM "profile_tx" ptx
+//	    WHERE ptx.profile_id = p1.id
+//	    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN LATERAL (
+//	    SELECT JSONB_AGG(
+//	      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+//	    ) AS "publications"
+//	    FROM story_publication sp
+//	      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+//	      AND p2.approved_at IS NOT NULL
+//	      AND p2.deleted_at IS NULL
+//	      INNER JOIN "profile_tx" p2t ON p2t.id = (
+//	        SELECT ptx2.id FROM "profile_tx" ptx2
+//	        WHERE ptx2.profile_id = p2.id
+//	        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+//	        LIMIT 1
+//	      )
+//	    WHERE sp.story_id = s.id
+//	      AND sp.deleted_at IS NULL
+//	  ) pb ON TRUE
+//	WHERE s.author_profile_id = $2::CHAR(26)
+//	  AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
+//	  AND s.deleted_at IS NULL
+//	ORDER BY s.created_at DESC
+func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStoriesByAuthorProfileIDParams) ([]*ListStoriesByAuthorProfileIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, listStoriesByAuthorProfileID, arg.LocaleCode, arg.AuthorProfileID, arg.FilterKind)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStoriesByAuthorProfileIDRow{}
+	for rows.Next() {
+		var i ListStoriesByAuthorProfileIDRow
+		if err := rows.Scan(
+			&i.Story.ID,
+			&i.Story.AuthorProfileID,
+			&i.Story.Slug,
+			&i.Story.Kind,
+			&i.Story.StoryPictureURI,
+			&i.Story.Properties,
+			&i.Story.CreatedAt,
+			&i.Story.UpdatedAt,
+			&i.Story.DeletedAt,
+			&i.StoryTx.StoryID,
+			&i.StoryTx.LocaleCode,
+			&i.StoryTx.Title,
+			&i.StoryTx.Summary,
+			&i.StoryTx.Content,
+			&i.StoryTx.SearchVector,
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
+			&i.Profile.HideRelations,
+			&i.Profile.HideLinks,
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
+			&i.Publications,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
+SELECT
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+  pb.publications
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.id = (
+    SELECT stx.id FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.approved_at IS NOT NULL
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.id = (
+    SELECT ptx.id FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.approved_at IS NOT NULL
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.id = (
+        SELECT ptx2.id FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+        LIMIT 1
+      )
     WHERE sp.story_id = s.id
       AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
       AND sp.deleted_at IS NULL
@@ -782,7 +960,9 @@ type ListStoriesOfPublicationRow struct {
 	Publications json.RawMessage `db:"publications" json:"publications"`
 }
 
-// ListStoriesOfPublication
+// Joins story_tx and profile_tx using a scalar subquery to prefer the requested
+// locale but fall back to any available translation, so stories always appear
+// regardless of whether they have a translation in the current locale.
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
@@ -791,13 +971,21 @@ type ListStoriesOfPublicationRow struct {
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications
 //	FROM "story" s
-//	  INNER JOIN "story_tx" st ON st.story_id = s.id
-//	  AND st.locale_code = $1
+//	  INNER JOIN "story_tx" st ON st.id = (
+//	    SELECT stx.id FROM "story_tx" stx
+//	    WHERE stx.story_id = s.id
+//	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
 //	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
 //	  AND p1.approved_at IS NOT NULL
 //	  AND p1.deleted_at IS NULL
-//	  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
-//	  AND p1t.locale_code = $1
+//	  INNER JOIN "profile_tx" p1t ON p1t.id = (
+//	    SELECT ptx.id FROM "profile_tx" ptx
+//	    WHERE ptx.profile_id = p1.id
+//	    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
 //	  LEFT JOIN LATERAL (
 //	    SELECT JSONB_AGG(
 //	      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
@@ -806,8 +994,12 @@ type ListStoriesOfPublicationRow struct {
 //	      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
 //	      AND p2.approved_at IS NOT NULL
 //	      AND p2.deleted_at IS NULL
-//	      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
-//	      AND p2t.locale_code = $1
+//	      INNER JOIN "profile_tx" p2t ON p2t.id = (
+//	        SELECT ptx2.id FROM "profile_tx" ptx2
+//	        WHERE ptx2.profile_id = p2.id
+//	        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+//	        LIMIT 1
+//	      )
 //	    WHERE sp.story_id = s.id
 //	      AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
 //	      AND sp.deleted_at IS NULL
