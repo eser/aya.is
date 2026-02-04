@@ -9,7 +9,7 @@ import {
 } from "@/components/content-editor";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageLayout } from "@/components/page-layouts/default";
+
 
 export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
   ssr: false,
@@ -91,7 +91,7 @@ function EditPagePage() {
   // Still checking permissions or loading translation
   if (canEdit === null || translationData === null) {
     return (
-      <PageLayout>
+      <>
         <div className="flex h-[calc(100vh-140px)] flex-col">
           {/* Header skeleton */}
           <div className="flex items-center justify-between border-b p-4">
@@ -147,19 +147,19 @@ function EditPagePage() {
             </div>
           </div>
         </div>
-      </PageLayout>
+      </>
     );
   }
 
   // No permission
   if (!canEdit) {
     return (
-      <PageLayout>
+      <>
         <div className="content">
           <h2>Access Denied</h2>
           <p>You don't have permission to edit this page.</p>
         </div>
-      </PageLayout>
+      </>
     );
   }
 
@@ -247,7 +247,7 @@ function EditPagePage() {
   };
 
   return (
-    <PageLayout>
+    <>
       <div className="h-[calc(100vh-140px)]">
         <ContentEditor
           key={translationLocale}
@@ -263,6 +263,6 @@ function EditPagePage() {
           onLocaleChange={handleLocaleChange}
         />
       </div>
-    </PageLayout>
+    </>
   );
 }
