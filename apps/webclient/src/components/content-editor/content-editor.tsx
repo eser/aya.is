@@ -346,17 +346,20 @@ export function ContentEditor(props: ContentEditorProps) {
     setStoryPictureUriError(null);
   }, [storyPictureUri, t, isAdmin, imageFieldConfig.allowedPrefixes]);
 
+  // Track the last saved state to correctly detect unsaved changes
+  const [savedData, setSavedData] = React.useState(initialData);
+
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
     return (
-      title !== initialData.title ||
-      slug !== initialData.slug ||
-      summary !== initialData.summary ||
-      content !== initialData.content ||
-      storyPictureUri !== (initialData.storyPictureUri ?? null) ||
-      kind !== (initialData.kind ?? "article")
+      title !== savedData.title ||
+      slug !== savedData.slug ||
+      summary !== savedData.summary ||
+      content !== savedData.content ||
+      storyPictureUri !== (savedData.storyPictureUri ?? null) ||
+      kind !== (savedData.kind ?? "article")
     );
-  }, [title, slug, summary, content, storyPictureUri, kind, initialData]);
+  }, [title, slug, summary, content, storyPictureUri, kind, savedData]);
 
   // Auto-generate slug from title for new content (called on title blur)
   const generateSlugFromTitle = React.useCallback(() => {
@@ -425,7 +428,9 @@ export function ContentEditor(props: ContentEditorProps) {
 
     setIsSaving(true);
     try {
-      await onSave(getCurrentData());
+      const data = getCurrentData();
+      await onSave(data);
+      setSavedData(data);
     } finally {
       setIsSaving(false);
     }
@@ -486,7 +491,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
   const handleLocaleChange = React.useCallback((newLocale: string) => {
     if (onLocaleChange === undefined) return;
-    if (hasChanges && !globalThis.confirm(t("ContentEditor.You have unsaved changes"))) return;
+    if (hasChanges && !globalThis.confirm(t("ContentEditor.Unsaved Changes"))) return;
     onLocaleChange(newLocale);
   }, [onLocaleChange, hasChanges, t]);
 
