@@ -559,15 +559,17 @@ func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string)
 func (s *Service) GetBySlugEx(
 	ctx context.Context,
 	localeCode string,
+	fallbackLocaleCode string,
 	slug string,
 ) (*ProfileWithChildren, error) {
-	return s.GetBySlugExWithViewer(ctx, localeCode, slug, "")
+	return s.GetBySlugExWithViewer(ctx, localeCode, fallbackLocaleCode, slug, "")
 }
 
 // GetBySlugExWithViewer returns a profile with children, filtering links based on viewer's membership.
 func (s *Service) GetBySlugExWithViewer(
 	ctx context.Context,
 	localeCode string,
+	fallbackLocaleCode string,
 	slug string,
 	viewerProfileID string,
 ) (*ProfileWithChildren, error) {
@@ -581,6 +583,14 @@ func (s *Service) GetBySlugExWithViewer(
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
 
+	// Try fallback locale if primary locale has no translation
+	if record == nil && fallbackLocaleCode != "" && fallbackLocaleCode != localeCode {
+		record, err = s.repo.GetProfileByID(ctx, fallbackLocaleCode, profileID)
+		if err != nil {
+			return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+		}
+	}
+
 	if record == nil {
 		return nil, nil //nolint:nilnil
 	}
@@ -588,6 +598,14 @@ func (s *Service) GetBySlugExWithViewer(
 	pages, err := s.repo.ListProfilePagesByProfileID(ctx, localeCode, record.ID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Try fallback locale for pages if none found
+	if len(pages) == 0 && fallbackLocaleCode != "" && fallbackLocaleCode != localeCode {
+		pages, err = s.repo.ListProfilePagesByProfileID(ctx, fallbackLocaleCode, record.ID)
+		if err != nil {
+			return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+		}
 	}
 
 	// Only include featured links for the profile sidebar

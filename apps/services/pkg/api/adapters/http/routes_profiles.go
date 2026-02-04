@@ -64,6 +64,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			// get variables from path
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
+			fallbackLocaleParam := ctx.Request.URL.Query().Get("fallback_locale")
 
 			if slugParam == "" {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("slug parameter is required"))
@@ -77,6 +78,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			record, err := profileService.GetBySlugEx(
 				ctx.Request.Context(),
 				localeParam,
+				fallbackLocaleParam,
 				slugParam,
 			)
 			if err != nil {

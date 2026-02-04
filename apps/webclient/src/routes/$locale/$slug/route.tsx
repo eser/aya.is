@@ -2,6 +2,7 @@
 import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
+import { FALLBACK_LOCALE } from "@/config";
 import { PageLayout } from "@/components/page-layouts/default";
 import { buildUrl, generateMetaTags, truncateDescription } from "@/lib/seo";
 
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/$locale/$slug")({
   loader: async ({ params }) => {
     const { slug, locale } = params;
 
-    const profile = await backend.getProfile(locale, slug);
+    const profile = await backend.getProfile(locale, slug, FALLBACK_LOCALE);
 
     if (profile === null) {
       return { profile: null, notFound: true, locale, slug };
