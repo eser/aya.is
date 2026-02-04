@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Save, Globe, GlobeLock, Trash2, Loader2, MoreHorizontal } from "lucide-react";
+import { Globe, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -18,15 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import styles from "./content-editor.module.css";
-import { cn } from "@/lib/utils";
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 type EditorActionsProps = {
   publicationCount: number;
   isSaving: boolean;
@@ -59,8 +51,6 @@ export function EditorActions(props: EditorActionsProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <StatusBadge publicationCount={publicationCount} />
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon-sm">
@@ -93,9 +83,16 @@ export function EditorActions(props: EditorActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button variant="default" size="sm" onClick={onOpenPublishDialog} disabled={isSaving || isNew}>
+      <Button
+        variant={isPublished ? "outline" : "default"}
+        size="sm"
+        onClick={onOpenPublishDialog}
+        disabled={isSaving || isNew}
+      >
         <Globe className="mr-1.5 size-4" />
-        {t("ContentEditor.Publish")}...
+        {isPublished
+          ? `${t("ContentEditor.Edit Publications")} (${publicationCount})`
+          : `${t("ContentEditor.Publish")}...`}
       </Button>
 
       <Button
@@ -104,11 +101,7 @@ export function EditorActions(props: EditorActionsProps) {
         onClick={onSave}
         disabled={isSaving || !hasChanges}
       >
-        {isSaving ? (
-          <Loader2 className="mr-1.5 size-4 animate-spin" />
-        ) : (
-          <Save className="mr-1.5 size-4" />
-        )}
+        {isSaving ? <Loader2 className="mr-1.5 size-4 animate-spin" /> : <Save className="mr-1.5 size-4" />}
         {t("Common.Save")}
       </Button>
 
@@ -127,37 +120,5 @@ export function EditorActions(props: EditorActionsProps) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-}
-
-type StatusBadgeProps = {
-  publicationCount: number;
-};
-
-function StatusBadge(props: StatusBadgeProps) {
-  const { t } = useTranslation();
-  const { publicationCount } = props;
-  const isPublished = publicationCount > 0;
-
-  return (
-    <span
-      className={cn(
-        styles.statusBadge,
-        isPublished ? styles.statusPublished : styles.statusDraft,
-      )}
-    >
-      {isPublished ? (
-        <>
-          <Globe className="size-3" />
-          {t("ContentEditor.Published")}
-          {publicationCount > 1 && ` (${publicationCount})`}
-        </>
-      ) : (
-        <>
-          <GlobeLock className="size-3" />
-          {t("ContentEditor.Draft")}
-        </>
-      )}
-    </span>
   );
 }
