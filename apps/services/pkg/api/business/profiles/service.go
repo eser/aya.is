@@ -24,6 +24,9 @@ var (
 	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
 )
 
+// FallbackLocaleCode is used when the requested locale translation is not available.
+const FallbackLocaleCode = "en"
+
 // Severity constants for slug availability results.
 const (
 	SeverityError   = "error"
@@ -559,17 +562,15 @@ func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string)
 func (s *Service) GetBySlugEx(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	slug string,
 ) (*ProfileWithChildren, error) {
-	return s.GetBySlugExWithViewer(ctx, localeCode, fallbackLocaleCode, slug, "")
+	return s.GetBySlugExWithViewer(ctx, localeCode, slug, "")
 }
 
 // GetBySlugExWithViewer returns a profile with children, filtering links based on viewer's membership.
 func (s *Service) GetBySlugExWithViewer(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	slug string,
 	viewerProfileID string,
 ) (*ProfileWithChildren, error) {
@@ -584,8 +585,8 @@ func (s *Service) GetBySlugExWithViewer(
 	}
 
 	// Try fallback locale if primary locale has no translation
-	if record == nil && fallbackLocaleCode != "" && fallbackLocaleCode != localeCode {
-		record, err = s.repo.GetProfileByID(ctx, fallbackLocaleCode, profileID)
+	if record == nil && FallbackLocaleCode != localeCode {
+		record, err = s.repo.GetProfileByID(ctx, FallbackLocaleCode, profileID)
 		if err != nil {
 			return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 		}
@@ -601,8 +602,8 @@ func (s *Service) GetBySlugExWithViewer(
 	}
 
 	// Try fallback locale for pages if none found
-	if len(pages) == 0 && fallbackLocaleCode != "" && fallbackLocaleCode != localeCode {
-		pages, err = s.repo.ListProfilePagesByProfileID(ctx, fallbackLocaleCode, record.ID)
+	if len(pages) == 0 && FallbackLocaleCode != localeCode {
+		pages, err = s.repo.ListProfilePagesByProfileID(ctx, FallbackLocaleCode, record.ID)
 		if err != nil {
 			return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 		}

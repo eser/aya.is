@@ -177,7 +177,7 @@ func createGetProfileHandler(
 			locale = defaultLocale
 		}
 
-		result, err := profileService.GetBySlugEx(ctx, locale, "", input.Slug)
+		result, err := profileService.GetBySlugEx(ctx, locale, input.Slug)
 		if err != nil {
 			return nil, getProfileOutput{}, err
 		}

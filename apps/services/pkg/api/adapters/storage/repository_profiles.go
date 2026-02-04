@@ -240,8 +240,9 @@ func (r *Repository) ListProfiles(
 	rows, err := r.queries.ListProfiles(
 		ctx,
 		ListProfilesParams{
-			LocaleCode: localeCode,
-			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
+			LocaleCode:         localeCode,
+			FallbackLocaleCode: profiles.FallbackLocaleCode,
+			FilterKind:         vars.MapValueToNullString(cursor.Filters, "kind"),
 		},
 	)
 	if err != nil {

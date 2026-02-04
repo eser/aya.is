@@ -72,7 +72,13 @@ WHERE pt.profile_id = sqlc.arg(id);
 SELECT sqlc.embed(p), sqlc.embed(pt)
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = sqlc.arg(locale_code)
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL;

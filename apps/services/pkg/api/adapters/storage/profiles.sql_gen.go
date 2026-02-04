@@ -2745,15 +2745,22 @@ const listProfiles = `-- name: ListProfiles :many
 SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = $1
-WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+WHERE ($3::TEXT IS NULL OR p.kind = ANY(string_to_array($3::TEXT, ',')))
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
 `
 
 type ListProfilesParams struct {
-	LocaleCode string         `db:"locale_code" json:"locale_code"`
-	FilterKind sql.NullString `db:"filter_kind" json:"filter_kind"`
+	LocaleCode         string         `db:"locale_code" json:"locale_code"`
+	FallbackLocaleCode string         `db:"fallback_locale_code" json:"fallback_locale_code"`
+	FilterKind         sql.NullString `db:"filter_kind" json:"filter_kind"`
 }
 
 type ListProfilesRow struct {
@@ -2766,12 +2773,18 @@ type ListProfilesRow struct {
 //	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-//	  AND pt.locale_code = $1
-//	WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
+//	  AND pt.locale_code = (
+//	    SELECT ptf.locale_code FROM "profile_tx" ptf
+//	    WHERE ptf.profile_id = p.id
+//	    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+//	    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	WHERE ($3::TEXT IS NULL OR p.kind = ANY(string_to_array($3::TEXT, ',')))
 //	  AND p.approved_at IS NOT NULL
 //	  AND p.deleted_at IS NULL
 func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProfiles, arg.LocaleCode, arg.FilterKind)
+	rows, err := q.db.QueryContext(ctx, listProfiles, arg.LocaleCode, arg.FallbackLocaleCode, arg.FilterKind)
 	if err != nil {
 		return nil, err
 	}
