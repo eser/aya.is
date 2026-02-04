@@ -1438,8 +1438,9 @@ type Querier interface {
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
-	//    INNER JOIN "story_tx" st ON st.id = (
-	//      SELECT stx.id FROM "story_tx" stx
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
+	//    AND st.locale_code = (
+	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
 	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
@@ -1447,8 +1448,9 @@ type Querier interface {
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
 	//    AND p1.approved_at IS NOT NULL
 	//    AND p1.deleted_at IS NULL
-	//    INNER JOIN "profile_tx" p1t ON p1t.id = (
-	//      SELECT ptx.id FROM "profile_tx" ptx
+	//    INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+	//    AND p1t.locale_code = (
+	//      SELECT ptx.locale_code FROM "profile_tx" ptx
 	//      WHERE ptx.profile_id = p1.id
 	//      ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
@@ -1461,8 +1463,9 @@ type Querier interface {
 	//        INNER JOIN "profile" p2 ON p2.id = sp.profile_id
 	//        AND p2.approved_at IS NOT NULL
 	//        AND p2.deleted_at IS NULL
-	//        INNER JOIN "profile_tx" p2t ON p2t.id = (
-	//          SELECT ptx2.id FROM "profile_tx" ptx2
+	//        INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+	//        AND p2t.locale_code = (
+	//          SELECT ptx2.locale_code FROM "profile_tx" ptx2
 	//          WHERE ptx2.profile_id = p2.id
 	//          ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
 	//          LIMIT 1
@@ -1486,8 +1489,9 @@ type Querier interface {
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
-	//    INNER JOIN "story_tx" st ON st.id = (
-	//      SELECT stx.id FROM "story_tx" stx
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
+	//    AND st.locale_code = (
+	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
 	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
@@ -1495,8 +1499,9 @@ type Querier interface {
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
 	//    AND p1.approved_at IS NOT NULL
 	//    AND p1.deleted_at IS NULL
-	//    INNER JOIN "profile_tx" p1t ON p1t.id = (
-	//      SELECT ptx.id FROM "profile_tx" ptx
+	//    INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+	//    AND p1t.locale_code = (
+	//      SELECT ptx.locale_code FROM "profile_tx" ptx
 	//      WHERE ptx.profile_id = p1.id
 	//      ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
@@ -1509,8 +1514,9 @@ type Querier interface {
 	//        INNER JOIN "profile" p2 ON p2.id = sp.profile_id
 	//        AND p2.approved_at IS NOT NULL
 	//        AND p2.deleted_at IS NULL
-	//        INNER JOIN "profile_tx" p2t ON p2t.id = (
-	//          SELECT ptx2.id FROM "profile_tx" ptx2
+	//        INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+	//        AND p2t.locale_code = (
+	//          SELECT ptx2.locale_code FROM "profile_tx" ptx2
 	//          WHERE ptx2.profile_id = p2.id
 	//          ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
 	//          LIMIT 1
