@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
-	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
+	"github.com/eser/aya.is/services/pkg/api/business/queue"
 )
 
-// PointsEventHandler handles events that award profile points.
+// PointsEventHandler handles queue items that award profile points.
 type PointsEventHandler struct {
 	logger               *logfx.Logger
 	profilePointsService *profile_points.Service
@@ -27,15 +27,15 @@ func NewPointsEventHandler(
 	}
 }
 
-// HandleNewStory handles the NEW_STORY event and creates a pending award.
-func (h *PointsEventHandler) HandleNewStory(ctx context.Context, event *events.Event) error {
+// HandleNewStory handles the NEW_STORY item and creates a pending award.
+func (h *PointsEventHandler) HandleNewStory(ctx context.Context, item *queue.Item) error {
 	// Parse the payload
 	var payload struct {
 		ProfileID string `json:"profile_id"`
 		StoryID   string `json:"story_id"`
 	}
 
-	payloadBytes, err := json.Marshal(event.Payload)
+	payloadBytes, err := json.Marshal(item.Payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
@@ -49,16 +49,16 @@ func (h *PointsEventHandler) HandleNewStory(ctx context.Context, event *events.E
 	}
 
 	h.logger.Info(
-		"Processing NEW_STORY event for points",
+		"Processing NEW_STORY item for points",
 		"profile_id", payload.ProfileID,
 		"story_id", payload.StoryID,
-		"event_id", event.ID,
+		"item_id", item.ID,
 	)
 
 	// Create a pending award for the story publication
 	metadata := map[string]any{
 		"story_id": payload.StoryID,
-		"event_id": event.ID,
+		"item_id":  item.ID,
 	}
 
 	_, err = h.profilePointsService.AwardForEvent(
@@ -81,7 +81,7 @@ func (h *PointsEventHandler) HandleNewStory(ctx context.Context, event *events.E
 	return nil
 }
 
-// RegisterHandlers registers all points-related event handlers.
-func (h *PointsEventHandler) RegisterHandlers(registry *events.HandlerRegistry) {
-	registry.Register(events.EventTypeNewStory, h.HandleNewStory)
+// RegisterHandlers registers all points-related queue handlers.
+func (h *PointsEventHandler) RegisterHandlers(registry *queue.HandlerRegistry) {
+	registry.Register(queue.ItemTypeNewStory, h.HandleNewStory)
 }

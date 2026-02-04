@@ -1,5 +1,5 @@
--- name: EnqueueEvent :exec
-INSERT INTO "event_queue" (
+-- name: EnqueueQueueItem :exec
+INSERT INTO "queue" (
   id, type, payload, status, max_retries,
   visibility_timeout_secs, visible_at, created_at
 ) VALUES (
@@ -13,13 +13,13 @@ INSERT INTO "event_queue" (
   NOW()
 );
 
--- name: ClaimNextEvent :one
+-- name: ClaimNextQueueItem :one
 -- CTE-based claim: atomically selects + locks + updates.
--- Picks up both pending events that are due AND stale processing events
+-- Picks up both pending items that are due AND stale processing items
 -- past their visibility timeout (crash recovery built into the claim).
 -- Increments retry_count at claim time for crash safety.
 WITH claimable AS (
-  SELECT id FROM "event_queue"
+  SELECT id FROM "queue"
   WHERE (
     (status = 'pending' AND visible_at <= NOW())
     OR (status = 'processing' AND visible_at <= NOW())
@@ -29,7 +29,7 @@ WITH claimable AS (
   LIMIT 1
   FOR UPDATE SKIP LOCKED
 )
-UPDATE "event_queue"
+UPDATE "queue"
 SET
   status = 'processing',
   started_at = NOW(),
@@ -38,13 +38,13 @@ SET
   worker_id = sqlc.arg(worker_id),
   updated_at = NOW()
 FROM claimable
-WHERE "event_queue".id = claimable.id
-RETURNING "event_queue".*;
+WHERE "queue".id = claimable.id
+RETURNING "queue".*;
 
--- name: CompleteEvent :execrows
+-- name: CompleteQueueItem :execrows
 -- Worker ID check prevents a timed-out worker from completing
 -- a job that was already re-claimed by another worker.
-UPDATE "event_queue"
+UPDATE "queue"
 SET
   status = 'completed',
   completed_at = NOW(),
@@ -53,10 +53,10 @@ WHERE id = sqlc.arg(id)
   AND status = 'processing'
   AND worker_id = sqlc.arg(worker_id);
 
--- name: FailEvent :execrows
+-- name: FailQueueItem :execrows
 -- On failure: if retries exhausted -> dead, otherwise -> pending with backoff.
 -- Worker ID check prevents stale workers from interfering.
-UPDATE "event_queue"
+UPDATE "queue"
 SET
   status = CASE
     WHEN retry_count >= max_retries THEN 'dead'
@@ -74,9 +74,9 @@ WHERE id = sqlc.arg(id)
   AND status = 'processing'
   AND worker_id = sqlc.arg(worker_id);
 
--- name: ListEventsByType :many
+-- name: ListQueueItemsByType :many
 SELECT *
-FROM "event_queue"
+FROM "queue"
 WHERE type = sqlc.arg(type)
 ORDER BY created_at DESC
 LIMIT sqlc.arg(limit_count);

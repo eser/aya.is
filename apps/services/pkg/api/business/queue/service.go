@@ -1,4 +1,4 @@
-package events
+package queue
 
 import (
 	"context"
@@ -13,14 +13,14 @@ const (
 	DefaultVisibilityTimeoutSecs = 300 // 5 minutes
 )
 
-// Service provides event queue operations.
+// Service provides queue operations.
 type Service struct {
 	logger      *logfx.Logger
 	repo        Repository
 	idGenerator IDGenerator
 }
 
-// NewService creates a new event queue service.
+// NewService creates a new queue service.
 func NewService(
 	logger *logfx.Logger,
 	repo Repository,
@@ -33,7 +33,7 @@ func NewService(
 	}
 }
 
-// Enqueue adds a new event to the queue for later processing.
+// Enqueue adds a new item to the queue for later processing.
 func (s *Service) Enqueue(ctx context.Context, params EnqueueParams) (string, error) {
 	id := s.idGenerator()
 

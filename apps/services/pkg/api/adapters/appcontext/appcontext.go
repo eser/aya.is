@@ -19,11 +19,11 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
-	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
+	"github.com/eser/aya.is/services/pkg/api/business/queue"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
@@ -69,8 +69,8 @@ type AppContext struct {
 	SessionService       *sessions.Service
 	ProtectionService    *protection.Service
 	LinkSyncService      *linksync.Service
-	EventService         *events.Service
-	EventRegistry        *events.HandlerRegistry
+	QueueService         *queue.Service
+	QueueRegistry        *queue.HandlerRegistry
 	RuntimeStateService  *runtime_states.Service
 }
 
@@ -256,20 +256,20 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		idGen,
 	)
 
-	a.EventService = events.NewService(
+	a.QueueService = queue.NewService(
 		a.Logger,
 		a.Repository,
 		idGen,
 	)
 
-	a.EventRegistry = events.NewHandlerRegistry()
+	a.QueueRegistry = queue.NewHandlerRegistry()
 
 	// Register points event handler
 	pointsEventHandler := workers.NewPointsEventHandler(
 		a.Logger,
 		a.ProfilePointsService,
 	)
-	pointsEventHandler.RegisterHandlers(a.EventRegistry)
+	pointsEventHandler.RegisterHandlers(a.QueueRegistry)
 
 	a.RuntimeStateService = runtime_states.NewService(a.Logger, a.Repository)
 

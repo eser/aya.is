@@ -18,6 +18,6 @@ type YouTubeSyncConfig struct {
 
 // Config holds all worker configurations.
 type Config struct {
-	YouTubeSync YouTubeSyncConfig      `conf:"youtube_sync"`
-	EventQueue  EventQueueWorkerConfig `conf:"event_queue"`
+	YouTubeSync YouTubeSyncConfig `conf:"youtube_sync"`
+	Queue       QueueWorkerConfig `conf:"queue"`
 }
