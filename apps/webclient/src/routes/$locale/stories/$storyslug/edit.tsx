@@ -134,7 +134,7 @@ function EditStoryPage() {
   }
 
   // If the returned locale doesn't match the requested translation locale, this is a new translation
-  const isNewTranslation = editData.locale_code !== translationLocale;
+  const isNewTranslation = editData.locale_code.trimEnd() !== translationLocale;
 
   const initialData: ContentEditorData = {
     title: isNewTranslation ? "" : (editData.title ?? ""),
