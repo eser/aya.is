@@ -127,13 +127,23 @@ function EditStoryPage() {
     );
   }
 
+  // If the returned locale doesn't match the requested one, this is a new translation
+  const isNewTranslation = editData.locale_code !== params.locale;
+
   const initialData: ContentEditorData = {
-    title: editData.title ?? "",
+    title: isNewTranslation ? "" : (editData.title ?? ""),
     slug: editData.slug ?? "",
-    summary: editData.summary ?? "",
-    content: editData.content,
+    summary: isNewTranslation ? "" : (editData.summary ?? ""),
+    content: isNewTranslation ? "" : editData.content,
     storyPictureUri: editData.story_picture_uri,
     kind: (editData.kind as ContentEditorData["kind"]) ?? "article",
+  };
+
+  const handleLocaleChange = (newLocale: string) => {
+    navigate({
+      to: "/$locale/stories/$storyslug/edit",
+      params: { locale: newLocale, storyslug: params.storyslug },
+    });
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -219,6 +229,7 @@ function EditStoryPage() {
           initialPublications={editData.publications ?? []}
           accessibleProfiles={auth.user?.accessible_profiles ?? []}
           individualProfile={auth.user?.individual_profile}
+          onLocaleChange={handleLocaleChange}
         />
       </div>
     </PageLayout>

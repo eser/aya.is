@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
+import { Globe, Languages, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -18,7 +18,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { type SupportedLocaleCode, supportedLocales } from "@/config";
 type EditorActionsProps = {
   publicationCount: number;
   isSaving: boolean;
@@ -29,6 +31,8 @@ type EditorActionsProps = {
   onOpenPublishDialog: () => void;
   onDelete: () => void;
   canDelete?: boolean;
+  locale?: string;
+  onLocaleChange?: (locale: string) => void;
 };
 
 export function EditorActions(props: EditorActionsProps) {
@@ -43,6 +47,8 @@ export function EditorActions(props: EditorActionsProps) {
     onOpenPublishDialog,
     onDelete,
     canDelete = true,
+    locale,
+    onLocaleChange,
   } = props;
 
   const isPublished = publicationCount > 0;
@@ -82,6 +88,26 @@ export function EditorActions(props: EditorActionsProps) {
           </TooltipProvider>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {onLocaleChange !== undefined && locale !== undefined && (
+        <Select value={locale} onValueChange={onLocaleChange}>
+          <SelectTrigger size="sm" className="w-auto gap-1.5">
+            <Languages className="size-4" />
+            <span>
+              {locale in supportedLocales
+                ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${locale.toUpperCase()}`
+                : locale.toUpperCase()}
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(supportedLocales).map(([code, data]) => (
+              <SelectItem key={code} value={code}>
+                {data.flag} {data.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       <Button
         variant={isPublished ? "outline" : "default"}

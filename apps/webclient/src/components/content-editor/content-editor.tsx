@@ -116,6 +116,7 @@ type ContentEditorProps = {
   initialPublications?: StoryPublication[];
   accessibleProfiles?: AccessibleProfile[];
   individualProfile?: IndividualProfile;
+  onLocaleChange?: (locale: string) => void;
 };
 
 export function ContentEditor(props: ContentEditorProps) {
@@ -135,6 +136,7 @@ export function ContentEditor(props: ContentEditorProps) {
     initialPublications = [],
     accessibleProfiles = [],
     individualProfile,
+    onLocaleChange,
   } = props;
 
   const isAdmin = userKind === "admin";
@@ -482,6 +484,12 @@ export function ContentEditor(props: ContentEditorProps) {
     setStoryPictureUri(url);
   };
 
+  const handleLocaleChange = React.useCallback((newLocale: string) => {
+    if (onLocaleChange === undefined) return;
+    if (hasChanges && !globalThis.confirm(t("ContentEditor.You have unsaved changes"))) return;
+    onLocaleChange(newLocale);
+  }, [onLocaleChange, hasChanges, t]);
+
   return (
     <div className={styles.editorContainer}>
       {/* Header */}
@@ -515,6 +523,8 @@ export function ContentEditor(props: ContentEditorProps) {
           onOpenPublishDialog={() => setIsPublishDialogOpen(true)}
           onDelete={handleDelete}
           canDelete={!isNew && onDelete !== undefined && isAdmin}
+          locale={locale}
+          onLocaleChange={onLocaleChange !== undefined ? handleLocaleChange : undefined}
         />
       </div>
 
