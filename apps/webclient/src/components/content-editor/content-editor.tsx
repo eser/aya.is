@@ -520,7 +520,7 @@ export function ContentEditor(props: ContentEditorProps) {
           hasChanges={hasChanges}
           isNew={isNew}
           onSave={handleSave}
-          onOpenPublishDialog={() => setIsPublishDialogOpen(true)}
+          onOpenPublishDialog={contentType === "story" ? () => setIsPublishDialogOpen(true) : undefined}
           onDelete={handleDelete}
           canDelete={!isNew && onDelete !== undefined && isAdmin}
           locale={locale}

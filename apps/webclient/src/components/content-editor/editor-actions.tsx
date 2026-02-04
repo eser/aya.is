@@ -28,7 +28,7 @@ type EditorActionsProps = {
   hasChanges: boolean;
   isNew: boolean;
   onSave: () => void;
-  onOpenPublishDialog: () => void;
+  onOpenPublishDialog?: () => void;
   onDelete: () => void;
   canDelete?: boolean;
   locale?: string;
@@ -108,17 +108,19 @@ export function EditorActions(props: EditorActionsProps) {
         </Select>
       )}
 
-      <Button
-        variant={isPublished ? "outline" : "default"}
-        size="sm"
-        onClick={onOpenPublishDialog}
-        disabled={isSaving || isNew}
-      >
-        <Globe className="mr-1.5 size-4" />
-        {isPublished
-          ? `${t("ContentEditor.Edit Publications")} (${publicationCount})`
-          : `${t("ContentEditor.Publish")}...`}
-      </Button>
+      {onOpenPublishDialog !== undefined && (
+        <Button
+          variant={isPublished ? "outline" : "default"}
+          size="sm"
+          onClick={onOpenPublishDialog}
+          disabled={isSaving || isNew}
+        >
+          <Globe className="mr-1.5 size-4" />
+          {isPublished
+            ? `${t("ContentEditor.Edit Publications")} (${publicationCount})`
+            : t("ContentEditor.Publish")}
+        </Button>
+      )}
 
       <Button
         variant="outline"

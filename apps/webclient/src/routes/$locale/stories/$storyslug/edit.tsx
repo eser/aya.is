@@ -133,8 +133,8 @@ function EditStoryPage() {
     );
   }
 
-  // If the returned locale doesn't match the requested translation locale, this is a new translation
-  const isNewTranslation = editData.locale_code.trimEnd() !== translationLocale;
+  // Backend signals when the returned translation is a fallback (requested locale doesn't exist yet)
+  const isNewTranslation = editData.is_fallback;
 
   const initialData: ContentEditorData = {
     title: isNewTranslation ? "" : (editData.title ?? ""),

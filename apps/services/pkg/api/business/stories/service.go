@@ -611,8 +611,11 @@ func (s *Service) GetForEdit(
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToListRecords, storyID, err)
 	}
 
+	isFallback := strings.TrimRight(story.LocaleCode, " ") != localeCode
+
 	return &StoryForEditWithPublications{
 		StoryForEdit: story,
+		IsFallback:   isFallback,
 		Publications: publications,
 	}, nil
 }
