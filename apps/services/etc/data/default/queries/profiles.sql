@@ -401,13 +401,25 @@ FROM
     AND p1.approved_at IS NOT NULL
     AND p1.deleted_at IS NULL
   INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
-	  AND p1t.locale_code = sqlc.arg(locale_code)
+	  AND p1t.locale_code = (
+      SELECT p1tf.locale_code FROM "profile_tx" p1tf
+      WHERE p1tf.profile_id = p1.id
+      AND (p1tf.locale_code = sqlc.arg(locale_code) OR p1tf.locale_code = sqlc.arg(fallback_locale_code))
+      ORDER BY CASE WHEN p1tf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      LIMIT 1
+    )
   INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
     AND (sqlc.narg(filter_member_profile_kind)::TEXT IS NULL OR p2.kind = ANY(string_to_array(sqlc.narg(filter_member_profile_kind)::TEXT, ',')))
     AND p2.approved_at IS NOT NULL
     AND p2.deleted_at IS NULL
   INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
-	  AND p2t.locale_code = sqlc.arg(locale_code)
+	  AND p2t.locale_code = (
+      SELECT p2tf.locale_code FROM "profile_tx" p2tf
+      WHERE p2tf.profile_id = p2.id
+      AND (p2tf.locale_code = sqlc.arg(locale_code) OR p2tf.locale_code = sqlc.arg(fallback_locale_code))
+      ORDER BY CASE WHEN p2tf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE pm.deleted_at IS NULL
     AND (sqlc.narg(filter_profile_id)::TEXT IS NULL OR pm.profile_id = sqlc.narg(filter_profile_id)::TEXT)
     AND (sqlc.narg(filter_member_profile_id)::TEXT IS NULL OR pm.member_profile_id = sqlc.narg(filter_member_profile_id)::TEXT);
@@ -428,7 +440,13 @@ FROM
     AND p.approved_at IS NOT NULL
     AND p.deleted_at IS NULL
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-    AND pt.locale_code = sqlc.arg(locale_code)
+    AND pt.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+      ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE
   pm.deleted_at IS NULL
   AND pm.member_profile_id = sqlc.arg(member_profile_id)

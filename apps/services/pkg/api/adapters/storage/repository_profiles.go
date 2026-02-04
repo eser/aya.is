@@ -391,6 +391,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 		ctx,
 		ListProfileMembershipsParams{
 			LocaleCode:              localeCode,
+			FallbackLocaleCode:      profiles.FallbackLocaleCode,
 			FilterProfileID:         sql.NullString{String: "", Valid: false},
 			FilterProfileKind:       sql.NullString{String: strings.Join(kinds, ","), Valid: true},
 			FilterMemberProfileID:   sql.NullString{String: profileID, Valid: true},
@@ -464,6 +465,7 @@ func (r *Repository) ListProfileMembers(
 		ctx,
 		ListProfileMembershipsParams{
 			LocaleCode:              localeCode,
+			FallbackLocaleCode:      profiles.FallbackLocaleCode,
 			FilterProfileID:         sql.NullString{String: profileID, Valid: true},
 			FilterProfileKind:       sql.NullString{String: "", Valid: false},
 			FilterMemberProfileID:   sql.NullString{String: "", Valid: false},
@@ -531,8 +533,9 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 	rows, err := r.queries.GetProfileMembershipsByMemberProfileID(
 		ctx,
 		GetProfileMembershipsByMemberProfileIDParams{
-			LocaleCode:      localeCode,
-			MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
+			LocaleCode:         localeCode,
+			FallbackLocaleCode: profiles.FallbackLocaleCode,
+			MemberProfileID:    sql.NullString{String: memberProfileID, Valid: true},
 		},
 	)
 	if err != nil {

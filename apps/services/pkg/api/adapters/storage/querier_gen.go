@@ -761,10 +761,16 @@ type Querier interface {
 	//      AND p.approved_at IS NOT NULL
 	//      AND p.deleted_at IS NULL
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-	//      AND pt.locale_code = $1
+	//      AND pt.locale_code = (
+	//        SELECT ptf.locale_code FROM "profile_tx" ptf
+	//        WHERE ptf.profile_id = p.id
+	//        AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+	//        ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//  WHERE
 	//    pm.deleted_at IS NULL
-	//    AND pm.member_profile_id = $2
+	//    AND pm.member_profile_id = $3
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	//  ORDER BY pm.created_at DESC
 	GetProfileMembershipsByMemberProfileID(ctx context.Context, arg GetProfileMembershipsByMemberProfileIDParams) ([]*GetProfileMembershipsByMemberProfileIDRow, error)
@@ -1331,16 +1337,28 @@ type Querier interface {
 	//      AND p1.approved_at IS NOT NULL
 	//      AND p1.deleted_at IS NULL
 	//    INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
-	//  	  AND p1t.locale_code = $2
+	//  	  AND p1t.locale_code = (
+	//        SELECT p1tf.locale_code FROM "profile_tx" p1tf
+	//        WHERE p1tf.profile_id = p1.id
+	//        AND (p1tf.locale_code = $2 OR p1tf.locale_code = $3)
+	//        ORDER BY CASE WHEN p1tf.locale_code = $2 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//    INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
-	//      AND ($3::TEXT IS NULL OR p2.kind = ANY(string_to_array($3::TEXT, ',')))
+	//      AND ($4::TEXT IS NULL OR p2.kind = ANY(string_to_array($4::TEXT, ',')))
 	//      AND p2.approved_at IS NOT NULL
 	//      AND p2.deleted_at IS NULL
 	//    INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
-	//  	  AND p2t.locale_code = $2
+	//  	  AND p2t.locale_code = (
+	//        SELECT p2tf.locale_code FROM "profile_tx" p2tf
+	//        WHERE p2tf.profile_id = p2.id
+	//        AND (p2tf.locale_code = $2 OR p2tf.locale_code = $3)
+	//        ORDER BY CASE WHEN p2tf.locale_code = $2 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//  WHERE pm.deleted_at IS NULL
-	//      AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
-	//      AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
+	//      AND ($5::TEXT IS NULL OR pm.profile_id = $5::TEXT)
+	//      AND ($6::TEXT IS NULL OR pm.member_profile_id = $6::TEXT)
 	ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error)
 	//ListProfileMembershipsForSettings
 	//
