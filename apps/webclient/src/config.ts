@@ -61,8 +61,8 @@ export const getBackendUri = (): string => {
 
 // Locale Configuration
 export const SUPPORTED_LOCALES = [
-  "tr",
   "en",
+  "tr",
   "fr",
   "de",
   "es",
@@ -78,8 +78,8 @@ export const SUPPORTED_LOCALES = [
 
 export type SupportedLocaleCode = (typeof SUPPORTED_LOCALES)[number];
 
-export const DEFAULT_LOCALE: SupportedLocaleCode = "tr"; // Default for main domain
-export const FALLBACK_LOCALE: SupportedLocaleCode = "tr"; // Fallback for missing translations
+export const DEFAULT_LOCALE: SupportedLocaleCode = "en"; // Default for main domain
+export const FALLBACK_LOCALE: SupportedLocaleCode = "en"; // Fallback for missing translations
 
 export const supportedLocales: Record<SupportedLocaleCode, Locale> = {
   tr: {

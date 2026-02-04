@@ -1,7 +1,7 @@
 // SEO Meta Tag Utilities
 // Generates Open Graph, Twitter Card, and standard meta tags
 
-import { siteConfig } from "@/config";
+import { DEFAULT_LOCALE, siteConfig } from "@/config";
 
 export interface SeoMeta {
   title: string;
@@ -34,7 +34,7 @@ export function generateMetaTags(meta: SeoMeta): MetaTag[] {
     url,
     image,
     type = "website",
-    locale = "tr",
+    locale = DEFAULT_LOCALE,
     siteName = siteConfig.name,
     publishedTime,
     modifiedTime,

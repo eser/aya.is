@@ -1,6 +1,6 @@
 import type { BetterAuthPlugin } from "better-auth";
 import { createAuthEndpoint } from "better-auth/plugins";
-import { getBackendUri } from "@/config";
+import { DEFAULT_LOCALE, getBackendUri } from "@/config";
 
 const BEARER_PREFIX = "Bearer ";
 
@@ -42,7 +42,7 @@ export const ayaBackendPlugin = () => {
         (ctx) => {
           const backendUri = getBackendUri();
           const url = new URL(ctx.request?.url ?? "");
-          const locale = url.searchParams.get("locale") ?? "tr";
+          const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
           const redirectUri = url.searchParams.get("redirect_uri") ?? "/";
 
           // Redirect to api.aya.is OAuth endpoint
@@ -64,7 +64,7 @@ export const ayaBackendPlugin = () => {
         async (ctx) => {
           const url = new URL(ctx.request?.url ?? "");
           const authToken = url.searchParams.get("auth_token");
-          const locale = url.searchParams.get("locale") ?? "tr";
+          const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
 
           if (authToken === null) {
             return ctx.json({ error: "No auth token provided" }, {
@@ -116,7 +116,7 @@ export const ayaBackendPlugin = () => {
           }
 
           const url = new URL(ctx.request?.url ?? "");
-          const locale = url.searchParams.get("locale") ?? "tr";
+          const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
           const backendUri = getBackendUri();
 
           try {
@@ -154,7 +154,7 @@ export const ayaBackendPlugin = () => {
 
           try {
             const body = await ctx.request?.json().catch(() => ({}));
-            const locale = body?.locale ?? "tr";
+            const locale = body?.locale ?? DEFAULT_LOCALE;
 
             const response = await fetch(
               `${backendUri}/${locale}/auth/refresh`,
@@ -190,7 +190,7 @@ export const ayaBackendPlugin = () => {
           if (token !== null) {
             try {
               const body = await ctx.request?.json().catch(() => ({}));
-              const locale = body?.locale ?? "tr";
+              const locale = body?.locale ?? DEFAULT_LOCALE;
 
               await fetch(`${backendUri}/${locale}/auth/logout`, {
                 method: "POST",

@@ -1,12 +1,14 @@
-// Main domain root - redirects to default locale
+// Main domain root - redirects to preferred locale
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { DEFAULT_LOCALE } from "@/config";
+import { getPreferredLocale } from "@/lib/get-locale";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: () => {
-    // Redirect root to default locale
+  beforeLoad: async () => {
+    // Detect preferred locale: cookie → Accept-Language → DEFAULT_LOCALE
+    const locale = await getPreferredLocale();
+
     throw redirect({
-      to: `/${DEFAULT_LOCALE}`,
+      to: `/${locale}`,
       replace: true,
     });
   },
