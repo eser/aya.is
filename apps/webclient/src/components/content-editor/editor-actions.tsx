@@ -32,6 +32,7 @@ type EditorActionsProps = {
   isSaving: boolean;
   isDeleting: boolean;
   hasChanges: boolean;
+  isNew: boolean;
   onSave: () => void;
   onOpenPublishDialog: () => void;
   onDelete: () => void;
@@ -45,6 +46,7 @@ export function EditorActions(props: EditorActionsProps) {
     isSaving,
     isDeleting,
     hasChanges,
+    isNew,
     onSave,
     onOpenPublishDialog,
     onDelete,
@@ -91,7 +93,7 @@ export function EditorActions(props: EditorActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button variant="default" size="sm" onClick={onOpenPublishDialog} disabled={isSaving}>
+      <Button variant="default" size="sm" onClick={onOpenPublishDialog} disabled={isSaving || isNew}>
         <Globe className="mr-1.5 size-4" />
         {t("ContentEditor.Publish")}...
       </Button>

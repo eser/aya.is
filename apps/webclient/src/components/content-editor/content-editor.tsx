@@ -510,6 +510,7 @@ export function ContentEditor(props: ContentEditorProps) {
           isSaving={isSaving}
           isDeleting={isDeleting}
           hasChanges={hasChanges}
+          isNew={isNew}
           onSave={handleSave}
           onOpenPublishDialog={() => setIsPublishDialogOpen(true)}
           onDelete={handleDelete}
