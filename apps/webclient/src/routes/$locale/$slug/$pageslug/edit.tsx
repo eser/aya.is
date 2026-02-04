@@ -9,6 +9,7 @@ import {
 } from "@/components/content-editor";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLayout } from "@/components/page-layouts/default";
 
 export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
   ssr: false,
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
       throw notFound();
     }
 
-    // Get the page
+    // Get the page (with site locale translation)
     const page = await backend.getProfilePage(locale, slug, pageslug);
     if (page === null) {
       throw notFound();
@@ -38,6 +39,12 @@ function EditPagePage() {
   const auth = useAuth();
   const { page } = Route.useLoaderData();
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
+  // Translation locale is independent from the site locale (params.locale)
+  const [translationLocale, setTranslationLocale] = React.useState(params.locale);
+  // Translation data for the selected locale (null = not yet loaded, undefined = no translation exists)
+  const [translationData, setTranslationData] = React.useState<
+    { title: string; summary: string; content: string } | null | undefined
+  >(null);
 
   // Check permissions client-side
   React.useEffect(() => {
@@ -53,83 +60,122 @@ function EditPagePage() {
     });
   }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug]);
 
-  // Still checking permissions
-  if (canEdit === null) {
+  // Load translation data when translationLocale changes
+  React.useEffect(() => {
+    if (translationLocale === params.locale) {
+      // Use the loader data for the site locale
+      setTranslationData({
+        title: page.title ?? "",
+        summary: page.summary ?? "",
+        content: page.content ?? "",
+      });
+      return;
+    }
+
+    // Fetch page data for the selected translation locale
+    setTranslationData(null);
+    backend.getProfilePage(translationLocale, params.slug, params.pageslug).then((data) => {
+      if (data === null) {
+        // No translation exists for this locale — show empty fields
+        setTranslationData(undefined);
+      } else {
+        setTranslationData({
+          title: data.title ?? "",
+          summary: data.summary ?? "",
+          content: data.content ?? "",
+        });
+      }
+    });
+  }, [translationLocale, params.locale, params.slug, params.pageslug, page]);
+
+  // Still checking permissions or loading translation
+  if (canEdit === null || translationData === null) {
     return (
-      <div className="flex h-[calc(100vh-140px)] flex-col">
-        {/* Header skeleton */}
-        <div className="flex items-center justify-between border-b p-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-10 rounded-full" />
-            <Skeleton className="h-6 w-24" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-20" />
-            <Skeleton className="h-9 w-9" />
-          </div>
-        </div>
-        {/* Main content skeleton */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar skeleton */}
-          <div className="w-80 shrink-0 border-r p-4 space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="size-8" />
+      <PageLayout>
+        <div className="flex h-[calc(100vh-140px)] flex-col">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between border-b p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10 rounded-full" />
+              <Skeleton className="h-6 w-24" />
             </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-12" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-10" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-20 w-full" />
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-9" />
             </div>
           </div>
-          {/* Editor content skeleton */}
-          <div className="flex flex-1 flex-col overflow-hidden">
-            {/* Toolbar skeleton */}
-            <div className="flex items-center justify-between border-b px-4 py-2">
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="size-8" />
-                ))}
+          {/* Main content skeleton */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Sidebar skeleton */}
+            <div className="w-80 shrink-0 border-r p-4 space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="size-8" />
               </div>
-              <div className="flex gap-1">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="size-8" />
-                ))}
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-10" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-20 w-full" />
               </div>
             </div>
-            {/* Panels skeleton */}
-            <div className="flex flex-1 overflow-hidden">
-              <Skeleton className="flex-1 m-4" />
+            {/* Editor content skeleton */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+              {/* Toolbar skeleton */}
+              <div className="flex items-center justify-between border-b px-4 py-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
+                </div>
+                <div className="flex gap-1">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
+                </div>
+              </div>
+              {/* Panels skeleton */}
+              <div className="flex flex-1 overflow-hidden">
+                <Skeleton className="flex-1 m-4" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
-  // No permission - redirect to page
+  // No permission
   if (!canEdit) {
     return (
-      <div className="content">
-        <h2>Access Denied</h2>
-        <p>You don't have permission to edit this page.</p>
-      </div>
+      <PageLayout>
+        <div className="content">
+          <h2>Access Denied</h2>
+          <p>You don't have permission to edit this page.</p>
+        </div>
+      </PageLayout>
     );
   }
 
+  // translationData is undefined when no translation exists for the selected locale
+  const isNewTranslation = translationData === undefined;
+
   const initialData: ContentEditorData = {
-    title: page.title ?? "",
+    title: isNewTranslation ? "" : translationData.title,
     slug: page.slug ?? "",
-    summary: page.summary ?? "",
-    content: page.content ?? "",
+    summary: isNewTranslation ? "" : translationData.summary,
+    content: isNewTranslation ? "" : translationData.content,
     storyPictureUri: page.cover_picture_uri ?? null,
+  };
+
+  const handleLocaleChange = (newLocale: string) => {
+    setTranslationLocale(newLocale);
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -151,12 +197,12 @@ function EditPagePage() {
       return;
     }
 
-    // Update the translation
+    // Update the translation for the selected translation locale
     const translationResult = await backend.updateProfilePageTranslation(
       params.locale,
       params.slug,
       page.id,
-      params.locale,
+      translationLocale,
       {
         title: data.title,
         summary: data.summary,
@@ -201,18 +247,22 @@ function EditPagePage() {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)]">
-      <ContentEditor
-        locale={params.locale}
-        profileSlug={params.slug}
-        contentType="page"
-        initialData={initialData}
-        backUrl={`/${params.locale}/${params.slug}/${params.pageslug}`}
-        userKind={auth.user?.kind}
-        onSave={handleSave}
-        onDelete={handleDelete}
-        excludeId={page.id}
-      />
-    </div>
+    <PageLayout>
+      <div className="h-[calc(100vh-140px)]">
+        <ContentEditor
+          key={translationLocale}
+          locale={translationLocale}
+          profileSlug={params.slug}
+          contentType="page"
+          initialData={initialData}
+          backUrl={`/${params.locale}/${params.slug}/${params.pageslug}`}
+          userKind={auth.user?.kind}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          excludeId={page.id}
+          onLocaleChange={handleLocaleChange}
+        />
+      </div>
+    </PageLayout>
   );
 }
