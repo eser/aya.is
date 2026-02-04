@@ -42,7 +42,7 @@ const getStoryByID = `-- name: GetStoryByID :one
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
   pb.publications
 FROM "story" s
@@ -92,7 +92,7 @@ type GetStoryByIDRow struct {
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-//	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+//	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 //	  pb.publications
 //	FROM "story" s
@@ -147,7 +147,6 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.Profile.ID,
 		&i.Profile.Slug,
 		&i.Profile.Kind,
-		&i.Profile.CustomDomain,
 		&i.Profile.ProfilePictureURI,
 		&i.Profile.Pronouns,
 		&i.Profile.Properties,
@@ -735,7 +734,7 @@ const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications
 FROM "story" s
@@ -788,7 +787,7 @@ type ListStoriesOfPublicationRow struct {
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-//	  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications
 //	FROM "story" s
@@ -852,7 +851,6 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
 			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,

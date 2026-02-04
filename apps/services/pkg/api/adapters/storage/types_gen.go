@@ -79,7 +79,6 @@ type Profile struct {
 	ID                string                `db:"id" json:"id"`
 	Slug              string                `db:"slug" json:"slug"`
 	Kind              string                `db:"kind" json:"kind"`
-	CustomDomain      sql.NullString        `db:"custom_domain" json:"custom_domain"`
 	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
 	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
@@ -90,6 +89,15 @@ type Profile struct {
 	Points            int32                 `db:"points" json:"points"`
 	HideRelations     bool                  `db:"hide_relations" json:"hide_relations"`
 	HideLinks         bool                  `db:"hide_links" json:"hide_links"`
+}
+
+type ProfileCustomDomain struct {
+	ID            string         `db:"id" json:"id"`
+	ProfileID     string         `db:"profile_id" json:"profile_id"`
+	Domain        string         `db:"domain" json:"domain"`
+	DefaultLocale sql.NullString `db:"default_locale" json:"default_locale"`
+	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt     sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
 
 type ProfileLink struct {

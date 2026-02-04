@@ -715,6 +715,7 @@ func (s *Service) Create(
 // Update updates an existing story (slug and picture only).
 func (s *Service) Update(
 	ctx context.Context,
+	locale string,
 	userID string,
 	userKind string,
 	storyID string,
@@ -766,7 +767,7 @@ func (s *Service) Update(
 	}
 
 	// Return updated story
-	story, err := s.repo.GetStoryForEdit(ctx, "en", storyID)
+	story, err := s.repo.GetStoryForEdit(ctx, locale, storyID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
 	}

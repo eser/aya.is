@@ -525,7 +525,6 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Kind,
 				requestBody.Title,
 				requestBody.Description,
-				nil, // customDomain
 				nil, // profilePictureURI
 				nil, // pronouns
 				nil, // properties

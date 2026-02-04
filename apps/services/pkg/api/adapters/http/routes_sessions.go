@@ -238,7 +238,6 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 								"title":               profile.Title,
 								"description":         profile.Description,
 								"profile_picture_uri": profile.ProfilePictureURI,
-								"custom_domain":       profile.CustomDomain,
 								"pronouns":            profile.Pronouns,
 								"properties":          profile.Properties,
 								"created_at":          profile.CreatedAt,

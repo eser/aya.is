@@ -185,6 +185,11 @@ type Querier interface {
 	//  WHERE story_id = $1
 	//    AND deleted_at IS NULL
 	CountStoryPublications(ctx context.Context, arg CountStoryPublicationsParams) (int64, error)
+	//CreateCustomDomain
+	//
+	//  INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
+	//  VALUES ($1, $2, $3, $4)
+	CreateCustomDomain(ctx context.Context, arg CreateCustomDomainParams) error
 	//CreateLinkImport
 	//
 	//  INSERT INTO "profile_link_import" (id, profile_link_id, remote_id, properties, created_at)
@@ -239,8 +244,8 @@ type Querier interface {
 	CreatePendingAward(ctx context.Context, arg CreatePendingAwardParams) (*ProfilePointPendingAward, error)
 	//CreateProfile
 	//
-	//  INSERT INTO "profile" (id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties)
-	//  VALUES ($1, $2, $3, $4, $5, $6, $7)
+	//  INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
+	//  VALUES ($1, $2, $3, $4, $5, $6)
 	CreateProfile(ctx context.Context, arg CreateProfileParams) error
 	//CreateProfileLink
 	//
@@ -449,6 +454,11 @@ type Querier interface {
 	//  WHERE
 	//    session_id = $1
 	DeleteAllSessionPreferences(ctx context.Context, arg DeleteAllSessionPreferencesParams) error
+	//DeleteCustomDomain
+	//
+	//  DELETE FROM "profile_custom_domain"
+	//  WHERE id = $1
+	DeleteCustomDomain(ctx context.Context, arg DeleteCustomDomainParams) (int64, error)
 	//DeleteExpiredPOWChallenges
 	//
 	//  DELETE FROM protection_pow_challenge
@@ -528,7 +538,6 @@ type Querier interface {
 	//    p.id,
 	//    p.slug,
 	//    p.kind,
-	//    p.custom_domain,
 	//    p.profile_picture_uri,
 	//    p.pronouns,
 	//    p.properties,
@@ -545,6 +554,13 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfileBySlugParams) (*GetAdminProfileBySlugRow, error)
+	//GetCustomDomainByDomain
+	//
+	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+	//  FROM "profile_custom_domain" pcd
+	//  WHERE pcd.domain = $1
+	//  LIMIT 1
+	GetCustomDomainByDomain(ctx context.Context, arg GetCustomDomainByDomainParams) (*ProfileCustomDomain, error)
 	//GetFromCache
 	//
 	//  SELECT value, updated_at
@@ -642,7 +658,7 @@ type Querier interface {
 	GetPendingAwardsStatsByEventType(ctx context.Context) ([]*GetPendingAwardsStatsByEventTypeRow, error)
 	//GetProfileByID
 	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
@@ -650,14 +666,6 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error)
-	//GetProfileIDByCustomDomain
-	//
-	//  SELECT id
-	//  FROM "profile"
-	//  WHERE custom_domain = $1
-	//    AND deleted_at IS NULL
-	//  LIMIT 1
-	GetProfileIDByCustomDomain(ctx context.Context, arg GetProfileIDByCustomDomainParams) (string, error)
 	//GetProfileIDBySlug
 	//
 	//  SELECT id
@@ -745,7 +753,7 @@ type Querier interface {
 	//    pm.finished_at,
 	//    pm.properties as membership_properties,
 	//    pm.created_at as membership_created_at,
-	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM
 	//    "profile_membership" pm
@@ -822,7 +830,7 @@ type Querier interface {
 	GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDParams) ([]*GetProfileTxByIDRow, error)
 	//GetProfilesByIDs
 	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
@@ -899,7 +907,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1175,7 +1183,6 @@ type Querier interface {
 	//    p.id,
 	//    p.slug,
 	//    p.kind,
-	//    p.custom_domain,
 	//    p.profile_picture_uri,
 	//    p.pronouns,
 	//    p.properties,
@@ -1194,6 +1201,13 @@ type Querier interface {
 	//  LIMIT $4
 	//  OFFSET $3
 	ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfilesForAdminParams) ([]*ListAllProfilesForAdminRow, error)
+	//ListCustomDomainsByProfileID
+	//
+	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+	//  FROM "profile_custom_domain" pcd
+	//  WHERE pcd.profile_id = $1
+	//  ORDER BY pcd.created_at
+	ListCustomDomainsByProfileID(ctx context.Context, arg ListCustomDomainsByProfileIDParams) ([]*ProfileCustomDomain, error)
 	//ListEventsByType
 	//
 	//  SELECT id, type, payload, status, retry_count, max_retries, visible_at, visibility_timeout_secs, started_at, completed_at, failed_at, created_at, updated_at, error_message, worker_id
@@ -1306,9 +1320,9 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
-	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-	//    p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links,
+	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links,
 	//    p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 	//  FROM
 	//  	"profile_membership" pm
@@ -1340,7 +1354,7 @@ type Querier interface {
 	//    pm.finished_at,
 	//    pm.created_at,
 	//    pm.updated_at,
-	//    mp.id, mp.slug, mp.kind, mp.custom_domain, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
+	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
 	//    mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 	//  FROM "profile_membership" pm
 	//  INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -1382,7 +1396,7 @@ type Querier interface {
 	ListProfilePointTransactionsByProfileID(ctx context.Context, arg ListProfilePointTransactionsByProfileIDParams) ([]*ProfilePointTransaction, error)
 	//ListProfiles
 	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
@@ -1418,7 +1432,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1662,7 +1676,7 @@ type Querier interface {
 	//    u.email,
 	//    u.name,
 	//    u.individual_profile_id,
-	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "user" u
 	//  INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -1738,6 +1752,15 @@ type Querier interface {
 	//
 	//  SELECT pg_try_advisory_lock($1::BIGINT) AS acquired
 	TryAdvisoryLock(ctx context.Context, arg TryAdvisoryLockParams) (bool, error)
+	//UpdateCustomDomain
+	//
+	//  UPDATE "profile_custom_domain"
+	//  SET
+	//    domain = $1,
+	//    default_locale = $2,
+	//    updated_at = NOW()
+	//  WHERE id = $3
+	UpdateCustomDomain(ctx context.Context, arg UpdateCustomDomainParams) (int64, error)
 	//UpdateLinkImport
 	//
 	//  UPDATE "profile_link_import"

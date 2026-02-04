@@ -46,7 +46,7 @@ func CorsMiddlewareWithCustomDomains(
 			domain := extractDomainFromOrigin(requestOrigin, true) // strip www. for DB lookup
 			if domain != "" {
 				// GetByCustomDomain is cached at repository layer
-				profile, _ := profileService.GetByCustomDomain(
+				profile, _, _ := profileService.GetByCustomDomain(
 					ctx.Request.Context(),
 					"en", // locale doesn't matter for domain check
 					domain,

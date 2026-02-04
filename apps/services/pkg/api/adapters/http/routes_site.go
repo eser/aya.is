@@ -32,7 +32,7 @@ func RegisterHTTPRoutesForSite(
 				localeParam := ctx.Request.PathValue("locale")
 				domainParam := ctx.Request.PathValue("domain")
 
-				records, err := profileService.GetByCustomDomain(
+				profile, customDomain, err := profileService.GetByCustomDomain(
 					ctx.Request.Context(),
 					localeParam,
 					domainParam,
@@ -44,7 +44,20 @@ func RegisterHTTPRoutesForSite(
 					)
 				}
 
-				wrappedResponse := cursors.WrapResponseWithCursor(records, nil)
+				if profile == nil || customDomain == nil {
+					return ctx.Results.Error(
+						http.StatusNotFound,
+						httpfx.WithErrorMessage("Custom domain not found"),
+					)
+				}
+
+				response := map[string]any{
+					"slug":           profile.Slug,
+					"title":          profile.Title,
+					"default_locale": customDomain.DefaultLocale,
+				}
+
+				wrappedResponse := cursors.WrapResponseWithCursor(response, nil)
 
 				return ctx.Results.JSON(wrappedResponse)
 			},

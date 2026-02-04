@@ -1,11 +1,15 @@
 import process from "node:process";
-import { DEFAULT_LOCALE } from "@/config";
+import { DEFAULT_LOCALE, isValidLocale } from "@/config";
 import { isMainDomain } from "@/shared.ts";
 
+import type { SupportedLocaleCode } from "@/config";
 import type { DomainConfiguration } from "@/request-context";
 
 // Cache for custom domain lookups
-const domainCache = new Map<string, { slug: string; title: string | null; locale: string | null } | null>();
+const domainCache = new Map<
+  string,
+  { slug: string; title: string | null; defaultLocale: string | null } | null
+>();
 const CACHE_TTL = 2 * 60 * 1000;
 const cacheTimestamps = new Map<string, number>();
 
@@ -17,7 +21,7 @@ export const defaultDomainConfiguration: DomainConfiguration = {
 
 export async function fetchCustomDomainFromBackend(
   host: string,
-): Promise<{ slug: string; title: string | null; locale: string | null } | null> {
+): Promise<{ slug: string; title: string | null; defaultLocale: string | null } | null> {
   const customDomainOverride = process.env.CUSTOM_DOMAIN;
   const effectiveHost = customDomainOverride !== undefined && customDomainOverride !== "" ? customDomainOverride : host;
 
@@ -50,7 +54,11 @@ export async function fetchCustomDomainFromBackend(
       return null;
     }
 
-    const result = { slug: profileData.slug, title: profileData.title ?? null, locale: profileData.locale ?? null };
+    const result = {
+      slug: profileData.slug,
+      title: profileData.title ?? null,
+      defaultLocale: profileData.default_locale ?? null,
+    };
     domainCache.set(effectiveHost, result);
     cacheTimestamps.set(effectiveHost, now);
     return result;
@@ -77,11 +85,16 @@ export async function getDomainConfiguration(address: string | undefined): Promi
   const backendResult = await fetchCustomDomainFromBackend(hostname);
 
   if (backendResult !== null) {
+    const domainDefaultCulture: SupportedLocaleCode =
+      backendResult.defaultLocale !== null && isValidLocale(backendResult.defaultLocale)
+        ? backendResult.defaultLocale
+        : DEFAULT_LOCALE;
+
     return {
       type: "custom-domain",
       profileSlug: backendResult.slug,
       profileTitle: backendResult.title,
-      defaultCulture: DEFAULT_LOCALE,
+      defaultCulture: domainDefaultCulture,
       allowsWwwPrefix: false,
     };
   }

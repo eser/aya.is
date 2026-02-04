@@ -374,6 +374,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
+			localeParam := ctx.Request.PathValue("locale")
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			var requestBody struct {
@@ -426,6 +427,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 			story, err := storyService.Update(
 				ctx.Request.Context(),
+				localeParam,
 				*session.LoggedInUserID,
 				user.Kind,
 				storyIDParam,

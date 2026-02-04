@@ -143,16 +143,41 @@ func (q *Queries) CountProfileOwners(ctx context.Context, arg CountProfileOwners
 	return owner_count, err
 }
 
+const createCustomDomain = `-- name: CreateCustomDomain :exec
+INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
+VALUES ($1, $2, $3, $4)
+`
+
+type CreateCustomDomainParams struct {
+	ID            string         `db:"id" json:"id"`
+	ProfileID     string         `db:"profile_id" json:"profile_id"`
+	Domain        string         `db:"domain" json:"domain"`
+	DefaultLocale sql.NullString `db:"default_locale" json:"default_locale"`
+}
+
+// CreateCustomDomain
+//
+//	INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
+//	VALUES ($1, $2, $3, $4)
+func (q *Queries) CreateCustomDomain(ctx context.Context, arg CreateCustomDomainParams) error {
+	_, err := q.db.ExecContext(ctx, createCustomDomain,
+		arg.ID,
+		arg.ProfileID,
+		arg.Domain,
+		arg.DefaultLocale,
+	)
+	return err
+}
+
 const createProfile = `-- name: CreateProfile :exec
-INSERT INTO "profile" (id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
+VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CreateProfileParams struct {
 	ID                string                `db:"id" json:"id"`
 	Slug              string                `db:"slug" json:"slug"`
 	Kind              string                `db:"kind" json:"kind"`
-	CustomDomain      sql.NullString        `db:"custom_domain" json:"custom_domain"`
 	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
 	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
@@ -160,14 +185,13 @@ type CreateProfileParams struct {
 
 // CreateProfile
 //
-//	INSERT INTO "profile" (id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties)
-//	VALUES ($1, $2, $3, $4, $5, $6, $7)
+//	INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
+//	VALUES ($1, $2, $3, $4, $5, $6)
 func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) error {
 	_, err := q.db.ExecContext(ctx, createProfile,
 		arg.ID,
 		arg.Slug,
 		arg.Kind,
-		arg.CustomDomain,
 		arg.ProfilePictureURI,
 		arg.Pronouns,
 		arg.Properties,
@@ -589,6 +613,27 @@ func (q *Queries) CreateProfileTx(ctx context.Context, arg CreateProfileTxParams
 	return err
 }
 
+const deleteCustomDomain = `-- name: DeleteCustomDomain :execrows
+DELETE FROM "profile_custom_domain"
+WHERE id = $1
+`
+
+type DeleteCustomDomainParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// DeleteCustomDomain
+//
+//	DELETE FROM "profile_custom_domain"
+//	WHERE id = $1
+func (q *Queries) DeleteCustomDomain(ctx context.Context, arg DeleteCustomDomainParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteCustomDomain, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const deleteProfileLink = `-- name: DeleteProfileLink :execrows
 UPDATE "profile_link"
 SET deleted_at = NOW()
@@ -673,7 +718,6 @@ SELECT
   p.id,
   p.slug,
   p.kind,
-  p.custom_domain,
   p.profile_picture_uri,
   p.pronouns,
   p.properties,
@@ -700,7 +744,6 @@ type GetAdminProfileBySlugRow struct {
 	ID                string                `db:"id" json:"id"`
 	Slug              string                `db:"slug" json:"slug"`
 	Kind              string                `db:"kind" json:"kind"`
-	CustomDomain      sql.NullString        `db:"custom_domain" json:"custom_domain"`
 	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
 	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
@@ -718,7 +761,6 @@ type GetAdminProfileBySlugRow struct {
 //	  p.id,
 //	  p.slug,
 //	  p.kind,
-//	  p.custom_domain,
 //	  p.profile_picture_uri,
 //	  p.pronouns,
 //	  p.properties,
@@ -741,7 +783,6 @@ func (q *Queries) GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfile
 		&i.ID,
 		&i.Slug,
 		&i.Kind,
-		&i.CustomDomain,
 		&i.ProfilePictureURI,
 		&i.Pronouns,
 		&i.Properties,
@@ -751,6 +792,37 @@ func (q *Queries) GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfile
 		&i.Title,
 		&i.Description,
 		&i.HasTranslation,
+	)
+	return &i, err
+}
+
+const getCustomDomainByDomain = `-- name: GetCustomDomainByDomain :one
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+FROM "profile_custom_domain" pcd
+WHERE pcd.domain = $1
+LIMIT 1
+`
+
+type GetCustomDomainByDomainParams struct {
+	Domain string `db:"domain" json:"domain"`
+}
+
+// GetCustomDomainByDomain
+//
+//	SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+//	FROM "profile_custom_domain" pcd
+//	WHERE pcd.domain = $1
+//	LIMIT 1
+func (q *Queries) GetCustomDomainByDomain(ctx context.Context, arg GetCustomDomainByDomainParams) (*ProfileCustomDomain, error) {
+	row := q.db.QueryRowContext(ctx, getCustomDomainByDomain, arg.Domain)
+	var i ProfileCustomDomain
+	err := row.Scan(
+		&i.ID,
+		&i.ProfileID,
+		&i.Domain,
+		&i.DefaultLocale,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return &i, err
 }
@@ -811,7 +883,7 @@ func (q *Queries) GetMembershipBetweenProfiles(ctx context.Context, arg GetMembe
 }
 
 const getProfileByID = `-- name: GetProfileByID :one
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
@@ -832,7 +904,7 @@ type GetProfileByIDRow struct {
 
 // GetProfileByID
 //
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
@@ -846,7 +918,6 @@ func (q *Queries) GetProfileByID(ctx context.Context, arg GetProfileByIDParams) 
 		&i.Profile.ID,
 		&i.Profile.Slug,
 		&i.Profile.Kind,
-		&i.Profile.CustomDomain,
 		&i.Profile.ProfilePictureURI,
 		&i.Profile.Pronouns,
 		&i.Profile.Properties,
@@ -865,32 +936,6 @@ func (q *Queries) GetProfileByID(ctx context.Context, arg GetProfileByIDParams) 
 		&i.ProfileTx.SearchVector,
 	)
 	return &i, err
-}
-
-const getProfileIDByCustomDomain = `-- name: GetProfileIDByCustomDomain :one
-SELECT id
-FROM "profile"
-WHERE custom_domain = $1
-  AND deleted_at IS NULL
-LIMIT 1
-`
-
-type GetProfileIDByCustomDomainParams struct {
-	CustomDomain sql.NullString `db:"custom_domain" json:"custom_domain"`
-}
-
-// GetProfileIDByCustomDomain
-//
-//	SELECT id
-//	FROM "profile"
-//	WHERE custom_domain = $1
-//	  AND deleted_at IS NULL
-//	LIMIT 1
-func (q *Queries) GetProfileIDByCustomDomain(ctx context.Context, arg GetProfileIDByCustomDomainParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, getProfileIDByCustomDomain, arg.CustomDomain)
-	var id string
-	err := row.Scan(&id)
-	return id, err
 }
 
 const getProfileIDBySlug = `-- name: GetProfileIDBySlug :one
@@ -1253,7 +1298,7 @@ SELECT
   pm.finished_at,
   pm.properties as membership_properties,
   pm.created_at as membership_created_at,
-  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM
   "profile_membership" pm
@@ -1294,7 +1339,7 @@ type GetProfileMembershipsByMemberProfileIDRow struct {
 //	  pm.finished_at,
 //	  pm.properties as membership_properties,
 //	  pm.created_at as membership_created_at,
-//	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+//	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM
 //	  "profile_membership" pm
@@ -1327,7 +1372,6 @@ func (q *Queries) GetProfileMembershipsByMemberProfileID(ctx context.Context, ar
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
 			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
@@ -1581,7 +1625,7 @@ func (q *Queries) GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDPara
 }
 
 const getProfilesByIDs = `-- name: GetProfilesByIDs :many
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
@@ -1601,7 +1645,7 @@ type GetProfilesByIDsRow struct {
 
 // GetProfilesByIDs
 //
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
@@ -1620,7 +1664,6 @@ func (q *Queries) GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsPara
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
 			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
@@ -1831,7 +1874,6 @@ SELECT
   p.id,
   p.slug,
   p.kind,
-  p.custom_domain,
   p.profile_picture_uri,
   p.pronouns,
   p.properties,
@@ -1862,7 +1904,6 @@ type ListAllProfilesForAdminRow struct {
 	ID                string                `db:"id" json:"id"`
 	Slug              string                `db:"slug" json:"slug"`
 	Kind              string                `db:"kind" json:"kind"`
-	CustomDomain      sql.NullString        `db:"custom_domain" json:"custom_domain"`
 	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
 	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
@@ -1880,7 +1921,6 @@ type ListAllProfilesForAdminRow struct {
 //	  p.id,
 //	  p.slug,
 //	  p.kind,
-//	  p.custom_domain,
 //	  p.profile_picture_uri,
 //	  p.pronouns,
 //	  p.properties,
@@ -1916,7 +1956,6 @@ func (q *Queries) ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfil
 			&i.ID,
 			&i.Slug,
 			&i.Kind,
-			&i.CustomDomain,
 			&i.ProfilePictureURI,
 			&i.Pronouns,
 			&i.Properties,
@@ -1926,6 +1965,53 @@ func (q *Queries) ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfil
 			&i.Title,
 			&i.Description,
 			&i.HasTranslation,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCustomDomainsByProfileID = `-- name: ListCustomDomainsByProfileID :many
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+FROM "profile_custom_domain" pcd
+WHERE pcd.profile_id = $1
+ORDER BY pcd.created_at
+`
+
+type ListCustomDomainsByProfileIDParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
+}
+
+// ListCustomDomainsByProfileID
+//
+//	SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+//	FROM "profile_custom_domain" pcd
+//	WHERE pcd.profile_id = $1
+//	ORDER BY pcd.created_at
+func (q *Queries) ListCustomDomainsByProfileID(ctx context.Context, arg ListCustomDomainsByProfileIDParams) ([]*ProfileCustomDomain, error) {
+	rows, err := q.db.QueryContext(ctx, listCustomDomainsByProfileID, arg.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ProfileCustomDomain{}
+	for rows.Next() {
+		var i ProfileCustomDomain
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProfileID,
+			&i.Domain,
+			&i.DefaultLocale,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -2294,9 +2380,9 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 const listProfileMemberships = `-- name: ListProfileMemberships :many
 SELECT
   pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
-  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-  p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links,
+  p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links,
   p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 FROM
 	"profile_membership" pm
@@ -2337,9 +2423,9 @@ type ListProfileMembershipsRow struct {
 //
 //	SELECT
 //	  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
-//	  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-//	  p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links,
+//	  p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links,
 //	  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 //	FROM
 //		"profile_membership" pm
@@ -2387,7 +2473,6 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
 			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
@@ -2407,7 +2492,6 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.Profile_2.ID,
 			&i.Profile_2.Slug,
 			&i.Profile_2.Kind,
-			&i.Profile_2.CustomDomain,
 			&i.Profile_2.ProfilePictureURI,
 			&i.Profile_2.Pronouns,
 			&i.Profile_2.Properties,
@@ -2449,7 +2533,7 @@ SELECT
   pm.finished_at,
   pm.created_at,
   pm.updated_at,
-  mp.id, mp.slug, mp.kind, mp.custom_domain, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
+  mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
   mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 FROM "profile_membership" pm
 INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -2503,7 +2587,7 @@ type ListProfileMembershipsForSettingsRow struct {
 //	  pm.finished_at,
 //	  pm.created_at,
 //	  pm.updated_at,
-//	  mp.id, mp.slug, mp.kind, mp.custom_domain, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
+//	  mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
 //	  mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 //	FROM "profile_membership" pm
 //	INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -2546,7 +2630,6 @@ func (q *Queries) ListProfileMembershipsForSettings(ctx context.Context, arg Lis
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
 			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
@@ -2659,7 +2742,7 @@ func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfi
 }
 
 const listProfiles = `-- name: ListProfiles :many
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
@@ -2680,7 +2763,7 @@ type ListProfilesRow struct {
 
 // ListProfiles
 //
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
@@ -2700,7 +2783,6 @@ func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
 			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
@@ -2960,7 +3042,7 @@ SELECT
   u.email,
   u.name,
   u.individual_profile_id,
-  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "user" u
 INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -3009,7 +3091,7 @@ type SearchUsersForMembershipRow struct {
 //	  u.email,
 //	  u.name,
 //	  u.individual_profile_id,
-//	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+//	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "user" u
 //	INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -3051,7 +3133,6 @@ func (q *Queries) SearchUsersForMembership(ctx context.Context, arg SearchUsersF
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
-			&i.Profile.CustomDomain,
 			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
@@ -3080,6 +3161,37 @@ func (q *Queries) SearchUsersForMembership(ctx context.Context, arg SearchUsersF
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateCustomDomain = `-- name: UpdateCustomDomain :execrows
+UPDATE "profile_custom_domain"
+SET
+  domain = $1,
+  default_locale = $2,
+  updated_at = NOW()
+WHERE id = $3
+`
+
+type UpdateCustomDomainParams struct {
+	Domain        string         `db:"domain" json:"domain"`
+	DefaultLocale sql.NullString `db:"default_locale" json:"default_locale"`
+	ID            string         `db:"id" json:"id"`
+}
+
+// UpdateCustomDomain
+//
+//	UPDATE "profile_custom_domain"
+//	SET
+//	  domain = $1,
+//	  default_locale = $2,
+//	  updated_at = NOW()
+//	WHERE id = $3
+func (q *Queries) UpdateCustomDomain(ctx context.Context, arg UpdateCustomDomainParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateCustomDomain, arg.Domain, arg.DefaultLocale, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const updateProfile = `-- name: UpdateProfile :execrows

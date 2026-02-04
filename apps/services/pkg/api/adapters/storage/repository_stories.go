@@ -557,7 +557,6 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			ID:                profile.ID,
 			Slug:              profile.Slug,
 			Kind:              profile.Kind,
-			CustomDomain:      vars.ToStringPtr(profile.CustomDomain),
 			ProfilePictureURI: vars.ToStringPtr(profile.ProfilePictureURI),
 			Pronouns:          vars.ToStringPtr(profile.Pronouns),
 			Title:             profileTx.Title,
@@ -574,7 +573,6 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 	var publicationProfiles []struct {
 		Profile struct {
 			CreatedAt         time.Time        `db:"created_at"          json:"created_at"`
-			CustomDomain      *string          `db:"custom_domain"       json:"custom_domain"`
 			ProfilePictureURI *string          `db:"profile_picture_uri" json:"profile_picture_uri"`
 			Pronouns          *string          `db:"pronouns"            json:"pronouns"`
 			Properties        *json.RawMessage `db:"properties"          json:"properties"`
@@ -607,7 +605,6 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			ID:                publicationProfile.Profile.ID,
 			Slug:              publicationProfile.Profile.Slug,
 			Kind:              publicationProfile.Profile.Kind,
-			CustomDomain:      publicationProfile.Profile.CustomDomain,
 			ProfilePictureURI: publicationProfile.Profile.ProfilePictureURI,
 			Pronouns:          publicationProfile.Profile.Pronouns,
 			Title:             publicationProfile.ProfileTx.Title,

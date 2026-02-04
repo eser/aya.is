@@ -133,7 +133,20 @@ type RecentPostsFetcher interface {
 
 type Repository interface { //nolint:interfacebloat
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
-	GetProfileIDByCustomDomain(ctx context.Context, domain string) (*string, error)
+	GetCustomDomainByDomain(ctx context.Context, domain string) (*ProfileCustomDomain, error)
+	ListCustomDomainsByProfileID(
+		ctx context.Context,
+		profileID string,
+	) ([]*ProfileCustomDomain, error)
+	CreateCustomDomain(
+		ctx context.Context,
+		id string,
+		profileID string,
+		domain string,
+		defaultLocale *string,
+	) error
+	UpdateCustomDomain(ctx context.Context, id string, domain string, defaultLocale *string) error
+	DeleteCustomDomain(ctx context.Context, id string) error
 	CheckProfileSlugExists(ctx context.Context, slug string) (bool, error)
 	CheckProfileSlugExistsIncludingDeleted(ctx context.Context, slug string) (bool, error)
 	CheckPageSlugExistsIncludingDeleted(
@@ -193,7 +206,6 @@ type Repository interface { //nolint:interfacebloat
 		id string,
 		slug string,
 		kind string,
-		customDomain *string,
 		profilePictureURI *string,
 		pronouns *string,
 		properties map[string]any,
@@ -600,22 +612,27 @@ func (s *Service) GetByCustomDomain(
 	ctx context.Context,
 	localeCode string,
 	domain string,
-) (*Profile, error) {
-	profileID, err := s.repo.GetProfileIDByCustomDomain(ctx, domain)
+) (*Profile, *ProfileCustomDomain, error) {
+	customDomain, err := s.repo.GetCustomDomainByDomain(ctx, domain)
 	if err != nil {
-		return nil, fmt.Errorf("%w(custom_domain: %s): %w", ErrFailedToGetRecord, domain, err)
+		return nil, nil, fmt.Errorf("%w(custom_domain: %s): %w", ErrFailedToGetRecord, domain, err)
 	}
 
-	if profileID == nil {
-		return nil, nil //nolint:nilnil
+	if customDomain == nil {
+		return nil, nil, nil
 	}
 
-	record, err := s.repo.GetProfileByID(ctx, localeCode, *profileID)
+	record, err := s.repo.GetProfileByID(ctx, localeCode, customDomain.ProfileID)
 	if err != nil {
-		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, *profileID, err)
+		return nil, nil, fmt.Errorf(
+			"%w(profile_id: %s): %w",
+			ErrFailedToGetRecord,
+			customDomain.ProfileID,
+			err,
+		)
 	}
 
-	return record, nil
+	return record, customDomain, nil
 }
 
 func (s *Service) List(
@@ -986,7 +1003,6 @@ func (s *Service) Create(
 	kind string,
 	title string,
 	description string,
-	customDomain *string,
 	profilePictureURI *string,
 	pronouns *string,
 	properties map[string]any,
@@ -1000,7 +1016,6 @@ func (s *Service) Create(
 		string(profileID),
 		slug,
 		kind,
-		customDomain,
 		profilePictureURI,
 		pronouns,
 		properties,

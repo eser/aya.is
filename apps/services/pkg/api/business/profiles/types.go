@@ -65,7 +65,6 @@ var MinMembershipForVisibility = map[LinkVisibility]MembershipKind{
 type Profile struct {
 	CreatedAt         time.Time  `json:"created_at"`
 	Properties        any        `json:"properties"`
-	CustomDomain      *string    `json:"custom_domain"`
 	ProfilePictureURI *string    `json:"profile_picture_uri"`
 	Pronouns          *string    `json:"pronouns"`
 	UpdatedAt         *time.Time `json:"updated_at"`
@@ -79,6 +78,15 @@ type Profile struct {
 	HasTranslation    bool       `json:"has_translation"`
 	HideRelations     bool       `json:"hide_relations"` // Hides Members/Contributions from sidebar
 	HideLinks         bool       `json:"hide_links"`     // Hides Links from sidebar
+}
+
+type ProfileCustomDomain struct {
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     *time.Time `json:"updated_at"`
+	DefaultLocale *string    `json:"default_locale"`
+	ID            string     `json:"id"`
+	ProfileID     string     `json:"profile_id"`
+	Domain        string     `json:"domain"`
 }
 
 type ProfileWithChildren struct {

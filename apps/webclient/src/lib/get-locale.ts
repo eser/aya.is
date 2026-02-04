@@ -72,10 +72,12 @@ export const getLocaleFromCookie = createServerFn({ method: "GET" }).handler(
  * Priority:
  * 1. SITE_LOCALE cookie (explicit user choice from locale switcher)
  * 2. Accept-Language header (browser language preference)
- * 3. DEFAULT_LOCALE (final fallback)
+ * 3. Provided fallback locale (e.g. custom domain's default_locale)
+ * 4. DEFAULT_LOCALE (system fallback)
  */
-export const getPreferredLocale = createServerFn({ method: "GET" }).handler(
-  (): SupportedLocaleCode => {
+export const getPreferredLocale = createServerFn({ method: "GET" })
+  .validator((data: string | undefined) => data)
+  .handler(({ data }): SupportedLocaleCode => {
     // 1. Check cookie first — explicit user choice takes priority
     const cookieLocale = getCookie("SITE_LOCALE");
     if (cookieLocale !== undefined && isValidLocale(cookieLocale)) {
@@ -91,7 +93,11 @@ export const getPreferredLocale = createServerFn({ method: "GET" }).handler(
       }
     }
 
-    // 3. Final fallback
+    // 3. Use provided fallback (e.g. custom domain's default locale)
+    if (data !== undefined && isValidLocale(data)) {
+      return data;
+    }
+
+    // 4. System default
     return DEFAULT_LOCALE;
-  },
-);
+  });

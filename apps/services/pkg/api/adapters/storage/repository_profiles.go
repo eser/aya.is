@@ -92,22 +92,20 @@ func (r *Repository) CheckPageSlugExistsIncludingDeleted(
 	return exists, nil
 }
 
-func (r *Repository) GetProfileIDByCustomDomain(
+func (r *Repository) GetCustomDomainByDomain(
 	ctx context.Context,
 	domain string,
-) (*string, error) {
-	var result *string
+) (*profiles.ProfileCustomDomain, error) {
+	var result *profiles.ProfileCustomDomain
 
 	err := r.cache.Execute(
 		ctx,
-		"profile_id_by_custom_domain:"+domain,
+		"custom_domain_by_domain:"+domain,
 		&result,
 		func(ctx context.Context) (any, error) {
-			row, err := r.queries.GetProfileIDByCustomDomain(
+			row, err := r.queries.GetCustomDomainByDomain(
 				ctx,
-				GetProfileIDByCustomDomainParams{
-					CustomDomain: sql.NullString{String: domain, Valid: true},
-				},
+				GetCustomDomainByDomainParams{Domain: domain},
 			)
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
@@ -117,11 +115,84 @@ func (r *Repository) GetProfileIDByCustomDomain(
 				return nil, err
 			}
 
-			return &row, nil
+			return &profiles.ProfileCustomDomain{
+				ID:            row.ID,
+				ProfileID:     row.ProfileID,
+				Domain:        row.Domain,
+				DefaultLocale: vars.ToStringPtr(row.DefaultLocale),
+				CreatedAt:     row.CreatedAt,
+				UpdatedAt:     vars.ToTimePtr(row.UpdatedAt),
+			}, nil
 		},
 	)
 
 	return result, err //nolint:wrapcheck
+}
+
+func (r *Repository) ListCustomDomainsByProfileID(
+	ctx context.Context,
+	profileID string,
+) ([]*profiles.ProfileCustomDomain, error) {
+	rows, err := r.queries.ListCustomDomainsByProfileID(
+		ctx,
+		ListCustomDomainsByProfileIDParams{ProfileID: profileID},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.ProfileCustomDomain, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &profiles.ProfileCustomDomain{
+			ID:            row.ID,
+			ProfileID:     row.ProfileID,
+			Domain:        row.Domain,
+			DefaultLocale: vars.ToStringPtr(row.DefaultLocale),
+			CreatedAt:     row.CreatedAt,
+			UpdatedAt:     vars.ToTimePtr(row.UpdatedAt),
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) CreateCustomDomain(
+	ctx context.Context,
+	id string,
+	profileID string,
+	domain string,
+	defaultLocale *string,
+) error {
+	return r.queries.CreateCustomDomain(ctx, CreateCustomDomainParams{
+		ID:            id,
+		ProfileID:     profileID,
+		Domain:        domain,
+		DefaultLocale: vars.ToSQLNullString(defaultLocale),
+	})
+}
+
+func (r *Repository) UpdateCustomDomain(
+	ctx context.Context,
+	id string,
+	domain string,
+	defaultLocale *string,
+) error {
+	_, err := r.queries.UpdateCustomDomain(ctx, UpdateCustomDomainParams{
+		ID:            id,
+		Domain:        domain,
+		DefaultLocale: vars.ToSQLNullString(defaultLocale),
+	})
+
+	return err
+}
+
+func (r *Repository) DeleteCustomDomain(
+	ctx context.Context,
+	id string,
+) error {
+	_, err := r.queries.DeleteCustomDomain(ctx, DeleteCustomDomainParams{ID: id})
+
+	return err
 }
 
 func (r *Repository) GetProfileByID(
@@ -139,10 +210,10 @@ func (r *Repository) GetProfileByID(
 	}
 
 	result := &profiles.Profile{
-		ID:                row.Profile.ID,
-		Slug:              row.Profile.Slug,
-		Kind:              row.Profile.Kind,
-		CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+		ID:   row.Profile.ID,
+		Slug: row.Profile.Slug,
+		Kind: row.Profile.Kind,
+
 		ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 		Title:             row.ProfileTx.Title,
@@ -180,10 +251,10 @@ func (r *Repository) ListProfiles(
 	result := make([]*profiles.Profile, len(rows))
 	for i, row := range rows {
 		result[i] = &profiles.Profile{
-			ID:                row.Profile.ID,
-			Slug:              row.Profile.Slug,
-			Kind:              row.Profile.Kind,
-			CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+			ID:   row.Profile.ID,
+			Slug: row.Profile.Slug,
+			Kind: row.Profile.Kind,
+
 			ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 			Title:             row.ProfileTx.Title,
@@ -338,10 +409,10 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties: vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
-				ID:                row.Profile.ID,
-				Slug:              row.Profile.Slug,
-				Kind:              row.Profile.Kind,
-				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+				ID:   row.Profile.ID,
+				Slug: row.Profile.Slug,
+				Kind: row.Profile.Kind,
+
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
@@ -352,10 +423,10 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
 			},
 			MemberProfile: &profiles.Profile{
-				ID:                row.Profile_2.ID,
-				Slug:              row.Profile_2.Slug,
-				Kind:              row.Profile_2.Kind,
-				CustomDomain:      vars.ToStringPtr(row.Profile_2.CustomDomain),
+				ID:   row.Profile_2.ID,
+				Slug: row.Profile_2.Slug,
+				Kind: row.Profile_2.Kind,
+
 				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
 				Title:             row.ProfileTx_2.Title,
@@ -411,10 +482,10 @@ func (r *Repository) ListProfileMembers(
 			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties: vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
-				ID:                row.Profile.ID,
-				Slug:              row.Profile.Slug,
-				Kind:              row.Profile.Kind,
-				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+				ID:   row.Profile.ID,
+				Slug: row.Profile.Slug,
+				Kind: row.Profile.Kind,
+
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
@@ -425,10 +496,10 @@ func (r *Repository) ListProfileMembers(
 				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
 			},
 			MemberProfile: &profiles.Profile{
-				ID:                row.Profile_2.ID,
-				Slug:              row.Profile_2.Slug,
-				Kind:              row.Profile_2.Kind,
-				CustomDomain:      vars.ToStringPtr(row.Profile_2.CustomDomain),
+				ID:   row.Profile_2.ID,
+				Slug: row.Profile_2.Slug,
+				Kind: row.Profile_2.Kind,
+
 				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
 				Title:             row.ProfileTx_2.Title,
@@ -476,10 +547,10 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 			FinishedAt: vars.ToTimePtr(row.FinishedAt),
 			Properties: vars.ToObject(row.MembershipProperties),
 			Profile: &profiles.Profile{
-				ID:                row.Profile.ID,
-				Slug:              row.Profile.Slug,
-				Kind:              row.Profile.Kind,
-				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+				ID:   row.Profile.ID,
+				Slug: row.Profile.Slug,
+				Kind: row.Profile.Kind,
+
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
@@ -502,7 +573,6 @@ func (r *Repository) CreateProfile(
 	id string,
 	slug string,
 	kind string,
-	customDomain *string,
 	profilePictureURI *string,
 	pronouns *string,
 	properties map[string]any,
@@ -511,7 +581,6 @@ func (r *Repository) CreateProfile(
 		ID:                id,
 		Slug:              slug,
 		Kind:              kind,
-		CustomDomain:      vars.ToSQLNullString(customDomain),
 		ProfilePictureURI: vars.ToSQLNullString(profilePictureURI),
 		Pronouns:          vars.ToSQLNullString(pronouns),
 		Properties:        vars.ToSQLNullRawMessage(properties),
@@ -1381,7 +1450,6 @@ func (r *Repository) ListAllProfilesForAdmin(
 			ID:                row.ID,
 			Slug:              row.Slug,
 			Kind:              row.Kind,
-			CustomDomain:      vars.ToStringPtr(row.CustomDomain),
 			ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
 			Pronouns:          vars.ToStringPtr(row.Pronouns),
 			Title:             row.Title,
@@ -1439,7 +1507,6 @@ func (r *Repository) GetAdminProfileBySlug(
 		ID:                row.ID,
 		Slug:              row.Slug,
 		Kind:              row.Kind,
-		CustomDomain:      vars.ToStringPtr(row.CustomDomain),
 		ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
 		Pronouns:          vars.ToStringPtr(row.Pronouns),
 		Title:             row.Title,

@@ -18,12 +18,33 @@ SELECT EXISTS(
   WHERE slug = sqlc.arg(slug)
 ) AS exists;
 
--- name: GetProfileIDByCustomDomain :one
-SELECT id
-FROM "profile"
-WHERE custom_domain = sqlc.arg(custom_domain)
-  AND deleted_at IS NULL
+-- name: GetCustomDomainByDomain :one
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+FROM "profile_custom_domain" pcd
+WHERE pcd.domain = sqlc.arg(domain)
 LIMIT 1;
+
+-- name: ListCustomDomainsByProfileID :many
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+FROM "profile_custom_domain" pcd
+WHERE pcd.profile_id = sqlc.arg(profile_id)
+ORDER BY pcd.created_at;
+
+-- name: CreateCustomDomain :exec
+INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
+VALUES (sqlc.arg(id), sqlc.arg(profile_id), sqlc.arg(domain), sqlc.narg(default_locale));
+
+-- name: UpdateCustomDomain :execrows
+UPDATE "profile_custom_domain"
+SET
+  domain = sqlc.arg(domain),
+  default_locale = sqlc.narg(default_locale),
+  updated_at = NOW()
+WHERE id = sqlc.arg(id);
+
+-- name: DeleteCustomDomain :execrows
+DELETE FROM "profile_custom_domain"
+WHERE id = sqlc.arg(id);
 
 -- name: GetProfileByID :one
 SELECT sqlc.embed(p), sqlc.embed(pt)
@@ -57,8 +78,8 @@ WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc
   AND p.deleted_at IS NULL;
 
 -- name: CreateProfile :exec
-INSERT INTO "profile" (id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties)
-VALUES (sqlc.arg(id), sqlc.arg(slug), sqlc.arg(kind), sqlc.narg(custom_domain), sqlc.narg(profile_picture_uri), sqlc.narg(pronouns), sqlc.narg(properties));
+INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
+VALUES (sqlc.arg(id), sqlc.arg(slug), sqlc.arg(kind), sqlc.narg(profile_picture_uri), sqlc.narg(pronouns), sqlc.narg(properties));
 
 -- name: CreateProfileTx :exec
 INSERT INTO "profile_tx" (profile_id, locale_code, title, description, properties)
@@ -634,7 +655,6 @@ SELECT
   p.id,
   p.slug,
   p.kind,
-  p.custom_domain,
   p.profile_picture_uri,
   p.pronouns,
   p.properties,
@@ -664,7 +684,6 @@ SELECT
   p.id,
   p.slug,
   p.kind,
-  p.custom_domain,
   p.profile_picture_uri,
   p.pronouns,
   p.properties,

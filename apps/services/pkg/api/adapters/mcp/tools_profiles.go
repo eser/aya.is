@@ -26,7 +26,6 @@ type profileBrief struct {
 	Name              string  `json:"name"`
 	Description       string  `json:"description"`
 	Kind              string  `json:"kind"`
-	CustomDomain      *string `json:"custom_domain,omitempty"`
 	ProfilePictureURI *string `json:"profile_picture_uri,omitempty"`
 }
 
@@ -57,7 +56,6 @@ type getProfileOutput struct {
 	Name              string      `json:"name"`
 	Description       string      `json:"description"`
 	Kind              string      `json:"kind"`
-	CustomDomain      *string     `json:"custom_domain,omitempty"`
 	ProfilePictureURI *string     `json:"profile_picture_uri,omitempty"`
 	Pronouns          *string     `json:"pronouns,omitempty"`
 	Pages             []pageBrief `json:"pages"`
@@ -154,7 +152,6 @@ func createListProfilesHandler(
 				Name:              profile.Title,
 				Description:       profile.Description,
 				Kind:              profile.Kind,
-				CustomDomain:      profile.CustomDomain,
 				ProfilePictureURI: profile.ProfilePictureURI,
 			})
 		}
@@ -194,7 +191,6 @@ func createGetProfileHandler(
 			Name:              result.Title,
 			Description:       result.Description,
 			Kind:              result.Kind,
-			CustomDomain:      result.CustomDomain,
 			ProfilePictureURI: result.ProfilePictureURI,
 			Pronouns:          result.Pronouns,
 			Pages:             make([]pageBrief, 0, len(result.Pages)),
