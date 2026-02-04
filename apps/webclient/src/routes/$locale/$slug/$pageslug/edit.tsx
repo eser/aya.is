@@ -41,10 +41,12 @@ function EditPagePage() {
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
   // Translation locale is independent from the site locale (params.locale)
   const [translationLocale, setTranslationLocale] = React.useState(params.locale);
-  // Translation data for the selected locale (null = not yet loaded, undefined = no translation exists)
-  const [translationData, setTranslationData] = React.useState<
-    { title: string; summary: string; content: string } | null | undefined
-  >(null);
+  // Translation data tagged with its locale to prevent stale renders.
+  // null = loading, data.locale mismatches translationLocale = stale (treat as loading)
+  const [translationState, setTranslationState] = React.useState<{
+    locale: string;
+    data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
+  } | null>(null);
 
   // Check permissions client-side
   React.useEffect(() => {
@@ -64,32 +66,40 @@ function EditPagePage() {
   React.useEffect(() => {
     if (translationLocale === params.locale) {
       // Use the loader data for the site locale
-      setTranslationData({
-        title: page.title ?? "",
-        summary: page.summary ?? "",
-        content: page.content ?? "",
+      setTranslationState({
+        locale: translationLocale,
+        data: {
+          title: page.title ?? "",
+          summary: page.summary ?? "",
+          content: page.content ?? "",
+        },
       });
       return;
     }
 
     // Fetch page data for the selected translation locale
-    setTranslationData(null);
+    setTranslationState(null);
     backend.getProfilePage(translationLocale, params.slug, params.pageslug).then((data) => {
       if (data === null) {
         // No translation exists for this locale — show empty fields
-        setTranslationData(undefined);
+        setTranslationState({ locale: translationLocale, data: undefined });
       } else {
-        setTranslationData({
-          title: data.title ?? "",
-          summary: data.summary ?? "",
-          content: data.content ?? "",
+        setTranslationState({
+          locale: translationLocale,
+          data: {
+            title: data.title ?? "",
+            summary: data.summary ?? "",
+            content: data.content ?? "",
+          },
         });
       }
     });
   }, [translationLocale, params.locale, params.slug, params.pageslug, page]);
 
-  // Still checking permissions or loading translation
-  if (canEdit === null || translationData === null) {
+  // Show skeleton while loading or when translation data is stale (locale mismatch)
+  const translationReady = translationState !== null && translationState.locale === translationLocale;
+
+  if (canEdit === null || !translationReady) {
     return (
       <>
         <div className="flex h-[calc(100vh-140px)] flex-col">
@@ -163,14 +173,14 @@ function EditPagePage() {
     );
   }
 
-  // translationData is undefined when no translation exists for the selected locale
-  const isNewTranslation = translationData === undefined;
+  // translationState.data is undefined when no translation exists for the selected locale
+  const isNewTranslation = translationState.data === undefined;
 
   const initialData: ContentEditorData = {
-    title: isNewTranslation ? "" : translationData.title,
+    title: isNewTranslation ? "" : translationState.data.title,
     slug: page.slug ?? "",
-    summary: isNewTranslation ? "" : translationData.summary,
-    content: isNewTranslation ? "" : translationData.content,
+    summary: isNewTranslation ? "" : translationState.data.summary,
+    content: isNewTranslation ? "" : translationState.data.content,
     storyPictureUri: page.cover_picture_uri ?? null,
   };
 

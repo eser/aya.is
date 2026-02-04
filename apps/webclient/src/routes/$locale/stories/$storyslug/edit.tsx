@@ -22,12 +22,19 @@ function EditStoryPage() {
   const params = Route.useParams();
   const navigate = useNavigate();
   const auth = useAuth();
-  const [editData, setEditData] = React.useState<StoryEditData | null>(null);
+  // Story-level data (shared across all locales) — loaded once
+  const [storyData, setStoryData] = React.useState<StoryEditData | null>(null);
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
   // Translation locale is independent from the site locale (params.locale)
   const [translationLocale, setTranslationLocale] = React.useState(params.locale);
+  // Translation data tagged with its locale to prevent stale renders.
+  // null = loading, data.locale mismatches translationLocale = stale (treat as loading)
+  const [translationState, setTranslationState] = React.useState<{
+    locale: string;
+    data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
+  } | null>(null);
 
-  // Load edit data client-side (auth required), re-fetch when translationLocale changes
+  // Load story data and check permissions (once)
   React.useEffect(() => {
     if (auth.isLoading) return;
 
@@ -36,26 +43,61 @@ function EditStoryPage() {
       return;
     }
 
-    // Reset while loading new locale
-    setEditData(null);
-    setCanEdit(null);
-
     // Use "_" as placeholder profileSlug - the handler doesn't use it
-    backend.getStoryForEdit(translationLocale, "_", params.storyslug).then((data) => {
+    backend.getStoryForEdit(params.locale, "_", params.storyslug).then((data) => {
       if (data === null) {
         setCanEdit(false);
       } else {
-        setEditData(data);
+        setStoryData(data);
         setCanEdit(true);
       }
     });
-  }, [auth.isAuthenticated, auth.isLoading, translationLocale, params.storyslug]);
+  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.storyslug]);
 
-  // Get the author's profile slug from edit data
-  const authorProfileSlug = editData?.author_profile_slug ?? null;
+  // Load translation data when translationLocale changes
+  React.useEffect(() => {
+    if (storyData === null) return;
 
-  // Still checking permissions
-  if (canEdit === null) {
+    if (translationLocale === params.locale) {
+      // Use the initial data from storyData for the site locale
+      const isFallback = storyData.is_fallback;
+      setTranslationState({
+        locale: translationLocale,
+        data: isFallback ? undefined : {
+          title: storyData.title ?? "",
+          summary: storyData.summary ?? "",
+          content: storyData.content,
+        },
+      });
+      return;
+    }
+
+    // Fetch translation for a different locale
+    setTranslationState(null);
+    backend.getStoryForEdit(translationLocale, "_", params.storyslug).then((data) => {
+      if (data === null || data.is_fallback) {
+        // No translation exists for this locale — show empty fields
+        setTranslationState({ locale: translationLocale, data: undefined });
+      } else {
+        setTranslationState({
+          locale: translationLocale,
+          data: {
+            title: data.title ?? "",
+            summary: data.summary ?? "",
+            content: data.content,
+          },
+        });
+      }
+    });
+  }, [translationLocale, storyData, params.locale, params.storyslug]);
+
+  // Get the author's profile slug from story data
+  const authorProfileSlug = storyData?.author_profile_slug ?? null;
+
+  // Show skeleton while loading or when translation data is stale (locale mismatch)
+  const translationReady = translationState !== null && translationState.locale === translationLocale;
+
+  if (canEdit === null || !translationReady) {
     return (
       <PageLayout>
         <div className="flex h-[calc(100vh-140px)] flex-col">
@@ -122,7 +164,7 @@ function EditStoryPage() {
   }
 
   // No permission
-  if (!canEdit || editData === null || authorProfileSlug === null) {
+  if (!canEdit || storyData === null || authorProfileSlug === null) {
     return (
       <PageLayout>
         <div className="content">
@@ -133,16 +175,16 @@ function EditStoryPage() {
     );
   }
 
-  // Backend signals when the returned translation is a fallback (requested locale doesn't exist yet)
-  const isNewTranslation = editData.is_fallback;
+  // translationState.data is undefined when no translation exists for the selected locale
+  const isNewTranslation = translationState.data === undefined;
 
   const initialData: ContentEditorData = {
-    title: isNewTranslation ? "" : (editData.title ?? ""),
-    slug: editData.slug ?? "",
-    summary: isNewTranslation ? "" : (editData.summary ?? ""),
-    content: isNewTranslation ? "" : editData.content,
-    storyPictureUri: editData.story_picture_uri,
-    kind: (editData.kind as ContentEditorData["kind"]) ?? "article",
+    title: isNewTranslation ? "" : translationState.data.title,
+    slug: storyData.slug ?? "",
+    summary: isNewTranslation ? "" : translationState.data.summary,
+    content: isNewTranslation ? "" : translationState.data.content,
+    storyPictureUri: storyData.story_picture_uri,
+    kind: (storyData.kind as ContentEditorData["kind"]) ?? "article",
   };
 
   const handleLocaleChange = (newLocale: string) => {
@@ -154,7 +196,7 @@ function EditStoryPage() {
     const updateResult = await backend.updateStory(
       params.locale,
       authorProfileSlug,
-      editData.id,
+      storyData.id,
       {
         slug: data.slug,
         story_picture_uri: data.storyPictureUri,
@@ -170,7 +212,7 @@ function EditStoryPage() {
     const translationResult = await backend.updateStoryTranslation(
       params.locale,
       authorProfileSlug,
-      editData.id,
+      storyData.id,
       translationLocale,
       {
         title: data.title,
@@ -200,7 +242,7 @@ function EditStoryPage() {
     const result = await backend.removeStory(
       params.locale,
       authorProfileSlug,
-      editData.id,
+      storyData.id,
     );
 
     if (result !== null) {
@@ -228,9 +270,9 @@ function EditStoryPage() {
           validateSlugDatePrefix
           onSave={handleSave}
           onDelete={handleDelete}
-          excludeId={editData.id}
-          storyId={editData.id}
-          initialPublications={editData.publications ?? []}
+          excludeId={storyData.id}
+          storyId={storyData.id}
+          initialPublications={storyData.publications ?? []}
           accessibleProfiles={auth.user?.accessible_profiles ?? []}
           individualProfile={auth.user?.individual_profile}
           onLocaleChange={handleLocaleChange}
