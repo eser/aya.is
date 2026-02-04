@@ -1,6 +1,6 @@
 // Edit story page
 import * as React from "react";
-import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend, type StoryEditData } from "@/modules/backend/backend";
@@ -14,17 +14,6 @@ import { PageLayout } from "@/components/page-layouts/default";
 
 export const Route = createFileRoute("/$locale/stories/$storyslug/edit")({
   ssr: false,
-  loader: async ({ params }) => {
-    const { locale, storyslug } = params;
-
-    // Get the story (public data)
-    const story = await backend.getStory(locale, storyslug);
-    if (story === null) {
-      throw notFound();
-    }
-
-    return { story };
-  },
   component: EditStoryPage,
   notFoundComponent: StoryNotFound,
 });
@@ -33,14 +22,10 @@ function EditStoryPage() {
   const params = Route.useParams();
   const navigate = useNavigate();
   const auth = useAuth();
-  const { story } = Route.useLoaderData();
   const [editData, setEditData] = React.useState<StoryEditData | null>(null);
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
 
-  // Get the author's profile slug for API calls
-  const authorProfileSlug = story.author_profile?.slug ?? null;
-
-  // Check permissions and load edit data client-side
+  // Load edit data client-side (auth required)
   React.useEffect(() => {
     if (auth.isLoading) return;
 
@@ -49,13 +34,8 @@ function EditStoryPage() {
       return;
     }
 
-    if (authorProfileSlug === null) {
-      setCanEdit(false);
-      return;
-    }
-
-    // Load edit data (which also checks permissions)
-    backend.getStoryForEdit(params.locale, authorProfileSlug, story.id).then((data) => {
+    // Use "_" as placeholder profileSlug - the handler doesn't use it
+    backend.getStoryForEdit(params.locale, "_", params.storyslug).then((data) => {
       if (data === null) {
         setCanEdit(false);
       } else {
@@ -63,7 +43,10 @@ function EditStoryPage() {
         setCanEdit(true);
       }
     });
-  }, [auth.isAuthenticated, auth.isLoading, params.locale, authorProfileSlug, story.id]);
+  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.storyslug]);
+
+  // Get the author's profile slug from edit data
+  const authorProfileSlug = editData?.author_profile_slug ?? null;
 
   // Still checking permissions
   if (canEdit === null) {
@@ -158,7 +141,7 @@ function EditStoryPage() {
     const updateResult = await backend.updateStory(
       params.locale,
       authorProfileSlug,
-      story.id,
+      editData.id,
       {
         slug: data.slug,
         story_picture_uri: data.storyPictureUri,
@@ -174,7 +157,7 @@ function EditStoryPage() {
     const translationResult = await backend.updateStoryTranslation(
       params.locale,
       authorProfileSlug,
-      story.id,
+      editData.id,
       params.locale,
       {
         title: data.title,
@@ -204,7 +187,7 @@ function EditStoryPage() {
     const result = await backend.removeStory(
       params.locale,
       authorProfileSlug,
-      story.id,
+      editData.id,
     );
 
     if (result !== null) {
@@ -231,8 +214,8 @@ function EditStoryPage() {
           validateSlugDatePrefix
           onSave={handleSave}
           onDelete={handleDelete}
-          excludeId={story.id}
-          storyId={story.id}
+          excludeId={editData.id}
+          storyId={editData.id}
           initialPublications={editData.publications ?? []}
           accessibleProfiles={auth.user?.accessible_profiles ?? []}
           individualProfile={auth.user?.individual_profile}

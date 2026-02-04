@@ -944,17 +944,25 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//    AND published_at IS NOT NULL
 	GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirstPublishedAtParams) (interface{}, error)
-	//GetStoryForEdit
+	// Uses locale fallback: prefers the requested locale, falls back to any translation.
+	// The returned locale_code indicates which translation was actually found.
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.locale_code,
 	//    st.title,
 	//    st.summary,
-	//    st.content
+	//    st.content,
+	//    p.slug as author_profile_slug
 	//  FROM "story" s
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
-	//    AND st.locale_code = $1
+	//    AND st.locale_code = (
+	//      SELECT stx.locale_code FROM "story_tx" stx
+	//      WHERE stx.story_id = s.id
+	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      LIMIT 1
+	//    )
+	//    LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
 	//  WHERE s.id = $2
 	//    AND s.deleted_at IS NULL
 	//  LIMIT 1

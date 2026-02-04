@@ -200,10 +200,17 @@ SELECT
   st.locale_code,
   st.title,
   st.summary,
-  st.content
+  st.content,
+  p.slug as author_profile_slug
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = $1
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
 WHERE s.id = $2
   AND s.deleted_at IS NULL
 LIMIT 1
@@ -215,32 +222,41 @@ type GetStoryForEditParams struct {
 }
 
 type GetStoryForEditRow struct {
-	ID              string                `db:"id" json:"id"`
-	AuthorProfileID sql.NullString        `db:"author_profile_id" json:"author_profile_id"`
-	Slug            string                `db:"slug" json:"slug"`
-	Kind            string                `db:"kind" json:"kind"`
-	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
-	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
-	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
-	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
-	LocaleCode      string                `db:"locale_code" json:"locale_code"`
-	Title           string                `db:"title" json:"title"`
-	Summary         string                `db:"summary" json:"summary"`
-	Content         string                `db:"content" json:"content"`
+	ID                string                `db:"id" json:"id"`
+	AuthorProfileID   sql.NullString        `db:"author_profile_id" json:"author_profile_id"`
+	Slug              string                `db:"slug" json:"slug"`
+	Kind              string                `db:"kind" json:"kind"`
+	StoryPictureURI   sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
+	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt         time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt         sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt         sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	LocaleCode        string                `db:"locale_code" json:"locale_code"`
+	Title             string                `db:"title" json:"title"`
+	Summary           string                `db:"summary" json:"summary"`
+	Content           string                `db:"content" json:"content"`
+	AuthorProfileSlug sql.NullString        `db:"author_profile_slug" json:"author_profile_slug"`
 }
 
-// GetStoryForEdit
+// Uses locale fallback: prefers the requested locale, falls back to any translation.
+// The returned locale_code indicates which translation was actually found.
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 //	  st.locale_code,
 //	  st.title,
 //	  st.summary,
-//	  st.content
+//	  st.content,
+//	  p.slug as author_profile_slug
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
-//	  AND st.locale_code = $1
+//	  AND st.locale_code = (
+//	    SELECT stx.locale_code FROM "story_tx" stx
+//	    WHERE stx.story_id = s.id
+//	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
 //	WHERE s.id = $2
 //	  AND s.deleted_at IS NULL
 //	LIMIT 1
@@ -261,6 +277,7 @@ func (q *Queries) GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams
 		&i.Title,
 		&i.Summary,
 		&i.Content,
+		&i.AuthorProfileSlug,
 	)
 	return &i, err
 }

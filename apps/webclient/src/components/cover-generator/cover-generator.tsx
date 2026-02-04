@@ -4,7 +4,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { Story } from "@/modules/backend/types.ts";
+import type { StoryEx } from "@/modules/backend/types.ts";
 import type { StoryData, CoverOptions, TemplateId } from "@/lib/cover-generator/types.ts";
 import { defaultCoverOptions } from "@/lib/cover-generator/types.ts";
 import { getTemplate } from "@/lib/cover-generator/templates.ts";
@@ -26,7 +26,7 @@ import { CustomizationPanel } from "./customization-panel.tsx";
 import styles from "./cover-generator.module.css";
 
 interface CoverGeneratorProps {
-  story: Story;
+  story: StoryEx;
   locale: string;
   onBack?: () => void;
   onCoverSet?: (coverUrl: string) => void;

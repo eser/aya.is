@@ -351,6 +351,16 @@ func (s *Service) GetBySlugForViewer(
 	return record, nil
 }
 
+// ResolveStorySlug resolves a story slug to its ID.
+func (s *Service) ResolveStorySlug(ctx context.Context, slug string) (string, error) {
+	storyID, err := s.repo.GetStoryIDBySlugIncludingDeleted(ctx, slug)
+	if err != nil {
+		return "", fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	return storyID, nil
+}
+
 // CheckSlugAvailability checks if a story slug is available and validates format requirements.
 // It optionally excludes a specific story ID (for edit scenarios).
 // When the story has publications, it validates the date prefix strictly.

@@ -308,6 +308,19 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
+			// If storyId looks like a slug (not 26-char ULID), resolve it
+			if len(storyIDParam) != 26 {
+				resolvedID, resolveErr := storyService.ResolveStorySlug(
+					ctx.Request.Context(),
+					storyIDParam,
+				)
+				if resolveErr != nil || resolvedID == "" {
+					return ctx.Results.NotFound(httpfx.WithErrorMessage("Story not found"))
+				}
+
+				storyIDParam = resolvedID
+			}
+
 			canEdit, err := storyService.CanUserEditStory(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,

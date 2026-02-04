@@ -169,15 +169,24 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: GetStoryForEdit :one
+-- Uses locale fallback: prefers the requested locale, falls back to any translation.
+-- The returned locale_code indicates which translation was actually found.
 SELECT
   s.*,
   st.locale_code,
   st.title,
   st.summary,
-  st.content
+  st.content,
+  p.slug as author_profile_slug
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = sqlc.arg(locale_code)
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
 WHERE s.id = sqlc.arg(id)
   AND s.deleted_at IS NULL
 LIMIT 1;

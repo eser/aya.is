@@ -400,16 +400,18 @@ func (r *Repository) GetStoryForEdit(
 	}
 
 	return &stories.StoryForEdit{
-		ID:              row.ID,
-		AuthorProfileID: vars.ToStringPtr(row.AuthorProfileID),
-		Slug:            row.Slug,
-		Kind:            row.Kind,
-		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
-		Title:           row.Title,
-		Summary:         row.Summary,
-		Content:         row.Content,
-		CreatedAt:       row.CreatedAt,
-		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
+		ID:                row.ID,
+		AuthorProfileID:   vars.ToStringPtr(row.AuthorProfileID),
+		AuthorProfileSlug: vars.ToStringPtr(row.AuthorProfileSlug),
+		Slug:              row.Slug,
+		Kind:              row.Kind,
+		LocaleCode:        row.LocaleCode,
+		StoryPictureURI:   vars.ToStringPtr(row.StoryPictureURI),
+		Title:             row.Title,
+		Summary:           row.Summary,
+		Content:           row.Content,
+		CreatedAt:         row.CreatedAt,
+		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
 	}, nil
 }
 

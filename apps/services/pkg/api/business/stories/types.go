@@ -39,16 +39,18 @@ type StoryWithChildren struct {
 
 // StoryForEdit contains the raw story data for editing (without compiled content).
 type StoryForEdit struct {
-	CreatedAt       time.Time  `json:"created_at"`
-	AuthorProfileID *string    `json:"author_profile_id"`
-	StoryPictureURI *string    `json:"story_picture_uri"`
-	UpdatedAt       *time.Time `json:"updated_at"`
-	ID              string     `json:"id"`
-	Slug            string     `json:"slug"`
-	Kind            string     `json:"kind"`
-	Title           string     `json:"title"`
-	Summary         string     `json:"summary"`
-	Content         string     `json:"content"`
+	CreatedAt         time.Time  `json:"created_at"`
+	AuthorProfileID   *string    `json:"author_profile_id"`
+	AuthorProfileSlug *string    `json:"author_profile_slug"`
+	StoryPictureURI   *string    `json:"story_picture_uri"`
+	UpdatedAt         *time.Time `json:"updated_at"`
+	ID                string     `json:"id"`
+	Slug              string     `json:"slug"`
+	Kind              string     `json:"kind"`
+	LocaleCode        string     `json:"locale_code"`
+	Title             string     `json:"title"`
+	Summary           string     `json:"summary"`
+	Content           string     `json:"content"`
 }
 
 // StoryForEditWithPublications wraps StoryForEdit with its publications.

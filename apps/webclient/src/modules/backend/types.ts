@@ -331,11 +331,13 @@ export interface StoryEditData {
   id: string;
   kind: StoryKind;
   slug: string | null;
+  locale_code: string;
   story_picture_uri: string | null;
   title: string | null;
   summary: string | null;
   content: string;
   author_profile_id: string | null;
+  author_profile_slug: string | null;
   created_at: string;
   updated_at: string | null;
   publications?: StoryPublication[];
