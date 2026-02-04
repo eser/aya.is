@@ -1,6 +1,7 @@
 // Edit story page
 import * as React from "react";
 import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend, type StoryEditData } from "@/modules/backend/backend";
 import {
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/edit")({
     return { story };
   },
   component: EditStoryPage,
+  notFoundComponent: StoryNotFound,
 });
 
 function EditStoryPage() {
@@ -236,6 +238,25 @@ function EditStoryPage() {
           individualProfile={auth.user?.individual_profile}
         />
       </div>
+    </PageLayout>
+  );
+}
+
+function StoryNotFound() {
+  const { t } = useTranslation();
+
+  return (
+    <PageLayout>
+      <section className="container px-4 py-8 mx-auto text-center">
+        <h1 className="font-serif text-3xl font-bold mb-4">
+          {t("Layout.Page not found")}
+        </h1>
+        <p className="text-muted-foreground">
+          {t(
+            "Layout.The page you are looking for does not exist. Please check your spelling and try again.",
+          )}
+        </p>
+      </section>
     </PageLayout>
   );
 }

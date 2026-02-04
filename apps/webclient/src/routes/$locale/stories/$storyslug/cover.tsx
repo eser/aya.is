@@ -25,6 +25,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/cover")({
     return { story };
   },
   component: StoryCoverPage,
+  notFoundComponent: StoryNotFound,
 });
 
 function StoryCoverPage() {
@@ -149,6 +150,25 @@ function StoryCoverPage() {
           onCoverSet={handleCoverSet}
         />
       </div>
+    </PageLayout>
+  );
+}
+
+function StoryNotFound() {
+  const { t } = useTranslation();
+
+  return (
+    <PageLayout>
+      <section className="container px-4 py-8 mx-auto text-center">
+        <h1 className="font-serif text-3xl font-bold mb-4">
+          {t("Layout.Page not found")}
+        </h1>
+        <p className="text-muted-foreground">
+          {t(
+            "Layout.The page you are looking for does not exist. Please check your spelling and try again.",
+          )}
+        </p>
+      </section>
     </PageLayout>
   );
 }
