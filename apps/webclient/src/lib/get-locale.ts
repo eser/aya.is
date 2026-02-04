@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie, getRequestHeader } from "@tanstack/react-start/server";
 import { DEFAULT_LOCALE, isValidLocale, SUPPORTED_LOCALES, type SupportedLocaleCode } from "@/config";
+import { requestContextBinder } from "@/server/request-context-binder";
 
 /**
  * Parses the Accept-Language header and returns the best matching supported locale.
@@ -72,12 +73,11 @@ export const getLocaleFromCookie = createServerFn({ method: "GET" }).handler(
  * Priority:
  * 1. SITE_LOCALE cookie (explicit user choice from locale switcher)
  * 2. Accept-Language header (browser language preference)
- * 3. Provided fallback locale (e.g. custom domain's default_locale)
+ * 3. Domain's default locale (from custom domain configuration)
  * 4. DEFAULT_LOCALE (system fallback)
  */
-export const getPreferredLocale = createServerFn({ method: "GET" })
-  .validator((data: string | undefined) => data)
-  .handler(({ data }): SupportedLocaleCode => {
+export const getPreferredLocale = createServerFn({ method: "GET" }).handler(
+  (): SupportedLocaleCode => {
     // 1. Check cookie first — explicit user choice takes priority
     const cookieLocale = getCookie("SITE_LOCALE");
     if (cookieLocale !== undefined && isValidLocale(cookieLocale)) {
@@ -93,11 +93,19 @@ export const getPreferredLocale = createServerFn({ method: "GET" })
       }
     }
 
-    // 3. Use provided fallback (e.g. custom domain's default locale)
-    if (data !== undefined && isValidLocale(data)) {
-      return data;
+    // 3. Read domain's default locale from request context (set by custom domain middleware)
+    const requestContext = requestContextBinder.getStore();
+    const domainConfig = requestContext?.domainConfiguration;
+
+    if (domainConfig?.type === "custom-domain" || domainConfig?.type === "main") {
+      const domainLocale = domainConfig.defaultCulture;
+
+      if (isValidLocale(domainLocale) && domainLocale !== DEFAULT_LOCALE) {
+        return domainLocale;
+      }
     }
 
     // 4. System default
     return DEFAULT_LOCALE;
-  });
+  },
+);
