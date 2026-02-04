@@ -24,8 +24,10 @@ function EditStoryPage() {
   const auth = useAuth();
   const [editData, setEditData] = React.useState<StoryEditData | null>(null);
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
+  // Translation locale is independent from the site locale (params.locale)
+  const [translationLocale, setTranslationLocale] = React.useState(params.locale);
 
-  // Load edit data client-side (auth required)
+  // Load edit data client-side (auth required), re-fetch when translationLocale changes
   React.useEffect(() => {
     if (auth.isLoading) return;
 
@@ -34,8 +36,12 @@ function EditStoryPage() {
       return;
     }
 
+    // Reset while loading new locale
+    setEditData(null);
+    setCanEdit(null);
+
     // Use "_" as placeholder profileSlug - the handler doesn't use it
-    backend.getStoryForEdit(params.locale, "_", params.storyslug).then((data) => {
+    backend.getStoryForEdit(translationLocale, "_", params.storyslug).then((data) => {
       if (data === null) {
         setCanEdit(false);
       } else {
@@ -43,7 +49,7 @@ function EditStoryPage() {
         setCanEdit(true);
       }
     });
-  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.storyslug]);
+  }, [auth.isAuthenticated, auth.isLoading, translationLocale, params.storyslug]);
 
   // Get the author's profile slug from edit data
   const authorProfileSlug = editData?.author_profile_slug ?? null;
@@ -127,8 +133,8 @@ function EditStoryPage() {
     );
   }
 
-  // If the returned locale doesn't match the requested one, this is a new translation
-  const isNewTranslation = editData.locale_code !== params.locale;
+  // If the returned locale doesn't match the requested translation locale, this is a new translation
+  const isNewTranslation = editData.locale_code !== translationLocale;
 
   const initialData: ContentEditorData = {
     title: isNewTranslation ? "" : (editData.title ?? ""),
@@ -140,10 +146,7 @@ function EditStoryPage() {
   };
 
   const handleLocaleChange = (newLocale: string) => {
-    navigate({
-      to: "/$locale/stories/$storyslug/edit",
-      params: { locale: newLocale, storyslug: params.storyslug },
-    });
+    setTranslationLocale(newLocale);
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -163,12 +166,12 @@ function EditStoryPage() {
       return;
     }
 
-    // Update the translation
+    // Update the translation for the selected translation locale
     const translationResult = await backend.updateStoryTranslation(
       params.locale,
       authorProfileSlug,
       editData.id,
-      params.locale,
+      translationLocale,
       {
         title: data.title,
         summary: data.summary,
@@ -215,7 +218,8 @@ function EditStoryPage() {
     <PageLayout>
       <div className="h-[calc(100vh-140px)]">
         <ContentEditor
-          locale={params.locale}
+          key={translationLocale}
+          locale={translationLocale}
           profileSlug={authorProfileSlug}
           contentType="story"
           initialData={initialData}

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, Languages, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
+import { Globe, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -92,10 +92,9 @@ export function EditorActions(props: EditorActionsProps) {
       {onLocaleChange !== undefined && locale !== undefined && (
         <Select value={locale} onValueChange={onLocaleChange}>
           <SelectTrigger size="sm" className="w-auto gap-1.5">
-            <Languages className="size-4" />
             <span>
               {locale in supportedLocales
-                ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${locale.toUpperCase()}`
+                ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${supportedLocales[locale as SupportedLocaleCode].name}`
                 : locale.toUpperCase()}
             </span>
           </SelectTrigger>
