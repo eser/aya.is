@@ -205,9 +205,6 @@ WHERE s.id = sqlc.arg(story_id)
 LIMIT 1;
 
 -- name: ListStoriesOfPublication :many
--- Joins story_tx and profile_tx using a scalar subquery to prefer the requested
--- locale but fall back to any available translation, so stories always appear
--- regardless of whether they have a translation in the current locale.
 SELECT
   sqlc.embed(s),
   sqlc.embed(st),
@@ -216,22 +213,12 @@ SELECT
   pb.publications
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = (
-    SELECT stx.locale_code FROM "story_tx" stx
-    WHERE stx.story_id = s.id
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
-    LIMIT 1
-  )
+  AND st.locale_code = sqlc.arg(locale_code)
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
   AND p1.approved_at IS NOT NULL
   AND p1.deleted_at IS NULL
   INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
-  AND p1t.locale_code = (
-    SELECT ptx.locale_code FROM "profile_tx" ptx
-    WHERE ptx.profile_id = p1.id
-    ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
-    LIMIT 1
-  )
+  AND p1t.locale_code = sqlc.arg(locale_code)
   LEFT JOIN LATERAL (
     SELECT JSONB_AGG(
       JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
@@ -241,12 +228,7 @@ FROM "story" s
       AND p2.approved_at IS NOT NULL
       AND p2.deleted_at IS NULL
       INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
-      AND p2t.locale_code = (
-        SELECT ptx2.locale_code FROM "profile_tx" ptx2
-        WHERE ptx2.profile_id = p2.id
-        ORDER BY CASE WHEN ptx2.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
-        LIMIT 1
-      )
+      AND p2t.locale_code = sqlc.arg(locale_code)
     WHERE sp.story_id = s.id
       AND (sqlc.narg(filter_publication_profile_id)::CHAR(26) IS NULL OR sp.profile_id = sqlc.narg(filter_publication_profile_id)::CHAR(26))
       AND sp.deleted_at IS NULL
