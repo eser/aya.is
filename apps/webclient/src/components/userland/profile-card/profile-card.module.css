@@ -9,6 +9,7 @@
   }
 }
 
+/* Avatar variant (default) */
 .profileCard {
   @apply p-6 h-full flex flex-col items-center;
 }
@@ -25,6 +26,36 @@
   @apply text-center;
 }
 
+/* Cover variant */
+.coverCard {
+  @apply h-full flex flex-col overflow-hidden;
+}
+
+.coverImageContainer {
+  @apply relative overflow-hidden;
+}
+
+.coverImage {
+  @apply w-full h-48 object-cover transition-transform duration-300;
+}
+
+.cardLink:hover .coverImage {
+  @apply scale-105;
+}
+
+.badgeContainer {
+  @apply absolute top-4 left-4;
+}
+
+.kindBadge {
+  @apply bg-white/90 text-slate-700;
+}
+
+.coverInfo {
+  @apply p-4 min-h-25;
+}
+
+/* Shared styles */
 .title {
   @apply text-xl font-semibold mb-1 text-foreground;
 }

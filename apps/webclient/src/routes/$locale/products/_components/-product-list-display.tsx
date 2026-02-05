@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type { Profile } from "@/modules/backend/types";
-import { ProductCard } from "./-product-card";
+import { ProfileCard } from "@/components/userland/profile-card/profile-card";
 import type { ProductStatusFilter } from "./-filter-bar";
 
 export type ProductListDisplayProps = {
@@ -57,7 +57,9 @@ export function ProductListDisplay(props: ProductListDisplayProps) {
 
   return (
     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {filteredProducts.map((product) => <ProductCard key={product.slug} product={product} />)}
+      {filteredProducts.map((product) => (
+        <ProfileCard key={product.slug} profile={product} variant="cover" showKindBadge />
+      ))}
     </div>
   );
 }
