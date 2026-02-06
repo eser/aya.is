@@ -1707,6 +1707,37 @@ func (q *Queries) GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsPara
 	return items, nil
 }
 
+const getUserBasicInfoByID = `-- name: GetUserBasicInfoByID :one
+SELECT kind, individual_profile_id
+FROM "user"
+WHERE id = $1
+  AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetUserBasicInfoByIDParams struct {
+	UserID string `db:"user_id" json:"user_id"`
+}
+
+type GetUserBasicInfoByIDRow struct {
+	Kind                string         `db:"kind" json:"kind"`
+	IndividualProfileID sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
+}
+
+// GetUserBasicInfoByID
+//
+//	SELECT kind, individual_profile_id
+//	FROM "user"
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetUserBasicInfoByID(ctx context.Context, arg GetUserBasicInfoByIDParams) (*GetUserBasicInfoByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserBasicInfoByID, arg.UserID)
+	var i GetUserBasicInfoByIDRow
+	err := row.Scan(&i.Kind, &i.IndividualProfileID)
+	return &i, err
+}
+
 const getUserProfilePermissions = `-- name: GetUserProfilePermissions :many
 SELECT
   p.id,

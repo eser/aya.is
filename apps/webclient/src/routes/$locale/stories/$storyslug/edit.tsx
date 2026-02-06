@@ -164,7 +164,7 @@ function EditStoryPage() {
   }
 
   // No permission
-  if (!canEdit || storyData === null || authorProfileSlug === null) {
+  if (canEdit !== true || storyData === null || authorProfileSlug === null) {
     return (
       <PageLayout>
         <div className="content">

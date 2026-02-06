@@ -19,13 +19,30 @@ var (
 	ErrFailedToUpdateRecord = errors.New("failed to update record")
 	ErrFailedToDeleteRecord = errors.New("failed to delete record")
 	ErrUnauthorized         = errors.New("unauthorized")
+	ErrInsufficientAccess   = errors.New("insufficient access level")
+	ErrNoMembershipFound    = errors.New("no membership found")
+	ErrNoIndividualProfile  = errors.New("user has no individual profile")
 	ErrProfileNotFound      = errors.New("profile not found")
 	ErrInvalidURI           = errors.New("invalid URI")
 	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
+	ErrSearchFailed         = errors.New("search failed")
 )
 
 // FallbackLocaleCode is used when the requested locale translation is not available.
 const FallbackLocaleCode = "en"
+
+// SupportedLocaleCodes contains all locales supported by the platform.
+var SupportedLocaleCodes = map[string]bool{ //nolint:gochecknoglobals
+	"ar": true, "de": true, "en": true, "es": true,
+	"fr": true, "it": true, "ja": true, "ko": true,
+	"nl": true, "pt-PT": true, "ru": true, "tr": true,
+	"zh-CN": true,
+}
+
+// IsValidLocale checks whether the given locale code is supported.
+func IsValidLocale(localeCode string) bool {
+	return SupportedLocaleCodes[localeCode]
+}
 
 // Severity constants for slug availability results.
 const (
@@ -259,6 +276,10 @@ type Repository interface { //nolint:interfacebloat
 		userID string,
 		profileSlug string,
 	) (*ProfileOwnership, error)
+	GetUserBasicInfo(
+		ctx context.Context,
+		userID string,
+	) (*UserBasicInfo, error)
 	GetUserProfilePermissions(
 		ctx context.Context,
 		userID string,
@@ -1090,28 +1111,95 @@ func (s *Service) CreateProfileMembership(
 	return nil
 }
 
-// CanUserEditProfile checks if a user has permission to edit a profile.
-func (s *Service) CanUserEditProfile(
+// ensureProfileCanProfileAccess checks if an origin profile has the required
+// membership level on a target profile. Returns nil if access is granted.
+func (s *Service) ensureProfileCanProfileAccess(
+	ctx context.Context,
+	targetProfileID string,
+	originProfileID string,
+	requiredLevel MembershipKind,
+) error {
+	if targetProfileID == originProfileID {
+		return nil
+	}
+
+	membershipKind, err := s.repo.GetMembershipBetweenProfiles(
+		ctx,
+		targetProfileID,
+		originProfileID,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if membershipKind == "" {
+		return fmt.Errorf("%w: %w", ErrInsufficientAccess, ErrNoMembershipFound)
+	}
+
+	if MembershipKindLevel[membershipKind] < MembershipKindLevel[requiredLevel] {
+		return fmt.Errorf("%w", ErrInsufficientAccess)
+	}
+
+	return nil
+}
+
+// ensureUserCanProfileAccess checks if a user has the required access level on
+// a target profile. Resolves user kind (admin bypass) and individual profile
+// internally using cached lookups.
+func (s *Service) ensureUserCanProfileAccess(
+	ctx context.Context,
+	targetProfileID string,
+	originUserID string,
+	requiredLevel MembershipKind,
+) error {
+	userInfo, err := s.repo.GetUserBasicInfo(ctx, originUserID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if userInfo.Kind == "admin" {
+		return nil
+	}
+
+	if userInfo.IndividualProfileID == nil {
+		return fmt.Errorf("%w: %w", ErrInsufficientAccess, ErrNoIndividualProfile)
+	}
+
+	return s.ensureProfileCanProfileAccess(
+		ctx,
+		targetProfileID,
+		*userInfo.IndividualProfileID,
+		requiredLevel,
+	)
+}
+
+// HasUserAccessToProfile checks if a user has the required access level on a
+// profile identified by slug. Returns (true, nil) if access is granted.
+func (s *Service) HasUserAccessToProfile(
 	ctx context.Context,
 	userID string,
 	profileSlug string,
+	requiredLevel MembershipKind,
 ) (bool, error) {
-	ownership, err := s.repo.GetProfileOwnershipForUser(ctx, userID, profileSlug)
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
-		return false, fmt.Errorf(
-			"%w(userID: %s, profileSlug: %s): %w",
-			ErrFailedToGetRecord,
-			userID,
-			profileSlug,
-			err,
-		)
+		return false, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if ownership == nil {
+	if profileID == "" {
 		return false, nil
 	}
 
-	return ownership.CanEdit, nil
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, requiredLevel)
+	if err != nil {
+		if errors.Is(err, ErrInsufficientAccess) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Update updates profile main fields (profile_picture_uri, pronouns, properties).
@@ -1127,27 +1215,18 @@ func (s *Service) Update(
 	hideRelations *bool,
 	hideLinks *bool,
 ) (*Profile, error) {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
+	// Get profile ID
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	// Validate profile picture URI
@@ -1161,12 +1240,6 @@ func (s *Service) Update(
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	// Get profile ID
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
-	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
 	// Update the profile
@@ -1203,33 +1276,18 @@ func (s *Service) UpdateTranslation(
 	description string,
 	properties map[string]any,
 ) error {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
-	}
-
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
-	}
-
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
 	}
 
 	// Update the translation (use upsert to handle new locales)
@@ -1298,33 +1356,18 @@ func (s *Service) CreateProfileLink(
 	isFeatured bool,
 	visibility LinkVisibility,
 ) (*ProfileLink, error) {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
-	}
-
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	// Get next order value
@@ -1399,27 +1442,17 @@ func (s *Service) UpdateProfileLink(
 	isFeatured bool,
 	visibility LinkVisibility,
 ) (*ProfileLink, error) {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	// Verify the link exists and belongs to the profile
@@ -1430,12 +1463,6 @@ func (s *Service) UpdateProfileLink(
 
 	if existingLink == nil {
 		return nil, fmt.Errorf("%w: link %s not found", ErrFailedToGetRecord, linkID)
-	}
-
-	// Verify profile ownership through slug
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
-	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
 	if existingLink.ProfileID != profileID {
@@ -1504,27 +1531,17 @@ func (s *Service) DeleteProfileLink(
 	profileSlug string,
 	linkID string,
 ) error {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
 	}
 
 	// Verify the link exists and belongs to the profile
@@ -1535,12 +1552,6 @@ func (s *Service) DeleteProfileLink(
 
 	if existingLink == nil {
 		return fmt.Errorf("%w: link %s not found", ErrFailedToGetRecord, linkID)
-	}
-
-	// Verify profile ownership through slug
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
-	if err != nil {
-		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
 	if existingLink.ProfileID != profileID {
@@ -1569,19 +1580,13 @@ func (s *Service) GetProfileLink(
 	profileSlug string,
 	linkID string,
 ) (*ProfileLink, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
+	hasAccess, err := s.HasUserAccessToProfile(ctx, userID, profileSlug, MembershipKindMaintainer)
 	if err != nil {
 		return nil, err
 	}
 
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if !hasAccess {
+		return nil, fmt.Errorf("%w", ErrInsufficientAccess)
 	}
 
 	// Get the link
@@ -1620,33 +1625,18 @@ func (s *Service) ListProfileLinksBySlug(
 	userKind string,
 	profileSlug string,
 ) ([]*ProfileLink, error) {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
-	}
-
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	// Get all links for editing (this is for the settings page)
@@ -1689,27 +1679,18 @@ func (s *Service) CreateProfilePage(
 	coverPictureURI *string,
 	publishedAt *string,
 ) (*ProfilePage, error) {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
+	// Get profile ID
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	// Validate cover picture URI
@@ -1733,12 +1714,6 @@ func (s *Service) CreateProfilePage(
 
 	if !slugResult.Available && slugResult.Severity == SeverityError {
 		return nil, fmt.Errorf("%w: %s", ErrFailedToCreateRecord, slugResult.Message)
-	}
-
-	// Get profile ID
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
-	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
 	// Get next order value
@@ -1800,27 +1775,18 @@ func (s *Service) UpdateProfilePage(
 	coverPictureURI *string,
 	publishedAt *string,
 ) (*ProfilePage, error) {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
+	// Get profile ID
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	// Validate cover picture URI
@@ -1883,27 +1849,17 @@ func (s *Service) UpdateProfilePageTranslation(
 	summary string,
 	content string,
 ) error {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
 	}
 
 	// Verify the page exists
@@ -1939,27 +1895,17 @@ func (s *Service) DeleteProfilePage(
 	profileSlug string,
 	pageID string,
 ) error {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
 	}
 
 	// Verify the page exists
@@ -1989,25 +1935,18 @@ func (s *Service) GetProfilePage(
 	pageID string,
 	localeCode string,
 ) (*ProfilePage, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditProfile(ctx, userID, profileSlug)
-	if err != nil {
-		return nil, err
-	}
-
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
-	}
-
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	// Get the page
@@ -2053,7 +1992,7 @@ func (s *Service) Search(
 
 	results, err := s.repo.Search(ctx, localeCode, query, profileSlug, limit)
 	if err != nil {
-		return nil, fmt.Errorf("search failed: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrSearchFailed, err)
 	}
 
 	return results, nil
@@ -2195,27 +2134,17 @@ func (s *Service) UpsertProfileLinkTranslation(
 	group *string,
 	description *string,
 ) error {
-	// Admin users can edit any profile
-	canEdit := false
-	if userKind == "admin" {
-		canEdit = true
-	} else {
-		// Check authorization
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot edit profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
 	}
 
 	// Verify the link exists
@@ -2226,12 +2155,6 @@ func (s *Service) UpsertProfileLinkTranslation(
 
 	if existingLink == nil {
 		return fmt.Errorf("%w: link %s not found", ErrFailedToGetRecord, linkID)
-	}
-
-	// Verify profile ownership
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
-	if err != nil {
-		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
 	if existingLink.ProfileID != profileID {
@@ -2291,29 +2214,17 @@ func (s *Service) ListMembershipsForSettings(
 	userKind string,
 	profileSlug string,
 ) ([]*ProfileMembershipWithMember, error) {
-	// Check authorization (only owners and admins can access)
-	canEdit := userKind == "admin"
-	if !canEdit {
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot manage memberships for profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
-	}
-
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	memberships, err := s.repo.ListProfileMembershipsForSettings(ctx, localeCode, profileID)
@@ -2365,21 +2276,18 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 	// Check authorization
 	isAdmin := userKind == "admin"
 
-	canEdit := isAdmin
-	if !canEdit {
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
+	hasAccess, accessErr := s.HasUserAccessToProfile(
+		ctx,
+		userID,
+		profileSlug,
+		MembershipKindMaintainer,
+	)
+	if accessErr != nil {
+		return accessErr
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot manage memberships for profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if !hasAccess {
+		return fmt.Errorf("%w", ErrInsufficientAccess)
 	}
 
 	// SECURITY: Non-admin users can only assign roles at or below their own level
@@ -2465,23 +2373,18 @@ func (s *Service) DeleteMembership(
 	membershipID string,
 ) error {
 	// Check authorization
-	canEdit := userKind == "admin"
-	if !canEdit {
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
+	hasAccess, accessErr := s.HasUserAccessToProfile(
+		ctx,
+		userID,
+		profileSlug,
+		MembershipKindMaintainer,
+	)
+	if accessErr != nil {
+		return accessErr
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot manage memberships for profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
+	if !hasAccess {
+		return fmt.Errorf("%w", ErrInsufficientAccess)
 	}
 
 	// Get the membership
@@ -2545,29 +2448,17 @@ func (s *Service) SearchUsersForMembership(
 	profileSlug string,
 	query string,
 ) ([]*UserSearchResult, error) {
-	// Check authorization
-	canEdit := userKind == "admin"
-	if !canEdit {
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot manage memberships for profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
-	}
-
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
 	}
 
 	results, err := s.repo.SearchUsersForMembership(ctx, localeCode, profileID, query)
@@ -2600,28 +2491,18 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	// Check authorization
 	isAdmin := userKind == "admin"
 
-	canEdit := isAdmin
-	if !canEdit {
-		var err error
-
-		canEdit, err = s.CanUserEditProfile(ctx, userID, profileSlug)
-		if err != nil {
-			return err
-		}
-	}
-
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot manage memberships for profile %s",
-			ErrUnauthorized,
-			userID,
-			profileSlug,
-		)
-	}
-
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	// SECURITY: Non-admin users can only assign roles at or below their own level

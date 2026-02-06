@@ -25,7 +25,10 @@ func RegisterHTTPRoutesForProfilePoints(
 			"GET /{locale}/profiles/{slug}/_points/transactions",
 			AuthMiddleware(authService, userService),
 			func(ctx *httpfx.Context) httpfx.Result {
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
 				slugParam := ctx.Request.PathValue("slug")
 
 				if slugParam == "" {
@@ -49,33 +52,17 @@ func RegisterHTTPRoutesForProfilePoints(
 					return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Invalid session"))
 				}
 
-				// Get user to check if admin
-				user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
-				if userErr != nil {
+				canEdit, permErr := profileService.HasUserAccessToProfile(
+					ctx.Request.Context(),
+					*session.LoggedInUserID,
+					slugParam,
+					profiles.MembershipKindMaintainer,
+				)
+				if permErr != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage("Failed to get user information"),
+						httpfx.WithSanitizedError(permErr),
 					)
-				}
-
-				// Admin users can edit any profile
-				canEdit := false
-				if user.Kind == "admin" {
-					canEdit = true
-				} else {
-					// Check normal permissions
-					var err error
-					canEdit, err = profileService.CanUserEditProfile(
-						ctx.Request.Context(),
-						*session.LoggedInUserID,
-						slugParam,
-					)
-					if err != nil {
-						return ctx.Results.Error(
-							http.StatusInternalServerError,
-							httpfx.WithErrorMessage(err.Error()),
-						)
-					}
 				}
 
 				if !canEdit {
@@ -96,7 +83,7 @@ func RegisterHTTPRoutesForProfilePoints(
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -121,7 +108,7 @@ func RegisterHTTPRoutesForProfilePoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 

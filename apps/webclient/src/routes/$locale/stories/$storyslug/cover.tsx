@@ -120,7 +120,7 @@ function StoryCoverPage() {
   }
 
   // No permission - show access denied
-  if (!canEdit || authorProfileSlug === null) {
+  if (canEdit !== true || authorProfileSlug === null) {
     return (
       <PageLayout>
         <div className={styles.accessDenied}>

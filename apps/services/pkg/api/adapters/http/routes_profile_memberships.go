@@ -34,7 +34,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
@@ -93,7 +96,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 			query := ctx.Request.URL.Query().Get("q")
 
@@ -206,7 +212,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 					statusCode = http.StatusForbidden
 				}
 
-				return ctx.Results.Error(statusCode, httpfx.WithErrorMessage(err.Error()))
+				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
 			}
 
 			return ctx.Results.JSON(map[string]string{"status": "ok"})
@@ -280,7 +286,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 					statusCode = http.StatusForbidden
 				}
 
-				return ctx.Results.Error(statusCode, httpfx.WithErrorMessage(err.Error()))
+				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
 			}
 
 			return ctx.Results.JSON(map[string]string{"status": "ok"})
@@ -339,7 +345,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 					statusCode = http.StatusBadRequest
 				}
 
-				return ctx.Results.Error(statusCode, httpfx.WithErrorMessage(err.Error()))
+				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
 			}
 
 			return ctx.Results.JSON(map[string]string{"status": "ok"})

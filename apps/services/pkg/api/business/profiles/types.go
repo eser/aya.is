@@ -245,6 +245,12 @@ type ProfileOwnership struct {
 	CanEdit     bool   `json:"can_edit"`
 }
 
+// UserBasicInfo holds the minimum user information needed for access control checks.
+type UserBasicInfo struct {
+	Kind                string  `json:"kind"`
+	IndividualProfileID *string `json:"individual_profile_id"`
+}
+
 type ProfilePermission struct {
 	ProfileID      string `json:"profile_id"`
 	ProfileSlug    string `json:"profile_slug"`

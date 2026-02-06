@@ -162,7 +162,7 @@ function EditPagePage() {
   }
 
   // No permission
-  if (!canEdit) {
+  if (canEdit !== true) {
     return (
       <>
         <div className="content">

@@ -30,14 +30,17 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 	routes.
 		Route("GET /{locale}/stories", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
 			records, err := storyService.List(ctx.Request.Context(), localeParam, cursor)
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -50,7 +53,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 	routes.
 		Route("GET /{locale}/stories/{slug}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Try to get viewer's user ID from session (optional - not required)
@@ -73,7 +79,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -128,7 +134,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -161,7 +167,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			profileSlugParam := ctx.Request.PathValue("slug")
 
 			var requestBody struct {
@@ -297,7 +306,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
@@ -387,7 +399,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			var requestBody struct {
@@ -694,7 +709,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 		"GET /{locale}/profiles/{slug}/_stories/{storyId}/publications",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			publications, err := storyService.ListPublications(
@@ -733,7 +751,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			var requestBody struct {
@@ -907,7 +928,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			storyIDParam := ctx.Request.PathValue("storyId")
 			publicationIDParam := ctx.Request.PathValue("publicationId")
 

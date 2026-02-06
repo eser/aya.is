@@ -1046,6 +1046,14 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryPublicationProfileID(ctx context.Context, arg GetStoryPublicationProfileIDParams) (string, error)
+	//GetUserBasicInfoByID
+	//
+	//  SELECT kind, individual_profile_id
+	//  FROM "user"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	//  LIMIT 1
+	GetUserBasicInfoByID(ctx context.Context, arg GetUserBasicInfoByIDParams) (*GetUserBasicInfoByIDRow, error)
 	//GetUserByEmail
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at

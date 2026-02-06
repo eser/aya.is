@@ -41,6 +41,16 @@ func WithErrorMessage(message string) ResultOption {
 	return WithJSON(map[string]string{"error": message})
 }
 
+// WithSanitizedError logs the full error server-side and returns a generic
+// error message to the client, preventing internal details from leaking.
+func WithSanitizedError(err error) ResultOption {
+	slog.Error("request error",
+		slog.String("scope_name", "httpfx_results"),
+		slog.Any("error", err))
+
+	return WithErrorMessage("an error occurred")
+}
+
 func WithJSON(body any) ResultOption {
 	return func(result *Result) {
 		encoded, err := json.Marshal(body)

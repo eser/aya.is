@@ -160,6 +160,13 @@ WHERE u.id = sqlc.arg(user_id)
   AND u.deleted_at IS NULL
 LIMIT 1;
 
+-- name: GetUserBasicInfoByID :one
+SELECT kind, individual_profile_id
+FROM "user"
+WHERE id = sqlc.arg(user_id)
+  AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: RemoveProfile :execrows
 UPDATE "profile"
 SET deleted_at = NOW()

@@ -912,6 +912,44 @@ func (r *Repository) GetProfileOwnershipForUser(
 	return result, nil
 }
 
+func (r *Repository) GetUserBasicInfo(
+	ctx context.Context,
+	userID string,
+) (*profiles.UserBasicInfo, error) {
+	var result profiles.UserBasicInfo
+
+	err := r.cache.Execute(
+		ctx,
+		"user_basic_info:"+userID,
+		&result,
+		func(ctx context.Context) (any, error) {
+			row, err := r.queries.GetUserBasicInfoByID(
+				ctx,
+				GetUserBasicInfoByIDParams{UserID: userID},
+			)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return nil, nil //nolint:nilnil
+				}
+
+				return nil, err
+			}
+
+			var individualProfileID *string
+			if row.IndividualProfileID.Valid {
+				individualProfileID = &row.IndividualProfileID.String
+			}
+
+			return &profiles.UserBasicInfo{
+				Kind:                row.Kind,
+				IndividualProfileID: individualProfileID,
+			}, nil
+		},
+	)
+
+	return &result, err //nolint:wrapcheck
+}
+
 func (r *Repository) GetUserProfilePermissions(
 	ctx context.Context,
 	userID string,
@@ -1528,19 +1566,33 @@ func (r *Repository) GetMembershipBetweenProfiles(
 	profileID string,
 	memberProfileID string,
 ) (profiles.MembershipKind, error) {
-	kind, err := r.queries.GetMembershipBetweenProfiles(ctx, GetMembershipBetweenProfilesParams{
-		ProfileID:       profileID,
-		MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", nil
-		}
+	var result string
 
-		return "", err
-	}
+	err := r.cache.Execute(
+		ctx,
+		"membership_kind:"+profileID+":"+memberProfileID,
+		&result,
+		func(ctx context.Context) (any, error) {
+			kind, err := r.queries.GetMembershipBetweenProfiles(
+				ctx,
+				GetMembershipBetweenProfilesParams{
+					ProfileID:       profileID,
+					MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
+				},
+			)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return "", nil
+				}
 
-	return profiles.MembershipKind(kind), nil
+				return nil, err
+			}
+
+			return kind, nil
+		},
+	)
+
+	return profiles.MembershipKind(result), err
 }
 
 func (r *Repository) ListFeaturedProfileLinksByProfileID(

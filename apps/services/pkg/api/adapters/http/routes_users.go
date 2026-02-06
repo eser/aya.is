@@ -32,7 +32,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -51,7 +51,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -67,7 +67,10 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 	routes.
 		Route("GET /{locale}/auth/{authProvider}/login", func(ctx *httpfx.Context) httpfx.Result {
 			// get auth provider from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			authProvider := ctx.Request.PathValue("authProvider")
 
 			url := ctx.Request.URL

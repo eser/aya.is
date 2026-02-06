@@ -3,11 +3,18 @@ package workers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/queue"
+)
+
+var (
+	ErrMarshalPayload     = errors.New("failed to marshal payload")
+	ErrUnmarshalPayload   = errors.New("failed to unmarshal payload")
+	ErrCreatePendingAward = errors.New("failed to create pending award")
 )
 
 // PointsEventHandler handles queue items that award profile points.
@@ -37,11 +44,11 @@ func (h *PointsEventHandler) HandleNewStory(ctx context.Context, item *queue.Ite
 
 	payloadBytes, err := json.Marshal(item.Payload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
+		return fmt.Errorf("%w: %w", ErrMarshalPayload, err)
 	}
 
 	if err := json.Unmarshal(payloadBytes, &payload); err != nil {
-		return fmt.Errorf("failed to unmarshal payload: %w", err)
+		return fmt.Errorf("%w: %w", ErrUnmarshalPayload, err)
 	}
 
 	if payload.ProfileID == "" {
@@ -68,7 +75,7 @@ func (h *PointsEventHandler) HandleNewStory(ctx context.Context, item *queue.Ite
 		metadata,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create pending award: %w", err)
+		return fmt.Errorf("%w: %w", ErrCreatePendingAward, err)
 	}
 
 	h.logger.Info(

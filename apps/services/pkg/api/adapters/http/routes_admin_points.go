@@ -31,7 +31,7 @@ func RegisterHTTPRoutesForAdminPoints(
 				// Check admin permission
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
 				if user.Kind != "admin" {
@@ -65,7 +65,7 @@ func RegisterHTTPRoutesForAdminPoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -84,7 +84,7 @@ func RegisterHTTPRoutesForAdminPoints(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
 				if user.Kind != "admin" {
@@ -107,7 +107,7 @@ func RegisterHTTPRoutesForAdminPoints(
 				)
 				if err != nil {
 					return ctx.Results.NotFound(
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -126,7 +126,7 @@ func RegisterHTTPRoutesForAdminPoints(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
 				if user.Kind != "admin" {
@@ -158,7 +158,7 @@ func RegisterHTTPRoutesForAdminPoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -177,7 +177,7 @@ func RegisterHTTPRoutesForAdminPoints(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
 				if user.Kind != "admin" {
@@ -221,7 +221,7 @@ func RegisterHTTPRoutesForAdminPoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -242,7 +242,7 @@ func RegisterHTTPRoutesForAdminPoints(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
 				if user.Kind != "admin" {
@@ -263,7 +263,7 @@ func RegisterHTTPRoutesForAdminPoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -282,7 +282,7 @@ func RegisterHTTPRoutesForAdminPoints(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
 				if user.Kind != "admin" {
@@ -322,7 +322,7 @@ func RegisterHTTPRoutesForAdminPoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -364,7 +364,7 @@ func RegisterHTTPRoutesForAdminPoints(
 			func(ctx *httpfx.Context) httpfx.Result {
 				user, err := getUserFromContext(ctx, userService)
 				if err != nil {
-					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
 				if user.Kind != "admin" {
@@ -406,7 +406,7 @@ func RegisterHTTPRoutesForAdminPoints(
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 

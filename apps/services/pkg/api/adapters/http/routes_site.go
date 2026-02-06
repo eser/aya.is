@@ -29,7 +29,11 @@ func RegisterHTTPRoutesForSite(
 			"GET /{locale}/site/custom-domains/{domain}",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
+
 				domainParam := ctx.Request.PathValue("domain")
 
 				profile, customDomain, err := profileService.GetByCustomDomain(
@@ -40,7 +44,7 @@ func RegisterHTTPRoutesForSite(
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -68,9 +72,6 @@ func RegisterHTTPRoutesForSite(
 
 	routes.
 		Route("GET /{locale}/site/spotlight", func(ctx *httpfx.Context) httpfx.Result {
-			// get variables from path
-			// localeParam := ctx.Request.PathValue("locale")
-
 			// Static spotlight items
 			spotlightItems := []profiles.SpotlightItem{
 				// {

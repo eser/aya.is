@@ -52,7 +52,10 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 			providerParam := ctx.Request.PathValue("provider")
 
@@ -74,39 +77,17 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
-			// Get user to check if admin
-			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
-			if userErr != nil {
+			canEdit, permErr := profileService.HasUserAccessToProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				slugParam,
+				profiles.MembershipKindMaintainer,
+			)
+			if permErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to get user information"),
+					httpfx.WithSanitizedError(permErr),
 				)
-			}
-
-			// Admin users can edit any profile
-			canEdit := false
-			if user.Kind == "admin" {
-				canEdit = true
-			} else {
-				// Check normal permissions
-				var err error
-				canEdit, err = profileService.CanUserEditProfile(
-					ctx.Request.Context(),
-					*session.LoggedInUserID,
-					slugParam,
-				)
-				if err != nil {
-					logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
-						slog.String("error", err.Error()),
-						slog.String("session_id", sessionID),
-						slog.String("user_id", *session.LoggedInUserID),
-						slog.String("slug", slugParam))
-
-					return ctx.Results.Error(
-						http.StatusInternalServerError,
-						httpfx.WithErrorMessage("Failed to check permissions"),
-					)
-				}
 			}
 
 			if !canEdit {

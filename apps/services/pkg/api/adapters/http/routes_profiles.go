@@ -30,7 +30,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	routes.
 		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
 			filterKind, filterKindOk := cursor.Filters["kind"]
@@ -49,7 +52,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -62,7 +65,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	routes.
 		Route("GET /{locale}/profiles/{slug}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			if slugParam == "" {
@@ -82,7 +88,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -115,7 +121,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -136,7 +142,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	routes.
 		Route("GET /{locale}/profiles/{slug}/pages", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			records, err := profileService.ListPagesBySlug(
@@ -147,7 +156,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -164,7 +173,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			"GET /{locale}/profiles/{slug}/pages/{pageSlug}",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
 				slugParam := ctx.Request.PathValue("slug")
 				pageSlugParam := ctx.Request.PathValue("pageSlug")
 
@@ -177,7 +189,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -195,7 +207,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		Route(
 			"GET /{locale}/profiles/{slug}/pages/{pageSlug}/_check",
 			func(ctx *httpfx.Context) httpfx.Result {
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
 				profileSlugParam := ctx.Request.PathValue("slug")
 				pageSlugParam := ctx.Request.PathValue("pageSlug")
 				excludeIDParam := ctx.Request.URL.Query().Get("exclude_id")
@@ -219,7 +234,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -241,7 +256,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	routes.
 		Route("GET /{locale}/profiles/{slug}/links", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Return all links (including non-featured) for the dedicated links page.
@@ -260,7 +278,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -275,7 +293,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	routes.
 		Route("GET /{locale}/profiles/{slug}/stories", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
@@ -288,7 +309,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
@@ -303,7 +324,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			"GET /{locale}/profiles/{slug}/stories-authored",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
 				slugParam := ctx.Request.PathValue("slug")
 				cursor := cursors.NewCursorFromRequest(ctx.Request)
 
@@ -316,7 +340,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -332,7 +356,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			"GET /{locale}/profiles/{slug}/stories/{storySlug}",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
 				// slugParam := ctx.Request.PathValue("slug")
 				storySlugParam := ctx.Request.PathValue("storySlug")
 
@@ -360,7 +387,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -382,7 +409,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			"GET /{locale}/profiles/{slug}/contributions",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
 				slugParam := ctx.Request.PathValue("slug")
 				cursor := cursors.NewCursorFromRequest(ctx.Request)
 
@@ -395,7 +425,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -411,7 +441,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			"GET /{locale}/profiles/{slug}/members",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path
-				localeParam := ctx.Request.PathValue("locale")
+				localeParam, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
 				slugParam := ctx.Request.PathValue("slug")
 				cursor := cursors.NewCursorFromRequest(ctx.Request)
 
@@ -424,7 +457,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
-						httpfx.WithErrorMessage(err.Error()),
+						httpfx.WithSanitizedError(err),
 					)
 				}
 
@@ -669,7 +702,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Parse request body
@@ -883,39 +919,17 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Get user to check if admin
-			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
-			if userErr != nil {
+			canEdit, permErr := profileService.HasUserAccessToProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				slugParam,
+				profiles.MembershipKindMaintainer,
+			)
+			if permErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to get user information"),
+					httpfx.WithSanitizedError(permErr),
 				)
-			}
-
-			// Admin users can edit any profile
-			canEdit := false
-			if user.Kind == "admin" {
-				canEdit = true
-			} else {
-				// Check normal permissions
-				var err error
-				canEdit, err = profileService.CanUserEditProfile(
-					ctx.Request.Context(),
-					*session.LoggedInUserID,
-					slugParam,
-				)
-				if err != nil {
-					logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
-						slog.String("error", err.Error()),
-						slog.String("session_id", sessionID),
-						slog.String("user_id", *session.LoggedInUserID),
-						slog.String("slug", slugParam))
-
-					return ctx.Results.Error(
-						http.StatusInternalServerError,
-						httpfx.WithErrorMessage("Failed to check permissions"),
-					)
-				}
 			}
 
 			// Return permissions
@@ -983,7 +997,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Get user ID from session
@@ -1058,7 +1075,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Parse request body
@@ -1185,7 +1205,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 			linkIDParam := ctx.Request.PathValue("linkId")
 
@@ -1397,7 +1420,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Get user ID from session
@@ -1409,39 +1435,17 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Get user to check if admin
-			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
-			if userErr != nil {
+			canEdit, permErr := profileService.HasUserAccessToProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				slugParam,
+				profiles.MembershipKindMaintainer,
+			)
+			if permErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to get user information"),
+					httpfx.WithSanitizedError(permErr),
 				)
-			}
-
-			// Admin users can edit any profile
-			canEdit := false
-			if user.Kind == "admin" {
-				canEdit = true
-			} else {
-				// Check normal permissions
-				var err error
-				canEdit, err = profileService.CanUserEditProfile(
-					ctx.Request.Context(),
-					*session.LoggedInUserID,
-					slugParam,
-				)
-				if err != nil {
-					logger.ErrorContext(ctx.Request.Context(), "Permission check failed",
-						slog.String("error", err.Error()),
-						slog.String("session_id", sessionID),
-						slog.String("user_id", *session.LoggedInUserID),
-						slog.String("slug", slugParam))
-
-					return ctx.Results.Error(
-						http.StatusInternalServerError,
-						httpfx.WithErrorMessage("Failed to check permissions"),
-					)
-				}
 			}
 
 			if !canEdit {
@@ -1496,7 +1500,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 			slugParam := ctx.Request.PathValue("slug")
 
 			// Parse request body

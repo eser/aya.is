@@ -16,7 +16,10 @@ func RegisterHTTPRoutesForSearch(
 	routes.
 		Route("GET /{locale}/search", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
 
 			// get query parameter
 			query := ctx.Request.URL.Query().Get("q")
@@ -51,7 +54,7 @@ func RegisterHTTPRoutesForSearch(
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage(err.Error()),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 
