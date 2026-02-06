@@ -573,6 +573,14 @@ func (s *Service) GetByID(ctx context.Context, localeCode string, id string) (*P
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 	}
 
+	// Try fallback locale if primary locale has no translation
+	if record == nil && FallbackLocaleCode != localeCode {
+		record, err = s.repo.GetProfileByID(ctx, FallbackLocaleCode, id)
+		if err != nil {
+			return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
+		}
+	}
+
 	return record, nil
 }
 

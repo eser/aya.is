@@ -244,7 +244,7 @@ export function PublishDialog(props: PublishDialogProps) {
                       alt={profile.title}
                     />
                     <AvatarFallback className="text-xs">
-                      {profile.title.charAt(0).toUpperCase()}
+                      {(profile.title ?? profile.slug ?? "?").charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
