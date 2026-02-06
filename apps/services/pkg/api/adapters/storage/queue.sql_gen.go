@@ -8,8 +8,9 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
+
+	"github.com/sqlc-dev/pqtype"
 )
 
 const claimNextQueueItem = `-- name: ClaimNextQueueItem :one
@@ -143,12 +144,12 @@ INSERT INTO "queue" (
 `
 
 type EnqueueQueueItemParams struct {
-	ID                    string          `db:"id" json:"id"`
-	Type                  string          `db:"type" json:"type"`
-	Payload               json.RawMessage `db:"payload" json:"payload"`
-	MaxRetries            int32           `db:"max_retries" json:"max_retries"`
-	VisibilityTimeoutSecs int32           `db:"visibility_timeout_secs" json:"visibility_timeout_secs"`
-	VisibleAt             time.Time       `db:"visible_at" json:"visible_at"`
+	ID                    string                `db:"id" json:"id"`
+	Type                  string                `db:"type" json:"type"`
+	Payload               pqtype.NullRawMessage `db:"payload" json:"payload"`
+	MaxRetries            int32                 `db:"max_retries" json:"max_retries"`
+	VisibilityTimeoutSecs int32                 `db:"visibility_timeout_secs" json:"visibility_timeout_secs"`
+	VisibleAt             time.Time             `db:"visible_at" json:"visible_at"`
 }
 
 // EnqueueQueueItem

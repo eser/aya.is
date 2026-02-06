@@ -50,6 +50,40 @@ User renames userId to id -> "I'll change this back to userId for consistency"
 
 ---
 
+## Never Use Git to Revert File Contents
+
+Scope: All code modifications
+
+Rule: NEVER use `git checkout`, `git restore`, or any git command to revert
+file contents. Parallel tasks run with parallel agents, so git-based reverting
+can destroy work from other agents. Always undo changes using Edit operations.
+
+**Critical Rules:**
+
+- NEVER use `git checkout -- <file>` to revert changes
+- NEVER use `git restore <file>` to revert changes
+- NEVER use `git stash` to discard or shelve changes
+- If you need to undo edits you just made, use the Edit tool to manually revert
+  each change
+- This protects parallel agent workflows from losing each other's work
+
+Correct:
+
+```
+# Undo a change you just made using Edit tool
+Edit: old_string="new code" new_string="original code"
+```
+
+Incorrect:
+
+```
+git checkout -- path/to/file
+git restore path/to/file
+git checkout HEAD -- path/to/file
+```
+
+---
+
 ## Git Commit Policy
 
 Scope: Version control

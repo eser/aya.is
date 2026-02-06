@@ -9,6 +9,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/api/business/queue"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
+	"github.com/sqlc-dev/pqtype"
 )
 
 // Enqueue inserts a new item into the queue.
@@ -29,7 +30,7 @@ func (r *Repository) Enqueue(
 	return r.queries.EnqueueQueueItem(ctx, EnqueueQueueItemParams{
 		ID:                    id,
 		Type:                  string(itemType),
-		Payload:               payloadJSON,
+		Payload:               pqtype.NullRawMessage{RawMessage: payloadJSON, Valid: true},
 		MaxRetries:            int32(maxRetries),
 		VisibilityTimeoutSecs: int32(visibilityTimeoutSecs),
 		VisibleAt:             visibleAt,
@@ -105,8 +106,8 @@ func (r *Repository) ListByType(
 // rowToQueueItem converts a database row to an Item domain object.
 func (r *Repository) rowToQueueItem(row *Queue) *queue.Item {
 	var payload map[string]any
-	if len(row.Payload) > 0 {
-		_ = json.Unmarshal(row.Payload, &payload)
+	if row.Payload.Valid && len(row.Payload.RawMessage) > 0 {
+		_ = json.Unmarshal(row.Payload.RawMessage, &payload)
 	}
 
 	return &queue.Item{

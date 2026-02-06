@@ -26,6 +26,11 @@ sql:
         emit_result_struct_pointers: true
         json_tags_case_style: "snake"
         package: "storage"
+        overrides:
+          - db_type: "jsonb"
+            go_type:
+              import: "github.com/sqlc-dev/pqtype"
+              type: "NullRawMessage"
         output_models_file_name: "types_gen.go"
         output_db_file_name: "db_gen.go"
         output_querier_file_name: "querier_gen.go"

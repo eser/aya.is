@@ -12,6 +12,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
+	"github.com/sqlc-dev/pqtype"
 )
 
 var ErrFailedToParseStoryWithChildren = errors.New("failed to parse story with children")
@@ -584,9 +585,10 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 	profileTx ProfileTx,
 	story Story,
 	storyTx StoryTx,
-	publications json.RawMessage,
+	publications pqtype.NullRawMessage,
 ) (*stories.StoryWithChildren, error) {
-	if publications == nil || string(publications) == "null" {
+	if !publications.Valid || publications.RawMessage == nil ||
+		string(publications.RawMessage) == "null" {
 		return &stories.StoryWithChildren{
 			Story: &stories.Story{
 				ID:              story.ID,
@@ -628,7 +630,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 	profileTx ProfileTx,
 	story Story,
 	storyTx StoryTx,
-	publications json.RawMessage,
+	publications pqtype.NullRawMessage,
 ) (*stories.StoryWithChildren, error) {
 	storyWithChildren := &stories.StoryWithChildren{
 		Story: &stories.Story{
@@ -684,7 +686,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 		} `json:"profile_tx"`
 	}
 
-	err := json.Unmarshal(publications, &publicationProfiles)
+	err := json.Unmarshal(publications.RawMessage, &publicationProfiles)
 	if err != nil {
 		r.logger.Error("failed to unmarshal publications", "error", err)
 

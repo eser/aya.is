@@ -8,7 +8,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/sqlc-dev/pqtype"
@@ -80,11 +79,11 @@ type GetStoryByIDParams struct {
 }
 
 type GetStoryByIDRow struct {
-	Story        Story           `db:"story" json:"story"`
-	StoryTx      StoryTx         `db:"story_tx" json:"story_tx"`
-	Profile      Profile         `db:"profile" json:"profile"`
-	ProfileTx    ProfileTx       `db:"profile_tx" json:"profile_tx"`
-	Publications json.RawMessage `db:"publications" json:"publications"`
+	Story        Story                 `db:"story" json:"story"`
+	StoryTx      StoryTx               `db:"story_tx" json:"story_tx"`
+	Profile      Profile               `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
+	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
 }
 
 // GetStoryByID
@@ -803,11 +802,11 @@ type ListStoriesByAuthorProfileIDParams struct {
 }
 
 type ListStoriesByAuthorProfileIDRow struct {
-	Story        Story           `db:"story" json:"story"`
-	StoryTx      StoryTx         `db:"story_tx" json:"story_tx"`
-	Profile      Profile         `db:"profile" json:"profile"`
-	ProfileTx    ProfileTx       `db:"profile_tx" json:"profile_tx"`
-	Publications json.RawMessage `db:"publications" json:"publications"`
+	Story        Story                 `db:"story" json:"story"`
+	StoryTx      StoryTx               `db:"story_tx" json:"story_tx"`
+	Profile      Profile               `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
+	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
 }
 
 // Lists all stories authored by a profile, including unpublished ones.
@@ -979,11 +978,11 @@ type ListStoriesOfPublicationParams struct {
 }
 
 type ListStoriesOfPublicationRow struct {
-	Story        Story           `db:"story" json:"story"`
-	StoryTx      StoryTx         `db:"story_tx" json:"story_tx"`
-	Profile      Profile         `db:"profile" json:"profile"`
-	ProfileTx    ProfileTx       `db:"profile_tx" json:"profile_tx"`
-	Publications json.RawMessage `db:"publications" json:"publications"`
+	Story        Story                 `db:"story" json:"story"`
+	StoryTx      StoryTx               `db:"story_tx" json:"story_tx"`
+	Profile      Profile               `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
+	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
 }
 
 // Uses locale fallback: prefers the requested locale, falls back to any translation.
