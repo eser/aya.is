@@ -13,6 +13,7 @@ import (
 func (r *Repository) Search(
 	ctx context.Context,
 	localeCode string,
+	fallbackLocaleCode string,
 	query string,
 	profileSlug *string,
 	limit int32,
@@ -79,10 +80,11 @@ func (r *Repository) Search(
 
 	// Search profile pages
 	pageRows, err := r.queries.SearchProfilePages(ctx, SearchProfilePagesParams{
-		Query:             query,
-		LocaleCode:        localeCode,
-		FilterProfileSlug: filterProfileSlug,
-		LimitCount:        limit,
+		Query:              query,
+		LocaleCode:         localeCode,
+		FallbackLocaleCode: fallbackLocaleCode,
+		FilterProfileSlug:  filterProfileSlug,
+		LimitCount:         limit,
 	})
 	if err != nil {
 		return nil, err

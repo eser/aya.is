@@ -57,7 +57,13 @@ LIMIT 1;
 SELECT sqlc.embed(p), sqlc.embed(pt)
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = sqlc.arg(locale_code)
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE p.id = sqlc.arg(id)
   AND p.deleted_at IS NULL
 LIMIT 1;
@@ -66,7 +72,13 @@ LIMIT 1;
 SELECT sqlc.embed(p), sqlc.embed(pt)
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = sqlc.arg(locale_code)
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE p.id = ANY(sqlc.arg(ids)::TEXT[])
   AND p.deleted_at IS NULL;
 
@@ -203,7 +215,13 @@ ORDER BY pl."order";
 SELECT pp.*, ppt.*
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-  AND ppt.locale_code = sqlc.arg(locale_code)
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = sqlc.arg(fallback_locale_code))
+    ORDER BY CASE WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE pp.profile_id = sqlc.arg(profile_id)
   AND pp.deleted_at IS NULL
 ORDER BY pp."order";
@@ -212,7 +230,13 @@ ORDER BY pp."order";
 SELECT pp.*, ppt.*
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-  AND ppt.locale_code = sqlc.arg(locale_code)
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = sqlc.arg(fallback_locale_code))
+    ORDER BY CASE WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL
 ORDER BY pp."order";
 
@@ -502,7 +526,13 @@ FROM "profile_page" pp
     AND ppt.locale_code = sqlc.arg(locale_code)
   INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-    AND pt.locale_code = sqlc.arg(locale_code)
+    AND pt.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+      ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
   AND pp.deleted_at IS NULL
   AND p.approved_at IS NOT NULL
@@ -584,7 +614,13 @@ FROM "profile_membership" pm
 INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
   AND mp.deleted_at IS NULL
 INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
-  AND mpt.locale_code = sqlc.arg(locale_code)
+  AND mpt.locale_code = (
+    SELECT mptf.locale_code FROM "profile_tx" mptf
+    WHERE mptf.profile_id = mp.id
+    AND (mptf.locale_code = sqlc.arg(locale_code) OR mptf.locale_code = sqlc.arg(fallback_locale_code))
+    ORDER BY CASE WHEN mptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE pm.profile_id = sqlc.arg(profile_id)
   AND pm.deleted_at IS NULL
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
@@ -668,7 +704,13 @@ FROM "user" u
 INNER JOIN "profile" p ON p.id = u.individual_profile_id
   AND p.deleted_at IS NULL
 INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = sqlc.arg(locale_code)
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE u.deleted_at IS NULL
   AND u.individual_profile_id IS NOT NULL
   AND (

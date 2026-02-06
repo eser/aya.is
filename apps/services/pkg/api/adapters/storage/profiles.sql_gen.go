@@ -886,15 +886,22 @@ const getProfileByID = `-- name: GetProfileByID :one
 SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = $1
-WHERE p.id = $2
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+WHERE p.id = $3
   AND p.deleted_at IS NULL
 LIMIT 1
 `
 
 type GetProfileByIDParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ID         string `db:"id" json:"id"`
+	LocaleCode         string `db:"locale_code" json:"locale_code"`
+	FallbackLocaleCode string `db:"fallback_locale_code" json:"fallback_locale_code"`
+	ID                 string `db:"id" json:"id"`
 }
 
 type GetProfileByIDRow struct {
@@ -907,12 +914,18 @@ type GetProfileByIDRow struct {
 //	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-//	  AND pt.locale_code = $1
-//	WHERE p.id = $2
+//	  AND pt.locale_code = (
+//	    SELECT ptf.locale_code FROM "profile_tx" ptf
+//	    WHERE ptf.profile_id = p.id
+//	    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+//	    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	WHERE p.id = $3
 //	  AND p.deleted_at IS NULL
 //	LIMIT 1
 func (q *Queries) GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getProfileByID, arg.LocaleCode, arg.ID)
+	row := q.db.QueryRowContext(ctx, getProfileByID, arg.LocaleCode, arg.FallbackLocaleCode, arg.ID)
 	var i GetProfileByIDRow
 	err := row.Scan(
 		&i.Profile.ID,
@@ -1566,15 +1579,22 @@ const getProfilePageByProfileIDAndSlug = `-- name: GetProfilePageByProfileIDAndS
 SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-  AND ppt.locale_code = $1
-WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = $1 OR pptf.locale_code = $2)
+    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+WHERE pp.profile_id = $3 AND pp.slug = $4 AND pp.deleted_at IS NULL
 ORDER BY pp."order"
 `
 
 type GetProfilePageByProfileIDAndSlugParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ProfileID  string `db:"profile_id" json:"profile_id"`
-	PageSlug   string `db:"page_slug" json:"page_slug"`
+	LocaleCode         string `db:"locale_code" json:"locale_code"`
+	FallbackLocaleCode string `db:"fallback_locale_code" json:"fallback_locale_code"`
+	ProfileID          string `db:"profile_id" json:"profile_id"`
+	PageSlug           string `db:"page_slug" json:"page_slug"`
 }
 
 type GetProfilePageByProfileIDAndSlugRow struct {
@@ -1600,11 +1620,22 @@ type GetProfilePageByProfileIDAndSlugRow struct {
 //	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-//	  AND ppt.locale_code = $1
-//	WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
+//	  AND ppt.locale_code = (
+//	    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+//	    WHERE pptf.profile_page_id = pp.id
+//	    AND (pptf.locale_code = $1 OR pptf.locale_code = $2)
+//	    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	WHERE pp.profile_id = $3 AND pp.slug = $4 AND pp.deleted_at IS NULL
 //	ORDER BY pp."order"
 func (q *Queries) GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetProfilePageByProfileIDAndSlugParams) (*GetProfilePageByProfileIDAndSlugRow, error) {
-	row := q.db.QueryRowContext(ctx, getProfilePageByProfileIDAndSlug, arg.LocaleCode, arg.ProfileID, arg.PageSlug)
+	row := q.db.QueryRowContext(ctx, getProfilePageByProfileIDAndSlug,
+		arg.LocaleCode,
+		arg.FallbackLocaleCode,
+		arg.ProfileID,
+		arg.PageSlug,
+	)
 	var i GetProfilePageByProfileIDAndSlugRow
 	err := row.Scan(
 		&i.ID,
@@ -1679,14 +1710,21 @@ const getProfilesByIDs = `-- name: GetProfilesByIDs :many
 SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = $1
-WHERE p.id = ANY($2::TEXT[])
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+WHERE p.id = ANY($3::TEXT[])
   AND p.deleted_at IS NULL
 `
 
 type GetProfilesByIDsParams struct {
-	LocaleCode string   `db:"locale_code" json:"locale_code"`
-	Ids        []string `db:"ids" json:"ids"`
+	LocaleCode         string   `db:"locale_code" json:"locale_code"`
+	FallbackLocaleCode string   `db:"fallback_locale_code" json:"fallback_locale_code"`
+	Ids                []string `db:"ids" json:"ids"`
 }
 
 type GetProfilesByIDsRow struct {
@@ -1699,11 +1737,17 @@ type GetProfilesByIDsRow struct {
 //	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-//	  AND pt.locale_code = $1
-//	WHERE p.id = ANY($2::TEXT[])
+//	  AND pt.locale_code = (
+//	    SELECT ptf.locale_code FROM "profile_tx" ptf
+//	    WHERE ptf.profile_id = p.id
+//	    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+//	    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	WHERE p.id = ANY($3::TEXT[])
 //	  AND p.deleted_at IS NULL
 func (q *Queries) GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsParams) ([]*GetProfilesByIDsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getProfilesByIDs, arg.LocaleCode, pq.Array(arg.Ids))
+	rows, err := q.db.QueryContext(ctx, getProfilesByIDs, arg.LocaleCode, arg.FallbackLocaleCode, pq.Array(arg.Ids))
 	if err != nil {
 		return nil, err
 	}
@@ -2647,8 +2691,14 @@ FROM "profile_membership" pm
 INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
   AND mp.deleted_at IS NULL
 INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
-  AND mpt.locale_code = $1
-WHERE pm.profile_id = $2
+  AND mpt.locale_code = (
+    SELECT mptf.locale_code FROM "profile_tx" mptf
+    WHERE mptf.profile_id = mp.id
+    AND (mptf.locale_code = $1 OR mptf.locale_code = $2)
+    ORDER BY CASE WHEN mptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+WHERE pm.profile_id = $3
   AND pm.deleted_at IS NULL
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 ORDER BY
@@ -2665,8 +2715,9 @@ ORDER BY
 `
 
 type ListProfileMembershipsForSettingsParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ProfileID  string `db:"profile_id" json:"profile_id"`
+	LocaleCode         string `db:"locale_code" json:"locale_code"`
+	FallbackLocaleCode string `db:"fallback_locale_code" json:"fallback_locale_code"`
+	ProfileID          string `db:"profile_id" json:"profile_id"`
 }
 
 type ListProfileMembershipsForSettingsRow struct {
@@ -2701,8 +2752,14 @@ type ListProfileMembershipsForSettingsRow struct {
 //	INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
 //	  AND mp.deleted_at IS NULL
 //	INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
-//	  AND mpt.locale_code = $1
-//	WHERE pm.profile_id = $2
+//	  AND mpt.locale_code = (
+//	    SELECT mptf.locale_code FROM "profile_tx" mptf
+//	    WHERE mptf.profile_id = mp.id
+//	    AND (mptf.locale_code = $1 OR mptf.locale_code = $2)
+//	    ORDER BY CASE WHEN mptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	WHERE pm.profile_id = $3
 //	  AND pm.deleted_at IS NULL
 //	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 //	ORDER BY
@@ -2717,7 +2774,7 @@ type ListProfileMembershipsForSettingsRow struct {
 //	  END,
 //	  pm.created_at ASC
 func (q *Queries) ListProfileMembershipsForSettings(ctx context.Context, arg ListProfileMembershipsForSettingsParams) ([]*ListProfileMembershipsForSettingsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProfileMembershipsForSettings, arg.LocaleCode, arg.ProfileID)
+	rows, err := q.db.QueryContext(ctx, listProfileMembershipsForSettings, arg.LocaleCode, arg.FallbackLocaleCode, arg.ProfileID)
 	if err != nil {
 		return nil, err
 	}
@@ -2772,15 +2829,22 @@ const listProfilePagesByProfileID = `-- name: ListProfilePagesByProfileID :many
 SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-  AND ppt.locale_code = $1
-WHERE pp.profile_id = $2
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = $1 OR pptf.locale_code = $2)
+    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+WHERE pp.profile_id = $3
   AND pp.deleted_at IS NULL
 ORDER BY pp."order"
 `
 
 type ListProfilePagesByProfileIDParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ProfileID  string `db:"profile_id" json:"profile_id"`
+	LocaleCode         string `db:"locale_code" json:"locale_code"`
+	FallbackLocaleCode string `db:"fallback_locale_code" json:"fallback_locale_code"`
+	ProfileID          string `db:"profile_id" json:"profile_id"`
 }
 
 type ListProfilePagesByProfileIDRow struct {
@@ -2806,12 +2870,18 @@ type ListProfilePagesByProfileIDRow struct {
 //	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-//	  AND ppt.locale_code = $1
-//	WHERE pp.profile_id = $2
+//	  AND ppt.locale_code = (
+//	    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+//	    WHERE pptf.profile_page_id = pp.id
+//	    AND (pptf.locale_code = $1 OR pptf.locale_code = $2)
+//	    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	WHERE pp.profile_id = $3
 //	  AND pp.deleted_at IS NULL
 //	ORDER BY pp."order"
 func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfilePagesByProfileIDParams) ([]*ListProfilePagesByProfileIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProfilePagesByProfileID, arg.LocaleCode, arg.ProfileID)
+	rows, err := q.db.QueryContext(ctx, listProfilePagesByProfileID, arg.LocaleCode, arg.FallbackLocaleCode, arg.ProfileID)
 	if err != nil {
 		return nil, err
 	}
@@ -2975,20 +3045,27 @@ FROM "profile_page" pp
     AND ppt.locale_code = $1
   INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-    AND pt.locale_code = $1
+    AND pt.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      AND (ptf.locale_code = $1 OR ptf.locale_code = $3)
+      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
   AND pp.deleted_at IS NULL
   AND p.approved_at IS NOT NULL
-  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
+  AND ($4::TEXT IS NULL OR p.slug = $4::TEXT)
 ORDER BY rank DESC
-LIMIT $4
+LIMIT $5
 `
 
 type SearchProfilePagesParams struct {
-	LocaleCode        string         `db:"locale_code" json:"locale_code"`
-	Query             string         `db:"query" json:"query"`
-	FilterProfileSlug sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
-	LimitCount        int32          `db:"limit_count" json:"limit_count"`
+	LocaleCode         string         `db:"locale_code" json:"locale_code"`
+	Query              string         `db:"query" json:"query"`
+	FallbackLocaleCode string         `db:"fallback_locale_code" json:"fallback_locale_code"`
+	FilterProfileSlug  sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
+	LimitCount         int32          `db:"limit_count" json:"limit_count"`
 }
 
 type SearchProfilePagesRow struct {
@@ -3020,17 +3097,24 @@ type SearchProfilePagesRow struct {
 //	    AND ppt.locale_code = $1
 //	  INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-//	    AND pt.locale_code = $1
+//	    AND pt.locale_code = (
+//	      SELECT ptf.locale_code FROM "profile_tx" ptf
+//	      WHERE ptf.profile_id = p.id
+//	      AND (ptf.locale_code = $1 OR ptf.locale_code = $3)
+//	      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
 //	WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
 //	  AND pp.deleted_at IS NULL
 //	  AND p.approved_at IS NOT NULL
-//	  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
+//	  AND ($4::TEXT IS NULL OR p.slug = $4::TEXT)
 //	ORDER BY rank DESC
-//	LIMIT $4
+//	LIMIT $5
 func (q *Queries) SearchProfilePages(ctx context.Context, arg SearchProfilePagesParams) ([]*SearchProfilePagesRow, error) {
 	rows, err := q.db.QueryContext(ctx, searchProfilePages,
 		arg.LocaleCode,
 		arg.Query,
+		arg.FallbackLocaleCode,
 		arg.FilterProfileSlug,
 		arg.LimitCount,
 	)
@@ -3169,19 +3253,25 @@ FROM "user" u
 INNER JOIN "profile" p ON p.id = u.individual_profile_id
   AND p.deleted_at IS NULL
 INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = $1
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE u.deleted_at IS NULL
   AND u.individual_profile_id IS NOT NULL
   AND (
-    u.email ILIKE '%' || $2 || '%'
-    OR u.name ILIKE '%' || $2 || '%'
-    OR p.slug ILIKE '%' || $2 || '%'
-    OR pt.title ILIKE '%' || $2 || '%'
+    u.email ILIKE '%' || $3 || '%'
+    OR u.name ILIKE '%' || $3 || '%'
+    OR p.slug ILIKE '%' || $3 || '%'
+    OR pt.title ILIKE '%' || $3 || '%'
   )
   -- Exclude users already members of this profile
   AND NOT EXISTS (
     SELECT 1 FROM "profile_membership" pm
-    WHERE pm.profile_id = $3
+    WHERE pm.profile_id = $4
       AND pm.member_profile_id = u.individual_profile_id
       AND pm.deleted_at IS NULL
       AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
@@ -3191,9 +3281,10 @@ LIMIT 10
 `
 
 type SearchUsersForMembershipParams struct {
-	LocaleCode string         `db:"locale_code" json:"locale_code"`
-	Query      sql.NullString `db:"query" json:"query"`
-	ProfileID  string         `db:"profile_id" json:"profile_id"`
+	LocaleCode         string         `db:"locale_code" json:"locale_code"`
+	FallbackLocaleCode string         `db:"fallback_locale_code" json:"fallback_locale_code"`
+	Query              sql.NullString `db:"query" json:"query"`
+	ProfileID          string         `db:"profile_id" json:"profile_id"`
 }
 
 type SearchUsersForMembershipRow struct {
@@ -3218,19 +3309,25 @@ type SearchUsersForMembershipRow struct {
 //	INNER JOIN "profile" p ON p.id = u.individual_profile_id
 //	  AND p.deleted_at IS NULL
 //	INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-//	  AND pt.locale_code = $1
+//	  AND pt.locale_code = (
+//	    SELECT ptf.locale_code FROM "profile_tx" ptf
+//	    WHERE ptf.profile_id = p.id
+//	    AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+//	    ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
 //	WHERE u.deleted_at IS NULL
 //	  AND u.individual_profile_id IS NOT NULL
 //	  AND (
-//	    u.email ILIKE '%' || $2 || '%'
-//	    OR u.name ILIKE '%' || $2 || '%'
-//	    OR p.slug ILIKE '%' || $2 || '%'
-//	    OR pt.title ILIKE '%' || $2 || '%'
+//	    u.email ILIKE '%' || $3 || '%'
+//	    OR u.name ILIKE '%' || $3 || '%'
+//	    OR p.slug ILIKE '%' || $3 || '%'
+//	    OR pt.title ILIKE '%' || $3 || '%'
 //	  )
 //	  -- Exclude users already members of this profile
 //	  AND NOT EXISTS (
 //	    SELECT 1 FROM "profile_membership" pm
-//	    WHERE pm.profile_id = $3
+//	    WHERE pm.profile_id = $4
 //	      AND pm.member_profile_id = u.individual_profile_id
 //	      AND pm.deleted_at IS NULL
 //	      AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
@@ -3238,7 +3335,12 @@ type SearchUsersForMembershipRow struct {
 //	ORDER BY u.name ASC
 //	LIMIT 10
 func (q *Queries) SearchUsersForMembership(ctx context.Context, arg SearchUsersForMembershipParams) ([]*SearchUsersForMembershipRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchUsersForMembership, arg.LocaleCode, arg.Query, arg.ProfileID)
+	rows, err := q.db.QueryContext(ctx, searchUsersForMembership,
+		arg.LocaleCode,
+		arg.FallbackLocaleCode,
+		arg.Query,
+		arg.ProfileID,
+	)
 	if err != nil {
 		return nil, err
 	}

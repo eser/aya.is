@@ -47,12 +47,22 @@ SELECT
   pb.publications
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = sqlc.arg(locale_code)
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN "profile" p ON p.id = s.author_profile_id
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = sqlc.arg(locale_code)
+  AND pt.locale_code = (
+    SELECT ptx.locale_code FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p.id
+    ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN LATERAL (
     SELECT JSONB_AGG(
       JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
@@ -61,7 +71,12 @@ FROM "story" s
       INNER JOIN "profile" p2 ON p2.id = sp.profile_id
       AND p2.deleted_at IS NULL
       INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
-      AND p2t.locale_code = sqlc.arg(locale_code)
+      AND p2t.locale_code = (
+        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+        LIMIT 1
+      )
     WHERE sp.story_id = s.id
       AND (sqlc.narg(filter_publication_profile_id)::CHAR(26) IS NULL OR sp.profile_id = sqlc.narg(filter_publication_profile_id)::CHAR(26))
       AND sp.deleted_at IS NULL
@@ -333,7 +348,12 @@ FROM "story" s
     AND st.locale_code = sqlc.arg(locale_code)
   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
   LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
-    AND pt.locale_code = sqlc.arg(locale_code)
+    AND pt.locale_code = (
+      SELECT ptx.locale_code FROM "profile_tx" ptx
+      WHERE ptx.profile_id = p.id
+      ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
   AND s.deleted_at IS NULL
   AND EXISTS (
@@ -360,7 +380,13 @@ SELECT
   p.kind as profile_kind
 FROM story_publication sp
   INNER JOIN "profile" p ON p.id = sp.profile_id AND p.deleted_at IS NULL
-  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = (
+      SELECT ptx.locale_code FROM "profile_tx" ptx
+      WHERE ptx.profile_id = p.id
+      ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE sp.story_id = sqlc.arg(story_id)
   AND sp.deleted_at IS NULL
 ORDER BY sp.created_at;

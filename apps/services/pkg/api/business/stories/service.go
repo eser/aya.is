@@ -169,7 +169,12 @@ type SlugAvailabilityResult struct {
 
 type Repository interface {
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
-	GetProfileByID(ctx context.Context, localeCode string, id string) (*profiles.Profile, error)
+	GetProfileByID(
+		ctx context.Context,
+		localeCode string,
+		fallbackLocaleCode string,
+		id string,
+	) (*profiles.Profile, error)
 	GetStoryIDBySlug(ctx context.Context, slug string) (string, error)
 	GetStoryIDBySlugForViewer(
 		ctx context.Context,

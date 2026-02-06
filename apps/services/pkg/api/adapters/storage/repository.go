@@ -180,7 +180,7 @@ func (r *Repository) SeedData(ctx context.Context, seedFilePath string) error {
 		Limit: 1, // Just need to check if any profiles exist
 	}
 
-	profilesResult, err := r.ListProfiles(ctx, "en", cursor)
+	profilesResult, err := r.ListProfiles(ctx, "en", "en", cursor)
 	if err != nil {
 		return fmt.Errorf("%w: failed to check existing profiles: %w", ErrSeedingFailed, err)
 	}
