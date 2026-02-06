@@ -83,22 +83,26 @@ export function AuthProvider(props: AuthProviderProps) {
       );
 
       // Combine user data with profile slug and accessible profiles
-      const individualProfile: IndividualProfile | undefined = result.selected_profile !== undefined
-        ? {
-          id: result.selected_profile.id,
-          slug: result.selected_profile.slug,
-          kind: result.selected_profile.kind,
-          title: result.selected_profile.title,
-          profile_picture_uri: result.selected_profile.profile_picture_uri,
-        }
-        : undefined;
+      const individualProfile: IndividualProfile | undefined =
+        result.selected_profile !== undefined && result.selected_profile !== null
+          ? {
+            id: result.selected_profile.id,
+            slug: result.selected_profile.slug,
+            kind: result.selected_profile.kind,
+            title: result.selected_profile.title,
+            profile_picture_uri: result.selected_profile.profile_picture_uri,
+          }
+          : undefined;
 
-      const userData: User | null = result.user !== undefined ? {
-        ...result.user,
-        individual_profile_slug: result.selected_profile?.slug,
-        individual_profile: individualProfile,
-        accessible_profiles: result.accessible_profiles,
-      } : null;
+      const userData: User | null =
+        result.user !== undefined && result.user !== null
+          ? {
+            ...result.user,
+            individual_profile_slug: result.selected_profile?.slug,
+            individual_profile: individualProfile,
+            accessible_profiles: result.accessible_profiles,
+          }
+          : null;
 
       localStorage.setItem(
         "auth_session",
