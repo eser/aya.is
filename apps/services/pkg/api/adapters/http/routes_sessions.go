@@ -105,9 +105,8 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			// If user has an individual profile, fetch it and their accessible profiles
 			if user != nil && user.IndividualProfileID != nil {
 				locale := ctx.Request.PathValue("locale")
-				profile, profileErr := profileService.GetByID(
+				profile, profileErr := profileService.GetBasicByID(
 					ctx.Request.Context(),
-					locale,
 					*user.IndividualProfileID,
 				)
 				if profileErr == nil && profile != nil {
@@ -115,8 +114,6 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 						"id":                  profile.ID,
 						"slug":                profile.Slug,
 						"kind":                profile.Kind,
-						"title":               profile.Title,
-						"description":         profile.Description,
 						"profile_picture_uri": profile.ProfilePictureURI,
 					}
 				}

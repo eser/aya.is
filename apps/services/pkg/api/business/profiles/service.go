@@ -174,6 +174,7 @@ type Repository interface { //nolint:interfacebloat
 		profileID string,
 		pageSlug string,
 	) (bool, error)
+	GetProfileBasicByID(ctx context.Context, id string) (*ProfileBrief, error)
 	GetProfileByID(ctx context.Context, localeCode string, id string) (*Profile, error)
 	ListProfiles(
 		ctx context.Context,
@@ -555,6 +556,15 @@ func (s *Service) FilterVisibleLinks(
 	}
 
 	return result
+}
+
+func (s *Service) GetBasicByID(ctx context.Context, id string) (*ProfileBrief, error) {
+	record, err := s.repo.GetProfileBasicByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
+	}
+
+	return record, nil
 }
 
 func (s *Service) GetByID(ctx context.Context, localeCode string, id string) (*Profile, error) {

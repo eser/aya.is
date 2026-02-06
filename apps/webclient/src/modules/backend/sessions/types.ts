@@ -52,7 +52,7 @@ export interface SessionCurrentResponse {
     id: string;
     slug: string;
     kind: string;
-    title: string;
+    title?: string;
     description?: string;
     profile_picture_uri?: string;
   };

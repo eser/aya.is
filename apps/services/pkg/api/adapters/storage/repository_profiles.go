@@ -195,6 +195,29 @@ func (r *Repository) DeleteCustomDomain(
 	return err
 }
 
+func (r *Repository) GetProfileBasicByID(
+	ctx context.Context,
+	id string,
+) (*profiles.ProfileBrief, error) {
+	row, err := r.queries.GetProfileBasicByID(ctx, GetProfileBasicByIDParams{ID: id})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	result := &profiles.ProfileBrief{
+		ID:                row.ID,
+		Slug:              row.Slug,
+		Kind:              row.Kind,
+		ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
+	}
+
+	return result, nil
+}
+
 func (r *Repository) GetProfileByID(
 	ctx context.Context,
 	localeCode string,
