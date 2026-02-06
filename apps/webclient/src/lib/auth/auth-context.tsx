@@ -162,10 +162,9 @@ export function AuthProvider(props: AuthProviderProps) {
       ? `${globalThis.location.origin}/auth/callback`
       : `/auth/callback`;
 
-    // If a redirectUri was provided, append it as a query param to the callback
-    const finalCallbackUrl = redirectUri !== undefined
-      ? `${callbackUrl}?redirect=${encodeURIComponent(redirectUri)}`
-      : callbackUrl;
+    // Always include redirect so the callback knows where to send the user back
+    const redirect = redirectUri ?? `/${locale}`;
+    const finalCallbackUrl = `${callbackUrl}?redirect=${encodeURIComponent(redirect)}`;
 
     const loginUrl = `${backendUri}/${locale}/auth/github/login?redirect_uri=${encodeURIComponent(finalCallbackUrl)}`;
 
