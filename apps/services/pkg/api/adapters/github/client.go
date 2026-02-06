@@ -91,6 +91,7 @@ func (c *Client) BuildAuthURL(redirectURI, state, scope string) string {
 	queryString.Set("redirect_uri", redirectURI)
 	queryString.Set("state", state)
 	queryString.Set("scope", scope)
+	queryString.Set("prompt", "select_account")
 
 	oauthURL := url.URL{ //nolint:exhaustruct
 		Scheme:   "https",
