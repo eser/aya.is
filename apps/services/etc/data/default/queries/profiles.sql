@@ -46,7 +46,7 @@ WHERE id = sqlc.arg(id);
 DELETE FROM "profile_custom_domain"
 WHERE id = sqlc.arg(id);
 
--- name: GetProfileBasicByID :one
+-- name: GetProfileIdentifierByID :one
 SELECT p.id, p.slug, p.kind, p.profile_picture_uri
 FROM "profile" p
 WHERE p.id = sqlc.arg(id)
@@ -167,7 +167,7 @@ WHERE u.id = sqlc.arg(user_id)
   AND u.deleted_at IS NULL
 LIMIT 1;
 
--- name: GetUserBasicInfoByID :one
+-- name: GetUserBriefInfoByID :one
 SELECT kind, individual_profile_id
 FROM "user"
 WHERE id = sqlc.arg(user_id)

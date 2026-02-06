@@ -195,11 +195,11 @@ func (r *Repository) DeleteCustomDomain(
 	return err
 }
 
-func (r *Repository) GetProfileBasicByID(
+func (r *Repository) GetProfileIdentifierByID(
 	ctx context.Context,
 	id string,
 ) (*profiles.ProfileBrief, error) {
-	row, err := r.queries.GetProfileBasicByID(ctx, GetProfileBasicByIDParams{ID: id})
+	row, err := r.queries.GetProfileIdentifierByID(ctx, GetProfileIdentifierByIDParams{ID: id})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil //nolint:nilnil
@@ -935,20 +935,20 @@ func (r *Repository) GetProfileOwnershipForUser(
 	return result, nil
 }
 
-func (r *Repository) GetUserBasicInfo(
+func (r *Repository) GetUserBriefInfo(
 	ctx context.Context,
 	userID string,
-) (*profiles.UserBasicInfo, error) {
-	var result profiles.UserBasicInfo
+) (*profiles.UserBriefInfo, error) {
+	var result profiles.UserBriefInfo
 
 	err := r.cache.Execute(
 		ctx,
-		"user_basic_info:"+userID,
+		"user_brief_info:"+userID,
 		&result,
 		func(ctx context.Context) (any, error) {
-			row, err := r.queries.GetUserBasicInfoByID(
+			row, err := r.queries.GetUserBriefInfoByID(
 				ctx,
-				GetUserBasicInfoByIDParams{UserID: userID},
+				GetUserBriefInfoByIDParams{UserID: userID},
 			)
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
@@ -963,7 +963,7 @@ func (r *Repository) GetUserBasicInfo(
 				individualProfileID = &row.IndividualProfileID.String
 			}
 
-			return &profiles.UserBasicInfo{
+			return profiles.UserBriefInfo{
 				Kind:                row.Kind,
 				IndividualProfileID: individualProfileID,
 			}, nil

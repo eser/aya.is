@@ -174,7 +174,7 @@ type Repository interface { //nolint:interfacebloat
 		profileID string,
 		pageSlug string,
 	) (bool, error)
-	GetProfileBasicByID(ctx context.Context, id string) (*ProfileBrief, error)
+	GetProfileIdentifierByID(ctx context.Context, id string) (*ProfileBrief, error)
 	GetProfileByID(ctx context.Context, localeCode string, id string) (*Profile, error)
 	ListProfiles(
 		ctx context.Context,
@@ -277,10 +277,10 @@ type Repository interface { //nolint:interfacebloat
 		userID string,
 		profileSlug string,
 	) (*ProfileOwnership, error)
-	GetUserBasicInfo(
+	GetUserBriefInfo(
 		ctx context.Context,
 		userID string,
-	) (*UserBasicInfo, error)
+	) (*UserBriefInfo, error)
 	GetUserProfilePermissions(
 		ctx context.Context,
 		userID string,
@@ -558,8 +558,8 @@ func (s *Service) FilterVisibleLinks(
 	return result
 }
 
-func (s *Service) GetBasicByID(ctx context.Context, id string) (*ProfileBrief, error) {
-	record, err := s.repo.GetProfileBasicByID(ctx, id)
+func (s *Service) GetIdentifierByID(ctx context.Context, id string) (*ProfileBrief, error) {
+	record, err := s.repo.GetProfileIdentifierByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 	}
@@ -1162,7 +1162,7 @@ func (s *Service) ensureUserCanProfileAccess(
 	originUserID string,
 	requiredLevel MembershipKind,
 ) error {
-	userInfo, err := s.repo.GetUserBasicInfo(ctx, originUserID)
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, originUserID)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}

@@ -882,44 +882,6 @@ func (q *Queries) GetMembershipBetweenProfiles(ctx context.Context, arg GetMembe
 	return kind, err
 }
 
-const getProfileBasicByID = `-- name: GetProfileBasicByID :one
-SELECT p.id, p.slug, p.kind, p.profile_picture_uri
-FROM "profile" p
-WHERE p.id = $1
-  AND p.deleted_at IS NULL
-LIMIT 1
-`
-
-type GetProfileBasicByIDParams struct {
-	ID string `db:"id" json:"id"`
-}
-
-type GetProfileBasicByIDRow struct {
-	ID                string         `db:"id" json:"id"`
-	Slug              string         `db:"slug" json:"slug"`
-	Kind              string         `db:"kind" json:"kind"`
-	ProfilePictureURI sql.NullString `db:"profile_picture_uri" json:"profile_picture_uri"`
-}
-
-// GetProfileBasicByID
-//
-//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri
-//	FROM "profile" p
-//	WHERE p.id = $1
-//	  AND p.deleted_at IS NULL
-//	LIMIT 1
-func (q *Queries) GetProfileBasicByID(ctx context.Context, arg GetProfileBasicByIDParams) (*GetProfileBasicByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getProfileBasicByID, arg.ID)
-	var i GetProfileBasicByIDRow
-	err := row.Scan(
-		&i.ID,
-		&i.Slug,
-		&i.Kind,
-		&i.ProfilePictureURI,
-	)
-	return &i, err
-}
-
 const getProfileByID = `-- name: GetProfileByID :one
 SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
@@ -1000,6 +962,44 @@ func (q *Queries) GetProfileIDBySlug(ctx context.Context, arg GetProfileIDBySlug
 	var id string
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getProfileIdentifierByID = `-- name: GetProfileIdentifierByID :one
+SELECT p.id, p.slug, p.kind, p.profile_picture_uri
+FROM "profile" p
+WHERE p.id = $1
+  AND p.deleted_at IS NULL
+LIMIT 1
+`
+
+type GetProfileIdentifierByIDParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+type GetProfileIdentifierByIDRow struct {
+	ID                string         `db:"id" json:"id"`
+	Slug              string         `db:"slug" json:"slug"`
+	Kind              string         `db:"kind" json:"kind"`
+	ProfilePictureURI sql.NullString `db:"profile_picture_uri" json:"profile_picture_uri"`
+}
+
+// GetProfileIdentifierByID
+//
+//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri
+//	FROM "profile" p
+//	WHERE p.id = $1
+//	  AND p.deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetProfileIdentifierByID(ctx context.Context, arg GetProfileIdentifierByIDParams) (*GetProfileIdentifierByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfileIdentifierByID, arg.ID)
+	var i GetProfileIdentifierByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Kind,
+		&i.ProfilePictureURI,
+	)
+	return &i, err
 }
 
 const getProfileLink = `-- name: GetProfileLink :one
@@ -1745,7 +1745,7 @@ func (q *Queries) GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsPara
 	return items, nil
 }
 
-const getUserBasicInfoByID = `-- name: GetUserBasicInfoByID :one
+const getUserBriefInfoByID = `-- name: GetUserBriefInfoByID :one
 SELECT kind, individual_profile_id
 FROM "user"
 WHERE id = $1
@@ -1753,25 +1753,25 @@ WHERE id = $1
 LIMIT 1
 `
 
-type GetUserBasicInfoByIDParams struct {
+type GetUserBriefInfoByIDParams struct {
 	UserID string `db:"user_id" json:"user_id"`
 }
 
-type GetUserBasicInfoByIDRow struct {
+type GetUserBriefInfoByIDRow struct {
 	Kind                string         `db:"kind" json:"kind"`
 	IndividualProfileID sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
 }
 
-// GetUserBasicInfoByID
+// GetUserBriefInfoByID
 //
 //	SELECT kind, individual_profile_id
 //	FROM "user"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetUserBasicInfoByID(ctx context.Context, arg GetUserBasicInfoByIDParams) (*GetUserBasicInfoByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserBasicInfoByID, arg.UserID)
-	var i GetUserBasicInfoByIDRow
+func (q *Queries) GetUserBriefInfoByID(ctx context.Context, arg GetUserBriefInfoByIDParams) (*GetUserBriefInfoByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserBriefInfoByID, arg.UserID)
+	var i GetUserBriefInfoByIDRow
 	err := row.Scan(&i.Kind, &i.IndividualProfileID)
 	return &i, err
 }
