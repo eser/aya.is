@@ -106,6 +106,7 @@ type ProfilePage struct {
 	Title           string     `json:"title"`
 	Summary         string     `json:"summary"`
 	Content         string     `json:"content"`
+	SortOrder       int32      `json:"sort_order"`
 }
 
 type ProfilePageBrief struct {

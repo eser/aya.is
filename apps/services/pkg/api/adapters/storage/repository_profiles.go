@@ -368,6 +368,7 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 		Title:           row.Title,
 		Summary:         row.Summary,
 		Content:         row.Content,
+		SortOrder:       row.Order,
 		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
 	}
 
