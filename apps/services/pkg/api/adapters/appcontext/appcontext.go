@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 	"github.com/eser/aya.is/services/pkg/ajan/configfx"
 	"github.com/eser/aya.is/services/pkg/ajan/connfx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
@@ -46,6 +47,7 @@ type AppContext struct {
 	HTTPClient *httpclient.Client
 
 	Connections *connfx.Registry
+	AIModels    *aifx.Registry
 
 	Arcade *arcade.Arcade
 
@@ -131,6 +133,21 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	err = a.Connections.LoadFromConfig(ctx, &a.Config.Conn)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrInitFailed, err)
+	}
+
+	// ----------------------------------------------------
+	// Adapter: AI Models (optional - only if configured)
+	// ----------------------------------------------------
+	a.AIModels = aifx.NewRegistry(
+		aifx.WithLogger(a.Logger),
+		aifx.WithDefaultFactories(),
+	)
+
+	if len(a.Config.AI.Targets) > 0 {
+		err = a.AIModels.LoadFromConfig(ctx, &a.Config.AI)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrInitFailed, err)
+		}
 	}
 
 	// // ----------------------------------------------------

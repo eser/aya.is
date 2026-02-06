@@ -1,6 +1,7 @@
 package ajan
 
 import (
+	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 	"github.com/eser/aya.is/services/pkg/ajan/connfx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
@@ -9,6 +10,7 @@ import (
 
 type BaseConfig struct {
 	Conn       connfx.Config `conf:"conn"`
+	AI         aifx.Config   `conf:"ai"`
 	AppName    string        `conf:"name"    default:"ajansvc"`
 	AppEnv     string        `conf:"env"     default:"development"`
 	AppVersion string        `conf:"version" default:"0.0.0"`
