@@ -68,7 +68,7 @@ function EditPagePage() {
 
     if (translationLocale === params.locale) {
       // Use the loader data for the site locale, but detect fallback via locale_code
-      if (page.locale_code !== undefined && page.locale_code !== translationLocale) {
+      if (page.locale_code !== undefined && page.locale_code.trimEnd() !== translationLocale) {
         // Loader returned a fallback — no translation for the site locale
         setTranslationState({ locale: translationLocale, data: undefined });
       } else {
@@ -88,7 +88,7 @@ function EditPagePage() {
     setTranslationState(null);
     backend.getProfilePage(translationLocale, params.slug, params.pageslug).then((data) => {
       if (cancelled) return;
-      if (data === null || (data.locale_code !== undefined && data.locale_code !== translationLocale)) {
+      if (data === null || (data.locale_code !== undefined && data.locale_code.trimEnd() !== translationLocale)) {
         // No translation exists for this locale (or fallback was returned) — show empty fields
         setTranslationState({ locale: translationLocale, data: undefined });
       } else {
