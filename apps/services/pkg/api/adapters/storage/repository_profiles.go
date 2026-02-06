@@ -221,15 +221,13 @@ func (r *Repository) GetProfileIdentifierByID(
 func (r *Repository) GetProfileByID(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	id string,
 ) (*profiles.Profile, error) {
 	row, err := r.queries.GetProfileByID(
 		ctx,
 		GetProfileByIDParams{
-			LocaleCode:         localeCode,
-			FallbackLocaleCode: fallbackLocaleCode,
-			ID:                 id,
+			LocaleCode: localeCode,
+			ID:         id,
 		},
 	)
 	if err != nil {
@@ -249,6 +247,7 @@ func (r *Repository) GetProfileByID(
 		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 		Title:             row.ProfileTx.Title,
 		Description:       row.ProfileTx.Description,
+		DefaultLocale:     row.Profile.DefaultLocale,
 		Properties:        vars.ToObject(row.Profile.Properties),
 		CreatedAt:         row.Profile.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
@@ -264,7 +263,6 @@ func (r *Repository) GetProfileByID(
 func (r *Repository) ListProfiles(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*profiles.Profile], error) {
 	var wrappedResponse cursors.Cursored[[]*profiles.Profile]
@@ -272,9 +270,8 @@ func (r *Repository) ListProfiles(
 	rows, err := r.queries.ListProfiles(
 		ctx,
 		ListProfilesParams{
-			LocaleCode:         localeCode,
-			FallbackLocaleCode: fallbackLocaleCode,
-			FilterKind:         vars.MapValueToNullString(cursor.Filters, "kind"),
+			LocaleCode: localeCode,
+			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
 		},
 	)
 	if err != nil {
@@ -292,6 +289,7 @@ func (r *Repository) ListProfiles(
 			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 			Title:             row.ProfileTx.Title,
 			Description:       row.ProfileTx.Description,
+			DefaultLocale:     row.Profile.DefaultLocale,
 			Properties:        vars.ToObject(row.Profile.Properties),
 			CreatedAt:         row.Profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
@@ -313,15 +311,13 @@ func (r *Repository) ListProfiles(
 func (r *Repository) ListProfilePagesByProfileID(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	profileID string,
 ) ([]*profiles.ProfilePageBrief, error) {
 	rows, err := r.queries.ListProfilePagesByProfileID(
 		ctx,
 		ListProfilePagesByProfileIDParams{
-			LocaleCode:         localeCode,
-			FallbackLocaleCode: fallbackLocaleCode,
-			ProfileID:          profileID,
+			LocaleCode: localeCode,
+			ProfileID:  profileID,
 		},
 	)
 	if err != nil {
@@ -345,17 +341,15 @@ func (r *Repository) ListProfilePagesByProfileID(
 func (r *Repository) GetProfilePageByProfileIDAndSlug(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	profileID string,
 	pageSlug string,
 ) (*profiles.ProfilePage, error) {
 	row, err := r.queries.GetProfilePageByProfileIDAndSlug(
 		ctx,
 		GetProfilePageByProfileIDAndSlugParams{
-			LocaleCode:         localeCode,
-			FallbackLocaleCode: fallbackLocaleCode,
-			ProfileID:          profileID,
-			PageSlug:           pageSlug,
+			LocaleCode: localeCode,
+			ProfileID:  profileID,
+			PageSlug:   pageSlug,
 		},
 	)
 	if err != nil {
@@ -420,7 +414,6 @@ func (r *Repository) ListProfileLinksByProfileID(
 func (r *Repository) ListProfileContributions( //nolint:funlen
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	profileID string,
 	kinds []string,
 	cursor *cursors.Cursor,
@@ -431,7 +424,6 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 		ctx,
 		ListProfileMembershipsParams{
 			LocaleCode:              localeCode,
-			FallbackLocaleCode:      fallbackLocaleCode,
 			FilterProfileID:         sql.NullString{String: "", Valid: false},
 			FilterProfileKind:       sql.NullString{String: strings.Join(kinds, ","), Valid: true},
 			FilterMemberProfileID:   sql.NullString{String: profileID, Valid: true},
@@ -459,6 +451,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
+				DefaultLocale:     row.Profile.DefaultLocale,
 				Properties:        vars.ToObject(row.Profile.Properties),
 				CreatedAt:         row.Profile.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
@@ -473,6 +466,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
+				DefaultLocale:     row.Profile_2.DefaultLocale,
 				Properties:        vars.ToObject(row.Profile_2.Properties),
 				CreatedAt:         row.Profile_2.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
@@ -495,7 +489,6 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 func (r *Repository) ListProfileMembers(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	profileID string,
 	kinds []string,
 	cursor *cursors.Cursor,
@@ -506,7 +499,6 @@ func (r *Repository) ListProfileMembers(
 		ctx,
 		ListProfileMembershipsParams{
 			LocaleCode:              localeCode,
-			FallbackLocaleCode:      fallbackLocaleCode,
 			FilterProfileID:         sql.NullString{String: profileID, Valid: true},
 			FilterProfileKind:       sql.NullString{String: "", Valid: false},
 			FilterMemberProfileID:   sql.NullString{String: "", Valid: false},
@@ -534,6 +526,7 @@ func (r *Repository) ListProfileMembers(
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
+				DefaultLocale:     row.Profile.DefaultLocale,
 				Properties:        vars.ToObject(row.Profile.Properties),
 				CreatedAt:         row.Profile.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
@@ -548,6 +541,7 @@ func (r *Repository) ListProfileMembers(
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
+				DefaultLocale:     row.Profile_2.DefaultLocale,
 				Properties:        vars.ToObject(row.Profile_2.Properties),
 				CreatedAt:         row.Profile_2.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
@@ -569,15 +563,13 @@ func (r *Repository) ListProfileMembers(
 func (r *Repository) GetProfileMembershipsByMemberProfileID(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	memberProfileID string,
 ) ([]*profiles.ProfileMembership, error) {
 	rows, err := r.queries.GetProfileMembershipsByMemberProfileID(
 		ctx,
 		GetProfileMembershipsByMemberProfileIDParams{
-			LocaleCode:         localeCode,
-			FallbackLocaleCode: fallbackLocaleCode,
-			MemberProfileID:    sql.NullString{String: memberProfileID, Valid: true},
+			LocaleCode:      localeCode,
+			MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
 		},
 	)
 	if err != nil {
@@ -601,6 +593,7 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
+				DefaultLocale:     row.Profile.DefaultLocale,
 				Properties:        vars.ToObject(row.Profile.Properties),
 				CreatedAt:         row.Profile.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
@@ -755,15 +748,13 @@ func (r *Repository) CreateProfileMembership(
 func (r *Repository) ListProfileMembershipsForSettings(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	profileID string,
 ) ([]*profiles.ProfileMembershipWithMember, error) {
 	rows, err := r.queries.ListProfileMembershipsForSettings(
 		ctx,
 		ListProfileMembershipsForSettingsParams{
-			LocaleCode:         localeCode,
-			FallbackLocaleCode: fallbackLocaleCode,
-			ProfileID:          profileID,
+			LocaleCode: localeCode,
+			ProfileID:  profileID,
 		},
 	)
 	if err != nil {
@@ -889,15 +880,13 @@ func (r *Repository) CountProfileOwners(
 func (r *Repository) SearchUsersForMembership(
 	ctx context.Context,
 	localeCode string,
-	fallbackLocaleCode string,
 	profileID string,
 	query string,
 ) ([]*profiles.UserSearchResult, error) {
 	rows, err := r.queries.SearchUsersForMembership(ctx, SearchUsersForMembershipParams{
-		LocaleCode:         localeCode,
-		FallbackLocaleCode: fallbackLocaleCode,
-		ProfileID:          profileID,
-		Query:              sql.NullString{String: query, Valid: true},
+		LocaleCode: localeCode,
+		ProfileID:  profileID,
+		Query:      sql.NullString{String: query, Valid: true},
 	})
 	if err != nil {
 		return nil, err

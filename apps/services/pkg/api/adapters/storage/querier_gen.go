@@ -658,17 +658,17 @@ type Querier interface {
 	GetPendingAwardsStatsByEventType(ctx context.Context) ([]*GetPendingAwardsStatsByEventTypeRow, error)
 	//GetProfileByID
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
 	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
-	//  WHERE p.id = $3
+	//  WHERE p.id = $2
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error)
@@ -692,17 +692,18 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
-	//    COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
-	//    COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
-	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
+	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
+	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
 	//    plt."group" as "group",
 	//    plt.description as description
 	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-	//      AND plt_en.locale_code = 'en'
+	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+	//      AND plt_def.locale_code = p.default_locale
 	//  WHERE pl.id = $2
 	//    AND pl.deleted_at IS NULL
 	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*GetProfileLinkRow, error)
@@ -767,7 +768,7 @@ type Querier interface {
 	//    pm.finished_at,
 	//    pm.properties as membership_properties,
 	//    pm.created_at as membership_created_at,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM
 	//    "profile_membership" pm
@@ -778,13 +779,13 @@ type Querier interface {
 	//      AND pt.locale_code = (
 	//        SELECT ptf.locale_code FROM "profile_tx" ptf
 	//        WHERE ptf.profile_id = p.id
-	//        AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+	//        AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
 	//        ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
 	//        LIMIT 1
 	//      )
 	//  WHERE
 	//    pm.deleted_at IS NULL
-	//    AND pm.member_profile_id = $3
+	//    AND pm.member_profile_id = $2
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	//  ORDER BY pm.created_at DESC
 	GetProfileMembershipsByMemberProfileID(ctx context.Context, arg GetProfileMembershipsByMemberProfileIDParams) ([]*GetProfileMembershipsByMemberProfileIDRow, error)
@@ -824,15 +825,16 @@ type Querier interface {
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 	//  FROM "profile_page" pp
+	//    INNER JOIN "profile" p ON p.id = pp.profile_id
 	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 	//    AND ppt.locale_code = (
 	//      SELECT pptf.locale_code FROM "profile_page_tx" pptf
 	//      WHERE pptf.profile_page_id = pp.id
-	//      AND (pptf.locale_code = $1 OR pptf.locale_code = $2)
+	//      AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
 	//      ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
-	//  WHERE pp.profile_id = $3 AND pp.slug = $4 AND pp.deleted_at IS NULL
+	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
 	GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetProfilePageByProfileIDAndSlugParams) (*GetProfilePageByProfileIDAndSlugRow, error)
 	//GetProfilePointTransactionByID
@@ -856,17 +858,17 @@ type Querier interface {
 	GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDParams) ([]*GetProfileTxByIDRow, error)
 	//GetProfilesByIDs
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
 	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
-	//  WHERE p.id = ANY($3::TEXT[])
+	//  WHERE p.id = ANY($2::TEXT[])
 	//    AND p.deleted_at IS NULL
 	GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsParams) ([]*GetProfilesByIDsRow, error)
 	//GetRuntimeState
@@ -939,7 +941,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1227,15 +1229,16 @@ type Querier interface {
 	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
-	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
-	//    COALESCE(plt."group", plt_en."group", '') as "group",
-	//    COALESCE(plt.description, plt_en.description, '') as description
+	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
+	//    COALESCE(plt."group", plt_def."group", '') as "group",
+	//    COALESCE(plt.description, plt_def.description, '') as description
 	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-	//      AND plt_en.locale_code = 'en'
+	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+	//      AND plt_def.locale_code = p.default_locale
 	//  WHERE pl.profile_id = $2
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
@@ -1282,15 +1285,16 @@ type Querier interface {
 	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
-	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
-	//    COALESCE(plt."group", plt_en."group", '') as "group",
-	//    COALESCE(plt.description, plt_en.description, '') as description
+	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
+	//    COALESCE(plt."group", plt_def."group", '') as "group",
+	//    COALESCE(plt.description, plt_def.description, '') as description
 	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-	//      AND plt_en.locale_code = 'en'
+	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+	//      AND plt_def.locale_code = p.default_locale
 	//  WHERE pl.profile_id = $2
 	//    AND pl.is_featured = TRUE
 	//    AND pl.deleted_at IS NULL
@@ -1336,17 +1340,18 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
-	//    COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
-	//    COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
-	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_en.icon, '') as icon,
+	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
+	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
+	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
 	//    plt."group" as "group",
 	//    plt.description as description
 	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-	//      AND plt_en.locale_code = 'en'
+	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+	//      AND plt_def.locale_code = p.default_locale
 	//  WHERE pl.profile_id = $2
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
@@ -1355,9 +1360,9 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
-	//    COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
-	//    COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
-	//    COALESCE(plt.title, plt_en.title, pl.kind) as title,
+	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
+	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
 	//    plt."group" as "group",
 	//    plt.description as description
 	//  FROM "profile_link" pl
@@ -1365,8 +1370,8 @@ type Querier interface {
 	//      AND p.deleted_at IS NULL
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-	//      AND plt_en.locale_code = 'en'
+	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+	//      AND plt_def.locale_code = p.default_locale
 	//  WHERE pl.kind = $2
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
@@ -1375,9 +1380,9 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links,
+	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links, p2.default_locale,
 	//    p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 	//  FROM
 	//  	"profile_membership" pm
@@ -1389,25 +1394,25 @@ type Querier interface {
 	//  	  AND p1t.locale_code = (
 	//        SELECT p1tf.locale_code FROM "profile_tx" p1tf
 	//        WHERE p1tf.profile_id = p1.id
-	//        AND (p1tf.locale_code = $2 OR p1tf.locale_code = $3)
+	//        AND (p1tf.locale_code = $2 OR p1tf.locale_code = p1.default_locale)
 	//        ORDER BY CASE WHEN p1tf.locale_code = $2 THEN 0 ELSE 1 END
 	//        LIMIT 1
 	//      )
 	//    INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
-	//      AND ($4::TEXT IS NULL OR p2.kind = ANY(string_to_array($4::TEXT, ',')))
+	//      AND ($3::TEXT IS NULL OR p2.kind = ANY(string_to_array($3::TEXT, ',')))
 	//      AND p2.approved_at IS NOT NULL
 	//      AND p2.deleted_at IS NULL
 	//    INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
 	//  	  AND p2t.locale_code = (
 	//        SELECT p2tf.locale_code FROM "profile_tx" p2tf
 	//        WHERE p2tf.profile_id = p2.id
-	//        AND (p2tf.locale_code = $2 OR p2tf.locale_code = $3)
+	//        AND (p2tf.locale_code = $2 OR p2tf.locale_code = p2.default_locale)
 	//        ORDER BY CASE WHEN p2tf.locale_code = $2 THEN 0 ELSE 1 END
 	//        LIMIT 1
 	//      )
 	//  WHERE pm.deleted_at IS NULL
-	//      AND ($5::TEXT IS NULL OR pm.profile_id = $5::TEXT)
-	//      AND ($6::TEXT IS NULL OR pm.member_profile_id = $6::TEXT)
+	//      AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
+	//      AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
 	ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error)
 	//ListProfileMembershipsForSettings
 	//
@@ -1421,7 +1426,7 @@ type Querier interface {
 	//    pm.finished_at,
 	//    pm.created_at,
 	//    pm.updated_at,
-	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links,
+	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links, mp.default_locale,
 	//    mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 	//  FROM "profile_membership" pm
 	//  INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -1430,11 +1435,11 @@ type Querier interface {
 	//    AND mpt.locale_code = (
 	//      SELECT mptf.locale_code FROM "profile_tx" mptf
 	//      WHERE mptf.profile_id = mp.id
-	//      AND (mptf.locale_code = $1 OR mptf.locale_code = $2)
+	//      AND (mptf.locale_code = $1 OR mptf.locale_code = mp.default_locale)
 	//      ORDER BY CASE WHEN mptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
-	//  WHERE pm.profile_id = $3
+	//  WHERE pm.profile_id = $2
 	//    AND pm.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	//  ORDER BY
@@ -1453,15 +1458,16 @@ type Querier interface {
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 	//  FROM "profile_page" pp
+	//    INNER JOIN "profile" p ON p.id = pp.profile_id
 	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 	//    AND ppt.locale_code = (
 	//      SELECT pptf.locale_code FROM "profile_page_tx" pptf
 	//      WHERE pptf.profile_page_id = pp.id
-	//      AND (pptf.locale_code = $1 OR pptf.locale_code = $2)
+	//      AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
 	//      ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
-	//  WHERE pp.profile_id = $3
+	//  WHERE pp.profile_id = $2
 	//    AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
 	ListProfilePagesByProfileID(ctx context.Context, arg ListProfilePagesByProfileIDParams) ([]*ListProfilePagesByProfileIDRow, error)
@@ -1475,17 +1481,17 @@ type Querier interface {
 	ListProfilePointTransactionsByProfileID(ctx context.Context, arg ListProfilePointTransactionsByProfileIDParams) ([]*ProfilePointTransaction, error)
 	//ListProfiles
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
 	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
-	//  WHERE ($3::TEXT IS NULL OR p.kind = ANY(string_to_array($3::TEXT, ',')))
+	//  WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
 	//    AND p.approved_at IS NOT NULL
 	//    AND p.deleted_at IS NULL
 	ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error)
@@ -1527,7 +1533,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1576,7 +1582,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1780,16 +1786,16 @@ type Querier interface {
 	//      AND pt.locale_code = (
 	//        SELECT ptf.locale_code FROM "profile_tx" ptf
 	//        WHERE ptf.profile_id = p.id
-	//        AND (ptf.locale_code = $1 OR ptf.locale_code = $3)
+	//        AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
 	//        ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
 	//        LIMIT 1
 	//      )
 	//  WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
 	//    AND pp.deleted_at IS NULL
 	//    AND p.approved_at IS NOT NULL
-	//    AND ($4::TEXT IS NULL OR p.slug = $4::TEXT)
+	//    AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 	//  ORDER BY rank DESC
-	//  LIMIT $5
+	//  LIMIT $4
 	SearchProfilePages(ctx context.Context, arg SearchProfilePagesParams) ([]*SearchProfilePagesRow, error)
 	//SearchProfiles
 	//
@@ -1852,7 +1858,7 @@ type Querier interface {
 	//    u.email,
 	//    u.name,
 	//    u.individual_profile_id,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "user" u
 	//  INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -1861,22 +1867,22 @@ type Querier interface {
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = $2)
+	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
 	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
 	//  WHERE u.deleted_at IS NULL
 	//    AND u.individual_profile_id IS NOT NULL
 	//    AND (
-	//      u.email ILIKE '%' || $3 || '%'
-	//      OR u.name ILIKE '%' || $3 || '%'
-	//      OR p.slug ILIKE '%' || $3 || '%'
-	//      OR pt.title ILIKE '%' || $3 || '%'
+	//      u.email ILIKE '%' || $2 || '%'
+	//      OR u.name ILIKE '%' || $2 || '%'
+	//      OR p.slug ILIKE '%' || $2 || '%'
+	//      OR pt.title ILIKE '%' || $2 || '%'
 	//    )
 	//    -- Exclude users already members of this profile
 	//    AND NOT EXISTS (
 	//      SELECT 1 FROM "profile_membership" pm
-	//      WHERE pm.profile_id = $4
+	//      WHERE pm.profile_id = $3
 	//        AND pm.member_profile_id = u.individual_profile_id
 	//        AND pm.deleted_at IS NULL
 	//        AND (pm.finished_at IS NULL OR pm.finished_at > NOW())

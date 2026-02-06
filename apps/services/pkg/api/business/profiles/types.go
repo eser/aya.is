@@ -74,6 +74,7 @@ type Profile struct {
 	Kind              string     `json:"kind"`
 	Title             string     `json:"title"`
 	Description       string     `json:"description"`
+	DefaultLocale     string     `json:"default_locale"`
 	Points            uint64     `json:"points"`
 	HasTranslation    bool       `json:"has_translation"`
 	HideRelations     bool       `json:"hide_relations"` // Hides Members/Contributions from sidebar

@@ -28,9 +28,6 @@ var (
 	ErrSearchFailed         = errors.New("search failed")
 )
 
-// FallbackLocaleCode is used when the requested locale translation is not available.
-const FallbackLocaleCode = "en"
-
 // SupportedLocaleCodes contains all locales supported by the platform.
 var SupportedLocaleCodes = map[string]bool{ //nolint:gochecknoglobals
 	"ar": true, "de": true, "en": true, "es": true,
@@ -178,26 +175,22 @@ type Repository interface { //nolint:interfacebloat
 	GetProfileByID(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		id string,
 	) (*Profile, error)
 	ListProfiles(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*Profile], error)
 	// ListProfileLinksForKind(ctx context.Context, kind string) ([]*ProfileLink, error)
 	ListProfilePagesByProfileID(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		profileID string,
 	) ([]*ProfilePageBrief, error)
 	GetProfilePageByProfileIDAndSlug(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		profileID string,
 		pageSlug string,
 	) (*ProfilePage, error)
@@ -214,7 +207,6 @@ type Repository interface { //nolint:interfacebloat
 	ListProfileContributions(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		profileID string,
 		kinds []string,
 		cursor *cursors.Cursor,
@@ -222,7 +214,6 @@ type Repository interface { //nolint:interfacebloat
 	ListProfileMembers(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		profileID string,
 		kinds []string,
 		cursor *cursors.Cursor,
@@ -230,7 +221,6 @@ type Repository interface { //nolint:interfacebloat
 	GetProfileMembershipsByMemberProfileID(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		memberProfileID string,
 	) ([]*ProfileMembership, error)
 	CreateProfile(
@@ -394,7 +384,6 @@ type Repository interface { //nolint:interfacebloat
 	Search(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		query string,
 		profileSlug *string,
 		limit int32,
@@ -453,7 +442,6 @@ type Repository interface { //nolint:interfacebloat
 	ListProfileMembershipsForSettings(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		profileID string,
 	) ([]*ProfileMembershipWithMember, error)
 	GetProfileMembershipByID(
@@ -481,7 +469,6 @@ type Repository interface { //nolint:interfacebloat
 	SearchUsersForMembership(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		profileID string,
 		query string,
 	) ([]*UserSearchResult, error)
@@ -582,14 +569,14 @@ func (s *Service) GetIdentifierByID(ctx context.Context, id string) (*ProfileBri
 }
 
 func (s *Service) GetByID(ctx context.Context, localeCode string, id string) (*Profile, error) {
-	record, err := s.repo.GetProfileByID(ctx, localeCode, FallbackLocaleCode, id)
+	record, err := s.repo.GetProfileByID(ctx, localeCode, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 	}
 
 	// Try fallback locale if primary locale has no translation
-	if record == nil && FallbackLocaleCode != localeCode {
-		record, err = s.repo.GetProfileByID(ctx, FallbackLocaleCode, FallbackLocaleCode, id)
+	if record == nil && localeCode != "en" {
+		record, err = s.repo.GetProfileByID(ctx, "en", id)
 		if err != nil {
 			return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 		}
@@ -604,7 +591,7 @@ func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string)
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
 
-	record, err := s.repo.GetProfileByID(ctx, localeCode, FallbackLocaleCode, profileID)
+	record, err := s.repo.GetProfileByID(ctx, localeCode, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
@@ -632,14 +619,14 @@ func (s *Service) GetBySlugExWithViewer(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
 
-	record, err := s.repo.GetProfileByID(ctx, localeCode, FallbackLocaleCode, profileID)
+	record, err := s.repo.GetProfileByID(ctx, localeCode, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
 
 	// Try fallback locale if primary locale has no translation
-	if record == nil && FallbackLocaleCode != localeCode {
-		record, err = s.repo.GetProfileByID(ctx, FallbackLocaleCode, FallbackLocaleCode, profileID)
+	if record == nil && localeCode != "en" {
+		record, err = s.repo.GetProfileByID(ctx, "en", profileID)
 		if err != nil {
 			return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 		}
@@ -649,17 +636,16 @@ func (s *Service) GetBySlugExWithViewer(
 		return nil, nil //nolint:nilnil
 	}
 
-	pages, err := s.repo.ListProfilePagesByProfileID(ctx, localeCode, FallbackLocaleCode, record.ID)
+	pages, err := s.repo.ListProfilePagesByProfileID(ctx, localeCode, record.ID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
 
 	// Try fallback locale for pages if none found
-	if len(pages) == 0 && FallbackLocaleCode != localeCode {
+	if len(pages) == 0 && localeCode != "en" {
 		pages, err = s.repo.ListProfilePagesByProfileID(
 			ctx,
-			FallbackLocaleCode,
-			FallbackLocaleCode,
+			"en",
 			record.ID,
 		)
 		if err != nil {
@@ -702,7 +688,6 @@ func (s *Service) GetByCustomDomain(
 	record, err := s.repo.GetProfileByID(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		customDomain.ProfileID,
 	)
 	if err != nil {
@@ -722,7 +707,7 @@ func (s *Service) List(
 	localeCode string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*Profile], error) {
-	records, err := s.repo.ListProfiles(ctx, localeCode, FallbackLocaleCode, cursor)
+	records, err := s.repo.ListProfiles(ctx, localeCode, cursor)
 	if err != nil {
 		return cursors.Cursored[[]*Profile]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
@@ -788,7 +773,7 @@ func (s *Service) ListPagesBySlug(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
 
-	pages, err := s.repo.ListProfilePagesByProfileID(ctx, localeCode, FallbackLocaleCode, profileID)
+	pages, err := s.repo.ListProfilePagesByProfileID(ctx, localeCode, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
@@ -810,7 +795,6 @@ func (s *Service) GetPageBySlug(
 	page, err := s.repo.GetProfilePageByProfileIDAndSlug(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 		pageSlug,
 	)
@@ -854,7 +838,6 @@ func (s *Service) CheckPageSlugAvailability(
 	page, err := s.repo.GetProfilePageByProfileIDAndSlug(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 		pageSlug,
 	)
@@ -936,7 +919,6 @@ func (s *Service) ListProfileContributionsBySlug(
 	memberships, err := s.repo.ListProfileContributions(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 		[]string{"organization", "product"},
 		cursor,
@@ -971,7 +953,6 @@ func (s *Service) ListProfileMembersBySlug(
 	memberships, err := s.repo.ListProfileMembers(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 		[]string{"organization", "individual"},
 		cursor,
@@ -1011,7 +992,6 @@ func (s *Service) GetMembershipsByUserProfileID(
 	memberships, err := s.repo.GetProfileMembershipsByMemberProfileID(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		userProfileID,
 	)
 	if err != nil {
@@ -1135,7 +1115,7 @@ func (s *Service) Create(
 	}
 
 	// Fetch and return the created profile
-	profile, err := s.repo.GetProfileByID(ctx, localeCode, FallbackLocaleCode, string(profileID))
+	profile, err := s.repo.GetProfileByID(ctx, localeCode, string(profileID))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
@@ -1314,7 +1294,7 @@ func (s *Service) Update(
 	}
 
 	// Return updated profile
-	profile, err := s.repo.GetProfileByID(ctx, localeCode, FallbackLocaleCode, profileID)
+	profile, err := s.repo.GetProfileByID(ctx, localeCode, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
@@ -1777,7 +1757,6 @@ func (s *Service) CreateProfilePage(
 	existingPages, err := s.repo.ListProfilePagesByProfileID(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 	)
 	if err != nil {
@@ -1820,7 +1799,6 @@ func (s *Service) CreateProfilePage(
 	fullPage, err := s.repo.GetProfilePageByProfileIDAndSlug(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 		slug,
 	)
@@ -2031,7 +2009,6 @@ func (s *Service) GetProfilePage(
 	fullPage, err := s.repo.GetProfilePageByProfileIDAndSlug(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 		page.Slug,
 	)
@@ -2064,7 +2041,7 @@ func (s *Service) Search(
 		return []*SearchResult{}, nil
 	}
 
-	results, err := s.repo.Search(ctx, localeCode, FallbackLocaleCode, query, profileSlug, limit)
+	results, err := s.repo.Search(ctx, localeCode, query, profileSlug, limit)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrSearchFailed, err)
 	}
@@ -2304,7 +2281,6 @@ func (s *Service) ListMembershipsForSettings(
 	memberships, err := s.repo.ListProfileMembershipsForSettings(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 	)
 	if err != nil {
@@ -2403,7 +2379,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 
 	// Check if trying to change to 'owner' on individual profile - not allowed
 	if newKind == "owner" {
-		profile, profileErr := s.repo.GetProfileByID(ctx, "en", "en", membership.ProfileID)
+		profile, profileErr := s.repo.GetProfileByID(ctx, "en", membership.ProfileID)
 		if profileErr != nil {
 			return fmt.Errorf(
 				"%w(profileID: %s): %w",
@@ -2482,7 +2458,7 @@ func (s *Service) DeleteMembership(
 		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
-	profile, err := s.repo.GetProfileByID(ctx, "en", "en", profileID)
+	profile, err := s.repo.GetProfileByID(ctx, "en", profileID)
 	if err != nil {
 		return fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
@@ -2543,7 +2519,6 @@ func (s *Service) SearchUsersForMembership(
 	results, err := s.repo.SearchUsersForMembership(
 		ctx,
 		localeCode,
-		FallbackLocaleCode,
 		profileID,
 		query,
 	)
@@ -2617,7 +2592,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	// Check if trying to add 'owner' to individual profile - not allowed
 	// Individual profiles have implicit ownership through user.individual_profile_id
 	if kind == "owner" {
-		profile, profileErr := s.repo.GetProfileByID(ctx, "en", "en", profileID)
+		profile, profileErr := s.repo.GetProfileByID(ctx, "en", profileID)
 		if profileErr != nil {
 			return fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, profileErr)
 		}

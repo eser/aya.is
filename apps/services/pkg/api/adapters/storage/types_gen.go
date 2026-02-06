@@ -70,6 +70,7 @@ type Profile struct {
 	Points            int32                 `db:"points" json:"points"`
 	HideRelations     bool                  `db:"hide_relations" json:"hide_relations"`
 	HideLinks         bool                  `db:"hide_links" json:"hide_links"`
+	DefaultLocale     string                `db:"default_locale" json:"default_locale"`
 }
 
 type ProfileCustomDomain struct {

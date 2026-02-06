@@ -172,7 +172,6 @@ type Repository interface {
 	GetProfileByID(
 		ctx context.Context,
 		localeCode string,
-		fallbackLocaleCode string,
 		id string,
 	) (*profiles.Profile, error)
 	GetStoryIDBySlug(ctx context.Context, slug string) (string, error)

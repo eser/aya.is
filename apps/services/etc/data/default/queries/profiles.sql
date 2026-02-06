@@ -60,7 +60,7 @@ FROM "profile" p
   AND pt.locale_code = (
     SELECT ptf.locale_code FROM "profile_tx" ptf
     WHERE ptf.profile_id = p.id
-    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
     ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -75,7 +75,7 @@ FROM "profile" p
   AND pt.locale_code = (
     SELECT ptf.locale_code FROM "profile_tx" ptf
     WHERE ptf.profile_id = p.id
-    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
     ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -94,7 +94,7 @@ FROM "profile" p
   AND pt.locale_code = (
     SELECT ptf.locale_code FROM "profile_tx" ptf
     WHERE ptf.profile_id = p.id
-    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
     ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -195,9 +195,9 @@ WHERE id = sqlc.arg(id)
 -- name: ListProfileLinksForKind :many
 SELECT
   pl.*,
-  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
-  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
-  COALESCE(plt.title, plt_en.title, pl.kind) as title,
+  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
+  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, plt_def.title, pl.kind) as title,
   plt."group" as "group",
   plt.description as description
 FROM "profile_link" pl
@@ -205,8 +205,8 @@ FROM "profile_link" pl
     AND p.deleted_at IS NULL
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
-  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-    AND plt_en.locale_code = 'en'
+  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+    AND plt_def.locale_code = p.default_locale
 WHERE pl.kind = sqlc.arg(kind)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
@@ -214,11 +214,12 @@ ORDER BY pl."order";
 -- name: ListProfilePagesByProfileID :many
 SELECT pp.*, ppt.*
 FROM "profile_page" pp
+  INNER JOIN "profile" p ON p.id = pp.profile_id
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
   AND ppt.locale_code = (
     SELECT pptf.locale_code FROM "profile_page_tx" pptf
     WHERE pptf.profile_page_id = pp.id
-    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = sqlc.arg(fallback_locale_code))
+    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = p.default_locale)
     ORDER BY CASE WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -229,11 +230,12 @@ ORDER BY pp."order";
 -- name: GetProfilePageByProfileIDAndSlug :one
 SELECT pp.*, ppt.*
 FROM "profile_page" pp
+  INNER JOIN "profile" p ON p.id = pp.profile_id
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
   AND ppt.locale_code = (
     SELECT pptf.locale_code FROM "profile_page_tx" pptf
     WHERE pptf.profile_page_id = pp.id
-    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = sqlc.arg(fallback_locale_code))
+    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = p.default_locale)
     ORDER BY CASE WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -334,17 +336,18 @@ WHERE id = sqlc.arg(id)
 -- name: ListProfileLinksByProfileID :many
 SELECT
   pl.*,
-  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
-  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
-  COALESCE(plt.title, plt_en.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_en.icon, '') as icon,
+  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
+  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, plt_def.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_def.icon, '') as icon,
   plt."group" as "group",
   plt.description as description
 FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
-  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-    AND plt_en.locale_code = 'en'
+  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+    AND plt_def.locale_code = p.default_locale
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
@@ -352,17 +355,18 @@ ORDER BY pl."order";
 -- name: GetProfileLink :one
 SELECT
   pl.*,
-  COALESCE(plt.profile_link_id, plt_en.profile_link_id, pl.id) as profile_link_id,
-  COALESCE(plt.locale_code, plt_en.locale_code, 'en') as locale_code,
-  COALESCE(plt.title, plt_en.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_en.icon, '') as icon,
+  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
+  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, plt_def.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_def.icon, '') as icon,
   plt."group" as "group",
   plt.description as description
 FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
-  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-    AND plt_en.locale_code = 'en'
+  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+    AND plt_def.locale_code = p.default_locale
 WHERE pl.id = sqlc.arg(id)
   AND pl.deleted_at IS NULL;
 
@@ -442,7 +446,7 @@ FROM
 	  AND p1t.locale_code = (
       SELECT p1tf.locale_code FROM "profile_tx" p1tf
       WHERE p1tf.profile_id = p1.id
-      AND (p1tf.locale_code = sqlc.arg(locale_code) OR p1tf.locale_code = sqlc.arg(fallback_locale_code))
+      AND (p1tf.locale_code = sqlc.arg(locale_code) OR p1tf.locale_code = p1.default_locale)
       ORDER BY CASE WHEN p1tf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
       LIMIT 1
     )
@@ -454,7 +458,7 @@ FROM
 	  AND p2t.locale_code = (
       SELECT p2tf.locale_code FROM "profile_tx" p2tf
       WHERE p2tf.profile_id = p2.id
-      AND (p2tf.locale_code = sqlc.arg(locale_code) OR p2tf.locale_code = sqlc.arg(fallback_locale_code))
+      AND (p2tf.locale_code = sqlc.arg(locale_code) OR p2tf.locale_code = p2.default_locale)
       ORDER BY CASE WHEN p2tf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
       LIMIT 1
     )
@@ -481,7 +485,7 @@ FROM
     AND pt.locale_code = (
       SELECT ptf.locale_code FROM "profile_tx" ptf
       WHERE ptf.profile_id = p.id
-      AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+      AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
       ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
       LIMIT 1
     )
@@ -529,7 +533,7 @@ FROM "profile_page" pp
     AND pt.locale_code = (
       SELECT ptf.locale_code FROM "profile_tx" ptf
       WHERE ptf.profile_id = p.id
-      AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+      AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
       ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
       LIMIT 1
     )
@@ -617,7 +621,7 @@ INNER JOIN "profile_tx" mpt ON mpt.profile_id = mp.id
   AND mpt.locale_code = (
     SELECT mptf.locale_code FROM "profile_tx" mptf
     WHERE mptf.profile_id = mp.id
-    AND (mptf.locale_code = sqlc.arg(locale_code) OR mptf.locale_code = sqlc.arg(fallback_locale_code))
+    AND (mptf.locale_code = sqlc.arg(locale_code) OR mptf.locale_code = mp.default_locale)
     ORDER BY CASE WHEN mptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -707,7 +711,7 @@ INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = (
     SELECT ptf.locale_code FROM "profile_tx" ptf
     WHERE ptf.profile_id = p.id
-    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = sqlc.arg(fallback_locale_code))
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
     ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -790,15 +794,16 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  COALESCE(plt.title, plt_en.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_en.icon, '') as icon,
-  COALESCE(plt."group", plt_en."group", '') as "group",
-  COALESCE(plt.description, plt_en.description, '') as description
+  COALESCE(plt.title, plt_def.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_def.icon, '') as icon,
+  COALESCE(plt."group", plt_def."group", '') as "group",
+  COALESCE(plt.description, plt_def.description, '') as description
 FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
-  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-    AND plt_en.locale_code = 'en'
+  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+    AND plt_def.locale_code = p.default_locale
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.is_featured = TRUE
   AND pl.deleted_at IS NULL
@@ -814,15 +819,16 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  COALESCE(plt.title, plt_en.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_en.icon, '') as icon,
-  COALESCE(plt."group", plt_en."group", '') as "group",
-  COALESCE(plt.description, plt_en.description, '') as description
+  COALESCE(plt.title, plt_def.title, pl.kind) as title,
+  COALESCE(plt.icon, plt_def.icon, '') as icon,
+  COALESCE(plt."group", plt_def."group", '') as "group",
+  COALESCE(plt.description, plt_def.description, '') as description
 FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
-  LEFT JOIN "profile_link_tx" plt_en ON plt_en.profile_link_id = pl.id
-    AND plt_en.locale_code = 'en'
+  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
+    AND plt_def.locale_code = p.default_locale
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";

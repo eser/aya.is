@@ -313,9 +313,8 @@ func (r *Repository) ListPendingAwards(
 
 	if len(profileIDs) > 0 {
 		profileRows, profileErr := r.queries.GetProfilesByIDs(ctx, GetProfilesByIDsParams{
-			LocaleCode:         "en",
-			FallbackLocaleCode: "en",
-			Ids:                profileIDs,
+			LocaleCode: "en",
+			Ids:        profileIDs,
 		})
 		if profileErr == nil {
 			for _, pr := range profileRows {
