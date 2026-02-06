@@ -80,8 +80,8 @@ function EditPagePage() {
     // Fetch page data for the selected translation locale
     setTranslationState(null);
     backend.getProfilePage(translationLocale, params.slug, params.pageslug).then((data) => {
-      if (data === null) {
-        // No translation exists for this locale — show empty fields
+      if (data === null || (data.locale_code !== undefined && data.locale_code !== translationLocale)) {
+        // No translation exists for this locale (or fallback was returned) — show empty fields
         setTranslationState({ locale: translationLocale, data: undefined });
       } else {
         setTranslationState({

@@ -102,6 +102,7 @@ type ProfilePage struct {
 	PublishedAt     *time.Time `json:"published_at"`
 	ID              string     `json:"id"`
 	Slug            string     `json:"slug"`
+	LocaleCode      string     `json:"locale_code"`
 	Title           string     `json:"title"`
 	Summary         string     `json:"summary"`
 	Content         string     `json:"content"`

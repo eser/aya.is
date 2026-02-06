@@ -67,6 +67,7 @@ export interface ProfileLink {
 export type ProfilePage = {
   id: string;
   slug: string;
+  locale_code?: string;
   title: string;
   summary: string;
   content: string;

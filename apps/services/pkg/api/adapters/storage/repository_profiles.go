@@ -363,6 +363,7 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 	result := &profiles.ProfilePage{
 		ID:              row.ID,
 		Slug:            row.Slug,
+		LocaleCode:      row.LocaleCode,
 		CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
 		Title:           row.Title,
 		Summary:         row.Summary,

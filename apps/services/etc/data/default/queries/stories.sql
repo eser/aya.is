@@ -229,7 +229,7 @@ WHERE s.id = sqlc.arg(story_id)
 LIMIT 1;
 
 -- name: ListStoriesOfPublication :many
--- Uses locale fallback: prefers the requested locale, falls back to any translation.
+-- Strict locale matching: only returns stories that have a translation for the requested locale.
 SELECT
   sqlc.embed(s),
   sqlc.embed(st),
@@ -238,12 +238,7 @@ SELECT
   pb.publications
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = (
-    SELECT stx.locale_code FROM "story_tx" stx
-    WHERE stx.story_id = s.id
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
-    LIMIT 1
-  )
+  AND st.locale_code = sqlc.arg(locale_code)
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
   AND p1.approved_at IS NOT NULL
   AND p1.deleted_at IS NULL
