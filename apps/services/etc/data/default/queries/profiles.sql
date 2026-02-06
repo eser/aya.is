@@ -91,8 +91,8 @@ WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc
   AND p.deleted_at IS NULL;
 
 -- name: CreateProfile :exec
-INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
-VALUES (sqlc.arg(id), sqlc.arg(slug), sqlc.arg(kind), sqlc.narg(profile_picture_uri), sqlc.narg(pronouns), sqlc.narg(properties));
+INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties, approved_at)
+VALUES (sqlc.arg(id), sqlc.arg(slug), sqlc.arg(kind), sqlc.narg(profile_picture_uri), sqlc.narg(pronouns), sqlc.narg(properties), NOW());
 
 -- name: CreateProfileTx :exec
 INSERT INTO "profile_tx" (profile_id, locale_code, title, description, properties)

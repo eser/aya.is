@@ -170,8 +170,8 @@ func (q *Queries) CreateCustomDomain(ctx context.Context, arg CreateCustomDomain
 }
 
 const createProfile = `-- name: CreateProfile :exec
-INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties, approved_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW())
 `
 
 type CreateProfileParams struct {
@@ -185,8 +185,8 @@ type CreateProfileParams struct {
 
 // CreateProfile
 //
-//	INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
-//	VALUES ($1, $2, $3, $4, $5, $6)
+//	INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties, approved_at)
+//	VALUES ($1, $2, $3, $4, $5, $6, NOW())
 func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) error {
 	_, err := q.db.ExecContext(ctx, createProfile,
 		arg.ID,

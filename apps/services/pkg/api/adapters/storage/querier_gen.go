@@ -244,8 +244,8 @@ type Querier interface {
 	CreatePendingAward(ctx context.Context, arg CreatePendingAwardParams) (*ProfilePointPendingAward, error)
 	//CreateProfile
 	//
-	//  INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties)
-	//  VALUES ($1, $2, $3, $4, $5, $6)
+	//  INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties, approved_at)
+	//  VALUES ($1, $2, $3, $4, $5, $6, NOW())
 	CreateProfile(ctx context.Context, arg CreateProfileParams) error
 	//CreateProfileLink
 	//
