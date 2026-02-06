@@ -1,6 +1,8 @@
-// Auth callback page - handles GitHub OAuth callback
+// Auth callback page - handles OAuth callback at a single locale-independent URL
+// OAuth providers require a single callback URL, so this lives at /auth/callback
+// After processing, redirects to the user's locale-specific page
 import * as React from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
@@ -12,8 +14,8 @@ type Status = "processing" | "error";
 
 export const Route = createFileRoute("/auth/callback")({
   validateSearch: (search: Record<string, unknown>) => ({
-    auth_token: (search.auth_token as string) ?? "",
-    code: (search.code as string) ?? "",
+    auth_token: (search.auth_token as string) ?? undefined,
+    code: (search.code as string) ?? undefined,
     state: (search.state as string) ?? undefined,
     redirect: (search.redirect as string) ?? undefined,
   }),
@@ -21,7 +23,6 @@ export const Route = createFileRoute("/auth/callback")({
 });
 
 function AuthCallbackPage() {
-  const navigate = useNavigate();
   const { auth_token, code, state, redirect } = Route.useSearch();
   const [status, setStatus] = React.useState<Status>("processing");
   const [errorMessage, setErrorMessage] = React.useState<string>("");
@@ -37,7 +38,7 @@ function AuthCallbackPage() {
     const processCallback = async () => {
       try {
         // Case 1: Backend returned auth_token directly (new flow)
-        if (auth_token !== "") {
+        if (auth_token !== undefined && auth_token !== "") {
           console.log("Auth callback processing with auth_token");
 
           // Parse JWT to get expiration
@@ -58,18 +59,17 @@ function AuthCallbackPage() {
             console.log("Authentication token stored successfully");
           }
 
-          // Redirect immediately to intended destination or home
+          // Redirect with full page load to locale-specific destination
           const destination = redirect !== undefined ? redirect : `/${localeCode}`;
-          navigate({ to: destination });
+          globalThis.location.href = destination;
           return;
         }
 
         // Case 2: Backend returned code to exchange (legacy flow)
-        if (code !== "") {
+        if (code !== undefined && code !== "") {
           console.log("Auth callback processing with code:", {
             code: code.substring(0, 10) + "...",
             state,
-            localeCode,
           });
 
           // Use backend function to handle the callback
@@ -96,9 +96,9 @@ function AuthCallbackPage() {
             console.log("Authentication data stored successfully");
           }
 
-          // Redirect immediately to intended destination or home
+          // Redirect with full page load to locale-specific destination
           const destination = redirect !== undefined ? redirect : `/${localeCode}`;
-          navigate({ to: destination });
+          globalThis.location.href = destination;
           return;
         }
 
@@ -108,8 +108,8 @@ function AuthCallbackPage() {
         console.error("Auth callback error:", {
           error,
           message: error instanceof Error ? error.message : "Unknown error",
-          auth_token: auth_token !== "" ? "present" : "missing",
-          code: code !== "" ? "present" : "missing",
+          auth_token: auth_token !== undefined && auth_token !== "" ? "present" : "missing",
+          code: code !== undefined && code !== "" ? "present" : "missing",
           currentUrl: typeof window !== "undefined" ? globalThis.location.href : "",
         });
         setStatus("error");
@@ -120,10 +120,10 @@ function AuthCallbackPage() {
     };
 
     processCallback();
-  }, [auth_token, code, state, redirect, localeCode, navigate]);
+  }, [auth_token, code, state, redirect, localeCode]);
 
   const handleReturnHome = () => {
-    navigate({ to: `/${localeCode}` });
+    globalThis.location.href = `/${localeCode}`;
   };
 
   // Only show UI if there's an error - otherwise we redirect immediately

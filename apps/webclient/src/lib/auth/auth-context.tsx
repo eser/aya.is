@@ -157,10 +157,10 @@ export function AuthProvider(props: AuthProviderProps) {
     const locale = getCurrentLanguage();
     const backendUri = getBackendUri();
 
-    // Build the callback URL - use locale-aware path with optional redirect
+    // Build the callback URL - single locale-independent path for OAuth
     const callbackUrl = typeof window !== "undefined"
-      ? `${globalThis.location.origin}/${locale}/auth/callback`
-      : `/${locale}/auth/callback`;
+      ? `${globalThis.location.origin}/auth/callback`
+      : `/auth/callback`;
 
     // If a redirectUri was provided, append it as a query param to the callback
     const finalCallbackUrl = redirectUri !== undefined

@@ -2,6 +2,7 @@ import process from "node:process";
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import type { RequestContext } from "@/request-context";
+import { predefinedSlugs } from "@/config";
 import { getDomainConfiguration } from "./server/domain-configurations";
 import { markdownMiddleware } from "./server/markdown-middleware";
 import { registerAllMarkdownHandlers } from "./server/markdown-handlers";
@@ -47,6 +48,8 @@ const customDomainMiddleware = createMiddleware()
         const locale = localeWithMd.slice(0, -3); // Remove .md suffix
         pathParts[0] = locale;
         pathParts.push(`${domainConfiguration.profileSlug}.md`);
+      } else if (predefinedSlugs.includes(pathParts[0])) {
+        // System route (e.g., /auth/callback) — no profile slug injection
       } else {
         // Standard case: insert profile slug after locale
         pathParts.splice(1, 0, domainConfiguration.profileSlug);

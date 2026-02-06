@@ -59,9 +59,8 @@ export async function getRouter() {
             pathParts.push(defaultLocale);
           }
 
-          // Skip profile slug injection for system routes (auth, api, etc.)
-          // These routes exist at /$locale/auth/* and shouldn't be nested under profile
-          if (predefinedSlugs.includes(pathParts[1])) {
+          // System routes (e.g., /auth/callback) are not profile-scoped
+          if (predefinedSlugs.includes(pathParts[0])) {
             return url;
           }
 
@@ -74,9 +73,8 @@ export async function getRouter() {
           // /tr/{profileSlug}/about -> /tr/about (always keeps locale)
           const pathParts = url.pathname.split("/").filter(Boolean);
 
-          // Skip profile slug injection for system routes (auth, api, etc.)
-          // These routes exist at /$locale/auth/* and shouldn't be nested under profile
-          if (predefinedSlugs.includes(pathParts[1])) {
+          // System routes are not profile-scoped
+          if (predefinedSlugs.includes(pathParts[0])) {
             return url;
           }
 

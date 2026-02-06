@@ -29,7 +29,6 @@ import { Route as LocaleStoriesNewRouteImport } from './routes/$locale/stories/n
 import { Route as LocaleProductsNewRouteImport } from './routes/$locale/products/new'
 import { Route as LocaleNewsNewRouteImport } from './routes/$locale/news/new'
 import { Route as LocaleElementsNewRouteImport } from './routes/$locale/elements/new'
-import { Route as LocaleAuthCallbackRouteImport } from './routes/$locale/auth/callback'
 import { Route as LocaleSlugMembersRouteImport } from './routes/$locale/$slug/members'
 import { Route as LocaleSlugLinksRouteImport } from './routes/$locale/$slug/links'
 import { Route as LocaleSlugContributionsRouteImport } from './routes/$locale/$slug/contributions'
@@ -160,11 +159,6 @@ const LocaleElementsNewRoute = LocaleElementsNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => LocaleElementsRouteRoute,
-} as any)
-const LocaleAuthCallbackRoute = LocaleAuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
-  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleSlugMembersRoute = LocaleSlugMembersRouteImport.update({
   id: '/members',
@@ -351,7 +345,6 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/links': typeof LocaleSlugLinksRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
-  '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
   '/$locale/elements/new': typeof LocaleElementsNewRoute
   '/$locale/news/new': typeof LocaleNewsNewRoute
   '/$locale/products/new': typeof LocaleProductsNewRoute
@@ -395,7 +388,6 @@ export interface FileRoutesByTo {
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/links': typeof LocaleSlugLinksRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
-  '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
   '/$locale/elements/new': typeof LocaleElementsNewRoute
   '/$locale/news/new': typeof LocaleNewsNewRoute
   '/$locale/products/new': typeof LocaleProductsNewRoute
@@ -447,7 +439,6 @@ export interface FileRoutesById {
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/links': typeof LocaleSlugLinksRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
-  '/$locale/auth/callback': typeof LocaleAuthCallbackRoute
   '/$locale/elements/new': typeof LocaleElementsNewRoute
   '/$locale/news/new': typeof LocaleNewsNewRoute
   '/$locale/products/new': typeof LocaleProductsNewRoute
@@ -502,7 +493,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/links'
     | '/$locale/$slug/members'
-    | '/$locale/auth/callback'
     | '/$locale/elements/new'
     | '/$locale/news/new'
     | '/$locale/products/new'
@@ -546,7 +536,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/links'
     | '/$locale/$slug/members'
-    | '/$locale/auth/callback'
     | '/$locale/elements/new'
     | '/$locale/news/new'
     | '/$locale/products/new'
@@ -597,7 +586,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/links'
     | '/$locale/$slug/members'
-    | '/$locale/auth/callback'
     | '/$locale/elements/new'
     | '/$locale/news/new'
     | '/$locale/products/new'
@@ -781,13 +769,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/elements/new'
       preLoaderRoute: typeof LocaleElementsNewRouteImport
       parentRoute: typeof LocaleElementsRouteRoute
-    }
-    '/$locale/auth/callback': {
-      id: '/$locale/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/$locale/auth/callback'
-      preLoaderRoute: typeof LocaleAuthCallbackRouteImport
-      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/$slug/members': {
       id: '/$locale/$slug/members'
@@ -1202,7 +1183,6 @@ interface LocaleRouteRouteChildren {
   LocaleElementsRouteRoute: typeof LocaleElementsRouteRouteWithChildren
   LocaleStoriesRouteRoute: typeof LocaleStoriesRouteRouteWithChildren
   LocaleIndexRoute: typeof LocaleIndexRoute
-  LocaleAuthCallbackRoute: typeof LocaleAuthCallbackRoute
   LocaleNewsNewRoute: typeof LocaleNewsNewRoute
   LocaleProductsNewRoute: typeof LocaleProductsNewRoute
   LocaleEventsIndexRoute: typeof LocaleEventsIndexRoute
@@ -1217,7 +1197,6 @@ const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
   LocaleElementsRouteRoute: LocaleElementsRouteRouteWithChildren,
   LocaleStoriesRouteRoute: LocaleStoriesRouteRouteWithChildren,
   LocaleIndexRoute: LocaleIndexRoute,
-  LocaleAuthCallbackRoute: LocaleAuthCallbackRoute,
   LocaleNewsNewRoute: LocaleNewsNewRoute,
   LocaleProductsNewRoute: LocaleProductsNewRoute,
   LocaleEventsIndexRoute: LocaleEventsIndexRoute,
