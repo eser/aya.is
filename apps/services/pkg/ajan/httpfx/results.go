@@ -41,12 +41,26 @@ func WithErrorMessage(message string) ResultOption {
 	return WithJSON(map[string]string{"error": message})
 }
 
+// discloseErrors controls whether real error messages are sent to clients.
+// Set via SetDiscloseErrors during startup based on config.
+var discloseErrors bool //nolint:gochecknoglobals
+
+// SetDiscloseErrors enables/disables real error message disclosure in HTTP responses.
+func SetDiscloseErrors(enabled bool) {
+	discloseErrors = enabled
+}
+
 // WithSanitizedError logs the full error server-side and returns a generic
 // error message to the client, preventing internal details from leaking.
+// When discloseErrors is enabled, the real error message is returned instead.
 func WithSanitizedError(err error) ResultOption {
 	slog.Error("request error",
 		slog.String("scope_name", "httpfx_results"),
 		slog.Any("error", err))
+
+	if discloseErrors {
+		return WithErrorMessage(err.Error())
+	}
 
 	return WithErrorMessage("an error occurred")
 }

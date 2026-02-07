@@ -19,7 +19,7 @@ type DataConfig struct {
 }
 
 type FeatureFlags struct {
-	Dummy bool `conf:"dummy" default:"false"` // dummy feature flag
+	DiscloseErrors bool `conf:"disclose_errors" default:"false"` // show real error messages in HTTP responses
 }
 
 type ExternalsConfig struct {

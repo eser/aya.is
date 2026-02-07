@@ -39,6 +39,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			appContext.Config.SiteURI,
 			&appContext.Config.HTTP,
 			appContext.Logger,
+			appContext.Config.Features.DiscloseErrors,
 			appContext.AuthService,
 			appContext.UserService,
 			appContext.ProfileService,

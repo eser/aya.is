@@ -26,6 +26,7 @@ func Run(
 	baseURI string,
 	config *httpfx.Config,
 	logger *logfx.Logger,
+	discloseErrors bool,
 	authService *auth.Service,
 	userService *users.Service,
 	profileService *profiles.Service,
@@ -37,6 +38,8 @@ func Run(
 	unsplashClient *unsplash.Client,
 	profileLinkProviders *ProfileLinkProviders,
 ) (func(), error) {
+	httpfx.SetDiscloseErrors(discloseErrors)
+
 	routes := httpfx.NewRouter("/")
 	httpService := httpfx.NewHTTPService(config, routes, logger)
 

@@ -686,6 +686,12 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 		} `json:"profile_tx"`
 	}
 
+	if !publications.Valid || len(publications.RawMessage) == 0 {
+		storyWithChildren.Publications = []*profiles.Profile{}
+
+		return storyWithChildren, nil
+	}
+
 	err := json.Unmarshal(publications.RawMessage, &publicationProfiles)
 	if err != nil {
 		r.logger.Error("failed to unmarshal publications", "error", err)
