@@ -13,6 +13,8 @@ import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import { cn } from "@/lib/utils";
 import { formatDateString } from "@/lib/date";
+import { stripMarkdown } from "@/lib/strip-markdown";
+import { InlineMarkdown } from "@/lib/inline-markdown";
 import type { Story as StoryType, StoryEx, StoryKind } from "@/modules/backend/types";
 import styles from "./story.module.css";
 
@@ -57,7 +59,7 @@ export function Story(props: StoryProps) {
             ? (
               <img
                 src={props.story.story_picture_uri}
-                alt={props.story.title ?? t("News.News item image")}
+                alt={stripMarkdown(props.story.title ?? t("News.News item image"))}
                 width={250}
                 height={150}
                 className={styles.image}
@@ -65,7 +67,7 @@ export function Story(props: StoryProps) {
             )
             : (
               <div className={styles.imagePlaceholder}>
-                {props.story.title ?? t("News.No image available")}
+                {stripMarkdown(props.story.title ?? t("News.No image available"))}
               </div>
             )}
           {props.story.author_profile !== null &&
@@ -81,8 +83,10 @@ export function Story(props: StoryProps) {
           )}
         </div>
         <div className={styles.contentArea}>
-          <h3 className={styles.title}>{props.story.title}</h3>
-          <p className={styles.summary}>{props.story.summary}</p>
+          <h3 className={styles.title}>{stripMarkdown(props.story.title ?? "")}</h3>
+          {props.story.summary !== null && props.story.summary !== undefined && (
+            <InlineMarkdown content={props.story.summary} className={styles.summary} />
+          )}
           <div className={styles.meta}>
             {props.story.created_at !== null && (
               <span className="flex items-center gap-1.5">

@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import { Badge } from "@/components/ui/badge";
+import { stripMarkdown } from "@/lib/strip-markdown";
+import { InlineMarkdown } from "@/lib/inline-markdown";
 import type { Profile } from "@/modules/backend/types";
 import styles from "./profile-card.module.css";
 
@@ -40,9 +42,9 @@ export function ProfileCard(props: ProfileCardProps) {
             )}
           </div>
           <div className={styles.coverInfo}>
-            <h3 className={styles.title}>{profile.title}</h3>
+            <h3 className={styles.title}>{stripMarkdown(profile.title ?? "")}</h3>
             {profile.description !== null && profile.description !== undefined && (
-              <p className={styles.description}>{profile.description}</p>
+              <InlineMarkdown content={profile.description} className={styles.description} />
             )}
           </div>
         </div>
@@ -66,10 +68,11 @@ export function ProfileCard(props: ProfileCardProps) {
           />
         </div>
         <div className={styles.info}>
-          <h3 className={styles.title}>{profile.title}</h3>
+          <h3 className={styles.title}>{stripMarkdown(profile.title ?? "")}</h3>
           {profile.description !== null &&
-            profile.description !== undefined && <p className={styles.description}>{profile.description}
-          </p>}
+            profile.description !== undefined && (
+              <InlineMarkdown content={profile.description} className={styles.description} />
+          )}
         </div>
       </div>
     </LocaleLink>
