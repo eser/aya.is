@@ -674,6 +674,7 @@
     "An error occurred": "发生错误",
     "Access Denied": "拒绝访问",
     "You don't have permission to generate covers for this story.": "您没有权限为此文章生成封面。",
-    "Back to Story": "返回文章"
+    "Back to Story": "返回文章",
+    "Save content first to enable cover designer": "请先保存内容以启用封面设计器"
   }
 }

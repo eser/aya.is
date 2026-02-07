@@ -674,6 +674,7 @@
     "An error occurred": "Er is een fout opgetreden",
     "Access Denied": "Toegang geweigerd",
     "You don't have permission to generate covers for this story.": "Je hebt geen toestemming om covers te genereren voor dit verhaal.",
-    "Back to Story": "Terug naar verhaal"
+    "Back to Story": "Terug naar verhaal",
+    "Save content first to enable cover designer": "Sla de inhoud eerst op om de coverontwerper in te schakelen"
   }
 }

@@ -674,6 +674,7 @@
     "An error occurred": "Si è verificato un errore",
     "Access Denied": "Accesso negato",
     "You don't have permission to generate covers for this story.": "Non hai il permesso di generare copertine per questa storia.",
-    "Back to Story": "Torna alla storia"
+    "Back to Story": "Torna alla storia",
+    "Save content first to enable cover designer": "Salva prima il contenuto per abilitare il designer di copertina"
   }
 }

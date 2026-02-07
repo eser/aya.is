@@ -674,6 +674,7 @@
     "An error occurred": "エラーが発生しました",
     "Access Denied": "アクセス拒否",
     "You don't have permission to generate covers for this story.": "この記事のカバーを生成する権限がありません。",
-    "Back to Story": "記事に戻る"
+    "Back to Story": "記事に戻る",
+    "Save content first to enable cover designer": "カバーデザイナーを有効にするには、まずコンテンツを保存してください"
   }
 }

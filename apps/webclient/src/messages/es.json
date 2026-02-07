@@ -674,6 +674,7 @@
     "An error occurred": "Ocurrió un error",
     "Access Denied": "Acceso denegado",
     "You don't have permission to generate covers for this story.": "No tienes permiso para generar portadas para esta historia.",
-    "Back to Story": "Volver a la historia"
+    "Back to Story": "Volver a la historia",
+    "Save content first to enable cover designer": "Guarde el contenido primero para habilitar el diseñador de portada"
   }
 }

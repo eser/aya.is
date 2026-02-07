@@ -674,6 +674,7 @@
     "An error occurred": "Ein Fehler ist aufgetreten",
     "Access Denied": "Zugriff verweigert",
     "You don't have permission to generate covers for this story.": "Sie haben keine Berechtigung, Cover für diese Story zu erstellen.",
-    "Back to Story": "Zurück zur Story"
+    "Back to Story": "Zurück zur Story",
+    "Save content first to enable cover designer": "Speichern Sie den Inhalt zuerst, um den Cover-Designer zu aktivieren"
   }
 }

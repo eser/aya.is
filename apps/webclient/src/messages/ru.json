@@ -674,6 +674,7 @@
     "An error occurred": "Произошла ошибка",
     "Access Denied": "Доступ запрещён",
     "You don't have permission to generate covers for this story.": "У вас нет разрешения на создание обложек для этой статьи.",
-    "Back to Story": "Вернуться к статье"
+    "Back to Story": "Вернуться к статье",
+    "Save content first to enable cover designer": "Сначала сохраните контент, чтобы включить дизайнер обложки"
   }
 }

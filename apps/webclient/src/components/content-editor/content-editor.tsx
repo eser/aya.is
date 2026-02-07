@@ -20,7 +20,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import type { StoryKind, StoryPublication } from "@/modules/backend/types";
@@ -500,12 +500,14 @@ export function ContentEditor(props: ContentEditorProps) {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        handleSave();
+        if (!isSaving && hasChanges) {
+          handleSave();
+        }
       }
     };
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
-  }, [handleSave]);
+  }, [handleSave, isSaving, hasChanges]);
 
   return (
     <div className={styles.editorContainer}>
@@ -743,10 +745,14 @@ export function ContentEditor(props: ContentEditorProps) {
                   >
                     <Upload className="size-4" />
                   </Button>
-                  {contentType === "story" && !isNew && initialData.slug !== "" && (
+                  {!isNew && initialData.slug !== "" ? (
                     <Link
-                      to="/$locale/stories/$storyslug/cover"
-                      params={{ locale, storyslug: initialData.slug }}
+                      to={contentType === "story"
+                        ? "/$locale/stories/$storyslug/cover"
+                        : "/$locale/$slug/$pageslug/cover"}
+                      params={contentType === "story"
+                        ? { locale, storyslug: initialData.slug }
+                        : { locale, slug: profileSlug, pageslug: initialData.slug }}
                     >
                       <Button
                         type="button"
@@ -757,8 +763,23 @@ export function ContentEditor(props: ContentEditorProps) {
                         <ImagePlus className="size-4" />
                       </Button>
                     </Link>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled
+                      title={t("CoverDesigner.Save content first to enable cover designer")}
+                    >
+                      <ImagePlus className="size-4" />
+                    </Button>
                   )}
                 </div>
+                {isNew && (
+                  <FieldDescription>
+                    {t("CoverDesigner.Save content first to enable cover designer")}
+                  </FieldDescription>
+                )}
                 {storyPictureUriError !== null && <FieldError>{storyPictureUriError}</FieldError>}
                 {storyPictureUri !== null && storyPictureUri !== "" && storyPictureUriError === null && (
                   <img

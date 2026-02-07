@@ -674,6 +674,7 @@
     "An error occurred": "오류가 발생했습니다",
     "Access Denied": "접근 거부",
     "You don't have permission to generate covers for this story.": "이 스토리의 커버를 생성할 권한이 없습니다.",
-    "Back to Story": "스토리로 돌아가기"
+    "Back to Story": "스토리로 돌아가기",
+    "Save content first to enable cover designer": "커버 디자이너를 활성화하려면 먼저 콘텐츠를 저장하세요"
   }
 }

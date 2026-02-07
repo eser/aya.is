@@ -674,6 +674,7 @@
     "An error occurred": "Bir hata oluştu",
     "Access Denied": "Erişim Engellendi",
     "You don't have permission to generate covers for this story.": "Bu hikaye için kapak oluşturma izniniz yok.",
-    "Back to Story": "Hikayeye Dön"
+    "Back to Story": "Hikayeye Dön",
+    "Save content first to enable cover designer": "Kapak tasarımcısını etkinleştirmek için önce içeriği kaydedin"
   }
 }

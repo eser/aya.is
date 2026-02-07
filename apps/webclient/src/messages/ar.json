@@ -674,6 +674,7 @@
     "An error occurred": "حدث خطأ",
     "Access Denied": "تم رفض الوصول",
     "You don't have permission to generate covers for this story.": "ليس لديك صلاحية لإنشاء أغلفة لهذه القصة.",
-    "Back to Story": "العودة للقصة"
+    "Back to Story": "العودة للقصة",
+    "Save content first to enable cover designer": "احفظ المحتوى أولاً لتفعيل مصمم الغلاف"
   }
 }
