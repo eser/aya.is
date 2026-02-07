@@ -27,7 +27,7 @@ function ProfileIndexPage() {
   const { t } = useTranslation();
   const { stories, slug, locale } = Route.useLoaderData();
   const { profile } = parentRoute.useLoaderData();
-  const { canEdit } = useProfilePermissions(locale, slug);
+  const { canEdit } = useProfilePermissions(profile?.id ?? "");
 
   if (profile === null) {
     return null;

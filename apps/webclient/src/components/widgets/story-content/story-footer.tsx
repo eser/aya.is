@@ -1,14 +1,16 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { SiteAvatar } from "@/components/userland";
 import type { StoryEx } from "@/modules/backend/types";
 
 export type StoryFooterProps = {
   story: StoryEx;
+  showPublications?: boolean;
 };
 
 export function StoryFooter(props: StoryFooterProps) {
   const { t } = useTranslation();
+  const { locale } = useParams({ strict: false });
 
   if (
     props.story.author_profile === null ||
@@ -38,7 +40,7 @@ export function StoryFooter(props: StoryFooterProps) {
             {t("Stories.Written by")}
           </div>
           <div className="text-lg font-semibold text-foreground">
-            <Link to={`/${props.story.author_profile.slug}`}>
+            <Link to={`/${locale}/${props.story.author_profile.slug}`}>
               {props.story.author_profile.title}
             </Link>
           </div>
@@ -48,7 +50,7 @@ export function StoryFooter(props: StoryFooterProps) {
         </div>
       </div>
 
-      {filteredPublications.length > 0 && (
+      {props.showPublications !== false && filteredPublications.length > 0 && (
         <div className="w-2/6 flex flex-col">
           <div className="text-sm text-muted-foreground">
             {t("Stories.Publications")}
@@ -56,7 +58,7 @@ export function StoryFooter(props: StoryFooterProps) {
           <div className="flex flex-row gap-2 flex-wrap">
             {filteredPublications.map((publication) => (
               <div key={publication.id} className="text-sm text-foreground">
-                <Link to={`/${publication.slug}`}>{publication.title}</Link>
+                <Link to={`/${locale}/${publication.slug}`}>{publication.title}</Link>
               </div>
             ))}
           </div>

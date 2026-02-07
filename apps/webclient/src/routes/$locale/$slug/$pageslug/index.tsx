@@ -67,7 +67,7 @@ function ProfileCustomPage() {
   const params = Route.useParams();
   const loaderData = Route.useLoaderData();
   const { profile } = profileRoute.useLoaderData();
-  const { canEdit } = useProfilePermissions(params.locale, params.slug);
+  const { canEdit } = useProfilePermissions(profile?.id ?? "");
 
   // If notFound flag is set, render 404 page
   if (loaderData.notFound || loaderData.page === null || profile === null) {

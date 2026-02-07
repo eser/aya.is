@@ -26,7 +26,6 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
         compiledContent = await compileMdx(story.content);
       } catch (error) {
         console.error("Failed to compile MDX:", error);
-        // Fall back to raw content (will be rendered as HTML)
         compiledContent = null;
       }
     }

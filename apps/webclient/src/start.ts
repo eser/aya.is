@@ -60,6 +60,7 @@ const customDomainMiddleware = createMiddleware()
       domainConfiguration: domainConfiguration,
       path: pathParts,
       originalPath: originalPathParts,
+      cookieHeader: request.headers.get("cookie") ?? undefined,
     };
 
     const { requestContextBinder } = await import("./server/request-context-binder");

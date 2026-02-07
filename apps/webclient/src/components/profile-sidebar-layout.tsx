@@ -57,7 +57,7 @@ type ProfileSidebarProps = {
 
 function ProfileSidebar(props: ProfileSidebarProps) {
   const { t } = useTranslation();
-  const { canEdit } = useProfilePermissions(props.locale, props.slug);
+  const { canEdit } = useProfilePermissions(props.profile.id);
 
   return (
     <aside className="flex flex-col gap-4">

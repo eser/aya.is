@@ -229,6 +229,22 @@ async function fetcherInternal<T>(
     headers["Authorization"] = `Bearer ${authToken}`;
   }
 
+  // During SSR, forward the incoming request's cookies to backend API calls.
+  // This allows session-cookie-based auth to work during server-side rendering.
+  if (!isLocalStorageAvailable()) {
+    try {
+      const { requestContextBinder } = await import(
+        "@/server/request-context-binder"
+      );
+      const ctx = requestContextBinder.getStore();
+      if (ctx !== undefined && ctx.cookieHeader !== undefined) {
+        (headers as Record<string, string>)["Cookie"] = ctx.cookieHeader;
+      }
+    } catch {
+      // Client bundle or no request context available — skip
+    }
+  }
+
   const isAuthenticated = authToken !== null;
   const fetchOptions = buildFetchOptions(requestInit, headers, isAuthenticated);
   const response = await fetch(targetUrl, fetchOptions);

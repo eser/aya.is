@@ -80,7 +80,6 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			// Authenticated session - generate fresh JWT and include user data
 			tokenString, expiresAt, err := authService.GenerateSessionToken(
 				session.ID,
-				*session.LoggedInUserID,
 			)
 			if err != nil {
 				logger.ErrorContext(ctx.Request.Context(), "Failed to generate session token",

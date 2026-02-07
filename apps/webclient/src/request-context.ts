@@ -18,4 +18,5 @@ export type RequestContext = {
   domainConfiguration: DomainConfiguration;
   path: string[];
   originalPath: string[];
+  cookieHeader?: string;
 };

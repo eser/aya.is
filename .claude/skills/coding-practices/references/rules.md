@@ -537,6 +537,53 @@ const result = value || defaultValue;  // Fails if value is 0 or ""
 
 ---
 
+## Identity Comparison
+
+Scope: All languages
+
+Rule: Always compare entities by their stable unique identifiers (IDs), never by
+display strings like slugs, usernames, emails, or titles. Strings are mutable,
+can be duplicated, and may have formatting differences (whitespace, casing).
+IDs are immutable and guaranteed unique.
+
+Correct:
+
+```typescript
+// Compare by ID — stable and unambiguous
+const isAuthorProfile = story.author_profile?.id === profile.id;
+const isSameUser = comment.user_id === currentUser.id;
+const isOwnProfile = membership.profile_id === userProfile.id;
+```
+
+```go
+// Go — same principle
+if story.AuthorProfileID == profile.ID {
+    // author's own profile
+}
+```
+
+Incorrect:
+
+```typescript
+// ❌ Comparing by slug — can change, may have formatting issues
+const isAuthorProfile = story.author_profile?.slug === slug;
+
+// ❌ Comparing by username — can change, case-sensitive issues
+const isSameUser = comment.username === currentUser.username;
+
+// ❌ Comparing by email — can change, normalization issues
+const isOwner = member.email === user.email;
+```
+
+**Why This Matters:**
+
+- Slugs, usernames, and emails can be renamed or reformatted
+- String comparisons are vulnerable to whitespace, casing, and encoding issues
+- IDs are immutable, unique, and indexed for performance
+- Using IDs makes refactoring safer — renaming a slug won't break logic
+
+---
+
 ## Early Returns
 
 Scope: All languages

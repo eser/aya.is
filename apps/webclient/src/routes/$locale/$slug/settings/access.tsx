@@ -91,7 +91,7 @@ function AccessSettingsPage() {
 
   // Determine the viewing user's role for this profile
   const isAdmin = user?.kind === "admin";
-  const viewerMembership = user?.accessible_profiles?.find((p) => p.slug === params.slug);
+  const viewerMembership = user?.accessible_profiles?.find((p) => p.id === profile?.id);
   const isViewerOwner = isAdmin || viewerMembership?.membership_kind === "owner";
 
   // For individual profiles, 'owner' is implicit - don't allow adding it

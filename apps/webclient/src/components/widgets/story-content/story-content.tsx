@@ -8,6 +8,7 @@ export type StoryContentProps = {
   compiledContent: string | null;
   currentUrl: string;
   showAuthor?: boolean;
+  showPublications?: boolean;
   showShare?: boolean;
   headingOffset?: number;
   editUrl?: string;
@@ -22,6 +23,7 @@ export function StoryContent(props: StoryContentProps) {
     compiledContent,
     currentUrl,
     showAuthor = true,
+    showPublications,
     showShare = true,
     headingOffset = 1,
     editUrl,
@@ -51,7 +53,7 @@ export function StoryContent(props: StoryContentProps) {
         headingOffset={headingOffset}
       />
 
-      {showAuthor && <StoryFooter story={story} />}
+      {showAuthor && <StoryFooter story={story} showPublications={showPublications} />}
     </article>
   );
 }

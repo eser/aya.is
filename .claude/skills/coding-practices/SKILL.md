@@ -20,6 +20,7 @@ function createUser(email: string, age: number): User {
 
 ## Key Principles
 
+- Compare entities by IDs, never by slugs/usernames/strings
 - Use meaningful names (self-documenting code)
 - Comments explain "why", not "what"
 - DRY: abstract when used 3+ times

@@ -86,7 +86,6 @@ type AuthResult struct {
 }
 
 type JWTClaims struct {
-	UserID    string
 	SessionID string
 	ExpiresAt int64
 }

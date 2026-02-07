@@ -43,17 +43,15 @@ func (j *JWTTokenService) ParseToken(tokenStr string) (*auth.JWTClaims, error) {
 		return nil, auth.ErrInvalidToken
 	}
 
-	// Extract claims
-	userID, _ := claims["user_id"].(string)
+	// Extract claims — session_id is the only required field
 	sessionID, _ := claims["session_id"].(string)
 	exp, _ := claims["exp"].(float64)
 
-	if userID == "" || sessionID == "" {
+	if sessionID == "" {
 		return nil, auth.ErrInvalidToken
 	}
 
 	return &auth.JWTClaims{
-		UserID:    userID,
 		SessionID: sessionID,
 		ExpiresAt: int64(exp),
 	}, nil
@@ -66,7 +64,6 @@ func (j *JWTTokenService) GenerateToken(claims *auth.JWTClaims) (string, error) 
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":    claims.UserID,
 		"session_id": claims.SessionID,
 		"exp":        claims.ExpiresAt,
 	})

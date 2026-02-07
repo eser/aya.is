@@ -88,13 +88,18 @@ function ProfileStoryPage() {
 
   const editUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/edit` : undefined;
 
+  // Show author info when viewing from a different profile (e.g. a publication),
+  // but not when viewing from the author's own profile.
+  const isAuthorProfile = story.author_profile?.id === profile.id;
+
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
       <StoryContent
         story={story}
         compiledContent={compiledContent}
         currentUrl={currentUrl}
-        showAuthor={false}
+        showAuthor={!isAuthorProfile}
+        showPublications={false}
         headingOffset={2}
         editUrl={editUrl}
       />

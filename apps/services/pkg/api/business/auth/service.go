@@ -202,15 +202,13 @@ func (s *Service) AuthHandleCallback(
 		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
 	}
 
-	// Generate JWT
+	// Generate JWT — only session_id is stored; user is derived from session
 	claims := &JWTClaims{
-		UserID:    user.ID,
 		SessionID: session.ID,
 		ExpiresAt: expiresAt.Unix(),
 	}
 
 	s.logger.DebugContext(ctx, "Generating JWT token",
-		slog.String("user_id", user.ID),
 		slog.String("session_id", session.ID))
 
 	tokenString, err := s.tokenService.GenerateToken(claims)
@@ -253,14 +251,13 @@ func (s *Service) AuthHandleCallback(
 	return authResult, nil
 }
 
-// GenerateSessionToken creates a new JWT token for a given session and user.
+// GenerateSessionToken creates a new JWT token for a given session.
 // Used for cookie-based session check.
-func (s *Service) GenerateSessionToken(sessionID, userID string) (string, time.Time, error) {
+func (s *Service) GenerateSessionToken(sessionID string) (string, time.Time, error) {
 	now := time.Now()
 	expiresAt := now.Add(s.Config.TokenTTL)
 
 	claims := &JWTClaims{
-		UserID:    userID,
 		SessionID: sessionID,
 		ExpiresAt: expiresAt.Unix(),
 	}
@@ -289,7 +286,6 @@ func (s *Service) RefreshToken( //nolint:funlen
 	}
 
 	s.logger.DebugContext(ctx, "JWT token parsed successfully",
-		slog.String("user_id", claims.UserID),
 		slog.String("session_id", claims.SessionID))
 
 	// Verify session is still active
@@ -302,11 +298,15 @@ func (s *Service) RefreshToken( //nolint:funlen
 		return nil, ErrSessionExpired
 	}
 
-	// Get user details
-	user, err := s.userService.GetByID(ctx, claims.UserID)
+	if session.LoggedInUserID == nil {
+		return nil, ErrSessionExpired
+	}
+
+	// Get user details from session
+	user, err := s.userService.GetByID(ctx, *session.LoggedInUserID)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "Failed to get user for token refresh",
-			slog.String("user_id", claims.UserID),
+			slog.String("user_id", *session.LoggedInUserID),
 			slog.String("error", err.Error()))
 
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUser, err)
@@ -317,7 +317,6 @@ func (s *Service) RefreshToken( //nolint:funlen
 	expiresAt := now.Add(s.Config.TokenTTL)
 
 	newClaims := &JWTClaims{
-		UserID:    claims.UserID,
 		SessionID: claims.SessionID,
 		ExpiresAt: expiresAt.Unix(),
 	}
@@ -325,7 +324,7 @@ func (s *Service) RefreshToken( //nolint:funlen
 	tokenString, err := s.tokenService.GenerateToken(newClaims)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "Failed to generate new JWT token",
-			slog.String("user_id", claims.UserID),
+			slog.String("session_id", claims.SessionID),
 			slog.String("error", err.Error()))
 
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGenerateToken, err)
@@ -341,7 +340,6 @@ func (s *Service) RefreshToken( //nolint:funlen
 	}
 
 	s.logger.DebugContext(ctx, "JWT token refreshed successfully",
-		slog.String("user_id", claims.UserID),
 		slog.String("session_id", claims.SessionID))
 
 	return &AuthResult{
