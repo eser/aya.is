@@ -83,6 +83,78 @@ function getInitials(name: string | null | undefined, slug: string): string {
   return slug.slice(0, 2).toUpperCase();
 }
 
+type MemberCardProps = {
+  pictureUri?: string | null;
+  title?: string | null;
+  slug: string;
+  fallbackName?: string | null;
+  avatarSize?: string;
+};
+
+function MemberCard(props: MemberCardProps) {
+  return (
+    <div className={styles.selectedUser}>
+      <Avatar className={props.avatarSize ?? "size-8"}>
+        <AvatarImage
+          src={props.pictureUri ?? undefined}
+          alt={props.title ?? ""}
+        />
+        <AvatarFallback>
+          {getInitials(props.title, props.slug)}
+        </AvatarFallback>
+      </Avatar>
+      <div className={styles.searchResultInfo}>
+        <p className={styles.searchResultName}>
+          {props.title ?? props.fallbackName ?? props.slug}
+        </p>
+        <p className={styles.searchResultSlug}>
+          @{props.slug}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+type MembershipKindSelectProps = {
+  value: MembershipKind;
+  onChange: (value: MembershipKind) => void;
+  kinds: MembershipKindConfig[];
+};
+
+function MembershipKindSelect(props: MembershipKindSelectProps) {
+  const { t } = useTranslation();
+
+  return (
+    <Select value={props.value} onValueChange={(v) => props.onChange(v as MembershipKind)}>
+      <SelectTrigger>
+        {(() => {
+          const config = getMembershipKindConfig(props.value);
+          const Icon = config.icon;
+          return (
+            <div className={styles.kindOption}>
+              <Icon className={`size-4 ${config.color}`} />
+              <span>{t(config.labelKey)}</span>
+            </div>
+          );
+        })()}
+      </SelectTrigger>
+      <SelectContent>
+        {props.kinds.map((mk) => {
+          const Icon = mk.icon;
+          return (
+            <SelectItem key={mk.kind} value={mk.kind}>
+              <div className={styles.kindOption}>
+                <Icon className={`size-4 ${mk.color}`} />
+                <span>{t(mk.labelKey)}</span>
+              </div>
+            </SelectItem>
+          );
+        })}
+      </SelectContent>
+    </Select>
+  );
+}
+
 function AccessSettingsPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
@@ -432,57 +504,22 @@ function AccessSettingsPage() {
               )}
 
               {selectedUser !== null && (
-                <div className={styles.selectedUser}>
-                  <Avatar className="size-8">
-                    <AvatarImage
-                      src={selectedUser.profile?.profile_picture_uri ?? undefined}
-                      alt={selectedUser.profile?.title ?? ""}
-                    />
-                    <AvatarFallback>
-                      {getInitials(selectedUser.profile?.title, selectedUser.profile?.slug ?? "")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className={styles.searchResultInfo}>
-                    <p className={styles.searchResultName}>
-                      {selectedUser.profile?.title ?? selectedUser.name ?? selectedUser.email}
-                    </p>
-                    <p className={styles.searchResultSlug}>
-                      @{selectedUser.profile?.slug}
-                    </p>
-                  </div>
-                </div>
+                <MemberCard
+                  pictureUri={selectedUser.profile?.profile_picture_uri}
+                  title={selectedUser.profile?.title}
+                  slug={selectedUser.profile?.slug ?? ""}
+                  fallbackName={selectedUser.name ?? selectedUser.email}
+                />
               )}
             </div>
 
             <div className={styles.kindField}>
               <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
-              <Select value={selectedKind} onValueChange={(value) => setSelectedKind(value as MembershipKind)}>
-                <SelectTrigger>
-                  {(() => {
-                    const config = getMembershipKindConfig(selectedKind);
-                    const Icon = config.icon;
-                    return (
-                      <div className={styles.kindOption}>
-                        <Icon className={`size-4 ${config.color}`} />
-                        <span>{t(config.labelKey)}</span>
-                      </div>
-                    );
-                  })()}
-                </SelectTrigger>
-                <SelectContent>
-                  {availableKinds.map((mk) => {
-                    const Icon = mk.icon;
-                    return (
-                      <SelectItem key={mk.kind} value={mk.kind}>
-                        <div className={styles.kindOption}>
-                          <Icon className={`size-4 ${mk.color}`} />
-                          <span>{t(mk.labelKey)}</span>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+              <MembershipKindSelect
+                value={selectedKind}
+                onChange={setSelectedKind}
+                kinds={availableKinds}
+              />
             </div>
           </div>
 
@@ -513,25 +550,12 @@ function AccessSettingsPage() {
 
             return (
               <div className={styles.editDialogContent}>
-                <div className={styles.selectedUser}>
-                  <Avatar className="size-10">
-                    <AvatarImage
-                      src={editingMembership.member_profile?.profile_picture_uri ?? undefined}
-                      alt={editingMembership.member_profile?.title ?? ""}
-                    />
-                    <AvatarFallback>
-                      {getInitials(editingMembership.member_profile?.title, editingMembership.member_profile?.slug ?? "")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className={styles.searchResultInfo}>
-                    <p className={styles.searchResultName}>
-                      {editingMembership.member_profile?.title}
-                    </p>
-                    <p className={styles.searchResultSlug}>
-                      @{editingMembership.member_profile?.slug}
-                    </p>
-                  </div>
-                </div>
+                <MemberCard
+                  pictureUri={editingMembership.member_profile?.profile_picture_uri}
+                  title={editingMembership.member_profile?.title}
+                  slug={editingMembership.member_profile?.slug ?? ""}
+                  avatarSize="size-10"
+                />
 
                 <div className={styles.kindField}>
                   <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
@@ -552,33 +576,11 @@ function AccessSettingsPage() {
                       </p>
                     </div>
                   ) : (
-                    <Select value={editKind} onValueChange={(value) => setEditKind(value as MembershipKind)}>
-                      <SelectTrigger>
-                        {(() => {
-                          const config = getMembershipKindConfig(editKind);
-                          const Icon = config.icon;
-                          return (
-                            <div className={styles.kindOption}>
-                              <Icon className={`size-4 ${config.color}`} />
-                              <span>{t(config.labelKey)}</span>
-                            </div>
-                          );
-                        })()}
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MEMBERSHIP_KINDS.map((mk) => {
-                          const Icon = mk.icon;
-                          return (
-                            <SelectItem key={mk.kind} value={mk.kind}>
-                              <div className={styles.kindOption}>
-                                <Icon className={`size-4 ${mk.color}`} />
-                                <span>{t(mk.labelKey)}</span>
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+                    <MembershipKindSelect
+                      value={editKind}
+                      onChange={setEditKind}
+                      kinds={availableKinds}
+                    />
                   )}
                 </div>
               </div>
