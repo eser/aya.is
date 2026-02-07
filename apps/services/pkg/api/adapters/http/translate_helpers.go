@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 )
@@ -61,7 +62,7 @@ Content:
 		return "", "", "", fmt.Errorf("AI generation failed: %w", err)
 	}
 
-	responseText := result.Text()
+	responseText := extractJSON(result.Text())
 
 	var translated translationResult
 
@@ -71,4 +72,26 @@ Content:
 	}
 
 	return translated.Title, translated.Summary, translated.Content, nil
+}
+
+// extractJSON strips markdown code fences from AI responses.
+// LLMs commonly wrap JSON in ```json ... ``` despite being told not to.
+func extractJSON(text string) string {
+	trimmed := strings.TrimSpace(text)
+
+	if strings.HasPrefix(trimmed, "```") {
+		// Remove opening fence (```json or ```)
+		if idx := strings.Index(trimmed, "\n"); idx != -1 {
+			trimmed = trimmed[idx+1:]
+		}
+
+		// Remove closing fence
+		if idx := strings.LastIndex(trimmed, "```"); idx != -1 {
+			trimmed = trimmed[:idx]
+		}
+
+		return strings.TrimSpace(trimmed)
+	}
+
+	return trimmed
 }

@@ -1177,13 +1177,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				content,
 			)
 			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "AI translation failed",
-					slog.String("error", err.Error()),
-					slog.String("story_id", storyIDParam),
-					slog.String("source_locale", requestBody.SourceLocale),
-					slog.String("target_locale", targetLocaleParam))
-
-				if strings.Contains(err.Error(), "not available") {
+				if errors.Is(err, ErrAITranslationNotAvailable) {
 					return ctx.Results.Error(
 						http.StatusServiceUnavailable,
 						httpfx.WithErrorMessage("AI translation not available"),
@@ -1192,7 +1186,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Auto-translate failed"),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 

@@ -57,26 +57,26 @@ export function EditorActions(props: EditorActionsProps) {
   return (
     <div className="flex items-center gap-3">
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm">
-            <MoreHorizontal className="size-4" />
-            <span className="sr-only">{t("ContentEditor.More options")}</span>
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={(renderProps) => (
+            <Button {...renderProps} variant="ghost" size="icon-sm">
+              <MoreHorizontal className="size-4" />
+              <span className="sr-only">{t("ContentEditor.More options")}</span>
+            </Button>
+          )}
+        />
         <DropdownMenuContent align="end" className="w-auto">
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => setShowDeleteDialog(true)}
-                    disabled={!canActuallyDelete || isDeleting}
-                  >
-                    <Trash2 className="mr-2 size-4" />
-                    {t("Common.Delete")}
-                  </DropdownMenuItem>
-                </div>
+              <TooltipTrigger render={<div />}>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={!canActuallyDelete || isDeleting}
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  {t("Common.Delete")}
+                </DropdownMenuItem>
               </TooltipTrigger>
               {!canActuallyDelete && isPublished && (
                 <TooltipContent>

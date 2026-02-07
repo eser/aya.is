@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -2122,14 +2123,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				content,
 			)
 			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "AI page translation failed",
-					slog.String("error", err.Error()),
-					slog.String("slug", slugParam),
-					slog.String("page_id", pageIDParam),
-					slog.String("source_locale", requestBody.SourceLocale),
-					slog.String("target_locale", targetLocaleParam))
-
-				if strings.Contains(err.Error(), "not available") {
+				if errors.Is(err, ErrAITranslationNotAvailable) {
 					return ctx.Results.Error(
 						http.StatusServiceUnavailable,
 						httpfx.WithErrorMessage("AI translation not available"),
@@ -2138,7 +2132,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Auto-translate failed"),
+					httpfx.WithSanitizedError(err),
 				)
 			}
 

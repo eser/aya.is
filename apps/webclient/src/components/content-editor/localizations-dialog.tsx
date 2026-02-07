@@ -148,15 +148,13 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
 
                   <div className="flex items-center gap-1.5">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          disabled={isBusy}
-                        >
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
+                      <DropdownMenuTrigger
+                        render={(renderProps) => (
+                          <Button {...renderProps} variant="ghost" size="icon-sm" disabled={isBusy}>
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        )}
+                      />
                       <DropdownMenuContent align="end" className="min-w-48">
                         <DropdownMenuItem
                           variant="destructive"
