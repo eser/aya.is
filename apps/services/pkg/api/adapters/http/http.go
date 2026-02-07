@@ -107,6 +107,7 @@ func Run(
 		userService,
 		profileService,
 		storyService,
+		profilePointsService,
 		aiModels,
 	)
 	RegisterHTTPRoutesForProfilePoints( //nolint:contextcheck
@@ -123,6 +124,7 @@ func Run(
 		authService,
 		userService,
 		storyService,
+		profilePointsService,
 		aiModels,
 	)
 	RegisterHTTPRoutesForSearch( //nolint:contextcheck

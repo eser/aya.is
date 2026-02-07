@@ -18,16 +18,28 @@ type translationResult struct {
 	Content string `json:"content"`
 }
 
-func translateContent(
+// AIContentTranslator implements stories.ContentTranslator and profiles.ContentTranslator
+// using the aifx registry for AI-powered translation.
+type AIContentTranslator struct {
+	aiModels *aifx.Registry
+}
+
+// NewAIContentTranslator creates a new AIContentTranslator.
+func NewAIContentTranslator(aiModels *aifx.Registry) *AIContentTranslator {
+	return &AIContentTranslator{aiModels: aiModels}
+}
+
+// Translate implements the ContentTranslator interface.
+func (t *AIContentTranslator) Translate(
 	ctx context.Context,
-	aiModels *aifx.Registry,
-	sourceLocale, targetLocale, title, summary, content string,
+	sourceLocale, targetLocale string,
+	title, summary, content string,
 ) (string, string, string, error) {
-	if aiModels == nil {
+	if t.aiModels == nil {
 		return "", "", "", ErrAITranslationNotAvailable
 	}
 
-	model := aiModels.GetDefault()
+	model := t.aiModels.GetDefault()
 	if model == nil {
 		return "", "", "", ErrAITranslationNotAvailable
 	}

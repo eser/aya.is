@@ -71,8 +71,11 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
     try {
       await onAutoTranslate(targetLocale);
       toast.success(t("ContentEditor.Translation completed"));
-    } catch {
-      toast.error(t("ContentEditor.Auto-translate failed"));
+    } catch (error) {
+      const message = error instanceof Error && error.message !== ""
+        ? error.message
+        : t("ContentEditor.Auto-translate failed");
+      toast.error(message);
     } finally {
       setTranslatingLocale(null);
     }

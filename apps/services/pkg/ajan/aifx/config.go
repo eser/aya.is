@@ -1,6 +1,9 @@
 package aifx
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	ErrInvalidProvider = errors.New("invalid provider")
@@ -32,4 +35,7 @@ type ConfigTarget struct {
 	// Generation defaults
 	MaxTokens   int     `conf:"max_tokens"  default:"1024"`
 	Temperature float64 `conf:"temperature" default:"0.7"`
+
+	// RequestTimeout sets the per-request timeout for AI SDK calls.
+	RequestTimeout time.Duration `conf:"request_timeout" default:"60s"`
 }

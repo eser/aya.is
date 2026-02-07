@@ -13,6 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -27,6 +28,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 	authService *auth.Service,
 	userService *users.Service,
 	storyService *stories.Service,
+	profilePointsService *profile_points.Service,
 	aiModels *aifx.Registry,
 ) {
 	routes.
@@ -1096,6 +1098,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 		HasResponse(http.StatusOK)
 
 	// Auto-translate story
+	translator := NewAIContentTranslator(aiModels)
+
 	routes.Route(
 		"POST /{locale}/profiles/{slug}/_stories/{storyId}/translations/{targetLocale}/auto-translate",
 		AuthMiddleware(authService, userService),
@@ -1133,50 +1137,53 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			// Auth check
-			canEdit, err := storyService.CanUserEditStory(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				storyIDParam,
-			)
-			if err != nil || !canEdit {
-				return ctx.Results.Error(
-					http.StatusForbidden,
-					httpfx.WithErrorMessage(
-						"You do not have permission to edit this story",
-					),
-				)
-			}
-
-			// Get source content
-			title, summary, content, err := storyService.GetTranslationContent(
-				ctx.Request.Context(),
-				storyIDParam,
-				requestBody.SourceLocale,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Get source content failed",
-					slog.String("error", err.Error()),
-					slog.String("story_id", storyIDParam),
-					slog.String("source_locale", requestBody.SourceLocale))
-
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to get source content for translation"),
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
-			// Translate via AI
-			translatedTitle, translatedSummary, translatedContent, err := translateContent(
+			if user.IndividualProfileID == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("User has no individual profile"),
+				)
+			}
+
+			// Extend HTTP write deadline for long-running AI call
+			rc := http.NewResponseController(ctx.ResponseWriter)
+			_ = rc.SetWriteDeadline(time.Now().Add(90 * time.Second))
+
+			err := storyService.AutoTranslateStory(
 				ctx.Request.Context(),
-				aiModels,
-				requestBody.SourceLocale,
-				targetLocaleParam,
-				title,
-				summary,
-				content,
+				stories.AutoTranslateStoryParams{
+					UserID:              *session.LoggedInUserID,
+					IndividualProfileID: *user.IndividualProfileID,
+					StoryID:             storyIDParam,
+					SourceLocale:        requestBody.SourceLocale,
+					TargetLocale:        targetLocaleParam,
+				},
+				translator,
+				profilePointsService,
 			)
 			if err != nil {
+				if errors.Is(err, stories.ErrUnauthorized) {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage("You do not have permission to edit this story"),
+					)
+				}
+
+				if errors.Is(err, profile_points.ErrInsufficientPoints) {
+					return ctx.Results.Error(
+						http.StatusPaymentRequired,
+						httpfx.WithErrorMessage(
+							"Insufficient points for auto-translation (requires 5 points)",
+						),
+					)
+				}
+
 				if errors.Is(err, ErrAITranslationNotAvailable) {
 					return ctx.Results.Error(
 						http.StatusServiceUnavailable,
@@ -1190,34 +1197,9 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			// Save translated content
-			err = storyService.UpdateTranslation(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				storyIDParam,
-				targetLocaleParam,
-				translatedTitle,
-				translatedSummary,
-				translatedContent,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Save translated content failed",
-					slog.String("error", err.Error()),
-					slog.String("story_id", storyIDParam),
-					slog.String("target_locale", targetLocaleParam))
-
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to save translated content"),
-				)
-			}
-
 			wrappedResponse := map[string]any{
 				"data": map[string]any{
 					"success": true,
-					"title":   translatedTitle,
-					"summary": translatedSummary,
-					"content": translatedContent,
 				},
 				"error": nil,
 			}

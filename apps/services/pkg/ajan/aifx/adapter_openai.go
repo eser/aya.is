@@ -57,6 +57,10 @@ func (f *openAIModelFactory) CreateModel(
 		opts = append(opts, option.WithBaseURL(config.BaseURL))
 	}
 
+	if config.RequestTimeout > 0 {
+		opts = append(opts, option.WithRequestTimeout(config.RequestTimeout))
+	}
+
 	client := openai.NewClient(opts...)
 
 	return &OpenAIModel{

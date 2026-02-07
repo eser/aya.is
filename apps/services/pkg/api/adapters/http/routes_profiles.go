@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
@@ -28,6 +30,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	userService *users.Service,
 	profileService *profiles.Service,
 	storyService *stories.Service,
+	profilePointsService *profile_points.Service,
 	aiModels *aifx.Registry,
 ) {
 	routes.
@@ -2030,6 +2033,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		HasResponse(http.StatusOK)
 
 	// Auto-translate profile page
+	pageTranslator := NewAIContentTranslator(aiModels)
+
 	routes.Route(
 		"POST /{locale}/profiles/{slug}/_pages/{pageId}/translations/{targetLocale}/auto-translate",
 		AuthMiddleware(authService, userService),
@@ -2076,53 +2081,47 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Auth check
-			canEdit, permErr := profileService.HasUserAccessToProfile(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				slugParam,
-				profiles.MembershipKindMaintainer,
-			)
-			if permErr != nil || !canEdit {
-				return ctx.Results.Error(
-					http.StatusForbidden,
-					httpfx.WithErrorMessage(
-						"You do not have permission to edit this profile",
-					),
+			if user.IndividualProfileID == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("User has no individual profile"),
 				)
 			}
 
-			// Get source content
-			title, summary, content, err := profileService.GetProfilePageTranslationContent(
+			// Extend HTTP write deadline for long-running AI call
+			rc := http.NewResponseController(ctx.ResponseWriter)
+			_ = rc.SetWriteDeadline(time.Now().Add(90 * time.Second))
+
+			err := profileService.AutoTranslateProfilePage(
 				ctx.Request.Context(),
-				slugParam,
-				pageIDParam,
-				requestBody.SourceLocale,
+				profiles.AutoTranslatePageParams{
+					UserID:              *session.LoggedInUserID,
+					UserKind:            user.Kind,
+					IndividualProfileID: *user.IndividualProfileID,
+					ProfileSlug:         slugParam,
+					PageID:              pageIDParam,
+					SourceLocale:        requestBody.SourceLocale,
+					TargetLocale:        targetLocaleParam,
+				},
+				pageTranslator,
+				profilePointsService,
 			)
 			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Get page source content failed",
-					slog.String("error", err.Error()),
-					slog.String("slug", slugParam),
-					slog.String("page_id", pageIDParam),
-					slog.String("source_locale", requestBody.SourceLocale))
+				if errors.Is(err, profiles.ErrUnauthorized) {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
+					)
+				}
 
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to get source content for translation"),
-				)
-			}
+				if errors.Is(err, profile_points.ErrInsufficientPoints) {
+					return ctx.Results.Error(
+						http.StatusPaymentRequired,
+						httpfx.WithErrorMessage(
+							"Insufficient points for auto-translation (requires 5 points)",
+						),
+					)
+				}
 
-			// Translate via AI
-			translatedTitle, translatedSummary, translatedContent, err := translateContent(
-				ctx.Request.Context(),
-				aiModels,
-				requestBody.SourceLocale,
-				targetLocaleParam,
-				title,
-				summary,
-				content,
-			)
-			if err != nil {
 				if errors.Is(err, ErrAITranslationNotAvailable) {
 					return ctx.Results.Error(
 						http.StatusServiceUnavailable,
@@ -2136,37 +2135,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// Save translated content
-			err = profileService.UpdateProfilePageTranslation(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				user.Kind,
-				slugParam,
-				pageIDParam,
-				targetLocaleParam,
-				translatedTitle,
-				translatedSummary,
-				translatedContent,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Save translated page content failed",
-					slog.String("error", err.Error()),
-					slog.String("slug", slugParam),
-					slog.String("page_id", pageIDParam),
-					slog.String("target_locale", targetLocaleParam))
-
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to save translated content"),
-				)
-			}
-
 			wrappedResponse := map[string]any{
 				"data": map[string]any{
 					"success": true,
-					"title":   translatedTitle,
-					"summary": translatedSummary,
-					"content": translatedContent,
 				},
 				"error": nil,
 			}
