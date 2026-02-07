@@ -3,7 +3,23 @@ import { compile, runSync } from "@mdx-js/mdx";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import { visit } from "unist-util-visit";
 import { remarkEmbed } from "./remark-embed";
+
+/**
+ * Rehype plugin that adds target="_blank" and rel="noopener noreferrer"
+ * to all links so they open in a new tab.
+ */
+function rehypeExternalLinks() {
+  return (tree: any) => {
+    visit(tree, "element", (node: any) => {
+      if (node.tagName === "a" && node.properties?.href !== undefined) {
+        node.properties.target = "_blank";
+        node.properties.rel = "noopener noreferrer";
+      }
+    });
+  };
+}
 import {
   Card,
   Cards,
@@ -73,6 +89,7 @@ export async function compileMdx(source: string): Promise<string> {
     rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "wrap" }],
+      rehypeExternalLinks,
     ],
   });
 
