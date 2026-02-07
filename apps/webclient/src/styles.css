@@ -240,6 +240,28 @@
   a {
     @apply underline underline-offset-4;
   }
+
+  /* Inline code */
+  :not(pre) > code {
+    @apply bg-muted text-foreground rounded-md px-1.5 py-0.5 text-[0.85em] font-mono border border-border;
+  }
+
+  /* Code blocks */
+  pre {
+    @apply bg-muted rounded-lg p-4 mb-6 overflow-x-auto text-sm leading-relaxed font-mono border border-border;
+
+    code {
+      @apply bg-transparent p-0 text-[0.9em] text-foreground border-0;
+    }
+  }
+
+  :is(.dark &) pre {
+    background: oklch(0.13 0.03 265);
+  }
+
+  :is(.dark &) :not(pre) > code {
+    background: oklch(0.13 0.03 265);
+  }
 }
 
 /* Navigation and UI links - no underlines */
