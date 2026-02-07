@@ -95,10 +95,14 @@ function AccessSettingsPage() {
   const isViewerOwner = isAdmin || viewerMembership?.membership_kind === "owner";
 
   // For individual profiles, 'owner' is implicit - don't allow adding it
+  // Sponsor and follower roles are admin-only
   const isIndividual = profile?.kind === "individual";
-  const availableKinds = isIndividual
-    ? MEMBERSHIP_KINDS.filter((mk) => mk.kind !== "owner")
-    : MEMBERSHIP_KINDS;
+  const adminOnlyKinds = new Set<MembershipKind>(["sponsor", "follower"]);
+  const availableKinds = MEMBERSHIP_KINDS.filter((mk) => {
+    if (isIndividual && mk.kind === "owner") return false;
+    if (!isAdmin && adminOnlyKinds.has(mk.kind)) return false;
+    return true;
+  });
 
   const [memberships, setMemberships] = React.useState<ProfileMembershipWithMember[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);

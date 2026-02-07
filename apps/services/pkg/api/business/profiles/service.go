@@ -2311,6 +2311,14 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 		return ErrInvalidMembershipKind
 	}
 
+	// Check authorization
+	isAdmin := userKind == "admin"
+
+	// SECURITY: Only admins can assign sponsor or follower roles
+	if !isAdmin && (newKind == "sponsor" || newKind == "follower") {
+		return ErrInvalidMembershipKind
+	}
+
 	// Get the membership first to check ownership
 	membership, err := s.repo.GetProfileMembershipByID(ctx, membershipID)
 	if err != nil {
@@ -2329,9 +2337,6 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 			return ErrCannotModifyOwnRole
 		}
 	}
-
-	// Check authorization
-	isAdmin := userKind == "admin"
 
 	hasAccess, accessErr := s.HasUserAccessToProfile(
 		ctx,
@@ -2363,6 +2368,9 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 		userLevel := 0
 		if userMembership != nil {
 			userLevel = membershipRoleLevel[userMembership.Kind]
+		} else if *userIndividualProfileID == membership.ProfileID {
+			// Implicit owner of their own individual profile
+			userLevel = membershipRoleLevel["owner"]
 		}
 
 		// Check: Cannot assign a role higher than your own
@@ -2553,6 +2561,11 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	// Check authorization
 	isAdmin := userKind == "admin"
 
+	// SECURITY: Only admins can assign sponsor or follower roles
+	if !isAdmin && (kind == "sponsor" || kind == "follower") {
+		return ErrInvalidMembershipKind
+	}
+
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
@@ -2582,6 +2595,9 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		userLevel := 0
 		if userMembership != nil {
 			userLevel = membershipRoleLevel[userMembership.Kind]
+		} else if *userIndividualProfileID == profileID {
+			// Implicit owner of their own individual profile
+			userLevel = membershipRoleLevel["owner"]
 		}
 
 		// Check: Cannot assign a role higher than your own
