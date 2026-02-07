@@ -150,27 +150,22 @@ export async function refreshTokenRequest(
 }
 
 /**
- * Build fetch options with proper credentials handling
- * Credentials are only included when authenticated due to CORS wildcard limitation
+ * Build fetch options with credentials always included.
+ * The session cookie (aya_session) is the primary auth mechanism,
+ * so credentials must always be sent for cross-origin requests.
  */
 function buildFetchOptions(
   requestInit: RequestInit,
   headers: HeadersInit,
-  includeCredentials: boolean,
 ): RequestInit {
-  const options: RequestInit = {
+  return {
     ...requestInit,
+    credentials: "include",
     headers: {
       ...headers,
       ...(requestInit.headers ?? {}),
     },
   };
-
-  if (includeCredentials) {
-    options.credentials = "include";
-  }
-
-  return options;
 }
 
 // In-flight GET request cache to deduplicate concurrent fetches to the same endpoint.
@@ -179,10 +174,6 @@ const inflightGetRequests = new Map<string, Promise<unknown>>();
 
 /**
  * Generic API fetcher with automatic token refresh and error handling
- *
- * CORS Note: Credentials are only included when auth token is present
- * because the backend uses wildcard CORS origin which is incompatible
- * with credentials (browsers reject this combination per CORS spec)
  */
 export function fetcher<T>(
   locale: string,
@@ -245,8 +236,7 @@ async function fetcherInternal<T>(
     }
   }
 
-  const isAuthenticated = authToken !== null;
-  const fetchOptions = buildFetchOptions(requestInit, headers, isAuthenticated);
+  const fetchOptions = buildFetchOptions(requestInit, headers);
   const response = await fetch(targetUrl, fetchOptions);
 
   // Handle authentication errors with token refresh retry
@@ -259,7 +249,7 @@ async function fetcherInternal<T>(
 
       if (tokenResponse !== null) {
         headers["Authorization"] = `Bearer ${tokenResponse.token}`;
-        const retryOptions = buildFetchOptions(requestInit, headers, true);
+        const retryOptions = buildFetchOptions(requestInit, headers);
         const retryResponse = await fetch(targetUrl, retryOptions);
 
         if (retryResponse.status === HTTP_STATUS_NOT_FOUND) {
@@ -337,16 +327,12 @@ export async function uploadFetcher<T>(
     headers["Authorization"] = `Bearer ${authToken}`;
   }
 
-  const isAuthenticated = authToken !== null;
   const uploadOptions: RequestInit = {
     method: "POST",
+    credentials: "include",
     headers,
     body: formData,
   };
-
-  if (isAuthenticated) {
-    uploadOptions.credentials = "include";
-  }
 
   const response = await fetch(targetUrl, uploadOptions);
 

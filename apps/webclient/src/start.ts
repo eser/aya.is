@@ -56,11 +56,22 @@ const customDomainMiddleware = createMiddleware()
       }
     }
 
+    // Parse site_theme cookie for SSR theme rendering
+    const cookieHeader = request.headers.get("cookie") ?? undefined;
+    let ssrTheme: string | undefined;
+    if (cookieHeader !== undefined) {
+      const themeMatch = cookieHeader.match(/(?:^|;\s*)site_theme=([^;]+)/);
+      if (themeMatch !== null && themeMatch[1] !== undefined) {
+        ssrTheme = themeMatch[1];
+      }
+    }
+
     const requestContext: RequestContext = {
       domainConfiguration: domainConfiguration,
       path: pathParts,
       originalPath: originalPathParts,
-      cookieHeader: request.headers.get("cookie") ?? undefined,
+      cookieHeader,
+      ssrTheme,
     };
 
     const { requestContextBinder } = await import("./server/request-context-binder");

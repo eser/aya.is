@@ -19,4 +19,5 @@ export type RequestContext = {
   path: string[];
   originalPath: string[];
   cookieHeader?: string;
+  ssrTheme?: string;
 };

@@ -228,6 +228,7 @@ type Repository interface { //nolint:interfacebloat
 		id string,
 		slug string,
 		kind string,
+		defaultLocale string,
 		profilePictureURI *string,
 		pronouns *string,
 		properties map[string]any,
@@ -1087,12 +1088,13 @@ func (s *Service) Create(
 	// Generate new profile ID
 	profileID := s.idGenerator()
 
-	// Create the main profile record
+	// Create the main profile record with the request locale as default
 	err := s.repo.CreateProfile(
 		ctx,
 		string(profileID),
 		slug,
 		kind,
+		localeCode,
 		profilePictureURI,
 		pronouns,
 		properties,

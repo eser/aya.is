@@ -170,14 +170,15 @@ func (q *Queries) CreateCustomDomain(ctx context.Context, arg CreateCustomDomain
 }
 
 const createProfile = `-- name: CreateProfile :exec
-INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties, approved_at)
-VALUES ($1, $2, $3, $4, $5, $6, NOW())
+INSERT INTO "profile" (id, slug, kind, default_locale, profile_picture_uri, pronouns, properties, approved_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 `
 
 type CreateProfileParams struct {
 	ID                string                `db:"id" json:"id"`
 	Slug              string                `db:"slug" json:"slug"`
 	Kind              string                `db:"kind" json:"kind"`
+	DefaultLocale     string                `db:"default_locale" json:"default_locale"`
 	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
 	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
@@ -185,13 +186,14 @@ type CreateProfileParams struct {
 
 // CreateProfile
 //
-//	INSERT INTO "profile" (id, slug, kind, profile_picture_uri, pronouns, properties, approved_at)
-//	VALUES ($1, $2, $3, $4, $5, $6, NOW())
+//	INSERT INTO "profile" (id, slug, kind, default_locale, profile_picture_uri, pronouns, properties, approved_at)
+//	VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) error {
 	_, err := q.db.ExecContext(ctx, createProfile,
 		arg.ID,
 		arg.Slug,
 		arg.Kind,
+		arg.DefaultLocale,
 		arg.ProfilePictureURI,
 		arg.Pronouns,
 		arg.Properties,

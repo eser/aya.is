@@ -33,6 +33,17 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+// Read a cookie value by name (client-side only)
+function getCookieValue(name: string): string | null {
+  if (typeof globalThis.document === "undefined") {
+    return null;
+  }
+  const match = globalThis.document.cookie.match(
+    new RegExp(`(?:^|;\\s*)${name}=([^;]+)`),
+  );
+  return match !== null && match[1] !== undefined ? match[1] : null;
+}
+
 export function ThemeProvider(props: ThemeProviderProps) {
   const {
     children,
@@ -49,7 +60,10 @@ export function ThemeProvider(props: ThemeProviderProps) {
     if (typeof globalThis.document === "undefined") {
       return defaultTheme;
     }
-    return (localStorage.getItem(storageKey) as Theme) ?? defaultTheme;
+    // Prefer cookie (cross-domain) over localStorage (per-origin)
+    const cookieTheme = getCookieValue("site_theme") as Theme | null;
+    const localTheme = localStorage.getItem(storageKey) as Theme | null;
+    return cookieTheme ?? localTheme ?? defaultTheme;
   });
 
   // Sync theme from auth context preferences (loaded by AuthProvider)
@@ -92,7 +106,7 @@ export function ThemeProvider(props: ThemeProviderProps) {
       setThemeState(newTheme);
       localStorage.setItem(storageKey, newTheme);
 
-      // Sync to server if enabled
+      // Sync to server if enabled (server response also sets site_theme cookie)
       if (!enableServerSync) {
         return;
       }

@@ -142,20 +142,36 @@ interface RootDocumentProps {
 function RootDocument(props: Readonly<RootDocumentProps>) {
   const { children, locale = DEFAULT_LOCALE, dir = "ltr", requestContext } = props;
 
+  // Resolve SSR theme class for flicker-free rendering
+  const ssrTheme = requestContext?.ssrTheme;
+  let ssrThemeClass: string | undefined;
+  if (ssrTheme === "light" || ssrTheme === "dark") {
+    ssrThemeClass = ssrTheme;
+  }
+  // "system" or undefined — let the inline script handle it
+
   const themeScript = `
 (function() {
-  const storageKey = 'vite-ui-theme';
-  const theme = localStorage.getItem(storageKey);
-  const systemTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  const resolvedTheme = theme === 'system' || !theme ? systemTheme : theme;
+  var storageKey = 'vite-ui-theme';
+  // Read theme cookie (cross-domain), then localStorage, then system
+  var cookieTheme = (document.cookie.match(/(?:^|;\\s*)site_theme=([^;]+)/) || [])[1] || null;
+  var localTheme = localStorage.getItem(storageKey);
+  var theme = cookieTheme || localTheme;
+  var systemTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  var resolvedTheme = theme === 'system' || !theme ? systemTheme : theme;
+  document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(resolvedTheme);
+  // Sync cookie theme to localStorage for consistency
+  if (cookieTheme && cookieTheme !== localTheme) {
+    localStorage.setItem(storageKey, cookieTheme);
+  }
 })();
 
 globalThis.__REQUEST_CONTEXT__ = ${JSON.stringify(requestContext)};
 `;
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning>
+    <html lang={locale} dir={dir} className={ssrThemeClass} suppressHydrationWarning>
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

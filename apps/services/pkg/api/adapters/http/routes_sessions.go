@@ -70,6 +70,13 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 					slog.String("session_id", sessionID))
 			}
 
+			// Sync theme cookie from session preferences
+			if prefs != nil {
+				if theme, ok := prefs[sessions.PrefKeyTheme]; ok {
+					SetThemeCookie(ctx.ResponseWriter, theme, authService.Config)
+				}
+			}
+
 			// Anonymous session - return preferences only
 			if session.LoggedInUserID == nil {
 				return ctx.Results.JSON(map[string]any{
@@ -427,6 +434,9 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 						httpfx.WithErrorMessage("Failed to update theme"),
 					)
 				}
+
+				// Set theme cookie for cross-domain FOUC prevention
+				SetThemeCookie(ctx.ResponseWriter, *req.Theme, authService.Config)
 			}
 
 			if req.Locale != nil {

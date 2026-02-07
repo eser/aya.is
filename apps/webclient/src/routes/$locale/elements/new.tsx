@@ -51,6 +51,8 @@ function NewElementProfilePage() {
       });
 
       if (result !== null) {
+        // Refresh auth state so the menu picks up the new profile
+        await auth.refreshAuth();
         toast.success(t("Profile.Profile created successfully"));
         navigate({
           to: "/$locale/$slug",
