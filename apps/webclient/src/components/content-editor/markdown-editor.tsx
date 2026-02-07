@@ -5,71 +5,72 @@ type MarkdownEditorProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  onInsertText?: (startPos: number, text: string) => void;
 };
 
 export function MarkdownEditor(props: MarkdownEditorProps) {
-  const { value, onChange, placeholder = "Write your content in markdown..." } =
-    props;
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  // Track the last value synced to React state so we can detect
+  // truly external changes (e.g. locale switch) vs. our own onChange echoes.
+  const lastSyncedValue = React.useRef(props.value);
+
+  // When the parent changes value externally (e.g. loading new locale content),
+  // imperatively update the textarea without breaking undo history for edits.
+  React.useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea === null) return;
+
+    if (props.value !== lastSyncedValue.current && props.value !== textarea.value) {
+      textarea.value = props.value;
+      lastSyncedValue.current = props.value;
+    }
+  }, [props.value]);
+
+  const syncState = React.useCallback(() => {
+    const textarea = textareaRef.current;
+    if (textarea === null) return;
+    lastSyncedValue.current = textarea.value;
+    props.onChange(textarea.value);
+  }, [props.onChange]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Handle Tab key for indentation
+    // Handle Tab key for indentation using execCommand to preserve undo
     if (e.key === "Tab") {
       e.preventDefault();
-      const textarea = e.currentTarget;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-
-      const newValue = value.substring(0, start) + "  " + value.substring(end);
-      onChange(newValue);
-
-      // Restore cursor position after the inserted spaces
-      requestAnimationFrame(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + 2;
-      });
+      e.currentTarget.focus();
+      document.execCommand("insertText", false, "  ");
+      syncState();
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value);
   };
 
   return (
     <textarea
       ref={textareaRef}
       className={styles.markdownTextarea}
-      value={value}
-      onChange={handleChange}
+      defaultValue={props.value}
+      onInput={syncState}
       onKeyDown={handleKeyDown}
-      placeholder={placeholder}
+      placeholder={props.placeholder ?? "Write your content in markdown..."}
       spellCheck="false"
     />
   );
 }
 
-// Helper function to insert text at cursor position
+/**
+ * Insert text at cursor position using execCommand to preserve native undo/redo.
+ */
 export function insertTextAtCursor(
   textarea: HTMLTextAreaElement,
   text: string,
   onChange: (value: string) => void,
 ): void {
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const currentValue = textarea.value;
-
-  const newValue =
-    currentValue.substring(0, start) + text + currentValue.substring(end);
-  onChange(newValue);
-
-  // Restore cursor position after inserted text
-  requestAnimationFrame(() => {
-    textarea.selectionStart = textarea.selectionEnd = start + text.length;
-    textarea.focus();
-  });
+  textarea.focus();
+  document.execCommand("insertText", false, text);
+  onChange(textarea.value);
 }
 
-// Helper function to wrap selected text
+/**
+ * Wrap selected text with prefix/suffix using execCommand to preserve native undo/redo.
+ */
 export function wrapSelectedText(
   textarea: HTMLTextAreaElement,
   prefix: string,
@@ -78,21 +79,16 @@ export function wrapSelectedText(
 ): void {
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
-  const currentValue = textarea.value;
-  const selectedText = currentValue.substring(start, end);
+  const selectedText = textarea.value.substring(start, end);
 
-  const newValue =
-    currentValue.substring(0, start) +
-    prefix +
-    selectedText +
-    suffix +
-    currentValue.substring(end);
-  onChange(newValue);
+  textarea.focus();
+  document.execCommand("insertText", false, prefix + selectedText + suffix);
 
-  // Select the wrapped text
+  // Select the wrapped text (excluding prefix/suffix)
   requestAnimationFrame(() => {
     textarea.selectionStart = start + prefix.length;
-    textarea.selectionEnd = end + prefix.length;
-    textarea.focus();
+    textarea.selectionEnd = start + prefix.length + selectedText.length;
   });
+
+  onChange(textarea.value);
 }

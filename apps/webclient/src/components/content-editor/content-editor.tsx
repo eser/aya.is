@@ -388,7 +388,7 @@ export function ContentEditor(props: ContentEditorProps) {
     kind,
   });
 
-  const handleSave = async () => {
+  const handleSave = React.useCallback(async () => {
     // Mark fields as touched to show any validation errors
     setShowSlugValidation(true);
     setTitleTouched(true);
@@ -434,7 +434,7 @@ export function ContentEditor(props: ContentEditorProps) {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [slug, title, summary, content, kind, slugError, slugAvailability, titleError, shouldValidateSlugDatePrefix, isPublished, earliestPublishedAt, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
 
   const handleDelete = async () => {
     if (onDelete === undefined) return;
@@ -494,6 +494,18 @@ export function ContentEditor(props: ContentEditorProps) {
     if (hasChanges && !globalThis.confirm(t("ContentEditor.Unsaved Changes"))) return;
     onLocaleChange(newLocale);
   }, [onLocaleChange, hasChanges, t]);
+
+  // Cmd+S / Ctrl+S to save
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    globalThis.addEventListener("keydown", handler);
+    return () => globalThis.removeEventListener("keydown", handler);
+  }, [handleSave]);
 
   return (
     <div className={styles.editorContainer}>
