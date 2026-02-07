@@ -218,8 +218,7 @@ function EditStoryPage() {
     );
 
     if (updateResult === null) {
-      toast.error("Failed to update story");
-      return;
+      throw new Error("Failed to update story");
     }
 
     // Update the translation for the selected translation locale
@@ -235,24 +234,24 @@ function EditStoryPage() {
       },
     );
 
-    if (translationResult !== null) {
-      toast.success("Story saved successfully");
-      // Refresh translation locales
-      backend.listStoryTranslationLocales(params.locale, authorProfileSlug, storyData.id).then((locales) => {
-        setTranslationLocales(locales);
+    if (translationResult === null) {
+      throw new Error("Failed to save story translation");
+    }
+
+    toast.success("Story saved successfully");
+    // Refresh translation locales
+    backend.listStoryTranslationLocales(params.locale, authorProfileSlug, storyData.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+    // If slug changed, navigate to new URL
+    if (data.slug !== params.storyslug) {
+      navigate({
+        to: "/$locale/stories/$storyslug",
+        params: {
+          locale: params.locale,
+          storyslug: data.slug,
+        },
       });
-      // If slug changed, navigate to new URL
-      if (data.slug !== params.storyslug) {
-        navigate({
-          to: "/$locale/stories/$storyslug",
-          params: {
-            locale: params.locale,
-            storyslug: data.slug,
-          },
-        });
-      }
-    } else {
-      toast.error("Failed to save story translation");
     }
   };
 

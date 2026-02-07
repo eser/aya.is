@@ -574,6 +574,9 @@
     "Failed to remove translation": "Çeviri kaldırılamadı",
     "Translation completed": "Çeviri tamamlandı",
     "Auto-translate failed": "Otomatik çeviri başarısız oldu",
+    "Remove translation confirmation": "{{locale}} çevirisini kaldırmak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "Auto-translate confirmation": "{{locale}} diline otomatik çeviri yapmak istediğinizden emin misiniz? Çeviri oluşturmak için yapay zeka kullanılacaktır.",
+    "Translate": "Çevir",
     "AI translation not available": "Yapay zeka çevirisi mevcut değil"
   },
   "Admin": {

@@ -95,7 +95,6 @@ export function EditorActions(props: EditorActionsProps) {
           onClick={onOpenLocalizationsDialog}
           disabled={isSaving || isNew}
         >
-          <Languages className="mr-1.5 size-4" />
           {locale in supportedLocales
             ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${supportedLocales[locale as SupportedLocaleCode].name}`
             : locale.toUpperCase()}

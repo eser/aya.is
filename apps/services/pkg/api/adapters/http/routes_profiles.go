@@ -1554,11 +1554,6 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
 			}
 
-			// Validate summary (required for pages)
-			if len(requestBody.Summary) == 0 {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Summary is required"))
-			}
-
 			// Get user ID from session
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 			if sessionErr != nil {
@@ -1767,9 +1762,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Validate required fields
-			if requestBody.Title == "" || requestBody.Summary == "" {
+			if requestBody.Title == "" {
 				return ctx.Results.BadRequest(
-					httpfx.WithErrorMessage("Title and summary are required"),
+					httpfx.WithErrorMessage("Title is required"),
 				)
 			}
 

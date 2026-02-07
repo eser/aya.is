@@ -574,6 +574,9 @@
     "Failed to remove translation": "Failed to remove translation",
     "Translation completed": "Translation completed",
     "Auto-translate failed": "Auto-translate failed",
+    "Remove translation confirmation": "Are you sure you want to remove the {{locale}} translation? This action cannot be undone.",
+    "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
+    "Translate": "Translate",
     "AI translation not available": "AI translation not available"
   },
   "Admin": {

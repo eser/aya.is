@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { z } from "zod";
 import {
   AlertTriangle,
@@ -439,6 +440,11 @@ export function ContentEditor(props: ContentEditorProps) {
       const data = getCurrentData();
       await onSave(data);
       setSavedData(data);
+    } catch (error) {
+      // Show server-side error message if onSave didn't handle it
+      if (error instanceof Error && error.message !== "") {
+        toast.error(error.message);
+      }
     } finally {
       setIsSaving(false);
     }

@@ -223,8 +223,7 @@ function EditPagePage() {
     );
 
     if (updateResult === null) {
-      toast.error("Failed to update page");
-      return;
+      throw new Error("Failed to update page");
     }
 
     // Update the translation for the selected translation locale
@@ -240,25 +239,25 @@ function EditPagePage() {
       },
     );
 
-    if (translationResult !== null) {
-      toast.success("Page saved successfully");
-      // Refresh translation locales
-      backend.listProfilePageTranslationLocales(params.locale, params.slug, page.id).then((locales) => {
-        setTranslationLocales(locales);
+    if (translationResult === null) {
+      throw new Error("Failed to save page translation");
+    }
+
+    toast.success("Page saved successfully");
+    // Refresh translation locales
+    backend.listProfilePageTranslationLocales(params.locale, params.slug, page.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+    // If slug changed, navigate to new URL
+    if (data.slug !== params.pageslug) {
+      navigate({
+        to: "/$locale/$slug/$pageslug",
+        params: {
+          locale: params.locale,
+          slug: params.slug,
+          pageslug: data.slug,
+        },
       });
-      // If slug changed, navigate to new URL
-      if (data.slug !== params.pageslug) {
-        navigate({
-          to: "/$locale/$slug/$pageslug",
-          params: {
-            locale: params.locale,
-            slug: params.slug,
-            pageslug: data.slug,
-          },
-        });
-      }
-    } else {
-      toast.error("Failed to save page translation");
     }
   };
 
