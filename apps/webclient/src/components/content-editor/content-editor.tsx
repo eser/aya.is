@@ -32,6 +32,7 @@ import { PreviewPanel } from "./preview-panel";
 import { EditorToolbar, type FormatAction, type ViewMode } from "./editor-toolbar";
 import { EditorActions } from "./editor-actions";
 import { PublishDialog } from "./publish-dialog";
+import { LocalizationsDialog } from "./localizations-dialog";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
@@ -117,6 +118,9 @@ type ContentEditorProps = {
   accessibleProfiles?: AccessibleProfile[];
   individualProfile?: IndividualProfile;
   onLocaleChange?: (locale: string) => void;
+  translationLocales?: string[] | null;
+  onAutoTranslate?: (targetLocale: string) => Promise<void>;
+  onDeleteTranslation?: (locale: string) => Promise<void>;
 };
 
 export function ContentEditor(props: ContentEditorProps) {
@@ -137,6 +141,9 @@ export function ContentEditor(props: ContentEditorProps) {
     accessibleProfiles = [],
     individualProfile,
     onLocaleChange,
+    translationLocales,
+    onAutoTranslate,
+    onDeleteTranslation,
   } = props;
 
   const isAdmin = userKind === "admin";
@@ -162,6 +169,7 @@ export function ContentEditor(props: ContentEditorProps) {
   // Publication state
   const [publications, setPublications] = React.useState<StoryPublication[]>(initialPublications);
   const [isPublishDialogOpen, setIsPublishDialogOpen] = React.useState(false);
+  const [isLocalizationsDialogOpen, setIsLocalizationsDialogOpen] = React.useState(false);
 
   // Derive published state from publications
   const isPublished = publications.length > 0;
@@ -543,7 +551,7 @@ export function ContentEditor(props: ContentEditorProps) {
           onDelete={handleDelete}
           canDelete={!isNew && onDelete !== undefined && isAdmin}
           locale={locale}
-          onLocaleChange={onLocaleChange !== undefined ? handleLocaleChange : undefined}
+          onOpenLocalizationsDialog={onLocaleChange !== undefined ? () => setIsLocalizationsDialogOpen(true) : undefined}
         />
       </div>
 
@@ -876,6 +884,19 @@ export function ContentEditor(props: ContentEditorProps) {
           individualProfile={individualProfile}
           isNew={isNew}
           onPublicationsChange={setPublications}
+        />
+      )}
+
+      {/* Localizations Dialog */}
+      {onLocaleChange !== undefined && onAutoTranslate !== undefined && onDeleteTranslation !== undefined && (
+        <LocalizationsDialog
+          open={isLocalizationsDialogOpen}
+          onOpenChange={setIsLocalizationsDialogOpen}
+          currentLocale={locale}
+          onLocaleChange={handleLocaleChange}
+          translationLocales={translationLocales ?? null}
+          onAutoTranslate={onAutoTranslate}
+          onDeleteTranslation={onDeleteTranslation}
         />
       )}
     </div>

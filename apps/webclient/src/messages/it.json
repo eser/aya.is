@@ -562,7 +562,19 @@
     "No profiles available": "Nessun profilo disponibile",
     "Unpublish from all profiles first": "Prima rimuovi la pubblicazione da tutti i profili",
     "you": "tu",
-    "Some changes could not be applied": "Alcune modifiche non sono state applicate"
+    "Some changes could not be applied": "Alcune modifiche non sono state applicate",
+    "Translations": "Translations",
+    "Manage translations for this content": "Manage translations for this content",
+    "current": "current",
+    "Switch": "Switch",
+    "Remove translation": "Remove translation",
+    "Auto-translate": "Auto-translate",
+    "Translating...": "Translating...",
+    "Translation removed": "Translation removed",
+    "Failed to remove translation": "Failed to remove translation",
+    "Translation completed": "Translation completed",
+    "Auto-translate failed": "Auto-translate failed",
+    "AI translation not available": "AI translation not available"
   },
   "Admin": {
     "Admin Area": "Area amministrazione",

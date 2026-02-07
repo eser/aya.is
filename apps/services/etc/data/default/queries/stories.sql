@@ -177,6 +177,16 @@ INSERT INTO "story_tx" (
   summary = EXCLUDED.summary,
   content = EXCLUDED.content;
 
+-- name: DeleteStoryTx :execrows
+DELETE FROM "story_tx"
+WHERE story_id = sqlc.arg(story_id)
+  AND locale_code = sqlc.arg(locale_code);
+
+-- name: ListStoryTxLocales :many
+SELECT locale_code FROM "story_tx"
+WHERE story_id = sqlc.arg(story_id)
+ORDER BY locale_code;
+
 -- name: RemoveStory :execrows
 UPDATE "story"
 SET deleted_at = NOW()

@@ -562,7 +562,19 @@
     "No profiles available": "没有可用的个人资料",
     "Unpublish from all profiles first": "请先从所有个人资料取消发布",
     "you": "你",
-    "Some changes could not be applied": "部分更改无法应用"
+    "Some changes could not be applied": "部分更改无法应用",
+    "Translations": "Translations",
+    "Manage translations for this content": "Manage translations for this content",
+    "current": "current",
+    "Switch": "Switch",
+    "Remove translation": "Remove translation",
+    "Auto-translate": "Auto-translate",
+    "Translating...": "Translating...",
+    "Translation removed": "Translation removed",
+    "Failed to remove translation": "Failed to remove translation",
+    "Translation completed": "Translation completed",
+    "Auto-translate failed": "Auto-translate failed",
+    "AI translation not available": "AI translation not available"
   },
   "Admin": {
     "Admin Area": "管理区域",

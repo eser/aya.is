@@ -381,6 +381,31 @@ func (r *Repository) RemoveStory(ctx context.Context, id string) error {
 	return err
 }
 
+func (r *Repository) DeleteStoryTx(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+) error {
+	params := DeleteStoryTxParams{
+		StoryID:    storyID,
+		LocaleCode: localeCode,
+	}
+	_, err := r.queries.DeleteStoryTx(ctx, params)
+
+	return err
+}
+
+func (r *Repository) ListStoryTxLocales(
+	ctx context.Context,
+	storyID string,
+) ([]string, error) {
+	params := ListStoryTxLocalesParams{
+		StoryID: storyID,
+	}
+
+	return r.queries.ListStoryTxLocales(ctx, params)
+}
+
 func (r *Repository) GetStoryForEdit(
 	ctx context.Context,
 	localeCode string,

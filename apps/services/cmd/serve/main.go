@@ -54,6 +54,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 				GitHub:                 appContext.GitHubProvider,
 				PendingConnectionStore: profiles.NewPendingConnectionStore(),
 			},
+			appContext.AIModels,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(

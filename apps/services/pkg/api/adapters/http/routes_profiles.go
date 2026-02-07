@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -26,6 +27,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	userService *users.Service,
 	profileService *profiles.Service,
 	storyService *stories.Service,
+	aiModels *aifx.Registry,
 ) {
 	routes.
 		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
@@ -1915,5 +1917,274 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		}).
 		HasSummary("Delete Profile Page").
 		HasDescription("Delete a profile page.").
+		HasResponse(http.StatusOK)
+
+	// --- Profile Page Translation Management routes ---
+
+	// List profile page translation locales
+	routes.Route(
+		"GET /{locale}/profiles/{slug}/_pages/{pageId}/_tx",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			slugParam := ctx.Request.PathValue("slug")
+			pageIDParam := ctx.Request.PathValue("pageId")
+
+			locales, err := profileService.ListProfilePageTranslationLocales(
+				ctx.Request.Context(),
+				slugParam,
+				pageIDParam,
+			)
+			if err != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to list page translation locales"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data":  locales,
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("List Profile Page Translation Locales").
+		HasDescription("List all locales that have translations for a profile page.").
+		HasResponse(http.StatusOK)
+
+	// Delete profile page translation
+	routes.Route(
+		"DELETE /{locale}/profiles/{slug}/_pages/{pageId}/translations/{translationLocale}",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			slugParam := ctx.Request.PathValue("slug")
+			pageIDParam := ctx.Request.PathValue("pageId")
+			translationLocaleParam := ctx.Request.PathValue("translationLocale")
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get user information"),
+				)
+			}
+
+			err := profileService.DeleteProfilePageTranslation(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				user.Kind,
+				slugParam,
+				pageIDParam,
+				translationLocaleParam,
+			)
+			if err != nil {
+				if strings.Contains(err.Error(), "unauthorized") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to edit this profile",
+						),
+					)
+				}
+
+				logger.ErrorContext(
+					ctx.Request.Context(),
+					"Profile page translation deletion failed",
+					slog.String("error", err.Error()),
+					slog.String("session_id", sessionID),
+					slog.String("user_id", *session.LoggedInUserID),
+					slog.String("slug", slugParam),
+					slog.String("page_id", pageIDParam),
+					slog.String("locale", translationLocaleParam),
+				)
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to delete page translation"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data": map[string]any{
+					"success": true,
+				},
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Delete Profile Page Translation").
+		HasDescription("Delete a profile page translation for a specific locale.").
+		HasResponse(http.StatusOK)
+
+	// Auto-translate profile page
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_pages/{pageId}/translations/{targetLocale}/auto-translate",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			slugParam := ctx.Request.PathValue("slug")
+			pageIDParam := ctx.Request.PathValue("pageId")
+			targetLocaleParam := ctx.Request.PathValue("targetLocale")
+
+			var requestBody struct {
+				SourceLocale string `json:"source_locale"`
+			}
+
+			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
+			}
+
+			if requestBody.SourceLocale == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("source_locale is required"),
+				)
+			}
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get user information"),
+				)
+			}
+
+			// Auth check
+			canEdit, permErr := profileService.HasUserAccessToProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				slugParam,
+				profiles.MembershipKindMaintainer,
+			)
+			if permErr != nil || !canEdit {
+				return ctx.Results.Error(
+					http.StatusForbidden,
+					httpfx.WithErrorMessage(
+						"You do not have permission to edit this profile",
+					),
+				)
+			}
+
+			// Get source content
+			title, summary, content, err := profileService.GetProfilePageTranslationContent(
+				ctx.Request.Context(),
+				slugParam,
+				pageIDParam,
+				requestBody.SourceLocale,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Get page source content failed",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam),
+					slog.String("page_id", pageIDParam),
+					slog.String("source_locale", requestBody.SourceLocale))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get source content for translation"),
+				)
+			}
+
+			// Translate via AI
+			translatedTitle, translatedSummary, translatedContent, err := translateContent(
+				ctx.Request.Context(),
+				aiModels,
+				requestBody.SourceLocale,
+				targetLocaleParam,
+				title,
+				summary,
+				content,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "AI page translation failed",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam),
+					slog.String("page_id", pageIDParam),
+					slog.String("source_locale", requestBody.SourceLocale),
+					slog.String("target_locale", targetLocaleParam))
+
+				if strings.Contains(err.Error(), "not available") {
+					return ctx.Results.Error(
+						http.StatusServiceUnavailable,
+						httpfx.WithErrorMessage("AI translation not available"),
+					)
+				}
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Auto-translate failed"),
+				)
+			}
+
+			// Save translated content
+			err = profileService.UpdateProfilePageTranslation(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				user.Kind,
+				slugParam,
+				pageIDParam,
+				targetLocaleParam,
+				translatedTitle,
+				translatedSummary,
+				translatedContent,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Save translated page content failed",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam),
+					slog.String("page_id", pageIDParam),
+					slog.String("target_locale", targetLocaleParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to save translated content"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data": map[string]any{
+					"success": true,
+					"title":   translatedTitle,
+					"summary": translatedSummary,
+					"content": translatedContent,
+				},
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Auto-translate Profile Page").
+		HasDescription("Auto-translate profile page content from source locale to target locale using AI.").
 		HasResponse(http.StatusOK)
 }

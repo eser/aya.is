@@ -249,6 +249,8 @@ type Repository interface {
 		content string,
 	) error
 	RemoveStory(ctx context.Context, id string) error
+	DeleteStoryTx(ctx context.Context, storyID string, localeCode string) error
+	ListStoryTxLocales(ctx context.Context, storyID string) ([]string, error)
 	GetStoryForEdit(ctx context.Context, localeCode string, id string) (*StoryForEdit, error)
 	GetStoryOwnershipForUser(
 		ctx context.Context,
@@ -869,6 +871,88 @@ func (s *Service) UpdateTranslation(
 	}
 
 	return nil
+}
+
+// DeleteTranslation deletes a specific translation for a story.
+func (s *Service) DeleteTranslation(
+	ctx context.Context,
+	userID string,
+	storyID string,
+	localeCode string,
+) error {
+	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
+	if err != nil {
+		return err
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot edit story %s",
+			ErrUnauthorized,
+			userID,
+			storyID,
+		)
+	}
+
+	err = s.repo.DeleteStoryTx(ctx, storyID, localeCode)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(storyID: %s, locale: %s): %w",
+			ErrFailedToRemoveRecord,
+			storyID,
+			localeCode,
+			err,
+		)
+	}
+
+	return nil
+}
+
+// ListTranslationLocales returns locale codes that have translations for a story.
+func (s *Service) ListTranslationLocales(
+	ctx context.Context,
+	storyID string,
+) ([]string, error) {
+	locales, err := s.repo.ListStoryTxLocales(ctx, storyID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToListRecords, storyID, err)
+	}
+
+	// Trim whitespace from locale codes (char fields may be padded)
+	result := make([]string, 0, len(locales))
+	for _, l := range locales {
+		result = append(result, strings.TrimSpace(l))
+	}
+
+	return result, nil
+}
+
+// GetTranslationContent returns the translation content for a specific locale.
+func (s *Service) GetTranslationContent(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+) (string, string, string, error) {
+	story, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
+	if err != nil {
+		return "", "", "", fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
+	}
+
+	if story == nil {
+		return "", "", "", fmt.Errorf("%w: story %s not found", ErrStoryNotFound, storyID)
+	}
+
+	// Check if this is actual content for the requested locale (not fallback)
+	actualLocale := strings.TrimSpace(story.LocaleCode)
+	if actualLocale != localeCode {
+		return "", "", "", fmt.Errorf(
+			"%w: no translation for locale %s",
+			ErrFailedToGetRecord,
+			localeCode,
+		)
+	}
+
+	return story.Title, story.Summary, story.Content, nil
 }
 
 // Delete soft-deletes a story. Fails if the story has active publications.

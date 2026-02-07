@@ -1324,6 +1324,31 @@ func (r *Repository) UpsertProfilePageTx(
 	return r.queries.UpsertProfilePageTx(ctx, params)
 }
 
+func (r *Repository) DeleteProfilePageTx(
+	ctx context.Context,
+	profilePageID string,
+	localeCode string,
+) error {
+	params := DeleteProfilePageTxParams{
+		ProfilePageID: profilePageID,
+		LocaleCode:    localeCode,
+	}
+	_, err := r.queries.DeleteProfilePageTx(ctx, params)
+
+	return err
+}
+
+func (r *Repository) ListProfilePageTxLocales(
+	ctx context.Context,
+	profilePageID string,
+) ([]string, error) {
+	params := ListProfilePageTxLocalesParams{
+		ProfilePageID: profilePageID,
+	}
+
+	return r.queries.ListProfilePageTxLocales(ctx, params)
+}
+
 func (r *Repository) DeleteProfilePage(
 	ctx context.Context,
 	id string,

@@ -6,20 +6,6 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import { visit } from "unist-util-visit";
 import { remarkEmbed } from "./remark-embed";
 
-/**
- * Rehype plugin that adds target="_blank" and rel="noopener noreferrer"
- * to all links so they open in a new tab.
- */
-function rehypeExternalLinks() {
-  return (tree: any) => {
-    visit(tree, "element", (node: any) => {
-      if (node.tagName === "a" && node.properties?.href !== undefined) {
-        node.properties.target = "_blank";
-        node.properties.rel = "noopener noreferrer";
-      }
-    });
-  };
-}
 import {
   Card,
   Cards,
@@ -37,6 +23,25 @@ import {
 type HeadingTag = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
 const headingTags: HeadingTag[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
+/**
+ * Rehype plugin that adds target="_blank" and rel="noopener noreferrer"
+ * to all links so they open in a new tab.
+ */
+function rehypeExternalLinks() {
+  return (tree: any) => {
+    visit(tree, "element", (node: any) => {
+      if (
+        node.tagName === "a" &&
+        node.properties?.href !== undefined &&
+        typeof node.properties.href === "string" &&
+        URL.canParse(node.properties.href)
+      ) {
+        node.properties.target = "_blank";
+        node.properties.rel = "noopener noreferrer";
+      }
+    });
+  };
+}
 
 /**
  * Creates MDX components with heading level offset.

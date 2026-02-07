@@ -562,7 +562,19 @@
     "No profiles available": "Нет доступных профилей",
     "Unpublish from all profiles first": "Сначала снимите публикацию со всех профилей",
     "you": "вы",
-    "Some changes could not be applied": "Некоторые изменения не удалось применить"
+    "Some changes could not be applied": "Некоторые изменения не удалось применить",
+    "Translations": "Translations",
+    "Manage translations for this content": "Manage translations for this content",
+    "current": "current",
+    "Switch": "Switch",
+    "Remove translation": "Remove translation",
+    "Auto-translate": "Auto-translate",
+    "Translating...": "Translating...",
+    "Translation removed": "Translation removed",
+    "Failed to remove translation": "Failed to remove translation",
+    "Translation completed": "Translation completed",
+    "Auto-translate failed": "Auto-translate failed",
+    "AI translation not available": "AI translation not available"
   },
   "Admin": {
     "Admin Area": "Панель администратора",

@@ -380,6 +380,8 @@ type Repository interface { //nolint:interfacebloat
 		summary string,
 		content string,
 	) error
+	DeleteProfilePageTx(ctx context.Context, profilePageID string, localeCode string) error
+	ListProfilePageTxLocales(ctx context.Context, profilePageID string) ([]string, error)
 	DeleteProfilePage(ctx context.Context, id string) error
 	// Search methods
 	Search(
@@ -1933,6 +1935,116 @@ func (s *Service) UpdateProfilePageTranslation(
 	}
 
 	return nil
+}
+
+// DeleteProfilePageTranslation deletes a specific translation for a profile page.
+func (s *Service) DeleteProfilePageTranslation(
+	ctx context.Context,
+	userID string,
+	userKind string,
+	profileSlug string,
+	pageID string,
+	localeCode string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteProfilePageTx(ctx, pageID, localeCode)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(pageID: %s, locale: %s): %w",
+			ErrFailedToDeleteRecord,
+			pageID,
+			localeCode,
+			err,
+		)
+	}
+
+	return nil
+}
+
+// ListProfilePageTranslationLocales returns locale codes that have translations for a page.
+func (s *Service) ListProfilePageTranslationLocales(
+	ctx context.Context,
+	profileSlug string,
+	pageID string,
+) ([]string, error) {
+	locales, err := s.repo.ListProfilePageTxLocales(ctx, pageID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(pageID: %s): %w", ErrFailedToListRecords, pageID, err)
+	}
+
+	result := make([]string, 0, len(locales))
+	for _, l := range locales {
+		result = append(result, strings.TrimSpace(l))
+	}
+
+	return result, nil
+}
+
+// GetProfilePageTranslationContent returns the translation content for a specific locale.
+func (s *Service) GetProfilePageTranslationContent(
+	ctx context.Context,
+	profileSlug string,
+	pageID string,
+	localeCode string,
+) (string, string, string, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return "", "", "", fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return "", "", "", ErrProfileNotFound
+	}
+
+	page, err := s.repo.GetProfilePageByProfileIDAndSlug(ctx, localeCode, profileID, "")
+	if err != nil {
+		// Try to get by ID directly
+		pages, listErr := s.repo.ListProfilePagesByProfileID(ctx, localeCode, profileID)
+		if listErr != nil {
+			return "", "", "", fmt.Errorf(
+				"%w(pageID: %s): %w",
+				ErrFailedToGetRecord,
+				pageID,
+				listErr,
+			)
+		}
+
+		for _, p := range pages {
+			if p.ID == pageID {
+				return p.Title, p.Summary, "", nil
+			}
+		}
+
+		return "", "", "", fmt.Errorf("%w(pageID: %s): %w", ErrFailedToGetRecord, pageID, err)
+	}
+
+	if page == nil {
+		return "", "", "", fmt.Errorf("%w: page not found", ErrFailedToGetRecord)
+	}
+
+	// Check if this is actual content for the requested locale
+	actualLocale := strings.TrimSpace(page.LocaleCode)
+	if actualLocale != localeCode {
+		return "", "", "", fmt.Errorf(
+			"%w: no translation for locale %s",
+			ErrFailedToGetRecord,
+			localeCode,
+		)
+	}
+
+	return page.Title, page.Summary, page.Content, nil
 }
 
 // DeleteProfilePage soft-deletes a profile page with authorization check.

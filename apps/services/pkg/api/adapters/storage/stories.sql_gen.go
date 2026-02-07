@@ -37,6 +37,30 @@ func (q *Queries) CountStoryPublications(ctx context.Context, arg CountStoryPubl
 	return count, err
 }
 
+const deleteStoryTx = `-- name: DeleteStoryTx :execrows
+DELETE FROM "story_tx"
+WHERE story_id = $1
+  AND locale_code = $2
+`
+
+type DeleteStoryTxParams struct {
+	StoryID    string `db:"story_id" json:"story_id"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+}
+
+// DeleteStoryTx
+//
+//	DELETE FROM "story_tx"
+//	WHERE story_id = $1
+//	  AND locale_code = $2
+func (q *Queries) DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteStoryTx, arg.StoryID, arg.LocaleCode)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
@@ -1220,6 +1244,44 @@ func (q *Queries) ListStoryPublications(ctx context.Context, arg ListStoryPublic
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStoryTxLocales = `-- name: ListStoryTxLocales :many
+SELECT locale_code FROM "story_tx"
+WHERE story_id = $1
+ORDER BY locale_code
+`
+
+type ListStoryTxLocalesParams struct {
+	StoryID string `db:"story_id" json:"story_id"`
+}
+
+// ListStoryTxLocales
+//
+//	SELECT locale_code FROM "story_tx"
+//	WHERE story_id = $1
+//	ORDER BY locale_code
+func (q *Queries) ListStoryTxLocales(ctx context.Context, arg ListStoryTxLocalesParams) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, listStoryTxLocales, arg.StoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var locale_code string
+		if err := rows.Scan(&locale_code); err != nil {
+			return nil, err
+		}
+		items = append(items, locale_code)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

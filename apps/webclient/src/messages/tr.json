@@ -127,7 +127,7 @@
     "A software foundation formed by volunteer-developed software": "Gönüllü geliştirilen yazılımlarla oluşan bir yazılım vakfı",
     "Rest of the story": "Hikayenin devamı",
     "GitHub": "GitHub",
-    "IntroText": "**AYA (açılımı Açık Yazılım Ağı)**, sosyal bir yarar oluşturmak motivasyonuyla nitelikli bilişim çözümleri üreten gönüllülerin bir araya gelmesine ve projeler gerçekleştirmesine imkan sağlayan bir platformdur.\n\nBugüne kadar projelere yetkin ve uzman gönüllü desteği ve teknik kaynaklar sunarak kolektif bir şekilde gerçeklenmelerini sağladık. Bu projeler resmi kurumlar ve sivil toplum kuruluşları başta olmak üzere herkesin kullanımına ve denetimine açık, açık kaynak lisanslarına sahip bilişim çözümleri oldular. Bizim buradaki rolümüz hem gönüllülerin aralarındaki iletişime aracı olmak hem de kaynak yönetiminde koordinasyon sağlamak oldu.\n\nSosyal yarar gözeten ve kar amacı gütmeyen bir oluşum olarak AYA, bugün yoluna portföyünde bilişim projeleri barındıran [yazılım vakfı kimliğiyle](/aya/stories/20240107-vakif-kimligimiz-ve-sinirlarimiz) devam ediyor."
+    "IntroText": "**AYA (açılımı Açık Yazılım Ağı)**, sosyal bir yarar oluşturmak motivasyonuyla nitelikli bilişim çözümleri üreten gönüllülerin bir araya gelmesine ve projeler gerçekleştirmesine imkan sağlayan bir platformdur.\n\nBugüne kadar projelere yetkin ve uzman gönüllü desteği ve teknik kaynaklar sunarak kolektif bir şekilde gerçeklenmelerini sağladık. Bu projeler resmi kurumlar ve sivil toplum kuruluşları başta olmak üzere herkesin kullanımına ve denetimine açık, açık kaynak lisanslarına sahip bilişim çözümleri oldular. Bizim buradaki rolümüz hem gönüllülerin aralarındaki iletişime aracı olmak hem de kaynak yönetiminde koordinasyon sağlamak oldu.\n\nSosyal yarar gözeten ve kar amacı gütmeyen bir oluşum olarak AYA, bugün yoluna portföyünde bilişim projeleri barındıran [yazılım vakfı kimliğiyle](/tr/aya/stories/20240107-vakif-kimligimiz-ve-sinirlarimiz) devam ediyor."
   },
   "Stories": {
     "Description": "AYA topluluğundan makaleler, duyurular ve içerikler.",
@@ -562,7 +562,19 @@
     "No profiles available": "Kullanılabilir profil yok",
     "Unpublish from all profiles first": "Önce tüm profillerden yayını kaldırın",
     "you": "sen",
-    "Some changes could not be applied": "Bazı değişiklikler uygulanamadı"
+    "Some changes could not be applied": "Bazı değişiklikler uygulanamadı",
+    "Translations": "Çeviriler",
+    "Manage translations for this content": "Bu içerik için çevirileri yönetin",
+    "current": "mevcut",
+    "Switch": "Değiştir",
+    "Remove translation": "Çeviriyi kaldır",
+    "Auto-translate": "Otomatik çevir",
+    "Translating...": "Çevriliyor...",
+    "Translation removed": "Çeviri kaldırıldı",
+    "Failed to remove translation": "Çeviri kaldırılamadı",
+    "Translation completed": "Çeviri tamamlandı",
+    "Auto-translate failed": "Otomatik çeviri başarısız oldu",
+    "AI translation not available": "Yapay zeka çevirisi mevcut değil"
   },
   "Admin": {
     "Admin Area": "Yönetim Paneli",

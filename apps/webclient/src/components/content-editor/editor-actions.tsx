@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
+import { Globe, Languages, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -18,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { type SupportedLocaleCode, supportedLocales } from "@/config";
 type EditorActionsProps = {
@@ -32,7 +31,7 @@ type EditorActionsProps = {
   onDelete: () => void;
   canDelete?: boolean;
   locale?: string;
-  onLocaleChange?: (locale: string) => void;
+  onOpenLocalizationsDialog?: () => void;
 };
 
 export function EditorActions(props: EditorActionsProps) {
@@ -48,7 +47,7 @@ export function EditorActions(props: EditorActionsProps) {
     onDelete,
     canDelete = true,
     locale,
-    onLocaleChange,
+    onOpenLocalizationsDialog,
   } = props;
 
   const isPublished = publicationCount > 0;
@@ -89,23 +88,18 @@ export function EditorActions(props: EditorActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {onLocaleChange !== undefined && locale !== undefined && (
-        <Select value={locale} onValueChange={onLocaleChange}>
-          <SelectTrigger size="sm" className="w-auto gap-1.5">
-            <span>
-              {locale in supportedLocales
-                ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${supportedLocales[locale as SupportedLocaleCode].name}`
-                : locale.toUpperCase()}
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(supportedLocales).map(([code, data]) => (
-              <SelectItem key={code} value={code}>
-                {data.flag} {data.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {onOpenLocalizationsDialog !== undefined && locale !== undefined && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenLocalizationsDialog}
+          disabled={isSaving || isNew}
+        >
+          <Languages className="mr-1.5 size-4" />
+          {locale in supportedLocales
+            ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${supportedLocales[locale as SupportedLocaleCode].name}`
+            : locale.toUpperCase()}
+        </Button>
       )}
 
       {onOpenPublishDialog !== undefined && (

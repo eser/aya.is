@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -26,6 +27,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 	authService *auth.Service,
 	userService *users.Service,
 	storyService *stories.Service,
+	aiModels *aifx.Registry,
 ) {
 	routes.
 		Route("GET /{locale}/stories", func(ctx *httpfx.Context) httpfx.Result {
@@ -994,5 +996,241 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 		}).
 		HasSummary("Remove Story Publication").
 		HasDescription("Remove a story publication (unpublish from a profile).").
+		HasResponse(http.StatusOK)
+
+	// --- Story Translation Management routes ---
+
+	// List story translation locales
+	routes.Route(
+		"GET /{locale}/profiles/{slug}/_stories/{storyId}/_tx",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			storyIDParam := ctx.Request.PathValue("storyId")
+
+			locales, err := storyService.ListTranslationLocales(
+				ctx.Request.Context(),
+				storyIDParam,
+			)
+			if err != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to list translation locales"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data":  locales,
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("List Story Translation Locales").
+		HasDescription("List all locales that have translations for a story.").
+		HasResponse(http.StatusOK)
+
+	// Delete story translation
+	routes.Route(
+		"DELETE /{locale}/profiles/{slug}/_stories/{storyId}/translations/{translationLocale}",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			storyIDParam := ctx.Request.PathValue("storyId")
+			translationLocaleParam := ctx.Request.PathValue("translationLocale")
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			err := storyService.DeleteTranslation(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				storyIDParam,
+				translationLocaleParam,
+			)
+			if err != nil {
+				if strings.Contains(err.Error(), "unauthorized") {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage(
+							"You do not have permission to edit this story",
+						),
+					)
+				}
+
+				logger.ErrorContext(ctx.Request.Context(), "Story translation deletion failed",
+					slog.String("error", err.Error()),
+					slog.String("session_id", sessionID),
+					slog.String("user_id", *session.LoggedInUserID),
+					slog.String("story_id", storyIDParam),
+					slog.String("locale", translationLocaleParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to delete story translation"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data": map[string]any{
+					"success": true,
+				},
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Delete Story Translation").
+		HasDescription("Delete a story translation for a specific locale.").
+		HasResponse(http.StatusOK)
+
+	// Auto-translate story
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_stories/{storyId}/translations/{targetLocale}/auto-translate",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			storyIDParam := ctx.Request.PathValue("storyId")
+			targetLocaleParam := ctx.Request.PathValue("targetLocale")
+
+			var requestBody struct {
+				SourceLocale string `json:"source_locale"`
+			}
+
+			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
+			}
+
+			if requestBody.SourceLocale == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("source_locale is required"),
+				)
+			}
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			// Auth check
+			canEdit, err := storyService.CanUserEditStory(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				storyIDParam,
+			)
+			if err != nil || !canEdit {
+				return ctx.Results.Error(
+					http.StatusForbidden,
+					httpfx.WithErrorMessage(
+						"You do not have permission to edit this story",
+					),
+				)
+			}
+
+			// Get source content
+			title, summary, content, err := storyService.GetTranslationContent(
+				ctx.Request.Context(),
+				storyIDParam,
+				requestBody.SourceLocale,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Get source content failed",
+					slog.String("error", err.Error()),
+					slog.String("story_id", storyIDParam),
+					slog.String("source_locale", requestBody.SourceLocale))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get source content for translation"),
+				)
+			}
+
+			// Translate via AI
+			translatedTitle, translatedSummary, translatedContent, err := translateContent(
+				ctx.Request.Context(),
+				aiModels,
+				requestBody.SourceLocale,
+				targetLocaleParam,
+				title,
+				summary,
+				content,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "AI translation failed",
+					slog.String("error", err.Error()),
+					slog.String("story_id", storyIDParam),
+					slog.String("source_locale", requestBody.SourceLocale),
+					slog.String("target_locale", targetLocaleParam))
+
+				if strings.Contains(err.Error(), "not available") {
+					return ctx.Results.Error(
+						http.StatusServiceUnavailable,
+						httpfx.WithErrorMessage("AI translation not available"),
+					)
+				}
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Auto-translate failed"),
+				)
+			}
+
+			// Save translated content
+			err = storyService.UpdateTranslation(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				storyIDParam,
+				targetLocaleParam,
+				translatedTitle,
+				translatedSummary,
+				translatedContent,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Save translated content failed",
+					slog.String("error", err.Error()),
+					slog.String("story_id", storyIDParam),
+					slog.String("target_locale", targetLocaleParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to save translated content"),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data": map[string]any{
+					"success": true,
+					"title":   translatedTitle,
+					"summary": translatedSummary,
+					"content": translatedContent,
+				},
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Auto-translate Story").
+		HasDescription("Auto-translate story content from source locale to target locale using AI.").
 		HasResponse(http.StatusOK)
 }

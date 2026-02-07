@@ -106,6 +106,16 @@ function EditPagePage() {
     return () => { cancelled = true; };
   }, [translationLocale, params.locale, params.slug, params.pageslug, page]);
 
+  // Translation locales state
+  const [translationLocales, setTranslationLocales] = React.useState<string[] | null>(null);
+
+  // Load translation locales after page data is loaded
+  React.useEffect(() => {
+    backend.listProfilePageTranslationLocales(params.locale, params.slug, page.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+  }, [params.locale, params.slug, page.id]);
+
   // Show skeleton while loading or when translation data is stale (locale mismatch)
   const translationReady = translationState !== null && translationState.locale === translationLocale;
 
@@ -232,6 +242,10 @@ function EditPagePage() {
 
     if (translationResult !== null) {
       toast.success("Page saved successfully");
+      // Refresh translation locales
+      backend.listProfilePageTranslationLocales(params.locale, params.slug, page.id).then((locales) => {
+        setTranslationLocales(locales);
+      });
       // If slug changed, navigate to new URL
       if (data.slug !== params.pageslug) {
         navigate({
@@ -266,6 +280,43 @@ function EditPagePage() {
     }
   };
 
+  const handleAutoTranslate = async (targetLocale: string) => {
+    const result = await backend.autoTranslateProfilePage(
+      params.locale,
+      params.slug,
+      page.id,
+      targetLocale,
+      translationLocale,
+    );
+    if (result === null) {
+      throw new Error("Auto-translate failed");
+    }
+    // Refresh translation locales
+    backend.listProfilePageTranslationLocales(params.locale, params.slug, page.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+  };
+
+  const handleDeleteTranslation = async (localeToDelete: string) => {
+    const result = await backend.deleteProfilePageTranslation(
+      params.locale,
+      params.slug,
+      page.id,
+      localeToDelete,
+    );
+    if (result === null) {
+      throw new Error("Delete translation failed");
+    }
+    // Refresh translation locales
+    backend.listProfilePageTranslationLocales(params.locale, params.slug, page.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+    // If deleting the current locale, switch to the site locale
+    if (localeToDelete === translationLocale) {
+      setTranslationLocale(params.locale);
+    }
+  };
+
   return (
     <>
       <div className="h-[calc(100vh-140px)]">
@@ -281,6 +332,9 @@ function EditPagePage() {
           onDelete={handleDelete}
           excludeId={page.id}
           onLocaleChange={handleLocaleChange}
+          translationLocales={translationLocales}
+          onAutoTranslate={handleAutoTranslate}
+          onDeleteTranslation={handleDeleteTranslation}
         />
       </div>
     </>

@@ -715,6 +715,30 @@ func (q *Queries) DeleteProfilePage(ctx context.Context, arg DeleteProfilePagePa
 	return result.RowsAffected()
 }
 
+const deleteProfilePageTx = `-- name: DeleteProfilePageTx :execrows
+DELETE FROM "profile_page_tx"
+WHERE profile_page_id = $1
+  AND locale_code = $2
+`
+
+type DeleteProfilePageTxParams struct {
+	ProfilePageID string `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode    string `db:"locale_code" json:"locale_code"`
+}
+
+// DeleteProfilePageTx
+//
+//	DELETE FROM "profile_page_tx"
+//	WHERE profile_page_id = $1
+//	  AND locale_code = $2
+func (q *Queries) DeleteProfilePageTx(ctx context.Context, arg DeleteProfilePageTxParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteProfilePageTx, arg.ProfilePageID, arg.LocaleCode)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getAdminProfileBySlug = `-- name: GetAdminProfileBySlug :one
 SELECT
   p.id,
@@ -2821,6 +2845,44 @@ func (q *Queries) ListProfileMembershipsForSettings(ctx context.Context, arg Lis
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProfilePageTxLocales = `-- name: ListProfilePageTxLocales :many
+SELECT locale_code FROM "profile_page_tx"
+WHERE profile_page_id = $1
+ORDER BY locale_code
+`
+
+type ListProfilePageTxLocalesParams struct {
+	ProfilePageID string `db:"profile_page_id" json:"profile_page_id"`
+}
+
+// ListProfilePageTxLocales
+//
+//	SELECT locale_code FROM "profile_page_tx"
+//	WHERE profile_page_id = $1
+//	ORDER BY locale_code
+func (q *Queries) ListProfilePageTxLocales(ctx context.Context, arg ListProfilePageTxLocalesParams) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, listProfilePageTxLocales, arg.ProfilePageID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var locale_code string
+		if err := rows.Scan(&locale_code); err != nil {
+			return nil, err
+		}
+		items = append(items, locale_code)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

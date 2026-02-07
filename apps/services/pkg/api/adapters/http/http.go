@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 
+	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/middlewares"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/modules/healthcheck"
@@ -37,6 +38,7 @@ func Run(
 	uploadService *uploads.Service,
 	unsplashClient *unsplash.Client,
 	profileLinkProviders *ProfileLinkProviders,
+	aiModels *aifx.Registry,
 ) (func(), error) {
 	httpfx.SetDiscloseErrors(discloseErrors)
 
@@ -105,6 +107,7 @@ func Run(
 		userService,
 		profileService,
 		storyService,
+		aiModels,
 	)
 	RegisterHTTPRoutesForProfilePoints( //nolint:contextcheck
 		routes,
@@ -120,6 +123,7 @@ func Run(
 		authService,
 		userService,
 		storyService,
+		aiModels,
 	)
 	RegisterHTTPRoutesForSearch( //nolint:contextcheck
 		routes,

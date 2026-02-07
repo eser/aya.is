@@ -36,6 +36,9 @@ import { createProfilePage } from "./profiles/create-profile-page";
 import { updateProfilePage } from "./profiles/update-profile-page";
 import { updateProfilePageTranslation } from "./profiles/update-profile-page-translation";
 import { deleteProfilePage } from "./profiles/delete-profile-page";
+import { listProfilePageTranslationLocales } from "./profiles/list-profile-page-translation-locales";
+import { deleteProfilePageTranslation } from "./profiles/delete-profile-page-translation";
+import { autoTranslateProfilePage } from "./profiles/auto-translate-profile-page";
 import { listProfilePointTransactions } from "./profile-points/list-profile-point-transactions";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
@@ -50,6 +53,9 @@ import { listStoryPublications } from "./stories/list-story-publications";
 import { addStoryPublication } from "./stories/add-story-publication";
 import { updateStoryPublication } from "./stories/update-story-publication";
 import { removeStoryPublication } from "./stories/remove-story-publication";
+import { listStoryTranslationLocales } from "./stories/list-story-translation-locales";
+import { deleteStoryTranslation } from "./stories/delete-story-translation";
+import { autoTranslateStory } from "./stories/auto-translate-story";
 import { getPresignedURL } from "./uploads/get-presigned-url";
 import { uploadToPresignedURL } from "./uploads/upload-to-presigned-url";
 import { removeUpload } from "./uploads/remove-upload";
@@ -130,6 +136,9 @@ export const backend = {
   updateProfilePage,
   updateProfilePageTranslation,
   deleteProfilePage,
+  listProfilePageTranslationLocales,
+  deleteProfilePageTranslation,
+  autoTranslateProfilePage,
 
   // Profile Points
   listProfilePointTransactions,
@@ -148,6 +157,9 @@ export const backend = {
   addStoryPublication,
   updateStoryPublication,
   removeStoryPublication,
+  listStoryTranslationLocales,
+  deleteStoryTranslation,
+  autoTranslateStory,
 
   // Uploads
   getPresignedURL,
@@ -253,6 +265,14 @@ export {
   updateStoryTranslation,
   uploadProfilePicture,
   uploadToPresignedURL,
+
+  // Translation management
+  listStoryTranslationLocales,
+  deleteStoryTranslation,
+  autoTranslateStory,
+  listProfilePageTranslationLocales,
+  deleteProfilePageTranslation,
+  autoTranslateProfilePage,
 
   // Admin
   approvePendingAward,

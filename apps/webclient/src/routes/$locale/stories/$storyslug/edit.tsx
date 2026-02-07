@@ -91,6 +91,20 @@ function EditStoryPage() {
     });
   }, [translationLocale, storyData, params.locale, params.storyslug]);
 
+  // Translation locales state
+  const [translationLocales, setTranslationLocales] = React.useState<string[] | null>(null);
+
+  // Load translation locales after story data is loaded
+  React.useEffect(() => {
+    if (storyData === null) return;
+    const authorSlug = storyData.author_profile_slug;
+    if (authorSlug === null) return;
+
+    backend.listStoryTranslationLocales(params.locale, authorSlug, storyData.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+  }, [storyData, params.locale]);
+
   // Get the author's profile slug from story data
   const authorProfileSlug = storyData?.author_profile_slug ?? null;
 
@@ -223,6 +237,10 @@ function EditStoryPage() {
 
     if (translationResult !== null) {
       toast.success("Story saved successfully");
+      // Refresh translation locales
+      backend.listStoryTranslationLocales(params.locale, authorProfileSlug, storyData.id).then((locales) => {
+        setTranslationLocales(locales);
+      });
       // If slug changed, navigate to new URL
       if (data.slug !== params.storyslug) {
         navigate({
@@ -256,6 +274,43 @@ function EditStoryPage() {
     }
   };
 
+  const handleAutoTranslate = async (targetLocale: string) => {
+    const result = await backend.autoTranslateStory(
+      params.locale,
+      authorProfileSlug,
+      storyData.id,
+      targetLocale,
+      translationLocale,
+    );
+    if (result === null) {
+      throw new Error("Auto-translate failed");
+    }
+    // Refresh translation locales
+    backend.listStoryTranslationLocales(params.locale, authorProfileSlug, storyData.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+  };
+
+  const handleDeleteTranslation = async (localeToDelete: string) => {
+    const result = await backend.deleteStoryTranslation(
+      params.locale,
+      authorProfileSlug,
+      storyData.id,
+      localeToDelete,
+    );
+    if (result === null) {
+      throw new Error("Delete translation failed");
+    }
+    // Refresh translation locales
+    backend.listStoryTranslationLocales(params.locale, authorProfileSlug, storyData.id).then((locales) => {
+      setTranslationLocales(locales);
+    });
+    // If deleting the current locale, switch to the site locale
+    if (localeToDelete === translationLocale) {
+      setTranslationLocale(params.locale);
+    }
+  };
+
   return (
     <PageLayout>
       <div className="h-[calc(100vh-140px)]">
@@ -276,6 +331,9 @@ function EditStoryPage() {
           accessibleProfiles={auth.user?.accessible_profiles ?? []}
           individualProfile={auth.user?.individual_profile}
           onLocaleChange={handleLocaleChange}
+          translationLocales={translationLocales}
+          onAutoTranslate={handleAutoTranslate}
+          onDeleteTranslation={handleDeleteTranslation}
         />
       </div>
     </PageLayout>

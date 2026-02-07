@@ -488,6 +488,12 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	DeleteProfilePage(ctx context.Context, arg DeleteProfilePageParams) (int64, error)
+	//DeleteProfilePageTx
+	//
+	//  DELETE FROM "profile_page_tx"
+	//  WHERE profile_page_id = $1
+	//    AND locale_code = $2
+	DeleteProfilePageTx(ctx context.Context, arg DeleteProfilePageTxParams) (int64, error)
 	//DeleteSessionPreference
 	//
 	//  DELETE FROM session_preference
@@ -495,6 +501,12 @@ type Querier interface {
 	//    session_id = $1
 	//    AND key = $2
 	DeleteSessionPreference(ctx context.Context, arg DeleteSessionPreferenceParams) error
+	//DeleteStoryTx
+	//
+	//  DELETE FROM "story_tx"
+	//  WHERE story_id = $1
+	//    AND locale_code = $2
+	DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (int64, error)
 	//EnqueueQueueItem
 	//
 	//  INSERT INTO "queue" (
@@ -1454,6 +1466,12 @@ type Querier interface {
 	//    END,
 	//    pm.created_at ASC
 	ListProfileMembershipsForSettings(ctx context.Context, arg ListProfileMembershipsForSettingsParams) ([]*ListProfileMembershipsForSettingsRow, error)
+	//ListProfilePageTxLocales
+	//
+	//  SELECT locale_code FROM "profile_page_tx"
+	//  WHERE profile_page_id = $1
+	//  ORDER BY locale_code
+	ListProfilePageTxLocales(ctx context.Context, arg ListProfilePageTxLocalesParams) ([]string, error)
 	//ListProfilePagesByProfileID
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
@@ -1651,6 +1669,12 @@ type Querier interface {
 	//    AND sp.deleted_at IS NULL
 	//  ORDER BY sp.created_at
 	ListStoryPublications(ctx context.Context, arg ListStoryPublicationsParams) ([]*ListStoryPublicationsRow, error)
+	//ListStoryTxLocales
+	//
+	//  SELECT locale_code FROM "story_tx"
+	//  WHERE story_id = $1
+	//  ORDER BY locale_code
+	ListStoryTxLocales(ctx context.Context, arg ListStoryTxLocalesParams) ([]string, error)
 	//ListUsers
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at

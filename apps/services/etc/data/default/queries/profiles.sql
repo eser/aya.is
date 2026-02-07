@@ -327,6 +327,16 @@ INSERT INTO "profile_page_tx" (
   summary = EXCLUDED.summary,
   content = EXCLUDED.content;
 
+-- name: DeleteProfilePageTx :execrows
+DELETE FROM "profile_page_tx"
+WHERE profile_page_id = sqlc.arg(profile_page_id)
+  AND locale_code = sqlc.arg(locale_code);
+
+-- name: ListProfilePageTxLocales :many
+SELECT locale_code FROM "profile_page_tx"
+WHERE profile_page_id = sqlc.arg(profile_page_id)
+ORDER BY locale_code;
+
 -- name: DeleteProfilePage :execrows
 UPDATE "profile_page"
 SET deleted_at = NOW()
