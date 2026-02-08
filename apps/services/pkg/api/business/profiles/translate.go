@@ -114,7 +114,8 @@ func (s *Service) AutoTranslateProfilePage(
 		EventType:  events.ProfilePageAutoTranslated,
 		EntityType: "profile_page",
 		EntityID:   params.PageID,
-		ActorKind:  events.ActorSystem,
+		ActorID:    &params.UserID,
+		ActorKind:  events.ActorUser,
 		Payload: map[string]any{
 			"source_locale": params.SourceLocale,
 			"target_locale": params.TargetLocale,

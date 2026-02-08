@@ -60,11 +60,15 @@ type AuditRepository interface {
 // IDGenerator is a function that generates unique IDs.
 type IDGenerator func() string
 
+// SessionIDFromCtx extracts a session ID from context (injected by the adapter layer).
+type SessionIDFromCtx func(context.Context) *string
+
 // AuditService records audit entries.
 type AuditService struct {
-	logger      *logfx.Logger
-	repo        AuditRepository
-	idGenerator IDGenerator
+	logger           *logfx.Logger
+	repo             AuditRepository
+	idGenerator      IDGenerator
+	sessionIDFromCtx SessionIDFromCtx
 }
 
 // NewAuditService creates a new audit service.
@@ -72,17 +76,24 @@ func NewAuditService(
 	logger *logfx.Logger,
 	repo AuditRepository,
 	idGenerator IDGenerator,
+	sessionIDFromCtx SessionIDFromCtx,
 ) *AuditService {
 	return &AuditService{
-		logger:      logger,
-		repo:        repo,
-		idGenerator: idGenerator,
+		logger:           logger,
+		repo:             repo,
+		idGenerator:      idGenerator,
+		sessionIDFromCtx: sessionIDFromCtx,
 	}
 }
 
 // Record persists an audit entry. Fire-and-forget: errors are logged but not propagated,
 // because audit failures must never break business operations.
 func (s *AuditService) Record(ctx context.Context, params AuditParams) {
+	// Auto-fill SessionID from context if not explicitly set
+	if params.SessionID == nil && s.sessionIDFromCtx != nil {
+		params.SessionID = s.sessionIDFromCtx(ctx)
+	}
+
 	id := s.idGenerator()
 
 	err := s.repo.InsertAudit(ctx, id, params)

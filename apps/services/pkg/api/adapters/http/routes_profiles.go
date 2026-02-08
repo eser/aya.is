@@ -588,6 +588,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			// Create the profile
 			profile, err := profileService.Create(
 				ctx.Request.Context(),
+				user.ID,
 				locale,
 				requestBody.Slug,
 				requestBody.Kind,
@@ -637,6 +638,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				// Create self-membership for individual profile (profile is its own owner)
 				membershipErr := profileService.CreateProfileMembership(
 					ctx.Request.Context(),
+					user.ID,
 					profile.ID,
 					&profile.ID, // Self-reference: member_profile_id = profile_id
 					"owner",
@@ -656,6 +658,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				if user.IndividualProfileID != nil {
 					membershipErr := profileService.CreateProfileMembership(
 						ctx.Request.Context(),
+						user.ID,
 						profile.ID,
 						user.IndividualProfileID,
 						"owner",

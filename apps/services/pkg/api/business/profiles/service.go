@@ -1091,6 +1091,7 @@ func (s *Service) CheckSlugAvailability(
 
 func (s *Service) Create(
 	ctx context.Context,
+	userID string,
 	localeCode string,
 	slug string,
 	kind string,
@@ -1141,6 +1142,7 @@ func (s *Service) Create(
 		EventType:  events.ProfileCreated,
 		EntityType: "profile",
 		EntityID:   string(profileID),
+		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
 	})
 
@@ -1151,6 +1153,7 @@ func (s *Service) Create(
 // This establishes the relationship (e.g., owner, maintainer) between profiles.
 func (s *Service) CreateProfileMembership(
 	ctx context.Context,
+	userID string,
 	profileID string,
 	memberProfileID *string,
 	kind string,
@@ -1171,13 +1174,14 @@ func (s *Service) CreateProfileMembership(
 
 	payload := map[string]any{"profile_id": profileID}
 	if memberProfileID != nil {
-		payload["user_id"] = *memberProfileID
+		payload["member_profile_id"] = *memberProfileID
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.ProfileMembershipCreated,
 		EntityType: "membership",
 		EntityID:   string(membershipID),
+		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
 		Payload:    payload,
 	})

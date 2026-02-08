@@ -10,6 +10,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/configfx"
 	"github.com/eser/aya.is/services/pkg/ajan/connfx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
+	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
@@ -235,6 +236,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Logger,
 		a.Repository,
 		idGen,
+		func(ctx context.Context) *string {
+			if sid, ok := ctx.Value(httpfx.ContextKey("session_id")).(string); ok {
+				return &sid
+			}
+
+			return nil
+		},
 	)
 
 	a.QueueService = events.NewQueueService(

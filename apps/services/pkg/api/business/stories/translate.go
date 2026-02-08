@@ -111,8 +111,8 @@ func (s *Service) AutoTranslateStory(
 		EventType:  events.StoryAutoTranslated,
 		EntityType: "story",
 		EntityID:   params.StoryID,
-		ActorID:    nil,
-		ActorKind:  events.ActorSystem,
+		ActorID:    &params.UserID,
+		ActorKind:  events.ActorUser,
 		Payload: map[string]any{
 			"source_locale": params.SourceLocale,
 			"target_locale": params.TargetLocale,

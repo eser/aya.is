@@ -235,11 +235,21 @@ func (s *Service) LogoutSession(ctx context.Context, oldSessionID string) (*Logo
 			"old_session_id", oldSessionID)
 	}
 
+	// Resolve the user who initiated the logout
+	oldSession, _ := s.userService.GetSessionByID(ctx, oldSessionID)
+
+	var actorID *string
+	if oldSession != nil {
+		actorID = oldSession.LoggedInUserID
+	}
+
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.SessionTerminated,
 		EntityType: "session",
 		EntityID:   oldSessionID,
+		ActorID:    actorID,
 		ActorKind:  events.ActorUser,
+		SessionID:  &oldSessionID,
 	})
 
 	return &LogoutResult{NewSession: newSession}, nil
