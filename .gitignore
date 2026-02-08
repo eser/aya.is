@@ -29,6 +29,7 @@ Thumbs.db
 
 # Dependencies
 node_modules/
+.direnv/
 
 # Test binaries, coverage and testing tool outputs
 *.test
