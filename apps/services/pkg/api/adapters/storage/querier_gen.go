@@ -178,6 +178,13 @@ type Querier interface {
 	//    AND pm.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	CountProfileOwners(ctx context.Context, arg CountProfileOwnersParams) (int64, error)
+	//CountProfileQuestionsByProfileID
+	//
+	//  SELECT COUNT(*) AS count
+	//  FROM "profile_question"
+	//  WHERE profile_id = $1
+	//    AND deleted_at IS NULL
+	CountProfileQuestionsByProfileID(ctx context.Context, arg CountProfileQuestionsByProfileIDParams) (int64, error)
 	//CountStoryPublications
 	//
 	//  SELECT COUNT(*) as count
@@ -438,6 +445,15 @@ type Querier interface {
 	//      $15
 	//    )
 	CreateUser(ctx context.Context, arg CreateUserParams) error
+	//DecrementProfileQuestionVoteCount
+	//
+	//  UPDATE "profile_question"
+	//  SET
+	//    vote_count = GREATEST(vote_count - 1, 0),
+	//    updated_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	DecrementProfileQuestionVoteCount(ctx context.Context, arg DecrementProfileQuestionVoteCountParams) error
 	//DeductPointsFromProfile
 	//
 	//  UPDATE "profile"
@@ -494,6 +510,12 @@ type Querier interface {
 	//  WHERE profile_page_id = $1
 	//    AND locale_code = $2
 	DeleteProfilePageTx(ctx context.Context, arg DeleteProfilePageTxParams) (int64, error)
+	//DeleteProfileQuestionVote
+	//
+	//  DELETE FROM "profile_question_vote"
+	//  WHERE question_id = $1
+	//    AND user_id = $2
+	DeleteProfileQuestionVote(ctx context.Context, arg DeleteProfileQuestionVoteParams) error
 	//DeleteSessionPreference
 	//
 	//  DELETE FROM session_preference
@@ -670,7 +692,7 @@ type Querier interface {
 	GetPendingAwardsStatsByEventType(ctx context.Context) ([]*GetPendingAwardsStatsByEventTypeRow, error)
 	//GetProfileByID
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -780,7 +802,7 @@ type Querier interface {
 	//    pm.finished_at,
 	//    pm.properties as membership_properties,
 	//    pm.created_at as membership_created_at,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM
 	//    "profile_membership" pm
@@ -862,6 +884,20 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	GetProfilePoints(ctx context.Context, arg GetProfilePointsParams) (int32, error)
+	//GetProfileQuestion
+	//
+	//  SELECT id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+	//  FROM "profile_question"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	GetProfileQuestion(ctx context.Context, arg GetProfileQuestionParams) (*ProfileQuestion, error)
+	//GetProfileQuestionVote
+	//
+	//  SELECT id, question_id, user_id, score, created_at
+	//  FROM "profile_question_vote"
+	//  WHERE question_id = $1
+	//    AND user_id = $2
+	GetProfileQuestionVote(ctx context.Context, arg GetProfileQuestionVoteParams) (*ProfileQuestionVote, error)
 	//GetProfileTxByID
 	//
 	//  SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -870,7 +906,7 @@ type Querier interface {
 	GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDParams) ([]*GetProfileTxByIDRow, error)
 	//GetProfilesByIDs
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -953,7 +989,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1172,6 +1208,15 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	GetUserProfilePermissions(ctx context.Context, arg GetUserProfilePermissionsParams) ([]*GetUserProfilePermissionsRow, error)
+	//IncrementProfileQuestionVoteCount
+	//
+	//  UPDATE "profile_question"
+	//  SET
+	//    vote_count = vote_count + 1,
+	//    updated_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	IncrementProfileQuestionVoteCount(ctx context.Context, arg IncrementProfileQuestionVoteCountParams) error
 	//InsertEventAudit
 	//
 	//  INSERT INTO "event_audit" (
@@ -1189,6 +1234,40 @@ type Querier interface {
 	//    NOW()
 	//  )
 	InsertEventAudit(ctx context.Context, arg InsertEventAuditParams) error
+	//InsertProfileQuestion
+	//
+	//  INSERT INTO "profile_question" (
+	//    id,
+	//    profile_id,
+	//    author_user_id,
+	//    content,
+	//    is_anonymous,
+	//    created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    NOW()
+	//  ) RETURNING id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+	InsertProfileQuestion(ctx context.Context, arg InsertProfileQuestionParams) (*ProfileQuestion, error)
+	//InsertProfileQuestionVote
+	//
+	//  INSERT INTO "profile_question_vote" (
+	//    id,
+	//    question_id,
+	//    user_id,
+	//    score,
+	//    created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    NOW()
+	//  ) RETURNING id, question_id, user_id, score, created_at
+	InsertProfileQuestionVote(ctx context.Context, arg InsertProfileQuestionVoteParams) (*ProfileQuestionVote, error)
 	//InsertStory
 	//
 	//  INSERT INTO "story" (
@@ -1247,6 +1326,12 @@ type Querier interface {
 	//    $5
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
+	//IsProfileQAHidden
+	//
+	//  SELECT hide_qa
+	//  FROM "profile"
+	//  WHERE id = $1
+	IsProfileQAHidden(ctx context.Context, arg IsProfileQAHiddenParams) (bool, error)
 	//ListAllProfileLinksByProfileID
 	//
 	//  SELECT
@@ -1418,9 +1503,9 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links, p2.default_locale,
+	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links, p2.default_locale, p2.hide_qa,
 	//    p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 	//  FROM
 	//  	"profile_membership" pm
@@ -1464,7 +1549,7 @@ type Querier interface {
 	//    pm.finished_at,
 	//    pm.created_at,
 	//    pm.updated_at,
-	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links, mp.default_locale,
+	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links, mp.default_locale, mp.hide_qa,
 	//    mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 	//  FROM "profile_membership" pm
 	//  INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -1523,9 +1608,28 @@ type Querier interface {
 	//  ORDER BY created_at DESC
 	//  LIMIT $2
 	ListProfilePointTransactionsByProfileID(ctx context.Context, arg ListProfilePointTransactionsByProfileIDParams) ([]*ProfilePointTransaction, error)
+	//ListProfileQuestionsByProfileID
+	//
+	//  SELECT
+	//    pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
+	//    CASE
+	//      WHEN $1::TEXT IS NOT NULL THEN
+	//        EXISTS(
+	//          SELECT 1 FROM "profile_question_vote" pqv
+	//          WHERE pqv.question_id = pq.id
+	//            AND pqv.user_id = $1::TEXT
+	//        )
+	//      ELSE FALSE
+	//    END AS has_viewer_vote
+	//  FROM "profile_question" pq
+	//  WHERE pq.profile_id = $2
+	//    AND pq.deleted_at IS NULL
+	//    AND ($3::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
+	//  ORDER BY pq.vote_count DESC, pq.created_at DESC
+	ListProfileQuestionsByProfileID(ctx context.Context, arg ListProfileQuestionsByProfileIDParams) ([]*ListProfileQuestionsByProfileIDRow, error)
 	//ListProfiles
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -1577,7 +1681,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1626,7 +1730,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications
 	//  FROM "story" s
@@ -1903,7 +2007,7 @@ type Querier interface {
 	//    u.email,
 	//    u.name,
 	//    u.individual_profile_id,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "user" u
 	//  INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -2012,8 +2116,9 @@ type Querier interface {
 	//    properties = COALESCE($3, properties),
 	//    hide_relations = COALESCE($4, hide_relations),
 	//    hide_links = COALESCE($5, hide_links),
+	//    hide_qa = COALESCE($6, hide_qa),
 	//    updated_at = NOW()
-	//  WHERE id = $6
+	//  WHERE id = $7
 	//    AND deleted_at IS NULL
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	//UpdateProfileLink
@@ -2097,6 +2202,26 @@ type Querier interface {
 	//  WHERE profile_page_id = $4
 	//    AND locale_code = $5
 	UpdateProfilePageTx(ctx context.Context, arg UpdateProfilePageTxParams) (int64, error)
+	//UpdateProfileQuestionAnswer
+	//
+	//  UPDATE "profile_question"
+	//  SET
+	//    answer_content = $1,
+	//    answered_at = NOW(),
+	//    answered_by = $2,
+	//    updated_at = NOW()
+	//  WHERE id = $3
+	//    AND deleted_at IS NULL
+	UpdateProfileQuestionAnswer(ctx context.Context, arg UpdateProfileQuestionAnswerParams) error
+	//UpdateProfileQuestionHidden
+	//
+	//  UPDATE "profile_question"
+	//  SET
+	//    is_hidden = $1,
+	//    updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateProfileQuestionHidden(ctx context.Context, arg UpdateProfileQuestionHiddenParams) error
 	//UpdateProfileTx
 	//
 	//  UPDATE "profile_tx"

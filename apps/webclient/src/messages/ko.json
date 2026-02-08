@@ -60,6 +60,7 @@
     "Articles": "기사",
     "Activities": "이벤트",
     "Links": "Links",
+    "Q&A": "Q&A",
     "Content not yet available.": "콘텐츠를 아직 사용할 수 없습니다.",
     "Change theme": "테마 변경",
     "System": "시스템",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
+  },
+  "QA": {
+    "Questions and answers": "질문과 답변",
+    "Ask a question to this profile.": "이 프로필에 질문하세요.",
+    "No questions yet.": "아직 질문이 없습니다.",
+    "Be the first to ask a question!": "첫 번째 질문을 해보세요!",
+    "Ask a Question": "질문하기",
+    "Your question...": "질문을 입력하세요...",
+    "Stay anonymous": "익명으로 유지",
+    "Submit": "제출",
+    "Answer": "답변",
+    "Your answer...": "답변을 입력하세요...",
+    "Hide": "숨기기",
+    "Show": "표시",
+    "Anonymous": "익명",
+    "Answered": "답변 완료",
+    "Hidden": "숨겨짐",
+    "votes": "투표",
+    "asked": "질문됨"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

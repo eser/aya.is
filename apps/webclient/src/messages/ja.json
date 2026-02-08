@@ -60,6 +60,7 @@
     "Articles": "記事",
     "Activities": "イベント",
     "Links": "Links",
+    "Q&A": "Q&A",
     "Content not yet available.": "コンテンツはまだ利用できません。",
     "Change theme": "テーマを変更",
     "System": "システム",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
+  },
+  "QA": {
+    "Questions and answers": "質問と回答",
+    "Ask a question to this profile.": "このプロフィールに質問する。",
+    "No questions yet.": "まだ質問はありません。",
+    "Be the first to ask a question!": "最初の質問をしましょう！",
+    "Ask a Question": "質問する",
+    "Your question...": "あなたの質問...",
+    "Stay anonymous": "匿名のまま",
+    "Submit": "送信",
+    "Answer": "回答",
+    "Your answer...": "あなたの回答...",
+    "Hide": "非表示",
+    "Show": "表示",
+    "Anonymous": "匿名",
+    "Answered": "回答済み",
+    "Hidden": "非表示",
+    "votes": "票",
+    "asked": "質問日"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

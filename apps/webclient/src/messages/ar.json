@@ -60,6 +60,7 @@
     "Articles": "المقالات",
     "Activities": "فعاليات",
     "Links": "Links",
+    "Q&A": "أسئلة وأجوبة",
     "Content not yet available.": "المحتوى غير متوفر بعد.",
     "Change theme": "تغيير السمة",
     "System": "النظام",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
+  },
+  "QA": {
+    "Questions and answers": "أسئلة وأجوبة",
+    "Ask a question to this profile.": "اطرح سؤالاً على هذا الملف الشخصي.",
+    "No questions yet.": "لا توجد أسئلة بعد.",
+    "Be the first to ask a question!": "كن أول من يطرح سؤالاً!",
+    "Ask a Question": "اطرح سؤالاً",
+    "Your question...": "سؤالك...",
+    "Stay anonymous": "البقاء مجهول الهوية",
+    "Submit": "إرسال",
+    "Answer": "إجابة",
+    "Your answer...": "إجابتك...",
+    "Hide": "إخفاء",
+    "Show": "إظهار",
+    "Anonymous": "مجهول",
+    "Answered": "تمت الإجابة",
+    "Hidden": "مخفي",
+    "votes": "أصوات",
+    "asked": "طُرح"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

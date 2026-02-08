@@ -255,6 +255,7 @@ func (r *Repository) GetProfileByID(
 		Points:            uint64(row.Profile.Points),
 		HideRelations:     row.Profile.HideRelations,
 		HideLinks:         row.Profile.HideLinks,
+		HideQA:            row.Profile.HideQa,
 	}
 
 	return result, nil
@@ -296,6 +297,7 @@ func (r *Repository) ListProfiles(
 			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
 			HideRelations:     row.Profile.HideRelations,
 			HideLinks:         row.Profile.HideLinks,
+			HideQA:            row.Profile.HideQa,
 		}
 	}
 
@@ -659,6 +661,7 @@ func (r *Repository) UpdateProfile(
 	properties map[string]any,
 	hideRelations *bool,
 	hideLinks *bool,
+	hideQA *bool,
 ) error {
 	params := UpdateProfileParams{
 		ID:                id,
@@ -667,6 +670,7 @@ func (r *Repository) UpdateProfile(
 		Properties:        vars.ToSQLNullRawMessage(properties),
 		HideRelations:     vars.ToSQLNullBool(hideRelations),
 		HideLinks:         vars.ToSQLNullBool(hideLinks),
+		HideQa:            vars.ToSQLNullBool(hideQA),
 	}
 
 	_, err := r.queries.UpdateProfile(ctx, params)

@@ -48,6 +48,14 @@ const (
 	ProfileMembershipDeleted EventType = "profile_membership_deleted"
 )
 
+// Profile question events.
+const (
+	ProfileQuestionCreated  EventType = "profile_question_created"
+	ProfileQuestionAnswered EventType = "profile_question_answered"
+	ProfileQuestionVoted    EventType = "profile_question_voted"
+	ProfileQuestionHidden   EventType = "profile_question_hidden"
+)
+
 // Points events.
 const (
 	PointsGained        EventType = "points_gained"

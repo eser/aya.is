@@ -1,0 +1,67 @@
+.card {
+  @apply flex gap-4 p-4 border rounded-lg bg-card;
+}
+
+.hidden {
+  @apply opacity-60;
+}
+
+.voteColumn {
+  @apply flex flex-col items-center gap-1 min-w-[40px];
+}
+
+.voteButton {
+  @apply p-1 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.voted {
+  @apply text-primary;
+}
+
+.voteCount {
+  @apply text-sm font-medium text-foreground;
+}
+
+.contentColumn {
+  @apply flex-1 min-w-0;
+}
+
+.questionHeader {
+  @apply flex items-center gap-2 mb-2;
+}
+
+.badge {
+  @apply px-2 py-0.5 text-xs font-medium rounded-full bg-muted text-muted-foreground;
+}
+
+.questionContent {
+  @apply text-sm text-foreground leading-relaxed mb-3 whitespace-pre-wrap;
+}
+
+.answerBlock {
+  @apply p-3 mt-2 mb-3 rounded-md bg-muted/50 border-l-2 border-primary/30;
+}
+
+.answerForm {
+  @apply mt-3 space-y-2;
+}
+
+.textarea {
+  @apply w-full p-3 text-sm border rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring;
+}
+
+.actions {
+  @apply flex gap-3;
+}
+
+.actionButton {
+  @apply flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors;
+}
+
+.cancelButton {
+  @apply px-3 py-1.5 text-xs rounded-md border hover:bg-accent transition-colors;
+}
+
+.submitButton {
+  @apply px-3 py-1.5 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50;
+}

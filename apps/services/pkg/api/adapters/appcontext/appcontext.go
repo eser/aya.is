@@ -24,6 +24,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
@@ -63,19 +64,20 @@ type AppContext struct {
 	UnsplashClient  *unsplash.Client
 
 	// Business
-	UploadService        *uploads.Service
-	AuthService          *auth.Service
-	UserService          *users.Service
-	ProfileService       *profiles.Service
-	ProfilePointsService *profile_points.Service
-	StoryService         *stories.Service
-	SessionService       *sessions.Service
-	ProtectionService    *protection.Service
-	LinkSyncService      *linksync.Service
-	AuditService         *events.AuditService
-	QueueService         *events.QueueService
-	QueueRegistry        *events.HandlerRegistry
-	RuntimeStateService  *runtime_states.Service
+	UploadService           *uploads.Service
+	AuthService             *auth.Service
+	UserService             *users.Service
+	ProfileService          *profiles.Service
+	ProfilePointsService    *profile_points.Service
+	ProfileQuestionsService *profile_questions.Service
+	StoryService            *stories.Service
+	SessionService          *sessions.Service
+	ProtectionService       *protection.Service
+	LinkSyncService         *linksync.Service
+	AuditService            *events.AuditService
+	QueueService            *events.QueueService
+	QueueRegistry           *events.HandlerRegistry
+	RuntimeStateService     *runtime_states.Service
 }
 
 func New() *AppContext {
@@ -270,6 +272,14 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Repository,
 		profile_points.DefaultIDGenerator,
 		a.AuditService,
+	)
+
+	a.ProfileQuestionsService = profile_questions.NewService(
+		a.Logger,
+		a.Repository,
+		a.ProfileService,
+		a.AuditService,
+		profile_questions.DefaultIDGenerator,
 	)
 
 	// UploadService (only if S3 client is available)

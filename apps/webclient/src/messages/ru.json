@@ -60,6 +60,7 @@
     "Articles": "Статьи",
     "Activities": "События",
     "Links": "Links",
+    "Q&A": "В&О",
     "Content not yet available.": "Контент пока недоступен.",
     "Change theme": "Сменить тему",
     "System": "Системная",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
+  },
+  "QA": {
+    "Questions and answers": "Вопросы и ответы",
+    "Ask a question to this profile.": "Задайте вопрос этому профилю.",
+    "No questions yet.": "Вопросов пока нет.",
+    "Be the first to ask a question!": "Будьте первым, кто задаст вопрос!",
+    "Ask a Question": "Задать вопрос",
+    "Your question...": "Ваш вопрос...",
+    "Stay anonymous": "Остаться анонимным",
+    "Submit": "Отправить",
+    "Answer": "Ответить",
+    "Your answer...": "Ваш ответ...",
+    "Hide": "Скрыть",
+    "Show": "Показать",
+    "Anonymous": "Анонимно",
+    "Answered": "Отвечено",
+    "Hidden": "Скрыто",
+    "votes": "голосов",
+    "asked": "задан"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

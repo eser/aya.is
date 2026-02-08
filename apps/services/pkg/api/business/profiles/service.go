@@ -250,6 +250,7 @@ type Repository interface { //nolint:interfacebloat
 		properties map[string]any,
 		hideRelations *bool,
 		hideLinks *bool,
+		hideQA *bool,
 	) error
 	UpdateProfileTx(
 		ctx context.Context,
@@ -1292,6 +1293,7 @@ func (s *Service) Update(
 	properties map[string]any,
 	hideRelations *bool,
 	hideLinks *bool,
+	hideQA *bool,
 ) (*Profile, error) {
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
@@ -1329,6 +1331,7 @@ func (s *Service) Update(
 		properties,
 		hideRelations,
 		hideLinks,
+		hideQA,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToUpdateRecord, profileID, err)

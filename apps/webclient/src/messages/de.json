@@ -60,6 +60,7 @@
     "Articles": "Artikel",
     "Activities": "Veranstaltungen",
     "Links": "Links",
+    "Q&A": "F&A",
     "Content not yet available.": "Inhalt noch nicht verfügbar.",
     "Change theme": "Theme ändern",
     "System": "System",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
+  },
+  "QA": {
+    "Questions and answers": "Fragen und Antworten",
+    "Ask a question to this profile.": "Stellen Sie diesem Profil eine Frage.",
+    "No questions yet.": "Noch keine Fragen.",
+    "Be the first to ask a question!": "Stellen Sie die erste Frage!",
+    "Ask a Question": "Frage stellen",
+    "Your question...": "Ihre Frage...",
+    "Stay anonymous": "Anonym bleiben",
+    "Submit": "Absenden",
+    "Answer": "Antworten",
+    "Your answer...": "Ihre Antwort...",
+    "Hide": "Ausblenden",
+    "Show": "Anzeigen",
+    "Anonymous": "Anonym",
+    "Answered": "Beantwortet",
+    "Hidden": "Ausgeblendet",
+    "votes": "Stimmen",
+    "asked": "gefragt"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

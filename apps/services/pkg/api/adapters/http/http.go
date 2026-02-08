@@ -14,6 +14,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
@@ -32,6 +33,7 @@ func Run(
 	userService *users.Service,
 	profileService *profiles.Service,
 	profilePointsService *profile_points.Service,
+	profileQuestionsService *profile_questions.Service,
 	storyService *stories.Service,
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
@@ -146,6 +148,13 @@ func Run(
 		authService,
 		userService,
 		profileService,
+	)
+	RegisterHTTPRoutesForProfileQuestions( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		profileQuestionsService,
 	)
 	RegisterHTTPRoutesForAdminProfiles( //nolint:contextcheck
 		routes,

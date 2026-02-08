@@ -60,6 +60,7 @@
     "Articles": "文章",
     "Activities": "活动",
     "Links": "Links",
+    "Q&A": "问答",
     "Content not yet available.": "内容暂不可用。",
     "Change theme": "更改主题",
     "System": "系统",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
+  },
+  "QA": {
+    "Questions and answers": "问题与回答",
+    "Ask a question to this profile.": "向此个人资料提问。",
+    "No questions yet.": "暂无问题。",
+    "Be the first to ask a question!": "成为第一个提问的人！",
+    "Ask a Question": "提出问题",
+    "Your question...": "您的问题...",
+    "Stay anonymous": "保持匿名",
+    "Submit": "提交",
+    "Answer": "回答",
+    "Your answer...": "您的回答...",
+    "Hide": "隐藏",
+    "Show": "显示",
+    "Anonymous": "匿名",
+    "Answered": "已回答",
+    "Hidden": "已隐藏",
+    "votes": "票",
+    "asked": "提问于"
   },
   "Elements": {
     "Description": "AYA 网络中的个人、组织和项目。",

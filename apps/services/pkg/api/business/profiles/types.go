@@ -79,6 +79,7 @@ type Profile struct {
 	HasTranslation    bool       `json:"has_translation"`
 	HideRelations     bool       `json:"hide_relations"` // Hides Members/Contributions from sidebar
 	HideLinks         bool       `json:"hide_links"`     // Hides Links from sidebar
+	HideQA            bool       `json:"hide_qa"`
 }
 
 type ProfileCustomDomain struct {

@@ -183,6 +183,17 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             </>
           )}
 
+          {props.profile.hide_qa !== true && (
+            <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
+              <LocaleLink
+                to={`/${props.slug}/qa`}
+                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
+              >
+                {t("Layout.Q&A")}
+              </LocaleLink>
+            </li>
+          )}
+
           {props.profile.pages?.map((page) => (
             <li
               key={page.slug}

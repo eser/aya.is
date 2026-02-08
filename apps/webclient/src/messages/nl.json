@@ -60,6 +60,7 @@
     "Articles": "Artikelen",
     "Activities": "Evenementen",
     "Links": "Links",
+    "Q&A": "V&A",
     "Content not yet available.": "Inhoud nog niet beschikbaar.",
     "Change theme": "Thema wijzigen",
     "System": "Systeem",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "All links associated with this profile.",
     "No links found.": "No links found.",
     "Ungrouped": "Ungrouped"
+  },
+  "QA": {
+    "Questions and answers": "Vragen en antwoorden",
+    "Ask a question to this profile.": "Stel een vraag aan dit profiel.",
+    "No questions yet.": "Nog geen vragen.",
+    "Be the first to ask a question!": "Wees de eerste om een vraag te stellen!",
+    "Ask a Question": "Stel een vraag",
+    "Your question...": "Jouw vraag...",
+    "Stay anonymous": "Anoniem blijven",
+    "Submit": "Verzenden",
+    "Answer": "Beantwoorden",
+    "Your answer...": "Jouw antwoord...",
+    "Hide": "Verbergen",
+    "Show": "Tonen",
+    "Anonymous": "Anoniem",
+    "Answered": "Beantwoord",
+    "Hidden": "Verborgen",
+    "votes": "stemmen",
+    "asked": "gevraagd"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

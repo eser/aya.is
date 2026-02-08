@@ -724,6 +724,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Properties        map[string]any `json:"properties"`
 				HideRelations     *bool          `json:"hide_relations"`
 				HideLinks         *bool          `json:"hide_links"`
+				HideQA            *bool          `json:"hide_qa"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -760,6 +761,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Properties,
 				requestBody.HideRelations,
 				requestBody.HideLinks,
+				requestBody.HideQA,
 			)
 			if err != nil {
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {

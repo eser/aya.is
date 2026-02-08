@@ -20,6 +20,7 @@ export interface Profile {
   has_translation?: boolean;
   hide_relations?: boolean; // Hides Members/Contributions from sidebar
   hide_links?: boolean; // Hides Links from sidebar
+  hide_qa?: boolean; // Hides Q&A section from sidebar
   created_at: string;
   updated_at: string;
 }
@@ -463,4 +464,23 @@ export interface POWSolverResponse {
   nonce: string;
   iterations: number;
   elapsed_ms: number;
+}
+
+// Profile Question Types
+export interface ProfileQuestion {
+  id: string;
+  profile_id: string;
+  author_user_id: string;
+  content: string;
+  author_name: string | null;
+  author_slug: string | null;
+  answer_content: string | null;
+  answered_at: string | null;
+  answered_by: string | null;
+  vote_count: number;
+  is_anonymous: boolean;
+  is_hidden: boolean;
+  has_viewer_vote: boolean;
+  created_at: string;
+  updated_at: string | null;
 }

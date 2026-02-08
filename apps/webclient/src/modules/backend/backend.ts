@@ -40,6 +40,11 @@ import { listProfilePageTranslationLocales } from "./profiles/list-profile-page-
 import { deleteProfilePageTranslation } from "./profiles/delete-profile-page-translation";
 import { autoTranslateProfilePage } from "./profiles/auto-translate-profile-page";
 import { listProfilePointTransactions } from "./profile-points/list-profile-point-transactions";
+import { getProfileQuestions } from "./questions/get-profile-questions";
+import { createQuestion } from "./questions/create-question";
+import { voteQuestion } from "./questions/vote-question";
+import { answerQuestion } from "./questions/answer-question";
+import { hideQuestion } from "./questions/hide-question";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
 import { checkStorySlug } from "./stories/check-story-slug";
@@ -84,6 +89,10 @@ import { addAdminPoints } from "./admin/add-admin-points";
 // Re-export types
 export * from "./types";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
+export type { CreateQuestionInput } from "./questions/create-question";
+export type { VoteQuestionResult } from "./questions/vote-question";
+export type { AnswerQuestionInput } from "./questions/answer-question";
+export type { HideQuestionInput } from "./questions/hide-question";
 export type {
   UnsplashPhoto,
   UnsplashPhotoUrls,
@@ -142,6 +151,13 @@ export const backend = {
 
   // Profile Points
   listProfilePointTransactions,
+
+  // Profile Questions (Q&A)
+  getProfileQuestions,
+  createQuestion,
+  voteQuestion,
+  answerQuestion,
+  hideQuestion,
 
   // Stories
   getStoriesByKinds,
@@ -273,6 +289,13 @@ export {
   listProfilePageTranslationLocales,
   deleteProfilePageTranslation,
   autoTranslateProfilePage,
+
+  // Profile Questions (Q&A)
+  getProfileQuestions,
+  createQuestion,
+  voteQuestion,
+  answerQuestion,
+  hideQuestion,
 
   // Admin
   approvePendingAward,

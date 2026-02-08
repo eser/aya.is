@@ -101,6 +101,7 @@ type Profile struct {
 	HideRelations     bool                  `db:"hide_relations" json:"hide_relations"`
 	HideLinks         bool                  `db:"hide_links" json:"hide_links"`
 	DefaultLocale     string                `db:"default_locale" json:"default_locale"`
+	HideQa            bool                  `db:"hide_qa" json:"hide_qa"`
 }
 
 type ProfileCustomDomain struct {
@@ -213,6 +214,30 @@ type ProfilePointTransaction struct {
 	Amount          int32          `db:"amount" json:"amount"`
 	BalanceAfter    int32          `db:"balance_after" json:"balance_after"`
 	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
+}
+
+type ProfileQuestion struct {
+	ID            string         `db:"id" json:"id"`
+	ProfileID     string         `db:"profile_id" json:"profile_id"`
+	AuthorUserID  string         `db:"author_user_id" json:"author_user_id"`
+	Content       string         `db:"content" json:"content"`
+	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
+	AnsweredAt    sql.NullTime   `db:"answered_at" json:"answered_at"`
+	AnsweredBy    sql.NullString `db:"answered_by" json:"answered_by"`
+	IsAnonymous   bool           `db:"is_anonymous" json:"is_anonymous"`
+	IsHidden      bool           `db:"is_hidden" json:"is_hidden"`
+	VoteCount     int32          `db:"vote_count" json:"vote_count"`
+	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt     sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt     sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+}
+
+type ProfileQuestionVote struct {
+	ID         string    `db:"id" json:"id"`
+	QuestionID string    `db:"question_id" json:"question_id"`
+	UserID     string    `db:"user_id" json:"user_id"`
+	Score      int32     `db:"score" json:"score"`
+	CreatedAt  time.Time `db:"created_at" json:"created_at"`
 }
 
 type ProfileTx struct {

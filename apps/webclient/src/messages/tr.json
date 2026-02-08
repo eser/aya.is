@@ -60,6 +60,7 @@
     "Articles": "Makaleler",
     "Activities": "Etkinlikler",
     "Links": "Bağlantılar",
+    "Q&A": "S&C",
     "Content not yet available.": "Henüz içerik bulunmamaktadır.",
     "Change theme": "Temayı değiştir",
     "System": "Sistem",
@@ -200,6 +201,25 @@
     "All links associated with this profile.": "Bu profille ilişkili tüm bağlantılar.",
     "No links found.": "Bağlantı bulunamadı.",
     "Ungrouped": "Gruplanmamış"
+  },
+  "QA": {
+    "Questions and answers": "Sorular ve cevaplar",
+    "Ask a question to this profile.": "Bu profile bir soru sorun.",
+    "No questions yet.": "Henüz soru yok.",
+    "Be the first to ask a question!": "İlk soruyu soran siz olun!",
+    "Ask a Question": "Soru Sor",
+    "Your question...": "Sorunuz...",
+    "Stay anonymous": "Anonim kal",
+    "Submit": "Gönder",
+    "Answer": "Cevapla",
+    "Your answer...": "Cevabınız...",
+    "Hide": "Gizle",
+    "Show": "Göster",
+    "Anonymous": "Anonim",
+    "Answered": "Cevaplandı",
+    "Hidden": "Gizli",
+    "votes": "oy",
+    "asked": "soruldu"
   },
   "Elements": {
     "Description": "AYA ağındaki kişiler, organizasyonlar ve projeler.",
