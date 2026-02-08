@@ -17,12 +17,13 @@ const HTTP_STATUS_METHOD_NOT_ALLOWED = 405;
 const HTTP_STATUS_SERVER_ERROR_THRESHOLD = 500;
 
 /**
- * Check if localStorage is available (browser environment)
- * Uses globalThis for cross-runtime compatibility (Browser, Node, Deno)
+ * Check if we are running in a browser environment.
+ * Deno has globalThis.localStorage available on the server, so checking
+ * localStorage alone is not enough. `document` is only present in browsers.
  */
-function isLocalStorageAvailable(): boolean {
+function isBrowserEnvironment(): boolean {
   return typeof globalThis !== "undefined" &&
-    typeof globalThis.localStorage !== "undefined";
+    typeof globalThis.document !== "undefined";
 }
 
 /**
@@ -30,7 +31,7 @@ function isLocalStorageAvailable(): boolean {
  * Returns null when running server-side or if no token exists
  */
 export function getAuthToken(): string | null {
-  if (!isLocalStorageAvailable()) {
+  if (!isBrowserEnvironment()) {
     return null;
   }
   return globalThis.localStorage.getItem(AUTH_TOKEN_KEY);
@@ -41,7 +42,7 @@ export function getAuthToken(): string | null {
  * Silently skips when running server-side
  */
 export function setAuthToken(token: string, expiresAt: number): void {
-  if (!isLocalStorageAvailable()) {
+  if (!isBrowserEnvironment()) {
     return;
   }
   globalThis.localStorage.setItem(AUTH_TOKEN_KEY, token);
@@ -53,7 +54,7 @@ export function setAuthToken(token: string, expiresAt: number): void {
  * Used on logout or when token refresh fails
  */
 export function clearAuthData(): void {
-  if (!isLocalStorageAvailable()) {
+  if (!isBrowserEnvironment()) {
     return;
   }
   globalThis.localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -66,7 +67,7 @@ export function clearAuthData(): void {
  * Triggers proactive refresh to avoid mid-request token expiration
  */
 export function isTokenExpiringSoon(): boolean {
-  if (!isLocalStorageAvailable()) {
+  if (!isBrowserEnvironment()) {
     return false;
   }
 
@@ -220,20 +221,18 @@ async function fetcherInternal<T>(
     headers["Authorization"] = `Bearer ${authToken}`;
   }
 
-  // During SSR, forward the incoming request's cookies to backend API calls.
-  // This allows session-cookie-based auth to work during server-side rendering.
-  if (!isLocalStorageAvailable()) {
-    try {
-      const { requestContextBinder } = await import(
-        "@/server/request-context-binder"
-      );
-      const ctx = requestContextBinder.getStore();
-      if (ctx !== undefined && ctx.cookieHeader !== undefined) {
-        (headers as Record<string, string>)["Cookie"] = ctx.cookieHeader;
-      }
-    } catch {
-      // Client bundle or no request context available — skip
+  // Forward the incoming request's cookies to backend API calls during SSR.
+  // On the client, getStore() returns undefined and this is a no-op.
+  try {
+    const { requestContextBinder } = await import(
+      "@/server/request-context-binder"
+    );
+    const ctx = requestContextBinder.getStore();
+    if (ctx !== undefined && ctx.cookieHeader !== undefined) {
+      (headers as Record<string, string>)["Cookie"] = ctx.cookieHeader;
     }
+  } catch {
+    // Client bundle or no request context available — skip
   }
 
   const fetchOptions = buildFetchOptions(requestInit, headers);
