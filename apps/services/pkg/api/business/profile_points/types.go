@@ -42,6 +42,7 @@ type GainParams struct {
 
 // TransferParams holds parameters for transferring points.
 type TransferParams struct {
+	ActorID         string
 	OriginProfileID string
 	TargetProfileID string
 	Amount          uint64
@@ -50,6 +51,7 @@ type TransferParams struct {
 
 // SpendParams holds parameters for spending points.
 type SpendParams struct {
+	ActorID         string
 	TargetProfileID string
 	Amount          uint64
 	TriggeringEvent *string

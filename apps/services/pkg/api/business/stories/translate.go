@@ -61,6 +61,7 @@ func (s *Service) AutoTranslateStory(
 	eventAutoTranslate := profile_points.EventAutoTranslate
 
 	_, spendErr := pointsService.SpendPoints(ctx, profile_points.SpendParams{
+		ActorID:         params.UserID,
 		TargetProfileID: params.IndividualProfileID,
 		Amount:          profile_points.CostAutoTranslate,
 		TriggeringEvent: &eventAutoTranslate,

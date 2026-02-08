@@ -129,6 +129,7 @@ func (s *Service) TransferPoints(ctx context.Context, params TransferParams) (*T
 		EventType:  events.PointsTransferred,
 		EntityType: "profile",
 		EntityID:   params.TargetProfileID,
+		ActorID:    &params.ActorID,
 		ActorKind:  events.ActorUser,
 		Payload: map[string]any{
 			"amount":            params.Amount,
@@ -180,6 +181,7 @@ func (s *Service) SpendPoints(ctx context.Context, params SpendParams) (*Transac
 		EventType:  events.PointsSpent,
 		EntityType: "profile",
 		EntityID:   params.TargetProfileID,
+		ActorID:    &params.ActorID,
 		ActorKind:  events.ActorUser,
 		Payload:    map[string]any{"amount": params.Amount, "description": params.Description},
 	})
