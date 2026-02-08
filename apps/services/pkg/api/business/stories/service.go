@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
@@ -281,18 +282,25 @@ type Repository interface {
 }
 
 type Service struct {
-	logger      *logfx.Logger
-	config      *Config
-	repo        Repository
-	idGenerator RecordIDGenerator
+	logger       *logfx.Logger
+	config       *Config
+	repo         Repository
+	auditService *events.AuditService
+	idGenerator  RecordIDGenerator
 }
 
-func NewService(logger *logfx.Logger, config *Config, repo Repository) *Service {
+func NewService(
+	logger *logfx.Logger,
+	config *Config,
+	repo Repository,
+	auditService *events.AuditService,
+) *Service {
 	return &Service{
-		logger:      logger,
-		config:      config,
-		repo:        repo,
-		idGenerator: DefaultIDGenerator,
+		logger:       logger,
+		config:       config,
+		repo:         repo,
+		auditService: auditService,
+		idGenerator:  DefaultIDGenerator,
 	}
 }
 
@@ -767,6 +775,19 @@ func (s *Service) Create(
 		}
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryCreated,
+		EntityType: "story",
+		EntityID:   string(storyID),
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"slug":                slug,
+			"kind":                kind,
+			"author_profile_slug": authorProfileSlug,
+		},
+	})
+
 	return story, nil
 }
 
@@ -824,6 +845,15 @@ func (s *Service) Update(
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToUpdateRecord, storyID, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryUpdated,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"slug": slug},
+	})
+
 	// Return updated story
 	story, err := s.repo.GetStoryForEdit(ctx, locale, storyID)
 	if err != nil {
@@ -870,6 +900,15 @@ func (s *Service) UpdateTranslation(
 		)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryTranslationUpdated,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"locale_code": localeCode},
+	})
+
 	return nil
 }
 
@@ -904,6 +943,15 @@ func (s *Service) DeleteTranslation(
 			err,
 		)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryTranslationDeleted,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"locale_code": localeCode},
+	})
 
 	return nil
 }
@@ -991,6 +1039,14 @@ func (s *Service) Delete(
 	if err != nil {
 		return fmt.Errorf("%w(storyID: %s): %w", ErrFailedToRemoveRecord, storyID, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryDeleted,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
 
 	return nil
 }
@@ -1083,6 +1139,18 @@ func (s *Service) AddPublication(
 		_ = s.repo.InvalidateStorySlugCache(ctx, storyForEdit.Slug)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryPublished,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"publication_id": string(publicationID),
+			"profile_id":     profileID,
+		},
+	})
+
 	// Return the created publication with profile info
 	publications, err := s.repo.ListStoryPublications(ctx, localeCode, storyID)
 	if err != nil {
@@ -1173,6 +1241,15 @@ func (s *Service) RemovePublication(
 		return fmt.Errorf("%w(publicationID: %s): %w", ErrFailedToRemoveRecord, publicationID, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryUnpublished,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"publication_id": publicationID},
+	})
+
 	// Invalidate slug cache
 	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
 	if err == nil && storyForEdit != nil {
@@ -1250,6 +1327,15 @@ func (s *Service) UpdatePublication(
 			err,
 		)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryFeatured,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"publication_id": publicationID, "is_featured": isFeatured},
+	})
 
 	return nil
 }

@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
-	"github.com/eser/aya.is/services/pkg/api/business/queue"
 )
 
 var (
@@ -35,7 +35,7 @@ func NewPointsEventHandler(
 }
 
 // HandleNewStory handles the NEW_STORY item and creates a pending award.
-func (h *PointsEventHandler) HandleNewStory(ctx context.Context, item *queue.Item) error {
+func (h *PointsEventHandler) HandleNewStory(ctx context.Context, item *events.QueueItem) error {
 	// Parse the payload
 	var payload struct {
 		ProfileID string `json:"profile_id"`
@@ -89,6 +89,6 @@ func (h *PointsEventHandler) HandleNewStory(ctx context.Context, item *queue.Ite
 }
 
 // RegisterHandlers registers all points-related queue handlers.
-func (h *PointsEventHandler) RegisterHandlers(registry *queue.HandlerRegistry) {
-	registry.Register(queue.ItemTypeNewStory, h.HandleNewStory)
+func (h *PointsEventHandler) RegisterHandlers(registry *events.HandlerRegistry) {
+	registry.Register(events.QueueItemTypeNewStory, h.HandleNewStory)
 }

@@ -11,12 +11,6 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
-type Cache struct {
-	Key       string                `db:"key" json:"key"`
-	Value     pqtype.NullRawMessage `db:"value" json:"value"`
-	UpdatedAt time.Time             `db:"updated_at" json:"updated_at"`
-}
-
 type Activity struct {
 	ID                 string         `db:"id" json:"id"`
 	Slug               string         `db:"slug" json:"slug"`
@@ -54,6 +48,42 @@ type ActivitySeries struct {
 	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt          sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+}
+
+type Cache struct {
+	Key       string                `db:"key" json:"key"`
+	Value     pqtype.NullRawMessage `db:"value" json:"value"`
+	UpdatedAt time.Time             `db:"updated_at" json:"updated_at"`
+}
+
+type EventAudit struct {
+	ID         string                `db:"id" json:"id"`
+	EventType  string                `db:"event_type" json:"event_type"`
+	EntityType string                `db:"entity_type" json:"entity_type"`
+	EntityID   sql.NullString        `db:"entity_id" json:"entity_id"`
+	ActorID    sql.NullString        `db:"actor_id" json:"actor_id"`
+	ActorKind  string                `db:"actor_kind" json:"actor_kind"`
+	SessionID  sql.NullString        `db:"session_id" json:"session_id"`
+	Payload    pqtype.NullRawMessage `db:"payload" json:"payload"`
+	CreatedAt  time.Time             `db:"created_at" json:"created_at"`
+}
+
+type EventQueue struct {
+	ID                    string                `db:"id" json:"id"`
+	Type                  string                `db:"type" json:"type"`
+	Payload               pqtype.NullRawMessage `db:"payload" json:"payload"`
+	Status                string                `db:"status" json:"status"`
+	RetryCount            int32                 `db:"retry_count" json:"retry_count"`
+	MaxRetries            int32                 `db:"max_retries" json:"max_retries"`
+	VisibleAt             time.Time             `db:"visible_at" json:"visible_at"`
+	VisibilityTimeoutSecs int32                 `db:"visibility_timeout_secs" json:"visibility_timeout_secs"`
+	StartedAt             sql.NullTime          `db:"started_at" json:"started_at"`
+	CompletedAt           sql.NullTime          `db:"completed_at" json:"completed_at"`
+	FailedAt              sql.NullTime          `db:"failed_at" json:"failed_at"`
+	CreatedAt             time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt             sql.NullTime          `db:"updated_at" json:"updated_at"`
+	ErrorMessage          sql.NullString        `db:"error_message" json:"error_message"`
+	WorkerID              sql.NullString        `db:"worker_id" json:"worker_id"`
 }
 
 type Profile struct {
@@ -226,24 +256,6 @@ type QuestionVote struct {
 	UserID     string    `db:"user_id" json:"user_id"`
 	Score      int32     `db:"score" json:"score"`
 	CreatedAt  time.Time `db:"created_at" json:"created_at"`
-}
-
-type Queue struct {
-	ID                    string                `db:"id" json:"id"`
-	Type                  string                `db:"type" json:"type"`
-	Payload               pqtype.NullRawMessage `db:"payload" json:"payload"`
-	Status                string                `db:"status" json:"status"`
-	RetryCount            int32                 `db:"retry_count" json:"retry_count"`
-	MaxRetries            int32                 `db:"max_retries" json:"max_retries"`
-	VisibleAt             time.Time             `db:"visible_at" json:"visible_at"`
-	VisibilityTimeoutSecs int32                 `db:"visibility_timeout_secs" json:"visibility_timeout_secs"`
-	StartedAt             sql.NullTime          `db:"started_at" json:"started_at"`
-	CompletedAt           sql.NullTime          `db:"completed_at" json:"completed_at"`
-	FailedAt              sql.NullTime          `db:"failed_at" json:"failed_at"`
-	CreatedAt             time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt             sql.NullTime          `db:"updated_at" json:"updated_at"`
-	ErrorMessage          sql.NullString        `db:"error_message" json:"error_message"`
-	WorkerID              sql.NullString        `db:"worker_id" json:"worker_id"`
 }
 
 type RuntimeState struct {

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
-	"github.com/eser/aya.is/services/pkg/api/business/queue"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 )
 
 // Sentinel errors.
@@ -25,8 +25,8 @@ type QueueWorkerConfig struct {
 type QueueWorker struct {
 	config   *QueueWorkerConfig
 	logger   *logfx.Logger
-	repo     queue.Repository
-	registry *queue.HandlerRegistry
+	repo     events.QueueRepository
+	registry *events.HandlerRegistry
 	workerID string
 }
 
@@ -34,8 +34,8 @@ type QueueWorker struct {
 func NewQueueWorker(
 	config *QueueWorkerConfig,
 	logger *logfx.Logger,
-	repo queue.Repository,
-	registry *queue.HandlerRegistry,
+	repo events.QueueRepository,
+	registry *events.HandlerRegistry,
 	workerID string,
 ) *QueueWorker {
 	return &QueueWorker{
@@ -85,7 +85,7 @@ func (w *QueueWorker) Execute(ctx context.Context) error {
 
 	handlerErr := w.executeHandler(ctx, handler, item)
 	if handlerErr != nil {
-		backoff := queue.CalculateBackoff(item.RetryCount, w.config.BackoffBase)
+		backoff := events.CalculateBackoff(item.RetryCount, w.config.BackoffBase)
 
 		w.logger.ErrorContext(ctx, "Queue handler failed",
 			slog.String("item_id", item.ID),
@@ -119,12 +119,12 @@ func (w *QueueWorker) Execute(ctx context.Context) error {
 // executeHandler runs the handler with panic recovery.
 func (w *QueueWorker) executeHandler(
 	ctx context.Context,
-	handler queue.Handler,
-	item *queue.Item,
+	handler events.QueueHandler,
+	item *events.QueueItem,
 ) (resultErr error) {
 	defer func() {
 		if rec := recover(); rec != nil {
-			resultErr = fmt.Errorf("%w: %v", queue.ErrHandlerPanicked, rec)
+			resultErr = fmt.Errorf("%w: %v", events.ErrHandlerPanicked, rec)
 		}
 	}()
 

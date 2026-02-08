@@ -93,7 +93,7 @@ type Querier interface {
 	// Increments retry_count at claim time for crash safety.
 	//
 	//  WITH claimable AS (
-	//    SELECT id FROM "queue"
+	//    SELECT id FROM "event_queue"
 	//    WHERE (
 	//      (status = 'pending' AND visible_at <= NOW())
 	//      OR (status = 'processing' AND visible_at <= NOW())
@@ -103,7 +103,7 @@ type Querier interface {
 	//    LIMIT 1
 	//    FOR UPDATE SKIP LOCKED
 	//  )
-	//  UPDATE "queue"
+	//  UPDATE "event_queue"
 	//  SET
 	//    status = 'processing',
 	//    started_at = NOW(),
@@ -112,9 +112,9 @@ type Querier interface {
 	//    worker_id = $1,
 	//    updated_at = NOW()
 	//  FROM claimable
-	//  WHERE "queue".id = claimable.id
-	//  RETURNING queue.id, queue.type, queue.payload, queue.status, queue.retry_count, queue.max_retries, queue.visible_at, queue.visibility_timeout_secs, queue.started_at, queue.completed_at, queue.failed_at, queue.created_at, queue.updated_at, queue.error_message, queue.worker_id
-	ClaimNextQueueItem(ctx context.Context, arg ClaimNextQueueItemParams) (*Queue, error)
+	//  WHERE "event_queue".id = claimable.id
+	//  RETURNING event_queue.id, event_queue.type, event_queue.payload, event_queue.status, event_queue.retry_count, event_queue.max_retries, event_queue.visible_at, event_queue.visibility_timeout_secs, event_queue.started_at, event_queue.completed_at, event_queue.failed_at, event_queue.created_at, event_queue.updated_at, event_queue.error_message, event_queue.worker_id
+	ClaimNextQueueItem(ctx context.Context, arg ClaimNextQueueItemParams) (*EventQueue, error)
 	//CleanupExpiredSessionRateLimits
 	//
 	//  DELETE FROM session_rate_limit
@@ -124,7 +124,7 @@ type Querier interface {
 	// Worker ID check prevents a timed-out worker from completing
 	// a job that was already re-claimed by another worker.
 	//
-	//  UPDATE "queue"
+	//  UPDATE "event_queue"
 	//  SET
 	//    status = 'completed',
 	//    completed_at = NOW(),
@@ -509,7 +509,7 @@ type Querier interface {
 	DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (int64, error)
 	//EnqueueQueueItem
 	//
-	//  INSERT INTO "queue" (
+	//  INSERT INTO "event_queue" (
 	//    id, type, payload, status, max_retries,
 	//    visibility_timeout_secs, visible_at, created_at
 	//  ) VALUES (
@@ -526,7 +526,7 @@ type Querier interface {
 	// On failure: if retries exhausted -> dead, otherwise -> pending with backoff.
 	// Worker ID check prevents stale workers from interfering.
 	//
-	//  UPDATE "queue"
+	//  UPDATE "event_queue"
 	//  SET
 	//    status = CASE
 	//      WHEN retry_count >= max_retries THEN 'dead'
@@ -1172,6 +1172,23 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	GetUserProfilePermissions(ctx context.Context, arg GetUserProfilePermissionsParams) ([]*GetUserProfilePermissionsRow, error)
+	//InsertEventAudit
+	//
+	//  INSERT INTO "event_audit" (
+	//    id, event_type, entity_type, entity_id,
+	//    actor_id, actor_kind, session_id, payload, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    $6,
+	//    $7,
+	//    $8,
+	//    NOW()
+	//  )
+	InsertEventAudit(ctx context.Context, arg InsertEventAuditParams) error
 	//InsertStory
 	//
 	//  INSERT INTO "story" (
@@ -1286,6 +1303,15 @@ type Querier interface {
 	//  WHERE pcd.profile_id = $1
 	//  ORDER BY pcd.created_at
 	ListCustomDomainsByProfileID(ctx context.Context, arg ListCustomDomainsByProfileIDParams) ([]*ProfileCustomDomain, error)
+	//ListEventAuditByEntity
+	//
+	//  SELECT id, event_type, entity_type, entity_id, actor_id, actor_kind, session_id, payload, created_at
+	//  FROM "event_audit"
+	//  WHERE entity_type = $1
+	//    AND entity_id = $2
+	//  ORDER BY created_at DESC
+	//  LIMIT $3
+	ListEventAuditByEntity(ctx context.Context, arg ListEventAuditByEntityParams) ([]*EventAudit, error)
 	//ListFeaturedProfileLinksByProfileID
 	//
 	//  SELECT
@@ -1516,11 +1542,11 @@ type Querier interface {
 	//ListQueueItemsByType
 	//
 	//  SELECT id, type, payload, status, retry_count, max_retries, visible_at, visibility_timeout_secs, started_at, completed_at, failed_at, created_at, updated_at, error_message, worker_id
-	//  FROM "queue"
+	//  FROM "event_queue"
 	//  WHERE type = $1
 	//  ORDER BY created_at DESC
 	//  LIMIT $2
-	ListQueueItemsByType(ctx context.Context, arg ListQueueItemsByTypeParams) ([]*Queue, error)
+	ListQueueItemsByType(ctx context.Context, arg ListQueueItemsByTypeParams) ([]*EventQueue, error)
 	//ListSessionsByUserID
 	//
 	//  SELECT

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
@@ -478,14 +479,26 @@ type Repository interface { //nolint:interfacebloat
 }
 
 type Service struct {
-	logger      *logfx.Logger
-	config      *Config
-	repo        Repository
-	idGenerator RecordIDGenerator
+	logger       *logfx.Logger
+	config       *Config
+	repo         Repository
+	auditService *events.AuditService
+	idGenerator  RecordIDGenerator
 }
 
-func NewService(logger *logfx.Logger, config *Config, repo Repository) *Service {
-	return &Service{logger: logger, config: config, repo: repo, idGenerator: DefaultIDGenerator}
+func NewService(
+	logger *logfx.Logger,
+	config *Config,
+	repo Repository,
+	auditService *events.AuditService,
+) *Service {
+	return &Service{
+		logger:       logger,
+		config:       config,
+		repo:         repo,
+		auditService: auditService,
+		idGenerator:  DefaultIDGenerator,
+	}
 }
 
 // CanViewLink checks if a viewer has permission to see a link based on its visibility.
@@ -1124,6 +1137,13 @@ func (s *Service) Create(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileCreated,
+		EntityType: "profile",
+		EntityID:   string(profileID),
+		ActorKind:  events.ActorUser,
+	})
+
 	return profile, nil
 }
 
@@ -1148,6 +1168,19 @@ func (s *Service) CreateProfileMembership(
 	if err != nil {
 		return fmt.Errorf("%w: membership: %w", ErrFailedToCreateRecord, err)
 	}
+
+	payload := map[string]any{"profile_id": profileID}
+	if memberProfileID != nil {
+		payload["user_id"] = *memberProfileID
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.MembershipCreated,
+		EntityType: "membership",
+		EntityID:   string(membershipID),
+		ActorKind:  events.ActorUser,
+		Payload:    payload,
+	})
 
 	return nil
 }
@@ -1303,6 +1336,14 @@ func (s *Service) Update(
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileUpdated,
+		EntityType: "profile",
+		EntityID:   profileID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
+
 	return profile, nil
 }
 
@@ -1342,6 +1383,15 @@ func (s *Service) UpdateTranslation(
 			err,
 		)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileTranslationUpdated,
+		EntityType: "profile",
+		EntityID:   profileID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"locale_code": localeCode},
+	})
 
 	return nil
 }
@@ -1462,6 +1512,15 @@ func (s *Service) CreateProfileLink(
 	link.Group = group
 	link.Description = description
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.LinkCreated,
+		EntityType: "profile_link",
+		EntityID:   string(linkID),
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"profile_id": profileID},
+	})
+
 	return link, nil
 }
 
@@ -1561,6 +1620,14 @@ func (s *Service) UpdateProfileLink(
 		return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, linkID, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.LinkUpdated,
+		EntityType: "profile_link",
+		EntityID:   linkID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
+
 	return updatedLink, nil
 }
 
@@ -1609,6 +1676,14 @@ func (s *Service) DeleteProfileLink(
 	if err != nil {
 		return fmt.Errorf("%w(linkID: %s): %w", ErrFailedToDeleteRecord, linkID, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.LinkDeleted,
+		EntityType: "profile_link",
+		EntityID:   linkID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
 
 	return nil
 }
@@ -1810,6 +1885,15 @@ func (s *Service) CreateProfilePage(
 		return nil, fmt.Errorf("%w(pageID: %s): %w", ErrFailedToGetRecord, string(pageID), err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PageCreated,
+		EntityType: "profile_page",
+		EntityID:   string(pageID),
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"profile_id": profileID, "slug": slug},
+	})
+
 	return fullPage, nil
 }
 
@@ -1884,6 +1968,14 @@ func (s *Service) UpdateProfilePage(
 		return nil, fmt.Errorf("%w(pageID: %s): %w", ErrFailedToGetRecord, pageID, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PageUpdated,
+		EntityType: "profile_page",
+		EntityID:   pageID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
+
 	return updatedPage, nil
 }
 
@@ -1934,6 +2026,15 @@ func (s *Service) UpdateProfilePageTranslation(
 		)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PageTranslationUpdated,
+		EntityType: "profile_page",
+		EntityID:   pageID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"locale_code": localeCode},
+	})
+
 	return nil
 }
 
@@ -1969,6 +2070,15 @@ func (s *Service) DeleteProfilePageTranslation(
 			err,
 		)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PageTranslationDeleted,
+		EntityType: "profile_page",
+		EntityID:   pageID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"locale_code": localeCode},
+	})
 
 	return nil
 }
@@ -2083,6 +2193,14 @@ func (s *Service) DeleteProfilePage(
 	if err != nil {
 		return fmt.Errorf("%w(pageID: %s): %w", ErrFailedToDeleteRecord, pageID, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PageDeleted,
+		EntityType: "profile_page",
+		EntityID:   pageID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
 
 	return nil
 }
@@ -2537,6 +2655,14 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, membershipID, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.MembershipUpdated,
+		EntityType: "membership",
+		EntityID:   membershipID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
+
 	return nil
 }
 
@@ -2612,6 +2738,14 @@ func (s *Service) DeleteMembership(
 	if err != nil {
 		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToDeleteRecord, membershipID, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.MembershipDeleted,
+		EntityType: "membership",
+		EntityID:   membershipID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
 
 	return nil
 }

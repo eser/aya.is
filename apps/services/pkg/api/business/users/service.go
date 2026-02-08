@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
@@ -40,19 +41,22 @@ type Repository interface {
 }
 
 type Service struct {
-	logger      *logfx.Logger
-	repo        Repository
-	idGenerator RecordIDGenerator
+	logger       *logfx.Logger
+	repo         Repository
+	auditService *events.AuditService
+	idGenerator  RecordIDGenerator
 }
 
 func NewService(
 	logger *logfx.Logger,
 	repo Repository,
+	auditService *events.AuditService,
 ) *Service {
 	return &Service{
-		logger:      logger,
-		repo:        repo,
-		idGenerator: DefaultIDGenerator,
+		logger:       logger,
+		repo:         repo,
+		auditService: auditService,
+		idGenerator:  DefaultIDGenerator,
 	}
 }
 
@@ -95,6 +99,13 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.UserCreated,
+		EntityType: "user",
+		EntityID:   user.ID,
+		ActorKind:  events.ActorSystem,
+	})
 
 	return nil
 }
@@ -169,6 +180,14 @@ func (s *Service) TerminateSession(ctx context.Context, sessionID, userID string
 		)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.SessionTerminated,
+		EntityType: "session",
+		EntityID:   sessionID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+	})
+
 	return nil
 }
 
@@ -205,6 +224,14 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 			return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateRecord, existingUser.ID, err)
 		}
 
+		s.auditService.Record(ctx, events.AuditParams{
+			EventType:  events.UserUpdated,
+			EntityType: "user",
+			EntityID:   existingUser.ID,
+			ActorKind:  events.ActorSystem,
+			Payload:    map[string]any{"github_remote_id": githubRemoteID},
+		})
+
 		return existingUser, nil
 	}
 
@@ -234,6 +261,14 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 				)
 			}
 
+			s.auditService.Record(ctx, events.AuditParams{
+				EventType:  events.UserUpdated,
+				EntityType: "user",
+				EntityID:   existingUser.ID,
+				ActorKind:  events.ActorSystem,
+				Payload:    map[string]any{"github_remote_id": githubRemoteID},
+			})
+
 			return existingUser, nil
 		}
 	}
@@ -258,6 +293,14 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.UserCreated,
+		EntityType: "user",
+		EntityID:   newUser.ID,
+		ActorKind:  events.ActorSystem,
+		Payload:    map[string]any{"github_remote_id": githubRemoteID},
+	})
 
 	return newUser, nil
 }

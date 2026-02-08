@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
@@ -39,11 +40,12 @@ type Repository interface {
 
 // Service handles session-related business logic.
 type Service struct {
-	logger      *logfx.Logger
-	config      *Config
-	repo        Repository
-	userService *users.Service
-	idGen       func() string
+	logger       *logfx.Logger
+	config       *Config
+	repo         Repository
+	userService  *users.Service
+	auditService *events.AuditService
+	idGen        func() string
 }
 
 // NewService creates a new session service.
@@ -53,13 +55,15 @@ func NewService(
 	repo Repository,
 	userService *users.Service,
 	idGen func() string,
+	auditService *events.AuditService,
 ) *Service {
 	return &Service{
-		logger:      logger,
-		config:      config,
-		repo:        repo,
-		userService: userService,
-		idGen:       idGen,
+		logger:       logger,
+		config:       config,
+		repo:         repo,
+		userService:  userService,
+		auditService: auditService,
+		idGen:        idGen,
 	}
 }
 
@@ -101,6 +105,13 @@ func (s *Service) CreateSession(ctx context.Context, ipHash string) (*users.Sess
 	if err := s.userService.CreateSession(ctx, session); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateSession, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.SessionCreated,
+		EntityType: "session",
+		EntityID:   session.ID,
+		ActorKind:  events.ActorSystem,
+	})
 
 	return session, nil
 }
@@ -223,6 +234,13 @@ func (s *Service) LogoutSession(ctx context.Context, oldSessionID string) (*Logo
 			"error", err.Error(),
 			"old_session_id", oldSessionID)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.SessionTerminated,
+		EntityType: "session",
+		EntityID:   oldSessionID,
+		ActorKind:  events.ActorUser,
+	})
 
 	return &LogoutResult{NewSession: newSession}, nil
 }

@@ -1,17 +1,17 @@
-package queue
+package events
 
 import (
 	"context"
 	"time"
 )
 
-// Repository defines the storage operations for the queue (port).
-type Repository interface {
-	// Enqueue inserts a new item into the queue.
+// QueueRepository defines the storage operations for the event queue (port).
+type QueueRepository interface {
+	// Enqueue inserts a new item into the event queue.
 	Enqueue(
 		ctx context.Context,
 		id string,
-		itemType ItemType,
+		itemType QueueItemType,
 		payload map[string]any,
 		maxRetries int,
 		visibilityTimeoutSecs int,
@@ -21,7 +21,7 @@ type Repository interface {
 	// ClaimNext atomically claims the next available item for processing.
 	// Uses CTE with FOR UPDATE SKIP LOCKED for distributed safety.
 	// Returns nil, nil if no items are available.
-	ClaimNext(ctx context.Context, workerID string) (*Item, error)
+	ClaimNext(ctx context.Context, workerID string) (*QueueItem, error)
 
 	// Complete marks an item as successfully completed.
 	// Validates worker_id to prevent stale workers from interfering.
@@ -39,5 +39,5 @@ type Repository interface {
 	) error
 
 	// ListByType returns items of a given type (for audit/debugging).
-	ListByType(ctx context.Context, itemType ItemType, limit int) ([]*Item, error)
+	ListByType(ctx context.Context, itemType QueueItemType, limit int) ([]*QueueItem, error)
 }

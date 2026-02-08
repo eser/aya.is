@@ -1,4 +1,4 @@
-package queue
+package events
 
 import (
 	"context"
@@ -13,28 +13,28 @@ const (
 	DefaultVisibilityTimeoutSecs = 300 // 5 minutes
 )
 
-// Service provides queue operations.
-type Service struct {
+// QueueService provides event queue operations.
+type QueueService struct {
 	logger      *logfx.Logger
-	repo        Repository
+	repo        QueueRepository
 	idGenerator IDGenerator
 }
 
-// NewService creates a new queue service.
-func NewService(
+// NewQueueService creates a new event queue service.
+func NewQueueService(
 	logger *logfx.Logger,
-	repo Repository,
+	repo QueueRepository,
 	idGenerator IDGenerator,
-) *Service {
-	return &Service{
+) *QueueService {
+	return &QueueService{
 		logger:      logger,
 		repo:        repo,
 		idGenerator: idGenerator,
 	}
 }
 
-// Enqueue adds a new item to the queue for later processing.
-func (s *Service) Enqueue(ctx context.Context, params EnqueueParams) (string, error) {
+// Enqueue adds a new item to the event queue for later processing.
+func (s *QueueService) Enqueue(ctx context.Context, params QueueEnqueueParams) (string, error) {
 	id := s.idGenerator()
 
 	maxRetries := params.MaxRetries

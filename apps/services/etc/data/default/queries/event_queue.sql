@@ -1,5 +1,5 @@
 -- name: EnqueueQueueItem :exec
-INSERT INTO "queue" (
+INSERT INTO "event_queue" (
   id, type, payload, status, max_retries,
   visibility_timeout_secs, visible_at, created_at
 ) VALUES (
@@ -19,7 +19,7 @@ INSERT INTO "queue" (
 -- past their visibility timeout (crash recovery built into the claim).
 -- Increments retry_count at claim time for crash safety.
 WITH claimable AS (
-  SELECT id FROM "queue"
+  SELECT id FROM "event_queue"
   WHERE (
     (status = 'pending' AND visible_at <= NOW())
     OR (status = 'processing' AND visible_at <= NOW())
@@ -29,7 +29,7 @@ WITH claimable AS (
   LIMIT 1
   FOR UPDATE SKIP LOCKED
 )
-UPDATE "queue"
+UPDATE "event_queue"
 SET
   status = 'processing',
   started_at = NOW(),
@@ -38,13 +38,13 @@ SET
   worker_id = sqlc.arg(worker_id),
   updated_at = NOW()
 FROM claimable
-WHERE "queue".id = claimable.id
-RETURNING "queue".*;
+WHERE "event_queue".id = claimable.id
+RETURNING "event_queue".*;
 
 -- name: CompleteQueueItem :execrows
 -- Worker ID check prevents a timed-out worker from completing
 -- a job that was already re-claimed by another worker.
-UPDATE "queue"
+UPDATE "event_queue"
 SET
   status = 'completed',
   completed_at = NOW(),
@@ -56,7 +56,7 @@ WHERE id = sqlc.arg(id)
 -- name: FailQueueItem :execrows
 -- On failure: if retries exhausted -> dead, otherwise -> pending with backoff.
 -- Worker ID check prevents stale workers from interfering.
-UPDATE "queue"
+UPDATE "event_queue"
 SET
   status = CASE
     WHEN retry_count >= max_retries THEN 'dead'
@@ -76,7 +76,7 @@ WHERE id = sqlc.arg(id)
 
 -- name: ListQueueItemsByType :many
 SELECT *
-FROM "queue"
+FROM "event_queue"
 WHERE type = sqlc.arg(type)
 ORDER BY created_at DESC
 LIMIT sqlc.arg(limit_count);

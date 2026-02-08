@@ -7,16 +7,16 @@ import (
 	"errors"
 	"time"
 
-	"github.com/eser/aya.is/services/pkg/api/business/queue"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
 	"github.com/sqlc-dev/pqtype"
 )
 
-// Enqueue inserts a new item into the queue.
+// Enqueue inserts a new item into the event queue.
 func (r *Repository) Enqueue(
 	ctx context.Context,
 	id string,
-	itemType queue.ItemType,
+	itemType events.QueueItemType,
 	payload map[string]any,
 	maxRetries int,
 	visibilityTimeoutSecs int,
@@ -38,7 +38,7 @@ func (r *Repository) Enqueue(
 }
 
 // ClaimNext atomically claims the next available item for processing.
-func (r *Repository) ClaimNext(ctx context.Context, workerID string) (*queue.Item, error) {
+func (r *Repository) ClaimNext(ctx context.Context, workerID string) (*events.QueueItem, error) {
 	row, err := r.queries.ClaimNextQueueItem(ctx, ClaimNextQueueItemParams{
 		WorkerID: sql.NullString{String: workerID, Valid: true},
 	})
@@ -84,9 +84,9 @@ func (r *Repository) Fail(
 // ListByType returns items of a given type for audit/debugging.
 func (r *Repository) ListByType(
 	ctx context.Context,
-	itemType queue.ItemType,
+	itemType events.QueueItemType,
 	limit int,
-) ([]*queue.Item, error) {
+) ([]*events.QueueItem, error) {
 	rows, err := r.queries.ListQueueItemsByType(ctx, ListQueueItemsByTypeParams{
 		Type:       string(itemType),
 		LimitCount: int32(limit),
@@ -95,7 +95,7 @@ func (r *Repository) ListByType(
 		return nil, err
 	}
 
-	result := make([]*queue.Item, len(rows))
+	result := make([]*events.QueueItem, len(rows))
 	for i, row := range rows {
 		result[i] = r.rowToQueueItem(row)
 	}
@@ -103,18 +103,18 @@ func (r *Repository) ListByType(
 	return result, nil
 }
 
-// rowToQueueItem converts a database row to an Item domain object.
-func (r *Repository) rowToQueueItem(row *Queue) *queue.Item {
+// rowToQueueItem converts a database row to a QueueItem domain object.
+func (r *Repository) rowToQueueItem(row *EventQueue) *events.QueueItem {
 	var payload map[string]any
 	if row.Payload.Valid && len(row.Payload.RawMessage) > 0 {
 		_ = json.Unmarshal(row.Payload.RawMessage, &payload)
 	}
 
-	return &queue.Item{
+	return &events.QueueItem{
 		ID:                    row.ID,
-		Type:                  queue.ItemType(row.Type),
+		Type:                  events.QueueItemType(row.Type),
 		Payload:               payload,
-		Status:                queue.ItemStatus(row.Status),
+		Status:                events.QueueItemStatus(row.Status),
 		RetryCount:            int(row.RetryCount),
 		MaxRetries:            int(row.MaxRetries),
 		VisibleAt:             row.VisibleAt,

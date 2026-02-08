@@ -20,11 +20,11 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
-	"github.com/eser/aya.is/services/pkg/api/business/queue"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
@@ -71,8 +71,9 @@ type AppContext struct {
 	SessionService       *sessions.Service
 	ProtectionService    *protection.Service
 	LinkSyncService      *linksync.Service
-	QueueService         *queue.Service
-	QueueRegistry        *queue.HandlerRegistry
+	AuditService         *events.AuditService
+	QueueService         *events.QueueService
+	QueueRegistry        *events.HandlerRegistry
 	RuntimeStateService  *runtime_states.Service
 }
 
@@ -223,16 +224,44 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	// ----------------------------------------------------
 	// Business Services
 	// ----------------------------------------------------
-	a.ProfileService = profiles.NewService(a.Logger, &a.Config.Profiles, a.Repository)
+
+	// ID generator function using users.DefaultIDGenerator
+	idGen := func() string {
+		return string(users.DefaultIDGenerator())
+	}
+
+	// Event system services (audit + queue)
+	a.AuditService = events.NewAuditService(
+		a.Logger,
+		a.Repository,
+		idGen,
+	)
+
+	a.QueueService = events.NewQueueService(
+		a.Logger,
+		a.Repository,
+		idGen,
+	)
+
+	a.QueueRegistry = events.NewHandlerRegistry()
+
+	a.ProfileService = profiles.NewService(
+		a.Logger,
+		&a.Config.Profiles,
+		a.Repository,
+		a.AuditService,
+	)
 	a.UserService = users.NewService(
 		a.Logger,
 		a.Repository,
+		a.AuditService,
 	)
-	a.StoryService = stories.NewService(a.Logger, &a.Config.Stories, a.Repository)
+	a.StoryService = stories.NewService(a.Logger, &a.Config.Stories, a.Repository, a.AuditService)
 	a.ProfilePointsService = profile_points.NewService(
 		a.Logger,
 		a.Repository,
 		profile_points.DefaultIDGenerator,
+		a.AuditService,
 	)
 
 	// UploadService (only if S3 client is available)
@@ -247,11 +276,6 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.UserService,
 	)
 
-	// ID generator function using users.DefaultIDGenerator
-	idGen := func() string {
-		return string(users.DefaultIDGenerator())
-	}
-
 	a.ProtectionService = protection.NewService(
 		a.Logger,
 		&a.Config.Protection,
@@ -265,6 +289,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Repository,
 		a.UserService,
 		idGen,
+		a.AuditService,
 	)
 
 	a.LinkSyncService = linksync.NewService(
@@ -272,14 +297,6 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Repository,
 		idGen,
 	)
-
-	a.QueueService = queue.NewService(
-		a.Logger,
-		a.Repository,
-		idGen,
-	)
-
-	a.QueueRegistry = queue.NewHandlerRegistry()
 
 	// Register points event handler
 	pointsEventHandler := workers.NewPointsEventHandler(

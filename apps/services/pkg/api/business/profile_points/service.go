@@ -6,6 +6,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
@@ -15,9 +16,10 @@ func DefaultIDGenerator() string {
 
 // Service provides profile point operations.
 type Service struct {
-	logger      *logfx.Logger
-	repo        Repository
-	idGenerator IDGenerator
+	logger       *logfx.Logger
+	repo         Repository
+	auditService *events.AuditService
+	idGenerator  IDGenerator
 }
 
 // NewService creates a new profile points service.
@@ -25,11 +27,13 @@ func NewService(
 	logger *logfx.Logger,
 	repo Repository,
 	idGenerator IDGenerator,
+	auditService *events.AuditService,
 ) *Service {
 	return &Service{
-		logger:      logger,
-		repo:        repo,
-		idGenerator: idGenerator,
+		logger:       logger,
+		repo:         repo,
+		auditService: auditService,
+		idGenerator:  idGenerator,
 	}
 }
 
@@ -67,6 +71,14 @@ func (s *Service) GainPoints(ctx context.Context, params GainParams) (*Transacti
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToRecordTx, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PointsGained,
+		EntityType: "profile",
+		EntityID:   params.TargetProfileID,
+		ActorKind:  events.ActorSystem,
+		Payload:    map[string]any{"amount": params.Amount, "description": params.Description},
+	})
 
 	return tx, nil
 }
@@ -113,6 +125,17 @@ func (s *Service) TransferPoints(ctx context.Context, params TransferParams) (*T
 		return nil, fmt.Errorf("%w: %w", ErrFailedToRecordTx, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PointsTransferred,
+		EntityType: "profile",
+		EntityID:   params.TargetProfileID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"amount":            params.Amount,
+			"origin_profile_id": params.OriginProfileID,
+		},
+	})
+
 	return tx, nil
 }
 
@@ -152,6 +175,14 @@ func (s *Service) SpendPoints(ctx context.Context, params SpendParams) (*Transac
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToRecordTx, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.PointsSpent,
+		EntityType: "profile",
+		EntityID:   params.TargetProfileID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"amount": params.Amount, "description": params.Description},
+	})
 
 	return tx, nil
 }
@@ -270,6 +301,14 @@ func (s *Service) ApprovePendingAward(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToApprovePendingAward, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.AwardApproved,
+		EntityType: "pending_award",
+		EntityID:   awardID,
+		ActorID:    &reviewerUserID,
+		ActorKind:  events.ActorUser,
+	})
+
 	return tx, nil
 }
 
@@ -294,6 +333,15 @@ func (s *Service) RejectPendingAward(
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToRejectPendingAward, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.AwardRejected,
+		EntityType: "pending_award",
+		EntityID:   awardID,
+		ActorID:    &reviewerUserID,
+		ActorKind:  events.ActorUser,
+		Payload:    map[string]any{"reason": reason},
+	})
 
 	return nil
 }

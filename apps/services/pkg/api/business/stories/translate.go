@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 )
 
@@ -105,6 +106,18 @@ func (s *Service) AutoTranslateStory(
 	if err != nil {
 		return fmt.Errorf("failed to save translated content: %w", err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryAutoTranslated,
+		EntityType: "story",
+		EntityID:   params.StoryID,
+		ActorID:    nil,
+		ActorKind:  events.ActorSystem,
+		Payload: map[string]any{
+			"source_locale": params.SourceLocale,
+			"target_locale": params.TargetLocale,
+		},
+	})
 
 	return nil
 }
