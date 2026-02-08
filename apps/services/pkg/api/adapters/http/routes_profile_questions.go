@@ -127,7 +127,9 @@ func RegisterHTTPRoutesForProfileQuestions(
 				)
 			}
 
-			return ctx.Results.JSON(question)
+			return ctx.Results.JSON(map[string]any{
+				"data": question,
+			})
 		},
 	).HasDescription("Create a new Q&A question on a profile")
 
@@ -176,7 +178,9 @@ func RegisterHTTPRoutesForProfileQuestions(
 			}
 
 			return ctx.Results.JSON(map[string]any{
-				"voted": voted,
+				"data": map[string]any{
+					"voted": voted,
+				},
 			})
 		},
 	).HasDescription("Toggle vote on a Q&A question")
@@ -245,7 +249,9 @@ func RegisterHTTPRoutesForProfileQuestions(
 				)
 			}
 
-			return ctx.Results.JSON(map[string]string{"status": "ok"})
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{"status": "ok"},
+			})
 		},
 	).HasDescription("Answer a Q&A question (contributor+ access)")
 
@@ -298,7 +304,9 @@ func RegisterHTTPRoutesForProfileQuestions(
 				)
 			}
 
-			return ctx.Results.JSON(map[string]string{"status": "ok"})
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{"status": "ok"},
+			})
 		},
 	).HasDescription("Hide or unhide a Q&A question (maintainer+ access)")
 }
