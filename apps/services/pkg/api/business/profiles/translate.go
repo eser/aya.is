@@ -111,7 +111,7 @@ func (s *Service) AutoTranslateProfilePage(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.PageAutoTranslated,
+		EventType:  events.ProfilePageAutoTranslated,
 		EntityType: "profile_page",
 		EntityID:   params.PageID,
 		ActorKind:  events.ActorSystem,

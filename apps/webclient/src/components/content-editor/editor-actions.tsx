@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, Languages, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
+import { Globe, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { type SupportedLocaleCode, supportedLocales } from "@/config";
+
 type EditorActionsProps = {
   publicationCount: number;
   isSaving: boolean;

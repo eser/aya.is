@@ -1175,7 +1175,7 @@ func (s *Service) CreateProfileMembership(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.MembershipCreated,
+		EventType:  events.ProfileMembershipCreated,
 		EntityType: "membership",
 		EntityID:   string(membershipID),
 		ActorKind:  events.ActorUser,
@@ -1513,7 +1513,7 @@ func (s *Service) CreateProfileLink(
 	link.Description = description
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.LinkCreated,
+		EventType:  events.ProfileLinkCreated,
 		EntityType: "profile_link",
 		EntityID:   string(linkID),
 		ActorID:    &userID,
@@ -1621,7 +1621,7 @@ func (s *Service) UpdateProfileLink(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.LinkUpdated,
+		EventType:  events.ProfileLinkUpdated,
 		EntityType: "profile_link",
 		EntityID:   linkID,
 		ActorID:    &userID,
@@ -1678,7 +1678,7 @@ func (s *Service) DeleteProfileLink(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.LinkDeleted,
+		EventType:  events.ProfileLinkDeleted,
 		EntityType: "profile_link",
 		EntityID:   linkID,
 		ActorID:    &userID,
@@ -1886,7 +1886,7 @@ func (s *Service) CreateProfilePage(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.PageCreated,
+		EventType:  events.ProfilePageCreated,
 		EntityType: "profile_page",
 		EntityID:   string(pageID),
 		ActorID:    &userID,
@@ -1969,7 +1969,7 @@ func (s *Service) UpdateProfilePage(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.PageUpdated,
+		EventType:  events.ProfilePageUpdated,
 		EntityType: "profile_page",
 		EntityID:   pageID,
 		ActorID:    &userID,
@@ -2027,7 +2027,7 @@ func (s *Service) UpdateProfilePageTranslation(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.PageTranslationUpdated,
+		EventType:  events.ProfilePageTranslationUpdated,
 		EntityType: "profile_page",
 		EntityID:   pageID,
 		ActorID:    &userID,
@@ -2072,7 +2072,7 @@ func (s *Service) DeleteProfilePageTranslation(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.PageTranslationDeleted,
+		EventType:  events.ProfilePageTranslationDeleted,
 		EntityType: "profile_page",
 		EntityID:   pageID,
 		ActorID:    &userID,
@@ -2195,7 +2195,7 @@ func (s *Service) DeleteProfilePage(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.PageDeleted,
+		EventType:  events.ProfilePageDeleted,
 		EntityType: "profile_page",
 		EntityID:   pageID,
 		ActorID:    &userID,
@@ -2656,7 +2656,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.MembershipUpdated,
+		EventType:  events.ProfileMembershipUpdated,
 		EntityType: "membership",
 		EntityID:   membershipID,
 		ActorID:    &userID,
@@ -2740,7 +2740,7 @@ func (s *Service) DeleteMembership(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.MembershipDeleted,
+		EventType:  events.ProfileMembershipDeleted,
 		EntityType: "membership",
 		EntityID:   membershipID,
 		ActorID:    &userID,

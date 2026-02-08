@@ -6,65 +6,65 @@ type EventType string
 
 // Story events.
 const (
-	StoryCreated            EventType = "story:created"
-	StoryUpdated            EventType = "story:updated"
-	StoryDeleted            EventType = "story:deleted"
-	StoryPublished          EventType = "story:published"
-	StoryUnpublished        EventType = "story:unpublished"
-	StoryFeatured           EventType = "story:featured"
-	StoryTranslationUpdated EventType = "story:translation_updated"
-	StoryTranslationDeleted EventType = "story:translation_deleted"
-	StoryAutoTranslated     EventType = "story:auto_translated"
+	StoryCreated            EventType = "story_created"
+	StoryUpdated            EventType = "story_updated"
+	StoryDeleted            EventType = "story_deleted"
+	StoryPublished          EventType = "story_published"
+	StoryUnpublished        EventType = "story_unpublished"
+	StoryFeatured           EventType = "story_featured"
+	StoryTranslationUpdated EventType = "story_translation_updated"
+	StoryTranslationDeleted EventType = "story_translation_deleted"
+	StoryAutoTranslated     EventType = "story_auto_translated"
 )
 
 // Profile events.
 const (
-	ProfileCreated            EventType = "profile:created"
-	ProfileUpdated            EventType = "profile:updated"
-	ProfileTranslationUpdated EventType = "profile:translation_updated"
+	ProfileCreated            EventType = "profile_created"
+	ProfileUpdated            EventType = "profile_updated"
+	ProfileTranslationUpdated EventType = "profile_translation_updated"
 )
 
 // Profile page events.
 const (
-	PageCreated            EventType = "page:created"
-	PageUpdated            EventType = "page:updated"
-	PageDeleted            EventType = "page:deleted"
-	PageTranslationUpdated EventType = "page:translation_updated"
-	PageTranslationDeleted EventType = "page:translation_deleted"
-	PageAutoTranslated     EventType = "page:auto_translated"
+	ProfilePageCreated            EventType = "profile_page_created"
+	ProfilePageUpdated            EventType = "profile_page_updated"
+	ProfilePageDeleted            EventType = "profile_page_deleted"
+	ProfilePageTranslationUpdated EventType = "profile_page_translation_updated"
+	ProfilePageTranslationDeleted EventType = "profile_page_translation_deleted"
+	ProfilePageAutoTranslated     EventType = "profile_page_auto_translated"
 )
 
 // Profile link events.
 const (
-	LinkCreated EventType = "link:created"
-	LinkUpdated EventType = "link:updated"
-	LinkDeleted EventType = "link:deleted"
+	ProfileLinkCreated EventType = "profile_link_created"
+	ProfileLinkUpdated EventType = "profile_link_updated"
+	ProfileLinkDeleted EventType = "profile_link_deleted"
 )
 
-// Membership events.
+// Profile membership events.
 const (
-	MembershipCreated EventType = "membership:created"
-	MembershipUpdated EventType = "membership:updated"
-	MembershipDeleted EventType = "membership:deleted"
+	ProfileMembershipCreated EventType = "profile_membership_created"
+	ProfileMembershipUpdated EventType = "profile_membership_updated"
+	ProfileMembershipDeleted EventType = "profile_membership_deleted"
 )
 
 // Points events.
 const (
-	PointsGained      EventType = "points:gained"
-	PointsSpent       EventType = "points:spent"
-	PointsTransferred EventType = "points:transferred"
-	AwardApproved     EventType = "award:approved"
-	AwardRejected     EventType = "award:rejected"
+	PointsGained      EventType = "points_gained"
+	PointsSpent       EventType = "points_spent"
+	PointsTransferred EventType = "points_transferred"
+	AwardApproved     EventType = "award_approved"
+	AwardRejected     EventType = "award_rejected"
 )
 
 // Session events.
 const (
-	SessionCreated    EventType = "session:created"
-	SessionTerminated EventType = "session:terminated"
+	SessionCreated    EventType = "session_created"
+	SessionTerminated EventType = "session_terminated"
 )
 
 // User events.
 const (
-	UserCreated EventType = "user:created"
-	UserUpdated EventType = "user:updated"
+	UserCreated EventType = "user_created"
+	UserUpdated EventType = "user_updated"
 )
