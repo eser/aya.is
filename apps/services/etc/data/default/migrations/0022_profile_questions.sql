@@ -1,5 +1,5 @@
 -- +goose Up
-ALTER TABLE "profile" ADD COLUMN "hide_qa" BOOLEAN DEFAULT FALSE NOT NULL;
+ALTER TABLE "profile" ADD COLUMN "hide_qa" BOOLEAN DEFAULT TRUE NOT NULL;
 
 CREATE TABLE IF NOT EXISTS "profile_question" (
   "id"              CHAR(26) NOT NULL PRIMARY KEY,
