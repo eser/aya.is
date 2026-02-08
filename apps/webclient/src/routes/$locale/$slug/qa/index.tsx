@@ -54,7 +54,7 @@ function QAIndexPage() {
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
       <QAPageClient
-        questions={questionsData?.data ?? []}
+        questions={questionsData ?? []}
         locale={locale}
         slug={slug}
         profileId={profile.id}
