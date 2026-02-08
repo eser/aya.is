@@ -1,3 +1,5 @@
+@reference "@/theme.css";
+
 .card {
   @apply flex gap-4 p-4 border rounded-lg bg-card;
 }
