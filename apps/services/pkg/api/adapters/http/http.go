@@ -154,6 +154,7 @@ func Run(
 		logger,
 		authService,
 		userService,
+		profileService,
 		profileQuestionsService,
 	)
 	RegisterHTTPRoutesForAdminProfiles( //nolint:contextcheck

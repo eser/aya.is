@@ -10,6 +10,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
+	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
@@ -18,6 +19,7 @@ func RegisterHTTPRoutesForProfileQuestions(
 	logger *logfx.Logger,
 	authService *auth.Service,
 	userService *users.Service,
+	profileService *profiles.Service,
 	profileQuestionsService *profile_questions.Service,
 ) {
 	// List questions for a profile (public, optional auth for viewer vote state)
@@ -44,11 +46,26 @@ func RegisterHTTPRoutesForProfileQuestions(
 				}
 			}
 
+			// Show hidden questions to maintainer+ users
+			includeHidden := false
+
+			if viewerUserID != nil {
+				hasAccess, accessErr := profileService.HasUserAccessToProfile(
+					ctx.Request.Context(),
+					*viewerUserID,
+					slugParam,
+					profiles.MembershipKindMaintainer,
+				)
+				if accessErr == nil && hasAccess {
+					includeHidden = true
+				}
+			}
+
 			result, err := profileQuestionsService.ListQuestions(
 				ctx.Request.Context(),
 				slugParam,
 				viewerUserID,
-				false,
+				includeHidden,
 				nil,
 			)
 			if err != nil {
