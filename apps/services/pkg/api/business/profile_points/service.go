@@ -302,7 +302,7 @@ func (s *Service) ApprovePendingAward(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.AwardApproved,
+		EventType:  events.PointsAwardApproved,
 		EntityType: "pending_award",
 		EntityID:   awardID,
 		ActorID:    &reviewerUserID,
@@ -335,7 +335,7 @@ func (s *Service) RejectPendingAward(
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.AwardRejected,
+		EventType:  events.PointsAwardRejected,
 		EntityType: "pending_award",
 		EntityID:   awardID,
 		ActorID:    &reviewerUserID,

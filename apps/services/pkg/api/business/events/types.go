@@ -50,11 +50,11 @@ const (
 
 // Points events.
 const (
-	PointsGained      EventType = "points_gained"
-	PointsSpent       EventType = "points_spent"
-	PointsTransferred EventType = "points_transferred"
-	AwardApproved     EventType = "award_approved"
-	AwardRejected     EventType = "award_rejected"
+	PointsGained        EventType = "points_gained"
+	PointsSpent         EventType = "points_spent"
+	PointsTransferred   EventType = "points_transferred"
+	PointsAwardApproved EventType = "points_award_approved"
+	PointsAwardRejected EventType = "points_award_rejected"
 )
 
 // Session events.
