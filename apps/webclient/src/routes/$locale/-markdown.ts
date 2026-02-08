@@ -27,7 +27,7 @@ export function generateLocaleIndexMarkdown(locale: string): string {
 - [News](/${locale}/news.md): Latest news and updates
 - [Products](/${locale}/products.md): Open source projects and products
 - [Elements](/${locale}/elements.md): Individuals and organizations
-- [Events](/${locale}/events.md): Community events
+- [Activities](/${locale}/activities.md): Community activities
 
 ## Links
 

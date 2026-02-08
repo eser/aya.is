@@ -1008,7 +1008,7 @@ function LinksSettingsPage() {
                           )}
                           {account.type === "User" && (pendingProfileKind === "organization" || pendingProfileKind === "product") && (
                             <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">
-                              {t("Profile.Individual accounts not allowed")}
+                              {t("Profile.Individual profiles not allowed")}
                             </span>
                           )}
                         </p>

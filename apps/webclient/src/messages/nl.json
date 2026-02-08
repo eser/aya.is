@@ -58,7 +58,7 @@
     "Members": "Leden",
     "News": "Nieuws",
     "Articles": "Artikelen",
-    "Events": "Evenementen",
+    "Activities": "Evenementen",
     "Links": "Links",
     "Content not yet available.": "Inhoud nog niet beschikbaar.",
     "Change theme": "Thema wijzigen",
@@ -212,8 +212,8 @@
     "SearchPlaceholder": "Zoeken op naam of omschrijving...",
     "Add Element": "Add Element"
   },
-  "Events": {
-    "Discover upcoming events and meetups": "Discover upcoming events and meetups"
+  "Activities": {
+    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
   },
   "News": {
     "News item image": "Nieuwsafbeelding",
@@ -424,7 +424,7 @@
     "Select GitHub Account": "Select GitHub Account",
     "Choose which GitHub account or organization to connect.": "Choose which GitHub account or organization to connect.",
     "Failed to load GitHub accounts": "Failed to load GitHub accounts",
-    "Individual accounts not allowed": "Individual accounts not allowed",
+    "Individual profiles not allowed": "Individual profiles not allowed",
     "Connecting...": "Connecting...",
     "View your point balance and transaction history.": "View your point balance and transaction history.",
     "Current Balance": "Current Balance",

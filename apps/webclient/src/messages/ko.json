@@ -58,7 +58,7 @@
     "Members": "멤버",
     "News": "뉴스",
     "Articles": "기사",
-    "Events": "이벤트",
+    "Activities": "이벤트",
     "Links": "Links",
     "Content not yet available.": "콘텐츠를 아직 사용할 수 없습니다.",
     "Change theme": "테마 변경",
@@ -212,8 +212,8 @@
     "SearchPlaceholder": "이름 또는 설명으로 검색...",
     "Add Element": "Add Element"
   },
-  "Events": {
-    "Discover upcoming events and meetups": "Discover upcoming events and meetups"
+  "Activities": {
+    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
   },
   "News": {
     "News item image": "뉴스 이미지",
@@ -424,7 +424,7 @@
     "Select GitHub Account": "Select GitHub Account",
     "Choose which GitHub account or organization to connect.": "Choose which GitHub account or organization to connect.",
     "Failed to load GitHub accounts": "Failed to load GitHub accounts",
-    "Individual accounts not allowed": "Individual accounts not allowed",
+    "Individual profiles not allowed": "Individual profiles not allowed",
     "Connecting...": "Connecting...",
     "View your point balance and transaction history.": "View your point balance and transaction history.",
     "Current Balance": "Current Balance",

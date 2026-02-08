@@ -56,9 +56,9 @@ const navItems = [
     icon: ScrollTextIcon,
   },
   {
-    key: "events",
-    titleKey: "Layout.Events",
-    href: "/events",
+    key: "activities",
+    titleKey: "Layout.Activities",
+    href: "/activities",
     icon: CalendarIcon,
   },
   {

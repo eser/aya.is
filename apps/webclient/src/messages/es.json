@@ -58,7 +58,7 @@
     "Members": "Miembros",
     "News": "Noticias",
     "Articles": "Artículos",
-    "Events": "Eventos",
+    "Activities": "Eventos",
     "Links": "Links",
     "Content not yet available.": "Contenido aún no disponible.",
     "Change theme": "Cambiar tema",
@@ -212,8 +212,8 @@
     "SearchPlaceholder": "Buscar por nombre o descripción...",
     "Add Element": "Add Element"
   },
-  "Events": {
-    "Discover upcoming events and meetups": "Discover upcoming events and meetups"
+  "Activities": {
+    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
   },
   "News": {
     "News item image": "Imagen de la noticia",
@@ -424,7 +424,7 @@
     "Select GitHub Account": "Select GitHub Account",
     "Choose which GitHub account or organization to connect.": "Choose which GitHub account or organization to connect.",
     "Failed to load GitHub accounts": "Failed to load GitHub accounts",
-    "Individual accounts not allowed": "Individual accounts not allowed",
+    "Individual profiles not allowed": "Individual profiles not allowed",
     "Connecting...": "Connecting...",
     "View your point balance and transaction history.": "View your point balance and transaction history.",
     "Current Balance": "Current Balance",

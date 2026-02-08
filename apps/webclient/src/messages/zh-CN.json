@@ -58,7 +58,7 @@
     "Members": "成员",
     "News": "新闻",
     "Articles": "文章",
-    "Events": "活动",
+    "Activities": "活动",
     "Links": "Links",
     "Content not yet available.": "内容暂不可用。",
     "Change theme": "更改主题",
@@ -212,8 +212,8 @@
     "SearchPlaceholder": "按名称或描述搜索...",
     "Add Element": "添加元素"
   },
-  "Events": {
-    "Discover upcoming events and meetups": "发现即将举行的活动和聚会"
+  "Activities": {
+    "Discover upcoming activities and meetups": "发现即将举行的活动和聚会"
   },
   "News": {
     "News item image": "新闻图片",
@@ -424,7 +424,7 @@
     "Select GitHub Account": "选择 GitHub 账户",
     "Choose which GitHub account or organization to connect.": "选择要连接的 GitHub 账户或组织。",
     "Failed to load GitHub accounts": "加载 GitHub 账户失败",
-    "Individual accounts not allowed": "不允许个人账户",
+    "Individual profiles not allowed": "不允许个人账户",
     "Connecting...": "连接中...",
     "View your point balance and transaction history.": "查看您的积分余额和交易历史。",
     "Current Balance": "当前余额",

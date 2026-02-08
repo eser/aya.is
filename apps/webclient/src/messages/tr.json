@@ -58,7 +58,7 @@
     "Members": "Üyeler",
     "News": "Haberler",
     "Articles": "Makaleler",
-    "Events": "Etkinlikler",
+    "Activities": "Etkinlikler",
     "Links": "Bağlantılar",
     "Content not yet available.": "Henüz içerik bulunmamaktadır.",
     "Change theme": "Temayı değiştir",
@@ -162,7 +162,7 @@
     "Organizations and products this person contributes to.": "Bu kişinin katkıda bulunduğu organizasyonlar ve ürünler.",
     "organization": "organizasyon",
     "product": "üretim",
-    "individual": "bireysel",
+    "individual": "kişisel",
     "Last update": "Son güncelleme",
     "Project Details": "Proje Detayları",
     "Project description": "Proje açıklaması",
@@ -212,8 +212,8 @@
     "SearchPlaceholder": "İsim veya açıklamaya göre ara...",
     "Add Element": "Bileşen Ekle"
   },
-  "Events": {
-    "Discover upcoming events and meetups": "Yaklaşan etkinlikleri ve buluşmaları keşfedin"
+  "Activities": {
+    "Discover upcoming activities and meetups": "Yaklaşan etkinlikleri ve buluşmaları keşfedin"
   },
   "News": {
     "News item image": "Haber görseli",
@@ -424,7 +424,7 @@
     "Select GitHub Account": "GitHub Hesabı Seçin",
     "Choose which GitHub account or organization to connect.": "Bağlanacak GitHub hesabını veya organizasyonunu seçin.",
     "Failed to load GitHub accounts": "GitHub hesapları yüklenemedi",
-    "Individual accounts not allowed": "Bireysel hesaplara izin verilmiyor",
+    "Individual profiles not allowed": "Kişisel profillere izin verilmiyor",
     "Connecting...": "Bağlanıyor...",
     "View your point balance and transaction history.": "Puan bakiyenizi ve işlem geçmişinizi görüntüleyin.",
     "Current Balance": "Mevcut Bakiye",

@@ -17,43 +17,43 @@ type Cache struct {
 	UpdatedAt time.Time             `db:"updated_at" json:"updated_at"`
 }
 
-type Event struct {
-	ID              string         `db:"id" json:"id"`
-	Slug            string         `db:"slug" json:"slug"`
-	Kind            string         `db:"kind" json:"kind"`
-	EventPictureURI sql.NullString `db:"event_picture_uri" json:"event_picture_uri"`
-	Title           string         `db:"title" json:"title"`
-	Description     string         `db:"description" json:"description"`
-	TimeStart       time.Time      `db:"time_start" json:"time_start"`
-	TimeEnd         time.Time      `db:"time_end" json:"time_end"`
-	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
-	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	SeriesID        sql.NullString `db:"series_id" json:"series_id"`
-	Status          string         `db:"status" json:"status"`
-	AttendanceURI   sql.NullString `db:"attendance_uri" json:"attendance_uri"`
-	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
+type Activity struct {
+	ID                 string         `db:"id" json:"id"`
+	Slug               string         `db:"slug" json:"slug"`
+	Kind               string         `db:"kind" json:"kind"`
+	ActivityPictureURI sql.NullString `db:"activity_picture_uri" json:"activity_picture_uri"`
+	Title              string         `db:"title" json:"title"`
+	Description        string         `db:"description" json:"description"`
+	TimeStart          time.Time      `db:"time_start" json:"time_start"`
+	TimeEnd            time.Time      `db:"time_end" json:"time_end"`
+	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt          sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	SeriesID           sql.NullString `db:"series_id" json:"series_id"`
+	Status             string         `db:"status" json:"status"`
+	AttendanceURI      sql.NullString `db:"attendance_uri" json:"attendance_uri"`
+	PublishedAt        sql.NullTime   `db:"published_at" json:"published_at"`
 }
 
-type EventAttendance struct {
-	ID        string       `db:"id" json:"id"`
-	EventID   string       `db:"event_id" json:"event_id"`
-	ProfileID string       `db:"profile_id" json:"profile_id"`
-	Kind      string       `db:"kind" json:"kind"`
-	CreatedAt time.Time    `db:"created_at" json:"created_at"`
-	UpdatedAt sql.NullTime `db:"updated_at" json:"updated_at"`
-	DeletedAt sql.NullTime `db:"deleted_at" json:"deleted_at"`
+type ActivityAttendance struct {
+	ID         string       `db:"id" json:"id"`
+	ActivityID string       `db:"activity_id" json:"activity_id"`
+	ProfileID  string       `db:"profile_id" json:"profile_id"`
+	Kind       string       `db:"kind" json:"kind"`
+	CreatedAt  time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt  sql.NullTime `db:"updated_at" json:"updated_at"`
+	DeletedAt  sql.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
-type EventSeries struct {
-	ID              string         `db:"id" json:"id"`
-	Slug            string         `db:"slug" json:"slug"`
-	EventPictureURI sql.NullString `db:"event_picture_uri" json:"event_picture_uri"`
-	Title           string         `db:"title" json:"title"`
-	Description     string         `db:"description" json:"description"`
-	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
-	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+type ActivitySeries struct {
+	ID                 string         `db:"id" json:"id"`
+	Slug               string         `db:"slug" json:"slug"`
+	ActivityPictureURI sql.NullString `db:"activity_picture_uri" json:"activity_picture_uri"`
+	Title              string         `db:"title" json:"title"`
+	Description        string         `db:"description" json:"description"`
+	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt          sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 }
 
 type Profile struct {

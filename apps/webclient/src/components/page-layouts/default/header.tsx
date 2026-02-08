@@ -25,7 +25,7 @@ function useNavItems() {
   return [
     { key: "news", title: t("Layout.News"), href: "/news" },
     { key: "articles", title: t("Layout.Articles"), href: "/stories" },
-    // { key: "events", title: t("Layout.Events"), href: "/events" },
+    // { key: "activities", title: t("Layout.Activities"), href: "/activities" },
     { key: "products", title: t("Layout.Products"), href: "/products" },
     { key: "elements", title: t("Layout.Elements"), href: "/elements" },
   ];

@@ -20,7 +20,7 @@ import {
 import { registerNewsListingHandler } from "@/routes/$locale/news/-markdown";
 import { registerProductsListingHandler } from "@/routes/$locale/products/-markdown";
 import { registerElementsListingHandler } from "@/routes/$locale/elements/-markdown";
-import { registerEventsListingHandler } from "@/routes/$locale/events/-markdown";
+import { registerActivitiesListingHandler } from "@/routes/$locale/activities/-markdown";
 import { registerLocaleIndexHandler } from "@/routes/$locale/-markdown";
 
 /**
@@ -52,8 +52,8 @@ export function registerAllMarkdownHandlers(): void {
   // Elements listing: /$locale/elements
   registerElementsListingHandler();
 
-  // Events listing: /$locale/events
-  registerEventsListingHandler();
+  // Activities listing: /$locale/activities
+  registerActivitiesListingHandler();
 
   // Locale index: /$locale
   registerLocaleIndexHandler();

@@ -1,4 +1,4 @@
-// Events page
+// Activities page
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
@@ -8,18 +8,18 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
 
-export const Route = createFileRoute("/$locale/events/")({
+export const Route = createFileRoute("/$locale/activities/")({
   loader: async ({ params }) => {
     const { locale } = params;
-    // const events = await backend.getEvents(locale);
+    // const activities = await backend.getActivities(locale);
 
     // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     return {
       locale,
-      translatedTitle: t("Layout.Events"),
-      translatedDescription: t("Events.Discover upcoming events and meetups"),
+      translatedTitle: t("Layout.Activities"),
+      translatedDescription: t("Activities.Discover upcoming activities and meetups"),
     };
   },
   head: ({ loaderData }) => {
@@ -28,16 +28,16 @@ export const Route = createFileRoute("/$locale/events/")({
       meta: generateMetaTags({
         title: translatedTitle,
         description: translatedDescription,
-        url: buildUrl(locale, "events"),
+        url: buildUrl(locale, "activities"),
         locale,
         type: "website",
       }),
     };
   },
-  component: EventsPage,
+  component: ActivitiesPage,
 });
 
-function EventsPage() {
+function ActivitiesPage() {
   const { locale } = Route.useLoaderData();
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
@@ -47,16 +47,16 @@ function EventsPage() {
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="no-margin">{t("Layout.Events")}</h1>
+            <h1 className="no-margin">{t("Layout.Activities")}</h1>
             {isAuthenticated && (
               <Link
-                to="/$locale/events/new"
+                to="/$locale/activities/new"
                 params={{ locale }}
                 disabled
               >
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />
-                  {t("Events.Add Event")}
+                  {t("Activities.Add Activity")}
                 </Button>
               </Link>
             )}

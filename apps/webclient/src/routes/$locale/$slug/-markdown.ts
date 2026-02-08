@@ -127,7 +127,7 @@ async function handleProfileMarkdown(
   }
 
   // Skip reserved paths
-  const reservedPaths = ["stories", "news", "products", "elements", "events"];
+  const reservedPaths = ["stories", "news", "products", "elements", "activities"];
   if (reservedPaths.includes(slug)) {
     return null;
   }
@@ -186,7 +186,7 @@ export function registerProfilePageMarkdownHandler(): void {
     }
 
     // Skip reserved paths
-    const reservedPaths = ["stories", "news", "products", "elements", "events"];
+    const reservedPaths = ["stories", "news", "products", "elements", "activities"];
     if (reservedPaths.includes(slug)) {
       return null;
     }
