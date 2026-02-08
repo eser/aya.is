@@ -7,6 +7,7 @@ export type UpdateProfileRequest = {
   properties?: Record<string, unknown> | null;
   hide_relations?: boolean;
   hide_links?: boolean;
+  hide_qa?: boolean;
 };
 
 export async function updateProfile(

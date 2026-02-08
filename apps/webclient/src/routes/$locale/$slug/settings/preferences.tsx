@@ -28,21 +28,24 @@ function PreferencesPage() {
   const [currentProfile, setCurrentProfile] = React.useState<Profile>(initialProfile);
   const [hideRelations, setHideRelations] = React.useState(initialProfile.hide_relations ?? false);
   const [hideLinks, setHideLinks] = React.useState(initialProfile.hide_links ?? false);
+  const [hideQA, setHideQA] = React.useState(initialProfile.hide_qa ?? false);
 
   // Update local state when loader data changes
   React.useEffect(() => {
     setCurrentProfile(initialProfile);
     setHideRelations(initialProfile.hide_relations ?? false);
     setHideLinks(initialProfile.hide_links ?? false);
+    setHideQA(initialProfile.hide_qa ?? false);
   }, [initialProfile]);
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
     return (
       hideRelations !== (initialProfile.hide_relations ?? false) ||
-      hideLinks !== (initialProfile.hide_links ?? false)
+      hideLinks !== (initialProfile.hide_links ?? false) ||
+      hideQA !== (initialProfile.hide_qa ?? false)
     );
-  }, [hideRelations, hideLinks, initialProfile]);
+  }, [hideRelations, hideLinks, hideQA, initialProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +55,7 @@ function PreferencesPage() {
       const result = await backend.updateProfile(params.locale, params.slug, {
         hide_relations: hideRelations,
         hide_links: hideLinks,
+        hide_qa: hideQA,
       });
 
       if (result === null) {
@@ -66,6 +70,7 @@ function PreferencesPage() {
         ...prev,
         hide_relations: hideRelations,
         hide_links: hideLinks,
+        hide_qa: hideQA,
       }));
 
       // Invalidate router cache to refresh profile data
@@ -135,6 +140,20 @@ function PreferencesPage() {
             />
           </Field>
         )}
+
+        {/* Hide Q&A */}
+        <Field orientation="horizontal" className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <FieldLabel>{t("Profile.Hide Q&A")}</FieldLabel>
+            <FieldDescription>
+              {t("Profile.Hide the Q&A section from your profile.")}
+            </FieldDescription>
+          </div>
+          <Switch
+            checked={hideQA}
+            onCheckedChange={setHideQA}
+          />
+        </Field>
 
         {/* Save Button */}
         <div className="flex justify-end pt-4">
