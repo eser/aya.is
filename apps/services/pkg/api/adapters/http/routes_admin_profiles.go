@@ -226,6 +226,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 				tx, err := profilePointsService.GainPoints(
 					ctx.Request.Context(),
 					profile_points.GainParams{
+						ActorID:         user.ID,
 						TargetProfileID: profile.ID,
 						Amount:          body.Amount,
 						TriggeringEvent: &triggeringEvent,

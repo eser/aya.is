@@ -34,6 +34,7 @@ type Balance struct {
 
 // GainParams holds parameters for awarding points.
 type GainParams struct {
+	ActorID         string
 	TargetProfileID string
 	Amount          uint64
 	TriggeringEvent *string

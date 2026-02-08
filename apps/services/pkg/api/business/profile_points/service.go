@@ -72,11 +72,21 @@ func (s *Service) GainPoints(ctx context.Context, params GainParams) (*Transacti
 		return nil, fmt.Errorf("%w: %w", ErrFailedToRecordTx, err)
 	}
 
+	actorKind := events.ActorSystem
+
+	var actorID *string
+
+	if params.ActorID != "" {
+		actorKind = events.ActorUser
+		actorID = &params.ActorID
+	}
+
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.PointsGained,
 		EntityType: "profile",
 		EntityID:   params.TargetProfileID,
-		ActorKind:  events.ActorSystem,
+		ActorID:    actorID,
+		ActorKind:  actorKind,
 		Payload:    map[string]any{"amount": params.Amount, "description": params.Description},
 	})
 
