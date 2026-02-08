@@ -23,7 +23,6 @@ func RegisterHTTPRoutesForProfileQuestions(
 	// List questions for a profile (public, optional auth for viewer vote state)
 	routes.Route(
 		"GET /{locale}/profiles/{slug}/_questions",
-		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
 			localeParam, localeOk := validateLocale(ctx)
 			if !localeOk {
@@ -34,11 +33,11 @@ func RegisterHTTPRoutesForProfileQuestions(
 
 			slugParam := ctx.Request.PathValue("slug")
 
-			// Optional: resolve viewer user ID from session
+			// Optional: resolve viewer user ID from session cookie (no auth required)
 			var viewerUserID *string
 
-			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
-			if ok {
+			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
+			if err == nil && sessionID != "" {
 				session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 				if sessionErr == nil && session != nil && session.LoggedInUserID != nil {
 					viewerUserID = session.LoggedInUserID
