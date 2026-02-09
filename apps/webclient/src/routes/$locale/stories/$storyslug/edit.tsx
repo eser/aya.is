@@ -333,6 +333,7 @@ function EditStoryPage() {
           translationLocales={translationLocales}
           onAutoTranslate={handleAutoTranslate}
           onDeleteTranslation={handleDeleteTranslation}
+          isManaged={storyData.is_managed}
         />
       </div>
     </PageLayout>

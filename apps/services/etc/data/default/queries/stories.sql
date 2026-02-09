@@ -198,6 +198,7 @@ WHERE id = sqlc.arg(id)
 -- name: GetStoryForEdit :one
 -- Uses locale fallback: prefers the requested locale, falls back to any translation.
 -- The returned locale_code indicates which translation was actually found.
+-- Includes is_managed flag to protect synced stories from editing.
 SELECT
   s.*,
   st.locale_code,

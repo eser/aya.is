@@ -5,6 +5,7 @@ type MarkdownEditorProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export function MarkdownEditor(props: MarkdownEditorProps) {
@@ -51,6 +52,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       onKeyDown={handleKeyDown}
       placeholder={props.placeholder ?? "Write your content in markdown..."}
       spellCheck="false"
+      disabled={props.disabled}
     />
   );
 }

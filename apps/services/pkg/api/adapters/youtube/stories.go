@@ -361,7 +361,7 @@ func (p *Provider) fetchVideoMetadata(
 		batch := videoIDs[i:end]
 		ids := strings.Join(batch, ",")
 
-		reqURL := "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=" + url.QueryEscape(
+		reqURL := "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics,status&id=" + url.QueryEscape(
 			ids,
 		)
 

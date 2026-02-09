@@ -22,6 +22,7 @@ import { Route as LocaleSearchIndexRouteImport } from './routes/$locale/search/i
 import { Route as LocaleProductsIndexRouteImport } from './routes/$locale/products/index'
 import { Route as LocaleNewsIndexRouteImport } from './routes/$locale/news/index'
 import { Route as LocaleElementsIndexRouteImport } from './routes/$locale/elements/index'
+import { Route as LocaleContentIndexRouteImport } from './routes/$locale/content/index'
 import { Route as LocaleActivitiesIndexRouteImport } from './routes/$locale/activities/index'
 import { Route as LocaleSlugIndexRouteImport } from './routes/$locale/$slug/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -29,6 +30,7 @@ import { Route as LocaleStoriesNewRouteImport } from './routes/$locale/stories/n
 import { Route as LocaleProductsNewRouteImport } from './routes/$locale/products/new'
 import { Route as LocaleNewsNewRouteImport } from './routes/$locale/news/new'
 import { Route as LocaleElementsNewRouteImport } from './routes/$locale/elements/new'
+import { Route as LocaleContentNewRouteImport } from './routes/$locale/content/new'
 import { Route as LocaleSlugMembersRouteImport } from './routes/$locale/$slug/members'
 import { Route as LocaleSlugLinksRouteImport } from './routes/$locale/$slug/links'
 import { Route as LocaleSlugContributionsRouteImport } from './routes/$locale/$slug/contributions'
@@ -129,6 +131,11 @@ const LocaleElementsIndexRoute = LocaleElementsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LocaleElementsRouteRoute,
 } as any)
+const LocaleContentIndexRoute = LocaleContentIndexRouteImport.update({
+  id: '/content/',
+  path: '/content/',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
 const LocaleActivitiesIndexRoute = LocaleActivitiesIndexRouteImport.update({
   id: '/activities/',
   path: '/activities/',
@@ -163,6 +170,11 @@ const LocaleElementsNewRoute = LocaleElementsNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => LocaleElementsRouteRoute,
+} as any)
+const LocaleContentNewRoute = LocaleContentNewRouteImport.update({
+  id: '/content/new',
+  path: '/content/new',
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleSlugMembersRoute = LocaleSlugMembersRouteImport.update({
   id: '/members',
@@ -371,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/links': typeof LocaleSlugLinksRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
+  '/$locale/content/new': typeof LocaleContentNewRoute
   '/$locale/elements/new': typeof LocaleElementsNewRoute
   '/$locale/news/new': typeof LocaleNewsNewRoute
   '/$locale/products/new': typeof LocaleProductsNewRoute
@@ -378,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/$locale/$slug/': typeof LocaleSlugIndexRoute
   '/$locale/activities': typeof LocaleActivitiesIndexRoute
+  '/$locale/content': typeof LocaleContentIndexRoute
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/news': typeof LocaleNewsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
@@ -416,6 +430,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/links': typeof LocaleSlugLinksRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
+  '/$locale/content/new': typeof LocaleContentNewRoute
   '/$locale/elements/new': typeof LocaleElementsNewRoute
   '/$locale/news/new': typeof LocaleNewsNewRoute
   '/$locale/products/new': typeof LocaleProductsNewRoute
@@ -423,6 +438,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/$locale/$slug': typeof LocaleSlugIndexRoute
   '/$locale/activities': typeof LocaleActivitiesIndexRoute
+  '/$locale/content': typeof LocaleContentIndexRoute
   '/$locale/elements': typeof LocaleElementsIndexRoute
   '/$locale/news': typeof LocaleNewsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
@@ -471,6 +487,7 @@ export interface FileRoutesById {
   '/$locale/$slug/contributions': typeof LocaleSlugContributionsRoute
   '/$locale/$slug/links': typeof LocaleSlugLinksRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersRoute
+  '/$locale/content/new': typeof LocaleContentNewRoute
   '/$locale/elements/new': typeof LocaleElementsNewRoute
   '/$locale/news/new': typeof LocaleNewsNewRoute
   '/$locale/products/new': typeof LocaleProductsNewRoute
@@ -478,6 +495,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/$locale/$slug/': typeof LocaleSlugIndexRoute
   '/$locale/activities/': typeof LocaleActivitiesIndexRoute
+  '/$locale/content/': typeof LocaleContentIndexRoute
   '/$locale/elements/': typeof LocaleElementsIndexRoute
   '/$locale/news/': typeof LocaleNewsIndexRoute
   '/$locale/products/': typeof LocaleProductsIndexRoute
@@ -529,6 +547,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/links'
     | '/$locale/$slug/members'
+    | '/$locale/content/new'
     | '/$locale/elements/new'
     | '/$locale/news/new'
     | '/$locale/products/new'
@@ -536,6 +555,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/$locale/$slug/'
     | '/$locale/activities'
+    | '/$locale/content'
     | '/$locale/elements/'
     | '/$locale/news'
     | '/$locale/products'
@@ -574,6 +594,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/links'
     | '/$locale/$slug/members'
+    | '/$locale/content/new'
     | '/$locale/elements/new'
     | '/$locale/news/new'
     | '/$locale/products/new'
@@ -581,6 +602,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/$locale/$slug'
     | '/$locale/activities'
+    | '/$locale/content'
     | '/$locale/elements'
     | '/$locale/news'
     | '/$locale/products'
@@ -628,6 +650,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/contributions'
     | '/$locale/$slug/links'
     | '/$locale/$slug/members'
+    | '/$locale/content/new'
     | '/$locale/elements/new'
     | '/$locale/news/new'
     | '/$locale/products/new'
@@ -635,6 +658,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/$locale/$slug/'
     | '/$locale/activities/'
+    | '/$locale/content/'
     | '/$locale/elements/'
     | '/$locale/news/'
     | '/$locale/products/'
@@ -765,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleElementsIndexRouteImport
       parentRoute: typeof LocaleElementsRouteRoute
     }
+    '/$locale/content/': {
+      id: '/$locale/content/'
+      path: '/content'
+      fullPath: '/$locale/content'
+      preLoaderRoute: typeof LocaleContentIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
     '/$locale/activities/': {
       id: '/$locale/activities/'
       path: '/activities'
@@ -813,6 +844,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/elements/new'
       preLoaderRoute: typeof LocaleElementsNewRouteImport
       parentRoute: typeof LocaleElementsRouteRoute
+    }
+    '/$locale/content/new': {
+      id: '/$locale/content/new'
+      path: '/content/new'
+      fullPath: '/$locale/content/new'
+      preLoaderRoute: typeof LocaleContentNewRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/$slug/members': {
       id: '/$locale/$slug/members'
@@ -1284,9 +1322,11 @@ interface LocaleRouteRouteChildren {
   LocaleElementsRouteRoute: typeof LocaleElementsRouteRouteWithChildren
   LocaleStoriesRouteRoute: typeof LocaleStoriesRouteRouteWithChildren
   LocaleIndexRoute: typeof LocaleIndexRoute
+  LocaleContentNewRoute: typeof LocaleContentNewRoute
   LocaleNewsNewRoute: typeof LocaleNewsNewRoute
   LocaleProductsNewRoute: typeof LocaleProductsNewRoute
   LocaleActivitiesIndexRoute: typeof LocaleActivitiesIndexRoute
+  LocaleContentIndexRoute: typeof LocaleContentIndexRoute
   LocaleNewsIndexRoute: typeof LocaleNewsIndexRoute
   LocaleProductsIndexRoute: typeof LocaleProductsIndexRoute
   LocaleSearchIndexRoute: typeof LocaleSearchIndexRoute
@@ -1298,9 +1338,11 @@ const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
   LocaleElementsRouteRoute: LocaleElementsRouteRouteWithChildren,
   LocaleStoriesRouteRoute: LocaleStoriesRouteRouteWithChildren,
   LocaleIndexRoute: LocaleIndexRoute,
+  LocaleContentNewRoute: LocaleContentNewRoute,
   LocaleNewsNewRoute: LocaleNewsNewRoute,
   LocaleProductsNewRoute: LocaleProductsNewRoute,
   LocaleActivitiesIndexRoute: LocaleActivitiesIndexRoute,
+  LocaleContentIndexRoute: LocaleContentIndexRoute,
   LocaleNewsIndexRoute: LocaleNewsIndexRoute,
   LocaleProductsIndexRoute: LocaleProductsIndexRoute,
   LocaleSearchIndexRoute: LocaleSearchIndexRoute,

@@ -34,6 +34,9 @@ var (
 	ErrInsufficientProfileRole = errors.New(
 		"user does not have sufficient role for this operation",
 	)
+	ErrManagedStory = errors.New(
+		"this story is managed by an external sync and cannot be edited directly",
+	)
 )
 
 // Config holds the stories service configuration.
@@ -818,6 +821,20 @@ func (s *Service) Update(
 		)
 	}
 
+	// Check if story is managed (synced from external source)
+	storyForEdit, err := s.repo.GetStoryForEdit(ctx, locale, storyID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
+	}
+
+	if storyForEdit == nil {
+		return nil, fmt.Errorf("%w: %s", ErrStoryNotFound, storyID)
+	}
+
+	if storyForEdit.IsManaged {
+		return nil, ErrManagedStory
+	}
+
 	// Validate slug availability and date prefix (only block on errors, not warnings)
 	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, &storyID, nil, false)
 	if err != nil {
@@ -888,6 +905,16 @@ func (s *Service) UpdateTranslation(
 			userID,
 			storyID,
 		)
+	}
+
+	// Check if story is managed (synced from external source)
+	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
+	if err != nil {
+		return fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
+	}
+
+	if storyForEdit != nil && storyForEdit.IsManaged {
+		return ErrManagedStory
 	}
 
 	// Update the translation (use upsert to handle new locales)

@@ -53,6 +53,19 @@ type LinkImportForStoryCreation struct {
 	ProfileDefaultLocale string
 }
 
+// LinkImportWithStory represents an import that has a corresponding managed story (for reconciliation).
+type LinkImportWithStory struct {
+	ID                   string
+	ProfileLinkID        string
+	RemoteID             string
+	Properties           map[string]any
+	CreatedAt            time.Time
+	ProfileID            string
+	ProfileDefaultLocale string
+	StoryID              string
+	PublicationID        *string
+}
+
 // TokenRefreshResult contains the result of a token refresh.
 type TokenRefreshResult struct {
 	AccessToken          string

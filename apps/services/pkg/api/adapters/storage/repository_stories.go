@@ -441,6 +441,7 @@ func (r *Repository) GetStoryForEdit(
 		Content:           row.Content,
 		CreatedAt:         row.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
+		IsManaged:         row.IsManaged,
 	}, nil
 }
 

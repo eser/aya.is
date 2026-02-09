@@ -52,6 +52,7 @@ type StoryForEdit struct {
 	Title             string     `json:"title"`
 	Summary           string     `json:"summary"`
 	Content           string     `json:"content"`
+	IsManaged         bool       `json:"is_managed"`
 }
 
 // StoryForEditWithPublications wraps StoryForEdit with its publications.

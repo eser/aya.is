@@ -62,6 +62,7 @@
     "Activities": "Etkinlikler",
     "Links": "Bağlantılar",
     "Q&A": "S&C",
+    "Content": "İçerikler",
     "Content not yet available.": "Henüz içerik bulunmamaktadır.",
     "Change theme": "Temayı değiştir",
     "System": "Sistem",
@@ -243,6 +244,12 @@
     "News created successfully": "Haber başarıyla oluşturuldu",
     "Failed to create news": "Haber oluşturulamadı",
     "Latest news and updates from the AYA community": "AYA topluluğundan en son haberler ve güncellemeler"
+  },
+  "Content": {
+    "Add Content": "İçerik Ekle",
+    "Content created successfully": "İçerik başarıyla oluşturuldu",
+    "Failed to create content": "İçerik oluşturulamadı",
+    "Latest content from the AYA community": "AYA topluluğundan en son içerikler"
   },
   "Products": {
     "Description": "AYA kapsamında geliştirilen açık kaynak projeler ve ürünler.",
@@ -600,7 +607,8 @@
     "Remove translation confirmation": "{{locale}} çevirisini kaldırmak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "Auto-translate confirmation": "{{locale}} diline otomatik çeviri yapmak istediğinizden emin misiniz? Çeviri oluşturmak için yapay zeka kullanılacaktır.",
     "Translate": "Çevir",
-    "AI translation not available": "Yapay zeka çevirisi mevcut değil"
+    "AI translation not available": "Yapay zeka çevirisi mevcut değil",
+    "This story is synced from an external source. Some fields cannot be edited.": "Bu hikaye harici bir kaynaktan senkronize edilmiştir. Bazı alanlar düzenlenemez."
   },
   "Admin": {
     "Admin Area": "Yönetim Paneli",

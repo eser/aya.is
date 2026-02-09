@@ -29,8 +29,8 @@ export type ViewMode = "split" | "editor" | "preview";
 type EditorToolbarProps = {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  onFormat: (format: FormatAction) => void;
-  onImageUpload: () => void;
+  onFormat?: (format: FormatAction) => void;
+  onImageUpload?: () => void;
 };
 
 export type FormatAction =
@@ -77,7 +77,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => onFormat(button.action)}
+                  onClick={onFormat !== undefined ? () => onFormat(button.action) : undefined}
+                  disabled={onFormat === undefined}
                 />
               }
             >
@@ -100,7 +101,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon-sm" onClick={onImageUpload} />
+              <Button variant="ghost" size="icon-sm" onClick={onImageUpload} disabled={onImageUpload === undefined} />
             }
           >
             <ImageIcon className="size-4" />

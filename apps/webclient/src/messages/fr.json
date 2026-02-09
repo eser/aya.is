@@ -62,6 +62,7 @@
     "Activities": "Événements",
     "Links": "Links",
     "Q&A": "Q&R",
+    "Content": "Content",
     "Content not yet available.": "Contenu non encore disponible.",
     "Change theme": "Changer de thème",
     "System": "Système",
@@ -243,6 +244,12 @@
     "News created successfully": "News created successfully",
     "Failed to create news": "Failed to create news",
     "Latest news and updates from the AYA community": "Latest news and updates from the AYA community"
+  },
+  "Content": {
+    "Add Content": "Add Content",
+    "Content created successfully": "Content created successfully",
+    "Failed to create content": "Failed to create content",
+    "Latest content from the AYA community": "Latest content from the AYA community"
   },
   "Products": {
     "Description": "Open source projects and products developed within AYA.",
@@ -600,7 +607,8 @@
     "Remove translation confirmation": "Are you sure you want to remove the {{locale}} translation? This action cannot be undone.",
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
-    "AI translation not available": "AI translation not available"
+    "AI translation not available": "AI translation not available",
+    "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {
     "Admin Area": "Zone d'administration",

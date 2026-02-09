@@ -122,6 +122,7 @@ type ContentEditorProps = {
   translationLocales?: string[] | null;
   onAutoTranslate?: (targetLocale: string) => Promise<void>;
   onDeleteTranslation?: (locale: string) => Promise<void>;
+  isManaged?: boolean;
 };
 
 export function ContentEditor(props: ContentEditorProps) {
@@ -145,6 +146,7 @@ export function ContentEditor(props: ContentEditorProps) {
     translationLocales,
     onAutoTranslate,
     onDeleteTranslation,
+    isManaged = false,
   } = props;
 
   const isAdmin = userKind === "admin";
@@ -561,6 +563,14 @@ export function ContentEditor(props: ContentEditorProps) {
         />
       </div>
 
+      {/* Managed Story Banner */}
+      {isManaged && (
+        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 px-4 py-2 text-sm text-amber-800 dark:text-amber-200">
+          <Info className="size-4 shrink-0" />
+          <span>{t("ContentEditor.This story is synced from an external source. Some fields cannot be edited.")}</span>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className={styles.editorMain}>
         {/* Sidebar - Metadata */}
@@ -592,7 +602,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   <FieldLabel htmlFor="kind" className={styles.metadataLabel}>
                     {t("Common.Kind")}
                   </FieldLabel>
-                  <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)}>
+                  <Select value={kind} onValueChange={(value) => setKind(value as StoryKind)} disabled={isManaged}>
                     <SelectTrigger id="kind">
                       <span className="flex items-center gap-2">
                         {kind === "article" && <PencilLine className="size-4" />}
@@ -669,6 +679,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   }}
                   placeholder={t("ContentEditor.Enter title...")}
                   aria-invalid={titleError !== null || undefined}
+                  disabled={isManaged}
                 />
                 {titleError !== null && <FieldError>{titleError}</FieldError>}
               </Field>
@@ -684,6 +695,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   onChange={(e) => setSummary(e.target.value)}
                   placeholder={t("ContentEditor.Brief summary...")}
                   className="min-h-[80px]"
+                  disabled={isManaged}
                 />
               </Field>
 
@@ -713,6 +725,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     aria-invalid={(showSlugValidation && slugError !== null) ||
                       (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
                     className="pr-8"
+                    disabled={isManaged}
                   />
                   {showSlugValidation && slug.length >= 3 && (
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -749,6 +762,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     placeholder="https://..."
                     className="flex-1"
                     aria-invalid={storyPictureUriError !== null || undefined}
+                    disabled={isManaged}
                   />
                   <Button
                     type="button"
@@ -756,6 +770,7 @@ export function ContentEditor(props: ContentEditorProps) {
                     size="icon"
                     onClick={() => setShowStoryPictureModal(true)}
                     title={t("ContentEditor.Upload")}
+                    disabled={isManaged}
                   >
                     <Upload className="size-4" />
                   </Button>
@@ -812,8 +827,8 @@ export function ContentEditor(props: ContentEditorProps) {
           <EditorToolbar
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            onFormat={handleFormat}
-            onImageUpload={() => setShowImageModal(true)}
+            onFormat={isManaged ? undefined : handleFormat}
+            onImageUpload={isManaged ? undefined : () => setShowImageModal(true)}
           />
 
           <div className={styles.editorPanels}>
@@ -826,6 +841,7 @@ export function ContentEditor(props: ContentEditorProps) {
                       value={content}
                       onChange={setContent}
                       placeholder={t("ContentEditor.Write your content in markdown...")}
+                      disabled={isManaged}
                     />
                   </div>
                 </ResizablePanel>

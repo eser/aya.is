@@ -124,6 +124,20 @@ func (s *Service) ListImportsForStoryCreation(
 	return imports, nil
 }
 
+// ListImportsWithExistingStories returns imports that have corresponding managed stories.
+func (s *Service) ListImportsWithExistingStories(
+	ctx context.Context,
+	kind string,
+	limit int,
+) ([]*LinkImportWithStory, error) {
+	imports, err := s.repo.ListImportsWithExistingStories(ctx, kind, limit)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListImports, err)
+	}
+
+	return imports, nil
+}
+
 // UpdateLinkTokens updates the OAuth tokens for a link.
 func (s *Service) UpdateLinkTokens(
 	ctx context.Context,

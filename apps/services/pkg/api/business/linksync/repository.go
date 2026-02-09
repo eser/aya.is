@@ -48,4 +48,11 @@ type Repository interface {
 		kind string,
 		limit int,
 	) ([]*LinkImportForStoryCreation, error)
+
+	// ListImportsWithExistingStories returns imports that have corresponding managed stories.
+	ListImportsWithExistingStories(
+		ctx context.Context,
+		kind string,
+		limit int,
+	) ([]*LinkImportWithStory, error)
 }

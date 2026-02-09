@@ -201,6 +201,52 @@ func (r *Repository) ListImportsForStoryCreation(
 	return result, nil
 }
 
+// ListImportsWithExistingStories returns imports that have matching managed stories.
+func (r *Repository) ListImportsWithExistingStories(
+	ctx context.Context,
+	kind string,
+	limit int,
+) ([]*linksync.LinkImportWithStory, error) {
+	rows, err := r.queries.ListImportsWithExistingStories(
+		ctx,
+		ListImportsWithExistingStoriesParams{
+			Kind:       kind,
+			LimitCount: int32(limit),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*linksync.LinkImportWithStory, len(rows))
+
+	for i, row := range rows {
+		var properties map[string]any
+		if row.Properties.Valid {
+			_ = json.Unmarshal(row.Properties.RawMessage, &properties)
+		}
+
+		item := &linksync.LinkImportWithStory{
+			ID:                   row.ID,
+			ProfileLinkID:        row.ProfileLinkID,
+			RemoteID:             row.RemoteID.String,
+			Properties:           properties,
+			CreatedAt:            row.CreatedAt,
+			ProfileID:            row.ProfileID,
+			ProfileDefaultLocale: row.ProfileDefaultLocale,
+			StoryID:              row.StoryID,
+		}
+
+		if row.PublicationID.Valid {
+			item.PublicationID = &row.PublicationID.String
+		}
+
+		result[i] = item
+	}
+
+	return result, nil
+}
+
 // rowToLinkImport converts a database row to a LinkImport domain object.
 func (r *Repository) rowToLinkImport(row *ProfileLinkImport) *linksync.LinkImport {
 	var properties map[string]any

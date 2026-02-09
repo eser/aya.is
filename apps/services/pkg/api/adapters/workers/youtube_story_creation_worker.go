@@ -24,7 +24,7 @@ const (
 	slugDatePrefixLen = 9 // "YYYYMMDD-"
 )
 
-// storyCreationRepo defines the minimal repository interface for creating stories.
+// storyCreationRepo defines the minimal repository interface for creating and updating stories.
 type storyCreationRepo interface {
 	InsertStory(
 		ctx context.Context,
@@ -54,6 +54,21 @@ type storyCreationRepo interface {
 		publishedAt *time.Time,
 		properties map[string]any,
 	) error
+	UpdateStory(
+		ctx context.Context,
+		id string,
+		slug string,
+		storyPictureURI *string,
+	) error
+	UpsertStoryTx(
+		ctx context.Context,
+		storyID string,
+		localeCode string,
+		title string,
+		summary string,
+		content string,
+	) error
+	RemoveStoryPublication(ctx context.Context, id string) error
 }
 
 // YouTubeStoryCreationWorker creates stories from synced YouTube video imports.
@@ -174,6 +189,12 @@ func (w *YouTubeStoryCreationWorker) createStories(ctx context.Context) error {
 		slog.Int("processed", len(imports)),
 		slog.Int("created", created))
 
+	// Reconcile existing stories with latest import data
+	if err := w.reconcileExistingStories(ctx); err != nil {
+		w.logger.ErrorContext(ctx, "Failed to reconcile existing stories",
+			slog.Any("error", err))
+	}
+
 	return nil
 }
 
@@ -184,6 +205,14 @@ func (w *YouTubeStoryCreationWorker) createStoryFromImport( //nolint:cyclop,funl
 ) error {
 	// Extract video metadata
 	videoMeta := extractVideoMetadata(imp.Properties)
+
+	// Skip unlisted or private videos
+	if isVideoNonPublic(imp.Properties) {
+		w.logger.DebugContext(ctx, "Skipping non-public video",
+			slog.String("remote_id", imp.RemoteID))
+
+		return nil
+	}
 
 	// Detect locale
 	locale := detectLocaleFromYouTubeVideo(videoMeta, imp.ProfileDefaultLocale)
@@ -266,6 +295,133 @@ func (w *YouTubeStoryCreationWorker) createStoryFromImport( //nolint:cyclop,funl
 		slog.String("locale", locale))
 
 	return nil
+}
+
+// reconcileExistingStories updates existing stories to match the latest YouTube data.
+func (w *YouTubeStoryCreationWorker) reconcileExistingStories(ctx context.Context) error {
+	imports, err := w.syncService.ListImportsWithExistingStories(ctx, "youtube", w.config.BatchSize)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrSyncFailed, err)
+	}
+
+	if len(imports) == 0 {
+		return nil
+	}
+
+	w.logger.DebugContext(ctx, "Reconciling existing YouTube stories",
+		slog.Int("count", len(imports)))
+
+	reconciled := 0
+
+	for _, imp := range imports {
+		err := w.reconcileStory(ctx, imp)
+		if err != nil {
+			w.logger.ErrorContext(ctx, "Failed to reconcile story",
+				slog.String("story_id", imp.StoryID),
+				slog.String("remote_id", imp.RemoteID),
+				slog.Any("error", err))
+
+			continue
+		}
+
+		reconciled++
+	}
+
+	w.logger.DebugContext(ctx, "Completed YouTube story reconciliation",
+		slog.Int("processed", len(imports)),
+		slog.Int("reconciled", reconciled))
+
+	return nil
+}
+
+// reconcileStory updates a single story to match the latest YouTube data.
+func (w *YouTubeStoryCreationWorker) reconcileStory(
+	ctx context.Context,
+	imp *linksync.LinkImportWithStory,
+) error {
+	videoMeta := extractVideoMetadata(imp.Properties)
+	nonPublic := isVideoNonPublic(imp.Properties)
+
+	// Handle publication based on privacy status
+	if nonPublic && imp.PublicationID != nil {
+		// Video became unlisted/private → remove author publication
+		err := w.storyRepo.RemoveStoryPublication(ctx, *imp.PublicationID)
+		if err != nil {
+			return fmt.Errorf("failed to remove publication: %w", err)
+		}
+
+		w.logger.DebugContext(ctx, "Removed publication for non-public video",
+			slog.String("story_id", imp.StoryID),
+			slog.String("remote_id", imp.RemoteID))
+	} else if !nonPublic && imp.PublicationID == nil {
+		// Video is public but has no publication → add one
+		publishedAt := extractPublishedAt(imp.Properties)
+		publicationID := w.idGenerator()
+
+		err := w.storyRepo.InsertStoryPublication(
+			ctx,
+			publicationID,
+			imp.StoryID,
+			imp.ProfileID,
+			"original",
+			false,
+			&publishedAt,
+			nil,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert publication: %w", err)
+		}
+
+		w.logger.DebugContext(ctx, "Added publication for public video",
+			slog.String("story_id", imp.StoryID),
+			slog.String("remote_id", imp.RemoteID))
+	}
+
+	// Update story fields to match YouTube data
+	locale := detectLocaleFromYouTubeVideo(videoMeta, imp.ProfileDefaultLocale)
+	publishedAt := extractPublishedAt(imp.Properties)
+	slug := generateSlugFromTitle(publishedAt, videoMeta.title)
+
+	thumbnailURI := extractThumbnailURI(videoMeta)
+
+	var storyPictureURI *string
+	if thumbnailURI != "" {
+		storyPictureURI = &thumbnailURI
+	}
+
+	// Update story (slug + picture)
+	err := w.storyRepo.UpdateStory(ctx, imp.StoryID, slug, storyPictureURI)
+	if err != nil {
+		return fmt.Errorf("failed to update story: %w", err)
+	}
+
+	// Update story translation (upsert handles locale changes)
+	content := buildStoryContent(imp.RemoteID, videoMeta.description)
+	summary := truncateSummary(videoMeta.description, maxSummaryLength)
+
+	err = w.storyRepo.UpsertStoryTx(ctx, imp.StoryID, locale, videoMeta.title, summary, content)
+	if err != nil {
+		return fmt.Errorf("failed to upsert story translation: %w", err)
+	}
+
+	return nil
+}
+
+// isVideoNonPublic checks if a video's privacy status is unlisted or private.
+func isVideoNonPublic(properties map[string]any) bool {
+	videoMeta, ok := properties["videoMetadata"].(map[string]any)
+	if !ok {
+		return false
+	}
+
+	status, ok := videoMeta["status"].(map[string]any)
+	if !ok {
+		return false
+	}
+
+	privacyStatus, _ := status["privacyStatus"].(string)
+
+	return privacyStatus == "unlisted" || privacyStatus == "private"
 }
 
 // videoMetadata holds extracted metadata from YouTube video properties.

@@ -1425,6 +1425,35 @@ type Querier interface {
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
 	ListFeaturedProfileLinksByProfileID(ctx context.Context, arg ListFeaturedProfileLinksByProfileIDParams) ([]*ListFeaturedProfileLinksByProfileIDRow, error)
+	// Returns imports that have matching managed stories (for reconciliation during full sync).
+	//
+	//  SELECT
+	//    pli.id,
+	//    pli.profile_link_id,
+	//    pli.remote_id,
+	//    pli.properties,
+	//    pli.created_at,
+	//    pl.profile_id,
+	//    COALESCE(NULLIF(TRIM(p.default_locale), ''), 'en')::TEXT AS profile_default_locale,
+	//    s.id AS story_id,
+	//    sp.id AS publication_id
+	//  FROM "profile_link_import" pli
+	//    INNER JOIN "profile_link" pl ON pl.id = pli.profile_link_id
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
+	//    INNER JOIN "story" s ON s.author_profile_id = pl.profile_id
+	//      AND s.is_managed = TRUE
+	//      AND s.properties->>'remote_id' = pli.remote_id
+	//      AND s.deleted_at IS NULL
+	//    LEFT JOIN "story_publication" sp ON sp.story_id = s.id
+	//      AND sp.profile_id = pl.profile_id
+	//      AND sp.deleted_at IS NULL
+	//  WHERE pl.kind = $1
+	//    AND pl.is_managed = TRUE
+	//    AND pli.deleted_at IS NULL
+	//    AND pli.remote_id IS NOT NULL
+	//  ORDER BY pli.created_at ASC
+	//  LIMIT $2
+	ListImportsWithExistingStories(ctx context.Context, arg ListImportsWithExistingStoriesParams) ([]*ListImportsWithExistingStoriesRow, error)
 	//ListLinkImportsForStoryCreation
 	//
 	//  SELECT

@@ -62,6 +62,7 @@
     "Activities": "活动",
     "Links": "Links",
     "Q&A": "问答",
+    "Content": "Content",
     "Content not yet available.": "内容暂不可用。",
     "Change theme": "更改主题",
     "System": "系统",
@@ -243,6 +244,12 @@
     "News created successfully": "新闻创建成功",
     "Failed to create news": "创建新闻失败",
     "Latest news and updates from the AYA community": "来自 AYA 社区的最新新闻和更新"
+  },
+  "Content": {
+    "Add Content": "Add Content",
+    "Content created successfully": "Content created successfully",
+    "Failed to create content": "Failed to create content",
+    "Latest content from the AYA community": "Latest content from the AYA community"
   },
   "Products": {
     "Description": "在 AYA 内开发的开源项目和产品。",
@@ -600,7 +607,8 @@
     "Remove translation confirmation": "Are you sure you want to remove the {{locale}} translation? This action cannot be undone.",
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
-    "AI translation not available": "AI translation not available"
+    "AI translation not available": "AI translation not available",
+    "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {
     "Admin Area": "管理区域",

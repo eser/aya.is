@@ -335,6 +335,7 @@ export interface StoryEditData {
   slug: string | null;
   locale_code: string;
   is_fallback: boolean;
+  is_managed: boolean;
   story_picture_uri: string | null;
   title: string | null;
   summary: string | null;

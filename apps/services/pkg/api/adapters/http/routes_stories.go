@@ -474,6 +474,15 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 					)
 				}
 
+				if errors.Is(err, stories.ErrManagedStory) {
+					return ctx.Results.Error(
+						http.StatusConflict,
+						httpfx.WithErrorMessage(
+							"This story is synced from an external source and cannot be edited directly.",
+						),
+					)
+				}
+
 				logger.ErrorContext(ctx.Request.Context(), "Story update failed",
 					slog.String("error", err.Error()),
 					slog.String("session_id", sessionID),
@@ -549,6 +558,15 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this story"),
+					)
+				}
+
+				if errors.Is(err, stories.ErrManagedStory) {
+					return ctx.Results.Error(
+						http.StatusConflict,
+						httpfx.WithErrorMessage(
+							"This story is synced from an external source and cannot be edited directly.",
+						),
 					)
 				}
 
