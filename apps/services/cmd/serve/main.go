@@ -81,13 +81,12 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 	}
 
 	// Create story processor (used by sync workers to create/reconcile stories after sync)
-	storyProcessor := workers.NewYouTubeStoryCreationWorker(
+	storyProcessor := workers.NewYouTubeStoryProcessor(
 		&appContext.Config.Workers.YouTubeSync,
 		appContext.Logger,
 		appContext.LinkSyncService,
 		appContext.Repository,
 		idGen,
-		appContext.RuntimeStateService,
 	)
 
 	// YouTube full sync worker
@@ -128,17 +127,6 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("youtube-incremental-sync-worker", func(ctx context.Context) error {
-			return runner.Run(ctx)
-		})
-	}
-
-	// YouTube story creation worker (periodic catch-up for any missed stories)
-	if appContext.Config.Workers.YouTubeSync.StoryCreationEnabled {
-		runner := workerfx.NewRunner(storyProcessor, appContext.Logger)
-		runner.SetStateKey("youtube.sync.story_creation_worker")
-		appContext.WorkerRegistry.Register(runner)
-
-		process.StartGoroutine("youtube-story-creation-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}

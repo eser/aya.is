@@ -14,7 +14,7 @@ export function StoryMetadata(props: StoryMetadataProps) {
   const { t, i18n } = useTranslation();
 
   const readingTime = calculateReadingTime(props.story.content);
-  const publishedDate = new Date(props.story.created_at);
+  const publishedDate = new Date(props.story.published_at ?? props.story.created_at);
 
   return (
     <div className="flex flex-row gap-3 sm:gap-6 mb-8 pb-6 border-b border-border">
@@ -23,7 +23,7 @@ export function StoryMetadata(props: StoryMetadataProps) {
           {t("Stories.Published on")}:
         </span>
         <time
-          dateTime={props.story.created_at}
+          dateTime={props.story.published_at ?? props.story.created_at}
           className="text-sm text-foreground"
         >
           {t("Common.DateLong", { date: publishedDate })}

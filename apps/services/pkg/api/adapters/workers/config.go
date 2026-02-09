@@ -10,8 +10,6 @@ type YouTubeSyncConfig struct {
 	FullSyncInterval        time.Duration `conf:"full_sync_interval"        default:"6h"`
 	IncrementalSyncEnabled  bool          `conf:"incremental_sync_enabled"  default:"true"`
 	IncrementalSyncInterval time.Duration `conf:"incremental_sync_interval" default:"15m"`
-	StoryCreationEnabled    bool          `conf:"story_creation_enabled"    default:"true"`
-	StoryCreationInterval   time.Duration `conf:"story_creation_interval"   default:"30m"`
 	CheckInterval           time.Duration `conf:"check_interval"            default:"1m"`
 	BatchSize               int           `conf:"batch_size"                default:"10"`
 	StoriesPerLink          int           `conf:"stories_per_link"          default:"50"`

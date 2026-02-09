@@ -11,14 +11,10 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
-	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 )
 
 const (
-	// Advisory lock ID for YouTube story creation worker.
-	lockIDYouTubeStoryCreation int64 = 100003
-
 	maxSlugLength     = 80
 	maxSummaryLength  = 500
 	slugDatePrefixLen = 9 // "YYYYMMDD-"
@@ -72,93 +68,35 @@ type storyCreationRepo interface {
 	RemoveStoryPublication(ctx context.Context, id string) error
 }
 
-// YouTubeStoryCreationWorker creates stories from synced YouTube video imports.
-type YouTubeStoryCreationWorker struct {
-	config        *YouTubeSyncConfig
-	logger        *logfx.Logger
-	syncService   *linksync.Service
-	storyRepo     storyCreationRepo
-	idGenerator   func() string
-	runtimeStates *runtime_states.Service
+// YouTubeStoryProcessor creates and reconciles stories from synced YouTube video imports.
+// Called by sync workers after completing a sync cycle.
+type YouTubeStoryProcessor struct {
+	config      *YouTubeSyncConfig
+	logger      *logfx.Logger
+	syncService *linksync.Service
+	storyRepo   storyCreationRepo
+	idGenerator func() string
 }
 
-// NewYouTubeStoryCreationWorker creates a new YouTube story creation worker.
-func NewYouTubeStoryCreationWorker(
+// NewYouTubeStoryProcessor creates a new YouTube story processor.
+func NewYouTubeStoryProcessor(
 	config *YouTubeSyncConfig,
 	logger *logfx.Logger,
 	syncService *linksync.Service,
 	storyRepo storyCreationRepo,
 	idGenerator func() string,
-	runtimeStates *runtime_states.Service,
-) *YouTubeStoryCreationWorker {
-	return &YouTubeStoryCreationWorker{
-		config:        config,
-		logger:        logger,
-		syncService:   syncService,
-		storyRepo:     storyRepo,
-		idGenerator:   idGenerator,
-		runtimeStates: runtimeStates,
+) *YouTubeStoryProcessor {
+	return &YouTubeStoryProcessor{
+		config:      config,
+		logger:      logger,
+		syncService: syncService,
+		storyRepo:   storyRepo,
+		idGenerator: idGenerator,
 	}
-}
-
-// Name returns the worker name.
-func (w *YouTubeStoryCreationWorker) Name() string {
-	return "youtube-story-creation"
-}
-
-// Interval returns the check interval.
-func (w *YouTubeStoryCreationWorker) Interval() time.Duration {
-	return w.config.CheckInterval
-}
-
-// Execute checks the distributed schedule and creates stories from imports.
-func (w *YouTubeStoryCreationWorker) Execute(ctx context.Context) error {
-	// Check if worker is disabled by admin
-	disabledKey := "worker." + w.Name() + ".disabled"
-
-	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
-	if err == nil && disabled == "true" {
-		return nil
-	}
-
-	nextRunKey := "youtube.sync.story_creation_worker.next_run_at"
-
-	nextRunAt, err := w.runtimeStates.GetTime(ctx, nextRunKey)
-	if err == nil && time.Now().Before(nextRunAt) {
-		return nil
-	}
-
-	acquired, lockErr := w.runtimeStates.TryLock(ctx, lockIDYouTubeStoryCreation)
-	if lockErr != nil {
-		w.logger.WarnContext(ctx, "Failed to acquire advisory lock for story creation",
-			slog.Any("error", lockErr))
-
-		return nil
-	}
-
-	if !acquired {
-		w.logger.DebugContext(ctx, "Another instance is running story creation worker")
-
-		return nil
-	}
-
-	defer func() {
-		_ = w.runtimeStates.ReleaseLock(ctx, lockIDYouTubeStoryCreation)
-	}()
-
-	_ = w.runtimeStates.SetTime(ctx, nextRunKey, time.Now().Add(w.config.StoryCreationInterval))
-
-	return w.createStories(ctx)
 }
 
 // ProcessStories creates stories from new imports and reconciles existing stories.
-// This is the public entry point called by sync workers after completing a sync cycle.
-func (w *YouTubeStoryCreationWorker) ProcessStories(ctx context.Context) error {
-	return w.createStories(ctx)
-}
-
-// createStories processes imports and creates stories for them, then reconciles existing stories.
-func (w *YouTubeStoryCreationWorker) createStories(ctx context.Context) error {
+func (w *YouTubeStoryProcessor) ProcessStories(ctx context.Context) error {
 	w.logger.DebugContext(ctx, "Starting YouTube story creation cycle")
 
 	imports, err := w.syncService.ListImportsForStoryCreation(ctx, "youtube", w.config.BatchSize)
@@ -204,7 +142,7 @@ func (w *YouTubeStoryCreationWorker) createStories(ctx context.Context) error {
 }
 
 // createStoryFromImport creates a story + story_tx + story_publication from a link import.
-func (w *YouTubeStoryCreationWorker) createStoryFromImport( //nolint:cyclop,funlen
+func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:cyclop,funlen
 	ctx context.Context,
 	imp *linksync.LinkImportForStoryCreation,
 ) error {
@@ -303,7 +241,7 @@ func (w *YouTubeStoryCreationWorker) createStoryFromImport( //nolint:cyclop,funl
 }
 
 // reconcileExistingStories updates existing stories to match the latest YouTube data.
-func (w *YouTubeStoryCreationWorker) reconcileExistingStories(ctx context.Context) error {
+func (w *YouTubeStoryProcessor) reconcileExistingStories(ctx context.Context) error {
 	imports, err := w.syncService.ListImportsWithExistingStories(
 		ctx,
 		"youtube",
@@ -344,7 +282,7 @@ func (w *YouTubeStoryCreationWorker) reconcileExistingStories(ctx context.Contex
 }
 
 // reconcileStory updates a single story to match the latest YouTube data.
-func (w *YouTubeStoryCreationWorker) reconcileStory(
+func (w *YouTubeStoryProcessor) reconcileStory(
 	ctx context.Context,
 	imp *linksync.LinkImportWithStory,
 ) error {

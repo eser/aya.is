@@ -88,14 +88,14 @@ export function Story(props: StoryProps) {
             <InlineMarkdown content={props.story.summary} className={styles.summary} />
           )}
           <div className={styles.meta}>
-            {props.story.created_at !== null && (
+            {(props.story.published_at ?? props.story.created_at) !== null && (
               <span className="flex items-center gap-1.5">
                 {(() => {
                   const KindIcon = storyKindIcons[props.story.kind];
                   return KindIcon !== undefined ? <KindIcon className="size-3.5" /> : null;
                 })()}
-                <time dateTime={props.story.created_at}>
-                  {formatDateString(props.story.created_at, locale)}
+                <time dateTime={props.story.published_at ?? props.story.created_at}>
+                  {formatDateString(props.story.published_at ?? props.story.created_at, locale)}
                 </time>
               </span>
             )}

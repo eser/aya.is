@@ -179,6 +179,10 @@ func (r *Repository) ListStoriesOfPublication(
 			return wrappedResponse, err
 		}
 
+		if t, ok := row.PublishedAt.(time.Time); ok {
+			storyWithChildren.PublishedAt = &t
+		}
+
 		result[i] = storyWithChildren
 	}
 
@@ -223,6 +227,10 @@ func (r *Repository) ListStoriesByAuthorProfileID(
 		)
 		if err != nil {
 			return wrappedResponse, err
+		}
+
+		if t, ok := row.PublishedAt.(time.Time); ok {
+			storyWithChildren.PublishedAt = &t
 		}
 
 		result[i] = storyWithChildren

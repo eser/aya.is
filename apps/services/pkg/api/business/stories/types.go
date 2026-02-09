@@ -17,6 +17,7 @@ func DefaultIDGenerator() RecordID {
 
 type Story struct {
 	CreatedAt       time.Time  `json:"created_at"`
+	PublishedAt     *time.Time `json:"published_at"`
 	Properties      any        `json:"properties"`
 	AuthorProfileID *string    `json:"author_profile_id"`
 	StoryPictureURI *string    `json:"story_picture_uri"`

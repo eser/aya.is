@@ -189,6 +189,7 @@ export interface Story {
   content: string;
   author_profile_id: string | null;
   author_profile: Profile | null;
+  published_at: string | null;
   created_at: string;
   updated_at: string | null;
   deleted_at: string | null;

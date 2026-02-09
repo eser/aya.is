@@ -819,7 +819,8 @@ SELECT
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-  pb.publications
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = (
@@ -859,7 +860,7 @@ FROM "story" s
 WHERE s.author_profile_id = $2::CHAR(26)
   AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
   AND s.deleted_at IS NULL
-ORDER BY s.created_at DESC
+ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 `
 
 type ListStoriesByAuthorProfileIDParams struct {
@@ -874,6 +875,7 @@ type ListStoriesByAuthorProfileIDRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // Lists all stories authored by a profile, including unpublished ones.
@@ -885,7 +887,8 @@ type ListStoriesByAuthorProfileIDRow struct {
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-//	  pb.publications
+//	  pb.publications,
+//	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = (
@@ -925,7 +928,7 @@ type ListStoriesByAuthorProfileIDRow struct {
 //	WHERE s.author_profile_id = $2::CHAR(26)
 //	  AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
 //	  AND s.deleted_at IS NULL
-//	ORDER BY s.created_at DESC
+//	ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStoriesByAuthorProfileIDParams) ([]*ListStoriesByAuthorProfileIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, listStoriesByAuthorProfileID, arg.LocaleCode, arg.AuthorProfileID, arg.FilterKind)
 	if err != nil {
@@ -974,6 +977,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 			&i.ProfileTx.Properties,
 			&i.ProfileTx.SearchVector,
 			&i.Publications,
+			&i.PublishedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -994,7 +998,8 @@ SELECT
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-  pb.publications
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = $1
@@ -1032,7 +1037,7 @@ WHERE
   AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
   AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
   AND s.deleted_at IS NULL
-ORDER BY s.created_at DESC
+ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 `
 
 type ListStoriesOfPublicationParams struct {
@@ -1048,6 +1053,7 @@ type ListStoriesOfPublicationRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // Strict locale matching: only returns stories that have a translation for the requested locale.
@@ -1057,7 +1063,8 @@ type ListStoriesOfPublicationRow struct {
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-//	  pb.publications
+//	  pb.publications,
+//	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = $1
@@ -1095,7 +1102,7 @@ type ListStoriesOfPublicationRow struct {
 //	  AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
 //	  AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
 //	  AND s.deleted_at IS NULL
-//	ORDER BY s.created_at DESC
+//	ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesOfPublicationParams) ([]*ListStoriesOfPublicationRow, error) {
 	rows, err := q.db.QueryContext(ctx, listStoriesOfPublication,
 		arg.LocaleCode,
@@ -1149,6 +1156,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.ProfileTx.Properties,
 			&i.ProfileTx.SearchVector,
 			&i.Publications,
+			&i.PublishedAt,
 		); err != nil {
 			return nil, err
 		}
