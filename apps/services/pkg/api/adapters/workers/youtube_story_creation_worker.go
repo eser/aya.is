@@ -151,7 +151,7 @@ func (w *YouTubeStoryCreationWorker) Execute(ctx context.Context) error {
 	return w.createStories(ctx)
 }
 
-// createStories processes imports and creates stories for them.
+// createStories processes imports and creates stories for them, then reconciles existing stories.
 func (w *YouTubeStoryCreationWorker) createStories(ctx context.Context) error {
 	w.logger.DebugContext(ctx, "Starting YouTube story creation cycle")
 
@@ -162,35 +162,33 @@ func (w *YouTubeStoryCreationWorker) createStories(ctx context.Context) error {
 
 	if len(imports) == 0 {
 		w.logger.DebugContext(ctx, "No YouTube imports need story creation")
+	} else {
+		w.logger.DebugContext(ctx, "Processing YouTube imports for story creation",
+			slog.Int("count", len(imports)))
 
-		return nil
-	}
+		created := 0
 
-	w.logger.DebugContext(ctx, "Processing YouTube imports for story creation",
-		slog.Int("count", len(imports)))
+		for _, imp := range imports {
+			err := w.createStoryFromImport(ctx, imp)
+			if err != nil {
+				w.logger.ErrorContext(ctx, "Failed to create story from import",
+					slog.String("import_id", imp.ID),
+					slog.String("remote_id", imp.RemoteID),
+					slog.String("profile_id", imp.ProfileID),
+					slog.Any("error", err))
 
-	created := 0
+				continue
+			}
 
-	for _, imp := range imports {
-		err := w.createStoryFromImport(ctx, imp)
-		if err != nil {
-			w.logger.ErrorContext(ctx, "Failed to create story from import",
-				slog.String("import_id", imp.ID),
-				slog.String("remote_id", imp.RemoteID),
-				slog.String("profile_id", imp.ProfileID),
-				slog.Any("error", err))
-
-			continue
+			created++
 		}
 
-		created++
+		w.logger.DebugContext(ctx, "Completed YouTube story creation cycle",
+			slog.Int("processed", len(imports)),
+			slog.Int("created", created))
 	}
 
-	w.logger.DebugContext(ctx, "Completed YouTube story creation cycle",
-		slog.Int("processed", len(imports)),
-		slog.Int("created", created))
-
-	// Reconcile existing stories with latest import data
+	// Always reconcile existing stories with latest import data
 	if err := w.reconcileExistingStories(ctx); err != nil {
 		w.logger.ErrorContext(ctx, "Failed to reconcile existing stories",
 			slog.Any("error", err))
@@ -300,7 +298,11 @@ func (w *YouTubeStoryCreationWorker) createStoryFromImport( //nolint:cyclop,funl
 
 // reconcileExistingStories updates existing stories to match the latest YouTube data.
 func (w *YouTubeStoryCreationWorker) reconcileExistingStories(ctx context.Context) error {
-	imports, err := w.syncService.ListImportsWithExistingStories(ctx, "youtube", w.config.BatchSize)
+	imports, err := w.syncService.ListImportsWithExistingStories(
+		ctx,
+		"youtube",
+		w.config.FullSyncMaxStories,
+	)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrSyncFailed, err)
 	}
