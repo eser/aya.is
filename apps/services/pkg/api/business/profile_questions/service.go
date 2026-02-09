@@ -127,6 +127,13 @@ func (s *Service) CreateQuestion(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
 	}
 
+	// Strip anonymous author information from the response
+	if question.IsAnonymous {
+		question.AuthorName = nil
+		question.AuthorSlug = nil
+		question.AuthorUserID = ""
+	}
+
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.ProfileQuestionCreated,
 		EntityType: "profile_question",
@@ -167,7 +174,14 @@ func (s *Service) AnswerQuestion(ctx context.Context, params AnswerQuestionParam
 		return ErrQuestionAlreadyAnswered
 	}
 
-	err = s.repo.UpdateAnswer(ctx, params.QuestionID, params.AnswerContent, params.UserID)
+	err = s.repo.UpdateAnswer(
+		ctx,
+		params.QuestionID,
+		params.AnswerContent,
+		params.AnswerURI,
+		params.AnswerKind,
+		params.UserID,
+	)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}

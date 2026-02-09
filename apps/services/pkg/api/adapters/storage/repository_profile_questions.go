@@ -101,11 +101,15 @@ func (r *Repository) UpdateAnswer(
 	ctx context.Context,
 	questionID string,
 	answerContent string,
+	answerURI *string,
+	answerKind *string,
 	answeredByUserID string,
 ) error {
 	return r.queries.UpdateProfileQuestionAnswer(ctx, UpdateProfileQuestionAnswerParams{
 		ID:            questionID,
 		AnswerContent: sql.NullString{String: answerContent, Valid: true},
+		AnswerURI:     vars.ToSQLNullString(answerURI),
+		AnswerKind:    vars.ToSQLNullString(answerKind),
 		AnsweredBy:    sql.NullString{String: answeredByUserID, Valid: true},
 	})
 }
@@ -232,6 +236,8 @@ func (r *Repository) rowToQuestion(row *ProfileQuestion) *profile_questions.Ques
 		AuthorUserID:  row.AuthorUserID,
 		Content:       row.Content,
 		AnswerContent: vars.ToStringPtr(row.AnswerContent),
+		AnswerURI:     vars.ToStringPtr(row.AnswerURI),
+		AnswerKind:    vars.ToStringPtr(row.AnswerKind),
 		AnsweredAt:    vars.ToTimePtr(row.AnsweredAt),
 		AnsweredBy:    vars.ToStringPtr(row.AnsweredBy),
 		VoteCount:     int(row.VoteCount),
@@ -253,6 +259,8 @@ func (r *Repository) listRowToQuestion(
 		AuthorUserID:  row.AuthorUserID,
 		Content:       row.Content,
 		AnswerContent: vars.ToStringPtr(row.AnswerContent),
+		AnswerURI:     vars.ToStringPtr(row.AnswerURI),
+		AnswerKind:    vars.ToStringPtr(row.AnswerKind),
 		AnsweredAt:    vars.ToTimePtr(row.AnsweredAt),
 		AnsweredBy:    vars.ToStringPtr(row.AnsweredBy),
 		VoteCount:     int(row.VoteCount),

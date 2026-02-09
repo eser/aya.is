@@ -83,7 +83,7 @@ func (q *Queries) DeleteProfileQuestionVote(ctx context.Context, arg DeleteProfi
 }
 
 const getProfileQuestion = `-- name: GetProfileQuestion :one
-SELECT id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+SELECT id, profile_id, author_user_id, content, answer_content, answer_uri, answer_kind, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
 FROM "profile_question"
 WHERE id = $1
   AND deleted_at IS NULL
@@ -95,7 +95,7 @@ type GetProfileQuestionParams struct {
 
 // GetProfileQuestion
 //
-//	SELECT id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+//	SELECT id, profile_id, author_user_id, content, answer_content, answer_uri, answer_kind, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
 //	FROM "profile_question"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
@@ -108,6 +108,8 @@ func (q *Queries) GetProfileQuestion(ctx context.Context, arg GetProfileQuestion
 		&i.AuthorUserID,
 		&i.Content,
 		&i.AnswerContent,
+		&i.AnswerURI,
+		&i.AnswerKind,
 		&i.AnsweredAt,
 		&i.AnsweredBy,
 		&i.IsAnonymous,
@@ -192,7 +194,7 @@ INSERT INTO "profile_question" (
   $4,
   $5,
   NOW()
-) RETURNING id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+) RETURNING id, profile_id, author_user_id, content, answer_content, answer_uri, answer_kind, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
 `
 
 type InsertProfileQuestionParams struct {
@@ -219,7 +221,7 @@ type InsertProfileQuestionParams struct {
 //	  $4,
 //	  $5,
 //	  NOW()
-//	) RETURNING id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+//	) RETURNING id, profile_id, author_user_id, content, answer_content, answer_uri, answer_kind, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
 func (q *Queries) InsertProfileQuestion(ctx context.Context, arg InsertProfileQuestionParams) (*ProfileQuestion, error) {
 	row := q.db.QueryRowContext(ctx, insertProfileQuestion,
 		arg.ID,
@@ -235,6 +237,8 @@ func (q *Queries) InsertProfileQuestion(ctx context.Context, arg InsertProfileQu
 		&i.AuthorUserID,
 		&i.Content,
 		&i.AnswerContent,
+		&i.AnswerURI,
+		&i.AnswerKind,
 		&i.AnsweredAt,
 		&i.AnsweredBy,
 		&i.IsAnonymous,
@@ -327,7 +331,7 @@ func (q *Queries) IsProfileQAHidden(ctx context.Context, arg IsProfileQAHiddenPa
 
 const listProfileQuestionsByProfileID = `-- name: ListProfileQuestionsByProfileID :many
 SELECT
-  pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
+  pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answer_uri, pq.answer_kind, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
   CASE
     WHEN $1::TEXT IS NOT NULL THEN
       EXISTS(
@@ -356,6 +360,8 @@ type ListProfileQuestionsByProfileIDRow struct {
 	AuthorUserID  string         `db:"author_user_id" json:"author_user_id"`
 	Content       string         `db:"content" json:"content"`
 	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
+	AnswerURI     sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerKind    sql.NullString `db:"answer_kind" json:"answer_kind"`
 	AnsweredAt    sql.NullTime   `db:"answered_at" json:"answered_at"`
 	AnsweredBy    sql.NullString `db:"answered_by" json:"answered_by"`
 	IsAnonymous   bool           `db:"is_anonymous" json:"is_anonymous"`
@@ -370,7 +376,7 @@ type ListProfileQuestionsByProfileIDRow struct {
 // ListProfileQuestionsByProfileID
 //
 //	SELECT
-//	  pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
+//	  pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answer_uri, pq.answer_kind, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
 //	  CASE
 //	    WHEN $1::TEXT IS NOT NULL THEN
 //	      EXISTS(
@@ -400,6 +406,8 @@ func (q *Queries) ListProfileQuestionsByProfileID(ctx context.Context, arg ListP
 			&i.AuthorUserID,
 			&i.Content,
 			&i.AnswerContent,
+			&i.AnswerURI,
+			&i.AnswerKind,
 			&i.AnsweredAt,
 			&i.AnsweredBy,
 			&i.IsAnonymous,
@@ -427,15 +435,19 @@ const updateProfileQuestionAnswer = `-- name: UpdateProfileQuestionAnswer :exec
 UPDATE "profile_question"
 SET
   answer_content = $1,
+  answer_uri = $2,
+  answer_kind = $3,
   answered_at = NOW(),
-  answered_by = $2,
+  answered_by = $4,
   updated_at = NOW()
-WHERE id = $3
+WHERE id = $5
   AND deleted_at IS NULL
 `
 
 type UpdateProfileQuestionAnswerParams struct {
 	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
+	AnswerURI     sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerKind    sql.NullString `db:"answer_kind" json:"answer_kind"`
 	AnsweredBy    sql.NullString `db:"answered_by" json:"answered_by"`
 	ID            string         `db:"id" json:"id"`
 }
@@ -445,13 +457,21 @@ type UpdateProfileQuestionAnswerParams struct {
 //	UPDATE "profile_question"
 //	SET
 //	  answer_content = $1,
+//	  answer_uri = $2,
+//	  answer_kind = $3,
 //	  answered_at = NOW(),
-//	  answered_by = $2,
+//	  answered_by = $4,
 //	  updated_at = NOW()
-//	WHERE id = $3
+//	WHERE id = $5
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfileQuestionAnswer(ctx context.Context, arg UpdateProfileQuestionAnswerParams) error {
-	_, err := q.db.ExecContext(ctx, updateProfileQuestionAnswer, arg.AnswerContent, arg.AnsweredBy, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateProfileQuestionAnswer,
+		arg.AnswerContent,
+		arg.AnswerURI,
+		arg.AnswerKind,
+		arg.AnsweredBy,
+		arg.ID,
+	)
 	return err
 }
 

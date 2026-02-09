@@ -48,6 +48,8 @@ INSERT INTO "profile_question" (
 UPDATE "profile_question"
 SET
   answer_content = sqlc.arg(answer_content),
+  answer_uri = sqlc.narg(answer_uri),
+  answer_kind = sqlc.narg(answer_kind),
   answered_at = NOW(),
   answered_by = sqlc.arg(answered_by),
   updated_at = NOW()

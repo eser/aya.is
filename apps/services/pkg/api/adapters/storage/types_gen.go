@@ -222,6 +222,8 @@ type ProfileQuestion struct {
 	AuthorUserID  string         `db:"author_user_id" json:"author_user_id"`
 	Content       string         `db:"content" json:"content"`
 	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
+	AnswerURI     sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerKind    sql.NullString `db:"answer_kind" json:"answer_kind"`
 	AnsweredAt    sql.NullTime   `db:"answered_at" json:"answered_at"`
 	AnsweredBy    sql.NullString `db:"answered_by" json:"answered_by"`
 	IsAnonymous   bool           `db:"is_anonymous" json:"is_anonymous"`

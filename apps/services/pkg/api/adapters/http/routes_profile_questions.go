@@ -215,7 +215,9 @@ func RegisterHTTPRoutesForProfileQuestions(
 			questionID := ctx.Request.PathValue("id")
 
 			var body struct {
-				AnswerContent string `json:"answer_content"`
+				AnswerContent string  `json:"answer_content"`
+				AnswerURI     *string `json:"answer_uri"`
+				AnswerKind    *string `json:"answer_kind"`
 			}
 
 			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
@@ -233,6 +235,8 @@ func RegisterHTTPRoutesForProfileQuestions(
 					QuestionID:    questionID,
 					UserID:        user.ID,
 					AnswerContent: body.AnswerContent,
+					AnswerURI:     body.AnswerURI,
+					AnswerKind:    body.AnswerKind,
 				},
 			)
 			if err != nil {

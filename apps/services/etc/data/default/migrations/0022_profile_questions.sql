@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS "profile_question" (
   "author_user_id"  CHAR(26) NOT NULL CONSTRAINT "profile_question_author_user_id_fk" REFERENCES "user",
   "content"         TEXT NOT NULL,
   "answer_content"  TEXT,
+  "answer_uri"      TEXT,
+  "answer_kind"     TEXT,
   "answered_at"     TIMESTAMP WITH TIME ZONE,
   "answered_by"     CHAR(26) CONSTRAINT "profile_question_answered_by_fk" REFERENCES "user",
   "is_anonymous"    BOOLEAN NOT NULL DEFAULT FALSE,

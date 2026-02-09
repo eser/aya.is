@@ -38,6 +38,8 @@ type Repository interface {
 		ctx context.Context,
 		questionID string,
 		answerContent string,
+		answerURI *string,
+		answerKind *string,
 		answeredByUserID string,
 	) error
 

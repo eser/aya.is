@@ -19,6 +19,8 @@ type Question struct {
 	AuthorName    *string    `json:"author_name"`
 	AuthorSlug    *string    `json:"author_slug"`
 	AnswerContent *string    `json:"answer_content"`
+	AnswerURI     *string    `json:"answer_uri"`
+	AnswerKind    *string    `json:"answer_kind"`
 	AnsweredAt    *time.Time `json:"answered_at"`
 	AnsweredBy    *string    `json:"answered_by"`
 	VoteCount     int        `json:"vote_count"`
@@ -52,6 +54,8 @@ type AnswerQuestionParams struct {
 	QuestionID    string
 	UserID        string
 	AnswerContent string
+	AnswerURI     *string
+	AnswerKind    *string
 }
 
 // VoteParams holds parameters for toggling a vote on a question.

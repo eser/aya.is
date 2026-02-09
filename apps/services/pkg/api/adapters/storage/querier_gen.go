@@ -886,7 +886,7 @@ type Querier interface {
 	GetProfilePoints(ctx context.Context, arg GetProfilePointsParams) (int32, error)
 	//GetProfileQuestion
 	//
-	//  SELECT id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+	//  SELECT id, profile_id, author_user_id, content, answer_content, answer_uri, answer_kind, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
 	//  FROM "profile_question"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
@@ -1250,7 +1250,7 @@ type Querier interface {
 	//    $4,
 	//    $5,
 	//    NOW()
-	//  ) RETURNING id, profile_id, author_user_id, content, answer_content, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
+	//  ) RETURNING id, profile_id, author_user_id, content, answer_content, answer_uri, answer_kind, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
 	InsertProfileQuestion(ctx context.Context, arg InsertProfileQuestionParams) (*ProfileQuestion, error)
 	//InsertProfileQuestionVote
 	//
@@ -1611,7 +1611,7 @@ type Querier interface {
 	//ListProfileQuestionsByProfileID
 	//
 	//  SELECT
-	//    pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
+	//    pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answer_uri, pq.answer_kind, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
 	//    CASE
 	//      WHEN $1::TEXT IS NOT NULL THEN
 	//        EXISTS(
@@ -2207,10 +2207,12 @@ type Querier interface {
 	//  UPDATE "profile_question"
 	//  SET
 	//    answer_content = $1,
+	//    answer_uri = $2,
+	//    answer_kind = $3,
 	//    answered_at = NOW(),
-	//    answered_by = $2,
+	//    answered_by = $4,
 	//    updated_at = NOW()
-	//  WHERE id = $3
+	//  WHERE id = $5
 	//    AND deleted_at IS NULL
 	UpdateProfileQuestionAnswer(ctx context.Context, arg UpdateProfileQuestionAnswerParams) error
 	//UpdateProfileQuestionHidden

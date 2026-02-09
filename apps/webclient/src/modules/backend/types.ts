@@ -475,6 +475,8 @@ export interface ProfileQuestion {
   author_name: string | null;
   author_slug: string | null;
   answer_content: string | null;
+  answer_uri: string | null;
+  answer_kind: string | null;
   answered_at: string | null;
   answered_by: string | null;
   vote_count: number;
