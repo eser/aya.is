@@ -172,7 +172,7 @@ func (w *YouTubeSyncWorker) stateKey(suffix string) string {
 
 // executeSync runs the actual sync cycle.
 func (w *YouTubeSyncWorker) executeSync(ctx context.Context) error {
-	w.logger.DebugContext(ctx, "Starting YouTube sync cycle",
+	w.logger.WarnContext(ctx, "Starting YouTube sync cycle",
 		slog.String("mode", string(w.mode)))
 
 	// Get managed YouTube links
@@ -182,12 +182,12 @@ func (w *YouTubeSyncWorker) executeSync(ctx context.Context) error {
 	}
 
 	if len(links) == 0 {
-		w.logger.DebugContext(ctx, "No YouTube links to sync")
+		w.logger.WarnContext(ctx, "No YouTube links to sync")
 
 		return nil
 	}
 
-	w.logger.DebugContext(ctx, "Processing YouTube links",
+	w.logger.WarnContext(ctx, "Processing YouTube links",
 		slog.String("mode", string(w.mode)),
 		slog.Int("count", len(links)))
 
@@ -202,7 +202,7 @@ func (w *YouTubeSyncWorker) executeSync(ctx context.Context) error {
 				slog.String("mode", string(w.mode)),
 				slog.Any("error", result.Error))
 		} else {
-			w.logger.DebugContext(ctx, "Successfully synced YouTube link",
+			w.logger.WarnContext(ctx, "Successfully synced YouTube link",
 				slog.String("link_id", link.ID),
 				slog.String("mode", string(w.mode)),
 				slog.Int("added", result.ItemsAdded),
@@ -211,7 +211,7 @@ func (w *YouTubeSyncWorker) executeSync(ctx context.Context) error {
 		}
 	}
 
-	w.logger.DebugContext(ctx, "Completed YouTube sync cycle",
+	w.logger.WarnContext(ctx, "Completed YouTube sync cycle",
 		slog.String("mode", string(w.mode)),
 		slog.Int("links_processed", len(links)))
 

@@ -255,7 +255,7 @@ func (w *YouTubeStoryProcessor) reconcileExistingStories(ctx context.Context) er
 		return nil
 	}
 
-	w.logger.InfoContext(ctx, "Reconciling existing YouTube stories",
+	w.logger.WarnContext(ctx, "Reconciling existing YouTube stories",
 		slog.Int("count", len(imports)))
 
 	reconciled := 0
@@ -279,7 +279,7 @@ func (w *YouTubeStoryProcessor) reconcileExistingStories(ctx context.Context) er
 		reconciled++
 	}
 
-	w.logger.InfoContext(ctx, "Completed YouTube story reconciliation",
+	w.logger.WarnContext(ctx, "Completed YouTube story reconciliation",
 		slog.Int("processed", len(imports)),
 		slog.Int("reconciled", reconciled),
 		slog.Int("non_public_detected", nonPublicCount))

@@ -51,7 +51,7 @@ func (p *Provider) FetchRemoteStories(
 		return nil, err
 	}
 
-	p.logger.DebugContext(ctx, "Successfully fetched YouTube videos",
+	p.logger.WarnContext(ctx, "Successfully fetched YouTube videos",
 		slog.String("channel_id", remoteSourceID),
 		slog.Int("video_count", len(videos)))
 
@@ -292,6 +292,30 @@ func (p *Provider) fetchPlaylistVideos(
 					video.Properties["videoMetadata"] = meta
 				}
 			}
+		}
+
+		// Diagnostic: log property keys for first video to verify status is present
+		if len(videos) > 0 {
+			first := videos[0]
+
+			var vmKeys, pmKeys []string
+
+			if vm, ok := first.Properties["videoMetadata"].(map[string]any); ok {
+				for k := range vm {
+					vmKeys = append(vmKeys, k)
+				}
+			}
+
+			if pm, ok := first.Properties["playlistItemMetadata"].(map[string]any); ok {
+				for k := range pm {
+					pmKeys = append(pmKeys, k)
+				}
+			}
+
+			p.logger.WarnContext(ctx, "YouTube API response diagnostic",
+				slog.String("remote_id", first.RemoteID),
+				slog.Any("videoMetadata_keys", vmKeys),
+				slog.Any("playlistItemMetadata_keys", pmKeys))
 		}
 	}
 
