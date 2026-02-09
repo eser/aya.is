@@ -297,6 +297,7 @@ type GetStoryForEditRow struct {
 
 // Uses locale fallback: prefers the requested locale, falls back to any translation.
 // The returned locale_code indicates which translation was actually found.
+// Includes is_managed flag to protect synced stories from editing.
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
@@ -1540,6 +1541,36 @@ type UpdateStoryPublicationParams struct {
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateStoryPublication(ctx context.Context, arg UpdateStoryPublicationParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateStoryPublication, arg.IsFeatured, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateStoryPublicationDate = `-- name: UpdateStoryPublicationDate :execrows
+UPDATE story_publication
+SET
+  published_at = $1,
+  updated_at = NOW()
+WHERE id = $2
+  AND deleted_at IS NULL
+`
+
+type UpdateStoryPublicationDateParams struct {
+	PublishedAt sql.NullTime `db:"published_at" json:"published_at"`
+	ID          string       `db:"id" json:"id"`
+}
+
+// UpdateStoryPublicationDate
+//
+//	UPDATE story_publication
+//	SET
+//	  published_at = $1,
+//	  updated_at = NOW()
+//	WHERE id = $2
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateStoryPublicationDate(ctx context.Context, arg UpdateStoryPublicationDateParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateStoryPublicationDate, arg.PublishedAt, arg.ID)
 	if err != nil {
 		return 0, err
 	}

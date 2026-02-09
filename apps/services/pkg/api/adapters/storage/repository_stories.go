@@ -543,6 +543,21 @@ func (r *Repository) UpdateStoryPublication(
 	return err
 }
 
+func (r *Repository) UpdateStoryPublicationDate(
+	ctx context.Context,
+	id string,
+	publishedAt time.Time,
+) error {
+	params := UpdateStoryPublicationDateParams{
+		ID:          id,
+		PublishedAt: sql.NullTime{Time: publishedAt, Valid: true},
+	}
+
+	_, err := r.queries.UpdateStoryPublicationDate(ctx, params)
+
+	return err
+}
+
 func (r *Repository) RemoveStoryPublication(ctx context.Context, id string) error {
 	params := RemoveStoryPublicationParams{ID: id}
 	_, err := r.queries.RemoveStoryPublication(ctx, params)

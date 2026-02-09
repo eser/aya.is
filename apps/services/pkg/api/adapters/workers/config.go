@@ -15,6 +15,7 @@ type YouTubeSyncConfig struct {
 	CheckInterval           time.Duration `conf:"check_interval"            default:"1m"`
 	BatchSize               int           `conf:"batch_size"                default:"10"`
 	StoriesPerLink          int           `conf:"stories_per_link"          default:"50"`
+	FullSyncMaxStories      int           `conf:"full_sync_max_stories"     default:"1000"`
 	TokenRefreshBuffer      time.Duration `conf:"token_refresh_buffer"      default:"5m"`
 }
 

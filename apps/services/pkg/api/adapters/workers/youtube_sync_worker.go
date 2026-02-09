@@ -268,13 +268,19 @@ func (w *YouTubeSyncWorker) syncLink( //nolint:cyclop,funlen
 	}
 	// For full sync, publishedAfter remains nil (fetch all)
 
+	// Determine max results based on sync mode
+	maxResults := w.config.StoriesPerLink
+	if w.mode == SyncModeFull {
+		maxResults = w.config.FullSyncMaxStories
+	}
+
 	// Fetch stories from YouTube
 	stories, err := w.fetcher.FetchRemoteStories(
 		ctx,
 		accessToken,
 		link.RemoteID,
 		publishedAfter,
-		w.config.StoriesPerLink,
+		maxResults,
 	)
 	if err != nil {
 		result.Error = err

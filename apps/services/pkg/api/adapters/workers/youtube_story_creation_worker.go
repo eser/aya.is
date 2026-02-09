@@ -68,6 +68,7 @@ type storyCreationRepo interface {
 		summary string,
 		content string,
 	) error
+	UpdateStoryPublicationDate(ctx context.Context, id string, publishedAt time.Time) error
 	RemoveStoryPublication(ctx context.Context, id string) error
 }
 
@@ -377,6 +378,18 @@ func (w *YouTubeStoryCreationWorker) reconcileStory(
 			slog.String("remote_id", imp.RemoteID))
 	}
 
+	// Update publication date if publication exists and video is public
+	if !nonPublic && imp.PublicationID != nil {
+		publishedAt := extractPublishedAt(imp.Properties)
+
+		err := w.storyRepo.UpdateStoryPublicationDate(ctx, *imp.PublicationID, publishedAt)
+		if err != nil {
+			w.logger.WarnContext(ctx, "Failed to update publication date",
+				slog.String("story_id", imp.StoryID),
+				slog.Any("error", err))
+		}
+	}
+
 	// Update story fields to match YouTube data
 	locale := detectLocaleFromYouTubeVideo(videoMeta, imp.ProfileDefaultLocale)
 	publishedAt := extractPublishedAt(imp.Properties)
@@ -408,20 +421,34 @@ func (w *YouTubeStoryCreationWorker) reconcileStory(
 }
 
 // isVideoNonPublic checks if a video's privacy status is unlisted or private.
+// It checks both videoMetadata (from Videos API) and playlistItemMetadata (from Playlist Items API).
 func isVideoNonPublic(properties map[string]any) bool {
-	videoMeta, ok := properties["videoMetadata"].(map[string]any)
-	if !ok {
-		return false
+	// Check videoMetadata first (more authoritative)
+	if videoMeta, ok := properties["videoMetadata"].(map[string]any); ok {
+		if status, ok := videoMeta["status"].(map[string]any); ok {
+			privacyStatus, _ := status["privacyStatus"].(string)
+			if privacyStatus == "unlisted" || privacyStatus == "private" {
+				return true
+			}
+
+			// If we have videoMetadata with a status, trust it
+			if privacyStatus != "" {
+				return false
+			}
+		}
 	}
 
-	status, ok := videoMeta["status"].(map[string]any)
-	if !ok {
-		return false
+	// Fallback: check playlistItemMetadata (available even when video metadata fetch fails)
+	if playlistMeta, ok := properties["playlistItemMetadata"].(map[string]any); ok {
+		if status, ok := playlistMeta["status"].(map[string]any); ok {
+			privacyStatus, _ := status["privacyStatus"].(string)
+			if privacyStatus == "unlisted" || privacyStatus == "private" {
+				return true
+			}
+		}
 	}
 
-	privacyStatus, _ := status["privacyStatus"].(string)
-
-	return privacyStatus == "unlisted" || privacyStatus == "private"
+	return false
 }
 
 // videoMetadata holds extracted metadata from YouTube video properties.

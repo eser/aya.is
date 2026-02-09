@@ -198,7 +198,7 @@ func (p *Provider) fetchPlaylistVideos(
 	for len(videos) < maxResults {
 		// Build request URL
 		reqURL := fmt.Sprintf(
-			"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=%s&maxResults=%d",
+			"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails,status&playlistId=%s&maxResults=%d",
 			url.QueryEscape(playlistID),
 			min(50, maxResults-len(videos)), // YouTube API max is 50
 		)

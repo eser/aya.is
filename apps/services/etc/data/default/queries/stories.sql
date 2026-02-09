@@ -415,6 +415,14 @@ SET
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
+-- name: UpdateStoryPublicationDate :execrows
+UPDATE story_publication
+SET
+  published_at = sqlc.arg(published_at),
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
 -- name: RemoveStoryPublication :execrows
 UPDATE story_publication
 SET deleted_at = NOW()
