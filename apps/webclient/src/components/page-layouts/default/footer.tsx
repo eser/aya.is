@@ -29,6 +29,20 @@ export function Footer() {
                 >
                   {t("Layout.Policies")}
                 </LocaleLink>
+                <Separator className="h-auto" orientation="vertical" decorative />
+                <LocaleLink
+                  to="/aya/privacy-policy"
+                  className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                  {t("Layout.Privacy Policy")}
+                </LocaleLink>
+                <Separator className="h-auto" orientation="vertical" decorative />
+                <LocaleLink
+                  to="/aya/terms-of-service"
+                  className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                  {t("Layout.Terms of Service")}
+                </LocaleLink>
               </>
             )
             : (
@@ -45,6 +59,20 @@ export function Footer() {
                   className="transition-colors hover:text-foreground/80 text-foreground/60"
                 >
                   {t("Layout.Policies")}
+                </LocaleLink>
+                <Separator className="h-auto" orientation="vertical" decorative />
+                <LocaleLink
+                  to="/aya/privacy-policy"
+                  className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                  {t("Layout.Privacy Policy")}
+                </LocaleLink>
+                <Separator className="h-auto" orientation="vertical" decorative />
+                <LocaleLink
+                  to="/aya/terms-of-service"
+                  className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                  {t("Layout.Terms of Service")}
                 </LocaleLink>
                 <Separator className="h-auto" orientation="vertical" decorative />
                 <LocaleLink
