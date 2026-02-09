@@ -28,7 +28,6 @@ export const Route = createFileRoute("/$locale/admin/workers/")({
 function AdminWorkersDashboard() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
-  const router = useRouter();
   const { workers: initialWorkers } = Route.useLoaderData();
 
   const [workers, setWorkers] = useState<AdminWorkerStatus[]>(initialWorkers);
