@@ -56,6 +56,8 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 				PendingConnectionStore: profiles.NewPendingConnectionStore(),
 			},
 			appContext.AIModels,
+			appContext.RuntimeStateService,
+			appContext.WorkerRegistry,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(
@@ -90,6 +92,8 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		)
 
 		runner := workerfx.NewRunner(fullSyncWorker, appContext.Logger)
+		runner.SetStateKey("youtube.sync.full_sync_worker")
+		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("youtube-full-sync-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
@@ -108,8 +112,30 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		)
 
 		runner := workerfx.NewRunner(incrementalSyncWorker, appContext.Logger)
+		runner.SetStateKey("youtube.sync.incremental_sync_worker")
+		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("youtube-incremental-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// YouTube story creation worker
+	if appContext.Config.Workers.YouTubeSync.StoryCreationEnabled {
+		storyCreationWorker := workers.NewYouTubeStoryCreationWorker(
+			&appContext.Config.Workers.YouTubeSync,
+			appContext.Logger,
+			appContext.LinkSyncService,
+			appContext.Repository,
+			idGen,
+			appContext.RuntimeStateService,
+		)
+
+		runner := workerfx.NewRunner(storyCreationWorker, appContext.Logger)
+		runner.SetStateKey("youtube.sync.story_creation_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("youtube-story-creation-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}
@@ -124,9 +150,11 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 			appContext.Repository,
 			appContext.QueueRegistry,
 			workerID,
+			appContext.RuntimeStateService,
 		)
 
 		runner := workerfx.NewRunner(queueWorker, appContext.Logger)
+		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("queue-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)

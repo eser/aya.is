@@ -18,10 +18,11 @@ var (
 
 // Runner manages the execution loop for a worker.
 type Runner struct {
-	worker Worker
-	logger *logfx.Logger
-	status WorkerStatus
-	mu     sync.RWMutex
+	worker    Worker
+	logger    *logfx.Logger
+	status    WorkerStatus
+	mu        sync.RWMutex
+	triggerCh chan struct{}
 }
 
 // NewRunner creates a new worker runner.
@@ -30,8 +31,27 @@ func NewRunner(worker Worker, logger *logfx.Logger) *Runner {
 		worker: worker,
 		logger: logger,
 		status: WorkerStatus{ //nolint:exhaustruct
-			Name: worker.Name(),
+			Name:     worker.Name(),
+			Interval: worker.Interval(),
 		},
+		triggerCh: make(chan struct{}, 1),
+	}
+}
+
+// SetStateKey sets the runtime state key prefix for this worker.
+func (r *Runner) SetStateKey(key string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.status.StateKey = key
+}
+
+// TriggerNow signals the worker to execute immediately on its next tick.
+func (r *Runner) TriggerNow() {
+	select {
+	case r.triggerCh <- struct{}{}:
+	default:
+		// Already triggered, skip
 	}
 }
 
@@ -54,6 +74,8 @@ func (r *Runner) Run(ctx context.Context) error {
 					slog.String("worker", r.worker.Name()))
 
 				return nil
+			case <-r.triggerCh:
+				r.executeWorker(ctx)
 			default:
 				r.executeWorker(ctx)
 			}
@@ -71,6 +93,8 @@ func (r *Runner) Run(ctx context.Context) error {
 				slog.String("worker", r.worker.Name()))
 
 			return nil
+		case <-r.triggerCh:
+			r.executeWorker(ctx)
 		case <-ticker.C:
 			r.executeWorker(ctx)
 		}

@@ -28,6 +28,7 @@ type Story struct {
 	Title           string     `json:"title"`
 	Summary         string     `json:"summary"`
 	Content         string     `json:"content"`
+	IsManaged       bool       `json:"is_managed"`
 }
 
 type StoryWithChildren struct {

@@ -42,6 +42,17 @@ type RemoteStoryItem struct {
 	Properties  map[string]any
 }
 
+// LinkImportForStoryCreation represents an import record ready for story creation.
+type LinkImportForStoryCreation struct {
+	ID                   string
+	ProfileLinkID        string
+	RemoteID             string
+	Properties           map[string]any
+	CreatedAt            time.Time
+	ProfileID            string
+	ProfileDefaultLocale string
+}
+
 // TokenRefreshResult contains the result of a token refresh.
 type TokenRefreshResult struct {
 	AccessToken          string

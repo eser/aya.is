@@ -110,6 +110,20 @@ func (s *Service) MarkDeletedImports(
 	return count, nil
 }
 
+// ListImportsForStoryCreation returns imports that don't have corresponding managed stories.
+func (s *Service) ListImportsForStoryCreation(
+	ctx context.Context,
+	kind string,
+	limit int,
+) ([]*LinkImportForStoryCreation, error) {
+	imports, err := s.repo.ListImportsForStoryCreation(ctx, kind, limit)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListImports, err)
+	}
+
+	return imports, nil
+}
+
 // UpdateLinkTokens updates the OAuth tokens for a link.
 func (s *Service) UpdateLinkTokens(
 	ctx context.Context,

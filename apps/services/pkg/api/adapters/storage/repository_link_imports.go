@@ -162,6 +162,45 @@ func (r *Repository) UpdateLinkTokens(
 	return err
 }
 
+// ListImportsForStoryCreation returns imports that don't have corresponding managed stories.
+func (r *Repository) ListImportsForStoryCreation(
+	ctx context.Context,
+	kind string,
+	limit int,
+) ([]*linksync.LinkImportForStoryCreation, error) {
+	rows, err := r.queries.ListLinkImportsForStoryCreation(
+		ctx,
+		ListLinkImportsForStoryCreationParams{
+			Kind:       kind,
+			LimitCount: int32(limit),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*linksync.LinkImportForStoryCreation, len(rows))
+
+	for i, row := range rows {
+		var properties map[string]any
+		if row.Properties.Valid {
+			_ = json.Unmarshal(row.Properties.RawMessage, &properties)
+		}
+
+		result[i] = &linksync.LinkImportForStoryCreation{
+			ID:                   row.ID,
+			ProfileLinkID:        row.ProfileLinkID,
+			RemoteID:             row.RemoteID.String,
+			Properties:           properties,
+			CreatedAt:            row.CreatedAt,
+			ProfileID:            row.ProfileID,
+			ProfileDefaultLocale: row.ProfileDefaultLocale,
+		}
+	}
+
+	return result, nil
+}
+
 // rowToLinkImport converts a database row to a LinkImport domain object.
 func (r *Repository) rowToLinkImport(row *ProfileLinkImport) *linksync.LinkImport {
 	var properties map[string]any

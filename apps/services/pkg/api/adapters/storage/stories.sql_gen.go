@@ -63,7 +63,7 @@ func (q *Queries) DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (i
 
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -128,7 +128,7 @@ type GetStoryByIDRow struct {
 // GetStoryByID
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -191,6 +191,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.Story.CreatedAt,
 		&i.Story.UpdatedAt,
 		&i.Story.DeletedAt,
+		&i.Story.IsManaged,
 		&i.StoryTx.StoryID,
 		&i.StoryTx.LocaleCode,
 		&i.StoryTx.Title,
@@ -251,7 +252,7 @@ func (q *Queries) GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirs
 
 const getStoryForEdit = `-- name: GetStoryForEdit :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
   st.locale_code,
   st.title,
   st.summary,
@@ -286,6 +287,7 @@ type GetStoryForEditRow struct {
 	CreatedAt         time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt         sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt         sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	IsManaged         bool                  `db:"is_managed" json:"is_managed"`
 	LocaleCode        string                `db:"locale_code" json:"locale_code"`
 	Title             string                `db:"title" json:"title"`
 	Summary           string                `db:"summary" json:"summary"`
@@ -297,7 +299,7 @@ type GetStoryForEditRow struct {
 // The returned locale_code indicates which translation was actually found.
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
 //	  st.locale_code,
 //	  st.title,
 //	  st.summary,
@@ -328,6 +330,7 @@ func (q *Queries) GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.IsManaged,
 		&i.LocaleCode,
 		&i.Title,
 		&i.Summary,
@@ -609,6 +612,7 @@ INSERT INTO "story" (
   kind,
   story_picture_uri,
   properties,
+  is_managed,
   created_at
 ) VALUES (
   $1,
@@ -617,8 +621,9 @@ INSERT INTO "story" (
   $4,
   $5,
   $6,
+  $7,
   NOW()
-) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at
+) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed
 `
 
 type InsertStoryParams struct {
@@ -628,6 +633,7 @@ type InsertStoryParams struct {
 	Kind            string                `db:"kind" json:"kind"`
 	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	IsManaged       bool                  `db:"is_managed" json:"is_managed"`
 }
 
 // InsertStory
@@ -639,6 +645,7 @@ type InsertStoryParams struct {
 //	  kind,
 //	  story_picture_uri,
 //	  properties,
+//	  is_managed,
 //	  created_at
 //	) VALUES (
 //	  $1,
@@ -647,8 +654,9 @@ type InsertStoryParams struct {
 //	  $4,
 //	  $5,
 //	  $6,
+//	  $7,
 //	  NOW()
-//	) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at
+//	) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed
 func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error) {
 	row := q.db.QueryRowContext(ctx, insertStory,
 		arg.ID,
@@ -657,6 +665,7 @@ func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Stor
 		arg.Kind,
 		arg.StoryPictureURI,
 		arg.Properties,
+		arg.IsManaged,
 	)
 	var i Story
 	err := row.Scan(
@@ -669,6 +678,7 @@ func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Stor
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.IsManaged,
 	)
 	return &i, err
 }
@@ -804,7 +814,7 @@ func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) er
 
 const listStoriesByAuthorProfileID = `-- name: ListStoriesByAuthorProfileID :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -870,7 +880,7 @@ type ListStoriesByAuthorProfileIDRow struct {
 // Publications are included as optional data (LEFT JOIN).
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -934,6 +944,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 			&i.Story.CreatedAt,
 			&i.Story.UpdatedAt,
 			&i.Story.DeletedAt,
+			&i.Story.IsManaged,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,
@@ -978,7 +989,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1041,7 +1052,7 @@ type ListStoriesOfPublicationRow struct {
 // Strict locale matching: only returns stories that have a translation for the requested locale.
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1108,6 +1119,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.Story.CreatedAt,
 			&i.Story.UpdatedAt,
 			&i.Story.DeletedAt,
+			&i.Story.IsManaged,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,

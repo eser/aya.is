@@ -112,6 +112,14 @@ func (w *YouTubeSyncWorker) Interval() time.Duration {
 
 // Execute checks the distributed schedule and runs a sync cycle if it's time.
 func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
+	// Check if worker is disabled by admin
+	disabledKey := "worker." + w.Name() + ".disabled"
+
+	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
+	if err == nil && disabled == "true" {
+		return nil
+	}
+
 	// Check if it's time to run based on persisted schedule
 	nextRunKey := w.stateKey("next_run_at")
 

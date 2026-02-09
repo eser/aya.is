@@ -66,6 +66,16 @@ function AdminLayout() {
             >
               {t("Common.Points")}
             </LocaleLink>
+            <LocaleLink
+              to={`/admin/workers`}
+              className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+              activeProps={{
+                className:
+                  "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
+              }}
+            >
+              {t("Admin.Workers")}
+            </LocaleLink>
           </nav>
 
           <Outlet />

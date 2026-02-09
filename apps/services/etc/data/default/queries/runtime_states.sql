@@ -18,3 +18,9 @@ SELECT pg_try_advisory_lock(sqlc.arg(lock_id)::BIGINT) AS acquired;
 
 -- name: ReleaseAdvisoryLock :one
 SELECT pg_advisory_unlock(sqlc.arg(lock_id)::BIGINT) AS released;
+
+-- name: ListRuntimeStatesByPrefix :many
+SELECT key, value, updated_at
+FROM "runtime_state"
+WHERE key LIKE sqlc.arg(prefix) || '%'
+ORDER BY key;

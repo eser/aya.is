@@ -85,9 +85,15 @@ import { bulkRejectPendingAwards } from "./admin/bulk-reject-pending-awards";
 import { getAdminProfiles } from "./admin/get-admin-profiles";
 import { getAdminProfile } from "./admin/get-admin-profile";
 import { addAdminPoints } from "./admin/add-admin-points";
+import { getAdminWorkers } from "./admin/get-admin-workers";
+import { toggleAdminWorker } from "./admin/toggle-admin-worker";
+import { triggerAdminWorker } from "./admin/trigger-admin-worker";
 
 // Re-export types
 export * from "./types";
+export type { AdminWorkerStatus } from "./admin/get-admin-workers";
+export type { ToggleWorkerResult } from "./admin/toggle-admin-worker";
+export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
 export type { CreateQuestionInput } from "./questions/create-question";
 export type { VoteQuestionResult } from "./questions/vote-question";
@@ -211,6 +217,9 @@ export const backend = {
   addAdminPoints,
   getAdminProfile,
   getAdminProfiles,
+  getAdminWorkers,
+  toggleAdminWorker,
+  triggerAdminWorker,
   getPendingAwards,
   getPendingAwardsStats,
   approvePendingAward,
@@ -304,6 +313,9 @@ export {
   bulkRejectPendingAwards,
   getAdminProfile,
   getAdminProfiles,
+  getAdminWorkers,
+  toggleAdminWorker,
+  triggerAdminWorker,
   getPendingAwards,
   getPendingAwardsStats,
   rejectPendingAward,

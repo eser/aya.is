@@ -9,6 +9,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
+	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 )
 
 // Sentinel errors.
@@ -23,11 +24,12 @@ type QueueWorkerConfig struct {
 
 // QueueWorker polls and dispatches items from the queue.
 type QueueWorker struct {
-	config   *QueueWorkerConfig
-	logger   *logfx.Logger
-	repo     events.QueueRepository
-	registry *events.HandlerRegistry
-	workerID string
+	config        *QueueWorkerConfig
+	logger        *logfx.Logger
+	repo          events.QueueRepository
+	registry      *events.HandlerRegistry
+	workerID      string
+	runtimeStates *runtime_states.Service
 }
 
 // NewQueueWorker creates a new queue worker.
@@ -37,13 +39,15 @@ func NewQueueWorker(
 	repo events.QueueRepository,
 	registry *events.HandlerRegistry,
 	workerID string,
+	runtimeStates *runtime_states.Service,
 ) *QueueWorker {
 	return &QueueWorker{
-		config:   config,
-		logger:   logger,
-		repo:     repo,
-		registry: registry,
-		workerID: workerID,
+		config:        config,
+		logger:        logger,
+		repo:          repo,
+		registry:      registry,
+		workerID:      workerID,
+		runtimeStates: runtimeStates,
 	}
 }
 
@@ -59,6 +63,14 @@ func (w *QueueWorker) Interval() time.Duration {
 
 // Execute runs a single poll cycle: claim an item, dispatch to handler, complete/fail.
 func (w *QueueWorker) Execute(ctx context.Context) error {
+	// Check if worker is disabled by admin
+	disabledKey := "worker." + w.Name() + ".disabled"
+
+	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
+	if err == nil && disabled == "true" {
+		return nil
+	}
+
 	item, err := w.repo.ClaimNext(ctx, w.workerID)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrQueueProcessingFailed, err)

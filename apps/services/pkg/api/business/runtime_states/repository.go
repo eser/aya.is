@@ -20,4 +20,7 @@ type Repository interface {
 
 	// ReleaseAdvisoryLock releases a previously acquired advisory lock.
 	ReleaseAdvisoryLock(ctx context.Context, lockID int64) error
+
+	// ListStatesByPrefix returns all runtime state entries matching a key prefix.
+	ListStatesByPrefix(ctx context.Context, prefix string) ([]*RuntimeState, error)
 }

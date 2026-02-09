@@ -41,4 +41,11 @@ type Repository interface {
 		accessTokenExpiresAt *time.Time,
 		refreshToken *string,
 	) error
+
+	// ListImportsForStoryCreation returns imports that don't have corresponding managed stories.
+	ListImportsForStoryCreation(
+		ctx context.Context,
+		kind string,
+		limit int,
+	) ([]*LinkImportForStoryCreation, error)
 }

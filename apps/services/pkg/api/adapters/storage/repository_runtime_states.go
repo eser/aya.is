@@ -41,6 +41,29 @@ func (r *Repository) RemoveState(ctx context.Context, key string) error {
 	return err
 }
 
+func (r *Repository) ListStatesByPrefix(
+	ctx context.Context,
+	prefix string,
+) ([]*runtime_states.RuntimeState, error) {
+	rows, err := r.queries.ListRuntimeStatesByPrefix(ctx, ListRuntimeStatesByPrefixParams{
+		Prefix: sql.NullString{String: prefix, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*runtime_states.RuntimeState, len(rows))
+	for i, row := range rows {
+		result[i] = &runtime_states.RuntimeState{
+			Key:       row.Key,
+			Value:     row.Value,
+			UpdatedAt: row.UpdatedAt,
+		}
+	}
+
+	return result, nil
+}
+
 func (r *Repository) TryAdvisoryLock(ctx context.Context, lockID int64) (bool, error) {
 	acquired, err := r.queries.TryAdvisoryLock(ctx, TryAdvisoryLockParams{LockID: lockID})
 	if err != nil {

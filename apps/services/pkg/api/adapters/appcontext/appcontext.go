@@ -12,6 +12,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
@@ -78,6 +79,7 @@ type AppContext struct {
 	QueueService            *events.QueueService
 	QueueRegistry           *events.HandlerRegistry
 	RuntimeStateService     *runtime_states.Service
+	WorkerRegistry          *workerfx.Registry
 }
 
 func New() *AppContext {
@@ -324,6 +326,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	pointsEventHandler.RegisterHandlers(a.QueueRegistry)
 
 	a.RuntimeStateService = runtime_states.NewService(a.Logger, a.Repository)
+	a.WorkerRegistry = workerfx.NewRegistry()
 
 	// ----------------------------------------------------
 	// External Services

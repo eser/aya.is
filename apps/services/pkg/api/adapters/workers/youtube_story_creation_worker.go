@@ -1,0 +1,543 @@
+package workers
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"regexp"
+	"strings"
+	"time"
+	"unicode"
+
+	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/linksync"
+	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
+	"github.com/eser/aya.is/services/pkg/api/business/stories"
+)
+
+const (
+	// Advisory lock ID for YouTube story creation worker.
+	lockIDYouTubeStoryCreation int64 = 100003
+
+	maxSlugLength     = 80
+	maxSummaryLength  = 500
+	slugDatePrefixLen = 9 // "YYYYMMDD-"
+)
+
+// storyCreationRepo defines the minimal repository interface for creating stories.
+type storyCreationRepo interface {
+	InsertStory(
+		ctx context.Context,
+		id string,
+		authorProfileID string,
+		slug string,
+		kind string,
+		storyPictureURI *string,
+		properties map[string]any,
+		isManaged bool,
+	) (*stories.Story, error)
+	InsertStoryTx(
+		ctx context.Context,
+		storyID string,
+		localeCode string,
+		title string,
+		summary string,
+		content string,
+	) error
+	InsertStoryPublication(
+		ctx context.Context,
+		id string,
+		storyID string,
+		profileID string,
+		kind string,
+		isFeatured bool,
+		publishedAt *time.Time,
+		properties map[string]any,
+	) error
+}
+
+// YouTubeStoryCreationWorker creates stories from synced YouTube video imports.
+type YouTubeStoryCreationWorker struct {
+	config        *YouTubeSyncConfig
+	logger        *logfx.Logger
+	syncService   *linksync.Service
+	storyRepo     storyCreationRepo
+	idGenerator   func() string
+	runtimeStates *runtime_states.Service
+}
+
+// NewYouTubeStoryCreationWorker creates a new YouTube story creation worker.
+func NewYouTubeStoryCreationWorker(
+	config *YouTubeSyncConfig,
+	logger *logfx.Logger,
+	syncService *linksync.Service,
+	storyRepo storyCreationRepo,
+	idGenerator func() string,
+	runtimeStates *runtime_states.Service,
+) *YouTubeStoryCreationWorker {
+	return &YouTubeStoryCreationWorker{
+		config:        config,
+		logger:        logger,
+		syncService:   syncService,
+		storyRepo:     storyRepo,
+		idGenerator:   idGenerator,
+		runtimeStates: runtimeStates,
+	}
+}
+
+// Name returns the worker name.
+func (w *YouTubeStoryCreationWorker) Name() string {
+	return "youtube-story-creation"
+}
+
+// Interval returns the check interval.
+func (w *YouTubeStoryCreationWorker) Interval() time.Duration {
+	return w.config.CheckInterval
+}
+
+// Execute checks the distributed schedule and creates stories from imports.
+func (w *YouTubeStoryCreationWorker) Execute(ctx context.Context) error {
+	// Check if worker is disabled by admin
+	disabledKey := "worker." + w.Name() + ".disabled"
+
+	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
+	if err == nil && disabled == "true" {
+		return nil
+	}
+
+	nextRunKey := "youtube.sync.story_creation_worker.next_run_at"
+
+	nextRunAt, err := w.runtimeStates.GetTime(ctx, nextRunKey)
+	if err == nil && time.Now().Before(nextRunAt) {
+		return nil
+	}
+
+	acquired, lockErr := w.runtimeStates.TryLock(ctx, lockIDYouTubeStoryCreation)
+	if lockErr != nil {
+		w.logger.WarnContext(ctx, "Failed to acquire advisory lock for story creation",
+			slog.Any("error", lockErr))
+
+		return nil
+	}
+
+	if !acquired {
+		w.logger.DebugContext(ctx, "Another instance is running story creation worker")
+
+		return nil
+	}
+
+	defer func() {
+		_ = w.runtimeStates.ReleaseLock(ctx, lockIDYouTubeStoryCreation)
+	}()
+
+	_ = w.runtimeStates.SetTime(ctx, nextRunKey, time.Now().Add(w.config.StoryCreationInterval))
+
+	return w.createStories(ctx)
+}
+
+// createStories processes imports and creates stories for them.
+func (w *YouTubeStoryCreationWorker) createStories(ctx context.Context) error {
+	w.logger.DebugContext(ctx, "Starting YouTube story creation cycle")
+
+	imports, err := w.syncService.ListImportsForStoryCreation(ctx, "youtube", w.config.BatchSize)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrSyncFailed, err)
+	}
+
+	if len(imports) == 0 {
+		w.logger.DebugContext(ctx, "No YouTube imports need story creation")
+
+		return nil
+	}
+
+	w.logger.DebugContext(ctx, "Processing YouTube imports for story creation",
+		slog.Int("count", len(imports)))
+
+	created := 0
+
+	for _, imp := range imports {
+		err := w.createStoryFromImport(ctx, imp)
+		if err != nil {
+			w.logger.ErrorContext(ctx, "Failed to create story from import",
+				slog.String("import_id", imp.ID),
+				slog.String("remote_id", imp.RemoteID),
+				slog.String("profile_id", imp.ProfileID),
+				slog.Any("error", err))
+
+			continue
+		}
+
+		created++
+	}
+
+	w.logger.DebugContext(ctx, "Completed YouTube story creation cycle",
+		slog.Int("processed", len(imports)),
+		slog.Int("created", created))
+
+	return nil
+}
+
+// createStoryFromImport creates a story + story_tx + story_publication from a link import.
+func (w *YouTubeStoryCreationWorker) createStoryFromImport( //nolint:cyclop,funlen
+	ctx context.Context,
+	imp *linksync.LinkImportForStoryCreation,
+) error {
+	// Extract video metadata
+	videoMeta := extractVideoMetadata(imp.Properties)
+
+	// Detect locale
+	locale := detectLocaleFromYouTubeVideo(videoMeta, imp.ProfileDefaultLocale)
+
+	// Generate slug
+	publishedAt := extractPublishedAt(imp.Properties)
+	slug := generateSlugFromTitle(publishedAt, videoMeta.title)
+
+	// Generate IDs
+	storyID := w.idGenerator()
+	publicationID := w.idGenerator()
+
+	// Story picture from thumbnail
+	thumbnailURI := extractThumbnailURI(videoMeta)
+
+	var storyPictureURI *string
+	if thumbnailURI != "" {
+		storyPictureURI = &thumbnailURI
+	}
+
+	// Story properties
+	properties := map[string]any{
+		"managed_by": "youtube_sync_worker",
+		"remote_id":  imp.RemoteID,
+	}
+
+	// Create story
+	_, err := w.storyRepo.InsertStory(
+		ctx,
+		storyID,
+		imp.ProfileID,
+		slug,
+		"content",
+		storyPictureURI,
+		properties,
+		true,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to insert story: %w", err)
+	}
+
+	// Build content: YouTube embed + description
+	content := buildStoryContent(imp.RemoteID, videoMeta.description)
+
+	// Truncate description for summary
+	summary := truncateSummary(videoMeta.description, maxSummaryLength)
+
+	// Create story translation
+	err = w.storyRepo.InsertStoryTx(
+		ctx,
+		storyID,
+		locale,
+		videoMeta.title,
+		summary,
+		content,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to insert story translation: %w", err)
+	}
+
+	// Create story publication to author's profile
+	err = w.storyRepo.InsertStoryPublication(
+		ctx,
+		publicationID,
+		storyID,
+		imp.ProfileID,
+		"original",
+		false,
+		&publishedAt,
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to insert story publication: %w", err)
+	}
+
+	w.logger.DebugContext(ctx, "Created story from YouTube import",
+		slog.String("story_id", storyID),
+		slog.String("remote_id", imp.RemoteID),
+		slog.String("slug", slug),
+		slog.String("locale", locale))
+
+	return nil
+}
+
+// videoMetadata holds extracted metadata from YouTube video properties.
+type videoMetadata struct {
+	title                string
+	description          string
+	defaultLanguage      string
+	defaultAudioLanguage string
+	thumbnails           map[string]any
+}
+
+// extractVideoMetadata extracts video metadata from import properties.
+func extractVideoMetadata(properties map[string]any) videoMetadata {
+	meta := videoMetadata{} //nolint:exhaustruct
+
+	videoMeta, ok := properties["videoMetadata"].(map[string]any)
+	if !ok {
+		// Try playlist item metadata as fallback
+		playlistMeta, ok := properties["playlistItemMetadata"].(map[string]any)
+		if !ok {
+			return meta
+		}
+
+		snippet, _ := playlistMeta["snippet"].(map[string]any)
+		if snippet != nil {
+			meta.title, _ = snippet["title"].(string)
+			meta.description, _ = snippet["description"].(string)
+			meta.thumbnails, _ = snippet["thumbnails"].(map[string]any)
+		}
+
+		return meta
+	}
+
+	snippet, _ := videoMeta["snippet"].(map[string]any)
+	if snippet == nil {
+		return meta
+	}
+
+	meta.title, _ = snippet["title"].(string)
+	meta.description, _ = snippet["description"].(string)
+	meta.defaultLanguage, _ = snippet["defaultLanguage"].(string)
+	meta.defaultAudioLanguage, _ = snippet["defaultAudioLanguage"].(string)
+	meta.thumbnails, _ = snippet["thumbnails"].(map[string]any)
+
+	return meta
+}
+
+// extractPublishedAt extracts the published timestamp from import properties.
+func extractPublishedAt(properties map[string]any) time.Time {
+	// Try videoMetadata first
+	if videoMeta, ok := properties["videoMetadata"].(map[string]any); ok {
+		if snippet, ok := videoMeta["snippet"].(map[string]any); ok {
+			if publishedStr, ok := snippet["publishedAt"].(string); ok {
+				if t, err := time.Parse(time.RFC3339, publishedStr); err == nil {
+					return t
+				}
+			}
+		}
+	}
+
+	// Try playlistItemMetadata
+	if playlistMeta, ok := properties["playlistItemMetadata"].(map[string]any); ok {
+		if snippet, ok := playlistMeta["snippet"].(map[string]any); ok {
+			if publishedStr, ok := snippet["publishedAt"].(string); ok {
+				if t, err := time.Parse(time.RFC3339, publishedStr); err == nil {
+					return t
+				}
+			}
+		}
+	}
+
+	return time.Now()
+}
+
+// extractThumbnailURI extracts the best available thumbnail URI.
+func extractThumbnailURI(meta videoMetadata) string {
+	if meta.thumbnails == nil {
+		return ""
+	}
+
+	// Prefer higher quality thumbnails
+	for _, key := range []string{"maxres", "high", "medium", "default"} {
+		if thumb, ok := meta.thumbnails[key].(map[string]any); ok {
+			if url, ok := thumb["url"].(string); ok && url != "" {
+				return url
+			}
+		}
+	}
+
+	return ""
+}
+
+// supportedLocales is the set of locales supported by the platform.
+var supportedLocales = map[string]bool{
+	"ar": true, "de": true, "en": true, "es": true,
+	"fr": true, "it": true, "ja": true, "ko": true,
+	"nl": true, "pt-PT": true, "ru": true, "tr": true,
+	"zh-CN": true,
+}
+
+// youtubeLocaleMap maps YouTube language codes to platform locale codes.
+var youtubeLocaleMap = map[string]string{
+	"pt":    "pt-PT",
+	"pt-BR": "pt-PT",
+	"zh":    "zh-CN",
+	"zh-CN": "zh-CN",
+	"zh-TW": "zh-CN",
+}
+
+// detectLocaleFromYouTubeVideo detects the locale from YouTube video metadata.
+func detectLocaleFromYouTubeVideo(meta videoMetadata, fallback string) string {
+	// Try defaultLanguage first, then defaultAudioLanguage
+	for _, lang := range []string{meta.defaultLanguage, meta.defaultAudioLanguage} {
+		if lang == "" {
+			continue
+		}
+
+		// Check direct mapping
+		if mapped, ok := youtubeLocaleMap[lang]; ok {
+			return mapped
+		}
+
+		// Check if it's a supported locale directly
+		langLower := strings.ToLower(lang)
+		if supportedLocales[langLower] {
+			return langLower
+		}
+
+		// Try just the language part (e.g., "en-US" -> "en")
+		parts := strings.SplitN(lang, "-", 2)
+		if len(parts) > 0 {
+			baseLang := strings.ToLower(parts[0])
+			if supportedLocales[baseLang] {
+				return baseLang
+			}
+
+			if mapped, ok := youtubeLocaleMap[baseLang]; ok {
+				return mapped
+			}
+		}
+	}
+
+	if fallback != "" {
+		return fallback
+	}
+
+	return "en"
+}
+
+// slugSanitizeRegexp matches non-alphanumeric characters.
+var slugSanitizeRegexp = regexp.MustCompile(`[^a-z0-9]+`)
+
+// generateSlugFromTitle generates a slug from published date and title.
+func generateSlugFromTitle(publishedAt time.Time, title string) string {
+	datePrefix := publishedAt.Format("20060102") + "-"
+
+	// Sanitize title: lowercase, replace non-alphanumeric with dashes
+	slug := strings.ToLower(title)
+
+	// Transliterate common unicode characters
+	slug = transliterateBasic(slug)
+
+	slug = slugSanitizeRegexp.ReplaceAllString(slug, "-")
+	slug = strings.Trim(slug, "-")
+
+	if slug == "" {
+		slug = "video"
+	}
+
+	// Enforce max length
+	maxContentLen := maxSlugLength - slugDatePrefixLen
+	if len(slug) > maxContentLen {
+		slug = slug[:maxContentLen]
+		slug = strings.TrimRight(slug, "-")
+	}
+
+	return datePrefix + slug
+}
+
+// transliterateBasic performs basic transliteration for common characters.
+func transliterateBasic(s string) string {
+	var b strings.Builder
+
+	b.Grow(len(s))
+
+	for _, r := range s {
+		if r < unicode.MaxASCII {
+			b.WriteRune(r)
+
+			continue
+		}
+
+		// Replace common characters; others become dashes during sanitization
+		switch r {
+		case 'ı':
+			b.WriteRune('i')
+		case 'ğ':
+			b.WriteRune('g')
+		case 'ü':
+			b.WriteRune('u')
+		case 'ş':
+			b.WriteRune('s')
+		case 'ö':
+			b.WriteRune('o')
+		case 'ç':
+			b.WriteRune('c')
+		case 'İ':
+			b.WriteRune('i')
+		case 'Ğ':
+			b.WriteRune('g')
+		case 'Ü':
+			b.WriteRune('u')
+		case 'Ş':
+			b.WriteRune('s')
+		case 'Ö':
+			b.WriteRune('o')
+		case 'Ç':
+			b.WriteRune('c')
+		case 'ä':
+			b.WriteString("ae")
+		case 'é', 'è', 'ê', 'ë':
+			b.WriteRune('e')
+		case 'á', 'à', 'â':
+			b.WriteRune('a')
+		case 'í', 'ì', 'î':
+			b.WriteRune('i')
+		case 'ó', 'ò', 'ô':
+			b.WriteRune('o')
+		case 'ú', 'ù', 'û':
+			b.WriteRune('u')
+		case 'ñ':
+			b.WriteRune('n')
+		default:
+			b.WriteRune('-')
+		}
+	}
+
+	return b.String()
+}
+
+// buildStoryContent builds the story content from a YouTube video.
+func buildStoryContent(videoID string, description string) string {
+	var b strings.Builder
+
+	// YouTube embed
+	b.WriteString(`<iframe width="560" height="315" src="https://www.youtube.com/embed/`)
+	b.WriteString(videoID)
+	b.WriteString(
+		`" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
+	)
+
+	if description != "" {
+		b.WriteString("\n\n")
+		b.WriteString(description)
+	}
+
+	return b.String()
+}
+
+// truncateSummary truncates text to maxLen, breaking at word boundaries.
+func truncateSummary(text string, maxLen int) string {
+	if len(text) <= maxLen {
+		return text
+	}
+
+	// Find last space before maxLen
+	truncated := text[:maxLen]
+	lastSpace := strings.LastIndex(truncated, " ")
+
+	if lastSpace > maxLen/2 {
+		truncated = truncated[:lastSpace]
+	}
+
+	return truncated + "..."
+}

@@ -8,6 +8,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
@@ -108,6 +109,105 @@ func (q *Queries) GetLinkImportByRemoteID(ctx context.Context, arg GetLinkImport
 		&i.DeletedAt,
 	)
 	return &i, err
+}
+
+const listLinkImportsForStoryCreation = `-- name: ListLinkImportsForStoryCreation :many
+SELECT
+  pli.id,
+  pli.profile_link_id,
+  pli.remote_id,
+  pli.properties,
+  pli.created_at,
+  pl.profile_id,
+  COALESCE(NULLIF(TRIM(p.default_locale), ''), 'en')::TEXT AS profile_default_locale
+FROM "profile_link_import" pli
+  INNER JOIN "profile_link" pl ON pl.id = pli.profile_link_id
+  INNER JOIN "profile" p ON p.id = pl.profile_id
+WHERE pl.kind = $1
+  AND pl.is_managed = TRUE
+  AND pli.deleted_at IS NULL
+  AND pli.remote_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM "story" s
+    WHERE s.author_profile_id = pl.profile_id
+      AND s.is_managed = TRUE
+      AND s.properties->>'remote_id' = pli.remote_id
+      AND s.deleted_at IS NULL
+  )
+ORDER BY pli.created_at ASC
+LIMIT $2
+`
+
+type ListLinkImportsForStoryCreationParams struct {
+	Kind       string `db:"kind" json:"kind"`
+	LimitCount int32  `db:"limit_count" json:"limit_count"`
+}
+
+type ListLinkImportsForStoryCreationRow struct {
+	ID                   string                `db:"id" json:"id"`
+	ProfileLinkID        string                `db:"profile_link_id" json:"profile_link_id"`
+	RemoteID             sql.NullString        `db:"remote_id" json:"remote_id"`
+	Properties           pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt            time.Time             `db:"created_at" json:"created_at"`
+	ProfileID            string                `db:"profile_id" json:"profile_id"`
+	ProfileDefaultLocale string                `db:"profile_default_locale" json:"profile_default_locale"`
+}
+
+// ListLinkImportsForStoryCreation
+//
+//	SELECT
+//	  pli.id,
+//	  pli.profile_link_id,
+//	  pli.remote_id,
+//	  pli.properties,
+//	  pli.created_at,
+//	  pl.profile_id,
+//	  COALESCE(NULLIF(TRIM(p.default_locale), ''), 'en')::TEXT AS profile_default_locale
+//	FROM "profile_link_import" pli
+//	  INNER JOIN "profile_link" pl ON pl.id = pli.profile_link_id
+//	  INNER JOIN "profile" p ON p.id = pl.profile_id
+//	WHERE pl.kind = $1
+//	  AND pl.is_managed = TRUE
+//	  AND pli.deleted_at IS NULL
+//	  AND pli.remote_id IS NOT NULL
+//	  AND NOT EXISTS (
+//	    SELECT 1 FROM "story" s
+//	    WHERE s.author_profile_id = pl.profile_id
+//	      AND s.is_managed = TRUE
+//	      AND s.properties->>'remote_id' = pli.remote_id
+//	      AND s.deleted_at IS NULL
+//	  )
+//	ORDER BY pli.created_at ASC
+//	LIMIT $2
+func (q *Queries) ListLinkImportsForStoryCreation(ctx context.Context, arg ListLinkImportsForStoryCreationParams) ([]*ListLinkImportsForStoryCreationRow, error) {
+	rows, err := q.db.QueryContext(ctx, listLinkImportsForStoryCreation, arg.Kind, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListLinkImportsForStoryCreationRow{}
+	for rows.Next() {
+		var i ListLinkImportsForStoryCreationRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProfileLinkID,
+			&i.RemoteID,
+			&i.Properties,
+			&i.CreatedAt,
+			&i.ProfileID,
+			&i.ProfileDefaultLocale,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listManagedLinksForKind = `-- name: ListManagedLinksForKind :many

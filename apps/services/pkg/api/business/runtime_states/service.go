@@ -83,6 +83,16 @@ func (s *Service) Remove(ctx context.Context, key string) error {
 	return nil
 }
 
+// ListByPrefix returns all runtime state entries matching a key prefix.
+func (s *Service) ListByPrefix(ctx context.Context, prefix string) ([]*RuntimeState, error) {
+	states, err := s.repo.ListStatesByPrefix(ctx, prefix)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGet, err)
+	}
+
+	return states, nil
+}
+
 // TryLock attempts to acquire a session-scoped advisory lock (non-blocking).
 // Returns true if the lock was acquired, false if held by another session.
 func (s *Service) TryLock(ctx context.Context, lockID int64) (bool, error) {

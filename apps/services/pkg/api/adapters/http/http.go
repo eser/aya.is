@@ -10,6 +10,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/modules/openapi"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/modules/profiling"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	mcpadapter "github.com/eser/aya.is/services/pkg/api/adapters/mcp"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
@@ -17,6 +18,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
+	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
@@ -41,6 +43,8 @@ func Run(
 	unsplashClient *unsplash.Client,
 	profileLinkProviders *ProfileLinkProviders,
 	aiModels *aifx.Registry,
+	runtimeStatesService *runtime_states.Service,
+	workerRegistry *workerfx.Registry,
 ) (func(), error) {
 	httpfx.SetDiscloseErrors(discloseErrors)
 
@@ -171,6 +175,14 @@ func Run(
 		authService,
 		userService,
 		profilePointsService,
+	)
+	RegisterHTTPRoutesForAdminWorkers( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		runtimeStatesService,
+		workerRegistry,
 	)
 
 	// run
