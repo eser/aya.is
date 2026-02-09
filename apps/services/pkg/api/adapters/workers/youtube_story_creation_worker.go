@@ -151,6 +151,12 @@ func (w *YouTubeStoryCreationWorker) Execute(ctx context.Context) error {
 	return w.createStories(ctx)
 }
 
+// ProcessStories creates stories from new imports and reconciles existing stories.
+// This is the public entry point called by sync workers after completing a sync cycle.
+func (w *YouTubeStoryCreationWorker) ProcessStories(ctx context.Context) error {
+	return w.createStories(ctx)
+}
+
 // createStories processes imports and creates stories for them, then reconciles existing stories.
 func (w *YouTubeStoryCreationWorker) createStories(ctx context.Context) error {
 	w.logger.DebugContext(ctx, "Starting YouTube story creation cycle")

@@ -2,6 +2,8 @@ package http
 
 import (
 	"net/http"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
@@ -94,6 +96,10 @@ func RegisterHTTPRoutesForAdminWorkers(
 
 					response = append(response, item)
 				}
+
+				slices.SortFunc(response, func(a, b adminWorkerResponse) int {
+					return strings.Compare(a.Name, b.Name)
+				})
 
 				return ctx.Results.JSON(response)
 			},

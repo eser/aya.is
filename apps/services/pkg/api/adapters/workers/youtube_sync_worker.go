@@ -43,17 +43,23 @@ type RemoteStoryFetcher interface {
 	) (*linksync.TokenRefreshResult, error)
 }
 
+// StoryProcessor handles story creation and reconciliation from link imports.
+type StoryProcessor interface {
+	ProcessStories(ctx context.Context) error
+}
+
 // YouTubeSyncWorker syncs YouTube videos for managed profile links.
 type YouTubeSyncWorker struct {
-	config        *YouTubeSyncConfig
-	logger        *logfx.Logger
-	syncService   *linksync.Service
-	fetcher       RemoteStoryFetcher
-	idGenerator   func() string
-	runtimeStates *runtime_states.Service
-	mode          SyncMode
-	syncInterval  time.Duration
-	lockID        int64
+	config         *YouTubeSyncConfig
+	logger         *logfx.Logger
+	syncService    *linksync.Service
+	fetcher        RemoteStoryFetcher
+	idGenerator    func() string
+	runtimeStates  *runtime_states.Service
+	storyProcessor StoryProcessor
+	mode           SyncMode
+	syncInterval   time.Duration
+	lockID         int64
 }
 
 // NewYouTubeFullSyncWorker creates a new YouTube full sync worker.
@@ -64,17 +70,19 @@ func NewYouTubeFullSyncWorker(
 	fetcher RemoteStoryFetcher,
 	idGenerator func() string,
 	runtimeStates *runtime_states.Service,
+	storyProcessor StoryProcessor,
 ) *YouTubeSyncWorker {
 	return &YouTubeSyncWorker{
-		config:        config,
-		logger:        logger,
-		syncService:   syncService,
-		fetcher:       fetcher,
-		idGenerator:   idGenerator,
-		runtimeStates: runtimeStates,
-		mode:          SyncModeFull,
-		syncInterval:  config.FullSyncInterval,
-		lockID:        lockIDYouTubeFullSync,
+		config:         config,
+		logger:         logger,
+		syncService:    syncService,
+		fetcher:        fetcher,
+		idGenerator:    idGenerator,
+		runtimeStates:  runtimeStates,
+		storyProcessor: storyProcessor,
+		mode:           SyncModeFull,
+		syncInterval:   config.FullSyncInterval,
+		lockID:         lockIDYouTubeFullSync,
 	}
 }
 
@@ -86,17 +94,19 @@ func NewYouTubeIncrementalSyncWorker(
 	fetcher RemoteStoryFetcher,
 	idGenerator func() string,
 	runtimeStates *runtime_states.Service,
+	storyProcessor StoryProcessor,
 ) *YouTubeSyncWorker {
 	return &YouTubeSyncWorker{
-		config:        config,
-		logger:        logger,
-		syncService:   syncService,
-		fetcher:       fetcher,
-		idGenerator:   idGenerator,
-		runtimeStates: runtimeStates,
-		mode:          SyncModeIncremental,
-		syncInterval:  config.IncrementalSyncInterval,
-		lockID:        lockIDYouTubeIncrementalSync,
+		config:         config,
+		logger:         logger,
+		syncService:    syncService,
+		fetcher:        fetcher,
+		idGenerator:    idGenerator,
+		runtimeStates:  runtimeStates,
+		storyProcessor: storyProcessor,
+		mode:           SyncModeIncremental,
+		syncInterval:   config.IncrementalSyncInterval,
+		lockID:         lockIDYouTubeIncrementalSync,
 	}
 }
 
@@ -204,6 +214,16 @@ func (w *YouTubeSyncWorker) executeSync(ctx context.Context) error {
 	w.logger.DebugContext(ctx, "Completed YouTube sync cycle",
 		slog.String("mode", string(w.mode)),
 		slog.Int("links_processed", len(links)))
+
+	// Process stories: create new ones from imports and reconcile existing ones
+	if w.storyProcessor != nil {
+		err := w.storyProcessor.ProcessStories(ctx)
+		if err != nil {
+			w.logger.ErrorContext(ctx, "Failed to process stories after sync",
+				slog.String("mode", string(w.mode)),
+				slog.Any("error", err))
+		}
+	}
 
 	return nil
 }

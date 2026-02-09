@@ -80,6 +80,16 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		return string(users.DefaultIDGenerator())
 	}
 
+	// Create story processor (used by sync workers to create/reconcile stories after sync)
+	storyProcessor := workers.NewYouTubeStoryCreationWorker(
+		&appContext.Config.Workers.YouTubeSync,
+		appContext.Logger,
+		appContext.LinkSyncService,
+		appContext.Repository,
+		idGen,
+		appContext.RuntimeStateService,
+	)
+
 	// YouTube full sync worker
 	if appContext.Config.Workers.YouTubeSync.FullSyncEnabled {
 		fullSyncWorker := workers.NewYouTubeFullSyncWorker(
@@ -89,6 +99,7 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 			appContext.YouTubeProvider,
 			idGen,
 			appContext.RuntimeStateService,
+			storyProcessor,
 		)
 
 		runner := workerfx.NewRunner(fullSyncWorker, appContext.Logger)
@@ -109,6 +120,7 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 			appContext.YouTubeProvider,
 			idGen,
 			appContext.RuntimeStateService,
+			storyProcessor,
 		)
 
 		runner := workerfx.NewRunner(incrementalSyncWorker, appContext.Logger)
@@ -120,18 +132,9 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		})
 	}
 
-	// YouTube story creation worker
+	// YouTube story creation worker (periodic catch-up for any missed stories)
 	if appContext.Config.Workers.YouTubeSync.StoryCreationEnabled {
-		storyCreationWorker := workers.NewYouTubeStoryCreationWorker(
-			&appContext.Config.Workers.YouTubeSync,
-			appContext.Logger,
-			appContext.LinkSyncService,
-			appContext.Repository,
-			idGen,
-			appContext.RuntimeStateService,
-		)
-
-		runner := workerfx.NewRunner(storyCreationWorker, appContext.Logger)
+		runner := workerfx.NewRunner(storyProcessor, appContext.Logger)
 		runner.SetStateKey("youtube.sync.story_creation_worker")
 		appContext.WorkerRegistry.Register(runner)
 
