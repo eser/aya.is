@@ -111,7 +111,7 @@ Proje aşağıdaki ana veri yapılarını kullanır:
 
 ## Nasıl Katkıda Bulunabilirsin?
 
-Herkesten katkı bekliyoruz. Başlamak için lütfen [katkıda bulunma kılavuzumuzu](CONTRIBUTING.md) okuyun. Yardım etmek
+Herkesten katkı bekliyoruz. Başlamak için lütfen [katkıda bulunma kılavuzumuzu](.github/CONTRIBUTING.md) okuyun. Yardım etmek
 isterseniz [issue'lara](https://github.com/eser/aya.is/issues) göz atabilirsiniz. Herhangi bir sorunuz varsa
 [Discord sunucumuza](https://discord.gg/itdepremyardim) katılmaktan çekinmeyin. Herhangi bir noktada takılırsanız,
 GitHub Issues veya Discord üzerinden yardım istemekten çekinmeyin.
