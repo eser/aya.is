@@ -150,7 +150,7 @@ func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:cyclop,funlen
 	videoMeta := extractVideoMetadata(imp.Properties)
 
 	// Skip unlisted or private videos
-	if isVideoNonPublic(imp.Properties) {
+	if isVideoNonPublic(w.logger, imp.RemoteID, imp.Properties) {
 		w.logger.DebugContext(ctx, "Skipping non-public video",
 			slog.String("remote_id", imp.RemoteID))
 
@@ -255,12 +255,17 @@ func (w *YouTubeStoryProcessor) reconcileExistingStories(ctx context.Context) er
 		return nil
 	}
 
-	w.logger.DebugContext(ctx, "Reconciling existing YouTube stories",
+	w.logger.InfoContext(ctx, "Reconciling existing YouTube stories",
 		slog.Int("count", len(imports)))
 
 	reconciled := 0
+	nonPublicCount := 0
 
 	for _, imp := range imports {
+		if isVideoNonPublic(w.logger, imp.RemoteID, imp.Properties) {
+			nonPublicCount++
+		}
+
 		err := w.reconcileStory(ctx, imp)
 		if err != nil {
 			w.logger.ErrorContext(ctx, "Failed to reconcile story",
@@ -274,9 +279,10 @@ func (w *YouTubeStoryProcessor) reconcileExistingStories(ctx context.Context) er
 		reconciled++
 	}
 
-	w.logger.DebugContext(ctx, "Completed YouTube story reconciliation",
+	w.logger.InfoContext(ctx, "Completed YouTube story reconciliation",
 		slog.Int("processed", len(imports)),
-		slog.Int("reconciled", reconciled))
+		slog.Int("reconciled", reconciled),
+		slog.Int("non_public_detected", nonPublicCount))
 
 	return nil
 }
@@ -287,7 +293,7 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 	imp *linksync.LinkImportWithStory,
 ) error {
 	videoMeta := extractVideoMetadata(imp.Properties)
-	nonPublic := isVideoNonPublic(imp.Properties)
+	nonPublic := isVideoNonPublic(w.logger, imp.RemoteID, imp.Properties)
 
 	// Handle publication based on privacy status
 	if nonPublic && imp.PublicationID != nil {
@@ -368,11 +374,16 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 
 // isVideoNonPublic checks if a video's privacy status is unlisted or private.
 // It checks both videoMetadata (from Videos API) and playlistItemMetadata (from Playlist Items API).
-func isVideoNonPublic(properties map[string]any) bool {
+func isVideoNonPublic(logger *logfx.Logger, remoteID string, properties map[string]any) bool {
 	// Check videoMetadata first (more authoritative)
 	if videoMeta, ok := properties["videoMetadata"].(map[string]any); ok {
 		if status, ok := videoMeta["status"].(map[string]any); ok {
 			privacyStatus, _ := status["privacyStatus"].(string)
+
+			logger.Warn("Privacy check: videoMetadata.status",
+				slog.String("remote_id", remoteID),
+				slog.String("privacyStatus", privacyStatus))
+
 			if privacyStatus == "unlisted" || privacyStatus == "private" {
 				return true
 			}
@@ -381,18 +392,38 @@ func isVideoNonPublic(properties map[string]any) bool {
 			if privacyStatus != "" {
 				return false
 			}
+		} else {
+			logger.Warn("Privacy check: videoMetadata exists but no 'status' field",
+				slog.String("remote_id", remoteID))
 		}
+	} else {
+		logger.Warn("Privacy check: no videoMetadata in properties",
+			slog.String("remote_id", remoteID))
 	}
 
 	// Fallback: check playlistItemMetadata (available even when video metadata fetch fails)
 	if playlistMeta, ok := properties["playlistItemMetadata"].(map[string]any); ok {
 		if status, ok := playlistMeta["status"].(map[string]any); ok {
 			privacyStatus, _ := status["privacyStatus"].(string)
+
+			logger.Warn("Privacy check: playlistItemMetadata.status",
+				slog.String("remote_id", remoteID),
+				slog.String("privacyStatus", privacyStatus))
+
 			if privacyStatus == "unlisted" || privacyStatus == "private" {
 				return true
 			}
+		} else {
+			logger.Warn("Privacy check: playlistItemMetadata exists but no 'status' field",
+				slog.String("remote_id", remoteID))
 		}
+	} else {
+		logger.Warn("Privacy check: no playlistItemMetadata in properties",
+			slog.String("remote_id", remoteID))
 	}
+
+	logger.Warn("Privacy check: treating as public (no privacy status found)",
+		slog.String("remote_id", remoteID))
 
 	return false
 }
