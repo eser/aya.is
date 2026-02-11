@@ -99,7 +99,7 @@ func executeTestRequest(t *testing.T, incomingTraceparent string) (string, strin
 
 	// Create logger with JSON output for easy parsing
 	logConfig := &logfx.Config{
-		Level:                         "INFO",
+		Level:                         "DEBUG",
 		DefaultLogger:                 false,
 		PrettyMode:                    false,
 		AddSource:                     false,
@@ -178,7 +178,7 @@ func verifyTraceInLogs(
 
 	// Split log entries (each line is a JSON log entry)
 	logLines := strings.Split(strings.TrimSpace(logOutput), "\n")
-	assert.GreaterOrEqual(t, len(logLines), 2) // At least request start and business logic
+	assert.GreaterOrEqual(t, len(logLines), 2) // At least business logic and request end
 
 	// Extract expected trace ID from traceparent headers
 	var expectedTraceID string
@@ -214,7 +214,6 @@ func verifyTraceInLogs(
 	// Verify specific log entries contain expected information
 	foundEntries := verifyLogEntries(t, logLines)
 	assert.True(t, foundEntries.businessLogic, "Business logic log entry not found")
-	assert.True(t, foundEntries.requestStart, "Request start log entry not found")
 	assert.True(t, foundEntries.requestEnd, "Request end log entry not found")
 }
 

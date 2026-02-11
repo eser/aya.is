@@ -36,6 +36,7 @@ type ConfigTarget struct {
 	MaxConnLifetime time.Duration `conf:"max_conn_lifetime"  default:"1h"`
 	MaxIdleConns    int           `conf:"max_idle_conns"     default:"5"`
 	MaxConnIdleTime time.Duration `conf:"max_conn_idle_time" default:"1m"`
+	Timeout         time.Duration `conf:"timeout"`
 
 	// Authentication and security
 	TLS           bool `conf:"tls"`

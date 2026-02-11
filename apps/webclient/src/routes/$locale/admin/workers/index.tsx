@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { formatDateTimeShort } from "@/lib/date";
-import type { AdminWorkerStatus } from "@/modules/backend/admin/get-admin-workers";
+import type { AdminWorkerStatus } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import {
   Table,

@@ -221,6 +221,18 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
+			// Validate redirect origin against allowed CORS origins
+			redirectOriginParsed, originParseErr := url.Parse(stateObj.RedirectOrigin)
+			if originParseErr != nil || !isAllowedCorsOrigin(authService, redirectOriginParsed) {
+				logger.WarnContext(ctx.Request.Context(), "Blocked redirect to disallowed origin",
+					slog.String("redirect_origin", stateObj.RedirectOrigin),
+					slog.String("provider", providerParam))
+
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Invalid redirect origin"),
+				)
+			}
+
 			// Validate state expiry
 			validationErr := profiles.ValidateProfileLinkState(stateObj)
 			if validationErr != nil {

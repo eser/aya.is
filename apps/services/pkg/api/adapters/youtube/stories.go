@@ -73,12 +73,16 @@ func (p *Provider) RefreshAccessToken(
 		"grant_type":    {"refresh_token"},
 	}
 
-	req, _ := http.NewRequestWithContext(
+	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
 		"https://oauth2.googleapis.com/token",
 		strings.NewReader(values.Encode()),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToRefreshToken, err)
+	}
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := p.httpClient.Do(req)
@@ -144,7 +148,11 @@ func (p *Provider) getUploadsPlaylistID(
 		channelID,
 	)
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 
 	resp, err := p.httpClient.Do(req)
@@ -207,7 +215,11 @@ func (p *Provider) fetchPlaylistVideos(
 			reqURL += "&pageToken=" + url.QueryEscape(pageToken)
 		}
 
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
+		}
+
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 
 		resp, err := p.httpClient.Do(req)
@@ -215,8 +227,14 @@ func (p *Provider) fetchPlaylistVideos(
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 		}
 
-		body, _ := io.ReadAll(resp.Body)
-		resp.Body.Close() //nolint:errcheck
+		body, readErr := func() ([]byte, error) {
+			defer resp.Body.Close() //nolint:errcheck
+
+			return io.ReadAll(resp.Body)
+		}()
+		if readErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, readErr)
+		}
 
 		if resp.StatusCode != http.StatusOK {
 			p.logger.ErrorContext(ctx, "Failed to fetch playlist items",
@@ -389,7 +407,11 @@ func (p *Provider) fetchVideoMetadata(
 			ids,
 		)
 
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
+		}
+
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 
 		resp, err := p.httpClient.Do(req)
@@ -397,8 +419,14 @@ func (p *Provider) fetchVideoMetadata(
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 		}
 
-		body, _ := io.ReadAll(resp.Body)
-		resp.Body.Close() //nolint:errcheck
+		body, readErr := func() ([]byte, error) {
+			defer resp.Body.Close() //nolint:errcheck
+
+			return io.ReadAll(resp.Body)
+		}()
+		if readErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, readErr)
+		}
 
 		if resp.StatusCode != http.StatusOK {
 			return nil, fmt.Errorf("%w: status %d", ErrFailedToFetchVideos, resp.StatusCode)

@@ -41,7 +41,7 @@ type ResilientTransport struct {
 }
 
 func NewResilientTransport(
-	transport *http.Transport,
+	transport http.RoundTripper,
 	config *Config,
 ) *ResilientTransport {
 	cb := NewCircuitBreaker(&config.CircuitBreaker) //nolint:varnamelen

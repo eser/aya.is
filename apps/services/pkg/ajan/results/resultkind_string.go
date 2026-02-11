@@ -17,9 +17,8 @@ const _ResultKind_name = "SuccessError"
 var _ResultKind_index = [...]uint8{0, 7, 12}
 
 func (i ResultKind) String() string {
-	idx := int(i) - 0
-	if i < 0 || idx >= len(_ResultKind_index)-1 {
+	if i < 0 || i >= ResultKind(len(_ResultKind_index)-1) {
 		return "ResultKind(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _ResultKind_name[_ResultKind_index[idx]:_ResultKind_index[idx+1]]
+	return _ResultKind_name[_ResultKind_index[i]:_ResultKind_index[i+1]]
 }

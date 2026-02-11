@@ -2,11 +2,12 @@
 
 ## Overview
 
-**results** package provides a structured way to handle and represent operational results, including errors, within the
-application.
+**results** package provides a structured way to handle and represent
+operational results, including errors, within the application.
 
-The documentation below provides an overview of the package, its types, functions, and usage examples. For more detailed
-information, refer to the source code and tests.
+The documentation below provides an overview of the package, its types,
+functions, and usage examples. For more detailed information, refer to the
+source code and tests.
 
 ## API
 

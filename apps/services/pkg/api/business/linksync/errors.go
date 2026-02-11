@@ -15,4 +15,5 @@ var (
 	ErrTokenExpired            = errors.New("access token expired and refresh failed")
 	ErrImportNotFound          = errors.New("import not found")
 	ErrFailedToListImports     = errors.New("failed to list imports for story creation")
+	ErrNotFound                = errors.New("not found")
 )

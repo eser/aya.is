@@ -10,7 +10,11 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/aifx"
 )
 
-var ErrAITranslationNotAvailable = errors.New("AI translation not available")
+var (
+	ErrAITranslationNotAvailable = errors.New("AI translation not available")
+	ErrAIGenerationFailed        = errors.New("AI generation failed")
+	ErrFailedToParseAIResponse   = errors.New("failed to parse AI translation response")
+)
 
 type translationResult struct {
 	Title   string `json:"title"`
@@ -71,7 +75,7 @@ Content:
 		MaxTokens: 8192,
 	})
 	if err != nil {
-		return "", "", "", fmt.Errorf("AI generation failed: %w", err)
+		return "", "", "", fmt.Errorf("%w: %w", ErrAIGenerationFailed, err)
 	}
 
 	responseText := extractJSON(result.Text())
@@ -80,7 +84,7 @@ Content:
 
 	err = json.Unmarshal([]byte(responseText), &translated)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to parse AI translation response: %w", err)
+		return "", "", "", fmt.Errorf("%w: %w", ErrFailedToParseAIResponse, err)
 	}
 
 	return translated.Title, translated.Summary, translated.Content, nil

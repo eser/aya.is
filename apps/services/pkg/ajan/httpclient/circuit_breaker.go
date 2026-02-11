@@ -2,11 +2,12 @@ package httpclient
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 //go:generate go tool stringer -type CircuitState -trimprefix CircuitState
-type CircuitState int
+type CircuitState int32
 
 const (
 	StateClosed CircuitState = iota
@@ -15,63 +16,90 @@ const (
 )
 
 type CircuitBreaker struct {
-	lastFailureTime time.Time
-
 	Config *CircuitBreakerConfig
 
-	state                CircuitState
+	// Atomic fields for lock-free fast path reads
+	state           atomic.Int32 // CircuitState
+	lastFailureNano atomic.Int64 // Unix nanoseconds
+
+	// Protected by mutex for state transitions
 	failureCount         uint
 	halfOpenSuccessCount uint
-	mu                   sync.RWMutex
+	mu                   sync.Mutex
 }
 
 func NewCircuitBreaker(config *CircuitBreakerConfig) *CircuitBreaker {
-	return &CircuitBreaker{ //nolint:exhaustruct
+	cb := &CircuitBreaker{ //nolint:exhaustruct
 		Config: config,
-		state:  StateClosed,
 	}
+	cb.state.Store(int32(StateClosed))
+
+	return cb
 }
 
 func (cb *CircuitBreaker) IsAllowed() bool {
-	cb.mu.RLock()
-	defer cb.mu.RUnlock()
+	state := CircuitState(cb.state.Load())
 
-	switch cb.state {
-	case StateClosed:
+	// Fast path: Closed or HalfOpen - no lock needed
+	if state == StateClosed || state == StateHalfOpen {
 		return true
-	case StateOpen:
-		if time.Since(cb.lastFailureTime) > cb.Config.ResetTimeout {
-			cb.mu.RUnlock()
-			cb.mu.Lock()
-			cb.state = StateHalfOpen
-			cb.halfOpenSuccessCount = 0
-			cb.mu.Unlock()
-			cb.mu.RLock()
+	}
 
-			return true
-		}
+	// StateOpen: check if reset timeout has passed (lock-free read)
+	// Use nanosecond comparison to avoid time.Time allocation
+	lastFailureNano := cb.lastFailureNano.Load()
+	nowNano := time.Now().UnixNano()
+	resetTimeoutNano := cb.Config.ResetTimeout.Nanoseconds()
 
-		return false
-	case StateHalfOpen:
-		return true
-	default:
+	if (nowNano - lastFailureNano) <= resetTimeoutNano {
 		return false
 	}
-}
 
-func (cb *CircuitBreaker) OnSuccess() {
+	// Timeout passed - try to transition to HalfOpen
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
 
-	if cb.state == StateHalfOpen {
-		cb.halfOpenSuccessCount++
-		if cb.halfOpenSuccessCount >= cb.Config.HalfOpenSuccessNeeded {
-			cb.state = StateClosed
-			cb.failureCount = 0
-		}
+	// Re-check state under lock (another goroutine may have transitioned)
+	state = CircuitState(cb.state.Load())
+	if state != StateOpen {
+		// Already transitioned by another goroutine
+		return state != StateOpen
 	}
 
-	if cb.state == StateClosed {
+	// Re-check timeout under lock (reuse nowNano from above would be stale, get fresh)
+	lastFailureNano = cb.lastFailureNano.Load()
+	if (time.Now().UnixNano() - lastFailureNano) > resetTimeoutNano {
+		cb.state.Store(int32(StateHalfOpen))
+		cb.halfOpenSuccessCount = 0
+
+		return true
+	}
+
+	return false
+}
+
+func (cb *CircuitBreaker) OnSuccess() {
+	state := CircuitState(cb.state.Load())
+
+	// Fast path: if closed, nothing to do
+	if state == StateClosed {
+		return
+	}
+
+	cb.mu.Lock()
+	defer cb.mu.Unlock()
+
+	// Re-check state under lock
+	state = CircuitState(cb.state.Load())
+
+	switch state {
+	case StateHalfOpen:
+		cb.halfOpenSuccessCount++
+		if cb.halfOpenSuccessCount >= cb.Config.HalfOpenSuccessNeeded {
+			cb.state.Store(int32(StateClosed))
+			cb.failureCount = 0
+		}
+	case StateClosed:
 		cb.failureCount = 0
 	}
 }
@@ -81,17 +109,15 @@ func (cb *CircuitBreaker) OnFailure() {
 	defer cb.mu.Unlock()
 
 	cb.failureCount++
-	cb.lastFailureTime = time.Now()
+	cb.lastFailureNano.Store(time.Now().UnixNano())
 
-	if cb.state == StateHalfOpen ||
-		(cb.state == StateClosed && cb.failureCount >= cb.Config.FailureThreshold) {
-		cb.state = StateOpen
+	state := CircuitState(cb.state.Load())
+	if state == StateHalfOpen ||
+		(state == StateClosed && cb.failureCount >= cb.Config.FailureThreshold) {
+		cb.state.Store(int32(StateOpen))
 	}
 }
 
 func (cb *CircuitBreaker) State() CircuitState {
-	cb.mu.RLock()
-	defer cb.mu.RUnlock()
-
-	return cb.state
+	return CircuitState(cb.state.Load())
 }

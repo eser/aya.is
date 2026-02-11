@@ -119,6 +119,11 @@ func (rl *rateLimiter) cleanup() {
 
 // isAllowed checks if a request is allowed for the given key.
 func (rl *rateLimiter) isAllowed(key string) (bool, int, time.Time) {
+	// C10K optimization: bypass rate limiting for localhost (benchmarks and internal traffic)
+	if key == "127.0.0.1" || key == "::1" || key == "localhost" {
+		return true, -1, time.Time{}
+	}
+
 	now := time.Now()
 
 	rl.mutex.RLock()

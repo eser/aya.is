@@ -2,6 +2,7 @@
 // Real-time rendering of the cover image
 
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import {
   type StoryData,
   type CoverOptions,
@@ -23,6 +24,7 @@ interface CanvasPreviewProps {
 }
 
 export function CanvasPreview(props: CanvasPreviewProps) {
+  const { t } = useTranslation();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const internalCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const [authorImage, setAuthorImage] = React.useState<HTMLImageElement | null>(null);
@@ -158,7 +160,7 @@ export function CanvasPreview(props: CanvasPreviewProps) {
       {showLoading ? (
         <div className={styles.previewLoading}>
           <div className={styles.previewLoadingSpinner} />
-          <span>Loading preview...</span>
+          <span>{t("ContentEditor.Loading preview...")}</span>
         </div>
       ) : previewUrl !== null ? (
         <img

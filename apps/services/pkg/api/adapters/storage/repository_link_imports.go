@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
@@ -52,7 +53,7 @@ func (r *Repository) GetLatestImportByLinkID(
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, sql.ErrNoRows
+			return nil, linksync.ErrNotFound
 		}
 
 		return nil, err
@@ -73,7 +74,7 @@ func (r *Repository) GetLinkImportByRemoteID(
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, sql.ErrNoRows
+			return nil, linksync.ErrNotFound
 		}
 
 		return nil, err
@@ -184,7 +185,14 @@ func (r *Repository) ListImportsForStoryCreation(
 	for i, row := range rows {
 		var properties map[string]any
 		if row.Properties.Valid {
-			_ = json.Unmarshal(row.Properties.RawMessage, &properties)
+			err := json.Unmarshal(row.Properties.RawMessage, &properties)
+			if err != nil {
+				slog.Warn(
+					"failed to unmarshal link import properties",
+					slog.String("error", err.Error()),
+					slog.String("id", row.ID),
+				)
+			}
 		}
 
 		result[i] = &linksync.LinkImportForStoryCreation{
@@ -223,7 +231,14 @@ func (r *Repository) ListImportsWithExistingStories(
 	for i, row := range rows {
 		var properties map[string]any
 		if row.Properties.Valid {
-			_ = json.Unmarshal(row.Properties.RawMessage, &properties)
+			err := json.Unmarshal(row.Properties.RawMessage, &properties)
+			if err != nil {
+				slog.Warn(
+					"failed to unmarshal link import properties",
+					slog.String("error", err.Error()),
+					slog.String("id", row.ID),
+				)
+			}
 		}
 
 		item := &linksync.LinkImportWithStory{
@@ -251,7 +266,14 @@ func (r *Repository) ListImportsWithExistingStories(
 func (r *Repository) rowToLinkImport(row *ProfileLinkImport) *linksync.LinkImport {
 	var properties map[string]any
 	if row.Properties.Valid {
-		_ = json.Unmarshal(row.Properties.RawMessage, &properties)
+		err := json.Unmarshal(row.Properties.RawMessage, &properties)
+		if err != nil {
+			slog.Warn(
+				"failed to unmarshal link import properties",
+				slog.String("error", err.Error()),
+				slog.String("id", row.ID),
+			)
+		}
 	}
 
 	return &linksync.LinkImport{

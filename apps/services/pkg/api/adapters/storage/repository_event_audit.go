@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"log/slog"
 
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/sqlc-dev/pqtype"
@@ -66,7 +67,14 @@ func (r *Repository) ListByEntity(
 func (r *Repository) rowToAuditEntry(row *EventAudit) *events.AuditEntry {
 	var payload map[string]any
 	if row.Payload.Valid && len(row.Payload.RawMessage) > 0 {
-		_ = json.Unmarshal(row.Payload.RawMessage, &payload)
+		err := json.Unmarshal(row.Payload.RawMessage, &payload)
+		if err != nil {
+			slog.Warn(
+				"failed to unmarshal audit entry payload",
+				slog.String("error", err.Error()),
+				slog.String("id", row.ID),
+			)
+		}
 	}
 
 	var actorID *string

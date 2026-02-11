@@ -420,13 +420,13 @@ func (c *PgxConnection) GetConnectionMetrics() map[string]any {
 func (f *PgxConnectionFactory) configurePool(poolConfig *pgxpool.Config, config *ConfigTarget) {
 	// Pool size configuration
 	if config.MaxOpenConns > 0 {
-		poolConfig.MaxConns = int32(config.MaxOpenConns) //nolint:gosec
+		poolConfig.MaxConns = int32(config.MaxOpenConns)
 	} else {
 		poolConfig.MaxConns = 25 // pgx default is typically higher than database/sql
 	}
 
 	if config.MaxIdleConns > 0 {
-		poolConfig.MinConns = int32(config.MaxIdleConns) //nolint:gosec
+		poolConfig.MinConns = int32(config.MaxIdleConns)
 	} else {
 		poolConfig.MinConns = 2 // Maintain minimum connections for better performance
 	}

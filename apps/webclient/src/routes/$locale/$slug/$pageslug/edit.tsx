@@ -1,6 +1,7 @@
 // Edit profile page
 import * as React from "react";
 import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend } from "@/modules/backend/backend";
 import {
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
 function EditPagePage() {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const auth = useAuth();
   const { page } = Route.useLoaderData();
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
@@ -186,8 +188,8 @@ function EditPagePage() {
     return (
       <>
         <div className="content">
-          <h2>Access Denied</h2>
-          <p>You don't have permission to edit this page.</p>
+          <h2>{t("Auth.Access Denied")}</h2>
+          <p>{t("Auth.You don't have permission to edit this page.")}</p>
         </div>
       </>
     );
@@ -243,7 +245,7 @@ function EditPagePage() {
       throw new Error("Failed to save page translation");
     }
 
-    toast.success("Page saved successfully");
+    toast.success(t("ContentEditor.Page saved successfully"));
     // Refresh translation locales
     backend.listProfilePageTranslationLocales(params.locale, params.slug, page.id).then((locales) => {
       setTranslationLocales(locales);
@@ -269,13 +271,13 @@ function EditPagePage() {
     );
 
     if (result !== null) {
-      toast.success("Page deleted successfully");
+      toast.success(t("ContentEditor.Page deleted successfully"));
       navigate({
         to: "/$locale/$slug",
         params: { locale: params.locale, slug: params.slug },
       });
     } else {
-      toast.error("Failed to delete page");
+      toast.error(t("ContentEditor.Failed to delete page"));
     }
   };
 

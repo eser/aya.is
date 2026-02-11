@@ -1,7 +1,11 @@
 package http
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 )
 
@@ -16,4 +20,17 @@ func validateLocale(ctx *httpfx.Context) (string, bool) {
 	}
 
 	return locale, true
+}
+
+// isAllowedCorsOrigin checks if a parsed URL's origin is in the CORS allowed origins list.
+func isAllowedCorsOrigin(authService *auth.Service, u *url.URL) bool {
+	origin := u.Scheme + "://" + u.Host
+
+	for _, allowed := range authService.Config.GetCorsAllowedOrigins() {
+		if strings.EqualFold(allowed, origin) {
+			return true
+		}
+	}
+
+	return false
 }

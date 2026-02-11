@@ -73,11 +73,8 @@ func (p *Process) StartGoroutine(
 ) {
 	wg := &sync.WaitGroup{}
 	p.WaitGroups[name] = wg
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		if p.Logger != nil {
 			p.Logger.DebugContext(p.Ctx, "Goroutine starting", "name", name)
 		}
@@ -94,7 +91,7 @@ func (p *Process) StartGoroutine(
 		if p.Logger != nil {
 			p.Logger.DebugContext(p.BaseCtx, "Goroutine stopped", "name", name)
 		}
-	}()
+	})
 }
 
 func (p *Process) Wait() {

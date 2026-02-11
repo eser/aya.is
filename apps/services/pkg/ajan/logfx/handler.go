@@ -246,7 +246,7 @@ func ConvertSlogAttrsToOtelAttr(attrs []any) []attribute.KeyValue {
 }
 
 // ConvertSlogAttrToOtelAttr converts a single slog.Attr to OpenTelemetry attribute.KeyValue.
-func ConvertSlogAttrToOtelAttr(attr slog.Attr) *attribute.KeyValue { //nolint:cyclop,dupl
+func ConvertSlogAttrToOtelAttr(attr slog.Attr) *attribute.KeyValue { //nolint:cyclop
 	key := attr.Key
 	value := attr.Value
 
@@ -279,7 +279,7 @@ func ConvertSlogAttrToOtelAttr(attr slog.Attr) *attribute.KeyValue { //nolint:cy
 			return &kv
 		}
 
-		kv := attribute.Int64(key, int64(value.Uint64())) //nolint:gosec
+		kv := attribute.Int64(key, int64(value.Uint64()))
 
 		return &kv
 	case slog.KindDuration:
@@ -317,7 +317,7 @@ func ConvertSlogAttrsToOtelLog(attrs []any) []log.KeyValue {
 }
 
 // ConvertSlogAttrToOtelLog converts a single slog.Attr to OpenTelemetry log.KeyValue.
-func ConvertSlogAttrToOtelLog(attr slog.Attr) *log.KeyValue { //nolint:cyclop,dupl
+func ConvertSlogAttrToOtelLog(attr slog.Attr) *log.KeyValue { //nolint:cyclop
 	key := attr.Key
 	value := attr.Value
 
@@ -350,7 +350,7 @@ func ConvertSlogAttrToOtelLog(attr slog.Attr) *log.KeyValue { //nolint:cyclop,du
 			return &kv
 		}
 
-		kv := log.Int64(key, int64(value.Uint64())) //nolint:gosec
+		kv := log.Int64(key, int64(value.Uint64()))
 
 		return &kv
 	case slog.KindDuration:

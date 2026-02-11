@@ -157,11 +157,21 @@ func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
 	}
 
 	defer func() {
-		_ = w.runtimeStates.ReleaseLock(ctx, w.lockID)
+		releaseErr := w.runtimeStates.ReleaseLock(ctx, w.lockID)
+		if releaseErr != nil {
+			w.logger.WarnContext(ctx, "failed to release advisory lock",
+				slog.String("mode", string(w.mode)),
+				slog.String("error", releaseErr.Error()))
+		}
 	}()
 
 	// Claim the next slot before executing
-	_ = w.runtimeStates.SetTime(ctx, nextRunKey, time.Now().Add(w.syncInterval))
+	setErr := w.runtimeStates.SetTime(ctx, nextRunKey, time.Now().Add(w.syncInterval))
+	if setErr != nil {
+		w.logger.WarnContext(ctx, "failed to set next run time",
+			slog.String("mode", string(w.mode)),
+			slog.String("error", setErr.Error()))
+	}
 
 	return w.executeSync(ctx)
 }

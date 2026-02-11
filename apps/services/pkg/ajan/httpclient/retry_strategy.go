@@ -1,9 +1,8 @@
 package httpclient
 
 import (
-	"crypto/rand"
 	"math"
-	"math/big"
+	"math/rand/v2"
 	"time"
 )
 
@@ -13,7 +12,6 @@ const (
 	DefaultMaxInterval     = 10 * time.Second
 	DefaultMultiplier      = 2.0
 	DefaultRandomFactor    = 0.1
-	randomNumberRange      = 1000 // Range for random number generation in jitter calculation
 )
 
 type RetryStrategy struct {
@@ -35,16 +33,9 @@ func (r *RetryStrategy) NextBackoff(attempt uint) time.Duration {
 	// Calculate exponential backoff
 	backoff := float64(r.Config.InitialInterval) * math.Pow(r.Config.Multiplier, float64(attempt))
 
-	// Apply random factor
+	// Apply random factor using fast math/rand (crypto security not needed for jitter)
 	if r.Config.RandomFactor > 0 {
-		// Use crypto/rand for secure random number generation
-		n, err := rand.Int(rand.Reader, big.NewInt(randomNumberRange)) //nolint:varnamelen
-		if err != nil {
-			// Fallback to no jitter if random generation fails
-			return time.Duration(backoff)
-		}
-
-		random := 1 + r.Config.RandomFactor*(2*float64(n.Int64())/float64(randomNumberRange)-1)
+		random := 1 + r.Config.RandomFactor*(2*rand.Float64()-1)
 		backoff *= random
 	}
 

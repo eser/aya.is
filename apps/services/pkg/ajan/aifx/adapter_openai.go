@@ -684,8 +684,8 @@ type openAIBatchResponseLine struct {
 func (m *OpenAIModel) parseBatchResults(data []byte) ([]*BatchResult, error) {
 	var results []*BatchResult
 
-	lines := bytes.Split(data, []byte("\n"))
-	for _, line := range lines {
+	lines := bytes.SplitSeq(data, []byte("\n"))
+	for line := range lines {
 		trimmed := bytes.TrimSpace(line)
 		if len(trimmed) == 0 {
 			continue

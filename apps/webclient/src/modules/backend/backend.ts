@@ -92,6 +92,7 @@ import { triggerAdminWorker } from "./admin/trigger-admin-worker";
 // Re-export types
 export * from "./types";
 export type { AdminWorkerStatus } from "./admin/get-admin-workers";
+export type { AccessibleProfile } from "./sessions/types";
 export type { ToggleWorkerResult } from "./admin/toggle-admin-worker";
 export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";

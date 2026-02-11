@@ -2,8 +2,7 @@
 
 ## Overview
 
-**lib** is a comprehensive utility library for Go applications that provides commonly used helper functions across
-various domains including networking, cryptography, environment handling, string manipulation, and more.
+**lib** is a comprehensive utility library for Go applications that provides commonly used helper functions across various domains including networking, cryptography, environment handling, string manipulation, and more.
 
 ## Key Features
 
@@ -31,7 +30,6 @@ func SplitHostPort(addr string) (string, string, error)
 ```
 
 **Usage:**
-
 ```go
 import "github.com/eser/aya.is/services/pkg/ajan/lib"
 
@@ -57,7 +55,6 @@ func DetectLocalNetwork(requestAddr string) (bool, error)
 ```
 
 **Usage:**
-
 ```go
 // Check if request is from local network
 isLocal, err := lib.DetectLocalNetwork("127.0.0.1:54321")
@@ -84,7 +81,6 @@ func CryptoGetRandomBytes(size int) []byte
 ```
 
 **Usage:**
-
 ```go
 // Generate 32 random bytes for a key
 key := lib.CryptoGetRandomBytes(32)
@@ -103,7 +99,6 @@ func GenerateSelfSignedCert() (tls.Certificate, error)
 ```
 
 **Usage:**
-
 ```go
 // Generate certificate for HTTPS development server
 cert, err := lib.GenerateSelfSignedCert()
@@ -131,7 +126,6 @@ func EnvGetCurrent() string
 ```
 
 **Usage:**
-
 ```go
 // Get current environment (defaults to "development")
 env := lib.EnvGetCurrent()
@@ -151,7 +145,6 @@ func EnvAwareFilenames(env string, filename string) []string
 ```
 
 **Usage:**
-
 ```go
 // Get environment-aware config filenames
 filenames := lib.EnvAwareFilenames("production", "config.json")
@@ -171,7 +164,6 @@ func EnvOverrideVariables(m *map[string]any, keyCaseInsensitive bool)
 ```
 
 **Usage:**
-
 ```go
 config := make(map[string]any)
 
@@ -197,7 +189,6 @@ func StringsTrimTrailingSpaceFromBytes(src []byte) []byte
 ```
 
 **Usage:**
-
 ```go
 // Trim leading whitespace
 text := "   hello world"
@@ -226,7 +217,6 @@ func PathsSplit(filename string) (string, string, string)
 ```
 
 **Usage:**
-
 ```go
 // Split file path
 dir, name, ext := lib.PathsSplit("/path/to/config.json")
@@ -252,7 +242,6 @@ func ArraysCopy[T any](items ...[]T) []T
 ```
 
 **Usage:**
-
 ```go
 // Concatenate string slices
 slice1 := []string{"a", "b"}
@@ -283,7 +272,6 @@ func CaseInsensitiveSet(m *map[string]any, key string, value any)
 ```
 
 **Usage:**
-
 ```go
 config := map[string]any{
     "DATABASE_URL": "postgres://localhost/db1",
@@ -311,7 +299,6 @@ type NullString struct {
 ```
 
 **Usage:**
-
 ```go
 // Use in struct definitions
 type User struct {
@@ -349,7 +336,6 @@ func IDsGenerateUnique() string
 ```
 
 **Usage:**
-
 ```go
 // Generate unique ID for entities
 userID := lib.IDsGenerateUnique()
@@ -380,7 +366,6 @@ func SerializeSlogAttrs(attrs []slog.Attr) string
 ```
 
 **Usage:**
-
 ```go
 import "log/slog"
 
@@ -512,5 +497,4 @@ err := db.QueryRow("SELECT email, bio, website FROM users WHERE id = ?", userID)
 
 ## Thread Safety
 
-All functions in the lib package are thread-safe and can be called concurrently from multiple goroutines. The only
-exception is map operations which should be synchronized when accessed concurrently.
+All functions in the lib package are thread-safe and can be called concurrently from multiple goroutines. The only exception is map operations which should be synchronized when accessed concurrently.

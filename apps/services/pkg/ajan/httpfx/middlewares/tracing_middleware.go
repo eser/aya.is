@@ -19,13 +19,6 @@ func TracingMiddleware(logger *logfx.Logger, skipLoggingPaths string) httpfx.Han
 	skipLoggingPathsArray := strings.Split(skipLoggingPaths, ",")
 
 	return func(ctx *httpfx.Context) httpfx.Result {
-		// Process the request
-		result := ctx.Next()
-
-		if slices.Contains(skipLoggingPathsArray, ctx.Request.URL.Path) {
-			return result
-		}
-
 		startTime := time.Now()
 
 		attrs := []any{
@@ -46,7 +39,13 @@ func TracingMiddleware(logger *logfx.Logger, skipLoggingPaths string) httpfx.Han
 		// Update the request context
 		ctx.UpdateContext(newCtx)
 
-		logger.InfoContext(newCtx, "HTTP request started", attrs...)
+		// Process the request
+		result := ctx.Next()
+
+		// Skip logging for configured paths (e.g., health checks)
+		if slices.Contains(skipLoggingPathsArray, ctx.Request.URL.Path) {
+			return result
+		}
 
 		// Calculate duration
 		duration := time.Since(startTime)

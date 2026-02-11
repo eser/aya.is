@@ -2,10 +2,18 @@ package profiles
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
+)
+
+// Sentinel errors for auto-translation.
+var (
+	ErrFailedToCheckPermissions      = errors.New("failed to check permissions")
+	ErrFailedToGetSourceContent      = errors.New("failed to get source content")
+	ErrFailedToSaveTranslatedContent = errors.New("failed to save translated content")
 )
 
 // ContentTranslator defines the interface for AI-powered content translation.
@@ -45,7 +53,7 @@ func (s *Service) AutoTranslateProfilePage(
 		MembershipKindMaintainer,
 	)
 	if permErr != nil {
-		return fmt.Errorf("failed to check permissions: %w", permErr)
+		return fmt.Errorf("%w: %w", ErrFailedToCheckPermissions, permErr)
 	}
 
 	if !canEdit {
@@ -79,7 +87,7 @@ func (s *Service) AutoTranslateProfilePage(
 		params.SourceLocale,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get source content: %w", err)
+		return fmt.Errorf("%w: %w", ErrFailedToGetSourceContent, err)
 	}
 
 	// Translate via AI
@@ -108,7 +116,7 @@ func (s *Service) AutoTranslateProfilePage(
 		translatedContent,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to save translated content: %w", err)
+		return fmt.Errorf("%w: %w", ErrFailedToSaveTranslatedContent, err)
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{

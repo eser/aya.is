@@ -2,7 +2,7 @@ package profiles
 
 import (
 	"context"
-	"database/sql"
+	"database/sql" // TODO: replace sql.NullTime with *time.Time to remove database/sql dependency
 	"errors"
 	"fmt"
 	"net/url"

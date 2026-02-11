@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -17,19 +18,22 @@ import (
 )
 
 // Constants for Redis connection configuration.
+// C10K optimized: larger pool sizes for high-throughput scenarios.
 const (
 	// Default Redis connection retry configuration.
 	defaultMaxRetries      = 3
 	defaultMinRetryBackoff = 8 * time.Millisecond   // 8ms
 	defaultMaxRetryBackoff = 512 * time.Millisecond // 512ms
-	defaultPoolSize        = 10
-	defaultMinIdleConns    = 1
-	defaultMaxIdleConns    = 5
-	defaultConnMaxIdleTime = 30 * time.Minute
-	defaultPoolTimeout     = 4 * time.Second
+
+	// C10K optimized pool settings (was: 10, 1, 5, 30min, 4s).
+	defaultPoolSize        = 500             // Supports high concurrent connections
+	defaultMinIdleConns    = 100             // Keep warm connections ready
+	defaultMaxIdleConns    = 200             // Reduce connection churn
+	defaultConnMaxIdleTime = 5 * time.Minute // Faster cleanup of stale connections
+	defaultPoolTimeout     = 1 * time.Second // Fail fast on pool exhaustion
 	defaultRedisPort       = 6379
 
-	ReadMessagesCount = 50
+	ReadMessagesCount = 1000
 )
 
 var (
@@ -70,8 +74,10 @@ type RedisConfig struct {
 
 // RedisAdapter implements Redis operations and wraps the Redis client.
 type RedisAdapter struct {
-	client *redis.Client
-	config *RedisConfig
+	client         *redis.Client
+	config         *RedisConfig
+	scriptCache    map[string]*redis.Script // Cache for Lua scripts (EVALSHA optimization)
+	scriptCacheMux sync.RWMutex             // Protects scriptCache for concurrent access
 }
 
 // RedisConnection implements the connfx.Connection interface.
@@ -85,8 +91,9 @@ type RedisConnection struct {
 // NewRedisConnection creates a new Redis connection with enhanced configuration.
 func NewRedisConnection(protocol string, config *RedisConfig) *RedisConnection {
 	adapter := &RedisAdapter{
-		config: config,
-		client: nil, // Will be initialized when needed
+		config:      config,
+		client:      nil, // Will be initialized when needed
+		scriptCache: make(map[string]*redis.Script),
 	}
 
 	conn := &RedisConnection{
@@ -260,6 +267,7 @@ func (rc *RedisConnection) ensureClient() error {
 
 	// Configure TLS if enabled
 	if rc.adapter.config.TLSEnabled {
+		// Use TLSInsecureSkipVerify from config (controlled via configuration)
 		options.TLSConfig = &tls.Config{ //nolint:exhaustruct
 			InsecureSkipVerify: rc.adapter.config.TLSInsecureSkipVerify, //nolint:gosec
 		}
@@ -316,7 +324,7 @@ func (rc *RedisConnection) assessPoolHealth(
 	}
 
 	// Check if pool has available connections
-	poolSizeUint32 := uint32(rc.adapter.config.PoolSize) //nolint:gosec
+	poolSizeUint32 := uint32(rc.adapter.config.PoolSize)
 	if stats.IdleConns == 0 && stats.TotalConns >= poolSizeUint32 {
 		// Pool is at capacity with no idle connections - live but not ready
 		atomic.StoreInt32(&rc.state, int32(ConnectionStateLive))
@@ -564,6 +572,11 @@ func (ra *RedisAdapter) Close(ctx context.Context) error {
 	_ = ctx
 
 	return nil
+}
+
+// Client returns the underlying Redis client for advanced operations like pipelining.
+func (ra *RedisAdapter) Client() *redis.Client {
+	return ra.client
 }
 
 // QueueRepository interface implementation.
@@ -1432,7 +1445,10 @@ func getOrDefault[T comparable](value, defaultValue T) T { //nolint:ireturn
 	return value
 }
 
-// Eval executes a Lua script on Redis server.
+// Eval executes a Lua script on Redis server using EVALSHA for performance.
+// Scripts are cached and executed via EVALSHA (40-byte hash) instead of sending
+// the full script text on every call. If the script is not cached on Redis,
+// go-redis automatically falls back to EVAL and caches it.
 func (ra *RedisAdapter) Eval(
 	ctx context.Context,
 	script string,
@@ -1443,9 +1459,28 @@ func (ra *RedisAdapter) Eval(
 		return nil, fmt.Errorf("%w (script eval)", ErrRedisClientNotInitialized)
 	}
 
-	result, err := ra.client.Eval(ctx, script, keys, args...).Result()
+	// Get cached script with read lock
+	ra.scriptCacheMux.RLock()
+	cachedScript, exists := ra.scriptCache[script]
+	ra.scriptCacheMux.RUnlock()
+
+	// If not cached, create and store with write lock
+	if !exists {
+		ra.scriptCacheMux.Lock()
+		// Double-check after acquiring write lock (another goroutine may have added it)
+		cachedScript, exists = ra.scriptCache[script]
+		if !exists {
+			cachedScript = redis.NewScript(script)
+			ra.scriptCache[script] = cachedScript
+		}
+
+		ra.scriptCacheMux.Unlock()
+	}
+
+	// Run uses EVALSHA first, falls back to EVAL if script not cached on Redis server
+	result, err := cachedScript.Run(ctx, ra.client, keys, args...).Result()
 	if err != nil {
-		return nil, fmt.Errorf("%w (operation=eval): %w", ErrRedisOperation, err)
+		return nil, fmt.Errorf("%w (operation=evalsha): %w", ErrRedisOperation, err)
 	}
 
 	return result, nil
@@ -1771,7 +1806,7 @@ func (ra *RedisAdapter) ReceiveMessages(
 		Group:    consumerGroup,
 		Consumer: consumerName,
 		Streams:  []string{queueURI, ">"},
-		Count:    ReadMessagesCount, // Read up to 10 messages at a time
+		Count:    ReadMessagesCount, // Read up to ReadMessagesCount messages at a time
 		Block:    1 * time.Second,   // Block for 1 second waiting for messages
 	}
 
@@ -1811,6 +1846,20 @@ func (ra *RedisAdapter) ReceiveMessages(
 	}
 
 	return messages, nil
+}
+
+// GetQueueLength returns the length of a Redis Stream queue using XLEN.
+func (ra *RedisAdapter) GetQueueLength(ctx context.Context, queueURI string) (int64, error) {
+	if ra.client == nil {
+		return 0, fmt.Errorf("%w (queue=%q)", ErrRedisClientNotInitialized, queueURI)
+	}
+
+	length, err := ra.client.XLen(ctx, queueURI).Result()
+	if err != nil {
+		return 0, fmt.Errorf("%w (operation=xlen, queue=%q): %w", ErrRedisOperation, queueURI, err)
+	}
+
+	return length, nil
 }
 
 // MemoryPurge runs Redis MEMORY PURGE command to optimize memory usage.

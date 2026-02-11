@@ -22,9 +22,8 @@ const _ConnectionState_name = "NotInitializedConnectedLiveReadyDisconnectedError
 var _ConnectionState_index = [...]uint8{0, 14, 23, 27, 32, 44, 49, 61}
 
 func (i ConnectionState) String() string {
-	idx := int(i) - 0
-	if i < 0 || idx >= len(_ConnectionState_index)-1 {
+	if i < 0 || i >= ConnectionState(len(_ConnectionState_index)-1) {
 		return "ConnectionState(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _ConnectionState_name[_ConnectionState_index[idx]:_ConnectionState_index[idx+1]]
+	return _ConnectionState_name[_ConnectionState_index[i]:_ConnectionState_index[i+1]]
 }

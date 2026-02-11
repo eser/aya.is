@@ -81,7 +81,7 @@ export function AskQuestionForm(props: AskQuestionFormProps) {
             onClick={props.onCancel}
             className={styles.cancelButton}
           >
-            Cancel
+            {t("Common.Cancel")}
           </button>
           <button
             type="submit"

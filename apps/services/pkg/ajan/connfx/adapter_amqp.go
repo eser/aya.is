@@ -206,7 +206,7 @@ func (aa *AMQPAdapter) QueueDeclareWithConfig(
 			)
 		}
 
-		args["x-message-ttl"] = int32(ttlMs) //nolint:gosec // bounds checked above
+		args["x-message-ttl"] = int32(ttlMs)
 	}
 
 	// Add max length if specified
@@ -455,7 +455,7 @@ func (aa *AMQPAdapter) createMessage(delivery amqp.Delivery) Message {
 		ReceiptHandle: strconv.FormatUint(delivery.DeliveryTag, 10),
 		MessageID:     delivery.MessageId,
 		Timestamp:     delivery.Timestamp,
-		DeliveryCount: int(delivery.DeliveryTag), //nolint:gosec // DeliveryTag is sequential
+		DeliveryCount: int(delivery.DeliveryTag),
 	}
 
 	msg.SetAckFunc(func() error {

@@ -42,13 +42,10 @@ interface NavigationProviderProps {
   children: React.ReactNode;
 }
 
-export function NavigationProvider({
-  state,
-  children,
-}: NavigationProviderProps) {
+export function NavigationProvider(props: NavigationProviderProps) {
   return (
-    <NavigationContext.Provider value={state}>
-      {children}
+    <NavigationContext.Provider value={props.state}>
+      {props.children}
     </NavigationContext.Provider>
   );
 }

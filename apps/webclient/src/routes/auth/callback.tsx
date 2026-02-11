@@ -12,6 +12,24 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type Status = "processing" | "error";
 
+/**
+ * Validates that a redirect destination is a safe relative path (not an open redirect).
+ * Returns the validated path or falls back to the locale homepage.
+ */
+function getSafeRedirect(redirect: string | undefined, fallback: string): string {
+  if (redirect === undefined || redirect === "") {
+    return fallback;
+  }
+
+  // Only allow relative paths starting with /
+  // Block protocol-relative URLs (//evil.com), absolute URLs, and javascript: URIs
+  if (!redirect.startsWith("/") || redirect.startsWith("//")) {
+    return fallback;
+  }
+
+  return redirect;
+}
+
 export const Route = createFileRoute("/auth/callback")({
   validateSearch: (search: Record<string, unknown>) => ({
     auth_token: (search.auth_token as string) ?? undefined,
@@ -60,7 +78,7 @@ function AuthCallbackPage() {
           }
 
           // Redirect with full page load to locale-specific destination
-          const destination = redirect !== undefined ? redirect : `/${localeCode}`;
+          const destination = getSafeRedirect(redirect, `/${localeCode}`);
           globalThis.location.href = destination;
           return;
         }
@@ -97,7 +115,7 @@ function AuthCallbackPage() {
           }
 
           // Redirect with full page load to locale-specific destination
-          const destination = redirect !== undefined ? redirect : `/${localeCode}`;
+          const destination = getSafeRedirect(redirect, `/${localeCode}`);
           globalThis.location.href = destination;
           return;
         }

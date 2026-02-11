@@ -31,7 +31,7 @@ export async function handleAuthCallback(
 
     try {
       const errorData = await response.text();
-      if (errorData) {
+      if (errorData !== "") {
         errorMessage += `: ${errorData}`;
       }
     } catch {

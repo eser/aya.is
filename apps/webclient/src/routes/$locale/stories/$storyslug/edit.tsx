@@ -21,6 +21,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/edit")({
 function EditStoryPage() {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const auth = useAuth();
   // Story-level data (shared across all locales) — loaded once
   const [storyData, setStoryData] = React.useState<StoryEditData | null>(null);
@@ -182,8 +183,8 @@ function EditStoryPage() {
     return (
       <PageLayout>
         <div className="content">
-          <h2>Access Denied</h2>
-          <p>You don't have permission to edit this story.</p>
+          <h2>{t("Auth.Access Denied")}</h2>
+          <p>{t("Auth.You don't have permission to edit this story.")}</p>
         </div>
       </PageLayout>
     );
@@ -238,7 +239,7 @@ function EditStoryPage() {
       throw new Error("Failed to save story translation");
     }
 
-    toast.success("Story saved successfully");
+    toast.success(t("ContentEditor.Story saved successfully"));
     // Refresh translation locales
     backend.listStoryTranslationLocales(params.locale, authorProfileSlug, storyData.id).then((locales) => {
       setTranslationLocales(locales);
@@ -263,13 +264,13 @@ function EditStoryPage() {
     );
 
     if (result !== null) {
-      toast.success("Story deleted successfully");
+      toast.success(t("ContentEditor.Story deleted successfully"));
       navigate({
         to: "/$locale/stories",
         params: { locale: params.locale },
       });
     } else {
-      toast.error("Failed to delete story");
+      toast.error(t("ContentEditor.Failed to delete story"));
     }
   };
 

@@ -24,41 +24,49 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 	sessionService *sessions.Service,
 ) {
 	routes.
-		Route("GET /{locale}/users", func(ctx *httpfx.Context) httpfx.Result {
-			// get variables from path
-			cursor := cursors.NewCursorFromRequest(ctx.Request)
+		Route(
+			"GET /{locale}/users",
+			AuthMiddleware(authService, userService),
+			func(ctx *httpfx.Context) httpfx.Result {
+				// get variables from path
+				cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-			records, err := userService.List(ctx.Request.Context(), cursor)
-			if err != nil {
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithSanitizedError(err),
-				)
-			}
+				records, err := userService.List(ctx.Request.Context(), cursor)
+				if err != nil {
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithSanitizedError(err),
+					)
+				}
 
-			return ctx.Results.JSON(records)
-		}).
+				return ctx.Results.JSON(records)
+			},
+		).
 		HasSummary("List users").
 		HasDescription("List users.").
 		HasResponse(http.StatusOK)
 
 	routes.
-		Route("GET /{locale}/users/{id}", func(ctx *httpfx.Context) httpfx.Result {
-			// get variables from path
-			idParam := ctx.Request.PathValue("id")
+		Route(
+			"GET /{locale}/users/{id}",
+			AuthMiddleware(authService, userService),
+			func(ctx *httpfx.Context) httpfx.Result {
+				// get variables from path
+				idParam := ctx.Request.PathValue("id")
 
-			record, err := userService.GetByID(ctx.Request.Context(), idParam)
-			if err != nil {
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithSanitizedError(err),
-				)
-			}
+				record, err := userService.GetByID(ctx.Request.Context(), idParam)
+				if err != nil {
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithSanitizedError(err),
+					)
+				}
 
-			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
+				wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 
-			return ctx.Results.JSON(wrappedResponse)
-		}).
+				return ctx.Results.JSON(wrappedResponse)
+			},
+		).
 		HasSummary("Get user by ID").
 		HasDescription("Get user by ID.").
 		HasResponse(http.StatusOK)
@@ -77,9 +85,9 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			queryString := url.Query()
 			redirectURI := queryString.Get("redirect_uri")
 
-			// if redirectURI == "" {
-			// 	return ctx.Results.BadRequest(httpfx.WithErrorMessage("redirect_uri is required"))
-			// }
+			if redirectURI == "" {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("redirect_uri is required"))
+			}
 
 			// Initiate auth flow
 			authURL, err := authService.Initiate(

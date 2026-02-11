@@ -145,8 +145,8 @@ func (f *HTTPConnectionFactory) buildResilientHTTPClient( //nolint:cyclop
 	client := httpclient.NewClient(clientOptions...)
 
 	// Set timeout
-	if config.MaxConnLifetime > 0 {
-		client.Timeout = config.MaxConnLifetime
+	if config.Timeout > 0 {
+		client.Timeout = config.Timeout
 	} else {
 		client.Timeout = DefaultHTTPTimeout
 	}

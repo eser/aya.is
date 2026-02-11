@@ -120,12 +120,16 @@ func (c *Client) SearchPhotos(
 		RawQuery: queryParams.Encode(),
 	}
 
-	req, _ := http.NewRequestWithContext(
+	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
 		apiURL.String(),
 		nil,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToSearchPhotos, err)
+	}
+
 	req.Header.Set("Authorization", "Client-ID "+c.config.AccessKey)
 	req.Header.Set("Accept-Version", "v1")
 

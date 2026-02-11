@@ -179,7 +179,7 @@ func (r *Router) Route(pattern string, handlers ...Handler) *Route {
 
 		result := allHandlers[0](ctx)
 
-		// Handle redirect responses (preserved from local version)
+		// Handle redirect responses
 		if result.RedirectToURI() != "" {
 			responseWriter.Header().Set(
 				"Location",

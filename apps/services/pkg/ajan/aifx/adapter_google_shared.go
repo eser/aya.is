@@ -312,7 +312,7 @@ func buildGenerateContentConfig(opts *GenerateTextOptions) *genai.GenerateConten
 
 	// Generation parameters.
 	if opts.MaxTokens > 0 {
-		config.MaxOutputTokens = int32(opts.MaxTokens) //nolint:gosec
+		config.MaxOutputTokens = int32(opts.MaxTokens)
 	}
 
 	if opts.Temperature != nil {
@@ -360,7 +360,7 @@ func buildGenerateContentConfig(opts *GenerateTextOptions) *genai.GenerateConten
 	// Thinking budget (reasoning).
 	if opts.ThinkingBudget != nil {
 		config.ThinkingConfig = &genai.ThinkingConfig{
-			ThinkingBudget: genai.Ptr(int32(*opts.ThinkingBudget)), //nolint:gosec
+			ThinkingBudget: genai.Ptr(int32(*opts.ThinkingBudget)),
 		}
 	}
 

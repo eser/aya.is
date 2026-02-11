@@ -25,7 +25,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import type { StoryKind, StoryPublication } from "@/modules/backend/types";
-import type { AccessibleProfile } from "@/modules/backend/sessions/types";
+import type { AccessibleProfile } from "@/modules/backend/backend";
 import type { IndividualProfile } from "@/lib/auth/auth-context";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { insertTextAtCursor, MarkdownEditor, wrapSelectedText } from "./markdown-editor";

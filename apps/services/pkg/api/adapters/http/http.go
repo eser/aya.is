@@ -56,7 +56,7 @@ func Run(
 	routes.Use(middlewares.ResolveAddressMiddleware())
 	routes.Use(middlewares.ResponseTimeMiddleware())
 	routes.Use(
-		middlewares.TracingMiddleware(logger, config.TracingSkipLoggingPaths),
+		middlewares.TracingMiddleware(logger, "/health-check"),
 	)
 	routes.Use(CorsMiddlewareWithCustomDomains(authService.Config, profileService))
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics)) //nolint:contextcheck

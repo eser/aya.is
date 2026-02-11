@@ -601,7 +601,7 @@ func (m *AnthropicModel) mapToolDefinitions(tools []ToolDefinition) []anthropic.
 		inputSchema := anthropic.ToolInputSchemaParam{}
 
 		if len(tool.Parameters) > 0 {
-			var schema map[string]interface{}
+			var schema map[string]any
 
 			err := json.Unmarshal(tool.Parameters, &schema)
 			if err == nil {

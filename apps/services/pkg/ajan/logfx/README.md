@@ -2,10 +2,11 @@
 
 ## Overview
 
-**logfx** package is a configurable logging solution that leverages the `log/slog` of the standard library for
-structured logging. It includes pretty-printing options and **OpenTelemetry integration** for log export to modern
-observability platforms. The package supports OpenTelemetry-compatible severity levels and provides extensive test
-coverage to ensure reliability and correctness.
+**logfx** package is a configurable logging solution that leverages the
+`log/slog` of the standard library for structured logging. It includes
+pretty-printing options and **OpenTelemetry integration** for log export to
+modern observability platforms. The package supports OpenTelemetry-compatible
+severity levels and provides extensive test coverage to ensure reliability and correctness.
 
 ### Key Features
 
@@ -19,11 +20,9 @@ coverage to ensure reliability and correctness.
 
 ## 🚀 **Extended Log Levels**
 
-**The Problem**: Go's standard `log/slog` package provides only 4 log levels (Debug, Info, Warn, Error), which is
-insufficient for modern observability and OpenTelemetry compatibility.
+**The Problem**: Go's standard `log/slog` package provides only 4 log levels (Debug, Info, Warn, Error), which is insufficient for modern observability and OpenTelemetry compatibility.
 
-**The Solution**: logfx extends the standard library to provide **7 OpenTelemetry-compatible log levels** while
-maintaining full compatibility with `log/slog`:
+**The Solution**: logfx extends the standard library to provide **7 OpenTelemetry-compatible log levels** while maintaining full compatibility with `log/slog`:
 
 ```go
 // Standard Go slog levels (limited)
@@ -76,7 +75,6 @@ logger.PanicContext(ctx, "Context-aware panic message")
 ```
 
 **Colored Output** (development mode):
-
 ```bash
 23:45:12.123 TRACE Detailed debugging info
 23:45:12.124 DEBUG Debug information
@@ -88,7 +86,6 @@ logger.PanicContext(ctx, "Context-aware panic message")
 ```
 
 **Structured Output** (production mode):
-
 ```json
 {"time":"2024-01-15T23:45:12.123Z","level":"TRACE","msg":"Detailed debugging info"}
 {"time":"2024-01-15T23:45:12.124Z","level":"DEBUG","msg":"Debug information"}

@@ -119,12 +119,16 @@ func (c *Client) ExchangeCodeForToken(
 		values.Set("redirect_uri", redirectURI)
 	}
 
-	req, _ := http.NewRequestWithContext(
+	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
 		"https://github.com/login/oauth/access_token",
 		strings.NewReader(values.Encode()),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToExchangeCode, err)
+	}
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
@@ -174,12 +178,16 @@ func (c *Client) FetchUserInfo(
 	ctx context.Context,
 	accessToken string,
 ) (*UserInfo, error) {
-	req, _ := http.NewRequestWithContext(
+	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
 		"https://api.github.com/user",
 		nil,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-Github-Api-Version", "2022-11-28")
@@ -221,12 +229,16 @@ func (c *Client) FetchUserOrganizations(
 	ctx context.Context,
 	accessToken string,
 ) ([]*OrgInfo, error) {
-	req, _ := http.NewRequestWithContext(
+	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
 		"https://api.github.com/user/orgs",
 		nil,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-Github-Api-Version", "2022-11-28")

@@ -57,7 +57,7 @@ export function QuestionCard(props: QuestionCardProps) {
           onClick={handleVote}
           disabled={!props.isAuthenticated}
           className={`${styles.voteButton} ${props.question.has_viewer_vote ? styles.voted : ""}`}
-          title={props.isAuthenticated ? undefined : "Login to vote"}
+          title={props.isAuthenticated ? undefined : t("QA.Login to vote")}
         >
           <ChevronUp className="size-5" />
         </button>
@@ -116,7 +116,7 @@ export function QuestionCard(props: QuestionCardProps) {
                 onClick={() => setShowAnswerForm(false)}
                 className={styles.cancelButton}
               >
-                Cancel
+                {t("Common.Cancel")}
               </button>
               <button
                 type="submit"

@@ -7,7 +7,8 @@ import (
 
 // Default values for consumer configuration.
 const (
-	DefaultPrefetchCount = 10
+	// C10K optimized: higher prefetch for better throughput.
+	DefaultPrefetchCount = 100
 	DefaultMaxRetries    = 3
 	DefaultBlockTimeout  = 5 * time.Second
 )
@@ -143,8 +144,8 @@ type ExecuteResult interface {
 	// RowsAffected returns the number of rows affected
 	RowsAffected() (int64, error)
 
-	// LastInsertID returns the last insert ID (if applicable)
-	LastInsertID() (int64, error)
+	// LastInsertId returns the last insert ID (if applicable)
+	LastInsertId() (int64, error)
 }
 
 // QueueRepository defines the port for message queue operations.

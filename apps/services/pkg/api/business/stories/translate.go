@@ -11,8 +11,10 @@ import (
 
 // Sentinel errors for auto-translation.
 var (
-	ErrTranslationNotAvailable = errors.New("AI translation not available")
-	ErrNoIndividualProfile     = errors.New("user has no individual profile")
+	ErrTranslationNotAvailable       = errors.New("AI translation not available")
+	ErrNoIndividualProfile           = errors.New("user has no individual profile")
+	ErrFailedToGetSourceContent      = errors.New("failed to get source content")
+	ErrFailedToSaveTranslatedContent = errors.New("failed to save translated content")
 )
 
 // ContentTranslator defines the interface for AI-powered content translation.
@@ -78,7 +80,7 @@ func (s *Service) AutoTranslateStory(
 		params.SourceLocale,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get source content: %w", err)
+		return fmt.Errorf("%w: %w", ErrFailedToGetSourceContent, err)
 	}
 
 	// Translate via AI
@@ -105,7 +107,7 @@ func (s *Service) AutoTranslateStory(
 		translatedContent,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to save translated content: %w", err)
+		return fmt.Errorf("%w: %w", ErrFailedToSaveTranslatedContent, err)
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{

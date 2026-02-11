@@ -48,7 +48,8 @@ export const siteConfig: SiteConfig = {
 };
 
 export const getBackendUri = (): string => {
-  if (typeof globalThis.localStorage !== "undefined") {
+  // Only allow localStorage override in development to prevent SSRF via XSS
+  if (siteConfig.environment === "development" && typeof globalThis.localStorage !== "undefined") {
     const backendUriFromLocalStorage = globalThis.localStorage.getItem(
       "backendUri",
     );

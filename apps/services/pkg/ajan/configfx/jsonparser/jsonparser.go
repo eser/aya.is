@@ -88,8 +88,14 @@ func flattenJSON(input map[string]any, currentNode string, out *map[string]any) 
 		// if false {
 		arrValue, isArray := value.([]any)
 		if isArray {
-			for _, arrValue := range arrValue {
-				(*out)[prefix+key+Separator+fmt.Sprintf("%v", arrValue)] = ""
+			for i, item := range arrValue {
+				// Handle array items recursively if they are maps
+				if itemMap, ok := item.(map[string]any); ok {
+					flattenJSON(itemMap, fmt.Sprintf("%s%s%s%d", prefix, key, Separator, i), out)
+				} else {
+					// Otherwise just store the value
+					(*out)[fmt.Sprintf("%s%s%s%d", prefix, key, Separator, i)] = fmt.Sprintf("%v", item)
+				}
 			}
 
 			continue

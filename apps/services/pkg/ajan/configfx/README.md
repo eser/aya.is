@@ -2,8 +2,7 @@
 
 ## Overview
 
-**configfx** is a powerful and flexible configuration management framework for Go applications that supports multiple
-configuration sources, type-safe loading, and environment-aware configuration handling.
+**configfx** is a powerful and flexible configuration management framework for Go applications that supports multiple configuration sources, type-safe loading, and environment-aware configuration handling.
 
 ## Key Features
 
@@ -83,17 +82,15 @@ if err != nil {
 
 ## Configuration Sources
 
-configfx supports multiple configuration sources that are loaded in hierarchical order (later sources override earlier
-ones):
+configfx supports multiple configuration sources that are loaded in hierarchical order (later sources override earlier ones):
 
 ### 1. JSON Files
 
 **config.json:**
-
 ```json
 {
   "server": {
-    "host": "0.0.0.0",
+    "host": "::",
     "port": 3000
   },
   "database": {
@@ -105,7 +102,6 @@ ones):
 ```
 
 **Loading JSON:**
-
 ```go
 manager.FromJSONFile("config.json")           // Environment-aware
 manager.FromJSONFileDirect("config.json")     // Direct file only
@@ -114,7 +110,6 @@ manager.FromJSONFileDirect("config.json")     // Direct file only
 ### 2. Environment Files (.env)
 
 **.env:**
-
 ```env
 server__host=localhost
 server__port=8080
@@ -124,7 +119,6 @@ debug=true
 ```
 
 **Loading Environment Files:**
-
 ```go
 manager.FromEnvFile(".env", true)           // Environment-aware, case insensitive
 manager.FromEnvFileDirect(".env", false)    // Direct file, case sensitive
@@ -139,7 +133,6 @@ export database__url=postgres://prod-db/myapp
 ```
 
 **Loading System Environment:**
-
 ```go
 manager.FromSystemEnv(true)  // Case insensitive key matching
 ```
@@ -156,13 +149,11 @@ config.local.json        # Local developer overrides
 ```
 
 Set the environment using:
-
 ```bash
 export env=production
 ```
 
 The loading order will be:
-
 1. `config.json` (base)
 2. `config.{environment}.json` (environment-specific)
 3. `config.local.json` (local overrides)
@@ -229,7 +220,6 @@ type Config struct {
 ```
 
 **Configuration:**
-
 ```json
 {
   "features": {
@@ -244,7 +234,6 @@ type Config struct {
 ```
 
 **Environment variables:**
-
 ```env
 features__auth=enabled
 features__cache=redis
@@ -369,7 +358,7 @@ type Config struct {
 
 // Use descriptive names and sensible defaults
 type ServerConfig struct {
-    Host         string        `conf:"host" default:"0.0.0.0"`
+    Host         string        `conf:"host" default:"::"`
     Port         int           `conf:"port" default:"8080"`
     ReadTimeout  time.Duration `conf:"read_timeout" default:"30s"`
     WriteTimeout time.Duration `conf:"write_timeout" default:"30s"`
@@ -501,12 +490,10 @@ func watchConfig(configFile string, config *Config, manager *configfx.ConfigMana
 ## Dependencies
 
 configfx uses the following internal packages:
-
 - `ajan/configfx/jsonparser`: JSON parsing functionality
 - `ajan/configfx/envparser`: Environment file parsing
 - `ajan/lib`: Utility functions for environment handling
 
 ## Thread Safety
 
-The ConfigManager is safe for concurrent use during the loading phase, but the loaded configuration structs should be
-treated as immutable after loading to ensure thread safety.
+The ConfigManager is safe for concurrent use during the loading phase, but the loaded configuration structs should be treated as immutable after loading to ensure thread safety.

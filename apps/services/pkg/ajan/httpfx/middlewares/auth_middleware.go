@@ -15,9 +15,14 @@ const (
 	ContextKeyAuthClaims httpfx.ContextKey = "claims"
 )
 
-var ErrInvalidSigningMethod = errors.New("invalid signing method")
+var (
+	ErrInvalidSigningMethod = errors.New("invalid signing method")
+	ErrJWTSecretNotSet      = errors.New("JWT secret is not set")
+)
 
 func AuthMiddleware(jwtSecret string) httpfx.Handler {
+	jwtSecretBytes := []byte(jwtSecret)
+
 	return func(ctx *httpfx.Context) httpfx.Result {
 		tokenString, hasToken := getBearerToken(ctx)
 
@@ -36,10 +41,10 @@ func AuthMiddleware(jwtSecret string) httpfx.Handler {
 				)
 			}
 
-			return []byte(jwtSecret), nil
+			return jwtSecretBytes, nil
 		})
 		if err != nil || !token.Valid {
-			return ctx.Results.Unauthorized(httpfx.WithPlainText(err.Error()))
+			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid or expired token"))
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)

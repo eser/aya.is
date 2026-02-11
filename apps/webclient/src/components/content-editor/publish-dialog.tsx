@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { StoryPublication } from "@/modules/backend/types";
-import type { AccessibleProfile } from "@/modules/backend/sessions/types";
+import type { AccessibleProfile } from "@/modules/backend/backend";
 import type { IndividualProfile } from "@/lib/auth/auth-context";
 import { backend } from "@/modules/backend/backend";
 

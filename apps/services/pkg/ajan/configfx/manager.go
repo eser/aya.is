@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
+	"github.com/eser/aya.is/services/pkg/ajan/types"
 )
 
 var (
@@ -92,6 +93,11 @@ func (cl *ConfigManager) LoadDefaults(i any) error {
 func reflectMeta(r reflect.Value) ([]ConfigItemMeta, error) { //nolint:varnamelen
 	result := make([]ConfigItemMeta, 0)
 
+	// Ensure we are working with the struct value, handling pointers
+	if r.Kind() == reflect.Ptr {
+		r = r.Elem()
+	}
+
 	if r.Kind() != reflect.Struct {
 		return nil, fmt.Errorf(
 			"%w (type=%s)",
@@ -127,10 +133,43 @@ func reflectMeta(r reflect.Value) ([]ConfigItemMeta, error) { //nolint:varnamele
 
 		var children []ConfigItemMeta = nil
 
-		if structFieldType.Type.Kind() == reflect.Struct {
+		structFieldTypeKind := structFieldType.Type.Kind()
+
+		// Check if we have a struct
+		if structFieldTypeKind == reflect.Struct {
+			// Pass the struct value directly
 			var err error
 
 			children, err = reflectMeta(structField)
+			if err != nil {
+				return nil, err
+			}
+		} else if structFieldTypeKind == reflect.Ptr && structFieldType.Type.Elem().Kind() == reflect.Struct {
+			// If it's a pointer to a struct, reflectMeta's check (Ptr -> Elem) will handle dereferencing.
+			// But we must create a value if it's nil?
+			// Actually reflectMeta (as updated) handles Ptr by doing r.Elem().
+			// If structField is a Ptr, we can pass it directly.
+			// But if structField is nil Ptr?
+			// Create a zero value of the struct type (the element type)
+			// Because we want metadata about the TYPE, not necessarily the value (which might be nil)
+			elemType := structFieldType.Type.Elem()
+			elemValue := reflect.Zero(elemType)
+
+			var err error
+
+			children, err = reflectMeta(elemValue)
+			if err != nil {
+				return nil, err
+			}
+		} else if structFieldTypeKind == reflect.Slice && structFieldType.Type.Elem().Kind() == reflect.Struct {
+			// Special handling for slice of structs to pre-calculate meta for elements
+			// We create a dummy zero value of the element type to reflect on it
+			elemType := structFieldType.Type.Elem()
+			elemValue := reflect.Zero(elemType)
+
+			var err error
+
+			children, err = reflectMeta(elemValue)
 			if err != nil {
 				return nil, err
 			}
@@ -172,50 +211,179 @@ func reflectSet( //nolint:cyclop,gocognit,funlen
 				}
 
 				// Extract the map key from the flattened key
+				// Prefix matching is case-insensitive, and since ASCII case changes
+				// don't affect string length, we can safely index with len(prefix).
 				mapKey := targetKey[len(prefix):]
+
+				// If there are more separators, this might be a nested key
+				// e.g. DICT__KEY__SUBKEY -> map key is KEY
 				if idx := strings.Index(mapKey, Separator); idx != -1 {
 					mapKey = mapKey[:idx]
 				}
+
+				// Normalize map keys to lowercase for consistent lookups.
+				// Env vars are uppercase by convention (e.g. DICT__SERVICE_ACCOUNT),
+				// but code reads map entries with lowercase keys (e.g. Properties["service_account"]).
+				// Without normalization, these would be different Go map keys.
+				mapKey = strings.ToLower(mapKey)
 
 				// Create and set the map value
 				valueType := child.Type.Elem()
 				mapValue := reflect.New(valueType).Elem()
 
 				if valueType.Kind() == reflect.String {
-					value, valueOk := (*target)[targetKey].(string)
+					// For simple string maps, we get the value directly
+					// Note: if mapKey had a separator, we are looking at DICT__KEY__...
+					// This block expects the value at DICT__KEY exactly.
+					// But the loop iterates over all keys starting with DICT__.
+					// If we are processing DICT__KEY, we want its value.
+					// If we are processing DICT__KEY__SUB, this block shouldn't run for that key?
+					// Or rather, we are building the map.
+					// Current logic: iterates ALL keys starting with prefix.
+					// For each key, extracts the immediate child key.
+					// e.g. DICT__KEY1, DICT__KEY2.
+					// If duplicate keys map to same mapKey (e.g. DICT__KEY__A, DICT__KEY__B),
+					// we might process 'KEY' multiple times.
+					// Optimization: we could check if newMap already has this key?
+					if newMap.MapIndex(reflect.ValueOf(mapKey)).IsValid() {
+						continue
+					}
 
-					if valueOk {
-						mapValue.SetString(value)
+					valAny, valFound := lib.CaseInsensitiveGet(*target, prefix+mapKey)
+					if valFound {
+						if valStr, ok := valAny.(string); ok {
+							mapValue.SetString(valStr)
+						}
 					}
 				}
 
 				// Recursively set the fields of the map value
-				subMeta := ConfigItemMeta{
-					Name:            mapKey,
-					Field:           mapValue,
-					Type:            valueType,
-					IsRequired:      child.IsRequired,
-					HasDefaultValue: child.HasDefaultValue,
-					DefaultValue:    child.DefaultValue,
-
-					Children: nil,
-				}
-
+				// Only if it's a struct or complex type
 				if valueType.Kind() == reflect.Struct {
+					// We need to check if we already processed this map key to avoid double work?
+					// Yes, similar check
+					if newMap.MapIndex(reflect.ValueOf(mapKey)).IsValid() {
+						continue
+					}
+
+					subMeta := ConfigItemMeta{
+						Name:            mapKey,
+						Field:           mapValue,
+						Type:            valueType,
+						IsRequired:      child.IsRequired,
+						HasDefaultValue: child.HasDefaultValue,
+						DefaultValue:    child.DefaultValue,
+						Children:        nil,
+					}
+
 					children, _ := reflectMeta(mapValue)
 					subMeta.Children = children
+
+					err := reflectSet(subMeta, prefix+mapKey+Separator, target)
+					if err != nil {
+						return err
+					}
 				}
 
-				err := reflectSet(subMeta, prefix+mapKey+Separator, target)
-				if err != nil {
-					return err
-				}
+				// Check if we successfully set something (or if it was a struct that got filled)
+				// If mapValue is zero? For structs it might be fine.
 
 				// Set the value in the map
 				newMap.SetMapIndex(reflect.ValueOf(mapKey), mapValue)
 			}
 
 			child.Field.Set(newMap)
+
+			continue
+		}
+
+		if child.Type.Kind() == reflect.Slice {
+			// Slice support
+			// We look for keys like ARR__0, ARR__1, etc.
+			// Or ARR__0__FIELD for struct slices.
+			// Since we don't know the length beforehand, we scan.
+			// Limit scan to reasonable number? Or scan all keys in target?
+			// Scanning keys is safer.
+			prefix := key + Separator
+			maxIndex := -1
+			indices := make(map[int]bool)
+
+			for targetKey := range *target {
+				if !strings.HasPrefix(strings.ToLower(targetKey), strings.ToLower(prefix)) {
+					continue
+				}
+
+				// extract index
+				rest := targetKey[len(prefix):]
+				// find next separator if any
+				idxEnd := strings.Index(rest, Separator)
+
+				idxStr := rest
+
+				if idxEnd != -1 {
+					idxStr = rest[:idxEnd]
+				}
+
+				idx, err := strconv.Atoi(idxStr)
+				if err == nil && idx >= 0 {
+					if idx > maxIndex {
+						maxIndex = idx
+					}
+
+					indices[idx] = true
+				}
+			}
+
+			if maxIndex >= 0 {
+				// Create slice
+				newSlice := reflect.MakeSlice(child.Type, maxIndex+1, maxIndex+1)
+				child.Field.Set(newSlice)
+
+				valueType := child.Type.Elem()
+
+				for i := 0; i <= maxIndex; i++ {
+					if !indices[i] {
+						continue
+					}
+
+					sliceElem := child.Field.Index(i)
+					indexStr := strconv.Itoa(i)
+
+					if valueType.Kind() == reflect.Struct {
+						subMeta := ConfigItemMeta{
+							Name:            indexStr,
+							Field:           sliceElem,
+							Type:            valueType,
+							IsRequired:      child.IsRequired,
+							HasDefaultValue: child.HasDefaultValue,
+							DefaultValue:    child.DefaultValue,
+							Children:        nil,
+						}
+
+						// We must generate fresh metadata for the slice element instance
+						// because the metadata in child.Children refers to the dummy zero value
+						// created in reflectMeta, not this specific slice element.
+						children, _ := reflectMeta(sliceElem)
+						subMeta.Children = children
+
+						err := reflectSet(subMeta, prefix+indexStr+Separator, target)
+						if err != nil {
+							return err
+						}
+					} else {
+						// Primitive slice
+						valKey := prefix + indexStr
+
+						valAny, valFound := lib.CaseInsensitiveGet(*target, valKey)
+						if valFound {
+							if valStr, ok := valAny.(string); ok {
+								reflectSetField(sliceElem, valueType, valStr)
+							}
+						}
+					}
+				}
+				// child.Field.Set(newSlice) // Already set above
+			}
 
 			continue
 		}
@@ -229,12 +397,15 @@ func reflectSet( //nolint:cyclop,gocognit,funlen
 			continue
 		}
 
-		// Check if the target map has the key with the child name (case-insensitive)
-		rawValue, found := lib.CaseInsensitiveGet(target, key)
+		// Check if the target map has the key with the child name
+		valueAny, valueAnyOk := lib.CaseInsensitiveGet(*target, key)
+		value, valueOk := valueAny.(string)
 
-		value, valueOk := rawValue.(string)
+		if !valueAnyOk {
+			valueOk = false
+		}
 
-		if !found || !valueOk {
+		if !valueOk {
 			if child.HasDefaultValue {
 				reflectSetField(child.Field, child.Type, child.DefaultValue)
 
@@ -319,6 +490,16 @@ func reflectSetField( //nolint:cyclop,funlen
 	case reflect.TypeFor[time.Duration]():
 		durationValue, _ := time.ParseDuration(value)
 		finalValue = reflect.ValueOf(durationValue)
+	case reflect.TypeFor[types.MetricInt]():
+		var metricInt types.MetricInt
+
+		_ = metricInt.UnmarshalText([]byte(value))
+		finalValue = reflect.ValueOf(metricInt)
+	case reflect.TypeFor[types.MetricFloat]():
+		var metricFloat types.MetricFloat
+
+		_ = metricFloat.UnmarshalText([]byte(value))
+		finalValue = reflect.ValueOf(metricFloat)
 	default:
 		return
 	}
@@ -332,6 +513,7 @@ func reflectSetField( //nolint:cyclop,funlen
 		return
 	}
 
-	// Set the field directly
+	// FIXME(@eser) we might need to control if we can set
+	//              the field directly by `field.CanSet()`
 	field.Set(finalValue)
 }

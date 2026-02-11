@@ -90,7 +90,12 @@ func (w *QueueWorker) Execute(ctx context.Context) error {
 		errMsg := fmt.Sprintf("no handler registered for item type: %s", item.Type)
 		w.logger.ErrorContext(ctx, errMsg, slog.String("item_id", item.ID))
 
-		_ = w.repo.Fail(ctx, item.ID, w.workerID, errMsg, 0)
+		failErr := w.repo.Fail(ctx, item.ID, w.workerID, errMsg, 0)
+		if failErr != nil {
+			w.logger.WarnContext(ctx, "failed to mark queue item as failed",
+				slog.String("item_id", item.ID),
+				slog.String("error", failErr.Error()))
+		}
 
 		return nil
 	}
@@ -107,7 +112,12 @@ func (w *QueueWorker) Execute(ctx context.Context) error {
 			slog.Int("backoff_seconds", backoff),
 			slog.Any("error", handlerErr))
 
-		_ = w.repo.Fail(ctx, item.ID, w.workerID, handlerErr.Error(), backoff)
+		failErr := w.repo.Fail(ctx, item.ID, w.workerID, handlerErr.Error(), backoff)
+		if failErr != nil {
+			w.logger.WarnContext(ctx, "failed to mark queue item as failed after handler error",
+				slog.String("item_id", item.ID),
+				slog.String("error", failErr.Error()))
+		}
 
 		return nil
 	}

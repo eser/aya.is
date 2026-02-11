@@ -149,12 +149,16 @@ func (p *Provider) exchangeCodeForTokens(
 		"grant_type":    {"authorization_code"},
 	}
 
-	req, _ := http.NewRequestWithContext(
+	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
 		"https://oauth2.googleapis.com/token",
 		strings.NewReader(values.Encode()),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToExchangeCode, err)
+	}
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := p.httpClient.Do(req)
@@ -200,12 +204,16 @@ func (p *Provider) fetchChannelInfo(
 	ctx context.Context,
 	accessToken string,
 ) (*channelInfo, error) {
-	req, _ := http.NewRequestWithContext(
+	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
 		"https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
 		nil,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetChannelInfo, err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 
 	resp, err := p.httpClient.Do(req)

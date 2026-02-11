@@ -9,14 +9,14 @@ import (
 	noopTrace "go.opentelemetry.io/otel/trace/noop"
 )
 
-func NewNoopLoggerProvider() log.LoggerProvider { //nolint:ireturn
+func NewNoopLoggerProvider() log.LoggerProvider {
 	return noopLog.NewLoggerProvider()
 }
 
-func NewNoopMeterProvider() metric.MeterProvider { //nolint:ireturn
+func NewNoopMeterProvider() metric.MeterProvider {
 	return noopMetric.NewMeterProvider()
 }
 
-func NewNoopTracerProvider() trace.TracerProvider { //nolint:ireturn
+func NewNoopTracerProvider() trace.TracerProvider {
 	return noopTrace.NewTracerProvider()
 }

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { getSessionCurrent } from "@/modules/backend/backend";
 import type { SessionPreferences } from "@/modules/backend/types";
-import type { AccessibleProfile } from "@/modules/backend/sessions/types";
+import type { AccessibleProfile } from "@/modules/backend/backend";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
 import {

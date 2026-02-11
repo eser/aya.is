@@ -1,5 +1,6 @@
 // Create new story page
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend } from "@/modules/backend/backend";
 import {
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/$locale/stories/new")({
 function NewStoryPage() {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const auth = useAuth();
 
   // Get user's profile slug directly from auth context
@@ -92,8 +94,8 @@ function NewStoryPage() {
     return (
       <PageLayout>
         <div className="content">
-          <h2>Access Denied</h2>
-          <p>You need to be logged in with a profile to create stories.</p>
+          <h2>{t("Auth.Access Denied")}</h2>
+          <p>{t("Auth.You need to be logged in with a profile to create stories.")}</p>
         </div>
       </PageLayout>
     );
@@ -119,7 +121,7 @@ function NewStoryPage() {
     });
 
     if (result !== null) {
-      toast.success("Story created successfully");
+      toast.success(t("ContentEditor.Story created successfully"));
       navigate({
         to: "/$locale/stories/$storyslug/edit",
         params: {
@@ -128,7 +130,7 @@ function NewStoryPage() {
         },
       });
     } else {
-      toast.error("Failed to create story");
+      toast.error(t("ContentEditor.Failed to create story"));
     }
   };
 

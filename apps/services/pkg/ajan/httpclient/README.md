@@ -2,8 +2,9 @@
 
 ## Overview
 
-**httpclient** is a resilient HTTP client that is 100% compatible with the standard `net/http` interfaces while
-providing additional features for improved reliability and fault tolerance.
+**httpclient** is a resilient HTTP client that is 100% compatible with the
+standard `net/http` interfaces while providing additional features for
+improved reliability and fault tolerance.
 
 ## Key Features
 
@@ -19,7 +20,6 @@ providing additional features for improved reliability and fault tolerance.
 The circuit breaker and retry strategy can be configured in **four independent modes**:
 
 ### 1. Both Enabled (Default)
-
 ```go
 client := httpclient.NewClient(
     httpclient.WithConfig(&httpclient.Config{
@@ -42,11 +42,9 @@ client := httpclient.NewClient(
 )
 ```
 
-**Behavior**: Requests are retried up to `MaxAttempts` times. If failures reach `FailureThreshold`, the circuit breaker
-opens and subsequent requests fail immediately with `ErrCircuitOpen`.
+**Behavior**: Requests are retried up to `MaxAttempts` times. If failures reach `FailureThreshold`, the circuit breaker opens and subsequent requests fail immediately with `ErrCircuitOpen`.
 
 ### 2. Circuit Breaker Only (Retry Disabled)
-
 ```go
 client := httpclient.NewClient(
     httpclient.WithConfig(&httpclient.Config{
@@ -64,11 +62,9 @@ client := httpclient.NewClient(
 )
 ```
 
-**Behavior**: No retries are performed. After `FailureThreshold` failures, the circuit breaker opens. Server error
-responses (5xx) are returned directly until the circuit opens.
+**Behavior**: No retries are performed. After `FailureThreshold` failures, the circuit breaker opens. Server error responses (5xx) are returned directly until the circuit opens.
 
 ### 3. Retry Only (Circuit Breaker Disabled)
-
 ```go
 client := httpclient.NewClient(
     httpclient.WithConfig(&httpclient.Config{
@@ -88,11 +84,9 @@ client := httpclient.NewClient(
 )
 ```
 
-**Behavior**: Requests are retried up to `MaxAttempts` times with exponential backoff. No circuit breaking occurs -
-retries continue regardless of failure patterns.
+**Behavior**: Requests are retried up to `MaxAttempts` times with exponential backoff. No circuit breaking occurs - retries continue regardless of failure patterns.
 
 ### 4. Neither Enabled (Basic HTTP Client)
-
 ```go
 client := httpclient.NewClient(
     httpclient.WithConfig(&httpclient.Config{
@@ -107,8 +101,7 @@ client := httpclient.NewClient(
 )
 ```
 
-**Behavior**: Behaves like a standard HTTP client. Requests are made once with no retries or circuit breaking. Server
-errors are returned directly.
+**Behavior**: Behaves like a standard HTTP client. Requests are made once with no retries or circuit breaking. Server errors are returned directly.
 
 ## Error Types
 
@@ -123,7 +116,6 @@ The client returns specific errors based on the failure mode:
 ## Usage Examples
 
 ### Example 1: High-Availability Service (Both Enabled)
-
 ```go
 // For critical services that need both retry resilience and circuit breaking
 client := httpclient.NewClient(
@@ -157,7 +149,6 @@ if errors.Is(err, httpclient.ErrCircuitOpen) {
 ```
 
 ### Example 2: Fast-Failing Service (Circuit Breaker Only)
-
 ```go
 // For services where you want immediate failure detection
 client := httpclient.NewClient(
@@ -176,7 +167,6 @@ client := httpclient.NewClient(
 ```
 
 ### Example 3: Transient Error Recovery (Retry Only)
-
 ```go
 // For services with transient errors but no need for circuit breaking
 client := httpclient.NewClient(
@@ -197,7 +187,6 @@ client := httpclient.NewClient(
 ```
 
 ### Example 4: Simple HTTP Client (Neither Enabled)
-
 ```go
 // For simple use cases or when you want to handle failures manually
 client := httpclient.NewClient(
@@ -240,7 +229,6 @@ defer resp.Body.Close()
 ## Configuration Details
 
 ### Circuit Breaker Configuration
-
 ```go
 type CircuitBreakerConfig struct {
     Enabled               bool          // Enable/disable circuit breaker
@@ -251,7 +239,6 @@ type CircuitBreakerConfig struct {
 ```
 
 ### Retry Strategy Configuration
-
 ```go
 type RetryStrategyConfig struct {
     Enabled         bool          // Enable/disable retry mechanism
@@ -274,7 +261,6 @@ The package includes comprehensive tests covering all four independent operation
 - `TestClientNoResilienceFeatures`: Both features disabled
 
 Run tests with:
-
 ```bash
 go test -v ./httpclient
 ```
@@ -286,6 +272,7 @@ go test -v ./httpclient
 3. **Retry for Transient Errors**: Use retry only for services with temporary network issues
 4. **Monitor Metrics**: Track circuit breaker state and retry counts for observability
 5. **Configure Timeouts**: Always set appropriate request timeouts alongside these features
+
 
 ## Best Practices
 

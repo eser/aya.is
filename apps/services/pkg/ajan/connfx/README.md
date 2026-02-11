@@ -2,9 +2,7 @@
 
 ## Overview
 
-**connfx** provides a unified connection management system for all external integrations in the ajan framework. It
-features **centralized OTLP connection management** that enables `logfx`, `metricsfx`, and `tracesfx` to share
-connections efficiently while maintaining separation of concerns.
+**connfx** provides a unified connection management system for all external integrations in the ajan framework. It features **centralized OTLP connection management** that enables `logfx`, `metricsfx`, and `tracesfx` to share connections efficiently while maintaining separation of concerns.
 
 ### Key Features
 
@@ -77,6 +75,8 @@ import (
     "github.com/eser/aya.is/services/pkg/ajan/httpfx"
     "github.com/eser/aya.is/services/pkg/ajan/httpfx/middlewares"
     "github.com/eser/aya.is/services/pkg/ajan/logfx"
+    "github.com/eser/aya.is/services/pkg/ajan/metricsfx"
+    "github.com/eser/aya.is/services/pkg/ajan/tracesfx"
 )
 
 func main() {
@@ -135,7 +135,7 @@ func main() {
     router := httpfx.NewRouter("/api")
 
     // Add observability middleware
-    router.Use(middlewares.TracingMiddleware(logger))
+    router.Use(middlewares.TracingMiddleware(logger, ""))
 
     router.Route("GET /health", func(ctx *httpfx.Context) httpfx.Result {
         // Check all connection health
@@ -166,7 +166,6 @@ func main() {
 The OTLP adapter in `connfx` provides a unified approach to OpenTelemetry connections:
 
 **Problem (Before):**
-
 ```go
 // Each package configured separately - duplicated configuration
 logger := logfx.NewLogger(logfx.WithOTLP("otel-collector:4318", true))
@@ -181,7 +180,6 @@ traces := tracesfx.NewTracesProvider(&tracesfx.Config{
 ```
 
 **Solution (After):**
-
 ```go
 // Single OTLP connection shared across all packages
 registry.AddConnection(ctx, "otel", &connfx.ConfigTarget{
@@ -565,8 +563,7 @@ The centralized OTLP connection approach provides significant benefits for obser
 
 ### Overview
 
-The HTTP adapter in `connfx` now integrates with the `httpclient` package to provide robust, production-ready HTTP
-connections with built-in resilience features:
+The HTTP adapter in `connfx` now integrates with the `httpclient` package to provide robust, production-ready HTTP connections with built-in resilience features:
 
 - **Circuit Breaker** - Prevents cascading failures by opening the circuit when errors exceed threshold
 - **Retry Strategy** - Automatically retries failed requests with exponential backoff and jitter
@@ -624,7 +621,6 @@ state := httpConn.GetCircuitBreakerState() // "Closed", "Open", or "HalfOpen"
 ```
 
 **Circuit Breaker States:**
-
 - **Closed** - Normal operation, requests pass through
 - **Open** - Circuit is tripped, requests fail fast without hitting the server
 - **HalfOpen** - Testing if service has recovered, limited requests allowed
@@ -651,7 +647,6 @@ _, err := registry.AddConnection(ctx, "api-retry", &connfx.ConfigTarget{
 ```
 
 **Exponential Backoff Example:**
-
 - Attempt 1: No delay
 - Attempt 2: ~100ms delay (100ms + jitter)
 - Attempt 3: ~200ms delay (200ms + jitter)
@@ -733,7 +728,6 @@ resp, err = stdClient.Get(httpConn.GetBaseURL() + "/health")
 ```
 
 **Request Body Types:**
-
 ```go
 // String body
 req, err := httpConn.NewRequest(ctx, "POST", "/api/data", `{"key": "value"}`)
@@ -773,7 +767,6 @@ for name, status := range healthStatus {
 ```
 
 **HTTP Health Check Logic:**
-
 - Uses HEAD request to base URL (fast, minimal data transfer)
 - Falls back to GET request if HEAD returns 405 (Method Not Allowed)
 - Maps HTTP status codes to connection states:

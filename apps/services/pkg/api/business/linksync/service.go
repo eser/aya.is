@@ -2,7 +2,6 @@ package linksync
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -52,7 +51,7 @@ func (s *Service) GetManagedLinks(
 func (s *Service) GetLastSyncTime(ctx context.Context, linkID string) (*time.Time, error) {
 	latestImport, err := s.repo.GetLatestImportByLinkID(ctx, linkID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, ErrNotFound) {
 			return nil, nil
 		}
 
@@ -71,7 +70,7 @@ func (s *Service) UpsertImport(
 ) error {
 	// Check if import exists
 	existing, err := s.repo.GetLinkImportByRemoteID(ctx, profileLinkID, remoteID)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil && !errors.Is(err, ErrNotFound) {
 		return fmt.Errorf("%w: %w", ErrFailedToUpsertImport, err)
 	}
 

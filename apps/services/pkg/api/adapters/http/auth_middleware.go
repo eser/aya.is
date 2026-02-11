@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
@@ -34,7 +35,14 @@ func AuthMiddleware(authService *auth.Service, userService *users.Service) httpf
 
 		// Update last activity and user agent
 		userAgent := ctx.Request.Header.Get("User-Agent")
-		_ = userService.UpdateSessionActivity(ctx.Request.Context(), sessionID, &userAgent)
+
+		if err := userService.UpdateSessionActivity(ctx.Request.Context(), sessionID, &userAgent); err != nil {
+			slog.Warn(
+				"failed to update session activity",
+				slog.String("error", err.Error()),
+				slog.String("session_id", sessionID),
+			)
+		}
 
 		// Store session ID in context for route handlers
 		newContext := context.WithValue(

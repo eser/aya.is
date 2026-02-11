@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -18,6 +19,7 @@ var (
 	ErrFailedToHandleCallback   = errors.New("failed to handle callback")
 	ErrFailedToParseBaseURI     = errors.New("failed to parse base URI")
 	ErrFailedToParseRedirectURI = errors.New("failed to parse redirect URI")
+	ErrUnsafeRedirectURI        = errors.New("redirect URI not in allowed origins")
 	ErrInvalidToken             = errors.New("invalid token")
 	ErrJWTNotConfigured         = errors.New("JWT not configured")
 	ErrInvalidSigningMethod     = errors.New("invalid JWT signing method")
@@ -87,6 +89,17 @@ func (s *Service) GetProvider(provider string) Provider {
 
 func (s *Service) RegisterProvider(providerName string, provider Provider) {
 	s.providers[providerName] = provider
+}
+
+// isAllowedOrigin checks whether the given origin is in the CORS allowed origins list.
+func (s *Service) isAllowedOrigin(origin string) bool {
+	for _, allowed := range s.Config.GetCorsAllowedOrigins() {
+		if strings.EqualFold(allowed, origin) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *Service) Initiate(
@@ -220,12 +233,30 @@ func (s *Service) AuthHandleCallback(
 		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToGenerateToken, err)
 	}
 
+	// Validate redirect URI against allowed CORS origins to prevent open redirect
+	validatedRedirectURI := redirectURI
+	if validatedRedirectURI != "" {
+		parsedRedirect, parseErr := url.Parse(validatedRedirectURI)
+		if parseErr != nil {
+			return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToParseRedirectURI, parseErr)
+		}
+
+		redirectOrigin := parsedRedirect.Scheme + "://" + parsedRedirect.Host
+		if !s.isAllowedOrigin(redirectOrigin) {
+			s.logger.WarnContext(ctx, "Blocked redirect to disallowed origin",
+				slog.String("redirect_uri", validatedRedirectURI),
+				slog.String("origin", redirectOrigin))
+
+			return AuthResult{}, ErrUnsafeRedirectURI
+		}
+	}
+
 	authResult := AuthResult{
 		User:        user,
 		SessionID:   session.ID,
 		JWT:         tokenString,
 		ExpiresAt:   expiresAt,
-		RedirectURI: redirectURI,
+		RedirectURI: validatedRedirectURI,
 	}
 
 	// Add auth_token to redirect URI

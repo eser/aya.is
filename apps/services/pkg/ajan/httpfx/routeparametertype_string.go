@@ -19,9 +19,8 @@ const _RouteParameterType_name = "HeaderQueryPathBody"
 var _RouteParameterType_index = [...]uint8{0, 6, 11, 15, 19}
 
 func (i RouteParameterType) String() string {
-	idx := int(i) - 0
-	if i < 0 || idx >= len(_RouteParameterType_index)-1 {
+	if i < 0 || i >= RouteParameterType(len(_RouteParameterType_index)-1) {
 		return "RouteParameterType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _RouteParameterType_name[_RouteParameterType_index[idx]:_RouteParameterType_index[idx+1]]
+	return _RouteParameterType_name[_RouteParameterType_index[i]:_RouteParameterType_index[i+1]]
 }
