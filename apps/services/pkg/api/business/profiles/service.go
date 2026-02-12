@@ -2526,6 +2526,23 @@ func (s *Service) ListMembershipsForSettings(
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToListRecords, profileID, err)
 	}
 
+	// Non-admin users should not see admin-only membership kinds (sponsor, follower)
+	isAdmin := userKind == "admin"
+	if !isAdmin {
+		filtered := make([]*ProfileMembershipWithMember, 0, len(memberships))
+
+		for _, m := range memberships {
+			kind := MembershipKind(m.Kind)
+			if kind == MembershipKindSponsor || kind == MembershipKindFollower {
+				continue
+			}
+
+			filtered = append(filtered, m)
+		}
+
+		memberships = filtered
+	}
+
 	return memberships, nil
 }
 

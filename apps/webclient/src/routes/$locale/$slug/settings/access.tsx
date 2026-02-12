@@ -167,7 +167,7 @@ function AccessSettingsPage() {
   const isViewerOwner = isAdmin || viewerMembership?.membership_kind === "owner";
 
   // For individual profiles, 'owner' is implicit - don't allow adding it
-  // Sponsor and follower roles are admin-only
+  // Sponsor and follower roles are admin-only (both in dropdowns and in the list)
   const isIndividual = profile?.kind === "individual";
   const adminOnlyKinds = new Set<MembershipKind>(["sponsor", "follower"]);
   const availableKinds = MEMBERSHIP_KINDS.filter((mk) => {
@@ -176,8 +176,14 @@ function AccessSettingsPage() {
     return true;
   });
 
-  const [memberships, setMemberships] = React.useState<ProfileMembershipWithMember[]>([]);
+  const [allMemberships, setAllMemberships] = React.useState<ProfileMembershipWithMember[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+
+  // Filter out admin-only membership kinds (sponsor, follower) for non-admin viewers
+  const memberships = isAdmin
+    ? allMemberships
+    : allMemberships.filter((m) => !adminOnlyKinds.has(m.kind));
+
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -207,7 +213,7 @@ function AccessSettingsPage() {
     setIsLoading(true);
     const result = await backend.listProfileMemberships(params.locale, params.slug);
     if (result !== null) {
-      setMemberships(result);
+      setAllMemberships(result);
     } else {
       toast.error(t("Profile.Failed to load memberships"));
     }
