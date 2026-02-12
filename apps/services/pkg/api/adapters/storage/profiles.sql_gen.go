@@ -414,15 +414,13 @@ INSERT INTO "profile_membership" (
   "member_profile_id",
   "kind",
   "properties",
-  "started_at",
-  "created_at"
+  "started_at"
 ) VALUES (
   $1,
   $2,
   $3,
   $4,
   $5,
-  NOW(),
   NOW()
 )
 `
@@ -443,15 +441,13 @@ type CreateProfileMembershipParams struct {
 //	  "member_profile_id",
 //	  "kind",
 //	  "properties",
-//	  "started_at",
-//	  "created_at"
+//	  "started_at"
 //	) VALUES (
 //	  $1,
 //	  $2,
 //	  $3,
 //	  $4,
 //	  $5,
-//	  NOW(),
 //	  NOW()
 //	)
 func (q *Queries) CreateProfileMembership(ctx context.Context, arg CreateProfileMembershipParams) error {
@@ -1245,9 +1241,7 @@ SELECT
   pm.kind,
   pm.properties,
   pm.started_at,
-  pm.finished_at,
-  pm.created_at,
-  pm.updated_at
+  pm.finished_at
 FROM "profile_membership" pm
 WHERE pm.id = $1
   AND pm.deleted_at IS NULL
@@ -1265,8 +1259,6 @@ type GetProfileMembershipByIDRow struct {
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
 	FinishedAt      sql.NullTime          `db:"finished_at" json:"finished_at"`
-	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
 }
 
 // GetProfileMembershipByID
@@ -1278,9 +1270,7 @@ type GetProfileMembershipByIDRow struct {
 //	  pm.kind,
 //	  pm.properties,
 //	  pm.started_at,
-//	  pm.finished_at,
-//	  pm.created_at,
-//	  pm.updated_at
+//	  pm.finished_at
 //	FROM "profile_membership" pm
 //	WHERE pm.id = $1
 //	  AND pm.deleted_at IS NULL
@@ -1295,8 +1285,6 @@ func (q *Queries) GetProfileMembershipByID(ctx context.Context, arg GetProfileMe
 		&i.Properties,
 		&i.StartedAt,
 		&i.FinishedAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return &i, err
 }
@@ -1309,9 +1297,7 @@ SELECT
   pm.kind,
   pm.properties,
   pm.started_at,
-  pm.finished_at,
-  pm.created_at,
-  pm.updated_at
+  pm.finished_at
 FROM "profile_membership" pm
 WHERE pm.profile_id = $1
   AND pm.member_profile_id = $2
@@ -1332,8 +1318,6 @@ type GetProfileMembershipByProfileAndMemberRow struct {
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
 	FinishedAt      sql.NullTime          `db:"finished_at" json:"finished_at"`
-	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
 }
 
 // GetProfileMembershipByProfileAndMember
@@ -1345,9 +1329,7 @@ type GetProfileMembershipByProfileAndMemberRow struct {
 //	  pm.kind,
 //	  pm.properties,
 //	  pm.started_at,
-//	  pm.finished_at,
-//	  pm.created_at,
-//	  pm.updated_at
+//	  pm.finished_at
 //	FROM "profile_membership" pm
 //	WHERE pm.profile_id = $1
 //	  AND pm.member_profile_id = $2
@@ -1364,8 +1346,6 @@ func (q *Queries) GetProfileMembershipByProfileAndMember(ctx context.Context, ar
 		&i.Properties,
 		&i.StartedAt,
 		&i.FinishedAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return &i, err
 }
@@ -1377,7 +1357,6 @@ SELECT
   pm.started_at,
   pm.finished_at,
   pm.properties as membership_properties,
-  pm.created_at as membership_created_at,
   p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM
@@ -1397,7 +1376,7 @@ WHERE
   pm.deleted_at IS NULL
   AND pm.member_profile_id = $2
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
-ORDER BY pm.created_at DESC
+ORDER BY pm.started_at DESC
 `
 
 type GetProfileMembershipsByMemberProfileIDParams struct {
@@ -1411,7 +1390,6 @@ type GetProfileMembershipsByMemberProfileIDRow struct {
 	StartedAt            sql.NullTime          `db:"started_at" json:"started_at"`
 	FinishedAt           sql.NullTime          `db:"finished_at" json:"finished_at"`
 	MembershipProperties pqtype.NullRawMessage `db:"membership_properties" json:"membership_properties"`
-	MembershipCreatedAt  time.Time             `db:"membership_created_at" json:"membership_created_at"`
 	Profile              Profile               `db:"profile" json:"profile"`
 	ProfileTx            ProfileTx             `db:"profile_tx" json:"profile_tx"`
 }
@@ -1424,7 +1402,6 @@ type GetProfileMembershipsByMemberProfileIDRow struct {
 //	  pm.started_at,
 //	  pm.finished_at,
 //	  pm.properties as membership_properties,
-//	  pm.created_at as membership_created_at,
 //	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM
@@ -1444,7 +1421,7 @@ type GetProfileMembershipsByMemberProfileIDRow struct {
 //	  pm.deleted_at IS NULL
 //	  AND pm.member_profile_id = $2
 //	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
-//	ORDER BY pm.created_at DESC
+//	ORDER BY pm.started_at DESC
 func (q *Queries) GetProfileMembershipsByMemberProfileID(ctx context.Context, arg GetProfileMembershipsByMemberProfileIDParams) ([]*GetProfileMembershipsByMemberProfileIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, getProfileMembershipsByMemberProfileID, arg.LocaleCode, arg.MemberProfileID)
 	if err != nil {
@@ -1460,7 +1437,6 @@ func (q *Queries) GetProfileMembershipsByMemberProfileID(ctx context.Context, ar
 			&i.StartedAt,
 			&i.FinishedAt,
 			&i.MembershipProperties,
-			&i.MembershipCreatedAt,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -2538,7 +2514,7 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 
 const listProfileMemberships = `-- name: ListProfileMemberships :many
 SELECT
-  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
+  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.deleted_at,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links, p2.default_locale, p2.hide_qa,
@@ -2593,7 +2569,7 @@ type ListProfileMembershipsRow struct {
 // ListProfileMemberships
 //
 //	SELECT
-//	  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
+//	  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.deleted_at,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links, p2.default_locale, p2.hide_qa,
@@ -2650,8 +2626,6 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.ProfileMembership.Properties,
 			&i.ProfileMembership.StartedAt,
 			&i.ProfileMembership.FinishedAt,
-			&i.ProfileMembership.CreatedAt,
-			&i.ProfileMembership.UpdatedAt,
 			&i.ProfileMembership.DeletedAt,
 			&i.Profile.ID,
 			&i.Profile.Slug,
@@ -2718,8 +2692,6 @@ SELECT
   pm.properties,
   pm.started_at,
   pm.finished_at,
-  pm.created_at,
-  pm.updated_at,
   mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links, mp.default_locale, mp.hide_qa,
   mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 FROM "profile_membership" pm
@@ -2746,7 +2718,7 @@ ORDER BY
     WHEN 'follower' THEN 6
     ELSE 7
   END,
-  pm.created_at ASC
+  pm.started_at ASC
 `
 
 type ListProfileMembershipsForSettingsParams struct {
@@ -2762,8 +2734,6 @@ type ListProfileMembershipsForSettingsRow struct {
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
 	FinishedAt      sql.NullTime          `db:"finished_at" json:"finished_at"`
-	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
 	Profile         Profile               `db:"profile" json:"profile"`
 	ProfileTx       ProfileTx             `db:"profile_tx" json:"profile_tx"`
 }
@@ -2778,8 +2748,6 @@ type ListProfileMembershipsForSettingsRow struct {
 //	  pm.properties,
 //	  pm.started_at,
 //	  pm.finished_at,
-//	  pm.created_at,
-//	  pm.updated_at,
 //	  mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links, mp.default_locale, mp.hide_qa,
 //	  mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 //	FROM "profile_membership" pm
@@ -2806,7 +2774,7 @@ type ListProfileMembershipsForSettingsRow struct {
 //	    WHEN 'follower' THEN 6
 //	    ELSE 7
 //	  END,
-//	  pm.created_at ASC
+//	  pm.started_at ASC
 func (q *Queries) ListProfileMembershipsForSettings(ctx context.Context, arg ListProfileMembershipsForSettingsParams) ([]*ListProfileMembershipsForSettingsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listProfileMembershipsForSettings, arg.LocaleCode, arg.ProfileID)
 	if err != nil {
@@ -2824,8 +2792,6 @@ func (q *Queries) ListProfileMembershipsForSettings(ctx context.Context, arg Lis
 			&i.Properties,
 			&i.StartedAt,
 			&i.FinishedAt,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -3692,8 +3658,7 @@ func (q *Queries) UpdateProfileLinkTx(ctx context.Context, arg UpdateProfileLink
 const updateProfileMembership = `-- name: UpdateProfileMembership :execrows
 UPDATE "profile_membership"
 SET
-  kind = $1,
-  updated_at = NOW()
+  kind = $1
 WHERE id = $2
   AND deleted_at IS NULL
 `
@@ -3707,8 +3672,7 @@ type UpdateProfileMembershipParams struct {
 //
 //	UPDATE "profile_membership"
 //	SET
-//	  kind = $1,
-//	  updated_at = NOW()
+//	  kind = $1
 //	WHERE id = $2
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfileMembership(ctx context.Context, arg UpdateProfileMembershipParams) (int64, error) {

@@ -193,8 +193,6 @@ type ProfileMembership struct {
 	MemberProfile   *Profile   `json:"member_profile"`
 	StartedAt       *time.Time `json:"started_at"`
 	FinishedAt      *time.Time `json:"finished_at"`
-	CreatedAt       time.Time  `json:"created_at"`
-	UpdatedAt       *time.Time `json:"updated_at"`
 	ID              string     `json:"id"`
 	ProfileID       string     `json:"profile_id"`
 	MemberProfileID *string    `json:"member_profile_id"`
@@ -220,8 +218,6 @@ type ProfileMembershipWithMember struct {
 	Properties      any           `json:"properties"`
 	StartedAt       *time.Time    `json:"started_at"`
 	FinishedAt      *time.Time    `json:"finished_at"`
-	CreatedAt       time.Time     `json:"created_at"`
-	UpdatedAt       *time.Time    `json:"updated_at"`
 	MemberProfile   *ProfileBrief `json:"member_profile"`
 }
 

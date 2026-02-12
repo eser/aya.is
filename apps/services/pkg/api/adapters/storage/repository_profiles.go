@@ -780,8 +780,6 @@ func (r *Repository) ListProfileMembershipsForSettings(
 			Properties:      vars.ToObject(row.Properties),
 			StartedAt:       vars.ToTimePtr(row.StartedAt),
 			FinishedAt:      vars.ToTimePtr(row.FinishedAt),
-			CreatedAt:       row.CreatedAt,
-			UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 			MemberProfile: &profiles.ProfileBrief{
 				ID:                row.Profile.ID,
 				Slug:              row.Profile.Slug,
@@ -818,8 +816,6 @@ func (r *Repository) GetProfileMembershipByID(
 		Properties:      vars.ToObject(row.Properties),
 		StartedAt:       vars.ToTimePtr(row.StartedAt),
 		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
-		CreatedAt:       row.CreatedAt,
-		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
 }
 
@@ -851,8 +847,6 @@ func (r *Repository) GetProfileMembershipByProfileAndMember(
 		Properties:      vars.ToObject(row.Properties),
 		StartedAt:       vars.ToTimePtr(row.StartedAt),
 		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
-		CreatedAt:       row.CreatedAt,
-		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
 }
 

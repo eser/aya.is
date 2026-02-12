@@ -322,15 +322,13 @@ type Querier interface {
 	//    "member_profile_id",
 	//    "kind",
 	//    "properties",
-	//    "started_at",
-	//    "created_at"
+	//    "started_at"
 	//  ) VALUES (
 	//    $1,
 	//    $2,
 	//    $3,
 	//    $4,
 	//    $5,
-	//    NOW(),
 	//    NOW()
 	//  )
 	CreateProfileMembership(ctx context.Context, arg CreateProfileMembershipParams) error
@@ -768,9 +766,7 @@ type Querier interface {
 	//    pm.kind,
 	//    pm.properties,
 	//    pm.started_at,
-	//    pm.finished_at,
-	//    pm.created_at,
-	//    pm.updated_at
+	//    pm.finished_at
 	//  FROM "profile_membership" pm
 	//  WHERE pm.id = $1
 	//    AND pm.deleted_at IS NULL
@@ -784,9 +780,7 @@ type Querier interface {
 	//    pm.kind,
 	//    pm.properties,
 	//    pm.started_at,
-	//    pm.finished_at,
-	//    pm.created_at,
-	//    pm.updated_at
+	//    pm.finished_at
 	//  FROM "profile_membership" pm
 	//  WHERE pm.profile_id = $1
 	//    AND pm.member_profile_id = $2
@@ -801,7 +795,6 @@ type Querier interface {
 	//    pm.started_at,
 	//    pm.finished_at,
 	//    pm.properties as membership_properties,
-	//    pm.created_at as membership_created_at,
 	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM
@@ -821,7 +814,7 @@ type Querier interface {
 	//    pm.deleted_at IS NULL
 	//    AND pm.member_profile_id = $2
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
-	//  ORDER BY pm.created_at DESC
+	//  ORDER BY pm.started_at DESC
 	GetProfileMembershipsByMemberProfileID(ctx context.Context, arg GetProfileMembershipsByMemberProfileIDParams) ([]*GetProfileMembershipsByMemberProfileIDRow, error)
 	//GetProfileOwnershipForUser
 	//
@@ -1561,7 +1554,7 @@ type Querier interface {
 	//ListProfileMemberships
 	//
 	//  SELECT
-	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
+	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.deleted_at,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.hide_relations, p1.hide_links, p1.default_locale, p1.hide_qa,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.hide_relations, p2.hide_links, p2.default_locale, p2.hide_qa,
@@ -1606,8 +1599,6 @@ type Querier interface {
 	//    pm.properties,
 	//    pm.started_at,
 	//    pm.finished_at,
-	//    pm.created_at,
-	//    pm.updated_at,
 	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.hide_relations, mp.hide_links, mp.default_locale, mp.hide_qa,
 	//    mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 	//  FROM "profile_membership" pm
@@ -1634,7 +1625,7 @@ type Querier interface {
 	//      WHEN 'follower' THEN 6
 	//      ELSE 7
 	//    END,
-	//    pm.created_at ASC
+	//    pm.started_at ASC
 	ListProfileMembershipsForSettings(ctx context.Context, arg ListProfileMembershipsForSettingsParams) ([]*ListProfileMembershipsForSettingsRow, error)
 	//ListProfilePageTxLocales
 	//
@@ -2243,8 +2234,7 @@ type Querier interface {
 	//
 	//  UPDATE "profile_membership"
 	//  SET
-	//    kind = $1,
-	//    updated_at = NOW()
+	//    kind = $1
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	UpdateProfileMembership(ctx context.Context, arg UpdateProfileMembershipParams) (int64, error)

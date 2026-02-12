@@ -484,7 +484,6 @@ SELECT
   pm.started_at,
   pm.finished_at,
   pm.properties as membership_properties,
-  pm.created_at as membership_created_at,
   sqlc.embed(p),
   sqlc.embed(pt)
 FROM
@@ -504,7 +503,7 @@ WHERE
   pm.deleted_at IS NULL
   AND pm.member_profile_id = sqlc.arg(member_profile_id)
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
-ORDER BY pm.created_at DESC;
+ORDER BY pm.started_at DESC;
 
 -- name: SearchProfiles :many
 SELECT
@@ -600,15 +599,13 @@ INSERT INTO "profile_membership" (
   "member_profile_id",
   "kind",
   "properties",
-  "started_at",
-  "created_at"
+  "started_at"
 ) VALUES (
   sqlc.arg(id),
   sqlc.arg(profile_id),
   sqlc.narg(member_profile_id),
   sqlc.arg(kind),
   sqlc.narg(properties),
-  NOW(),
   NOW()
 );
 
@@ -621,8 +618,6 @@ SELECT
   pm.properties,
   pm.started_at,
   pm.finished_at,
-  pm.created_at,
-  pm.updated_at,
   sqlc.embed(mp),
   sqlc.embed(mpt)
 FROM "profile_membership" pm
@@ -649,7 +644,7 @@ ORDER BY
     WHEN 'follower' THEN 6
     ELSE 7
   END,
-  pm.created_at ASC;
+  pm.started_at ASC;
 
 -- name: GetProfileMembershipByID :one
 SELECT
@@ -659,9 +654,7 @@ SELECT
   pm.kind,
   pm.properties,
   pm.started_at,
-  pm.finished_at,
-  pm.created_at,
-  pm.updated_at
+  pm.finished_at
 FROM "profile_membership" pm
 WHERE pm.id = sqlc.arg(id)
   AND pm.deleted_at IS NULL;
@@ -674,9 +667,7 @@ SELECT
   pm.kind,
   pm.properties,
   pm.started_at,
-  pm.finished_at,
-  pm.created_at,
-  pm.updated_at
+  pm.finished_at
 FROM "profile_membership" pm
 WHERE pm.profile_id = sqlc.arg(profile_id)
   AND pm.member_profile_id = sqlc.arg(member_profile_id)
@@ -686,8 +677,7 @@ WHERE pm.profile_id = sqlc.arg(profile_id)
 -- name: UpdateProfileMembership :execrows
 UPDATE "profile_membership"
 SET
-  kind = sqlc.arg(kind),
-  updated_at = NOW()
+  kind = sqlc.arg(kind)
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
