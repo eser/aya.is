@@ -45,7 +45,8 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Unknown": "Неизвестно"
+    "Unknown": "Неизвестно",
+    "Remove": "Удалить"
   },
   "Layout": {
     "Homepage": "Главная страница",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "Членство успешно обновлено",
     "Failed to update membership": "Не удалось обновить членство",
     "Remove Member": "Удалить участника",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "Вы уверены, что хотите удалить этого участника? Он потеряет доступ к этому профилю.",
     "Member removed successfully": "Участник успешно удалён",
     "Failed to remove member": "Не удалось удалить участника",
     "Failed to load memberships": "Не удалось загрузить членства",
@@ -500,7 +500,8 @@
       "contributor": "Участник",
       "sponsor": "Спонсор",
       "follower": "Подписчик"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Вы уверены, что хотите удалить этого участника? Он будет понижен до подписчика и потеряет текущий уровень доступа."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

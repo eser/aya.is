@@ -45,7 +45,8 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Unknown": "غير معروف"
+    "Unknown": "غير معروف",
+    "Remove": "إزالة"
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "تم تحديث العضوية بنجاح",
     "Failed to update membership": "فشل في تحديث العضوية",
     "Remove Member": "إزالة العضو",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "هل أنت متأكد من أنك تريد إزالة هذا العضو؟ سيفقد الوصول إلى هذا الملف الشخصي.",
     "Member removed successfully": "تمت إزالة العضو بنجاح",
     "Failed to remove member": "فشل في إزالة العضو",
     "Failed to load memberships": "فشل في تحميل العضويات",
@@ -500,7 +500,8 @@
       "contributor": "مساهم",
       "sponsor": "راعي",
       "follower": "متابع"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "هل أنت متأكد أنك تريد إزالة هذا العضو؟ سيتم تخفيض رتبته إلى متابع وسيفقد مستوى وصوله الحالي."
   },
   "ContentEditor": {
     "Edit Page": "تعديل الصفحة",

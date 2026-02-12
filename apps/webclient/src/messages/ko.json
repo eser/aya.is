@@ -45,7 +45,8 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Unknown": "알 수 없음"
+    "Unknown": "알 수 없음",
+    "Remove": "제거"
   },
   "Layout": {
     "Homepage": "홈페이지",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "멤버십이 성공적으로 업데이트되었습니다",
     "Failed to update membership": "멤버십 업데이트 실패",
     "Remove Member": "멤버 제거",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "이 멤버를 제거하시겠습니까? 이 프로필에 대한 접근 권한을 잃게 됩니다.",
     "Member removed successfully": "멤버가 성공적으로 제거되었습니다",
     "Failed to remove member": "멤버 제거 실패",
     "Failed to load memberships": "멤버십 로드 실패",
@@ -500,7 +500,8 @@
       "contributor": "기여자",
       "sponsor": "후원자",
       "follower": "팔로워"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "이 멤버를 제거하시겠습니까? 팔로워로 강등되며 현재 접근 권한을 잃게 됩니다."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

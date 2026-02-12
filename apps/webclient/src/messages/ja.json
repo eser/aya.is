@@ -45,7 +45,8 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Unknown": "不明"
+    "Unknown": "不明",
+    "Remove": "削除"
   },
   "Layout": {
     "Homepage": "ホームページ",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "メンバーシップが正常に更新されました",
     "Failed to update membership": "メンバーシップの更新に失敗しました",
     "Remove Member": "メンバーを削除",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "このメンバーを削除してもよろしいですか？このプロフィールへのアクセス権を失います。",
     "Member removed successfully": "メンバーが正常に削除されました",
     "Failed to remove member": "メンバーの削除に失敗しました",
     "Failed to load memberships": "メンバーシップの読み込みに失敗しました",
@@ -500,7 +500,8 @@
       "contributor": "貢献者",
       "sponsor": "スポンサー",
       "follower": "フォロワー"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "このメンバーを削除してもよろしいですか？フォロワーに降格され、現在のアクセスレベルを失います。"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

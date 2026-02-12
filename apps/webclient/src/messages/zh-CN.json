@@ -45,7 +45,8 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Unknown": "未知"
+    "Unknown": "未知",
+    "Remove": "移除"
   },
   "Layout": {
     "Homepage": "首页",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "成员资格更新成功",
     "Failed to update membership": "更新成员资格失败",
     "Remove Member": "移除成员",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "您确定要移除此成员吗？他们将失去对此个人资料的访问权限。",
     "Member removed successfully": "成员移除成功",
     "Failed to remove member": "移除成员失败",
     "Failed to load memberships": "加载成员资格失败",
@@ -500,7 +500,8 @@
       "contributor": "贡献者",
       "sponsor": "赞助者",
       "follower": "关注者"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "您确定要移除此成员吗？他们将被降级为关注者并失去当前的访问权限。"
   },
   "ContentEditor": {
     "Edit Page": "编辑页面",

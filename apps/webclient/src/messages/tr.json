@@ -45,7 +45,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Remove": "Kaldır"
   },
   "Layout": {
     "Homepage": "Ana Sayfa",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "Üyelik başarıyla güncellendi",
     "Failed to update membership": "Üyelik güncellenemedi",
     "Remove Member": "Üyeyi Kaldır",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "Bu üyeyi kaldırmak istediğinizden emin misiniz? Bu profile erişimini kaybedecekler.",
     "Member removed successfully": "Üye başarıyla kaldırıldı",
     "Failed to remove member": "Üye kaldırılamadı",
     "Failed to load memberships": "Üyelikler yüklenemedi",
@@ -500,7 +500,8 @@
       "contributor": "Katkıcı",
       "sponsor": "Sponsor",
       "follower": "Takipçi"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Bu üyeyi kaldırmak istediğinizden emin misiniz? Takipçi seviyesine düşürülecek ve mevcut yetki seviyesini kaybedecektir."
   },
   "ContentEditor": {
     "Edit Page": "Sayfayı Düzenle",

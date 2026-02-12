@@ -45,7 +45,8 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Unknown": "Sconosciuto"
+    "Unknown": "Sconosciuto",
+    "Remove": "Rimuovi"
   },
   "Layout": {
     "Homepage": "Pagina iniziale",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "Iscrizione aggiornata con successo",
     "Failed to update membership": "Impossibile aggiornare l'iscrizione",
     "Remove Member": "Rimuovi membro",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "Sei sicuro di voler rimuovere questo membro? Perderà l'accesso a questo profilo.",
     "Member removed successfully": "Membro rimosso con successo",
     "Failed to remove member": "Impossibile rimuovere il membro",
     "Failed to load memberships": "Impossibile caricare le iscrizioni",
@@ -500,7 +500,8 @@
       "contributor": "Contributore",
       "sponsor": "Sponsor",
       "follower": "Follower"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Sei sicuro di voler rimuovere questo membro? Verrà retrocesso a follower e perderà il suo livello di accesso attuale."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

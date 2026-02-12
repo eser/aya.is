@@ -45,7 +45,8 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Unknown": "Inconnu"
+    "Unknown": "Inconnu",
+    "Remove": "Retirer"
   },
   "Layout": {
     "Homepage": "Page d'accueil",
@@ -488,7 +489,6 @@
     "Membership updated successfully": "Adhésion mise à jour avec succès",
     "Failed to update membership": "Échec de la mise à jour de l'adhésion",
     "Remove Member": "Supprimer le membre",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "Êtes-vous sûr de vouloir supprimer ce membre ? Il perdra l'accès à ce profil.",
     "Member removed successfully": "Membre supprimé avec succès",
     "Failed to remove member": "Échec de la suppression du membre",
     "Failed to load memberships": "Échec du chargement des adhésions",
@@ -500,7 +500,8 @@
       "contributor": "Contributeur",
       "sponsor": "Sponsor",
       "follower": "Abonné"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Êtes-vous sûr de vouloir retirer ce membre ? Il sera rétrogradé en abonné et perdra son niveau d'accès actuel."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

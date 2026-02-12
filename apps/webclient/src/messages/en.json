@@ -45,7 +45,8 @@
     "DateTimeShort": "{{date, datetime-short}}",
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
-    "RelativeTime": "{{date, relative}}"
+    "RelativeTime": "{{date, relative}}",
+    "Remove": "Remove"
   },
   "Layout": {
     "Homepage": "Homepage",
@@ -492,7 +493,6 @@
     "Membership updated successfully": "Membership updated successfully",
     "Failed to update membership": "Failed to update membership",
     "Remove Member": "Remove Member",
-    "Are you sure you want to remove this member? They will lose access to this profile.": "Are you sure you want to remove this member? They will lose access to this profile.",
     "Member removed successfully": "Member removed successfully",
     "Failed to remove member": "Failed to remove member",
     "Failed to load memberships": "Failed to load memberships",
@@ -504,7 +504,8 @@
       "contributor": "Contributor",
       "sponsor": "Sponsor",
       "follower": "Follower"
-    }
+    },
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",
