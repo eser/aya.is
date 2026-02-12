@@ -505,7 +505,14 @@
       "sponsor": "Sponsor",
       "follower": "Follower"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level."
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.",
+    "Follow": "Follow",
+    "Unfollow": "Unfollow",
+    "Followed successfully": "Followed successfully",
+    "Unfollowed successfully": "Unfollowed successfully",
+    "Failed to follow": "Failed to follow",
+    "Failed to unfollow": "Failed to unfollow",
+    "Are you sure you want to unfollow this profile?": "Are you sure you want to unfollow this profile?"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

@@ -32,6 +32,8 @@ import { searchUsersForMembership } from "./profiles/search-users-for-membership
 import { addProfileMembership } from "./profiles/add-profile-membership";
 import { updateProfileMembership } from "./profiles/update-profile-membership";
 import { deleteProfileMembership } from "./profiles/delete-profile-membership";
+import { followProfile } from "./profiles/follow-profile";
+import { unfollowProfile } from "./profiles/unfollow-profile";
 import { createProfilePage } from "./profiles/create-profile-page";
 import { updateProfilePage } from "./profiles/update-profile-page";
 import { updateProfilePageTranslation } from "./profiles/update-profile-page-translation";
@@ -145,6 +147,8 @@ export const backend = {
   addProfileMembership,
   updateProfileMembership,
   deleteProfileMembership,
+  followProfile,
+  unfollowProfile,
 
   // Profile Pages
   listProfilePages,

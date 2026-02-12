@@ -501,7 +501,14 @@
       "sponsor": "راعي",
       "follower": "متابع"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "هل أنت متأكد أنك تريد إزالة هذا العضو؟ سيتم تخفيض رتبته إلى متابع وسيفقد مستوى وصوله الحالي."
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "هل أنت متأكد أنك تريد إزالة هذا العضو؟ سيتم تخفيض رتبته إلى متابع وسيفقد مستوى وصوله الحالي.",
+    "Follow": "متابعة",
+    "Unfollow": "إلغاء المتابعة",
+    "Followed successfully": "تمت المتابعة بنجاح",
+    "Unfollowed successfully": "تم إلغاء المتابعة بنجاح",
+    "Failed to follow": "فشل في المتابعة",
+    "Failed to unfollow": "فشل في إلغاء المتابعة",
+    "Are you sure you want to unfollow this profile?": "هل أنت متأكد أنك تريد إلغاء متابعة هذا الملف الشخصي؟"
   },
   "ContentEditor": {
     "Edit Page": "تعديل الصفحة",

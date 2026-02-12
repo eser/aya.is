@@ -501,7 +501,14 @@
       "sponsor": "Спонсор",
       "follower": "Подписчик"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Вы уверены, что хотите удалить этого участника? Он будет понижен до подписчика и потеряет текущий уровень доступа."
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Вы уверены, что хотите удалить этого участника? Он будет понижен до подписчика и потеряет текущий уровень доступа.",
+    "Follow": "Подписаться",
+    "Unfollow": "Отписаться",
+    "Followed successfully": "Подписка оформлена",
+    "Unfollowed successfully": "Подписка отменена",
+    "Failed to follow": "Не удалось подписаться",
+    "Failed to unfollow": "Не удалось отписаться",
+    "Are you sure you want to unfollow this profile?": "Вы уверены, что хотите отписаться от этого профиля?"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

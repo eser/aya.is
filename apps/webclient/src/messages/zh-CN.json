@@ -501,7 +501,14 @@
       "sponsor": "赞助者",
       "follower": "关注者"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "您确定要移除此成员吗？他们将被降级为关注者并失去当前的访问权限。"
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "您确定要移除此成员吗？他们将被降级为关注者并失去当前的访问权限。",
+    "Follow": "关注",
+    "Unfollow": "取消关注",
+    "Followed successfully": "关注成功",
+    "Unfollowed successfully": "取消关注成功",
+    "Failed to follow": "关注失败",
+    "Failed to unfollow": "取消关注失败",
+    "Are you sure you want to unfollow this profile?": "您确定要取消关注此个人资料吗？"
   },
   "ContentEditor": {
     "Edit Page": "编辑页面",

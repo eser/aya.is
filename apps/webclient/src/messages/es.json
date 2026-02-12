@@ -501,7 +501,14 @@
       "sponsor": "Patrocinador",
       "follower": "Seguidor"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "¿Estás seguro de que quieres eliminar a este miembro? Será degradado a seguidor y perderá su nivel de acceso actual."
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "¿Estás seguro de que quieres eliminar a este miembro? Será degradado a seguidor y perderá su nivel de acceso actual.",
+    "Follow": "Seguir",
+    "Unfollow": "Dejar de seguir",
+    "Followed successfully": "Seguido con éxito",
+    "Unfollowed successfully": "Dejó de seguir con éxito",
+    "Failed to follow": "Error al seguir",
+    "Failed to unfollow": "Error al dejar de seguir",
+    "Are you sure you want to unfollow this profile?": "¿Estás seguro de que quieres dejar de seguir este perfil?"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

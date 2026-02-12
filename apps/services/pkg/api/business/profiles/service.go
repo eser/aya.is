@@ -3003,3 +3003,127 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 
 	return nil
 }
+
+// FollowProfile creates a follower membership for the viewer on the given profile.
+func (s *Service) FollowProfile(
+	ctx context.Context,
+	userID string,
+	userIndividualProfileID string,
+	profileSlug string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	// Cannot follow your own profile
+	if userIndividualProfileID == profileID {
+		return fmt.Errorf("%w: cannot follow your own profile", ErrInvalidMembershipKind)
+	}
+
+	// Check if already has a membership
+	existing, err := s.repo.GetProfileMembershipByProfileAndMember(
+		ctx,
+		profileID,
+		userIndividualProfileID,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if existing != nil {
+		// Already has a relationship — no action needed
+		return nil
+	}
+
+	membershipID := s.idGenerator()
+
+	err = s.repo.CreateProfileMembership(
+		ctx,
+		string(membershipID),
+		profileID,
+		&userIndividualProfileID,
+		string(MembershipKindFollower),
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileMembershipCreated,
+		EntityType: "membership",
+		EntityID:   string(membershipID),
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"profile_id":        profileID,
+			"member_profile_id": userIndividualProfileID,
+			"kind":              string(MembershipKindFollower),
+		},
+	})
+
+	return nil
+}
+
+// UnfollowProfile removes a follower membership. Only followers can unfollow;
+// higher roles must be changed through the access settings.
+func (s *Service) UnfollowProfile(
+	ctx context.Context,
+	userID string,
+	userIndividualProfileID string,
+	profileSlug string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	existing, err := s.repo.GetProfileMembershipByProfileAndMember(
+		ctx,
+		profileID,
+		userIndividualProfileID,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if existing == nil {
+		return ErrMembershipNotFound
+	}
+
+	// Only followers can self-unfollow
+	if existing.Kind != string(MembershipKindFollower) {
+		return fmt.Errorf("%w: only followers can unfollow", ErrInsufficientAccess)
+	}
+
+	err = s.repo.DeleteProfileMembership(ctx, existing.ID)
+	if err != nil {
+		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToDeleteRecord, existing.ID, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileMembershipDeleted,
+		EntityType: "membership",
+		EntityID:   existing.ID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"profile_id":        profileID,
+			"member_profile_id": userIndividualProfileID,
+			"last_properties": map[string]any{
+				"kind": existing.Kind,
+			},
+		},
+	})
+
+	return nil
+}

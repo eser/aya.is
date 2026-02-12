@@ -501,7 +501,14 @@
       "sponsor": "Sponsor",
       "follower": "Takipçi"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Bu üyeyi kaldırmak istediğinizden emin misiniz? Takipçi seviyesine düşürülecek ve mevcut yetki seviyesini kaybedecektir."
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Bu üyeyi kaldırmak istediğinizden emin misiniz? Takipçi seviyesine düşürülecek ve mevcut yetki seviyesini kaybedecektir.",
+    "Follow": "Takip Et",
+    "Unfollow": "Takipten Çık",
+    "Followed successfully": "Takip edildi",
+    "Unfollowed successfully": "Takipten çıkıldı",
+    "Failed to follow": "Takip edilemedi",
+    "Failed to unfollow": "Takipten çıkılamadı",
+    "Are you sure you want to unfollow this profile?": "Bu profili takipten çıkmak istediğinizden emin misiniz?"
   },
   "ContentEditor": {
     "Edit Page": "Sayfayı Düzenle",

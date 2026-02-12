@@ -501,7 +501,14 @@
       "sponsor": "スポンサー",
       "follower": "フォロワー"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "このメンバーを削除してもよろしいですか？フォロワーに降格され、現在のアクセスレベルを失います。"
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "このメンバーを削除してもよろしいですか？フォロワーに降格され、現在のアクセスレベルを失います。",
+    "Follow": "フォロー",
+    "Unfollow": "フォロー解除",
+    "Followed successfully": "フォローしました",
+    "Unfollowed successfully": "フォローを解除しました",
+    "Failed to follow": "フォローに失敗しました",
+    "Failed to unfollow": "フォロー解除に失敗しました",
+    "Are you sure you want to unfollow this profile?": "このプロフィールのフォローを解除してもよろしいですか？"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

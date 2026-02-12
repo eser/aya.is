@@ -351,4 +351,110 @@ func RegisterHTTPRoutesForProfileMemberships(
 			return ctx.Results.JSON(map[string]string{"status": "ok"})
 		},
 	).HasDescription("Delete a membership from a profile")
+
+	// Follow a profile (self-service)
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_follow",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			slugParam := ctx.Request.PathValue("slug")
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil || user.IndividualProfileID == nil {
+				return ctx.Results.Error(
+					http.StatusBadRequest,
+					httpfx.WithErrorMessage("User profile not found"),
+				)
+			}
+
+			err := profileService.FollowProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				*user.IndividualProfileID,
+				slugParam,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to follow profile",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithSanitizedError(err),
+				)
+			}
+
+			return ctx.Results.JSON(map[string]string{"status": "ok"})
+		},
+	).HasDescription("Follow a profile")
+
+	// Unfollow a profile (self-service)
+	routes.Route(
+		"DELETE /{locale}/profiles/{slug}/_follow",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			slugParam := ctx.Request.PathValue("slug")
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil || user.IndividualProfileID == nil {
+				return ctx.Results.Error(
+					http.StatusBadRequest,
+					httpfx.WithErrorMessage("User profile not found"),
+				)
+			}
+
+			err := profileService.UnfollowProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				*user.IndividualProfileID,
+				slugParam,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to unfollow profile",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam))
+
+				statusCode := http.StatusInternalServerError
+				if errors.Is(err, profiles.ErrInsufficientAccess) {
+					statusCode = http.StatusForbidden
+				}
+
+				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
+			}
+
+			return ctx.Results.JSON(map[string]string{"status": "ok"})
+		},
+	).HasDescription("Unfollow a profile")
 }

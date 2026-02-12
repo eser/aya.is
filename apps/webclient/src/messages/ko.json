@@ -501,7 +501,14 @@
       "sponsor": "후원자",
       "follower": "팔로워"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "이 멤버를 제거하시겠습니까? 팔로워로 강등되며 현재 접근 권한을 잃게 됩니다."
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "이 멤버를 제거하시겠습니까? 팔로워로 강등되며 현재 접근 권한을 잃게 됩니다.",
+    "Follow": "팔로우",
+    "Unfollow": "팔로우 취소",
+    "Followed successfully": "팔로우했습니다",
+    "Unfollowed successfully": "팔로우를 취소했습니다",
+    "Failed to follow": "팔로우에 실패했습니다",
+    "Failed to unfollow": "팔로우 취소에 실패했습니다",
+    "Are you sure you want to unfollow this profile?": "이 프로필의 팔로우를 취소하시겠습니까?"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

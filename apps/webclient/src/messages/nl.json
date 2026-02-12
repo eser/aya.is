@@ -501,7 +501,14 @@
       "sponsor": "Sponsor",
       "follower": "Volger"
     },
-    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Weet u zeker dat u dit lid wilt verwijderen? Het lid wordt gedegradeerd tot volger en verliest het huidige toegangsniveau."
+    "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Weet u zeker dat u dit lid wilt verwijderen? Het lid wordt gedegradeerd tot volger en verliest het huidige toegangsniveau.",
+    "Follow": "Volgen",
+    "Unfollow": "Ontvolgen",
+    "Followed successfully": "Succesvol gevolgd",
+    "Unfollowed successfully": "Succesvol ontvolgd",
+    "Failed to follow": "Volgen mislukt",
+    "Failed to unfollow": "Ontvolgen mislukt",
+    "Are you sure you want to unfollow this profile?": "Weet u zeker dat u dit profiel niet meer wilt volgen?"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

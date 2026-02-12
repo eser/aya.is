@@ -1,11 +1,24 @@
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
+import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Coins, Globe, Instagram, Link, Linkedin, SquarePen, Youtube } from "lucide-react";
+import { Coins, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
+import { toast } from "sonner";
 import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
-import { type Profile } from "@/modules/backend/backend";
+import { backend, type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function findIcon(kind: string) {
   switch (kind) {
@@ -55,21 +68,121 @@ type ProfileSidebarProps = {
   locale: string;
 };
 
+// Membership kinds at or above sponsor level (cannot self-unfollow, shown as badge)
+const ADVANCED_KINDS = new Set(["sponsor", "contributor", "maintainer", "lead", "owner"]);
+
 function ProfileSidebar(props: ProfileSidebarProps) {
   const { t } = useTranslation();
   const { canEdit } = useProfilePermissions(props.profile.id);
+  const { isAuthenticated, user, refreshAuth } = useAuth();
+
+  const [isUnfollowDialogOpen, setIsUnfollowDialogOpen] = React.useState(false);
+  const [isProcessing, setIsProcessing] = React.useState(false);
+
+  // Determine viewer's membership relationship to this profile
+  const isOwnProfile = user?.individual_profile_id === props.profile.id;
+  const viewerMembership = user?.accessible_profiles?.find((p) => p.id === props.profile.id);
+  const membershipKind = viewerMembership?.membership_kind ?? null;
+
+  const isFollower = membershipKind === "follower";
+  const isAdvanced = membershipKind !== null && ADVANCED_KINDS.has(membershipKind);
+  const showFollowButton = isAuthenticated && !isOwnProfile && membershipKind === null;
+  const showUnfollowButton = isAuthenticated && !isOwnProfile && isFollower;
+  const showBadge = isAuthenticated && !isOwnProfile && isAdvanced;
+
+  const handleFollow = async () => {
+    setIsProcessing(true);
+    const success = await backend.followProfile(props.locale, props.slug);
+    if (success) {
+      toast.success(t("Profile.Followed successfully"));
+      await refreshAuth();
+    } else {
+      toast.error(t("Profile.Failed to follow"));
+    }
+    setIsProcessing(false);
+  };
+
+  const handleUnfollow = async () => {
+    setIsProcessing(true);
+    const success = await backend.unfollowProfile(props.locale, props.slug);
+    if (success) {
+      toast.success(t("Profile.Unfollowed successfully"));
+      setIsUnfollowDialogOpen(false);
+      await refreshAuth();
+    } else {
+      toast.error(t("Profile.Failed to unfollow"));
+    }
+    setIsProcessing(false);
+  };
+
+  const buttonClass = "no-underline inline-flex items-center gap-1.5 rounded-md bg-background/80 backdrop-blur-sm px-2.5 py-1.5 text-xs font-medium text-muted-foreground shadow-sm border border-border/50 transition-colors hover:text-foreground hover:bg-background";
 
   return (
     <aside className="flex flex-col gap-4">
       {/* Profile Picture */}
-      <div className="flex justify-center md:justify-start">
+      <div className="relative flex justify-center md:justify-start">
         <SiteAvatar
           src={props.profile.profile_picture_uri}
           name={props.profile.title}
           fallbackName={props.slug}
           className="size-[280px] border"
         />
+        <div className="absolute bottom-0 right-0 flex gap-1">
+          {canEdit && (
+            <LocaleLink
+              to={`/${props.slug}/settings`}
+              className={buttonClass}
+            >
+              <SquarePen size="14" />
+              {t("Profile.Edit Profile")}
+            </LocaleLink>
+          )}
+          {showFollowButton && (
+            <button
+              type="button"
+              onClick={handleFollow}
+              disabled={isProcessing}
+              className={buttonClass}
+            >
+              <UserPlus size="14" />
+              {isProcessing ? t("Common.Saving...") : t("Profile.Follow")}
+            </button>
+          )}
+          {showUnfollowButton && (
+            <button
+              type="button"
+              onClick={() => setIsUnfollowDialogOpen(true)}
+              className={buttonClass}
+            >
+              <UserMinus size="14" />
+              {t("Profile.Unfollow")}
+            </button>
+          )}
+          {showBadge && membershipKind !== null && (
+            <span className={`${buttonClass} cursor-default`}>
+              {t(`Profile.MembershipKind.${membershipKind}`)}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Unfollow Confirmation Dialog */}
+      <AlertDialog open={isUnfollowDialogOpen} onOpenChange={setIsUnfollowDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Profile.Unfollow")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Profile.Are you sure you want to unfollow this profile?")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnfollow} disabled={isProcessing}>
+              {isProcessing ? t("Common.Saving...") : t("Profile.Unfollow")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Hero Section */}
       <div>
@@ -110,17 +223,6 @@ function ProfileSidebar(props: ProfileSidebarProps) {
           props.profile.description !== undefined && (
           <p className="mt-0 mb-4 font-sans text-sm font-normal leading-snug text-left">
             {props.profile.description}
-            {canEdit && (
-              <span className="flex">
-                <LocaleLink
-                  to={`/${props.slug}/settings`}
-                  className="no-underline transition-colors text-muted-foreground hover:text-foreground flex text-sm items-center"
-                >
-                  <SquarePen size="16" className="mr-1.5" />
-                  {t("Profile.Edit Profile")}
-                </LocaleLink>
-              </span>
-            )}
           </p>
         )}
       </div>
