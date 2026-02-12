@@ -724,13 +724,15 @@ WHERE u.deleted_at IS NULL
     OR p.slug ILIKE '%' || sqlc.arg(query) || '%'
     OR pt.title ILIKE '%' || sqlc.arg(query) || '%'
   )
-  -- Exclude users already members of this profile
+  -- Exclude users who already have a non-follower/non-sponsor membership on this profile.
+  -- Followers and sponsors are admin-only kinds and may be promoted to a higher role.
   AND NOT EXISTS (
     SELECT 1 FROM "profile_membership" pm
     WHERE pm.profile_id = sqlc.arg(profile_id)
       AND pm.member_profile_id = u.individual_profile_id
       AND pm.deleted_at IS NULL
       AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+      AND pm.kind NOT IN ('follower', 'sponsor')
   )
 ORDER BY u.name ASC
 LIMIT 10;

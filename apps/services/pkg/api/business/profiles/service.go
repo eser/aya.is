@@ -2937,7 +2937,43 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		}
 	}
 
-	// Create the membership
+	// Check if the user already has a follower/sponsor membership that should be promoted
+	existing, existingErr := s.repo.GetProfileMembershipByProfileAndMember(
+		ctx,
+		profileID,
+		memberProfileID,
+	)
+	if existingErr != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, existingErr)
+	}
+
+	if existing != nil {
+		// Existing membership found — promote it to the new kind
+		err = s.repo.UpdateProfileMembership(ctx, existing.ID, kind)
+		if err != nil {
+			return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, existing.ID, err)
+		}
+
+		s.auditService.Record(ctx, events.AuditParams{
+			EventType:  events.ProfileMembershipUpdated,
+			EntityType: "membership",
+			EntityID:   existing.ID,
+			ActorID:    &userID,
+			ActorKind:  events.ActorUser,
+			Payload: map[string]any{
+				"profile_id":        profileID,
+				"member_profile_id": memberProfileID,
+				"kind":              kind,
+				"last_properties": map[string]any{
+					"kind": existing.Kind,
+				},
+			},
+		})
+
+		return nil
+	}
+
+	// Create a new membership
 	membershipID := s.idGenerator()
 
 	err = s.repo.CreateProfileMembership(
@@ -2951,6 +2987,19 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileMembershipCreated,
+		EntityType: "membership",
+		EntityID:   string(membershipID),
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"profile_id":        profileID,
+			"member_profile_id": memberProfileID,
+			"kind":              kind,
+		},
+	})
 
 	return nil
 }
