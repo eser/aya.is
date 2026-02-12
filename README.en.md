@@ -80,6 +80,45 @@ $ make restart   # Restart services
 $ make down      # Remove containers completely
 ```
 
+## Development with Nix (Optional)
+
+The project includes a [Nix](https://nixos.org/download/) flake that provides all development tools. With this approach,
+only PostgreSQL runs in Docker while the backend and frontend run natively.
+
+Activate the Nix development environment:
+
+```bash
+$ nix develop
+```
+
+> **Tip:** If you use [direnv](https://direnv.net/), run `direnv allow` and the shell will activate automatically.
+
+The Nix shell provides Go 1.24, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint, and all other required tools.
+
+Set up the environment variables for the backend service (the default database connection to `localhost:5432` is
+already defined in `config.json`):
+
+```bash
+$ cat > apps/services/.env.local << EOF
+AUTH__JWT_SECRET=any-secret-key-here
+EOF
+```
+
+Start the services in three separate terminals:
+
+```bash
+# 1. PostgreSQL
+$ docker compose up -d postgres
+
+# 2. Backend (hot-reload)
+$ cd apps/services && make dev
+
+# 3. Frontend
+$ cd apps/webclient && deno task dev
+```
+
+The API will be available at `http://localhost:8080`, the frontend at `http://localhost:3000`.
+
 ## Project Management and CLI
 
 To connect to the service container:

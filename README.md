@@ -83,6 +83,45 @@ $ make restart   # Servisleri yeniden başlat
 $ make down      # Containerları tamamen kaldır
 ```
 
+## Nix ile Geliştirme (İsteğe Bağlı)
+
+Proje, tüm geliştirme araçlarını sağlayan bir [Nix](https://nixos.org/download/) flake içerir. Bu yöntemde sadece
+PostgreSQL Docker ile çalışır, backend ve frontend yerel olarak çalıştırılır.
+
+Nix geliştirme ortamını etkinleştirin:
+
+```bash
+$ nix develop
+```
+
+> **İpucu:** [direnv](https://direnv.net/) kullanıyorsanız `direnv allow` komutu ile shell otomatik olarak etkinleşir.
+
+Nix shell, Go 1.24, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint ve diğer tüm gerekli araçları sağlar.
+
+Backend servisi için ortam değişkenlerini ayarlayın (varsayılan veritabanı bağlantısı `config.json` dosyasında
+`localhost:5432` olarak tanımlıdır):
+
+```bash
+$ cat > apps/services/.env.local << EOF
+AUTH__JWT_SECRET=herhangi-bir-gizli-anahtar
+EOF
+```
+
+Servisleri başlatmak için üç ayrı terminal açın:
+
+```bash
+# 1. PostgreSQL
+$ docker compose up -d postgres
+
+# 2. Backend (hot-reload)
+$ cd apps/services && make dev
+
+# 3. Frontend
+$ cd apps/webclient && deno task dev
+```
+
+API `http://localhost:8080`, frontend `http://localhost:3000` adresinde erişilebilir olacaktır.
+
 ## Proje Yönetimi ve CLI
 
 Servis container'ına bağlanmak için:
