@@ -1,5 +1,5 @@
 {
-  description = "AYA website development environment";
+  description = "aya.is development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
