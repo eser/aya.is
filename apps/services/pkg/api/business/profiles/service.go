@@ -2685,6 +2685,14 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 		EntityID:   membershipID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"profile_id":        membership.ProfileID,
+			"member_profile_id": membership.MemberProfileID,
+			"kind":              newKind,
+			"last_properties": map[string]any{
+				"kind": membership.Kind,
+			},
+		},
 	})
 
 	return nil
@@ -2769,6 +2777,13 @@ func (s *Service) DeleteMembership(
 		EntityID:   membershipID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"profile_id":        membership.ProfileID,
+			"member_profile_id": membership.MemberProfileID,
+			"last_properties": map[string]any{
+				"kind": membership.Kind,
+			},
+		},
 	})
 
 	return nil
