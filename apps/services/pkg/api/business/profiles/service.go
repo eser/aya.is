@@ -2765,26 +2765,55 @@ func (s *Service) DeleteMembership(
 		}
 	}
 
-	// Delete the membership
-	err = s.repo.DeleteProfileMembership(ctx, membershipID)
-	if err != nil {
-		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToDeleteRecord, membershipID, err)
-	}
+	// If already a follower, perform a real delete.
+	// Otherwise, demote to follower so they still follow the organization.
+	if membership.Kind == string(MembershipKindFollower) {
+		err = s.repo.DeleteProfileMembership(ctx, membershipID)
+		if err != nil {
+			return fmt.Errorf(
+				"%w(membershipID: %s): %w",
+				ErrFailedToDeleteRecord,
+				membershipID,
+				err,
+			)
+		}
 
-	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.ProfileMembershipDeleted,
-		EntityType: "membership",
-		EntityID:   membershipID,
-		ActorID:    &userID,
-		ActorKind:  events.ActorUser,
-		Payload: map[string]any{
-			"profile_id":        membership.ProfileID,
-			"member_profile_id": membership.MemberProfileID,
-			"last_properties": map[string]any{
-				"kind": membership.Kind,
+		s.auditService.Record(ctx, events.AuditParams{
+			EventType:  events.ProfileMembershipDeleted,
+			EntityType: "membership",
+			EntityID:   membershipID,
+			ActorID:    &userID,
+			ActorKind:  events.ActorUser,
+			Payload: map[string]any{
+				"profile_id":        membership.ProfileID,
+				"member_profile_id": membership.MemberProfileID,
+				"last_properties": map[string]any{
+					"kind": membership.Kind,
+				},
 			},
-		},
-	})
+		})
+	} else {
+		err = s.repo.UpdateProfileMembership(ctx, membershipID, string(MembershipKindFollower))
+		if err != nil {
+			return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, membershipID, err)
+		}
+
+		s.auditService.Record(ctx, events.AuditParams{
+			EventType:  events.ProfileMembershipUpdated,
+			EntityType: "membership",
+			EntityID:   membershipID,
+			ActorID:    &userID,
+			ActorKind:  events.ActorUser,
+			Payload: map[string]any{
+				"profile_id":        membership.ProfileID,
+				"member_profile_id": membership.MemberProfileID,
+				"kind":              string(MembershipKindFollower),
+				"last_properties": map[string]any{
+					"kind": membership.Kind,
+				},
+			},
+		})
+	}
 
 	return nil
 }

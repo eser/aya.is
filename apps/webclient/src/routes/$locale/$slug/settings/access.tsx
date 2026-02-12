@@ -610,13 +610,13 @@ function AccessSettingsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("Profile.Remove Member")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("Profile.Are you sure you want to remove this member? They will lose access to this profile.")}
+              {t("Profile.Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteMembership}>
-              {t("Common.Delete")}
+              {t("Common.Remove")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
