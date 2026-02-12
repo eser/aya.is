@@ -19,7 +19,7 @@
           inherit system;
         };
 
-        go = pkgs.go_1_24;
+        go = pkgs.go_1_25;
         nodejs = pkgs.nodejs_20;
       in
       {

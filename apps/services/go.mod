@@ -1,6 +1,6 @@
 module github.com/eser/aya.is/services
 
-go 1.24.4
+go 1.25.7
 
 require (
 	github.com/anthropics/anthropic-sdk-go v1.21.0
@@ -34,6 +34,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
 	golang.org/x/net v0.47.0
+	golang.org/x/sys v0.38.0
 	golang.org/x/text v0.31.0
 	google.golang.org/genai v1.45.0
 	modernc.org/sqlite v1.38.0
@@ -326,7 +327,6 @@ require (
 	golang.org/x/exp/typeparams v0.0.0-20250210185358-939b2ce775ac // indirect
 	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
 	golang.org/x/term v0.37.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
