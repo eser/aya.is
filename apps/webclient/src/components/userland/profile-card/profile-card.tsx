@@ -4,6 +4,7 @@ import { SiteAvatar } from "@/components/userland/site-avatar";
 import { Badge } from "@/components/ui/badge";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { InlineMarkdown } from "@/lib/inline-markdown";
+import { getProfilePictureUrl } from "@/lib/profile-picture";
 import type { Profile } from "@/modules/backend/types";
 import styles from "./profile-card.module.css";
 
@@ -29,7 +30,7 @@ export function ProfileCard(props: ProfileCardProps) {
         <div className={styles.coverCard}>
           <div className={styles.coverImageContainer}>
             <img
-              src={profile.profile_picture_uri ?? "/assets/site-logo.svg"}
+              src={getProfilePictureUrl(profile.profile_picture_uri, profile.title ?? "", profile.slug)}
               alt={profile.title ?? profile.slug}
               className={styles.coverImage}
             />

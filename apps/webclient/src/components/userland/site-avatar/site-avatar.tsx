@@ -1,8 +1,7 @@
 import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-
-const DICEBEAR_BASE_URL = "https://api.dicebear.com/7.x/initials/svg";
+import { getDisplayName, getInitials, getProfilePictureUrl } from "@/lib/profile-picture";
 
 export type SiteAvatarProps = {
   /** Profile picture URL */
@@ -18,24 +17,6 @@ export type SiteAvatarProps = {
   /** Handler for image load errors */
   onError?: () => void;
 };
-
-function getDisplayName(name: string, fallbackName?: string): string {
-  if (name !== "") {
-    return name;
-  }
-  if (fallbackName !== undefined && fallbackName !== "") {
-    return fallbackName;
-  }
-  return "?";
-}
-
-function getInitials(displayName: string): string {
-  return displayName.charAt(0).toUpperCase();
-}
-
-function getDicebearUrl(seed: string): string {
-  return `${DICEBEAR_BASE_URL}?seed=${encodeURIComponent(seed)}`;
-}
 
 function getSizeClass(size: SiteAvatarProps["size"]): string {
   switch (size) {
@@ -53,11 +34,11 @@ export function SiteAvatar(props: SiteAvatarProps) {
 
   const displayName = getDisplayName(props.name, props.fallbackName);
   const initials = getInitials(displayName);
-  const dicebearUrl = getDicebearUrl(displayName);
 
   // Determine the image source
-  const hasCustomImage = props.src !== null && props.src !== undefined && props.src !== "";
-  const imageSrc = imageError || !hasCustomImage ? dicebearUrl : props.src;
+  const imageSrc = imageError
+    ? getProfilePictureUrl(null, props.name, props.fallbackName)
+    : getProfilePictureUrl(props.src, props.name, props.fallbackName);
 
   const handleImageError = () => {
     setImageError(true);
