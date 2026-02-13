@@ -11,6 +11,11 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 )
 
+// isSkipError checks if an error is a worker skip signal.
+func isSkipError(err error) bool {
+	return errors.Is(err, ErrWorkerSkipped)
+}
+
 // Sentinel errors.
 var (
 	ErrWorkerPanicked = errors.New("worker panicked during execution")
@@ -124,7 +129,6 @@ func (r *Runner) executeWorker(ctx context.Context) {
 		r.status.IsRunning = false
 		r.status.LastRun = start
 		r.status.LastDuration = duration
-		r.status.RunCount++
 		r.mu.Unlock()
 
 		if rec := recover(); rec != nil {
@@ -147,19 +151,31 @@ func (r *Runner) executeWorker(ctx context.Context) {
 
 	r.mu.Lock()
 
-	r.status.LastError = err
-	if err != nil {
+	switch {
+	case isSkipError(err):
+		r.status.SkipCount++
+		r.status.LastError = nil
+	case err != nil:
+		r.status.LastError = err
 		r.status.ErrorCount++
+	default:
+		r.status.LastError = nil
+		r.status.SuccessCount++
 	}
 
 	r.mu.Unlock()
 
-	if err != nil {
+	switch {
+	case isSkipError(err):
+		r.logger.DebugContext(ctx, "Worker execution skipped",
+			slog.String("worker", r.worker.Name()),
+			slog.Duration("duration", duration))
+	case err != nil:
 		r.logger.ErrorContext(ctx, "Worker execution failed",
 			slog.String("worker", r.worker.Name()),
 			slog.Duration("duration", duration),
 			slog.Any("error", err))
-	} else {
+	default:
 		r.logger.DebugContext(ctx, "Worker execution completed",
 			slog.String("worker", r.worker.Name()),
 			slog.Duration("duration", duration))

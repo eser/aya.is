@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 )
@@ -127,7 +128,7 @@ func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
 	if err == nil && disabled == "true" {
-		return nil
+		return workerfx.ErrWorkerSkipped
 	}
 
 	// Check if it's time to run based on persisted schedule
@@ -135,7 +136,7 @@ func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
 
 	nextRunAt, err := w.runtimeStates.GetTime(ctx, nextRunKey)
 	if err == nil && time.Now().Before(nextRunAt) {
-		return nil
+		return workerfx.ErrWorkerSkipped
 	}
 	// If ErrStateNotFound or ErrInvalidTime, proceed (first run or corrupted state)
 
@@ -146,14 +147,14 @@ func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
 			slog.String("mode", string(w.mode)),
 			slog.Any("error", lockErr))
 
-		return nil
+		return workerfx.ErrWorkerSkipped
 	}
 
 	if !acquired {
 		w.logger.DebugContext(ctx, "Another instance is running this worker",
 			slog.String("mode", string(w.mode)))
 
-		return nil
+		return workerfx.ErrWorkerSkipped
 	}
 
 	defer func() {

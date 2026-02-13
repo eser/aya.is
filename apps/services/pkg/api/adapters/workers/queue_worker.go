@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 )
@@ -68,7 +69,7 @@ func (w *QueueWorker) Execute(ctx context.Context) error {
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
 	if err == nil && disabled == "true" {
-		return nil
+		return workerfx.ErrWorkerSkipped
 	}
 
 	item, err := w.repo.ClaimNext(ctx, w.workerID)
@@ -77,7 +78,7 @@ func (w *QueueWorker) Execute(ctx context.Context) error {
 	}
 
 	if item == nil {
-		return nil
+		return workerfx.ErrWorkerSkipped
 	}
 
 	w.logger.InfoContext(ctx, "Processing queue item",

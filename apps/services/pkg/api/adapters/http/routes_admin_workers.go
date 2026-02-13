@@ -15,15 +15,16 @@ import (
 )
 
 type adminWorkerResponse struct {
-	Name       string  `json:"name"`
-	IsRunning  bool    `json:"is_running"`
-	IsEnabled  bool    `json:"is_enabled"`
-	LastRun    *string `json:"last_run"`
-	NextRun    *string `json:"next_run"`
-	LastError  *string `json:"last_error"`
-	RunCount   int64   `json:"run_count"`
-	ErrorCount int64   `json:"error_count"`
-	Interval   string  `json:"interval"`
+	Name         string  `json:"name"`
+	IsRunning    bool    `json:"is_running"`
+	IsEnabled    bool    `json:"is_enabled"`
+	LastRun      *string `json:"last_run"`
+	NextRun      *string `json:"next_run"`
+	LastError    *string `json:"last_error"`
+	SuccessCount int64   `json:"success_count"`
+	SkipCount    int64   `json:"skip_count"`
+	ErrorCount   int64   `json:"error_count"`
+	Interval     string  `json:"interval"`
 }
 
 func RegisterHTTPRoutesForAdminWorkers(
@@ -57,12 +58,13 @@ func RegisterHTTPRoutesForAdminWorkers(
 
 				for _, status := range statuses {
 					item := adminWorkerResponse{
-						Name:       status.Name,
-						IsRunning:  status.IsRunning,
-						IsEnabled:  true,
-						RunCount:   status.RunCount,
-						ErrorCount: status.ErrorCount,
-						Interval:   status.Interval.String(),
+						Name:         status.Name,
+						IsRunning:    status.IsRunning,
+						IsEnabled:    true,
+						SuccessCount: status.SuccessCount,
+						SkipCount:    status.SkipCount,
+						ErrorCount:   status.ErrorCount,
+						Interval:     status.Interval.String(),
 					}
 
 					// Last run

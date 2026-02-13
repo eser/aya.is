@@ -2,8 +2,12 @@ package workerfx
 
 import (
 	"context"
+	"errors"
 	"time"
 )
+
+// Sentinel errors.
+var ErrWorkerSkipped = errors.New("worker skipped execution")
 
 // Worker defines the interface for background workers.
 type Worker interface {
@@ -33,7 +37,8 @@ type WorkerStatus struct {
 	LastRun      time.Time
 	LastDuration time.Duration
 	LastError    error
-	RunCount     int64
+	SuccessCount int64
+	SkipCount    int64
 	ErrorCount   int64
 	IsRunning    bool
 }

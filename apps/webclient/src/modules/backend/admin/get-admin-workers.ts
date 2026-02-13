@@ -8,7 +8,8 @@ export interface AdminWorkerStatus {
   last_run: string | null;
   next_run: string | null;
   last_error: string | null;
-  run_count: number;
+  success_count: number;
+  skip_count: number;
   error_count: number;
   interval: string;
 }

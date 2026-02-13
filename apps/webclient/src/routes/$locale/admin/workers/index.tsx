@@ -133,7 +133,10 @@ function AdminWorkersDashboard() {
               <TableHead>{t("Admin.Next Run")}</TableHead>
               <TableHead>{t("Admin.Last Error")}</TableHead>
               <TableHead className="text-center">
-                {t("Admin.Run Count")}
+                {t("Admin.Success Count")}
+              </TableHead>
+              <TableHead className="text-center">
+                {t("Admin.Skip Count")}
               </TableHead>
               <TableHead className="text-center">
                 {t("Admin.Error Count")}
@@ -160,7 +163,14 @@ function AdminWorkersDashboard() {
                   {worker.last_error ?? "-"}
                 </TableCell>
                 <TableCell className="text-center font-medium">
-                  {worker.run_count}
+                  {worker.success_count > 0 ? (
+                    <span className="text-green-600">{worker.success_count}</span>
+                  ) : (
+                    worker.success_count
+                  )}
+                </TableCell>
+                <TableCell className="text-center font-medium text-muted-foreground">
+                  {worker.skip_count}
                 </TableCell>
                 <TableCell className="text-center font-medium">
                   {worker.error_count > 0 ? (
