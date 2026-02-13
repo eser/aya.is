@@ -130,10 +130,10 @@
   },
   "Home": {
     "AYA the Open Source Network": "AYA a Rede de Código Aberto",
-    "A software foundation formed by volunteer-developed software": "Uma fundação de software formada por software desenvolvido por voluntários",
-    "Rest of the story": "Resto da história",
+    "A platform connecting the elements that produce and develop for the community": "Uma plataforma que reúne os elementos que produzem e desenvolvem para a comunidade",
+    "About AYA": "Sobre a AYA",
     "GitHub": "GitHub",
-    "IntroText": "**AYA (significa Rede de Código Aberto em turco)** é uma plataforma que permite a voluntários motivados pelo bem social colaborar e desenvolver soluções de tecnologia da informação de qualidade.\n\nRealizámos projetos coletivamente, fornecendo apoio de voluntários especializados e recursos técnicos. Estes projetos foram soluções de código aberto acessíveis e controláveis por todos, principalmente instituições oficiais e organizações não governamentais. O nosso papel tem sido facilitar a comunicação dos voluntários e a coordenação da gestão de recursos.\n\nComo organização sem fins lucrativos focada no benefício social, a AYA continua a sua jornada com uma [identidade de fundação de software](/aya/stories/20240107-vakif-kimligimiz-ve-sinirlarimiz) que acolhe diversos projetos de TI."
+    "IntroText": "**AYA (significa Açık Yazılım Ağı, Rede de Código Aberto em turco)** é uma iniciativa que permite a voluntários que produzem soluções informáticas de qualidade com a motivação de criar benefício social reunirem-se e realizarem projetos.\n\nDesde o primeiro dia, as pessoas formaram os alicerces da AYA. Pessoas que se conheciam e estavam envolvidas em informática e tecnologia criaram uma vasta comunidade e conseguiram realizar projetos quando mais eram necessários. Estes projetos tornaram-se soluções informáticas com licenças de código aberto, abertas ao uso e supervisão de todos, principalmente instituições oficiais e organizações da sociedade civil.\n\nEnquanto as pessoas que produzem no ecossistema de informática e tecnologia desempenham um papel tão crucial, criámos a plataforma aya.is na qual se encontra atualmente, pensando que existia [uma necessidade de uma plataforma](/pt-PT/stories/20241203-developer-platformu-eksikligi) para conhecer melhor as pessoas neste ecossistema, destacar o seu trabalho e conhecê-las.\n\nPode começar a explorar a plataforma a partir das secções [Elementos](/pt-PT/elements), [Produtos](/pt-PT/products), [Conteúdo](/pt-PT/content) e [Artigos](/pt-PT/stories)!"
   },
   "Stories": {
     "Description": "Articles, announcements and content from the AYA community.",

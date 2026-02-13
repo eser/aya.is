@@ -130,10 +130,10 @@
   },
   "Home": {
     "AYA the Open Source Network": "AYA, Açık Yazılım Ağı",
-    "A software foundation formed by volunteer-developed software": "Gönüllü geliştirilen yazılımlarla oluşan bir yazılım vakfı",
-    "Rest of the story": "Hikayenin devamı",
+    "A platform connecting the elements that produce and develop for the community": "Topluluk için üreten, geliştiren unsurları buluşturan platform",
+    "About AYA": "AYA Hakkında",
     "GitHub": "GitHub",
-    "IntroText": "**AYA (açılımı Açık Yazılım Ağı)**, sosyal bir yarar oluşturmak motivasyonuyla nitelikli bilişim çözümleri üreten gönüllülerin bir araya gelmesine ve projeler gerçekleştirmesine imkan sağlayan bir platformdur.\n\nBugüne kadar projelere yetkin ve uzman gönüllü desteği ve teknik kaynaklar sunarak kolektif bir şekilde gerçeklenmelerini sağladık. Bu projeler resmi kurumlar ve sivil toplum kuruluşları başta olmak üzere herkesin kullanımına ve denetimine açık, açık kaynak lisanslarına sahip bilişim çözümleri oldular. Bizim buradaki rolümüz hem gönüllülerin aralarındaki iletişime aracı olmak hem de kaynak yönetiminde koordinasyon sağlamak oldu.\n\nSosyal yarar gözeten ve kar amacı gütmeyen bir oluşum olarak AYA, bugün yoluna portföyünde bilişim projeleri barındıran [yazılım vakfı kimliğiyle](/tr/aya/stories/20240107-vakif-kimligimiz-ve-sinirlarimiz) devam ediyor."
+    "IntroText": "**AYA (açılımı Açık Yazılım Ağı)**, sosyal bir yarar oluşturmak motivasyonuyla nitelikli bilişim çözümleri üreten gönüllülerin bir araya gelmesine ve projeler gerçekleştirmesine imkan sağlayan bir oluşumdur.\n\nİlk günden itibaren AYA'nın yapı taşını insanlar oluşturdu, bilişim ve teknolojiyle ilgilisi olan birbirini tanıyan insanlar dev bir çevre oluşturup en ihtiyaç olduğu anlarda projeler gerçekleyebildiler. Bu projeler resmi kurumlar ve sivil toplum kuruluşları başta olmak üzere herkesin kullanımına ve denetimine açık, açık kaynak lisanslarına sahip bilişim çözümleri oldular.\n\nBilişim ve teknoloji çevresinde üreten insanlar bu kadar kritik rol oynarken, bu ekosistemde yer alan kişileri daha iyi tanımak, üretimlerini ön plana çıkartmak, onları tanımak için [bir platform gereksinimi](/tr/stories/20241203-developer-platformu-eksikligi) olduğunu düşünerek şu an üzerinde bulunduğunuz aya.is platform'unu oluşturduk.\n\nPlatformu [Bileşenler](/tr/elements), [Üretimler](/tr/products), [İçerikler](/tr/content) ve [Makaleler](/tr/stories) bölümlerinden keşfe başlayabilirsiniz!"
   },
   "Stories": {
     "Description": "AYA topluluğundan makaleler, duyurular ve içerikler.",

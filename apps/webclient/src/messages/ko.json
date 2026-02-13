@@ -130,10 +130,10 @@
   },
   "Home": {
     "AYA the Open Source Network": "AYA 오픈 소스 네트워크",
-    "A software foundation formed by volunteer-developed software": "자원봉사자가 개발한 소프트웨어로 구성된 소프트웨어 재단",
-    "Rest of the story": "이야기의 나머지 부분",
+    "A platform connecting the elements that produce and develop for the community": "커뮤니티를 위해 생산하고 개발하는 요소들을 연결하는 플랫폼",
+    "About AYA": "AYA 소개",
     "GitHub": "GitHub",
-    "IntroText": "**AYA (터키어로 오픈 소스 네트워크를 의미)**는 사회적 선을 추구하는 자원봉사자들이 협력하여 양질의 정보 기술 솔루션을 개발할 수 있도록 하는 플랫폼입니다.\n\n우리는 전문가 자원봉사 지원과 기술 자원을 제공함으로써 공동으로 프로젝트를 실현해 왔습니다. 이러한 프로젝트는 주로 공식 기관 및 비정부 기구를 포함하여 모든 사람이 접근하고 제어할 수 있는 오픈 소스 솔루션이었습니다. 우리의 역할은 자원봉사자 커뮤니케이션과 자원 관리 조정을 촉진하는 것이었습니다.\n\n사회적 이익에 중점을 둔 비영리 단체로서 AYA는 다양한 IT 프로젝트를 호스팅하는 [소프트웨어 재단 정체성](/aya/stories/20240107-vakif-kimligimiz-ve-sinirlarimiz)으로 여정을 계속하고 있습니다."
+    "IntroText": "**AYA (Açık Yazılım Ağı의 약자로, 터키어로 오픈 소스 네트워크를 의미)**는 사회적 이익을 창출하려는 동기를 가지고 양질의 IT 솔루션을 만드는 자원봉사자들이 모여 프로젝트를 실현할 수 있게 하는 이니셔티브입니다.\n\n처음부터 사람들이 AYA의 기반을 형성했습니다. IT와 기술에 관련된 서로 아는 사람들이 거대한 커뮤니티를 만들어 가장 필요한 순간에 프로젝트를 실현할 수 있었습니다. 이러한 프로젝트는 오픈 소스 라이선스를 가진 IT 솔루션이 되어 공공 기관과 시민 사회 단체를 비롯한 모든 사람의 사용과 감독에 개방되었습니다.\n\nIT와 기술 생태계에서 생산하는 사람들이 이토록 중요한 역할을 하는 가운데, 이 생태계의 사람들을 더 잘 알고 그들의 작업을 부각시키기 위한 [플랫폼의 필요성](/ko/stories/20241203-developer-platformu-eksikligi)이 있다고 생각하여 현재 여러분이 보고 계신 aya.is 플랫폼을 만들었습니다.\n\n[엘리먼트](/ko/elements), [프로덕트](/ko/products), [콘텐츠](/ko/content), [아티클](/ko/stories) 섹션에서 플랫폼 탐색을 시작해 보세요!"
   },
   "Stories": {
     "Description": "Articles, announcements and content from the AYA community.",

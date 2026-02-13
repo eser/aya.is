@@ -53,7 +53,7 @@ function LocaleHomePage() {
             <h1 className="hero">{t("Home.AYA the Open Source Network")}</h1>
             <h2 className="subtitle">
               {t(
-                "Home.A software foundation formed by volunteer-developed software",
+                "Home.A platform connecting the elements that produce and develop for the community",
               )}
             </h2>
 
@@ -63,9 +63,9 @@ function LocaleHomePage() {
           </article>
         </div>
 
-        <div className="flex gap-4 mt-8">
+        <div className="flex gap-4 mt-4 mb-20">
           <Button size="lg" render={<LocaleLink to="/aya/about" />}>
-            {t("Home.Rest of the story")}
+            {t("Home.About AYA")}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <Button
