@@ -36,6 +36,10 @@ export function ProfileMenu(props: ProfileMenuProps) {
     ? `https://github.com/${user.github_handle}.png?size=32`
     : null;
 
+  const accessibleProfiles = user.accessible_profiles !== undefined
+    ? user.accessible_profiles
+    : [];
+
   const handleProfileClick = () => {
     // Navigate to user's profile if they have one, otherwise to create profile page
     if (user.individual_profile_slug !== undefined) {
@@ -86,20 +90,20 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <DropdownMenuItem onClick={handleProfileClick}>
           {t("Auth.My Profile")}
         </DropdownMenuItem>
-        {user.accessible_profiles !== undefined && user.accessible_profiles.length > 0 && (
+        {accessibleProfiles.length > 0 && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               {t("Auth.Profiles")}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              {user.accessible_profiles.map((profile) => (
+              {accessibleProfiles.map((profile) => (
                 <DropdownMenuItem
                   key={profile.id}
                   onClick={() => navigate({ to: `/${locale}/${profile.slug}` })}
                 >
                   {profile.title}
                   <span className="ml-auto text-xs text-muted-foreground">
-                    {t(`Contributions.${profile.kind}`)}
+                    {t(`Profile.MembershipKind.${profile.membership_kind}`)}
                   </span>
                 </DropdownMenuItem>
               ))}

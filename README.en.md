@@ -33,7 +33,7 @@ resources, we strive to make a positive impact and foster sustainable developmen
 
 This is a Docker Compose-based monorepo project. It includes the following components:
 
-- **Frontend (webclient)**: Built with Next.js and Shadcn UI
+- **Frontend (webclient)**: Built with Deno, TanStack Start, Vite, and Shadcn UI
 - **Backend (services)**: REST API services written in Go
 - **Database**: PostgreSQL
 

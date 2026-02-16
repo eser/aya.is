@@ -225,7 +225,8 @@
     "Answered": "已回答",
     "Hidden": "已隐藏",
     "votes": "票",
-    "asked": "提问于"
+    "asked": "提问于",
+    "Failed to edit answer": "编辑回答失败"
   },
   "Elements": {
     "Description": "AYA 网络中的个人、组织和项目。",

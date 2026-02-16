@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
 import { backend } from "@/modules/backend/backend";
 import type { ProfileQuestion } from "@/modules/backend/types";
@@ -80,6 +81,8 @@ export function QAPageClient(props: QAPageClientProps) {
     return false;
   }, [auth.isAuthenticated, auth.user, props.profileId]);
 
+  const viewerProfileId = auth.user?.individual_profile?.id ?? null;
+
   const handleQuestionCreated = React.useCallback((question: ProfileQuestion) => {
     // The API returns the raw inserted row without JOINed author info.
     // Enrich with the current user's profile data so it renders correctly.
@@ -149,6 +152,7 @@ export function QAPageClient(props: QAPageClientProps) {
       { answer_content: answerContent },
     );
     if (result === null) {
+      toast.error(t("QA.Failed to edit answer"));
       return;
     }
 
@@ -163,7 +167,7 @@ export function QAPageClient(props: QAPageClientProps) {
         return q;
       })
     );
-  }, [props.locale, props.slug]);
+  }, [props.locale, props.slug, t]);
 
   const handleHideToggle = React.useCallback(async (questionId: string, isHidden: boolean) => {
     const result = await backend.hideQuestion(
@@ -226,6 +230,7 @@ export function QAPageClient(props: QAPageClientProps) {
                 profileKind={props.profileKind}
                 isAuthenticated={auth.isAuthenticated}
                 canAnswer={canAnswer}
+                canEditAnswer={canModerate || (canAnswer && viewerProfileId !== null && question.answered_by_profile_id === viewerProfileId)}
                 canModerate={canModerate}
                 onVote={handleVoteToggle}
                 onAnswer={handleAnswerSubmitted}

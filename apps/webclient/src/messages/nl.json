@@ -225,7 +225,8 @@
     "Answered": "Beantwoord",
     "Hidden": "Verborgen",
     "votes": "stemmen",
-    "asked": "gevraagd"
+    "asked": "gevraagd",
+    "Failed to edit answer": "Bewerken van antwoord mislukt"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

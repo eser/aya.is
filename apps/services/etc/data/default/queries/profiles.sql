@@ -503,6 +503,7 @@ WHERE
   pm.deleted_at IS NULL
   AND pm.member_profile_id = sqlc.arg(member_profile_id)
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+  AND pm.kind NOT IN ('follower', 'sponsor')
 ORDER BY pm.started_at DESC;
 
 -- name: SearchProfiles :many

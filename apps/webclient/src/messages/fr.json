@@ -225,7 +225,8 @@
     "Answered": "Répondu",
     "Hidden": "Masqué",
     "votes": "votes",
-    "asked": "posée"
+    "asked": "posée",
+    "Failed to edit answer": "Échec de la modification de la réponse"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

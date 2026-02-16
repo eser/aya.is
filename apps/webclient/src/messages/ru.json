@@ -225,7 +225,8 @@
     "Answered": "Отвечено",
     "Hidden": "Скрыто",
     "votes": "голосов",
-    "asked": "задан"
+    "asked": "задан",
+    "Failed to edit answer": "Не удалось отредактировать ответ"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

@@ -225,7 +225,8 @@
     "Answered": "回答済み",
     "Hidden": "非表示",
     "votes": "票",
-    "asked": "質問日"
+    "asked": "質問日",
+    "Failed to edit answer": "回答の編集に失敗しました"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

@@ -225,7 +225,8 @@
     "Answered": "Cevaplandı",
     "Hidden": "Gizli",
     "votes": "oy",
-    "asked": "soruldu"
+    "asked": "soruldu",
+    "Failed to edit answer": "Cevap düzenlenemedi"
   },
   "Elements": {
     "Description": "AYA ağındaki kişiler, organizasyonlar ve projeler.",

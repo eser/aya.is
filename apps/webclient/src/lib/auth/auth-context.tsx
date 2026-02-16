@@ -206,7 +206,12 @@ export function AuthProvider(props: AuthProviderProps) {
 
   const refreshAuth = React.useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
-    await initAuth();
+    try {
+      await initAuth();
+    } catch {
+      // Ensure isLoading is reset even if initAuth fails unexpectedly
+      setState((prev) => ({ ...prev, isLoading: false }));
+    }
   }, [initAuth]);
 
   const value = React.useMemo(

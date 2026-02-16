@@ -229,7 +229,8 @@
     "Hidden": "Hidden",
     "votes": "votes",
     "asked": "asked",
-    "Login to vote": "Login to vote"
+    "Login to vote": "Login to vote",
+    "Failed to edit answer": "Failed to edit answer"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

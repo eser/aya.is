@@ -98,11 +98,21 @@ function ProfileSidebar(props: ProfileSidebarProps) {
 
   const handleFollow = async () => {
     setIsProcessing(true);
-    const success = await backend.followProfile(props.locale, props.slug);
-    if (success) {
-      toast.success(t("Profile.Followed successfully"));
-      await refreshAuth();
-    } else {
+    try {
+      const success = await backend.followProfile(props.locale, props.slug);
+      if (success) {
+        toast.success(t("Profile.Followed successfully"));
+        try {
+          await refreshAuth();
+        } catch {
+          // Auth refresh failed — reload page to sync state
+          globalThis.location.reload();
+          return;
+        }
+      } else {
+        toast.error(t("Profile.Failed to follow"));
+      }
+    } catch {
       toast.error(t("Profile.Failed to follow"));
     }
     setIsProcessing(false);
@@ -110,12 +120,22 @@ function ProfileSidebar(props: ProfileSidebarProps) {
 
   const handleUnfollow = async () => {
     setIsProcessing(true);
-    const success = await backend.unfollowProfile(props.locale, props.slug);
-    if (success) {
-      toast.success(t("Profile.Unfollowed successfully"));
-      setIsUnfollowDialogOpen(false);
-      await refreshAuth();
-    } else {
+    try {
+      const success = await backend.unfollowProfile(props.locale, props.slug);
+      if (success) {
+        toast.success(t("Profile.Unfollowed successfully"));
+        setIsUnfollowDialogOpen(false);
+        try {
+          await refreshAuth();
+        } catch {
+          // Auth refresh failed — reload page to sync state
+          globalThis.location.reload();
+          return;
+        }
+      } else {
+        toast.error(t("Profile.Failed to unfollow"));
+      }
+    } catch {
       toast.error(t("Profile.Failed to unfollow"));
     }
     setIsProcessing(false);

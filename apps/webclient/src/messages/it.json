@@ -225,7 +225,8 @@
     "Answered": "Risposta data",
     "Hidden": "Nascosta",
     "votes": "voti",
-    "asked": "chiesta"
+    "asked": "chiesta",
+    "Failed to edit answer": "Impossibile modificare la risposta"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

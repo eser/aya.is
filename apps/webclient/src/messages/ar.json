@@ -225,7 +225,8 @@
     "Answered": "تمت الإجابة",
     "Hidden": "مخفي",
     "votes": "أصوات",
-    "asked": "طُرح"
+    "asked": "طُرح",
+    "Failed to edit answer": "فشل في تعديل الإجابة"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

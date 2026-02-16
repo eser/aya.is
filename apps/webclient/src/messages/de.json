@@ -225,7 +225,8 @@
     "Answered": "Beantwortet",
     "Hidden": "Ausgeblendet",
     "votes": "Stimmen",
-    "asked": "gefragt"
+    "asked": "gefragt",
+    "Failed to edit answer": "Antwort konnte nicht bearbeitet werden"
   },
   "Elements": {
     "Description": "Individuals, organizations and projects in the AYA network.",

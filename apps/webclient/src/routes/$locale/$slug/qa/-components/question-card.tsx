@@ -12,6 +12,7 @@ type QuestionCardProps = {
   profileKind: string;
   isAuthenticated: boolean;
   canAnswer: boolean;
+  canEditAnswer: boolean;
   canModerate: boolean;
   onVote: (questionId: string) => Promise<void>;
   onAnswer: (questionId: string, answerContent: string) => Promise<void>;
@@ -207,7 +208,7 @@ export function QuestionCard(props: QuestionCardProps) {
             </button>
           )}
 
-          {props.canAnswer && props.question.answer_content !== null && !showEditForm && (
+          {props.canEditAnswer && props.question.answer_content !== null && !showEditForm && (
             <button
               type="button"
               onClick={handleEditClick}

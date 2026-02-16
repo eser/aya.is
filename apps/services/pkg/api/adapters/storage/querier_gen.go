@@ -814,6 +814,7 @@ type Querier interface {
 	//    pm.deleted_at IS NULL
 	//    AND pm.member_profile_id = $2
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	//    AND pm.kind NOT IN ('follower', 'sponsor')
 	//  ORDER BY pm.started_at DESC
 	GetProfileMembershipsByMemberProfileID(ctx context.Context, arg GetProfileMembershipsByMemberProfileIDParams) ([]*GetProfileMembershipsByMemberProfileIDRow, error)
 	//GetProfileOwnershipForUser

@@ -1,66 +1,146 @@
-# Eser's TanStack Start Boilerplate
+# AYA Web Client
 
-A minimal, type-safe full-stack React starter template with modern tooling.
+The frontend application for the [AYA platform](https://aya.is), built with
+TanStack Start on the Deno runtime.
 
 ## Tech Stack
 
-### Frontend
-
-- **React 19** - Latest React with concurrent features
-- **TanStack Start** - Full-stack React framework
-- **TanStack Router** - Type-safe file-based routing
-- **TypeScript 5.9** - Strict mode enabled
-
-### Styling & UI
-
-- **Tailwind CSS 4** - Utility-first CSS framework
-- **shadcn/ui** - Beautifully designed components
-- **Base UI** - Unstyled, accessible primitives from MUI
-- **Dark Mode** - System-aware theme switching
-
-### Backend
-
-- **Nitro** - Universal server engine
-- **Server Functions** - Type-safe RPC-style server calls
-
-### Build & Dev
-
-- **Vite + Rolldown** - Lightning-fast builds
-- **pnpm** - Fast, disk space efficient package manager
+- **Deno** - Runtime (uses `nodeModulesDir: "auto"` for npm compatibility)
+- **TanStack Start** - Full-stack React framework with file-based routing
+- **Vite** - Bundler (with Nitro as the server engine)
+- **React** - UI library
+- **CSS Modules** - Component-scoped styling with Tailwind via `@apply`
+- **shadcn/ui** - Component library
+- **i18next** - Internationalization (13 locales)
 
 ## Getting Started
 
 ```bash
 # Install dependencies
-pnpm install
+deno install
 
-# Start development server
-pnpm dev
+# Start development server (port 3000)
+deno task dev
 
 # Build for production
-pnpm build
+deno task build
 
-# Start production server
-pnpm start
+# Preview production build
+deno task preview
+
+# Lint and format
+deno lint && deno fmt
 ```
 
 ## Project Structure
 
 ```
 src/
-  components/       # React components
-    ui/             # shadcn/ui components (Base UI primitives)
-  lib/              # Utility functions
-  routes/           # File-based routing (TanStack Router)
-  server/           # Server functions (Nitro)
-  styles.css        # Global styles & Tailwind config
+  components/             # React components
+    ui/                   # shadcn/ui primitives (generated, don't modify)
+    userland/             # MDX content components (cards, embeds, profile-card, etc.)
+    page-layouts/         # Page layout wrappers (default layout with header/footer)
+    forms/                # Form components (create/edit profile)
+    elements/             # Reusable display components (filter bar, profile list)
+    widgets/              # Composite widgets (astronaut, story-content, text-content)
+    profile/              # Profile-specific components (picture upload)
+    content-editor/       # Rich content editor
+    cover-generator/      # Cover image generator
+    icons.tsx             # Icon components
+    profile-sidebar-layout.tsx  # Profile page sidebar layout
+  hooks/                  # Custom React hooks (mobile detection, session prefs, etc.)
+  lib/                    # Core utilities
+    auth/                 # Auth context and helpers
+    schemas/              # Validation schemas (profile, settings)
+    hooks/                # Shared hook utilities
+    cover-generator/      # Cover generation logic
+    mdx.tsx               # MDX compilation and component mapping
+    seo.ts                # SEO/meta tag utilities
+    date.ts               # Date formatting
+    url.ts                # URL utilities
+  messages/               # i18n JSON files (ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN)
+  modules/                # Feature modules
+    backend/              # API client (centralized via backend.ts)
+    i18n/                 # i18n configuration
+    navigation/           # Navigation context
+  routes/                 # File-based routing (TanStack Router)
+    $locale/              # Locale-prefixed routes
+      $slug/              # Profile routes (by slug)
+        qa/               # Q&A section
+        settings/         # Profile settings
+        stories/          # Profile stories
+  server/                 # Server-side middleware and handlers
+  workers/                # Web Workers (proof-of-work solver)
+  config.ts               # App configuration
+  env.ts                  # Environment variable definitions
+  router.tsx              # Router setup
+  styles.css              # Global styles
+  theme.css               # Tailwind theme tokens
 ```
 
-## Features
+## Key Conventions
 
-- Type-safe routing with automatic route generation
-- Server functions with full TypeScript inference
-- Dark/Light/System theme support
-- Accessible UI components out of the box
-- SSR with hydration
-- Fast refresh in development
+### CSS Modules with Tailwind
+
+Every `.module.css` file **must** start with `@reference "@/theme.css";` as its
+first line. Without it, `@apply` with Tailwind utility classes will crash the
+production build.
+
+```css
+@reference "@/theme.css";
+
+.card {
+  @apply border rounded-lg p-4;
+}
+```
+
+### Component Props
+
+Use a single `props` object without destructuring:
+
+```tsx
+type CardProps = { title: string; description: string };
+
+function Card(props: CardProps) {
+  return <h2>{props.title}</h2>;
+}
+```
+
+### Backend API Calls
+
+Always use the centralized `backend` object:
+
+```tsx
+import { backend } from "@/modules/backend/backend.ts";
+
+const profile = await backend.getProfile("en", slug);
+```
+
+### Routing
+
+Routes use TanStack Router's file-based routing. The `-` prefix excludes files
+from route generation (e.g., `-components/` directories for co-located
+components).
+
+All user-facing routes are prefixed with `$locale` (e.g., `/tr/eser`,
+`/en/eser/qa`).
+
+### Internationalization
+
+- 13 locales: ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN
+- Translation files live in `src/messages/{locale}.json`
+- Use `useTranslation()` hook: `t("Section.Key text")`
+
+### Strict Equality
+
+Always use explicit checks:
+
+```tsx
+// Correct
+if (value === null) {}
+if (array.length === 0) {}
+
+// Wrong
+if (!value) {}
+if (!array.length) {}
+```

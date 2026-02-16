@@ -36,7 +36,7 @@ amaçlıyoruz.
 
 Bu bir Docker Compose tabanlı monorepo projesidir. Aşağıdaki bileşenleri içerir:
 
-- **Frontend (webclient)**: Next.js ve Shadcn UI kullanır
+- **Frontend (webclient)**: Deno, TanStack Start, Vite ve Shadcn UI kullanır
 - **Backend (services)**: Go dilinde yazılmış REST API servisleri
 - **Veritabanı**: PostgreSQL
 
