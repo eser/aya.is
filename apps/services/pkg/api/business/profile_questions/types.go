@@ -17,6 +17,7 @@ type Question struct {
 	Content             string     `json:"content"`
 	AuthorProfileID     *string    `json:"author_profile_id"`
 	AuthorProfileSlug   *string    `json:"author_profile_slug"`
+	AuthorProfileTitle  *string    `json:"author_profile_title"`
 	AnswerContent       *string    `json:"answer_content"`
 	AnswerURI           *string    `json:"answer_uri"`
 	AnswerKind          *string    `json:"answer_kind"`

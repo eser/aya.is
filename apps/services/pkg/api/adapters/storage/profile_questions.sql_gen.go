@@ -334,6 +334,7 @@ SELECT
   pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answer_uri, pq.answer_kind, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
   u.individual_profile_id AS author_profile_id,
   ap.slug AS author_profile_slug,
+  apt.title AS author_profile_title,
   CASE
     WHEN $1::TEXT IS NOT NULL THEN
       EXISTS(
@@ -346,49 +347,60 @@ SELECT
 FROM "profile_question" pq
   LEFT JOIN "user" u ON u.id = pq.author_user_id
   LEFT JOIN "profile" ap ON ap.id = u.individual_profile_id
-WHERE pq.profile_id = $2
+  LEFT JOIN "profile_tx" apt ON apt.profile_id = ap.id
+    AND apt.locale_code = (
+      SELECT aptf.locale_code FROM "profile_tx" aptf
+      WHERE aptf.profile_id = ap.id
+        AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
+      ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
+WHERE pq.profile_id = $3
   AND pq.deleted_at IS NULL
-  AND ($3::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
+  AND ($4::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
 ORDER BY pq.vote_count DESC, pq.created_at DESC
 `
 
 type ListProfileQuestionsByProfileIDParams struct {
 	ViewerUserID  sql.NullString `db:"viewer_user_id" json:"viewer_user_id"`
+	LocaleCode    string         `db:"locale_code" json:"locale_code"`
 	ProfileID     string         `db:"profile_id" json:"profile_id"`
 	IncludeHidden bool           `db:"include_hidden" json:"include_hidden"`
 }
 
 type ListProfileQuestionsByProfileIDRow struct {
-	ID                string         `db:"id" json:"id"`
-	ProfileID         string         `db:"profile_id" json:"profile_id"`
-	AuthorUserID      string         `db:"author_user_id" json:"author_user_id"`
-	Content           string         `db:"content" json:"content"`
-	AnswerContent     sql.NullString `db:"answer_content" json:"answer_content"`
-	AnswerURI         sql.NullString `db:"answer_uri" json:"answer_uri"`
-	AnswerKind        sql.NullString `db:"answer_kind" json:"answer_kind"`
-	AnsweredAt        sql.NullTime   `db:"answered_at" json:"answered_at"`
-	AnsweredBy        sql.NullString `db:"answered_by" json:"answered_by"`
-	IsAnonymous       bool           `db:"is_anonymous" json:"is_anonymous"`
-	IsHidden          bool           `db:"is_hidden" json:"is_hidden"`
-	VoteCount         int32          `db:"vote_count" json:"vote_count"`
-	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt         sql.NullTime   `db:"updated_at" json:"updated_at"`
-	DeletedAt         sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	AuthorProfileID   sql.NullString `db:"author_profile_id" json:"author_profile_id"`
-	AuthorProfileSlug sql.NullString `db:"author_profile_slug" json:"author_profile_slug"`
-	HasViewerVote     bool           `db:"has_viewer_vote" json:"has_viewer_vote"`
+	ID                 string         `db:"id" json:"id"`
+	ProfileID          string         `db:"profile_id" json:"profile_id"`
+	AuthorUserID       string         `db:"author_user_id" json:"author_user_id"`
+	Content            string         `db:"content" json:"content"`
+	AnswerContent      sql.NullString `db:"answer_content" json:"answer_content"`
+	AnswerURI          sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerKind         sql.NullString `db:"answer_kind" json:"answer_kind"`
+	AnsweredAt         sql.NullTime   `db:"answered_at" json:"answered_at"`
+	AnsweredBy         sql.NullString `db:"answered_by" json:"answered_by"`
+	IsAnonymous        bool           `db:"is_anonymous" json:"is_anonymous"`
+	IsHidden           bool           `db:"is_hidden" json:"is_hidden"`
+	VoteCount          int32          `db:"vote_count" json:"vote_count"`
+	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt          sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	AuthorProfileID    sql.NullString `db:"author_profile_id" json:"author_profile_id"`
+	AuthorProfileSlug  sql.NullString `db:"author_profile_slug" json:"author_profile_slug"`
+	AuthorProfileTitle sql.NullString `db:"author_profile_title" json:"author_profile_title"`
+	HasViewerVote      bool           `db:"has_viewer_vote" json:"has_viewer_vote"`
 }
 
 // ListProfileQuestionsByProfileID
 //
-//	SELECT pq.*, author_profile_id, author_profile_slug, has_viewer_vote
+//	SELECT pq.*, author_profile_id, author_profile_slug, author_profile_title, has_viewer_vote
 //	FROM "profile_question" pq
-//	  LEFT JOIN "user" u, "profile" ap
-//	WHERE pq.profile_id = $2 AND ...
+//	  LEFT JOIN "user" u, "profile" ap, "profile_tx" apt
+//	WHERE pq.profile_id = $3 AND ...
 //	ORDER BY pq.vote_count DESC, pq.created_at DESC
 func (q *Queries) ListProfileQuestionsByProfileID(ctx context.Context, arg ListProfileQuestionsByProfileIDParams) ([]*ListProfileQuestionsByProfileIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, listProfileQuestionsByProfileID,
 		arg.ViewerUserID,
+		arg.LocaleCode,
 		arg.ProfileID,
 		arg.IncludeHidden,
 	)
@@ -417,6 +429,7 @@ func (q *Queries) ListProfileQuestionsByProfileID(ctx context.Context, arg ListP
 			&i.DeletedAt,
 			&i.AuthorProfileID,
 			&i.AuthorProfileSlug,
+			&i.AuthorProfileTitle,
 			&i.HasViewerVote,
 		); err != nil {
 			return nil, err

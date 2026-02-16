@@ -45,6 +45,7 @@ func NewService(
 func (s *Service) ListQuestions(
 	ctx context.Context,
 	profileSlug string,
+	localeCode string,
 	viewerUserID *string,
 	includeHidden bool,
 	cursor *cursors.Cursor,
@@ -71,6 +72,7 @@ func (s *Service) ListQuestions(
 	result, err := s.repo.ListQuestions(
 		ctx,
 		profileID,
+		localeCode,
 		viewerUserID,
 		includeHidden,
 		cursor,
@@ -84,6 +86,7 @@ func (s *Service) ListQuestions(
 		if q.IsAnonymous {
 			q.AuthorProfileID = nil
 			q.AuthorProfileSlug = nil
+			q.AuthorProfileTitle = nil
 		}
 	}
 

@@ -49,6 +49,7 @@ func (r *Repository) GetQuestion(
 func (r *Repository) ListQuestions(
 	ctx context.Context,
 	profileID string,
+	localeCode string,
 	viewerUserID *string,
 	includeHidden bool,
 	cursor *cursors.Cursor,
@@ -57,6 +58,7 @@ func (r *Repository) ListQuestions(
 		ctx,
 		ListProfileQuestionsByProfileIDParams{
 			ViewerUserID:  vars.ToSQLNullString(viewerUserID),
+			LocaleCode:    localeCode,
 			ProfileID:     profileID,
 			IncludeHidden: includeHidden,
 		},
@@ -257,6 +259,7 @@ func (r *Repository) listRowToQuestion(
 		ProfileID:           row.ProfileID,
 		AuthorProfileID:     vars.ToStringPtr(row.AuthorProfileID),
 		AuthorProfileSlug:   vars.ToStringPtr(row.AuthorProfileSlug),
+		AuthorProfileTitle:  vars.ToStringPtr(row.AuthorProfileTitle),
 		Content:             row.Content,
 		AnswerContent:       vars.ToStringPtr(row.AnswerContent),
 		AnswerURI:           vars.ToStringPtr(row.AnswerURI),

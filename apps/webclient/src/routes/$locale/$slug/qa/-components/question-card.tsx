@@ -98,7 +98,7 @@ export function QuestionCard(props: QuestionCardProps) {
                     to={`/${props.locale}/${props.question.author_profile_slug}`}
                     className="hover:underline"
                   >
-                    {props.question.author_profile_slug}
+                    {props.question.author_profile_title ?? props.question.author_profile_slug}
                   </Link>
                 )
                 : t("QA.Anonymous")}

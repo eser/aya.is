@@ -26,7 +26,7 @@ func RegisterHTTPRoutesForProfileQuestions(
 	routes.Route(
 		"GET /{locale}/profiles/{slug}/_questions",
 		func(ctx *httpfx.Context) httpfx.Result {
-			_, localeOk := validateLocale(ctx)
+			localeParam, localeOk := validateLocale(ctx)
 			if !localeOk {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
 			}
@@ -63,6 +63,7 @@ func RegisterHTTPRoutesForProfileQuestions(
 			result, err := profileQuestionsService.ListQuestions(
 				ctx.Request.Context(),
 				slugParam,
+				localeParam,
 				viewerUserID,
 				includeHidden,
 				nil,
