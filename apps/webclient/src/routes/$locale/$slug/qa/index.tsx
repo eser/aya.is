@@ -58,6 +58,7 @@ function QAIndexPage() {
         locale={locale}
         slug={slug}
         profileId={profile.id}
+        profileKind={profile.kind}
       />
     </ProfileSidebarLayout>
   );

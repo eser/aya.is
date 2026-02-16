@@ -472,6 +472,7 @@ export interface ProfileQuestion {
   profile_id: string;
   content: string;
   author_profile_id: string | null;
+  author_profile_slug: string | null;
   answer_content: string | null;
   answer_uri: string | null;
   answer_kind: string | null;

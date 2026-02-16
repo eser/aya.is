@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
 import { ChevronUp, Eye, EyeOff, MessageSquare, Pencil } from "lucide-react";
 import type { ProfileQuestion } from "@/modules/backend/types";
 import { QAMarkdown } from "./qa-markdown";
@@ -7,6 +8,8 @@ import styles from "./question-card.module.css";
 
 type QuestionCardProps = {
   question: ProfileQuestion;
+  locale: string;
+  profileKind: string;
   isAuthenticated: boolean;
   canAnswer: boolean;
   canModerate: boolean;
@@ -62,7 +65,10 @@ export function QuestionCard(props: QuestionCardProps) {
     await props.onHide(props.question.id, !props.question.is_hidden);
   }, [props.onHide, props.question.id, props.question.is_hidden]);
 
-  const timeAgo = new Date(props.question.created_at).toLocaleDateString();
+  const formattedDate = new Date(props.question.created_at).toLocaleDateString(
+    props.locale,
+    { year: "numeric", month: "short", day: "numeric" },
+  );
 
   return (
     <div className={`${styles.card} ${props.question.is_hidden ? styles.hidden : ""}`}>
@@ -86,8 +92,17 @@ export function QuestionCard(props: QuestionCardProps) {
           <span className="text-sm text-muted-foreground">
             {props.question.is_anonymous
               ? t("QA.Anonymous")
-              : props.question.author_profile_id}
-            {" "}&middot;{" "}{timeAgo}
+              : props.question.author_profile_slug !== null
+                ? (
+                  <Link
+                    to={`/${props.locale}/${props.question.author_profile_slug}`}
+                    className="hover:underline"
+                  >
+                    {props.question.author_profile_slug}
+                  </Link>
+                )
+                : t("QA.Anonymous")}
+            {" "}&middot;{" "}{formattedDate}
           </span>
 
           {props.question.is_hidden && (
@@ -104,7 +119,7 @@ export function QuestionCard(props: QuestionCardProps) {
               <MessageSquare className="size-3.5 text-muted-foreground" />
               <span className="text-xs font-medium text-muted-foreground">
                 {t("QA.Answered")}
-                {props.question.answered_by_profile_id !== null && (
+                {props.profileKind !== "individual" && props.question.answered_by_profile_id !== null && (
                   <>
                     {" "}&middot;{" "}
                     {props.question.answered_by_profile_id}

@@ -12,6 +12,7 @@ type QAPageClientProps = {
   locale: string;
   slug: string;
   profileId: string;
+  profileKind: string;
 };
 
 export function QAPageClient(props: QAPageClientProps) {
@@ -210,6 +211,8 @@ export function QAPageClient(props: QAPageClientProps) {
               <QuestionCard
                 key={question.id}
                 question={question}
+                locale={props.locale}
+                profileKind={props.profileKind}
                 isAuthenticated={auth.isAuthenticated}
                 canAnswer={canAnswer}
                 canModerate={canModerate}

@@ -256,6 +256,7 @@ func (r *Repository) listRowToQuestion(
 		ID:                  row.ID,
 		ProfileID:           row.ProfileID,
 		AuthorProfileID:     vars.ToStringPtr(row.AuthorProfileID),
+		AuthorProfileSlug:   vars.ToStringPtr(row.AuthorProfileSlug),
 		Content:             row.Content,
 		AnswerContent:       vars.ToStringPtr(row.AnswerContent),
 		AnswerURI:           vars.ToStringPtr(row.AnswerURI),

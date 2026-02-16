@@ -13,6 +13,7 @@ WHERE id = sqlc.arg(id)
 SELECT
   pq.*,
   u.individual_profile_id AS author_profile_id,
+  ap.slug AS author_profile_slug,
   CASE
     WHEN sqlc.narg(viewer_user_id)::TEXT IS NOT NULL THEN
       EXISTS(
@@ -24,6 +25,7 @@ SELECT
   END AS has_viewer_vote
 FROM "profile_question" pq
   LEFT JOIN "user" u ON u.id = pq.author_user_id
+  LEFT JOIN "profile" ap ON ap.id = u.individual_profile_id
 WHERE pq.profile_id = sqlc.arg(profile_id)
   AND pq.deleted_at IS NULL
   AND (sqlc.arg(include_hidden)::BOOLEAN = TRUE OR pq.is_hidden = FALSE)

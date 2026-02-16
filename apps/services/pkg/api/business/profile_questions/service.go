@@ -83,6 +83,7 @@ func (s *Service) ListQuestions(
 	for _, q := range result.Data {
 		if q.IsAnonymous {
 			q.AuthorProfileID = nil
+			q.AuthorProfileSlug = nil
 		}
 	}
 
