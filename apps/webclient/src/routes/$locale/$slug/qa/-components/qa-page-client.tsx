@@ -20,6 +20,22 @@ export function QAPageClient(props: QAPageClientProps) {
   const [questions, setQuestions] = React.useState<ProfileQuestion[]>(props.questions);
   const [showForm, setShowForm] = React.useState(false);
 
+  // Re-fetch questions after auth loads on the client.
+  // On custom domains (e.g., eser.dev), SSR can't forward the .aya.is session cookie,
+  // so the initial data is anonymous. Once the client has auth, re-fetch to get
+  // personalized data (hidden questions for maintainer+, viewer vote state).
+  React.useEffect(() => {
+    if (!auth.isAuthenticated || auth.isLoading) {
+      return;
+    }
+
+    backend.getProfileQuestions(props.locale, props.slug).then((data) => {
+      if (data !== null) {
+        setQuestions(data);
+      }
+    });
+  }, [auth.isAuthenticated, auth.isLoading, props.locale, props.slug]);
+
   const canAnswer = React.useMemo(() => {
     if (!auth.isAuthenticated || auth.user === null) {
       return false;

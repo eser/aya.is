@@ -18,6 +18,7 @@ type Repository interface {
 	ListQuestions(
 		ctx context.Context,
 		profileID string,
+		localeCode string,
 		viewerUserID *string,
 		includeHidden bool,
 		cursor *cursors.Cursor,

@@ -1662,6 +1662,8 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answer_uri, pq.answer_kind, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
+	//    ap.slug AS author_slug,
+	//    apt.title AS author_name,
 	//    CASE
 	//      WHEN $1::TEXT IS NOT NULL THEN
 	//        EXISTS(
@@ -1672,9 +1674,18 @@ type Querier interface {
 	//      ELSE FALSE
 	//    END AS has_viewer_vote
 	//  FROM "profile_question" pq
-	//  WHERE pq.profile_id = $2
+	//    LEFT JOIN "user" u ON u.id = pq.author_user_id
+	//    LEFT JOIN "profile" ap ON ap.id = u.individual_profile_id AND ap.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" apt ON apt.profile_id = ap.id
+	//      AND apt.locale_code = (
+	//        SELECT ptx.locale_code FROM "profile_tx" ptx
+	//        WHERE ptx.profile_id = ap.id
+	//        ORDER BY CASE WHEN ptx.locale_code = $2 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
+	//  WHERE pq.profile_id = $3
 	//    AND pq.deleted_at IS NULL
-	//    AND ($3::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
+	//    AND ($4::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
 	//  ORDER BY pq.vote_count DESC, pq.created_at DESC
 	ListProfileQuestionsByProfileID(ctx context.Context, arg ListProfileQuestionsByProfileIDParams) ([]*ListProfileQuestionsByProfileIDRow, error)
 	//ListProfiles

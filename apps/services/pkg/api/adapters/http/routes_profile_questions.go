@@ -31,15 +31,14 @@ func RegisterHTTPRoutesForProfileQuestions(
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
 			}
 
-			_ = localeParam
-
 			slugParam := ctx.Request.PathValue("slug")
 
-			// Optional: resolve viewer user ID from session cookie (no auth required)
+			// Optional: resolve viewer user ID from session cookie or Bearer token.
+			// Cookie works on same-site (aya.is), Bearer token works on custom domains (eser.dev).
 			var viewerUserID *string
 
-			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-			if err == nil && sessionID != "" {
+			sessionID := GetSessionIDFromRequest(ctx.Request, authService)
+			if sessionID != "" {
 				session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
 				if sessionErr == nil && session != nil && session.LoggedInUserID != nil {
 					viewerUserID = session.LoggedInUserID
@@ -64,6 +63,7 @@ func RegisterHTTPRoutesForProfileQuestions(
 			result, err := profileQuestionsService.ListQuestions(
 				ctx.Request.Context(),
 				slugParam,
+				localeParam,
 				viewerUserID,
 				includeHidden,
 				nil,
@@ -90,7 +90,7 @@ func RegisterHTTPRoutesForProfileQuestions(
 		},
 	).HasDescription("List Q&A questions for a profile")
 
-	// Create a new question (requires authentication)
+	// Create a new question (requires authentication and an individual profile)
 	routes.Route(
 		"POST /{locale}/profiles/{slug}/_questions",
 		AuthMiddleware(authService, userService),
@@ -98,6 +98,13 @@ func RegisterHTTPRoutesForProfileQuestions(
 			user, err := getUserFromContext(ctx, userService)
 			if err != nil {
 				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
+			}
+
+			// Require the user to have an individual profile
+			if user.IndividualProfileID == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("you must have an individual profile to ask questions"),
+				)
 			}
 
 			slugParam := ctx.Request.PathValue("slug")

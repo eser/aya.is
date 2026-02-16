@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
@@ -53,6 +54,33 @@ func GetSessionIDFromCookie(r *http.Request, config *auth.Config) (string, error
 	}
 
 	return cookie.Value, nil
+}
+
+// GetSessionIDFromRequest resolves a session ID from the request, trying the
+// session cookie first and falling back to the Authorization Bearer token (JWT).
+// This enables cross-domain scenarios where the cookie is not available (e.g.,
+// custom domains like eser.dev that can't receive the .aya.is cookie).
+func GetSessionIDFromRequest(r *http.Request, authService *auth.Service) string {
+	// 1. Try session cookie (works on same-site requests)
+	sessionID, err := GetSessionIDFromCookie(r, authService.Config)
+	if err == nil && sessionID != "" {
+		return sessionID
+	}
+
+	// 2. Fall back to Bearer token (works on cross-domain requests)
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		return ""
+	}
+
+	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+	claims, err := authService.TokenService().ParseToken(tokenStr)
+	if err != nil {
+		return ""
+	}
+
+	return claims.SessionID
 }
 
 // SetThemeCookie sets a non-HttpOnly cookie for the theme preference.

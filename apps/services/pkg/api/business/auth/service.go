@@ -78,6 +78,11 @@ func NewService(
 	}
 }
 
+// TokenService returns the token service for JWT operations.
+func (s *Service) TokenService() TokenService {
+	return s.tokenService
+}
+
 func (s *Service) GetProvider(provider string) Provider {
 	service, serviceOk := s.providers[provider]
 	if !serviceOk {

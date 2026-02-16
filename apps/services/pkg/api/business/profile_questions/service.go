@@ -45,6 +45,7 @@ func NewService(
 func (s *Service) ListQuestions(
 	ctx context.Context,
 	profileSlug string,
+	localeCode string,
 	viewerUserID *string,
 	includeHidden bool,
 	cursor *cursors.Cursor,
@@ -68,7 +69,14 @@ func (s *Service) ListQuestions(
 		return cursors.Cursored[[]*Question]{}, ErrQANotEnabled
 	}
 
-	result, err := s.repo.ListQuestions(ctx, profileID, viewerUserID, includeHidden, cursor)
+	result, err := s.repo.ListQuestions(
+		ctx,
+		profileID,
+		localeCode,
+		viewerUserID,
+		includeHidden,
+		cursor,
+	)
 	if err != nil {
 		return cursors.Cursored[[]*Question]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
