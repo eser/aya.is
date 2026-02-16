@@ -49,7 +49,6 @@ func (r *Repository) GetQuestion(
 func (r *Repository) ListQuestions(
 	ctx context.Context,
 	profileID string,
-	localeCode string,
 	viewerUserID *string,
 	includeHidden bool,
 	cursor *cursors.Cursor,
@@ -58,7 +57,6 @@ func (r *Repository) ListQuestions(
 		ctx,
 		ListProfileQuestionsByProfileIDParams{
 			ViewerUserID:  vars.ToSQLNullString(viewerUserID),
-			LocaleCode:    localeCode,
 			ProfileID:     profileID,
 			IncludeHidden: includeHidden,
 		},
@@ -105,14 +103,14 @@ func (r *Repository) UpdateAnswer(
 	answerContent string,
 	answerURI *string,
 	answerKind *string,
-	answeredByUserID string,
+	answeredByProfileID string,
 ) error {
 	return r.queries.UpdateProfileQuestionAnswer(ctx, UpdateProfileQuestionAnswerParams{
 		ID:            questionID,
 		AnswerContent: sql.NullString{String: answerContent, Valid: true},
 		AnswerURI:     vars.ToSQLNullString(answerURI),
 		AnswerKind:    vars.ToSQLNullString(answerKind),
-		AnsweredBy:    sql.NullString{String: answeredByUserID, Valid: true},
+		AnsweredBy:    sql.NullString{String: answeredByProfileID, Valid: true},
 	})
 }
 
@@ -233,21 +231,20 @@ func (r *Repository) GetVote(
 // rowToQuestion converts a ProfileQuestion SQLC row to a domain Question.
 func (r *Repository) rowToQuestion(row *ProfileQuestion) *profile_questions.Question {
 	return &profile_questions.Question{
-		ID:            row.ID,
-		ProfileID:     row.ProfileID,
-		AuthorUserID:  row.AuthorUserID,
-		Content:       row.Content,
-		AnswerContent: vars.ToStringPtr(row.AnswerContent),
-		AnswerURI:     vars.ToStringPtr(row.AnswerURI),
-		AnswerKind:    vars.ToStringPtr(row.AnswerKind),
-		AnsweredAt:    vars.ToTimePtr(row.AnsweredAt),
-		AnsweredBy:    vars.ToStringPtr(row.AnsweredBy),
-		VoteCount:     int(row.VoteCount),
-		IsAnonymous:   row.IsAnonymous,
-		IsHidden:      row.IsHidden,
-		HasViewerVote: false,
-		CreatedAt:     row.CreatedAt,
-		UpdatedAt:     vars.ToTimePtr(row.UpdatedAt),
+		ID:                  row.ID,
+		ProfileID:           row.ProfileID,
+		Content:             row.Content,
+		AnswerContent:       vars.ToStringPtr(row.AnswerContent),
+		AnswerURI:           vars.ToStringPtr(row.AnswerURI),
+		AnswerKind:          vars.ToStringPtr(row.AnswerKind),
+		AnsweredAt:          vars.ToTimePtr(row.AnsweredAt),
+		AnsweredByProfileID: vars.ToStringPtr(row.AnsweredBy),
+		VoteCount:           int(row.VoteCount),
+		IsAnonymous:         row.IsAnonymous,
+		IsHidden:            row.IsHidden,
+		HasViewerVote:       false,
+		CreatedAt:           row.CreatedAt,
+		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
 	}
 }
 
@@ -256,22 +253,20 @@ func (r *Repository) listRowToQuestion(
 	row *ListProfileQuestionsByProfileIDRow,
 ) *profile_questions.Question {
 	return &profile_questions.Question{
-		ID:            row.ID,
-		ProfileID:     row.ProfileID,
-		AuthorUserID:  row.AuthorUserID,
-		AuthorName:    vars.ToStringPtr(row.AuthorName),
-		AuthorSlug:    vars.ToStringPtr(row.AuthorSlug),
-		Content:       row.Content,
-		AnswerContent: vars.ToStringPtr(row.AnswerContent),
-		AnswerURI:     vars.ToStringPtr(row.AnswerURI),
-		AnswerKind:    vars.ToStringPtr(row.AnswerKind),
-		AnsweredAt:    vars.ToTimePtr(row.AnsweredAt),
-		AnsweredBy:    vars.ToStringPtr(row.AnsweredBy),
-		VoteCount:     int(row.VoteCount),
-		IsAnonymous:   row.IsAnonymous,
-		IsHidden:      row.IsHidden,
-		HasViewerVote: row.HasViewerVote,
-		CreatedAt:     row.CreatedAt,
-		UpdatedAt:     vars.ToTimePtr(row.UpdatedAt),
+		ID:                  row.ID,
+		ProfileID:           row.ProfileID,
+		AuthorProfileID:     vars.ToStringPtr(row.AuthorProfileID),
+		Content:             row.Content,
+		AnswerContent:       vars.ToStringPtr(row.AnswerContent),
+		AnswerURI:           vars.ToStringPtr(row.AnswerURI),
+		AnswerKind:          vars.ToStringPtr(row.AnswerKind),
+		AnsweredAt:          vars.ToTimePtr(row.AnsweredAt),
+		AnsweredByProfileID: vars.ToStringPtr(row.AnsweredBy),
+		VoteCount:           int(row.VoteCount),
+		IsAnonymous:         row.IsAnonymous,
+		IsHidden:            row.IsHidden,
+		HasViewerVote:       row.HasViewerVote,
+		CreatedAt:           row.CreatedAt,
+		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
 	}
 }

@@ -45,7 +45,6 @@ func NewService(
 func (s *Service) ListQuestions(
 	ctx context.Context,
 	profileSlug string,
-	localeCode string,
 	viewerUserID *string,
 	includeHidden bool,
 	cursor *cursors.Cursor,
@@ -72,7 +71,6 @@ func (s *Service) ListQuestions(
 	result, err := s.repo.ListQuestions(
 		ctx,
 		profileID,
-		localeCode,
 		viewerUserID,
 		includeHidden,
 		cursor,
@@ -84,9 +82,7 @@ func (s *Service) ListQuestions(
 	// Strip anonymous author information
 	for _, q := range result.Data {
 		if q.IsAnonymous {
-			q.AuthorName = nil
-			q.AuthorSlug = nil
-			q.AuthorUserID = ""
+			q.AuthorProfileID = nil
 		}
 	}
 
@@ -137,9 +133,7 @@ func (s *Service) CreateQuestion(
 
 	// Strip anonymous author information from the response
 	if question.IsAnonymous {
-		question.AuthorName = nil
-		question.AuthorSlug = nil
-		question.AuthorUserID = ""
+		question.AuthorProfileID = nil
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
@@ -188,7 +182,7 @@ func (s *Service) AnswerQuestion(ctx context.Context, params AnswerQuestionParam
 		params.AnswerContent,
 		params.AnswerURI,
 		params.AnswerKind,
-		params.UserID,
+		params.AnswererProfileID,
 	)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
@@ -196,6 +190,77 @@ func (s *Service) AnswerQuestion(ctx context.Context, params AnswerQuestionParam
 
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.ProfileQuestionAnswered,
+		EntityType: "profile_question",
+		EntityID:   params.QuestionID,
+		ActorID:    &params.UserID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"profile_slug": params.ProfileSlug,
+		},
+	})
+
+	return nil
+}
+
+// EditAnswer updates an existing answer on a question.
+// Contributors can only edit answers they authored. Maintainers can edit all answers.
+func (s *Service) EditAnswer(ctx context.Context, params AnswerQuestionParams) error {
+	// Check minimum access: contributor+
+	hasContributorAccess, err := s.profileService.HasUserAccessToProfile(
+		ctx,
+		params.UserID,
+		params.ProfileSlug,
+		profiles.MembershipKindContributor,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if !hasContributorAccess {
+		return ErrInsufficientPermission
+	}
+
+	question, err := s.repo.GetQuestion(ctx, params.QuestionID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrQuestionNotFound, err)
+	}
+
+	if question.AnswerContent == nil {
+		return ErrQuestionNotAnswered
+	}
+
+	// Contributors can only edit their own answers; maintainers can edit all
+	if question.AnsweredByProfileID == nil ||
+		*question.AnsweredByProfileID != params.AnswererProfileID {
+		hasMaintainerAccess, maintainerErr := s.profileService.HasUserAccessToProfile(
+			ctx,
+			params.UserID,
+			params.ProfileSlug,
+			profiles.MembershipKindMaintainer,
+		)
+		if maintainerErr != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, maintainerErr)
+		}
+
+		if !hasMaintainerAccess {
+			return ErrInsufficientPermission
+		}
+	}
+
+	err = s.repo.UpdateAnswer(
+		ctx,
+		params.QuestionID,
+		params.AnswerContent,
+		params.AnswerURI,
+		params.AnswerKind,
+		params.AnswererProfileID,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileQuestionAnswerEdited,
 		EntityType: "profile_question",
 		EntityID:   params.QuestionID,
 		ActorID:    &params.UserID,

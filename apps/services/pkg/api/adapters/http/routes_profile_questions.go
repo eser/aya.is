@@ -26,7 +26,7 @@ func RegisterHTTPRoutesForProfileQuestions(
 	routes.Route(
 		"GET /{locale}/profiles/{slug}/_questions",
 		func(ctx *httpfx.Context) httpfx.Result {
-			localeParam, localeOk := validateLocale(ctx)
+			_, localeOk := validateLocale(ctx)
 			if !localeOk {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
 			}
@@ -63,7 +63,6 @@ func RegisterHTTPRoutesForProfileQuestions(
 			result, err := profileQuestionsService.ListQuestions(
 				ctx.Request.Context(),
 				slugParam,
-				localeParam,
 				viewerUserID,
 				includeHidden,
 				nil,
@@ -218,6 +217,14 @@ func RegisterHTTPRoutesForProfileQuestions(
 				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 			}
 
+			if user.IndividualProfileID == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage(
+						"you must have an individual profile to answer questions",
+					),
+				)
+			}
+
 			slugParam := ctx.Request.PathValue("slug")
 			questionID := ctx.Request.PathValue("id")
 
@@ -238,12 +245,13 @@ func RegisterHTTPRoutesForProfileQuestions(
 			err = profileQuestionsService.AnswerQuestion(
 				ctx.Request.Context(),
 				profile_questions.AnswerQuestionParams{
-					ProfileSlug:   slugParam,
-					QuestionID:    questionID,
-					UserID:        user.ID,
-					AnswerContent: body.AnswerContent,
-					AnswerURI:     body.AnswerURI,
-					AnswerKind:    body.AnswerKind,
+					ProfileSlug:       slugParam,
+					QuestionID:        questionID,
+					UserID:            user.ID,
+					AnswererProfileID: *user.IndividualProfileID,
+					AnswerContent:     body.AnswerContent,
+					AnswerURI:         body.AnswerURI,
+					AnswerKind:        body.AnswerKind,
 				},
 			)
 			if err != nil {
@@ -281,6 +289,87 @@ func RegisterHTTPRoutesForProfileQuestions(
 			})
 		},
 	).HasDescription("Answer a Q&A question (contributor+ access)")
+
+	// Edit an answer (requires contributor+ access)
+	routes.Route(
+		"PUT /{locale}/profiles/{slug}/_questions/{id}/answer",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			user, err := getUserFromContext(ctx, userService)
+			if err != nil {
+				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
+			}
+
+			if user.IndividualProfileID == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("you must have an individual profile to edit answers"),
+				)
+			}
+
+			slugParam := ctx.Request.PathValue("slug")
+			questionID := ctx.Request.PathValue("id")
+
+			var body struct {
+				AnswerContent string  `json:"answer_content"`
+				AnswerURI     *string `json:"answer_uri"`
+				AnswerKind    *string `json:"answer_kind"`
+			}
+
+			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
+			}
+
+			if body.AnswerContent == "" {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("answer_content is required"))
+			}
+
+			err = profileQuestionsService.EditAnswer(
+				ctx.Request.Context(),
+				profile_questions.AnswerQuestionParams{
+					ProfileSlug:       slugParam,
+					QuestionID:        questionID,
+					UserID:            user.ID,
+					AnswererProfileID: *user.IndividualProfileID,
+					AnswerContent:     body.AnswerContent,
+					AnswerURI:         body.AnswerURI,
+					AnswerKind:        body.AnswerKind,
+				},
+			)
+			if err != nil {
+				if errors.Is(err, profile_questions.ErrInsufficientPermission) {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage("insufficient permission"),
+					)
+				}
+
+				if errors.Is(err, profile_questions.ErrQuestionNotFound) {
+					return ctx.Results.NotFound(httpfx.WithErrorMessage("question not found"))
+				}
+
+				if errors.Is(err, profile_questions.ErrQuestionNotAnswered) {
+					return ctx.Results.Error(
+						http.StatusConflict,
+						httpfx.WithErrorMessage("question has not been answered yet"),
+					)
+				}
+
+				logger.ErrorContext(ctx.Request.Context(), "Failed to edit answer",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam),
+					slog.String("questionID", questionID))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithSanitizedError(err),
+				)
+			}
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{"status": "ok"},
+			})
+		},
+	).HasDescription("Edit an answer on a Q&A question (contributor+ access)")
 
 	// Hide/unhide a question (requires maintainer+ access)
 	routes.Route(

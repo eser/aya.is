@@ -470,15 +470,13 @@ export interface POWSolverResponse {
 export interface ProfileQuestion {
   id: string;
   profile_id: string;
-  author_user_id: string;
   content: string;
-  author_name: string | null;
-  author_slug: string | null;
+  author_profile_id: string | null;
   answer_content: string | null;
   answer_uri: string | null;
   answer_kind: string | null;
   answered_at: string | null;
-  answered_by: string | null;
+  answered_by_profile_id: string | null;
   vote_count: number;
   is_anonymous: boolean;
   is_hidden: boolean;

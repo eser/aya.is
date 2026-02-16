@@ -46,6 +46,7 @@ import { getProfileQuestions } from "./questions/get-profile-questions";
 import { createQuestion } from "./questions/create-question";
 import { voteQuestion } from "./questions/vote-question";
 import { answerQuestion } from "./questions/answer-question";
+import { editAnswer } from "./questions/edit-answer";
 import { hideQuestion } from "./questions/hide-question";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
@@ -101,6 +102,7 @@ export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-githu
 export type { CreateQuestionInput } from "./questions/create-question";
 export type { VoteQuestionResult } from "./questions/vote-question";
 export type { AnswerQuestionInput } from "./questions/answer-question";
+export type { EditAnswerInput } from "./questions/edit-answer";
 export type { HideQuestionInput } from "./questions/hide-question";
 export type {
   UnsplashPhoto,
@@ -168,6 +170,7 @@ export const backend = {
   createQuestion,
   voteQuestion,
   answerQuestion,
+  editAnswer,
   hideQuestion,
 
   // Stories
@@ -309,6 +312,7 @@ export {
   createQuestion,
   voteQuestion,
   answerQuestion,
+  editAnswer,
   hideQuestion,
 
   // Admin

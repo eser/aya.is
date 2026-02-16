@@ -1,8 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronUp, Eye, EyeOff, MessageSquare } from "lucide-react";
+import { ChevronUp, Eye, EyeOff, MessageSquare, Pencil } from "lucide-react";
 import type { ProfileQuestion } from "@/modules/backend/types";
-import { LocaleLink } from "@/components/locale-link";
 import { QAMarkdown } from "./qa-markdown";
 import styles from "./question-card.module.css";
 
@@ -13,6 +12,7 @@ type QuestionCardProps = {
   canModerate: boolean;
   onVote: (questionId: string) => Promise<void>;
   onAnswer: (questionId: string, answerContent: string) => Promise<void>;
+  onEditAnswer: (questionId: string, answerContent: string) => Promise<void>;
   onHide: (questionId: string, isHidden: boolean) => Promise<void>;
 };
 
@@ -20,6 +20,8 @@ export function QuestionCard(props: QuestionCardProps) {
   const { t } = useTranslation();
   const [showAnswerForm, setShowAnswerForm] = React.useState(false);
   const [answerContent, setAnswerContent] = React.useState("");
+  const [showEditForm, setShowEditForm] = React.useState(false);
+  const [editContent, setEditContent] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const handleVote = React.useCallback(async () => {
@@ -39,13 +41,26 @@ export function QuestionCard(props: QuestionCardProps) {
     setIsSubmitting(false);
   }, [props.onAnswer, props.question.id, answerContent]);
 
+  const handleEditSubmit = React.useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editContent.trim().length === 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    await props.onEditAnswer(props.question.id, editContent);
+    setShowEditForm(false);
+    setIsSubmitting(false);
+  }, [props.onEditAnswer, props.question.id, editContent]);
+
+  const handleEditClick = React.useCallback(() => {
+    setEditContent(props.question.answer_content ?? "");
+    setShowEditForm(true);
+  }, [props.question.answer_content]);
+
   const handleHideToggle = React.useCallback(async () => {
     await props.onHide(props.question.id, !props.question.is_hidden);
   }, [props.onHide, props.question.id, props.question.is_hidden]);
-
-  const authorDisplay = props.question.is_anonymous
-    ? t("QA.Anonymous")
-    : props.question.author_name ?? props.question.author_user_id;
 
   const timeAgo = new Date(props.question.created_at).toLocaleDateString();
 
@@ -71,15 +86,7 @@ export function QuestionCard(props: QuestionCardProps) {
           <span className="text-sm text-muted-foreground">
             {props.question.is_anonymous
               ? t("QA.Anonymous")
-              : (
-                  props.question.author_slug !== null
-                    ? (
-                      <LocaleLink to={`/${props.question.author_slug}`} className="hover:underline">
-                        {authorDisplay}
-                      </LocaleLink>
-                    )
-                    : authorDisplay
-                )}
+              : props.question.author_profile_id}
             {" "}&middot;{" "}{timeAgo}
           </span>
 
@@ -91,11 +98,19 @@ export function QuestionCard(props: QuestionCardProps) {
         <QAMarkdown content={props.question.content} className={styles.questionContent} />
 
         {/* Answer display */}
-        {props.question.answer_content !== null && (
+        {props.question.answer_content !== null && !showEditForm && (
           <div className={styles.answerBlock}>
             <div className="flex items-center gap-1.5 mb-1">
               <MessageSquare className="size-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">{t("QA.Answered")}</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("QA.Answered")}
+                {props.question.answered_by_profile_id !== null && (
+                  <>
+                    {" "}&middot;{" "}
+                    {props.question.answered_by_profile_id}
+                  </>
+                )}
+              </span>
             </div>
             <QAMarkdown content={props.question.answer_content} className={styles.answerContent} />
           </div>
@@ -130,6 +145,35 @@ export function QuestionCard(props: QuestionCardProps) {
           </form>
         )}
 
+        {/* Edit answer form */}
+        {showEditForm && (
+          <form onSubmit={handleEditSubmit} className={styles.answerForm}>
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              placeholder={t("QA.Your answer...")}
+              className={styles.textarea}
+              rows={3}
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowEditForm(false)}
+                className={styles.cancelButton}
+              >
+                {t("Common.Cancel")}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || editContent.trim().length === 0}
+                className={styles.submitButton}
+              >
+                {t("QA.Submit")}
+              </button>
+            </div>
+          </form>
+        )}
+
         {/* Actions */}
         <div className={styles.actions}>
           {props.canAnswer && props.question.answer_content === null && !showAnswerForm && (
@@ -140,6 +184,17 @@ export function QuestionCard(props: QuestionCardProps) {
             >
               <MessageSquare className="size-3.5" />
               {t("QA.Answer")}
+            </button>
+          )}
+
+          {props.canAnswer && props.question.answer_content !== null && !showEditForm && (
+            <button
+              type="button"
+              onClick={handleEditClick}
+              className={styles.actionButton}
+            >
+              <Pencil className="size-3.5" />
+              {t("QA.Edit")}
             </button>
           )}
 

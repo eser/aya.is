@@ -10,6 +10,7 @@ var (
 	ErrContentTooLong          = errors.New("question content is too long")
 	ErrInsufficientPermission  = errors.New("insufficient permission for this action")
 	ErrQuestionAlreadyAnswered = errors.New("question has already been answered")
+	ErrQuestionNotAnswered     = errors.New("question has not been answered yet")
 
 	ErrFailedToGetRecord    = errors.New("failed to get record")
 	ErrFailedToInsertRecord = errors.New("failed to insert record")

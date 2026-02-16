@@ -18,7 +18,6 @@ type Repository interface {
 	ListQuestions(
 		ctx context.Context,
 		profileID string,
-		localeCode string,
 		viewerUserID *string,
 		includeHidden bool,
 		cursor *cursors.Cursor,
@@ -41,7 +40,7 @@ type Repository interface {
 		answerContent string,
 		answerURI *string,
 		answerKind *string,
-		answeredByUserID string,
+		answeredByProfileID string,
 	) error
 
 	// UpdateHidden toggles the hidden state of a question.

@@ -129,6 +129,30 @@ export function QAPageClient(props: QAPageClientProps) {
     );
   }, [props.locale, props.slug]);
 
+  const handleAnswerEdited = React.useCallback(async (questionId: string, answerContent: string) => {
+    const result = await backend.editAnswer(
+      props.locale,
+      props.slug,
+      questionId,
+      { answer_content: answerContent },
+    );
+    if (result === null) {
+      return;
+    }
+
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id === questionId) {
+          return {
+            ...q,
+            answer_content: answerContent,
+          };
+        }
+        return q;
+      })
+    );
+  }, [props.locale, props.slug]);
+
   const handleHideToggle = React.useCallback(async (questionId: string, isHidden: boolean) => {
     const result = await backend.hideQuestion(
       props.locale,
@@ -191,6 +215,7 @@ export function QAPageClient(props: QAPageClientProps) {
                 canModerate={canModerate}
                 onVote={handleVoteToggle}
                 onAnswer={handleAnswerSubmitted}
+                onEditAnswer={handleAnswerEdited}
                 onHide={handleHideToggle}
               />
             ))}

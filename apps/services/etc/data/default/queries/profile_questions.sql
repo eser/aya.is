@@ -12,8 +12,7 @@ WHERE id = sqlc.arg(id)
 -- name: ListProfileQuestionsByProfileID :many
 SELECT
   pq.*,
-  ap.slug AS author_slug,
-  apt.title AS author_name,
+  u.individual_profile_id AS author_profile_id,
   CASE
     WHEN sqlc.narg(viewer_user_id)::TEXT IS NOT NULL THEN
       EXISTS(
@@ -25,14 +24,6 @@ SELECT
   END AS has_viewer_vote
 FROM "profile_question" pq
   LEFT JOIN "user" u ON u.id = pq.author_user_id
-  LEFT JOIN "profile" ap ON ap.id = u.individual_profile_id AND ap.deleted_at IS NULL
-  LEFT JOIN "profile_tx" apt ON apt.profile_id = ap.id
-    AND apt.locale_code = (
-      SELECT ptx.locale_code FROM "profile_tx" ptx
-      WHERE ptx.profile_id = ap.id
-      ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
-      LIMIT 1
-    )
 WHERE pq.profile_id = sqlc.arg(profile_id)
   AND pq.deleted_at IS NULL
   AND (sqlc.arg(include_hidden)::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
