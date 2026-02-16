@@ -12,23 +12,25 @@ const (
 
 // Question represents a Q&A question on a profile.
 type Question struct {
-	ID                  string     `json:"id"`
-	ProfileID           string     `json:"profile_id"`
-	Content             string     `json:"content"`
-	AuthorProfileID     *string    `json:"author_profile_id"`
-	AuthorProfileSlug   *string    `json:"author_profile_slug"`
-	AuthorProfileTitle  *string    `json:"author_profile_title"`
-	AnswerContent       *string    `json:"answer_content"`
-	AnswerURI           *string    `json:"answer_uri"`
-	AnswerKind          *string    `json:"answer_kind"`
-	AnsweredAt          *time.Time `json:"answered_at"`
-	AnsweredByProfileID *string    `json:"answered_by_profile_id"`
-	VoteCount           int        `json:"vote_count"`
-	IsAnonymous         bool       `json:"is_anonymous"`
-	IsHidden            bool       `json:"is_hidden"`
-	HasViewerVote       bool       `json:"has_viewer_vote"`
-	CreatedAt           time.Time  `json:"created_at"`
-	UpdatedAt           *time.Time `json:"updated_at"`
+	ID                     string     `json:"id"`
+	ProfileID              string     `json:"profile_id"`
+	Content                string     `json:"content"`
+	AuthorProfileID        *string    `json:"author_profile_id"`
+	AuthorProfileSlug      *string    `json:"author_profile_slug"`
+	AuthorProfileTitle     *string    `json:"author_profile_title"`
+	AnswerContent          *string    `json:"answer_content"`
+	AnswerURI              *string    `json:"answer_uri"`
+	AnswerKind             *string    `json:"answer_kind"`
+	AnsweredAt             *time.Time `json:"answered_at"`
+	AnsweredByProfileID    *string    `json:"answered_by_profile_id"`
+	AnsweredByProfileSlug  *string    `json:"answered_by_profile_slug"`
+	AnsweredByProfileTitle *string    `json:"answered_by_profile_title"`
+	VoteCount              int        `json:"vote_count"`
+	IsAnonymous            bool       `json:"is_anonymous"`
+	IsHidden               bool       `json:"is_hidden"`
+	HasViewerVote          bool       `json:"has_viewer_vote"`
+	CreatedAt              time.Time  `json:"created_at"`
+	UpdatedAt              *time.Time `json:"updated_at"`
 }
 
 // Vote represents a user's vote on a question.

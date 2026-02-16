@@ -335,6 +335,8 @@ SELECT
   u.individual_profile_id AS author_profile_id,
   ap.slug AS author_profile_slug,
   apt.title AS author_profile_title,
+  bp.slug AS answered_by_profile_slug,
+  bpt.title AS answered_by_profile_title,
   CASE
     WHEN $1::TEXT IS NOT NULL THEN
       EXISTS(
@@ -353,6 +355,15 @@ FROM "profile_question" pq
       WHERE aptf.profile_id = ap.id
         AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
       ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
+  LEFT JOIN "profile" bp ON bp.id = pq.answered_by
+  LEFT JOIN "profile_tx" bpt ON bpt.profile_id = bp.id
+    AND bpt.locale_code = (
+      SELECT bptf.locale_code FROM "profile_tx" bptf
+      WHERE bptf.profile_id = bp.id
+        AND (bptf.locale_code = $2 OR bptf.locale_code = bp.default_locale)
+      ORDER BY CASE WHEN bptf.locale_code = $2 THEN 0 ELSE 1 END
       LIMIT 1
     )
 WHERE pq.profile_id = $3
@@ -386,8 +397,10 @@ type ListProfileQuestionsByProfileIDRow struct {
 	DeletedAt          sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	AuthorProfileID    sql.NullString `db:"author_profile_id" json:"author_profile_id"`
 	AuthorProfileSlug  sql.NullString `db:"author_profile_slug" json:"author_profile_slug"`
-	AuthorProfileTitle sql.NullString `db:"author_profile_title" json:"author_profile_title"`
-	HasViewerVote      bool           `db:"has_viewer_vote" json:"has_viewer_vote"`
+	AuthorProfileTitle      sql.NullString `db:"author_profile_title" json:"author_profile_title"`
+	AnsweredByProfileSlug   sql.NullString `db:"answered_by_profile_slug" json:"answered_by_profile_slug"`
+	AnsweredByProfileTitle  sql.NullString `db:"answered_by_profile_title" json:"answered_by_profile_title"`
+	HasViewerVote           bool           `db:"has_viewer_vote" json:"has_viewer_vote"`
 }
 
 // ListProfileQuestionsByProfileID
@@ -430,6 +443,8 @@ func (q *Queries) ListProfileQuestionsByProfileID(ctx context.Context, arg ListP
 			&i.AuthorProfileID,
 			&i.AuthorProfileSlug,
 			&i.AuthorProfileTitle,
+			&i.AnsweredByProfileSlug,
+			&i.AnsweredByProfileTitle,
 			&i.HasViewerVote,
 		); err != nil {
 			return nil, err

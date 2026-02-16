@@ -15,6 +15,8 @@ SELECT
   u.individual_profile_id AS author_profile_id,
   ap.slug AS author_profile_slug,
   apt.title AS author_profile_title,
+  bp.slug AS answered_by_profile_slug,
+  bpt.title AS answered_by_profile_title,
   CASE
     WHEN sqlc.narg(viewer_user_id)::TEXT IS NOT NULL THEN
       EXISTS(
@@ -33,6 +35,15 @@ FROM "profile_question" pq
       WHERE aptf.profile_id = ap.id
         AND (aptf.locale_code = sqlc.arg(locale_code) OR aptf.locale_code = ap.default_locale)
       ORDER BY CASE WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      LIMIT 1
+    )
+  LEFT JOIN "profile" bp ON bp.id = pq.answered_by
+  LEFT JOIN "profile_tx" bpt ON bpt.profile_id = bp.id
+    AND bpt.locale_code = (
+      SELECT bptf.locale_code FROM "profile_tx" bptf
+      WHERE bptf.profile_id = bp.id
+        AND (bptf.locale_code = sqlc.arg(locale_code) OR bptf.locale_code = bp.default_locale)
+      ORDER BY CASE WHEN bptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
       LIMIT 1
     )
 WHERE pq.profile_id = sqlc.arg(profile_id)

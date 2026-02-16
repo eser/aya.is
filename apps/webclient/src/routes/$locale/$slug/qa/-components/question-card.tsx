@@ -119,10 +119,15 @@ export function QuestionCard(props: QuestionCardProps) {
               <MessageSquare className="size-3.5 text-muted-foreground" />
               <span className="text-xs font-medium text-muted-foreground">
                 {t("QA.Answered")}
-                {props.profileKind !== "individual" && props.question.answered_by_profile_id !== null && (
+                {props.profileKind !== "individual" && props.question.answered_by_profile_slug !== null && (
                   <>
                     {" "}&middot;{" "}
-                    {props.question.answered_by_profile_id}
+                    <Link
+                      to={`/${props.locale}/${props.question.answered_by_profile_slug}`}
+                      className="hover:underline"
+                    >
+                      {props.question.answered_by_profile_title ?? props.question.answered_by_profile_slug}
+                    </Link>
                   </>
                 )}
               </span>

@@ -81,9 +81,17 @@ export function QAPageClient(props: QAPageClientProps) {
   }, [auth.isAuthenticated, auth.user, props.profileId]);
 
   const handleQuestionCreated = React.useCallback((question: ProfileQuestion) => {
-    setQuestions((prev) => [question, ...prev]);
+    // The API returns the raw inserted row without JOINed author info.
+    // Enrich with the current user's profile data so it renders correctly.
+    const enriched = { ...question };
+    if (!enriched.is_anonymous && auth.user?.individual_profile !== undefined) {
+      enriched.author_profile_id = auth.user.individual_profile.id;
+      enriched.author_profile_slug = auth.user.individual_profile.slug;
+      enriched.author_profile_title = auth.user.individual_profile.title;
+    }
+    setQuestions((prev) => [enriched, ...prev]);
     setShowForm(false);
-  }, []);
+  }, [auth.user]);
 
   const handleVoteToggle = React.useCallback(async (questionId: string) => {
     const result = await backend.voteQuestion(props.locale, props.slug, questionId);
@@ -123,12 +131,15 @@ export function QAPageClient(props: QAPageClientProps) {
             ...q,
             answer_content: answerContent,
             answered_at: new Date().toISOString(),
+            answered_by_profile_id: auth.user?.individual_profile?.id ?? null,
+            answered_by_profile_slug: auth.user?.individual_profile?.slug ?? null,
+            answered_by_profile_title: auth.user?.individual_profile?.title ?? null,
           };
         }
         return q;
       })
     );
-  }, [props.locale, props.slug]);
+  }, [props.locale, props.slug, auth.user]);
 
   const handleAnswerEdited = React.useCallback(async (questionId: string, answerContent: string) => {
     const result = await backend.editAnswer(

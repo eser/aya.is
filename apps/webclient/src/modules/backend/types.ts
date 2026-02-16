@@ -479,6 +479,8 @@ export interface ProfileQuestion {
   answer_kind: string | null;
   answered_at: string | null;
   answered_by_profile_id: string | null;
+  answered_by_profile_slug: string | null;
+  answered_by_profile_title: string | null;
   vote_count: number;
   is_anonymous: boolean;
   is_hidden: boolean;
