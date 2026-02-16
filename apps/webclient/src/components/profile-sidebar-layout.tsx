@@ -1,7 +1,7 @@
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Coins, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
+import { Coins, Ellipsis, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type Profile } from "@/modules/backend/backend";
@@ -19,6 +19,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function findIcon(kind: string) {
   switch (kind) {
@@ -149,14 +155,17 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             </button>
           )}
           {showUnfollowButton && (
-            <button
-              type="button"
-              onClick={() => setIsUnfollowDialogOpen(true)}
-              className={buttonClass}
-            >
-              <UserMinus size="14" />
-              {t("Profile.Unfollow")}
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger className={buttonClass}>
+                <Ellipsis size="14" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsUnfollowDialogOpen(true)}>
+                  <UserMinus size="14" />
+                  {t("Profile.Unfollow")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           {showBadge && membershipKind !== null && (
             <span className={`${buttonClass} cursor-default`}>
