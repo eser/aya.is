@@ -24,6 +24,13 @@ func CorsMiddlewareWithCustomDomains(
 
 	return func(ctx *httpfx.Context) httpfx.Result {
 		headers := ctx.ResponseWriter.Header()
+
+		// Prevent caching of API responses by any intermediary (CDN, reverse proxy, browser).
+		// API responses may contain personalized data that varies by authentication state.
+		// Without these headers, a proxy could cache one user's response and serve it to another.
+		headers.Set("Cache-Control", "no-store")
+		headers.Set("Vary", "Origin, Cookie, Authorization")
+
 		requestOrigin := ctx.Request.Header.Get("Origin")
 
 		if requestOrigin == "" {
