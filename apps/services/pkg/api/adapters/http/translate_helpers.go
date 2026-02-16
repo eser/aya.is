@@ -16,6 +16,34 @@ var (
 	ErrFailedToParseAIResponse   = errors.New("failed to parse AI translation response")
 )
 
+// localeToLanguageName maps locale codes to full language names for AI prompts.
+// Using full names prevents LLMs from defaulting to English when given short codes.
+var localeToLanguageName = map[string]string{ //nolint:gochecknoglobals
+	"ar":    "Arabic",
+	"de":    "German",
+	"en":    "English",
+	"es":    "Spanish",
+	"fr":    "French",
+	"it":    "Italian",
+	"ja":    "Japanese",
+	"ko":    "Korean",
+	"nl":    "Dutch",
+	"pt-PT": "Portuguese (Portugal)",
+	"ru":    "Russian",
+	"tr":    "Turkish",
+	"zh-CN": "Chinese (Simplified)",
+}
+
+// languageNameForLocale returns the full language name for a locale code.
+// Falls back to the locale code itself if not found.
+func languageNameForLocale(locale string) string {
+	if name, ok := localeToLanguageName[locale]; ok {
+		return name
+	}
+
+	return locale
+}
+
 type translationResult struct {
 	Title   string `json:"title"`
 	Summary string `json:"summary"`
@@ -48,8 +76,12 @@ func (t *AIContentTranslator) Translate(
 		return "", "", "", ErrAITranslationNotAvailable
 	}
 
+	sourceLang := languageNameForLocale(sourceLocale)
+	targetLang := languageNameForLocale(targetLocale)
+
 	prompt := fmt.Sprintf(
-		`Translate the following content from locale "%s" to locale "%s".
+		`Translate the following content from %s to %s.
+The output MUST be written entirely in %s.
 Return ONLY a valid JSON object with exactly these three keys: "title", "summary", "content".
 Do not include any other text, explanation, or markdown formatting.
 Preserve all markdown formatting in the content field.
@@ -60,8 +92,9 @@ Title: %s
 Summary: %s
 Content:
 %s`,
-		sourceLocale,
-		targetLocale,
+		sourceLang,
+		targetLang,
+		targetLang,
 		title,
 		summary,
 		content,
