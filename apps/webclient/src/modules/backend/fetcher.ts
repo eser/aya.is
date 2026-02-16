@@ -169,9 +169,49 @@ function buildFetchOptions(
   };
 }
 
-// In-flight GET request cache to deduplicate concurrent fetches to the same endpoint.
-// Prevents multiple components or loaders from triggering duplicate network requests.
-const inflightGetRequests = new Map<string, Promise<unknown>>();
+// Shared in-flight GET request cache for anonymous SSR and client-side requests.
+// Safe to share because anonymous requests return identical public data.
+const sharedInflightCache = new Map<string, Promise<unknown>>();
+
+const SESSION_COOKIE_NAME = "aya_session";
+
+/**
+ * Get the appropriate dedup cache for the current context.
+ *
+ * - Client-side: shared module-level cache (single user, always safe)
+ * - SSR without session cookie: shared module-level cache (anonymous, same data for all)
+ * - SSR with session cookie: per-request scoped cache (response may be personalized)
+ */
+async function getInflightCache(): Promise<Map<string, Promise<unknown>>> {
+  if (isBrowserEnvironment()) {
+    return sharedInflightCache;
+  }
+
+  // SSR: check if the request has a session cookie
+  try {
+    const { requestContextBinder } = await import(
+      "@/server/request-context-binder"
+    );
+    const ctx = requestContextBinder.getStore();
+
+    if (
+      ctx !== undefined &&
+      ctx.cookieHeader !== undefined &&
+      ctx.cookieHeader.includes(SESSION_COOKIE_NAME)
+    ) {
+      // Authenticated SSR — use per-request cache to prevent cross-user data leaks
+      if (ctx.inflightGetRequests === undefined) {
+        ctx.inflightGetRequests = new Map<string, Promise<unknown>>();
+      }
+      return ctx.inflightGetRequests;
+    }
+  } catch {
+    // No request context available — fall through to shared cache
+  }
+
+  // Anonymous SSR — safe to share across requests
+  return sharedInflightCache;
+}
 
 /**
  * Generic API fetcher with automatic token refresh and error handling
@@ -182,24 +222,33 @@ export function fetcher<T>(
   requestInit: RequestInit = {},
 ): Promise<T | null> {
   const method = (requestInit.method ?? "GET").toUpperCase();
-  const requestPath = `${locale}/${relativePath}`;
 
-  // Deduplicate concurrent GET requests to the same path
   if (method === "GET") {
-    const existing = inflightGetRequests.get(requestPath);
-    if (existing !== undefined) {
-      return existing as Promise<T | null>;
-    }
-
-    const promise = fetcherInternal<T>(locale, relativePath, requestInit).finally(() => {
-      inflightGetRequests.delete(requestPath);
-    });
-
-    inflightGetRequests.set(requestPath, promise);
-    return promise;
+    return fetcherWithDedup<T>(locale, relativePath, requestInit);
   }
 
   return fetcherInternal<T>(locale, relativePath, requestInit);
+}
+
+async function fetcherWithDedup<T>(
+  locale: string,
+  relativePath: string,
+  requestInit: RequestInit,
+): Promise<T | null> {
+  const requestPath = `${locale}/${relativePath}`;
+  const cache = await getInflightCache();
+
+  const existing = cache.get(requestPath);
+  if (existing !== undefined) {
+    return existing as Promise<T | null>;
+  }
+
+  const promise = fetcherInternal<T>(locale, relativePath, requestInit).finally(() => {
+    cache.delete(requestPath);
+  });
+
+  cache.set(requestPath, promise);
+  return promise;
 }
 
 async function fetcherInternal<T>(
