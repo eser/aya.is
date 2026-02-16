@@ -86,7 +86,7 @@ export const supportedLocales: Record<SupportedLocaleCode, Locale> = {
   tr: {
     code: "tr",
     matches: ["@(tr)?(-*)"],
-    name: "Turkce",
+    name: "Türkçe",
     flag: "\u{1F1F9}\u{1F1F7}",
     dir: "ltr",
   },
