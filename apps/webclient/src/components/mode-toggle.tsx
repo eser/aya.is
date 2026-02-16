@@ -30,7 +30,7 @@ export function ModeToggle() {
           {t("Layout.Light")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          {t("Layout.Dark")}
+          {t("Layout.Midnight")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
           {t("Layout.System")}
