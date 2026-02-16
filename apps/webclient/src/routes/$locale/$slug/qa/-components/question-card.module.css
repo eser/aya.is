@@ -136,6 +136,7 @@
 
 .textarea {
   @apply w-full p-3 text-sm border rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring;
+  field-sizing: content;
 }
 
 .actions {

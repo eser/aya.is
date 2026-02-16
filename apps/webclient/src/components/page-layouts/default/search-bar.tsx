@@ -430,6 +430,7 @@ export function SearchBar() {
             {Object.values(supportedLocales).map((locale) => (
               <CommandItem
                 key={`locale-${locale.code}`}
+                keywords={[locale.asciiName, locale.englishName]}
                 onSelect={() => handleLocaleChange(locale.code as SupportedLocaleCode)}
                 disabled={locale.code === localeCode}
               >

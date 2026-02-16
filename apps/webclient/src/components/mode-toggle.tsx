@@ -1,4 +1,4 @@
-import { Moon, SunMedium } from "lucide-react";
+import { Monitor, Moon, SunMedium } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -27,12 +27,15 @@ export function ModeToggle() {
       />
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
+          <SunMedium className="size-4" />
           {t("Layout.Light")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
+          <Moon className="size-4" />
           {t("Layout.Midnight")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
+          <Monitor className="size-4" />
           {t("Layout.System")}
         </DropdownMenuItem>
       </DropdownMenuContent>

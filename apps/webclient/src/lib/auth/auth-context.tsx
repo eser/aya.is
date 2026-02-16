@@ -161,19 +161,18 @@ export function AuthProvider(props: AuthProviderProps) {
     const locale = getCurrentLanguage();
     const backendUri = getBackendUri();
 
-    // Build the callback URL - single locale-independent path for OAuth
-    const callbackUrl = typeof window !== "undefined"
-      ? `${globalThis.location.origin}/auth/callback`
-      : `/auth/callback`;
+    // Build the callback URL using URL API to avoid double-encoding
+    const origin = globalThis.location !== undefined
+      ? globalThis.location.origin
+      : "";
+    const callbackUrlObj = new URL(`${origin}/auth/callback`);
+    callbackUrlObj.searchParams.set("redirect", redirectUri ?? `/${locale}`);
 
-    // Always include redirect so the callback knows where to send the user back
-    const redirect = redirectUri ?? `/${locale}`;
-    const finalCallbackUrl = `${callbackUrl}?redirect=${encodeURIComponent(redirect)}`;
+    const loginUrlObj = new URL(`${backendUri}/${locale}/auth/github/login`);
+    loginUrlObj.searchParams.set("redirect_uri", callbackUrlObj.toString());
 
-    const loginUrl = `${backendUri}/${locale}/auth/github/login?redirect_uri=${encodeURIComponent(finalCallbackUrl)}`;
-
-    if (typeof window !== "undefined") {
-      globalThis.location.href = loginUrl;
+    if (globalThis.location !== undefined) {
+      globalThis.location.href = loginUrlObj.toString();
     }
   }, []);
 

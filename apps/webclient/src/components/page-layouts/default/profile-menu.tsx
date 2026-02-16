@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { siteConfig } from "@/config";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,6 +17,7 @@ import {
 import { SiteAvatar } from "@/components/userland";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
+import { useNavigation } from "@/modules/navigation/navigation-context";
 
 type ProfileMenuProps = {
   className?: string;
@@ -26,6 +28,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const locale = getCurrentLanguage();
+  const { isCustomDomain } = useNavigation();
 
   if (!isAuthenticated || user === null) {
     return null;
@@ -40,12 +43,20 @@ export function ProfileMenu(props: ProfileMenuProps) {
     ? user.accessible_profiles
     : [];
 
+  const navigateToMain = (path: string) => {
+    if (isCustomDomain) {
+      globalThis.location.href = `${siteConfig.host}${path}`;
+    } else {
+      navigate({ to: path });
+    }
+  };
+
   const handleProfileClick = () => {
     // Navigate to user's profile if they have one, otherwise to create profile page
     if (user.individual_profile_slug !== undefined) {
-      navigate({ to: `/${locale}/${user.individual_profile_slug}` });
+      navigateToMain(`/${locale}/${user.individual_profile_slug}`);
     } else {
-      navigate({ to: `/${locale}/elements/new` });
+      navigateToMain(`/${locale}/elements/new`);
     }
   };
 
@@ -99,7 +110,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
               {accessibleProfiles.map((profile) => (
                 <DropdownMenuItem
                   key={profile.id}
-                  onClick={() => navigate({ to: `/${locale}/${profile.slug}` })}
+                  onClick={() => navigateToMain(`/${locale}/${profile.slug}`)}
                 >
                   {profile.title}
                   <span className="ml-auto text-xs text-muted-foreground">
@@ -111,7 +122,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
           </DropdownMenuSub>
         )}
         {user.kind === "admin" && (
-          <DropdownMenuItem onClick={() => navigate({ to: `/${locale}/admin` })}>
+          <DropdownMenuItem onClick={() => navigateToMain(`/${locale}/admin`)}>
             {t("Admin.Admin Area")}
           </DropdownMenuItem>
         )}
