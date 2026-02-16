@@ -5,10 +5,16 @@ type MdxContentProps = {
   compiledSource: string;
   className?: string;
   headingOffset?: number;
+  includeUserlandComponents?: boolean;
 };
 
 export function MdxContent(props: MdxContentProps) {
-  const { compiledSource, className, headingOffset = 1 } = props;
+  const {
+    compiledSource,
+    className,
+    headingOffset = 1,
+    includeUserlandComponents = true,
+  } = props;
 
   // Use useMemo to cache the MDX component and avoid re-running on every render
   const Content = React.useMemo(() => {
@@ -21,8 +27,8 @@ export function MdxContent(props: MdxContentProps) {
   }, [compiledSource]);
 
   const components = React.useMemo(
-    () => createMdxComponents(headingOffset),
-    [headingOffset],
+    () => createMdxComponents(headingOffset, includeUserlandComponents),
+    [headingOffset, includeUserlandComponents],
   );
 
   if (Content === null) {

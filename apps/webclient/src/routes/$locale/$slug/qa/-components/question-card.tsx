@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronUp, Eye, EyeOff, MessageSquare } from "lucide-react";
 import type { ProfileQuestion } from "@/modules/backend/types";
 import { LocaleLink } from "@/components/locale-link";
+import { QAMarkdown } from "./qa-markdown";
 import styles from "./question-card.module.css";
 
 type QuestionCardProps = {
@@ -87,7 +88,7 @@ export function QuestionCard(props: QuestionCardProps) {
           )}
         </div>
 
-        <p className={styles.questionContent}>{props.question.content}</p>
+        <QAMarkdown content={props.question.content} className={styles.questionContent} />
 
         {/* Answer display */}
         {props.question.answer_content !== null && (
@@ -96,7 +97,7 @@ export function QuestionCard(props: QuestionCardProps) {
               <MessageSquare className="size-3.5 text-muted-foreground" />
               <span className="text-xs font-medium text-muted-foreground">{t("QA.Answered")}</span>
             </div>
-            <p className="text-sm">{props.question.answer_content}</p>
+            <QAMarkdown content={props.question.answer_content} className={styles.answerContent} />
           </div>
         )}
 

@@ -47,9 +47,14 @@ function rehypeExternalLinks() {
  * Creates MDX components with heading level offset.
  * offset=1 means h1→h2, h2→h3, etc. (default, for h1 page titles)
  * offset=2 means h1→h3, h2→h4, etc. (for h2 page titles)
+ *
+ * When includeUserlandComponents is false, custom components (Card, Embed, etc.)
+ * are excluded. Useful for user-generated content like Q&A where custom
+ * MDX components should not be rendered.
  */
 export function createMdxComponents(
   offset: number = 1,
+  includeUserlandComponents: boolean = true,
 ): Record<string, React.ComponentType<any>> {
   const components: Record<string, React.ComponentType<any>> = {};
 
@@ -64,18 +69,20 @@ export function createMdxComponents(
     );
   }
 
-  // Add custom userland components
-  components.Card = Card;
-  components.Cards = Cards;
-  components.Embed = Embed;
-  components.List = List;
-  components.ListItem = ListItem;
-  components.ProfileCard = ProfileCard;
-  components.ProfileList = ProfileList;
-  components.SiteLink = SiteLink;
-  components.Story = Story;
-  components.TwitterEmbed = TwitterEmbed;
-  components.YouTubeEmbed = YouTubeEmbed;
+  if (includeUserlandComponents) {
+    // Add custom userland components
+    components.Card = Card;
+    components.Cards = Cards;
+    components.Embed = Embed;
+    components.List = List;
+    components.ListItem = ListItem;
+    components.ProfileCard = ProfileCard;
+    components.ProfileList = ProfileList;
+    components.SiteLink = SiteLink;
+    components.Story = Story;
+    components.TwitterEmbed = TwitterEmbed;
+    components.YouTubeEmbed = YouTubeEmbed;
+  }
 
   return components;
 }

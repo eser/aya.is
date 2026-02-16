@@ -37,7 +37,93 @@
 }
 
 .questionContent {
-  @apply text-sm text-foreground leading-relaxed mb-3 whitespace-pre-wrap;
+  @apply text-sm text-foreground leading-relaxed mb-3;
+}
+
+.questionContent p {
+  @apply mb-2 last:mb-0;
+}
+
+.questionContent code {
+  @apply px-1 py-0.5 text-xs rounded bg-muted font-mono;
+}
+
+.questionContent pre {
+  @apply my-2 p-3 rounded-md bg-muted overflow-x-auto text-xs;
+}
+
+.questionContent pre code {
+  @apply p-0 bg-transparent;
+}
+
+.questionContent a {
+  @apply underline underline-offset-2;
+}
+
+.questionContent ul,
+.questionContent ol {
+  @apply ml-4 mb-2;
+}
+
+.questionContent ul {
+  @apply list-disc;
+}
+
+.questionContent ol {
+  @apply list-decimal;
+}
+
+.questionContent li {
+  @apply mb-1;
+}
+
+.questionContent blockquote {
+  @apply pl-3 border-l-2 border-muted-foreground/30 text-muted-foreground italic;
+}
+
+.answerContent {
+  @apply text-sm leading-relaxed;
+}
+
+.answerContent p {
+  @apply mb-2 last:mb-0;
+}
+
+.answerContent code {
+  @apply px-1 py-0.5 text-xs rounded bg-muted font-mono;
+}
+
+.answerContent pre {
+  @apply my-2 p-3 rounded-md bg-muted overflow-x-auto text-xs;
+}
+
+.answerContent pre code {
+  @apply p-0 bg-transparent;
+}
+
+.answerContent a {
+  @apply underline underline-offset-2;
+}
+
+.answerContent ul,
+.answerContent ol {
+  @apply ml-4 mb-2;
+}
+
+.answerContent ul {
+  @apply list-disc;
+}
+
+.answerContent ol {
+  @apply list-decimal;
+}
+
+.answerContent li {
+  @apply mb-1;
+}
+
+.answerContent blockquote {
+  @apply pl-3 border-l-2 border-muted-foreground/30 text-muted-foreground italic;
 }
 
 .answerBlock {
