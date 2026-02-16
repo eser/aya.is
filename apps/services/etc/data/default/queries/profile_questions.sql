@@ -80,6 +80,16 @@ SET
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
+-- name: EditProfileQuestionAnswer :exec
+UPDATE "profile_question"
+SET
+  answer_content = sqlc.arg(answer_content),
+  answer_uri = sqlc.narg(answer_uri),
+  answer_kind = sqlc.narg(answer_kind),
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
 -- name: UpdateProfileQuestionHidden :exec
 UPDATE "profile_question"
 SET

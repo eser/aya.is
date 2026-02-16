@@ -180,7 +180,7 @@ func (s *Service) AnswerQuestion(ctx context.Context, params AnswerQuestionParam
 		return ErrQuestionAlreadyAnswered
 	}
 
-	err = s.repo.UpdateAnswer(
+	err = s.repo.SetAnswer(
 		ctx,
 		params.QuestionID,
 		params.AnswerContent,
@@ -251,13 +251,12 @@ func (s *Service) EditAnswer(ctx context.Context, params AnswerQuestionParams) e
 		}
 	}
 
-	err = s.repo.UpdateAnswer(
+	err = s.repo.EditAnswer(
 		ctx,
 		params.QuestionID,
 		params.AnswerContent,
 		params.AnswerURI,
 		params.AnswerKind,
-		params.AnswererProfileID,
 	)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)

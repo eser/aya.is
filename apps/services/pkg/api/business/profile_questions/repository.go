@@ -34,14 +34,23 @@ type Repository interface {
 		isAnonymous bool,
 	) (*Question, error)
 
-	// UpdateAnswer sets the answer content on a question.
-	UpdateAnswer(
+	// SetAnswer sets the initial answer on a question.
+	SetAnswer(
 		ctx context.Context,
 		questionID string,
 		answerContent string,
 		answerURI *string,
 		answerKind *string,
 		answeredByProfileID string,
+	) error
+
+	// EditAnswer updates only the answer content, preserving the original answerer.
+	EditAnswer(
+		ctx context.Context,
+		questionID string,
+		answerContent string,
+		answerURI *string,
+		answerKind *string,
 	) error
 
 	// UpdateHidden toggles the hidden state of a question.

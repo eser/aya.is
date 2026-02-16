@@ -2274,6 +2274,17 @@ type Querier interface {
 	//  WHERE profile_page_id = $4
 	//    AND locale_code = $5
 	UpdateProfilePageTx(ctx context.Context, arg UpdateProfilePageTxParams) (int64, error)
+	//EditProfileQuestionAnswer
+	//
+	//  UPDATE "profile_question"
+	//  SET
+	//    answer_content = $1,
+	//    answer_uri = $2,
+	//    answer_kind = $3,
+	//    updated_at = NOW()
+	//  WHERE id = $4
+	//    AND deleted_at IS NULL
+	EditProfileQuestionAnswer(ctx context.Context, arg EditProfileQuestionAnswerParams) error
 	//UpdateProfileQuestionAnswer
 	//
 	//  UPDATE "profile_question"

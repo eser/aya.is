@@ -98,8 +98,8 @@ func (r *Repository) InsertQuestion(
 	return r.rowToQuestion(row), nil
 }
 
-// UpdateAnswer sets the answer content on a question.
-func (r *Repository) UpdateAnswer(
+// SetAnswer sets the initial answer on a question.
+func (r *Repository) SetAnswer(
 	ctx context.Context,
 	questionID string,
 	answerContent string,
@@ -113,6 +113,22 @@ func (r *Repository) UpdateAnswer(
 		AnswerURI:     vars.ToSQLNullString(answerURI),
 		AnswerKind:    vars.ToSQLNullString(answerKind),
 		AnsweredBy:    sql.NullString{String: answeredByProfileID, Valid: true},
+	})
+}
+
+// EditAnswer updates only the answer content on a question, preserving the original answerer.
+func (r *Repository) EditAnswer(
+	ctx context.Context,
+	questionID string,
+	answerContent string,
+	answerURI *string,
+	answerKind *string,
+) error {
+	return r.queries.EditProfileQuestionAnswer(ctx, EditProfileQuestionAnswerParams{
+		ID:            questionID,
+		AnswerContent: sql.NullString{String: answerContent, Valid: true},
+		AnswerURI:     vars.ToSQLNullString(answerURI),
+		AnswerKind:    vars.ToSQLNullString(answerKind),
 	})
 }
 

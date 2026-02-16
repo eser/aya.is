@@ -35,6 +35,44 @@ func (q *Queries) CountProfileQuestionsByProfileID(ctx context.Context, arg Coun
 	return count, err
 }
 
+const editProfileQuestionAnswer = `-- name: EditProfileQuestionAnswer :exec
+UPDATE "profile_question"
+SET
+  answer_content = $1,
+  answer_uri = $2,
+  answer_kind = $3,
+  updated_at = NOW()
+WHERE id = $4
+  AND deleted_at IS NULL
+`
+
+type EditProfileQuestionAnswerParams struct {
+	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
+	AnswerURI     sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerKind    sql.NullString `db:"answer_kind" json:"answer_kind"`
+	ID            string         `db:"id" json:"id"`
+}
+
+// EditProfileQuestionAnswer
+//
+//	UPDATE "profile_question"
+//	SET
+//	  answer_content = $1,
+//	  answer_uri = $2,
+//	  answer_kind = $3,
+//	  updated_at = NOW()
+//	WHERE id = $4
+//	  AND deleted_at IS NULL
+func (q *Queries) EditProfileQuestionAnswer(ctx context.Context, arg EditProfileQuestionAnswerParams) error {
+	_, err := q.db.ExecContext(ctx, editProfileQuestionAnswer,
+		arg.AnswerContent,
+		arg.AnswerURI,
+		arg.AnswerKind,
+		arg.ID,
+	)
+	return err
+}
+
 const decrementProfileQuestionVoteCount = `-- name: DecrementProfileQuestionVoteCount :exec
 UPDATE "profile_question"
 SET
