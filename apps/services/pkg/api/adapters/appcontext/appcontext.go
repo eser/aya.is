@@ -294,6 +294,11 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.JWTTokenService,
 		&a.Config.Auth,
 		a.UserService,
+		func(ctx context.Context, domain string) bool {
+			profile, _, _ := a.ProfileService.GetByCustomDomain(ctx, "en", domain)
+
+			return profile != nil
+		},
 	)
 
 	a.ProtectionService = protection.NewService(

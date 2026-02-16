@@ -161,16 +161,15 @@ export function AuthProvider(props: AuthProviderProps) {
     const locale = getCurrentLanguage();
     const backendUri = getBackendUri();
 
-    // Build the callback URL — keep redirect as a plain query param so that
-    // the outer searchParams.set only encodes the whole thing once.
+    // Build the callback URL using URL API to avoid double-encoding
     const origin = globalThis.location !== undefined
       ? globalThis.location.origin
       : "";
-    const redirect = redirectUri ?? `/${locale}`;
-    const callbackUrl = `${origin}/auth/callback?redirect=${redirect}`;
+    const callbackUrlObj = new URL(`${origin}/auth/callback`);
+    callbackUrlObj.searchParams.set("redirect", redirectUri ?? `/${locale}`);
 
     const loginUrlObj = new URL(`${backendUri}/${locale}/auth/github/login`);
-    loginUrlObj.searchParams.set("redirect_uri", callbackUrl);
+    loginUrlObj.searchParams.set("redirect_uri", callbackUrlObj.toString());
 
     if (globalThis.location !== undefined) {
       globalThis.location.href = loginUrlObj.toString();

@@ -55,12 +55,17 @@ type TokenService interface {
 	GenerateToken(claims *JWTClaims) (string, error)
 }
 
+// CustomDomainChecker checks whether a domain is a registered custom domain.
+// Used for redirect URI origin validation during OAuth callback.
+type CustomDomainChecker func(ctx context.Context, domain string) bool
+
 type Service struct {
-	logger       *logfx.Logger
-	tokenService TokenService
-	Config       *Config
-	providers    map[string]Provider
-	userService  *users.Service
+	logger              *logfx.Logger
+	tokenService        TokenService
+	Config              *Config
+	providers           map[string]Provider
+	userService         *users.Service
+	customDomainChecker CustomDomainChecker
 }
 
 func NewService(
@@ -68,13 +73,15 @@ func NewService(
 	tokenService TokenService,
 	config *Config,
 	userService *users.Service,
+	customDomainChecker CustomDomainChecker,
 ) *Service {
 	return &Service{
-		logger:       logger,
-		tokenService: tokenService,
-		Config:       config,
-		providers:    map[string]Provider{},
-		userService:  userService,
+		logger:              logger,
+		tokenService:        tokenService,
+		Config:              config,
+		providers:           map[string]Provider{},
+		userService:         userService,
+		customDomainChecker: customDomainChecker,
 	}
 }
 
@@ -96,11 +103,36 @@ func (s *Service) RegisterProvider(providerName string, provider Provider) {
 	s.providers[providerName] = provider
 }
 
-// isAllowedOrigin checks whether the given origin is in the CORS allowed origins list.
-func (s *Service) isAllowedOrigin(origin string) bool {
+// IsAllowedOrigin checks whether the given origin is in the CORS allowed origins list.
+func (s *Service) IsAllowedOrigin(origin string) bool {
 	for _, allowed := range s.Config.GetCorsAllowedOrigins() {
 		if strings.EqualFold(allowed, origin) {
 			return true
+		}
+	}
+
+	return false
+}
+
+// isAllowedRedirectOrigin checks whether the origin is allowed for redirect URIs.
+// It first checks the configured CORS allowed origins, then falls back to
+// checking registered custom domains in the database.
+func (s *Service) isAllowedRedirectOrigin(ctx context.Context, origin string) bool {
+	// Check config-defined origins first (fast path)
+	if s.IsAllowedOrigin(origin) {
+		return true
+	}
+
+	// Fall back to custom domain check
+	if s.customDomainChecker != nil {
+		parsed, err := url.Parse(origin)
+		if err != nil {
+			return false
+		}
+
+		domain := strings.TrimPrefix(parsed.Hostname(), "www.")
+		if domain != "" {
+			return s.customDomainChecker(ctx, domain)
 		}
 	}
 
@@ -238,18 +270,18 @@ func (s *Service) AuthHandleCallback(
 		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToGenerateToken, err)
 	}
 
-	// Validate redirect URI against allowed CORS origins to prevent open redirect
-	validatedRedirectURI := redirectURI
-	if validatedRedirectURI != "" {
-		parsedRedirect, parseErr := url.Parse(validatedRedirectURI)
+	// Validate redirect URI against allowed origins and custom domains to prevent open redirect
+	if redirectURI != "" {
+		parsedRedirect, parseErr := url.Parse(redirectURI)
 		if parseErr != nil {
 			return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToParseRedirectURI, parseErr)
 		}
 
 		redirectOrigin := parsedRedirect.Scheme + "://" + parsedRedirect.Host
-		if !s.isAllowedOrigin(redirectOrigin) {
+
+		if !s.isAllowedRedirectOrigin(ctx, redirectOrigin) {
 			s.logger.WarnContext(ctx, "Blocked redirect to disallowed origin",
-				slog.String("redirect_uri", validatedRedirectURI),
+				slog.String("redirect_uri", redirectURI),
 				slog.String("origin", redirectOrigin))
 
 			return AuthResult{}, ErrUnsafeRedirectURI
@@ -261,7 +293,7 @@ func (s *Service) AuthHandleCallback(
 		SessionID:   session.ID,
 		JWT:         tokenString,
 		ExpiresAt:   expiresAt,
-		RedirectURI: validatedRedirectURI,
+		RedirectURI: redirectURI,
 	}
 
 	// Add auth_token to redirect URI

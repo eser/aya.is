@@ -81,8 +81,8 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			}
 			authProvider := ctx.Request.PathValue("authProvider")
 
-			url := ctx.Request.URL
-			queryString := url.Query()
+			requestURL := ctx.Request.URL
+			queryString := requestURL.Query()
 			redirectURI := queryString.Get("redirect_uri")
 
 			if redirectURI == "" {
@@ -122,8 +122,8 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				// get auth provider from path
 				authProvider := ctx.Request.PathValue("authProvider")
 
-				url := ctx.Request.URL
-				queryString := url.Query()
+				requestURL := ctx.Request.URL
+				queryString := requestURL.Query()
 				code := queryString.Get("code")
 				state := queryString.Get("state")
 				redirectURI := queryString.Get("redirect_uri")

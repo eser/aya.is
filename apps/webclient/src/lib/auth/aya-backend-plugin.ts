@@ -46,9 +46,7 @@ export const ayaBackendPlugin = () => {
           const redirectUri = url.searchParams.get("redirect_uri") ?? "/";
 
           // Redirect to api.aya.is OAuth endpoint
-          const loginUrlObj = new URL(`${backendUri}/${locale}/auth/github/login`);
-          loginUrlObj.searchParams.set("redirect_uri", redirectUri);
-          const loginUrl = loginUrlObj.toString();
+          const loginUrl = `${backendUri}/${locale}/auth/github/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
 
           return new Response(null, {
             status: 302,
