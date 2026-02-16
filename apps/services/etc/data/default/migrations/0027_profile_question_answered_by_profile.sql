@@ -2,15 +2,15 @@
 -- Change answered_by from referencing user(id) to referencing profile(id).
 -- Migrate existing user IDs to their individual profile IDs.
 
--- First, update existing answered_by values from user IDs to profile IDs
+-- Drop the old FK referencing user first (before data migration)
+ALTER TABLE "profile_question" DROP CONSTRAINT IF EXISTS "profile_question_answered_by_fk";
+
+-- Update existing answered_by values from user IDs to profile IDs
 UPDATE "profile_question" pq
 SET answered_by = u.individual_profile_id
 FROM "user" u
 WHERE pq.answered_by = u.id
   AND u.individual_profile_id IS NOT NULL;
-
--- Drop the old FK referencing user
-ALTER TABLE "profile_question" DROP CONSTRAINT IF EXISTS "profile_question_answered_by_fk";
 
 -- Add the new FK referencing profile
 ALTER TABLE "profile_question"
@@ -19,15 +19,15 @@ ALTER TABLE "profile_question"
 -- +goose Down
 -- Revert: change answered_by back from profile(id) to user(id)
 
+-- Drop the profile FK first (before data migration)
+ALTER TABLE "profile_question" DROP CONSTRAINT IF EXISTS "profile_question_answered_by_fk";
+
 -- Update profile IDs back to user IDs
 UPDATE "profile_question" pq
 SET answered_by = u.id
 FROM "user" u
 WHERE pq.answered_by = u.individual_profile_id
   AND u.individual_profile_id IS NOT NULL;
-
--- Drop the profile FK
-ALTER TABLE "profile_question" DROP CONSTRAINT IF EXISTS "profile_question_answered_by_fk";
 
 -- Re-add the user FK
 ALTER TABLE "profile_question"
