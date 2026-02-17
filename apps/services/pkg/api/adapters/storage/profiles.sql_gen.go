@@ -220,6 +220,7 @@ INSERT INTO "profile_link" (
   auth_access_token_expires_at,
   auth_refresh_token,
   auth_refresh_token_expires_at,
+  added_by_profile_id,
   created_at
 ) VALUES (
   $1,
@@ -239,8 +240,9 @@ INSERT INTO "profile_link" (
   $15,
   $16,
   $17,
+  $18,
   NOW()
-) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 `
 
 type CreateProfileLinkParams struct {
@@ -261,6 +263,7 @@ type CreateProfileLinkParams struct {
 	AuthAccessTokenExpiresAt  sql.NullTime   `db:"auth_access_token_expires_at" json:"auth_access_token_expires_at"`
 	AuthRefreshToken          sql.NullString `db:"auth_refresh_token" json:"auth_refresh_token"`
 	AuthRefreshTokenExpiresAt sql.NullTime   `db:"auth_refresh_token_expires_at" json:"auth_refresh_token_expires_at"`
+	AddedByProfileID          sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
 }
 
 // CreateProfileLink
@@ -283,6 +286,7 @@ type CreateProfileLinkParams struct {
 //	  auth_access_token_expires_at,
 //	  auth_refresh_token,
 //	  auth_refresh_token_expires_at,
+//	  added_by_profile_id,
 //	  created_at
 //	) VALUES (
 //	  $1,
@@ -302,8 +306,9 @@ type CreateProfileLinkParams struct {
 //	  $15,
 //	  $16,
 //	  $17,
+//	  $18,
 //	  NOW()
-//	) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+//	) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error) {
 	row := q.db.QueryRowContext(ctx, createProfileLink,
 		arg.ID,
@@ -323,6 +328,7 @@ func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkPa
 		arg.AuthAccessTokenExpiresAt,
 		arg.AuthRefreshToken,
 		arg.AuthRefreshTokenExpiresAt,
+		arg.AddedByProfileID,
 	)
 	var i ProfileLink
 	err := row.Scan(
@@ -347,6 +353,7 @@ func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkPa
 		&i.DeletedAt,
 		&i.Visibility,
 		&i.IsFeatured,
+		&i.AddedByProfileID,
 	)
 	return &i, err
 }
@@ -469,6 +476,7 @@ INSERT INTO "profile_page" (
   "order",
   cover_picture_uri,
   published_at,
+  added_by_profile_id,
   created_at
 ) VALUES (
   $1,
@@ -477,17 +485,19 @@ INSERT INTO "profile_page" (
   $4,
   $5,
   $6,
+  $7,
   NOW()
-) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at
+) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
 `
 
 type CreateProfilePageParams struct {
-	ID              string         `db:"id" json:"id"`
-	Slug            string         `db:"slug" json:"slug"`
-	ProfileID       string         `db:"profile_id" json:"profile_id"`
-	PageOrder       int32          `db:"page_order" json:"page_order"`
-	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
-	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
+	ID               string         `db:"id" json:"id"`
+	Slug             string         `db:"slug" json:"slug"`
+	ProfileID        string         `db:"profile_id" json:"profile_id"`
+	PageOrder        int32          `db:"page_order" json:"page_order"`
+	CoverPictureURI  sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt      sql.NullTime   `db:"published_at" json:"published_at"`
+	AddedByProfileID sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
 }
 
 // CreateProfilePage
@@ -499,6 +509,7 @@ type CreateProfilePageParams struct {
 //	  "order",
 //	  cover_picture_uri,
 //	  published_at,
+//	  added_by_profile_id,
 //	  created_at
 //	) VALUES (
 //	  $1,
@@ -507,8 +518,9 @@ type CreateProfilePageParams struct {
 //	  $4,
 //	  $5,
 //	  $6,
+//	  $7,
 //	  NOW()
-//	) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at
+//	) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
 func (q *Queries) CreateProfilePage(ctx context.Context, arg CreateProfilePageParams) (*ProfilePage, error) {
 	row := q.db.QueryRowContext(ctx, createProfilePage,
 		arg.ID,
@@ -517,6 +529,7 @@ func (q *Queries) CreateProfilePage(ctx context.Context, arg CreateProfilePagePa
 		arg.PageOrder,
 		arg.CoverPictureURI,
 		arg.PublishedAt,
+		arg.AddedByProfileID,
 	)
 	var i ProfilePage
 	err := row.Scan(
@@ -529,6 +542,7 @@ func (q *Queries) CreateProfilePage(ctx context.Context, arg CreateProfilePagePa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.AddedByProfileID,
 	)
 	return &i, err
 }
@@ -1149,7 +1163,7 @@ func (q *Queries) GetProfileIdentifierByID(ctx context.Context, arg GetProfileId
 
 const getProfileLink = `-- name: GetProfileLink :one
 SELECT
-  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
   COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
   COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, plt_def.title, pl.kind) as title,
@@ -1193,6 +1207,7 @@ type GetProfileLinkRow struct {
 	DeletedAt                 sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
+	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
 	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
@@ -1204,7 +1219,7 @@ type GetProfileLinkRow struct {
 // GetProfileLink
 //
 //	SELECT
-//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
 //	  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
 //	  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
@@ -1244,6 +1259,7 @@ func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) 
 		&i.DeletedAt,
 		&i.Visibility,
 		&i.IsFeatured,
+		&i.AddedByProfileID,
 		&i.ProfileLinkID,
 		&i.LocaleCode,
 		&i.Title,
@@ -1255,7 +1271,7 @@ func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) 
 }
 
 const getProfileLinkByRemoteID = `-- name: GetProfileLinkByRemoteID :one
-SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 FROM "profile_link"
 WHERE profile_id = $1
   AND kind = $2
@@ -1272,7 +1288,7 @@ type GetProfileLinkByRemoteIDParams struct {
 
 // GetProfileLinkByRemoteID
 //
-//	SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 //	FROM "profile_link"
 //	WHERE profile_id = $1
 //	  AND kind = $2
@@ -1304,6 +1320,7 @@ func (q *Queries) GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLi
 		&i.DeletedAt,
 		&i.Visibility,
 		&i.IsFeatured,
+		&i.AddedByProfileID,
 	)
 	return &i, err
 }
@@ -1659,7 +1676,7 @@ func (q *Queries) GetProfileOwnershipForUser(ctx context.Context, arg GetProfile
 }
 
 const getProfilePage = `-- name: GetProfilePage :one
-SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at
+SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
 FROM "profile_page"
 WHERE id = $1
   AND deleted_at IS NULL
@@ -1671,7 +1688,7 @@ type GetProfilePageParams struct {
 
 // GetProfilePage
 //
-//	SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at
+//	SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
 //	FROM "profile_page"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
@@ -1688,12 +1705,13 @@ func (q *Queries) GetProfilePage(ctx context.Context, arg GetProfilePageParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.AddedByProfileID,
 	)
 	return &i, err
 }
 
 const getProfilePageByProfileIDAndSlug = `-- name: GetProfilePageByProfileIDAndSlug :one
-SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 FROM "profile_page" pp
   INNER JOIN "profile" p ON p.id = pp.profile_id
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -1715,26 +1733,27 @@ type GetProfilePageByProfileIDAndSlugParams struct {
 }
 
 type GetProfilePageByProfileIDAndSlugRow struct {
-	ID              string         `db:"id" json:"id"`
-	ProfileID       string         `db:"profile_id" json:"profile_id"`
-	Slug            string         `db:"slug" json:"slug"`
-	Order           int32          `db:"order" json:"order"`
-	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
-	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
-	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
-	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	ProfilePageID   string         `db:"profile_page_id" json:"profile_page_id"`
-	LocaleCode      string         `db:"locale_code" json:"locale_code"`
-	Title           string         `db:"title" json:"title"`
-	Summary         string         `db:"summary" json:"summary"`
-	Content         string         `db:"content" json:"content"`
-	SearchVector    interface{}    `db:"search_vector" json:"search_vector"`
+	ID               string         `db:"id" json:"id"`
+	ProfileID        string         `db:"profile_id" json:"profile_id"`
+	Slug             string         `db:"slug" json:"slug"`
+	Order            int32          `db:"order" json:"order"`
+	CoverPictureURI  sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt      sql.NullTime   `db:"published_at" json:"published_at"`
+	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt        sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	AddedByProfileID sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	ProfilePageID    string         `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode       string         `db:"locale_code" json:"locale_code"`
+	Title            string         `db:"title" json:"title"`
+	Summary          string         `db:"summary" json:"summary"`
+	Content          string         `db:"content" json:"content"`
+	SearchVector     interface{}    `db:"search_vector" json:"search_vector"`
 }
 
 // GetProfilePageByProfileIDAndSlug
 //
-//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile" p ON p.id = pp.profile_id
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -1760,6 +1779,7 @@ func (q *Queries) GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetP
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.AddedByProfileID,
 		&i.ProfilePageID,
 		&i.LocaleCode,
 		&i.Title,
@@ -2539,19 +2559,26 @@ func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHub
 
 const listProfileLinksByProfileID = `-- name: ListProfileLinksByProfileID :many
 SELECT
-  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
   COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
   COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, plt_def.title, pl.kind) as title,
   COALESCE(plt.icon, plt_def.icon, '') as icon,
   plt."group" as "group",
-  plt.description as description
+  plt.description as description,
+  p_added.slug as added_by_slug,
+  p_added.kind as added_by_kind,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
+  p_added.profile_picture_uri as added_by_profile_picture_uri
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = $1
   LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
     AND plt_def.locale_code = p.default_locale
+  LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 WHERE pl.profile_id = $2
   AND pl.deleted_at IS NULL
 ORDER BY pl."order"
@@ -2584,30 +2611,43 @@ type ListProfileLinksByProfileIDRow struct {
 	DeletedAt                 sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
+	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
 	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
 	Icon                      string                `db:"icon" json:"icon"`
 	Group                     sql.NullString        `db:"group" json:"group"`
 	Description               sql.NullString        `db:"description" json:"description"`
+	AddedBySlug               sql.NullString        `db:"added_by_slug" json:"added_by_slug"`
+	AddedByKind               sql.NullString        `db:"added_by_kind" json:"added_by_kind"`
+	AddedByTitle              string                `db:"added_by_title" json:"added_by_title"`
+	AddedByDescription        string                `db:"added_by_description" json:"added_by_description"`
+	AddedByProfilePictureURI  sql.NullString        `db:"added_by_profile_picture_uri" json:"added_by_profile_picture_uri"`
 }
 
 // ListProfileLinksByProfileID
 //
 //	SELECT
-//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
 //	  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
 //	  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
 //	  COALESCE(plt.icon, plt_def.icon, '') as icon,
 //	  plt."group" as "group",
-//	  plt.description as description
+//	  plt.description as description,
+//	  p_added.slug as added_by_slug,
+//	  p_added.kind as added_by_kind,
+//	  COALESCE(pt_added.title, '') as added_by_title,
+//	  COALESCE(pt_added.description, '') as added_by_description,
+//	  p_added.profile_picture_uri as added_by_profile_picture_uri
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 //	    AND plt.locale_code = $1
 //	  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
 //	    AND plt_def.locale_code = p.default_locale
+//	  LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
+//	  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 //	WHERE pl.profile_id = $2
 //	  AND pl.deleted_at IS NULL
 //	ORDER BY pl."order"
@@ -2642,12 +2682,18 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 			&i.DeletedAt,
 			&i.Visibility,
 			&i.IsFeatured,
+			&i.AddedByProfileID,
 			&i.ProfileLinkID,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
 			&i.Group,
 			&i.Description,
+			&i.AddedBySlug,
+			&i.AddedByKind,
+			&i.AddedByTitle,
+			&i.AddedByDescription,
+			&i.AddedByProfilePictureURI,
 		); err != nil {
 			return nil, err
 		}
@@ -2664,7 +2710,7 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 
 const listProfileLinksForKind = `-- name: ListProfileLinksForKind :many
 SELECT
-  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
   COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
   COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, plt_def.title, pl.kind) as title,
@@ -2709,6 +2755,7 @@ type ListProfileLinksForKindRow struct {
 	DeletedAt                 sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
+	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
 	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
@@ -2719,7 +2766,7 @@ type ListProfileLinksForKindRow struct {
 // ListProfileLinksForKind
 //
 //	SELECT
-//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
 //	  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
 //	  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
@@ -2766,6 +2813,7 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 			&i.DeletedAt,
 			&i.Visibility,
 			&i.IsFeatured,
+			&i.AddedByProfileID,
 			&i.ProfileLinkID,
 			&i.LocaleCode,
 			&i.Title,
@@ -3139,7 +3187,12 @@ func (q *Queries) ListProfilePageTxLocales(ctx context.Context, arg ListProfileP
 }
 
 const listProfilePagesByProfileID = `-- name: ListProfilePagesByProfileID :many
-SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+  p_added.slug as added_by_slug,
+  p_added.kind as added_by_kind,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
+  p_added.profile_picture_uri as added_by_profile_picture_uri
 FROM "profile_page" pp
   INNER JOIN "profile" p ON p.id = pp.profile_id
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -3150,6 +3203,8 @@ FROM "profile_page" pp
     ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
     LIMIT 1
   )
+  LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 WHERE pp.profile_id = $2
   AND pp.deleted_at IS NULL
 ORDER BY pp."order"
@@ -3161,26 +3216,37 @@ type ListProfilePagesByProfileIDParams struct {
 }
 
 type ListProfilePagesByProfileIDRow struct {
-	ID              string         `db:"id" json:"id"`
-	ProfileID       string         `db:"profile_id" json:"profile_id"`
-	Slug            string         `db:"slug" json:"slug"`
-	Order           int32          `db:"order" json:"order"`
-	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
-	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
-	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
-	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	ProfilePageID   string         `db:"profile_page_id" json:"profile_page_id"`
-	LocaleCode      string         `db:"locale_code" json:"locale_code"`
-	Title           string         `db:"title" json:"title"`
-	Summary         string         `db:"summary" json:"summary"`
-	Content         string         `db:"content" json:"content"`
-	SearchVector    interface{}    `db:"search_vector" json:"search_vector"`
+	ID                       string         `db:"id" json:"id"`
+	ProfileID                string         `db:"profile_id" json:"profile_id"`
+	Slug                     string         `db:"slug" json:"slug"`
+	Order                    int32          `db:"order" json:"order"`
+	CoverPictureURI          sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt              sql.NullTime   `db:"published_at" json:"published_at"`
+	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt                sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	AddedByProfileID         sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	ProfilePageID            string         `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode               string         `db:"locale_code" json:"locale_code"`
+	Title                    string         `db:"title" json:"title"`
+	Summary                  string         `db:"summary" json:"summary"`
+	Content                  string         `db:"content" json:"content"`
+	SearchVector             interface{}    `db:"search_vector" json:"search_vector"`
+	AddedBySlug              sql.NullString `db:"added_by_slug" json:"added_by_slug"`
+	AddedByKind              sql.NullString `db:"added_by_kind" json:"added_by_kind"`
+	AddedByTitle             string         `db:"added_by_title" json:"added_by_title"`
+	AddedByDescription       string         `db:"added_by_description" json:"added_by_description"`
+	AddedByProfilePictureURI sql.NullString `db:"added_by_profile_picture_uri" json:"added_by_profile_picture_uri"`
 }
 
 // ListProfilePagesByProfileID
 //
-//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+//	  p_added.slug as added_by_slug,
+//	  p_added.kind as added_by_kind,
+//	  COALESCE(pt_added.title, '') as added_by_title,
+//	  COALESCE(pt_added.description, '') as added_by_description,
+//	  p_added.profile_picture_uri as added_by_profile_picture_uri
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile" p ON p.id = pp.profile_id
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -3191,6 +3257,8 @@ type ListProfilePagesByProfileIDRow struct {
 //	    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
 //	    LIMIT 1
 //	  )
+//	  LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
+//	  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 //	WHERE pp.profile_id = $2
 //	  AND pp.deleted_at IS NULL
 //	ORDER BY pp."order"
@@ -3213,12 +3281,18 @@ func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfi
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.AddedByProfileID,
 			&i.ProfilePageID,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Summary,
 			&i.Content,
 			&i.SearchVector,
+			&i.AddedBySlug,
+			&i.AddedByKind,
+			&i.AddedByTitle,
+			&i.AddedByDescription,
+			&i.AddedByProfilePictureURI,
 		); err != nil {
 			return nil, err
 		}

@@ -61,8 +61,11 @@ export interface ProfileLink {
   icon?: string | null; // Custom emoticon or initials - if not specified, kind-based icon is used
   group?: string | null;
   description?: string | null;
+  added_by_profile_id?: string | null;
+  added_by_profile?: ProfileBrief | null;
   created_at: string;
   updated_at?: string | null;
+  can_remove: boolean;
 }
 
 export type ProfilePage = {
@@ -75,6 +78,9 @@ export type ProfilePage = {
   sort_order: number;
   cover_picture_uri?: string | null;
   published_at?: string | null;
+  added_by_profile_id?: string | null;
+  added_by_profile?: ProfileBrief | null;
+  can_remove: boolean;
 };
 
 export interface ProfileContribution {

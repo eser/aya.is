@@ -135,6 +135,7 @@ type ProfileLink struct {
 	DeletedAt                 sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
+	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
 }
 
 type ProfileLinkImport struct {
@@ -168,15 +169,16 @@ type ProfileMembership struct {
 }
 
 type ProfilePage struct {
-	ID              string         `db:"id" json:"id"`
-	ProfileID       string         `db:"profile_id" json:"profile_id"`
-	Slug            string         `db:"slug" json:"slug"`
-	Order           int32          `db:"order" json:"order"`
-	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
-	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
-	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
-	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	ID               string         `db:"id" json:"id"`
+	ProfileID        string         `db:"profile_id" json:"profile_id"`
+	Slug             string         `db:"slug" json:"slug"`
+	Order            int32          `db:"order" json:"order"`
+	CoverPictureURI  sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt      sql.NullTime   `db:"published_at" json:"published_at"`
+	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt        sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	AddedByProfileID sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
 }
 
 type ProfilePageTx struct {

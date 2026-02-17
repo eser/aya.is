@@ -305,6 +305,7 @@ type Repository interface { //nolint:interfacebloat
 		uri *string,
 		isFeatured bool,
 		visibility LinkVisibility,
+		addedByProfileID *string,
 	) (*ProfileLink, error)
 	UpdateProfileLink(
 		ctx context.Context,
@@ -350,6 +351,7 @@ type Repository interface { //nolint:interfacebloat
 		order int,
 		coverPictureURI *string,
 		publishedAt *string,
+		addedByProfileID *string,
 	) (*ProfilePage, error)
 	CreateProfilePageTx(
 		ctx context.Context,
@@ -1519,6 +1521,14 @@ func (s *Service) CreateProfileLink(
 		return nil, err
 	}
 
+	// Get the user's individual profile for added_by tracking
+	userInfo, userInfoErr := s.repo.GetUserBriefInfo(ctx, userID)
+
+	var addedByProfileID *string
+	if userInfoErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
+		addedByProfileID = userInfo.IndividualProfileID
+	}
+
 	// Get next order value
 	existingLinks, err := s.repo.ListProfileLinksByProfileID(ctx, localeCode, profileID)
 	if err != nil {
@@ -1545,6 +1555,7 @@ func (s *Service) CreateProfileLink(
 		uri,
 		isFeatured,
 		visibility,
+		addedByProfileID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
@@ -1706,10 +1717,6 @@ func (s *Service) DeleteProfileLink(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
-	}
-
 	// Verify the link exists and belongs to the profile
 	existingLink, err := s.repo.GetProfileLink(ctx, "en", linkID)
 	if err != nil {
@@ -1727,6 +1734,31 @@ func (s *Service) DeleteProfileLink(
 			linkID,
 			profileSlug,
 		)
+	}
+
+	// Three-tier authorization: admin > original adder > maintainer+
+	canDelete := userKind == "admin"
+
+	if !canDelete && existingLink.AddedByProfileID != nil && userID != "" {
+		userInfo, upErr := s.repo.GetUserBriefInfo(ctx, userID)
+		if upErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
+			if *userInfo.IndividualProfileID == *existingLink.AddedByProfileID {
+				canDelete = true
+			}
+		}
+	}
+
+	if !canDelete {
+		err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+		if err != nil {
+			return err
+		}
+
+		canDelete = true
+	}
+
+	if !canDelete {
+		return ErrUnauthorized
 	}
 
 	// Delete the link
@@ -1834,6 +1866,41 @@ func (s *Service) ListProfileLinksBySlug(
 		}
 	}
 
+	// Determine if the current user can remove each link
+	if userID != "" {
+		userInfo, userErr := s.repo.GetUserBriefInfo(ctx, userID)
+
+		for _, l := range links {
+			canRemove := false
+
+			// Site admins can always remove
+			if userKind == "admin" {
+				canRemove = true
+			} else if userErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
+				// Check membership level
+				membershipKind, mkErr := s.repo.GetMembershipBetweenProfiles(
+					ctx, profileID, *userInfo.IndividualProfileID,
+				)
+				if mkErr == nil && membershipKind != "" {
+					level, ok := MembershipKindLevel[membershipKind]
+					if ok && level >= MembershipKindLevel[MembershipKindMaintainer] {
+						canRemove = true
+					}
+				}
+			}
+
+			// The original adder can remove their own links
+			if !canRemove && userErr == nil && userInfo != nil &&
+				userInfo.IndividualProfileID != nil && l.AddedByProfileID != nil {
+				if *userInfo.IndividualProfileID == *l.AddedByProfileID {
+					canRemove = true
+				}
+			}
+
+			l.CanRemove = canRemove
+		}
+	}
+
 	return links, nil
 }
 
@@ -1865,6 +1932,14 @@ func (s *Service) CreateProfilePage(
 
 	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
 		return nil, err
+	}
+
+	// Get the user's individual profile for added_by tracking
+	userInfo, userInfoErr := s.repo.GetUserBriefInfo(ctx, userID)
+
+	var addedByProfileID *string
+	if userInfoErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
+		addedByProfileID = userInfo.IndividualProfileID
 	}
 
 	// Validate cover picture URI
@@ -1914,6 +1989,7 @@ func (s *Service) CreateProfilePage(
 		order,
 		coverPictureURI,
 		publishedAt,
+		addedByProfileID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
@@ -2232,10 +2308,6 @@ func (s *Service) DeleteProfilePage(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
-	}
-
 	// Verify the page exists
 	existingPage, err := s.repo.GetProfilePage(ctx, pageID)
 	if err != nil {
@@ -2244,6 +2316,31 @@ func (s *Service) DeleteProfilePage(
 
 	if existingPage == nil {
 		return fmt.Errorf("%w: page %s not found", ErrFailedToGetRecord, pageID)
+	}
+
+	// Three-tier authorization: admin > original adder > maintainer+
+	canDelete := userKind == "admin"
+
+	if !canDelete && existingPage.AddedByProfileID != nil && userID != "" {
+		userInfo, upErr := s.repo.GetUserBriefInfo(ctx, userID)
+		if upErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
+			if *userInfo.IndividualProfileID == *existingPage.AddedByProfileID {
+				canDelete = true
+			}
+		}
+	}
+
+	if !canDelete {
+		err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+		if err != nil {
+			return err
+		}
+
+		canDelete = true
+	}
+
+	if !canDelete {
+		return ErrUnauthorized
 	}
 
 	// Delete the page

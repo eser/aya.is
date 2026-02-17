@@ -274,6 +274,7 @@ type Querier interface {
 	//    auth_access_token_expires_at,
 	//    auth_refresh_token,
 	//    auth_refresh_token_expires_at,
+	//    added_by_profile_id,
 	//    created_at
 	//  ) VALUES (
 	//    $1,
@@ -293,8 +294,9 @@ type Querier interface {
 	//    $15,
 	//    $16,
 	//    $17,
+	//    $18,
 	//    NOW()
-	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 	CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error)
 	//CreateProfileLinkTx
 	//
@@ -341,6 +343,7 @@ type Querier interface {
 	//    "order",
 	//    cover_picture_uri,
 	//    published_at,
+	//    added_by_profile_id,
 	//    created_at
 	//  ) VALUES (
 	//    $1,
@@ -349,8 +352,9 @@ type Querier interface {
 	//    $4,
 	//    $5,
 	//    $6,
+	//    $7,
 	//    NOW()
-	//  ) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at
+	//  ) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
 	CreateProfilePage(ctx context.Context, arg CreateProfilePageParams) (*ProfilePage, error)
 	//CreateProfilePageTx
 	//
@@ -757,7 +761,7 @@ type Querier interface {
 	//GetProfileLink
 	//
 	//  SELECT
-	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
 	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
 	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
@@ -775,7 +779,7 @@ type Querier interface {
 	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*GetProfileLinkRow, error)
 	//GetProfileLinkByRemoteID
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND kind = $2
@@ -878,14 +882,14 @@ type Querier interface {
 	GetProfileOwnershipForUser(ctx context.Context, arg GetProfileOwnershipForUserParams) (*GetProfileOwnershipForUserRow, error)
 	//GetProfilePage
 	//
-	//  SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at
+	//  SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
 	//  FROM "profile_page"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	GetProfilePage(ctx context.Context, arg GetProfilePageParams) (*ProfilePage, error)
 	//GetProfilePageByProfileIDAndSlug
 	//
-	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 	//  FROM "profile_page" pp
 	//    INNER JOIN "profile" p ON p.id = pp.profile_id
 	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -1583,19 +1587,26 @@ type Querier interface {
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT
-	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
 	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
 	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
 	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
 	//    plt."group" as "group",
-	//    plt.description as description
+	//    plt.description as description,
+	//    p_added.slug as added_by_slug,
+	//    p_added.kind as added_by_kind,
+	//    COALESCE(pt_added.title, '') as added_by_title,
+	//    COALESCE(pt_added.description, '') as added_by_description,
+	//    p_added.profile_picture_uri as added_by_profile_picture_uri
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
 	//      AND plt.locale_code = $1
 	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
 	//      AND plt_def.locale_code = p.default_locale
+	//    LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 	//  WHERE pl.profile_id = $2
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
@@ -1603,7 +1614,7 @@ type Querier interface {
 	//ListProfileLinksForKind
 	//
 	//  SELECT
-	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured,
+	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
 	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
 	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
@@ -1704,7 +1715,12 @@ type Querier interface {
 	ListProfilePageTxLocales(ctx context.Context, arg ListProfilePageTxLocalesParams) ([]string, error)
 	//ListProfilePagesByProfileID
 	//
-	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+	//    p_added.slug as added_by_slug,
+	//    p_added.kind as added_by_kind,
+	//    COALESCE(pt_added.title, '') as added_by_title,
+	//    COALESCE(pt_added.description, '') as added_by_description,
+	//    p_added.profile_picture_uri as added_by_profile_picture_uri
 	//  FROM "profile_page" pp
 	//    INNER JOIN "profile" p ON p.id = pp.profile_id
 	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -1715,6 +1731,8 @@ type Querier interface {
 	//      ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
+	//    LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 	//  WHERE pp.profile_id = $2
 	//    AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"

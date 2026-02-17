@@ -2,8 +2,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { backend } from "@/modules/backend/backend";
-import type { ProfileResource, GitHubRepo } from "@/modules/backend/types";
+import { backend, type ProfileResource, type GitHubRepo } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import styles from "./resources.module.css";
 
 export const Route = createFileRoute("/$locale/$slug/settings/resources")({
@@ -151,7 +150,7 @@ function ResourcesSettings() {
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
-        <div className="space-y-2 mt-6">
+        <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -161,7 +160,7 @@ function ResourcesSettings() {
                 <Skeleton className="h-5 w-48 mb-2" />
                 <Skeleton className="h-4 w-32" />
               </div>
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-8" />
             </div>
           ))}
         </div>
@@ -195,7 +194,7 @@ function ResourcesSettings() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-3 mt-6">
+        <div className="space-y-3">
           {resources.map((resource) => (
             <div key={resource.id} className={styles.resourceCard}>
               <div className={styles.resourceInfo}>
@@ -244,10 +243,10 @@ function ResourcesSettings() {
               {resource.can_remove && (
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => setDeleteTarget(resource)}
                 >
-                  {t("Profile.Remove Resource")}
+                  <Trash2 className="size-4" />
                 </Button>
               )}
             </div>
@@ -294,12 +293,12 @@ function ResourcesSettings() {
                       disabled={addingRepo}
                       onClick={() => handleAddRepo(repo)}
                     >
-                      <div className="flex flex-col items-start gap-0.5">
-                        <span className="text-sm font-medium">
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-sm font-medium truncate">
                           {repo.full_name}
                         </span>
                         {repo.description !== "" && (
-                          <span className="text-xs text-muted-foreground line-clamp-1">
+                          <span className="block text-xs text-muted-foreground truncate">
                             {repo.description}
                           </span>
                         )}

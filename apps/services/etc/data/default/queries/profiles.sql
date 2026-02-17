@@ -213,7 +213,12 @@ WHERE pl.kind = sqlc.arg(kind)
 ORDER BY pl."order";
 
 -- name: ListProfilePagesByProfileID :many
-SELECT pp.*, ppt.*
+SELECT pp.*, ppt.*,
+  p_added.slug as added_by_slug,
+  p_added.kind as added_by_kind,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
+  p_added.profile_picture_uri as added_by_profile_picture_uri
 FROM "profile_page" pp
   INNER JOIN "profile" p ON p.id = pp.profile_id
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -224,6 +229,8 @@ FROM "profile_page" pp
     ORDER BY CASE WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
+  LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 WHERE pp.profile_id = sqlc.arg(profile_id)
   AND pp.deleted_at IS NULL
 ORDER BY pp."order";
@@ -264,6 +271,7 @@ INSERT INTO "profile_page" (
   "order",
   cover_picture_uri,
   published_at,
+  added_by_profile_id,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -272,6 +280,7 @@ INSERT INTO "profile_page" (
   sqlc.arg(page_order),
   sqlc.narg(cover_picture_uri),
   sqlc.narg(published_at),
+  sqlc.narg(added_by_profile_id),
   NOW()
 ) RETURNING *;
 
@@ -352,13 +361,20 @@ SELECT
   COALESCE(plt.title, plt_def.title, pl.kind) as title,
   COALESCE(plt.icon, plt_def.icon, '') as icon,
   plt."group" as "group",
-  plt.description as description
+  plt.description as description,
+  p_added.slug as added_by_slug,
+  p_added.kind as added_by_kind,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
+  p_added.profile_picture_uri as added_by_profile_picture_uri
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
     AND plt.locale_code = sqlc.arg(locale_code)
   LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
     AND plt_def.locale_code = p.default_locale
+  LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
@@ -400,6 +416,7 @@ INSERT INTO "profile_link" (
   auth_access_token_expires_at,
   auth_refresh_token,
   auth_refresh_token_expires_at,
+  added_by_profile_id,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -419,6 +436,7 @@ INSERT INTO "profile_link" (
   sqlc.narg(auth_access_token_expires_at),
   sqlc.narg(auth_refresh_token),
   sqlc.narg(auth_refresh_token_expires_at),
+  sqlc.narg(added_by_profile_id),
   NOW()
 ) RETURNING *;
 

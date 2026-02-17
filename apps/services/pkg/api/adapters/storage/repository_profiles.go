@@ -366,15 +366,16 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 	}
 
 	result := &profiles.ProfilePage{
-		ID:              row.ID,
-		Slug:            row.Slug,
-		LocaleCode:      row.LocaleCode,
-		CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
-		Title:           row.Title,
-		Summary:         row.Summary,
-		Content:         row.Content,
-		SortOrder:       row.Order,
-		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
+		ID:               row.ID,
+		Slug:             row.Slug,
+		LocaleCode:       row.LocaleCode,
+		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		Title:            row.Title,
+		Summary:          row.Summary,
+		Content:          row.Content,
+		SortOrder:        row.Order,
+		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
+		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 	}
 
 	return result, nil
@@ -1069,24 +1070,25 @@ func (r *Repository) GetProfileLink(
 	}
 
 	result := &profiles.ProfileLink{
-		ID:          row.ID,
-		Kind:        row.Kind,
-		ProfileID:   row.ProfileID,
-		Order:       int(row.Order),
-		IsManaged:   row.IsManaged,
-		IsVerified:  row.IsVerified,
-		IsFeatured:  row.IsFeatured,
-		Visibility:  profiles.LinkVisibility(row.Visibility),
-		RemoteID:    vars.ToStringPtr(row.RemoteID),
-		PublicID:    vars.ToStringPtr(row.PublicID),
-		URI:         vars.ToStringPtr(row.URI),
-		Title:       row.Title,
-		Icon:        iconPtr,
-		Group:       vars.ToStringPtr(row.Group),
-		Description: vars.ToStringPtr(row.Description),
-		CreatedAt:   row.CreatedAt,
-		UpdatedAt:   vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:   vars.ToTimePtr(row.DeletedAt),
+		ID:               row.ID,
+		Kind:             row.Kind,
+		ProfileID:        row.ProfileID,
+		Order:            int(row.Order),
+		IsManaged:        row.IsManaged,
+		IsVerified:       row.IsVerified,
+		IsFeatured:       row.IsFeatured,
+		Visibility:       profiles.LinkVisibility(row.Visibility),
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URI:              vars.ToStringPtr(row.URI),
+		Title:            row.Title,
+		Icon:             iconPtr,
+		Group:            vars.ToStringPtr(row.Group),
+		Description:      vars.ToStringPtr(row.Description),
+		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
 	}
 
 	return result, nil
@@ -1101,6 +1103,7 @@ func (r *Repository) CreateProfileLink(
 	uri *string,
 	isFeatured bool,
 	visibility profiles.LinkVisibility,
+	addedByProfileID *string,
 ) (*profiles.ProfileLink, error) {
 	row, err := r.queries.CreateProfileLink(ctx, CreateProfileLinkParams{
 		ID:                        id,
@@ -1120,26 +1123,28 @@ func (r *Repository) CreateProfileLink(
 		AuthAccessTokenExpiresAt:  sql.NullTime{Valid: false},
 		AuthRefreshToken:          sql.NullString{Valid: false},
 		AuthRefreshTokenExpiresAt: sql.NullTime{Valid: false},
+		AddedByProfileID:          vars.ToSQLNullString(addedByProfileID),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	result := &profiles.ProfileLink{
-		ID:         row.ID,
-		Kind:       row.Kind,
-		ProfileID:  row.ProfileID,
-		Order:      int(row.Order),
-		IsManaged:  row.IsManaged,
-		IsVerified: row.IsVerified,
-		IsFeatured: row.IsFeatured,
-		Visibility: profiles.LinkVisibility(row.Visibility),
-		RemoteID:   vars.ToStringPtr(row.RemoteID),
-		PublicID:   vars.ToStringPtr(row.PublicID),
-		URI:        vars.ToStringPtr(row.URI),
-		CreatedAt:  row.CreatedAt,
-		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
+		ID:               row.ID,
+		Kind:             row.Kind,
+		ProfileID:        row.ProfileID,
+		Order:            int(row.Order),
+		IsManaged:        row.IsManaged,
+		IsVerified:       row.IsVerified,
+		IsFeatured:       row.IsFeatured,
+		Visibility:       profiles.LinkVisibility(row.Visibility),
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URI:              vars.ToStringPtr(row.URI),
+		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
 	}
 
 	return result, nil
@@ -1191,10 +1196,11 @@ func (r *Repository) GetProfilePage(
 	}
 
 	result := &profiles.ProfilePage{
-		ID:              row.ID,
-		Slug:            row.Slug,
-		CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
-		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
+		ID:               row.ID,
+		Slug:             row.Slug,
+		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
+		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 		// Note: Title, Summary, Content need to be fetched from profile_page_tx table
 	}
 
@@ -1209,6 +1215,7 @@ func (r *Repository) CreateProfilePage(
 	order int,
 	coverPictureURI *string,
 	publishedAt *string,
+	addedByProfileID *string,
 ) (*profiles.ProfilePage, error) {
 	var publishedAtTime sql.NullTime
 	if publishedAt != nil {
@@ -1217,22 +1224,24 @@ func (r *Repository) CreateProfilePage(
 	}
 
 	row, err := r.queries.CreateProfilePage(ctx, CreateProfilePageParams{
-		ID:              id,
-		Slug:            slug,
-		ProfileID:       profileID,
-		PageOrder:       int32(order),
-		CoverPictureURI: vars.ToSQLNullString(coverPictureURI),
-		PublishedAt:     publishedAtTime,
+		ID:               id,
+		Slug:             slug,
+		ProfileID:        profileID,
+		PageOrder:        int32(order),
+		CoverPictureURI:  vars.ToSQLNullString(coverPictureURI),
+		PublishedAt:      publishedAtTime,
+		AddedByProfileID: vars.ToSQLNullString(addedByProfileID),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	result := &profiles.ProfilePage{
-		ID:              row.ID,
-		Slug:            row.Slug,
-		CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
-		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
+		ID:               row.ID,
+		Slug:             row.Slug,
+		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
+		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 		// Note: Title, Summary, Content need to be fetched from profile_page_tx table
 	}
 
@@ -1445,26 +1454,28 @@ func (r *Repository) CreateOAuthProfileLink(
 		AuthRefreshTokenExpiresAt: sql.NullTime{
 			Valid: false,
 		}, // Google doesn't provide refresh token expiry
+		AddedByProfileID: sql.NullString{Valid: false}, // OAuth links don't track added_by
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	result := &profiles.ProfileLink{
-		ID:         row.ID,
-		Kind:       row.Kind,
-		ProfileID:  row.ProfileID,
-		Order:      int(row.Order),
-		IsManaged:  row.IsManaged,
-		IsVerified: row.IsVerified,
-		IsFeatured: row.IsFeatured,
-		Visibility: profiles.LinkVisibility(row.Visibility),
-		RemoteID:   vars.ToStringPtr(row.RemoteID),
-		PublicID:   vars.ToStringPtr(row.PublicID),
-		URI:        vars.ToStringPtr(row.URI),
-		CreatedAt:  row.CreatedAt,
-		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
+		ID:               row.ID,
+		Kind:             row.Kind,
+		ProfileID:        row.ProfileID,
+		Order:            int(row.Order),
+		IsManaged:        row.IsManaged,
+		IsVerified:       row.IsVerified,
+		IsFeatured:       row.IsFeatured,
+		Visibility:       profiles.LinkVisibility(row.Visibility),
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URI:              vars.ToStringPtr(row.URI),
+		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
 	}
 
 	return result, nil

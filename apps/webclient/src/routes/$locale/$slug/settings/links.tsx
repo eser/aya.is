@@ -729,13 +729,15 @@ function LinksSettingsPage() {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onClick={() => handleOpenDeleteDialog(link)}
-                            >
-                              <Trash2 className="size-4" />
-                              {t("Profile.Remove Connection")}
-                            </DropdownMenuItem>
+                            {link.can_remove !== false && (
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => handleOpenDeleteDialog(link)}
+                              >
+                                <Trash2 className="size-4" />
+                                {t("Profile.Remove Connection")}
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                         <Button

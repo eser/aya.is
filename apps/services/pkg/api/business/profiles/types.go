@@ -99,15 +99,18 @@ type ProfileWithChildren struct {
 }
 
 type ProfilePage struct {
-	CoverPictureURI *string    `json:"cover_picture_uri"`
-	PublishedAt     *time.Time `json:"published_at"`
-	ID              string     `json:"id"`
-	Slug            string     `json:"slug"`
-	LocaleCode      string     `json:"locale_code"`
-	Title           string     `json:"title"`
-	Summary         string     `json:"summary"`
-	Content         string     `json:"content"`
-	SortOrder       int32      `json:"sort_order"`
+	CoverPictureURI  *string       `json:"cover_picture_uri"`
+	PublishedAt      *time.Time    `json:"published_at"`
+	AddedByProfileID *string       `json:"added_by_profile_id"`
+	AddedByProfile   *ProfileBrief `json:"added_by_profile,omitempty"`
+	ID               string        `json:"id"`
+	Slug             string        `json:"slug"`
+	LocaleCode       string        `json:"locale_code"`
+	Title            string        `json:"title"`
+	Summary          string        `json:"summary"`
+	Content          string        `json:"content"`
+	SortOrder        int32         `json:"sort_order"`
+	CanRemove        bool          `json:"can_remove"`
 }
 
 type ProfilePageBrief struct {
@@ -119,24 +122,27 @@ type ProfilePageBrief struct {
 }
 
 type ProfileLink struct {
-	ID          string         `json:"id"`
-	Kind        string         `json:"kind"`
-	ProfileID   string         `json:"profile_id"`
-	Order       int            `json:"order"`
-	IsManaged   bool           `json:"is_managed"`
-	IsVerified  bool           `json:"is_verified"`
-	IsFeatured  bool           `json:"is_featured"`
-	Visibility  LinkVisibility `json:"visibility"`
-	RemoteID    *string        `json:"remote_id"`
-	PublicID    *string        `json:"public_id"`
-	URI         *string        `json:"uri"`
-	Title       string         `json:"title"`       // From profile_link_tx
-	Icon        *string        `json:"icon"`        // From profile_link_tx - custom emoticon or initials
-	Group       *string        `json:"group"`       // From profile_link_tx
-	Description *string        `json:"description"` // From profile_link_tx
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   *time.Time     `json:"updated_at"`
-	DeletedAt   *time.Time     `json:"deleted_at"`
+	ID               string         `json:"id"`
+	Kind             string         `json:"kind"`
+	ProfileID        string         `json:"profile_id"`
+	Order            int            `json:"order"`
+	IsManaged        bool           `json:"is_managed"`
+	IsVerified       bool           `json:"is_verified"`
+	IsFeatured       bool           `json:"is_featured"`
+	Visibility       LinkVisibility `json:"visibility"`
+	RemoteID         *string        `json:"remote_id"`
+	PublicID         *string        `json:"public_id"`
+	URI              *string        `json:"uri"`
+	Title            string         `json:"title"`       // From profile_link_tx
+	Icon             *string        `json:"icon"`        // From profile_link_tx - custom emoticon or initials
+	Group            *string        `json:"group"`       // From profile_link_tx
+	Description      *string        `json:"description"` // From profile_link_tx
+	AddedByProfileID *string        `json:"added_by_profile_id"`
+	AddedByProfile   *ProfileBrief  `json:"added_by_profile,omitempty"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        *time.Time     `json:"updated_at"`
+	DeletedAt        *time.Time     `json:"deleted_at"`
+	CanRemove        bool           `json:"can_remove"`
 }
 
 type ProfileLinkBrief struct {
