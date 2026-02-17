@@ -56,13 +56,14 @@ type ProfileSidebarLayoutProps = {
   profile: Profile;
   slug: string;
   locale: string;
+  viewerMembershipKind?: string | null;
   children: React.ReactNode;
 };
 
 export function ProfileSidebarLayout(props: ProfileSidebarLayoutProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start">
-      <ProfileSidebar profile={props.profile} slug={props.slug} locale={props.locale} />
+      <ProfileSidebar profile={props.profile} slug={props.slug} locale={props.locale} viewerMembershipKind={props.viewerMembershipKind} />
       <main>{props.children}</main>
     </div>
   );
@@ -72,6 +73,7 @@ type ProfileSidebarProps = {
   profile: Profile;
   slug: string;
   locale: string;
+  viewerMembershipKind?: string | null;
 };
 
 // Membership kinds at or above sponsor level (cannot self-unfollow, shown as badge)
@@ -80,19 +82,25 @@ const ADVANCED_KINDS = new Set(["sponsor", "contributor", "maintainer", "lead", 
 function ProfileSidebar(props: ProfileSidebarProps) {
   const { t } = useTranslation();
   const { canEdit } = useProfilePermissions(props.profile.id);
-  const { isAuthenticated, user, refreshAuth } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [isUnfollowDialogOpen, setIsUnfollowDialogOpen] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [localMembershipKind, setLocalMembershipKind] = React.useState<string | null>(
+    props.viewerMembershipKind ?? null,
+  );
+
+  // Sync when prop changes (e.g. navigation between profiles)
+  React.useEffect(() => {
+    setLocalMembershipKind(props.viewerMembershipKind ?? null);
+  }, [props.viewerMembershipKind]);
 
   // Determine viewer's membership relationship to this profile
   const isOwnProfile = user?.individual_profile_id === props.profile.id;
-  const viewerMembership = user?.accessible_profiles?.find((p) => p.id === props.profile.id);
-  const membershipKind = viewerMembership?.membership_kind ?? null;
 
-  const isFollower = membershipKind === "follower";
-  const isAdvanced = membershipKind !== null && ADVANCED_KINDS.has(membershipKind);
-  const showFollowButton = isAuthenticated && !isOwnProfile && membershipKind === null;
+  const isFollower = localMembershipKind === "follower";
+  const isAdvanced = localMembershipKind !== null && ADVANCED_KINDS.has(localMembershipKind);
+  const showFollowButton = isAuthenticated && !isOwnProfile && localMembershipKind === null;
   const showUnfollowButton = isAuthenticated && !isOwnProfile && isFollower;
   const showBadge = isAuthenticated && !isOwnProfile && isAdvanced;
 
@@ -102,13 +110,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
       const success = await backend.followProfile(props.locale, props.slug);
       if (success) {
         toast.success(t("Profile.Followed successfully"));
-        try {
-          await refreshAuth();
-        } catch {
-          // Auth refresh failed — reload page to sync state
-          globalThis.location.reload();
-          return;
-        }
+        setLocalMembershipKind("follower");
       } else {
         toast.error(t("Profile.Failed to follow"));
       }
@@ -125,13 +127,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
       if (success) {
         toast.success(t("Profile.Unfollowed successfully"));
         setIsUnfollowDialogOpen(false);
-        try {
-          await refreshAuth();
-        } catch {
-          // Auth refresh failed — reload page to sync state
-          globalThis.location.reload();
-          return;
-        }
+        setLocalMembershipKind(null);
       } else {
         toast.error(t("Profile.Failed to unfollow"));
       }
@@ -187,9 +183,9 @@ function ProfileSidebar(props: ProfileSidebarProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {showBadge && membershipKind !== null && (
+          {showBadge && localMembershipKind !== null && (
             <span className={`${buttonClass} cursor-default`}>
-              {t(`Profile.MembershipKind.${membershipKind}`)}
+              {t(`Profile.MembershipKind.${localMembershipKind}`)}
             </span>
           )}
         </div>

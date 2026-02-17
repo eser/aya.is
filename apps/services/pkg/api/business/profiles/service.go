@@ -1334,6 +1334,70 @@ func (s *Service) HasUserAccessToProfile(
 	return true, nil
 }
 
+// GetProfilePermissions returns the viewer's edit permission and membership kind
+// in a single query chain (slug→profileID, user→individualProfile, membership lookup).
+func (s *Service) GetProfilePermissions(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+) (canEdit bool, viewerMembershipKind *string, err error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return false, nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return false, nil, nil
+	}
+
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
+	if err != nil {
+		return false, nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	// Admins can always edit — still look up membership for badge display
+	if userInfo.Kind == "admin" {
+		if userInfo.IndividualProfileID != nil {
+			kind, mkErr := s.repo.GetMembershipBetweenProfiles(
+				ctx,
+				profileID,
+				*userInfo.IndividualProfileID,
+			)
+			if mkErr == nil && kind != "" {
+				kindStr := string(kind)
+
+				return true, &kindStr, nil
+			}
+		}
+
+		return true, nil, nil
+	}
+
+	if userInfo.IndividualProfileID == nil {
+		return false, nil, nil
+	}
+
+	// Own profile — can edit, no "membership" with self
+	if profileID == *userInfo.IndividualProfileID {
+		return true, nil, nil
+	}
+
+	// Single DB query: get membership kind between profiles
+	kind, mkErr := s.repo.GetMembershipBetweenProfiles(
+		ctx,
+		profileID,
+		*userInfo.IndividualProfileID,
+	)
+	if mkErr != nil || kind == "" {
+		return false, nil, nil
+	}
+
+	kindStr := string(kind)
+	canEdit = MembershipKindLevel[kind] >= MembershipKindLevel[MembershipKindMaintainer]
+
+	return canEdit, &kindStr, nil
+}
+
 // Update updates profile main fields (profile_picture_uri, pronouns, properties).
 func (s *Service) Update(
 	ctx context.Context,

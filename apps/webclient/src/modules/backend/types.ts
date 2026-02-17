@@ -166,6 +166,7 @@ export interface ProfilePermissions {
   can_edit: boolean;
   can_delete: boolean;
   can_manage_members: boolean;
+  viewer_membership_kind?: string | null;
 }
 
 export interface ProfileTranslation {

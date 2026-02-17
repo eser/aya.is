@@ -45,14 +45,14 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
 
 function QAIndexPage() {
   const { questionsData, locale, slug } = Route.useLoaderData();
-  const { profile } = parentRoute.useLoaderData();
+  const { profile, permissions } = parentRoute.useLoaderData();
 
   if (profile === null) {
     return null;
   }
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
       <QAPageClient
         questions={questionsData ?? []}
         locale={locale}

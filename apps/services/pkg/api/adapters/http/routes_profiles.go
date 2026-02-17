@@ -930,11 +930,10 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			canEdit, permErr := profileService.HasUserAccessToProfile(
+			canEdit, viewerMembershipKind, permErr := profileService.GetProfilePermissions(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				slugParam,
-				profiles.MembershipKindMaintainer,
 			)
 			if permErr != nil {
 				return ctx.Results.Error(
@@ -945,7 +944,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Return permissions
 			result := map[string]any{
-				"can_edit": canEdit,
+				"can_edit":               canEdit,
+				"viewer_membership_kind": viewerMembershipKind,
 			}
 
 			wrappedResponse := map[string]any{

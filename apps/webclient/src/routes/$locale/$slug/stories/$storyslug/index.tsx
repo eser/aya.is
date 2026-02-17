@@ -64,7 +64,7 @@ function ProfileStoryPage() {
   const params = Route.useParams();
   const auth = useAuth();
   const { story, compiledContent, currentUrl, locale, slug } = Route.useLoaderData();
-  const { profile } = profileRoute.useLoaderData();
+  const { profile, permissions } = profileRoute.useLoaderData();
   const [canEdit, setCanEdit] = React.useState(false);
 
   // Check edit permissions
@@ -93,7 +93,7 @@ function ProfileStoryPage() {
   const isAuthorProfile = story.author_profile?.id === profile.id;
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
       <StoryContent
         story={story}
         compiledContent={compiledContent}

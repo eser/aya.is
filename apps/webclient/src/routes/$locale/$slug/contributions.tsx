@@ -47,7 +47,7 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
 
 function ContributionsPage() {
   const { contributions, locale, slug } = Route.useLoaderData();
-  const { profile } = parentRoute.useLoaderData();
+  const { profile, permissions } = parentRoute.useLoaderData();
   const { t } = useTranslation();
 
   if (profile === null) {
@@ -55,7 +55,7 @@ function ContributionsPage() {
   }
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
       <div className="space-y-6">
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Contributions")}</h2>

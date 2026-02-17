@@ -66,7 +66,7 @@ function ProfileCustomPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
   const loaderData = Route.useLoaderData();
-  const { profile } = profileRoute.useLoaderData();
+  const { profile, permissions } = profileRoute.useLoaderData();
   const { canEdit } = useProfilePermissions(profile?.id ?? "");
 
   // If notFound flag is set, render 404 page
@@ -77,7 +77,7 @@ function ProfileCustomPage() {
   const { page, compiledContent, locale, slug } = loaderData;
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
       <div className="relative">
         {canEdit && (
           <Link

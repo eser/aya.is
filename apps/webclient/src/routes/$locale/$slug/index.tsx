@@ -26,7 +26,7 @@ export const Route = createFileRoute("/$locale/$slug/")({
 function ProfileIndexPage() {
   const { t } = useTranslation();
   const { stories, slug, locale } = Route.useLoaderData();
-  const { profile } = parentRoute.useLoaderData();
+  const { profile, permissions } = parentRoute.useLoaderData();
   const { canEdit } = useProfilePermissions(profile?.id ?? "");
 
   if (profile === null) {
@@ -34,7 +34,7 @@ function ProfileIndexPage() {
   }
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
       <div className="content relative">
         {canEdit && (
           <Link

@@ -16,10 +16,13 @@ export const Route = createFileRoute("/$locale/$slug")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile === null) {
-      return { profile: null, notFound: true, locale, slug };
+      return { profile: null, notFound: true, locale, slug, permissions: null };
     }
 
-    return { profile, notFound: false, locale, slug };
+    // Returns null for unauthenticated users (401 → null via fetcher)
+    const permissions = await backend.getProfilePermissions(locale, slug).catch(() => null);
+
+    return { profile, notFound: false, locale, slug, permissions };
   },
   head: ({ loaderData }) => {
     const { profile, locale, slug } = loaderData;

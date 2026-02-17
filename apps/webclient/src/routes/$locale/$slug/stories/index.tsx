@@ -48,14 +48,14 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
 
 function ProfileStoriesIndexPage() {
   const { stories, slug, locale } = Route.useLoaderData();
-  const { profile } = profileRoute.useLoaderData();
+  const { profile, permissions } = profileRoute.useLoaderData();
 
   if (profile === null) {
     return null;
   }
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale}>
+    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
       <div className="content">
         <StoriesPageClient
           initialStories={stories}
