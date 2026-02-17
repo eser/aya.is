@@ -80,6 +80,7 @@ type OAuthState struct {
 type AuthResult struct {
 	ExpiresAt   time.Time
 	User        *users.User
+	Session     *users.Session
 	SessionID   string
 	JWT         string
 	RedirectURI string

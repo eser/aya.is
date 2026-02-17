@@ -73,6 +73,9 @@ type Session struct {
 	ExpiresAt                *time.Time    `json:"expires_at"`
 	UpdatedAt                *time.Time    `json:"updated_at"`
 	UserAgent                *string       `json:"user_agent"`
+	OAuthProvider            *string       `json:"-"`
+	OAuthAccessToken         *string       `json:"-"`
+	OAuthTokenScope          *string       `json:"-"`
 	ID                       string        `json:"id"`
 	Status                   SessionStatus `json:"status"`
 	OauthRequestState        string        `json:"oauth_request_state"`

@@ -224,6 +224,7 @@ func (s *Service) AuthHandleCallback(
 	now := time.Now()
 	expiresAt := now.Add(s.Config.TokenTTL)
 
+	oauthProvider := providerName
 	session := users.Session{
 		ID:                       string(s.userService.GenerateID()),
 		Status:                   users.SessionStatusActive,
@@ -237,6 +238,9 @@ func (s *Service) AuthHandleCallback(
 		ExpiresAt:                &expiresAt,
 		CreatedAt:                now,
 		UpdatedAt:                nil,
+		OAuthProvider:            &oauthProvider,
+		OAuthAccessToken:         &accountInfo.AccessToken,
+		OAuthTokenScope:          &accountInfo.Scope,
 	}
 
 	s.logger.DebugContext(ctx, "Creating session",
@@ -290,6 +294,7 @@ func (s *Service) AuthHandleCallback(
 
 	authResult := AuthResult{
 		User:        user,
+		Session:     &session,
 		SessionID:   session.ID,
 		JWT:         tokenString,
 		ExpiresAt:   expiresAt,

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -8,8 +9,10 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -22,6 +25,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 	authService *auth.Service,
 	userService *users.Service,
 	sessionService *sessions.Service,
+	profileService *profiles.Service,
 ) {
 	routes.
 		Route(
@@ -161,6 +165,36 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 					authService.Config,
 				)
 
+				// Auto-sync managed GitHub link for users with an individual profile.
+				// This ensures the profile link tokens are refreshed on every login.
+				if result.User.IndividualProfileID != nil &&
+					result.Session != nil &&
+					result.Session.OAuthProvider != nil &&
+					*result.Session.OAuthProvider == "github" &&
+					result.Session.OAuthAccessToken != nil &&
+					result.User.GithubRemoteID != nil {
+					githubHandle := ""
+					if result.User.GithubHandle != nil {
+						githubHandle = *result.User.GithubHandle
+					}
+
+					tokenScope := ""
+					if result.Session.OAuthTokenScope != nil {
+						tokenScope = *result.Session.OAuthTokenScope
+					}
+
+					upsertManagedGitHubLink(
+						ctx.Request.Context(),
+						logger,
+						profileService,
+						*result.User.IndividualProfileID,
+						*result.User.GithubRemoteID,
+						githubHandle,
+						*result.Session.OAuthAccessToken,
+						tokenScope,
+					)
+				}
+
 				if result.RedirectURI != "" {
 					return ctx.Results.Redirect(result.RedirectURI)
 				}
@@ -248,4 +282,82 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 		HasSummary("Refresh Token").
 		HasDescription("Refreshes JWT token before expiration.").
 		HasResponse(http.StatusOK)
+}
+
+// upsertManagedGitHubLink creates or updates the managed GitHub profile link
+// for a user's individual profile. Called on login (to refresh tokens) and
+// on individual profile creation (to auto-create the link).
+// Token parameters come from the session's OAuth fields.
+func upsertManagedGitHubLink(
+	ctx context.Context,
+	logger *logfx.Logger,
+	profileService *profiles.Service,
+	profileID string,
+	githubRemoteID string,
+	githubHandle string,
+	accessToken string,
+	tokenScope string,
+) {
+	uri := "https://github.com/" + githubHandle
+
+	// Check if a managed GitHub link already exists for this profile
+	existingLink, _ := profileService.GetProfileLinkByRemoteID(
+		ctx, profileID, "github", githubRemoteID,
+	)
+
+	if existingLink != nil {
+		// Update existing link tokens
+		err := profileService.UpdateProfileLinkOAuthTokens(
+			ctx,
+			existingLink.ID,
+			"en",
+			githubHandle,
+			uri,
+			"GitHub",
+			tokenScope,
+			accessToken,
+			nil, // accessTokenExpiresAt — GitHub tokens don't expire
+			nil, // refreshToken
+		)
+		if err != nil {
+			logger.WarnContext(ctx, "Failed to update managed GitHub link tokens",
+				slog.String("profile_id", profileID),
+				slog.String("error", err.Error()))
+		} else {
+			logger.DebugContext(ctx, "Updated managed GitHub link tokens",
+				slog.String("profile_id", profileID))
+		}
+
+		return
+	}
+
+	// Create new managed GitHub link
+	maxOrder, _ := profileService.GetMaxProfileLinkOrder(ctx, profileID)
+	linkID := lib.IDsGenerateUnique()
+
+	_, err := profileService.CreateOAuthProfileLink(
+		ctx,
+		linkID,
+		"github",
+		profileID,
+		maxOrder+1,
+		"en",
+		githubRemoteID,
+		githubHandle,
+		uri,
+		"GitHub",
+		"github",
+		tokenScope,
+		accessToken,
+		nil, // accessTokenExpiresAt
+		nil, // refreshToken
+	)
+	if err != nil {
+		logger.WarnContext(ctx, "Failed to create managed GitHub link",
+			slog.String("profile_id", profileID),
+			slog.String("error", err.Error()))
+	} else {
+		logger.DebugContext(ctx, "Created managed GitHub link on login",
+			slog.String("profile_id", profileID))
+	}
 }

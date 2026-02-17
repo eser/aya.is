@@ -11,7 +11,10 @@ SELECT
   user_agent,
   expires_at,
   created_at,
-  updated_at
+  updated_at,
+  oauth_provider,
+  oauth_access_token,
+  oauth_token_scope
 FROM
   session
 WHERE
@@ -31,7 +34,10 @@ INSERT INTO
     user_agent,
     expires_at,
     created_at,
-    updated_at
+    updated_at,
+    oauth_provider,
+    oauth_access_token,
+    oauth_token_scope
   )
 VALUES
   (
@@ -46,7 +52,10 @@ VALUES
     sqlc.arg(user_agent),
     sqlc.arg(expires_at),
     sqlc.arg(created_at),
-    sqlc.arg(updated_at)
+    sqlc.arg(updated_at),
+    sqlc.arg(oauth_provider),
+    sqlc.arg(oauth_access_token),
+    sqlc.arg(oauth_token_scope)
   );
 
 -- name: ListSessionsByUserID :many
@@ -62,7 +71,10 @@ SELECT
   user_agent,
   expires_at,
   created_at,
-  updated_at
+  updated_at,
+  oauth_provider,
+  oauth_access_token,
+  oauth_token_scope
 FROM
   session
 WHERE

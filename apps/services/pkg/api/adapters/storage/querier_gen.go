@@ -404,7 +404,10 @@ type Querier interface {
 	//      user_agent,
 	//      expires_at,
 	//      created_at,
-	//      updated_at
+	//      updated_at,
+	//      oauth_provider,
+	//      oauth_access_token,
+	//      oauth_token_scope
 	//    )
 	//  VALUES
 	//    (
@@ -419,7 +422,10 @@ type Querier interface {
 	//      $9,
 	//      $10,
 	//      $11,
-	//      $12
+	//      $12,
+	//      $13,
+	//      $14,
+	//      $15
 	//    )
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	//CreateUser
@@ -986,7 +992,10 @@ type Querier interface {
 	//    user_agent,
 	//    expires_at,
 	//    created_at,
-	//    updated_at
+	//    updated_at,
+	//    oauth_provider,
+	//    oauth_access_token,
+	//    oauth_token_scope
 	//  FROM
 	//    session
 	//  WHERE
@@ -1850,7 +1859,10 @@ type Querier interface {
 	//    user_agent,
 	//    expires_at,
 	//    created_at,
-	//    updated_at
+	//    updated_at,
+	//    oauth_provider,
+	//    oauth_access_token,
+	//    oauth_token_scope
 	//  FROM
 	//    session
 	//  WHERE

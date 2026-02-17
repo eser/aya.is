@@ -321,6 +321,9 @@ type Session struct {
 	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
 	LastActivityAt           sql.NullTime   `db:"last_activity_at" json:"last_activity_at"`
 	UserAgent                sql.NullString `db:"user_agent" json:"user_agent"`
+	OauthProvider            sql.NullString `db:"oauth_provider" json:"oauth_provider"`
+	OauthAccessToken         sql.NullString `db:"oauth_access_token" json:"oauth_access_token"`
+	OauthTokenScope          sql.NullString `db:"oauth_token_scope" json:"oauth_token_scope"`
 }
 
 type SessionPreference struct {

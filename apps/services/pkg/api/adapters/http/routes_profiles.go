@@ -653,6 +653,33 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 						slog.String("profile_id", profile.ID),
 					)
 				}
+
+				// Auto-create managed GitHub link from session's stored OAuth tokens
+				if session.OAuthProvider != nil &&
+					*session.OAuthProvider == "github" &&
+					session.OAuthAccessToken != nil &&
+					user.GithubRemoteID != nil {
+					githubHandle := ""
+					if user.GithubHandle != nil {
+						githubHandle = *user.GithubHandle
+					}
+
+					tokenScope := ""
+					if session.OAuthTokenScope != nil {
+						tokenScope = *session.OAuthTokenScope
+					}
+
+					upsertManagedGitHubLink(
+						ctx.Request.Context(),
+						logger,
+						profileService,
+						profile.ID,
+						*user.GithubRemoteID,
+						githubHandle,
+						*session.OAuthAccessToken,
+						tokenScope,
+					)
+				}
 			} else {
 				// For org/product profiles, create membership with creator's individual profile as owner
 				if user.IndividualProfileID != nil {

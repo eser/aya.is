@@ -86,7 +86,10 @@ INSERT INTO
     user_agent,
     expires_at,
     created_at,
-    updated_at
+    updated_at,
+    oauth_provider,
+    oauth_access_token,
+    oauth_token_scope
   )
 VALUES
   (
@@ -101,7 +104,10 @@ VALUES
     $9,
     $10,
     $11,
-    $12
+    $12,
+    $13,
+    $14,
+    $15
   )
 `
 
@@ -118,6 +124,9 @@ type CreateSessionParams struct {
 	ExpiresAt                sql.NullTime   `db:"expires_at" json:"expires_at"`
 	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
+	OauthProvider            sql.NullString `db:"oauth_provider" json:"oauth_provider"`
+	OauthAccessToken         sql.NullString `db:"oauth_access_token" json:"oauth_access_token"`
+	OauthTokenScope          sql.NullString `db:"oauth_token_scope" json:"oauth_token_scope"`
 }
 
 // CreateSession
@@ -135,7 +144,10 @@ type CreateSessionParams struct {
 //	    user_agent,
 //	    expires_at,
 //	    created_at,
-//	    updated_at
+//	    updated_at,
+//	    oauth_provider,
+//	    oauth_access_token,
+//	    oauth_token_scope
 //	  )
 //	VALUES
 //	  (
@@ -150,7 +162,10 @@ type CreateSessionParams struct {
 //	    $9,
 //	    $10,
 //	    $11,
-//	    $12
+//	    $12,
+//	    $13,
+//	    $14,
+//	    $15
 //	  )
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
 	_, err := q.db.ExecContext(ctx, createSession,
@@ -166,6 +181,9 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 		arg.ExpiresAt,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.OauthProvider,
+		arg.OauthAccessToken,
+		arg.OauthTokenScope,
 	)
 	return err
 }
@@ -226,7 +244,10 @@ SELECT
   user_agent,
   expires_at,
   created_at,
-  updated_at
+  updated_at,
+  oauth_provider,
+  oauth_access_token,
+  oauth_token_scope
 FROM
   session
 WHERE
@@ -250,6 +271,9 @@ type GetSessionByIDRow struct {
 	ExpiresAt                sql.NullTime   `db:"expires_at" json:"expires_at"`
 	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
+	OauthProvider            sql.NullString `db:"oauth_provider" json:"oauth_provider"`
+	OauthAccessToken         sql.NullString `db:"oauth_access_token" json:"oauth_access_token"`
+	OauthTokenScope          sql.NullString `db:"oauth_token_scope" json:"oauth_token_scope"`
 }
 
 // GetSessionByID
@@ -266,7 +290,10 @@ type GetSessionByIDRow struct {
 //	  user_agent,
 //	  expires_at,
 //	  created_at,
-//	  updated_at
+//	  updated_at,
+//	  oauth_provider,
+//	  oauth_access_token,
+//	  oauth_token_scope
 //	FROM
 //	  session
 //	WHERE
@@ -287,6 +314,9 @@ func (q *Queries) GetSessionByID(ctx context.Context, arg GetSessionByIDParams) 
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.OauthProvider,
+		&i.OauthAccessToken,
+		&i.OauthTokenScope,
 	)
 	return &i, err
 }
@@ -435,7 +465,10 @@ SELECT
   user_agent,
   expires_at,
   created_at,
-  updated_at
+  updated_at,
+  oauth_provider,
+  oauth_access_token,
+  oauth_token_scope
 FROM
   session
 WHERE
@@ -462,6 +495,9 @@ type ListSessionsByUserIDRow struct {
 	ExpiresAt                sql.NullTime   `db:"expires_at" json:"expires_at"`
 	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
+	OauthProvider            sql.NullString `db:"oauth_provider" json:"oauth_provider"`
+	OauthAccessToken         sql.NullString `db:"oauth_access_token" json:"oauth_access_token"`
+	OauthTokenScope          sql.NullString `db:"oauth_token_scope" json:"oauth_token_scope"`
 }
 
 // ListSessionsByUserID
@@ -478,7 +514,10 @@ type ListSessionsByUserIDRow struct {
 //	  user_agent,
 //	  expires_at,
 //	  created_at,
-//	  updated_at
+//	  updated_at,
+//	  oauth_provider,
+//	  oauth_access_token,
+//	  oauth_token_scope
 //	FROM
 //	  session
 //	WHERE
@@ -508,6 +547,9 @@ func (q *Queries) ListSessionsByUserID(ctx context.Context, arg ListSessionsByUs
 			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.OauthProvider,
+			&i.OauthAccessToken,
+			&i.OauthTokenScope,
 		); err != nil {
 			return nil, err
 		}

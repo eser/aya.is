@@ -37,6 +37,9 @@ func (r *Repository) GetSessionByID(
 		ExpiresAt:                vars.ToTimePtr(row.ExpiresAt),
 		CreatedAt:                row.CreatedAt,
 		UpdatedAt:                vars.ToTimePtr(row.UpdatedAt),
+		OAuthProvider:            vars.ToStringPtr(row.OauthProvider),
+		OAuthAccessToken:         vars.ToStringPtr(row.OauthAccessToken),
+		OAuthTokenScope:          vars.ToStringPtr(row.OauthTokenScope),
 	}
 
 	return result, nil
@@ -59,6 +62,9 @@ func (r *Repository) CreateSession(
 		ExpiresAt:                vars.ToSQLNullTime(session.ExpiresAt),
 		CreatedAt:                session.CreatedAt,
 		UpdatedAt:                vars.ToSQLNullTime(session.UpdatedAt),
+		OauthProvider:            vars.ToSQLNullString(session.OAuthProvider),
+		OauthAccessToken:         vars.ToSQLNullString(session.OAuthAccessToken),
+		OauthTokenScope:          vars.ToSQLNullString(session.OAuthTokenScope),
 	})
 	if err != nil {
 		return err
@@ -131,6 +137,9 @@ func (r *Repository) ListSessionsByUserID(
 			ExpiresAt:                vars.ToTimePtr(row.ExpiresAt),
 			CreatedAt:                row.CreatedAt,
 			UpdatedAt:                vars.ToTimePtr(row.UpdatedAt),
+			OAuthProvider:            vars.ToStringPtr(row.OauthProvider),
+			OAuthAccessToken:         vars.ToStringPtr(row.OauthAccessToken),
+			OAuthTokenScope:          vars.ToStringPtr(row.OauthTokenScope),
 		})
 	}
 
