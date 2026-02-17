@@ -126,14 +126,19 @@ function ResourcesSettings() {
         repo.full_name.toLowerCase().includes(repoSearch.toLowerCase()),
       );
 
-  // Filter out already-added repos
+  // Filter out already-added repos (match by remote_id or public_id/full_name)
   const existingRemoteIds = new Set(
     resources
       .filter((r) => r.remote_id !== null && r.remote_id !== undefined)
       .map((r) => r.remote_id),
   );
+  const existingPublicIds = new Set(
+    resources
+      .filter((r) => r.public_id !== null && r.public_id !== undefined)
+      .map((r) => r.public_id),
+  );
   const availableRepos = filteredRepos.filter(
-    (repo) => !existingRemoteIds.has(repo.id),
+    (repo) => !existingRemoteIds.has(repo.id) && !existingPublicIds.has(repo.full_name),
   );
 
   if (isLoading) {
@@ -262,10 +267,6 @@ function ResourcesSettings() {
             </DialogDescription>
           </DialogHeader>
 
-          <p className="text-xs text-muted-foreground">
-            {t("Profile.Repositories are listed from your own GitHub account access.")}
-          </p>
-
           <Input
             placeholder={t("Profile.Search repositories...")}
             value={repoSearch}
@@ -313,8 +314,11 @@ function ResourcesSettings() {
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+          <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+            <p className="text-xs text-muted-foreground text-left">
+              {t("Profile.Repositories are listed from your own GitHub account access.")}
+            </p>
+            <Button variant="outline" className="shrink-0" onClick={() => setIsAddDialogOpen(false)}>
               {t("Common.Cancel")}
             </Button>
           </DialogFooter>

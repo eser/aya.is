@@ -133,7 +133,8 @@ func RegisterHTTPRoutesForProfileResources(
 				)
 			}
 
-			// Get profile's managed GitHub link for the access token
+			// Get the GitHub access token: try the profile's own managed link first,
+			// then fall back to the viewer's individual profile's GitHub link.
 			profileID, err := profileService.GetProfileIDBySlug(ctx.Request.Context(), slugParam)
 			if err != nil || profileID == "" {
 				return ctx.Results.Error(
@@ -142,14 +143,23 @@ func RegisterHTTPRoutesForProfileResources(
 				)
 			}
 
-			// Find the managed GitHub link for this profile
-			gitHubLink, err := profileService.GetManagedGitHubLink(ctx.Request.Context(), profileID)
-			if err != nil || gitHubLink == nil {
+			gitHubLink, _ := profileService.GetManagedGitHubLink(ctx.Request.Context(), profileID)
+			if gitHubLink == nil {
+				// Fall back to the viewer's individual profile's GitHub link
+				user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+				if userErr == nil && user != nil && user.IndividualProfileID != nil {
+					gitHubLink, _ = profileService.GetManagedGitHubLink(
+						ctx.Request.Context(),
+						*user.IndividualProfileID,
+					)
+				}
+			}
+
+			if gitHubLink == nil {
 				return ctx.Results.Error(
 					http.StatusBadRequest,
 					httpfx.WithErrorMessage(
-						"This profile does not have a connected GitHub account. "+
-							"Please connect GitHub first in Social Links settings.",
+						"No GitHub access token available. Please connect GitHub on your profile or this profile.",
 					),
 				)
 			}
