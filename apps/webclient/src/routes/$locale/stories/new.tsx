@@ -27,8 +27,8 @@ function NewStoryPage() {
 
   if (auth.isLoading) {
     return (
-      <PageLayout>
-        <div className="flex h-[calc(100vh-140px)] flex-col">
+      <PageLayout fullHeight>
+        <div className="flex h-full flex-col">
           {/* Header skeleton */}
           <div className="flex items-center justify-between border-b p-4">
             <div className="flex items-center gap-3">
@@ -135,22 +135,20 @@ function NewStoryPage() {
   };
 
   return (
-    <PageLayout>
-      <div className="h-[calc(100vh-140px)]">
-        <ContentEditor
-          locale={params.locale}
-          profileSlug={userProfileSlug}
-          contentType="story"
-          initialData={initialData}
-          backUrl={`/${params.locale}/stories`}
-          userKind={auth.user?.kind}
-          validateSlugDatePrefix
-          onSave={handleSave}
-          isNew
-          accessibleProfiles={auth.user?.accessible_profiles ?? []}
-          individualProfile={auth.user?.individual_profile}
-        />
-      </div>
+    <PageLayout fullHeight>
+      <ContentEditor
+        locale={params.locale}
+        profileSlug={userProfileSlug}
+        contentType="story"
+        initialData={initialData}
+        backUrl={`/${params.locale}/stories`}
+        userKind={auth.user?.kind}
+        validateSlugDatePrefix
+        onSave={handleSave}
+        isNew
+        accessibleProfiles={auth.user?.accessible_profiles ?? []}
+        individualProfile={auth.user?.individual_profile}
+      />
     </PageLayout>
   );
 }

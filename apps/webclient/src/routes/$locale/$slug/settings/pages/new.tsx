@@ -70,17 +70,15 @@ function NewPagePage() {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)]">
-      <ContentEditor
-        locale={params.locale}
-        profileSlug={params.slug}
-        contentType="page"
-        initialData={initialData}
-        backUrl={`/${params.locale}/${params.slug}/settings/pages`}
-        userKind={auth.user?.kind}
-        onSave={handleSave}
-        isNew
-      />
-    </div>
+    <ContentEditor
+      locale={params.locale}
+      profileSlug={params.slug}
+      contentType="page"
+      initialData={initialData}
+      backUrl={`/${params.locale}/${params.slug}/settings/pages`}
+      userKind={auth.user?.kind}
+      onSave={handleSave}
+      isNew
+    />
   );
 }

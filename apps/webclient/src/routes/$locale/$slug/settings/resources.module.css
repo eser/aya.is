@@ -21,7 +21,7 @@
 }
 
 .repoItem {
-  @apply flex w-full min-h-14 cursor-pointer items-center justify-between gap-4 rounded-md px-3 py-2 hover:bg-accent;
+  @apply flex w-full min-h-14 cursor-pointer items-start justify-between gap-4 rounded-md px-3 py-2 text-left hover:bg-accent;
 }
 
 .repoItemSelected {

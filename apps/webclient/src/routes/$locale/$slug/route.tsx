@@ -73,7 +73,7 @@ function ProfileRoute() {
 
   if (isFullWidthRoute) {
     return (
-      <PageLayout>
+      <PageLayout fullHeight>
         <Outlet />
       </PageLayout>
     );

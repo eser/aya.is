@@ -188,6 +188,10 @@ export function ContentEditor(props: ContentEditorProps) {
     return earliest;
   }, [publications]);
 
+  // Refs for synchronized scrolling in split mode
+  const editorTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const previewScrollRef = React.useRef<HTMLDivElement | null>(null);
+
   // UI state
   const [viewMode, setViewMode] = React.useState<ViewMode>("split");
   const [isSaving, setIsSaving] = React.useState(false);
@@ -525,6 +529,47 @@ export function ContentEditor(props: ContentEditorProps) {
     return () => globalThis.removeEventListener("keydown", handler);
   }, [handleSave, isSaving, hasChanges]);
 
+  // Synchronized scrolling between editor and preview in split mode
+  React.useEffect(() => {
+    if (viewMode !== "split") return;
+
+    const textarea = editorTextareaRef.current;
+    const previewEl = previewScrollRef.current;
+    if (textarea === null || previewEl === null) return;
+
+    let scrollSource: "editor" | "preview" | null = null;
+
+    const syncEditorToPreview = () => {
+      if (scrollSource === "preview") return;
+      scrollSource = "editor";
+      const maxScroll = textarea.scrollHeight - textarea.clientHeight;
+      const ratio = maxScroll > 0 ? textarea.scrollTop / maxScroll : 0;
+      previewEl.scrollTop = ratio * (previewEl.scrollHeight - previewEl.clientHeight);
+      requestAnimationFrame(() => {
+        scrollSource = null;
+      });
+    };
+
+    const syncPreviewToEditor = () => {
+      if (scrollSource === "editor") return;
+      scrollSource = "preview";
+      const maxScroll = previewEl.scrollHeight - previewEl.clientHeight;
+      const ratio = maxScroll > 0 ? previewEl.scrollTop / maxScroll : 0;
+      textarea.scrollTop = ratio * (textarea.scrollHeight - textarea.clientHeight);
+      requestAnimationFrame(() => {
+        scrollSource = null;
+      });
+    };
+
+    textarea.addEventListener("scroll", syncEditorToPreview);
+    previewEl.addEventListener("scroll", syncPreviewToEditor);
+
+    return () => {
+      textarea.removeEventListener("scroll", syncEditorToPreview);
+      previewEl.removeEventListener("scroll", syncPreviewToEditor);
+    };
+  }, [viewMode]);
+
   return (
     <div className={styles.editorContainer}>
       {/* Header */}
@@ -842,12 +887,13 @@ export function ContentEditor(props: ContentEditorProps) {
                       onChange={setContent}
                       placeholder={t("ContentEditor.Write your content in markdown...")}
                       disabled={isManaged}
+                      textareaRef={editorTextareaRef}
                     />
                   </div>
                 </ResizablePanel>
                 <ResizableHandle withHandle />
                 <ResizablePanel defaultSize={50} minSize={25}>
-                  <div className={styles.editorPanel}>
+                  <div className={styles.editorPanel} ref={previewScrollRef}>
                     <PreviewPanel content={content} />
                   </div>
                 </ResizablePanel>

@@ -241,7 +241,7 @@ function LinksSettingsPage() {
       setPendingProfileKind(null);
       loadLinks();
     } else {
-      toast.error(t("Profile.Failed to connect"));
+      toast.error(t("Profile.Connection failed"));
     }
     setIsConnectingAccount(false);
   };

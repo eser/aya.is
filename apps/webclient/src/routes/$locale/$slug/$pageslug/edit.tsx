@@ -124,7 +124,7 @@ function EditPagePage() {
   if (canEdit === null || !translationReady) {
     return (
       <>
-        <div className="flex h-[calc(100vh-140px)] flex-col">
+        <div className="flex h-full flex-col">
           {/* Header skeleton */}
           <div className="flex items-center justify-between border-b p-4">
             <div className="flex items-center gap-3">
@@ -319,25 +319,21 @@ function EditPagePage() {
   };
 
   return (
-    <>
-      <div className="h-[calc(100vh-140px)]">
-        <ContentEditor
-          key={translationLocale}
-          locale={translationLocale}
-          profileSlug={params.slug}
-          contentType="page"
-          initialData={initialData}
-          backUrl={`/${params.locale}/${params.slug}/${params.pageslug}`}
-          userKind={auth.user?.kind}
-          onSave={handleSave}
-          onDelete={handleDelete}
-          excludeId={page.id}
-          onLocaleChange={handleLocaleChange}
-          translationLocales={translationLocales}
-          onAutoTranslate={handleAutoTranslate}
-          onDeleteTranslation={handleDeleteTranslation}
-        />
-      </div>
-    </>
+    <ContentEditor
+      key={translationLocale}
+      locale={translationLocale}
+      profileSlug={params.slug}
+      contentType="page"
+      initialData={initialData}
+      backUrl={`/${params.locale}/${params.slug}/${params.pageslug}`}
+      userKind={auth.user?.kind}
+      onSave={handleSave}
+      onDelete={handleDelete}
+      excludeId={page.id}
+      onLocaleChange={handleLocaleChange}
+      translationLocales={translationLocales}
+      onAutoTranslate={handleAutoTranslate}
+      onDeleteTranslation={handleDeleteTranslation}
+    />
   );
 }

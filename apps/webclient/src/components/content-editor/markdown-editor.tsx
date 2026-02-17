@@ -6,10 +6,12 @@ type MarkdownEditorProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
 };
 
 export function MarkdownEditor(props: MarkdownEditorProps) {
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const internalRef = React.useRef<HTMLTextAreaElement>(null);
+  const textareaRef = props.textareaRef ?? internalRef;
   // Track the last value synced to React state so we can detect
   // truly external changes (e.g. locale switch) vs. our own onChange echoes.
   const lastSyncedValue = React.useRef(props.value);

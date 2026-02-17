@@ -114,8 +114,8 @@ function EditStoryPage() {
 
   if (canEdit === null || !translationReady) {
     return (
-      <PageLayout>
-        <div className="flex h-[calc(100vh-140px)] flex-col">
+      <PageLayout fullHeight>
+        <div className="flex h-full flex-col">
           {/* Header skeleton */}
           <div className="flex items-center justify-between border-b p-4">
             <div className="flex items-center gap-3">
@@ -312,31 +312,29 @@ function EditStoryPage() {
   };
 
   return (
-    <PageLayout>
-      <div className="h-[calc(100vh-140px)]">
-        <ContentEditor
-          key={translationLocale}
-          locale={translationLocale}
-          profileSlug={authorProfileSlug}
-          contentType="story"
-          initialData={initialData}
-          backUrl={`/${params.locale}/stories/${params.storyslug}`}
-          userKind={auth.user?.kind}
-          validateSlugDatePrefix
-          onSave={handleSave}
-          onDelete={handleDelete}
-          excludeId={storyData.id}
-          storyId={storyData.id}
-          initialPublications={storyData.publications ?? []}
-          accessibleProfiles={auth.user?.accessible_profiles ?? []}
-          individualProfile={auth.user?.individual_profile}
-          onLocaleChange={handleLocaleChange}
-          translationLocales={translationLocales}
-          onAutoTranslate={handleAutoTranslate}
-          onDeleteTranslation={handleDeleteTranslation}
-          isManaged={storyData.is_managed}
-        />
-      </div>
+    <PageLayout fullHeight>
+      <ContentEditor
+        key={translationLocale}
+        locale={translationLocale}
+        profileSlug={authorProfileSlug}
+        contentType="story"
+        initialData={initialData}
+        backUrl={`/${params.locale}/stories/${params.storyslug}`}
+        userKind={auth.user?.kind}
+        validateSlugDatePrefix
+        onSave={handleSave}
+        onDelete={handleDelete}
+        excludeId={storyData.id}
+        storyId={storyData.id}
+        initialPublications={storyData.publications ?? []}
+        accessibleProfiles={auth.user?.accessible_profiles ?? []}
+        individualProfile={auth.user?.individual_profile}
+        onLocaleChange={handleLocaleChange}
+        translationLocales={translationLocales}
+        onAutoTranslate={handleAutoTranslate}
+        onDeleteTranslation={handleDeleteTranslation}
+        isManaged={storyData.is_managed}
+      />
     </PageLayout>
   );
 }
