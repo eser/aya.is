@@ -133,38 +133,34 @@ func RegisterHTTPRoutesForProfileResources(
 				)
 			}
 
-			// Get the GitHub access token: try the profile's own managed link first,
-			// then fall back to the viewer's individual profile's GitHub link.
-			profileID, err := profileService.GetProfileIDBySlug(ctx.Request.Context(), slugParam)
-			if err != nil || profileID == "" {
+			// Use the viewer's individual profile's GitHub link to list their repos.
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
 				return ctx.Results.Error(
-					http.StatusNotFound,
-					httpfx.WithErrorMessage("Profile not found"),
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get user information"),
 				)
 			}
 
-			gitHubLink, _ := profileService.GetManagedGitHubLink(ctx.Request.Context(), profileID)
-			if gitHubLink == nil {
-				// Fall back to the viewer's individual profile's GitHub link
-				user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
-				if userErr == nil && user != nil && user.IndividualProfileID != nil {
-					gitHubLink, _ = profileService.GetManagedGitHubLink(
-						ctx.Request.Context(),
-						*user.IndividualProfileID,
-					)
-				}
+			var gitHubLink *profiles.ManagedGitHubLink
+
+			if user.IndividualProfileID != nil {
+				gitHubLink, _ = profileService.GetManagedGitHubLink(
+					ctx.Request.Context(),
+					*user.IndividualProfileID,
+				)
 			}
 
 			if gitHubLink == nil {
 				return ctx.Results.Error(
 					http.StatusBadRequest,
 					httpfx.WithErrorMessage(
-						"No GitHub access token available. Please connect GitHub on your profile or this profile.",
+						"No GitHub access token available. Please connect GitHub on your profile.",
 					),
 				)
 			}
 
-			// Fetch repos from GitHub API using the profile's token
+			// Fetch repos from GitHub API using the viewer's token
 			page := 1
 			pageParam := ctx.Request.URL.Query().Get("page")
 			if pageParam != "" {
