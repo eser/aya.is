@@ -602,7 +602,7 @@ type CreateProfileResourceParams struct {
 	IsManaged        bool                  `db:"is_managed" json:"is_managed"`
 	RemoteID         sql.NullString        `db:"remote_id" json:"remote_id"`
 	PublicID         sql.NullString        `db:"public_id" json:"public_id"`
-	Url              sql.NullString        `db:"url" json:"url"`
+	URL              sql.NullString        `db:"url" json:"url"`
 	Title            string                `db:"title" json:"title"`
 	Description      sql.NullString        `db:"description" json:"description"`
 	Properties       pqtype.NullRawMessage `db:"properties" json:"properties"`
@@ -620,7 +620,7 @@ type CreateProfileResourceParams struct {
 //	  $8, $9, $10,
 //	  $11, NOW()
 //	) RETURNING id, profile_id, kind, is_managed, remote_id, public_id, url, title, description, properties, added_by_profile_id, created_at, updated_at, deleted_at
-func (q *Queries) CreateProfileResource(ctx context.Context, arg CreateProfileResourceParams) (ProfileResource, error) {
+func (q *Queries) CreateProfileResource(ctx context.Context, arg CreateProfileResourceParams) (*ProfileResource, error) {
 	row := q.db.QueryRowContext(ctx, createProfileResource,
 		arg.ID,
 		arg.ProfileID,
@@ -628,7 +628,7 @@ func (q *Queries) CreateProfileResource(ctx context.Context, arg CreateProfileRe
 		arg.IsManaged,
 		arg.RemoteID,
 		arg.PublicID,
-		arg.Url,
+		arg.URL,
 		arg.Title,
 		arg.Description,
 		arg.Properties,
@@ -642,7 +642,7 @@ func (q *Queries) CreateProfileResource(ctx context.Context, arg CreateProfileRe
 		&i.IsManaged,
 		&i.RemoteID,
 		&i.PublicID,
-		&i.Url,
+		&i.URL,
 		&i.Title,
 		&i.Description,
 		&i.Properties,
@@ -651,7 +651,7 @@ func (q *Queries) CreateProfileResource(ctx context.Context, arg CreateProfileRe
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
-	return i, err
+	return &i, err
 }
 
 const createProfileTx = `-- name: CreateProfileTx :exec
@@ -951,11 +951,11 @@ type GetManagedGitHubLinkByProfileIDRow struct {
 //	  AND auth_access_token IS NOT NULL
 //	  AND deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetManagedGitHubLinkByProfileID(ctx context.Context, arg GetManagedGitHubLinkByProfileIDParams) (GetManagedGitHubLinkByProfileIDRow, error) {
+func (q *Queries) GetManagedGitHubLinkByProfileID(ctx context.Context, arg GetManagedGitHubLinkByProfileIDParams) (*GetManagedGitHubLinkByProfileIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getManagedGitHubLinkByProfileID, arg.ProfileID)
 	var i GetManagedGitHubLinkByProfileIDRow
 	err := row.Scan(&i.ID, &i.ProfileID, &i.AuthAccessToken)
-	return i, err
+	return &i, err
 }
 
 const getMaxProfileLinkOrder = `-- name: GetMaxProfileLinkOrder :one
@@ -1785,7 +1785,7 @@ type GetProfileResourceByIDParams struct {
 //	SELECT id, profile_id, kind, is_managed, remote_id, public_id, url, title, description, properties, added_by_profile_id, created_at, updated_at, deleted_at FROM "profile_resource"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
-func (q *Queries) GetProfileResourceByID(ctx context.Context, arg GetProfileResourceByIDParams) (ProfileResource, error) {
+func (q *Queries) GetProfileResourceByID(ctx context.Context, arg GetProfileResourceByIDParams) (*ProfileResource, error) {
 	row := q.db.QueryRowContext(ctx, getProfileResourceByID, arg.ID)
 	var i ProfileResource
 	err := row.Scan(
@@ -1795,7 +1795,7 @@ func (q *Queries) GetProfileResourceByID(ctx context.Context, arg GetProfileReso
 		&i.IsManaged,
 		&i.RemoteID,
 		&i.PublicID,
-		&i.Url,
+		&i.URL,
 		&i.Title,
 		&i.Description,
 		&i.Properties,
@@ -1804,7 +1804,7 @@ func (q *Queries) GetProfileResourceByID(ctx context.Context, arg GetProfileReso
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
-	return i, err
+	return &i, err
 }
 
 const getProfileResourceByRemoteID = `-- name: GetProfileResourceByRemoteID :one
@@ -1828,7 +1828,7 @@ type GetProfileResourceByRemoteIDParams struct {
 //	  AND kind = $2
 //	  AND remote_id = $3
 //	  AND deleted_at IS NULL
-func (q *Queries) GetProfileResourceByRemoteID(ctx context.Context, arg GetProfileResourceByRemoteIDParams) (ProfileResource, error) {
+func (q *Queries) GetProfileResourceByRemoteID(ctx context.Context, arg GetProfileResourceByRemoteIDParams) (*ProfileResource, error) {
 	row := q.db.QueryRowContext(ctx, getProfileResourceByRemoteID, arg.ProfileID, arg.Kind, arg.RemoteID)
 	var i ProfileResource
 	err := row.Scan(
@@ -1838,7 +1838,7 @@ func (q *Queries) GetProfileResourceByRemoteID(ctx context.Context, arg GetProfi
 		&i.IsManaged,
 		&i.RemoteID,
 		&i.PublicID,
-		&i.Url,
+		&i.URL,
 		&i.Title,
 		&i.Description,
 		&i.Properties,
@@ -1847,7 +1847,7 @@ func (q *Queries) GetProfileResourceByRemoteID(ctx context.Context, arg GetProfi
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
-	return i, err
+	return &i, err
 }
 
 const getProfileTxByID = `-- name: GetProfileTxByID :many
@@ -2507,13 +2507,13 @@ type ListGitHubResourcesForSyncRow struct {
 //	  AND pr.deleted_at IS NULL
 //	ORDER BY pr.profile_id
 //	LIMIT $1
-func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHubResourcesForSyncParams) ([]ListGitHubResourcesForSyncRow, error) {
+func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHubResourcesForSyncParams) ([]*ListGitHubResourcesForSyncRow, error) {
 	rows, err := q.db.QueryContext(ctx, listGitHubResourcesForSync, arg.BatchSize)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListGitHubResourcesForSyncRow
+	items := []*ListGitHubResourcesForSyncRow{}
 	for rows.Next() {
 		var i ListGitHubResourcesForSyncRow
 		if err := rows.Scan(
@@ -2526,7 +2526,7 @@ func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHub
 		); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, &i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -3238,11 +3238,13 @@ SELECT
   pr.id, pr.profile_id, pr.kind, pr.is_managed, pr.remote_id, pr.public_id, pr.url, pr.title, pr.description, pr.properties, pr.added_by_profile_id, pr.created_at, pr.updated_at, pr.deleted_at,
   p.slug as added_by_slug,
   p.kind as added_by_kind,
-  p.title as added_by_title,
-  p.description as added_by_description,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
   p.profile_picture_uri as added_by_profile_picture_uri
 FROM "profile_resource" pr
 LEFT JOIN "profile" p ON p.id = pr.added_by_profile_id AND p.deleted_at IS NULL
+LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p.id
+  AND pt_added.locale_code = p.default_locale
 WHERE pr.profile_id = $1
   AND pr.deleted_at IS NULL
 ORDER BY pr.created_at DESC
@@ -3259,7 +3261,7 @@ type ListProfileResourcesByProfileIDRow struct {
 	IsManaged                bool                  `db:"is_managed" json:"is_managed"`
 	RemoteID                 sql.NullString        `db:"remote_id" json:"remote_id"`
 	PublicID                 sql.NullString        `db:"public_id" json:"public_id"`
-	Url                      sql.NullString        `db:"url" json:"url"`
+	URL                      sql.NullString        `db:"url" json:"url"`
 	Title                    string                `db:"title" json:"title"`
 	Description              sql.NullString        `db:"description" json:"description"`
 	Properties               pqtype.NullRawMessage `db:"properties" json:"properties"`
@@ -3269,9 +3271,9 @@ type ListProfileResourcesByProfileIDRow struct {
 	DeletedAt                sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	AddedBySlug              sql.NullString        `db:"added_by_slug" json:"added_by_slug"`
 	AddedByKind              sql.NullString        `db:"added_by_kind" json:"added_by_kind"`
-	AddedByTitle             sql.NullString        `db:"added_by_title" json:"added_by_title"`
-	AddedByDescription       sql.NullString        `db:"added_by_description" json:"added_by_description"`
-	AddedByProfilePictureUri sql.NullString        `db:"added_by_profile_picture_uri" json:"added_by_profile_picture_uri"`
+	AddedByTitle             string                `db:"added_by_title" json:"added_by_title"`
+	AddedByDescription       string                `db:"added_by_description" json:"added_by_description"`
+	AddedByProfilePictureURI sql.NullString        `db:"added_by_profile_picture_uri" json:"added_by_profile_picture_uri"`
 }
 
 // ListProfileResourcesByProfileID
@@ -3280,21 +3282,23 @@ type ListProfileResourcesByProfileIDRow struct {
 //	  pr.id, pr.profile_id, pr.kind, pr.is_managed, pr.remote_id, pr.public_id, pr.url, pr.title, pr.description, pr.properties, pr.added_by_profile_id, pr.created_at, pr.updated_at, pr.deleted_at,
 //	  p.slug as added_by_slug,
 //	  p.kind as added_by_kind,
-//	  p.title as added_by_title,
-//	  p.description as added_by_description,
+//	  COALESCE(pt_added.title, '') as added_by_title,
+//	  COALESCE(pt_added.description, '') as added_by_description,
 //	  p.profile_picture_uri as added_by_profile_picture_uri
 //	FROM "profile_resource" pr
 //	LEFT JOIN "profile" p ON p.id = pr.added_by_profile_id AND p.deleted_at IS NULL
+//	LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p.id
+//	  AND pt_added.locale_code = p.default_locale
 //	WHERE pr.profile_id = $1
 //	  AND pr.deleted_at IS NULL
 //	ORDER BY pr.created_at DESC
-func (q *Queries) ListProfileResourcesByProfileID(ctx context.Context, arg ListProfileResourcesByProfileIDParams) ([]ListProfileResourcesByProfileIDRow, error) {
+func (q *Queries) ListProfileResourcesByProfileID(ctx context.Context, arg ListProfileResourcesByProfileIDParams) ([]*ListProfileResourcesByProfileIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, listProfileResourcesByProfileID, arg.ProfileID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListProfileResourcesByProfileIDRow
+	items := []*ListProfileResourcesByProfileIDRow{}
 	for rows.Next() {
 		var i ListProfileResourcesByProfileIDRow
 		if err := rows.Scan(
@@ -3304,7 +3308,7 @@ func (q *Queries) ListProfileResourcesByProfileID(ctx context.Context, arg ListP
 			&i.IsManaged,
 			&i.RemoteID,
 			&i.PublicID,
-			&i.Url,
+			&i.URL,
 			&i.Title,
 			&i.Description,
 			&i.Properties,
@@ -3316,11 +3320,11 @@ func (q *Queries) ListProfileResourcesByProfileID(ctx context.Context, arg ListP
 			&i.AddedByKind,
 			&i.AddedByTitle,
 			&i.AddedByDescription,
-			&i.AddedByProfilePictureUri,
+			&i.AddedByProfilePictureURI,
 		); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, &i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

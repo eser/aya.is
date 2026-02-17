@@ -35,44 +35,6 @@ func (q *Queries) CountProfileQuestionsByProfileID(ctx context.Context, arg Coun
 	return count, err
 }
 
-const editProfileQuestionAnswer = `-- name: EditProfileQuestionAnswer :exec
-UPDATE "profile_question"
-SET
-  answer_content = $1,
-  answer_uri = $2,
-  answer_kind = $3,
-  updated_at = NOW()
-WHERE id = $4
-  AND deleted_at IS NULL
-`
-
-type EditProfileQuestionAnswerParams struct {
-	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
-	AnswerURI     sql.NullString `db:"answer_uri" json:"answer_uri"`
-	AnswerKind    sql.NullString `db:"answer_kind" json:"answer_kind"`
-	ID            string         `db:"id" json:"id"`
-}
-
-// EditProfileQuestionAnswer
-//
-//	UPDATE "profile_question"
-//	SET
-//	  answer_content = $1,
-//	  answer_uri = $2,
-//	  answer_kind = $3,
-//	  updated_at = NOW()
-//	WHERE id = $4
-//	  AND deleted_at IS NULL
-func (q *Queries) EditProfileQuestionAnswer(ctx context.Context, arg EditProfileQuestionAnswerParams) error {
-	_, err := q.db.ExecContext(ctx, editProfileQuestionAnswer,
-		arg.AnswerContent,
-		arg.AnswerURI,
-		arg.AnswerKind,
-		arg.ID,
-	)
-	return err
-}
-
 const decrementProfileQuestionVoteCount = `-- name: DecrementProfileQuestionVoteCount :exec
 UPDATE "profile_question"
 SET
@@ -117,6 +79,44 @@ type DeleteProfileQuestionVoteParams struct {
 //	  AND user_id = $2
 func (q *Queries) DeleteProfileQuestionVote(ctx context.Context, arg DeleteProfileQuestionVoteParams) error {
 	_, err := q.db.ExecContext(ctx, deleteProfileQuestionVote, arg.QuestionID, arg.UserID)
+	return err
+}
+
+const editProfileQuestionAnswer = `-- name: EditProfileQuestionAnswer :exec
+UPDATE "profile_question"
+SET
+  answer_content = $1,
+  answer_uri = $2,
+  answer_kind = $3,
+  updated_at = NOW()
+WHERE id = $4
+  AND deleted_at IS NULL
+`
+
+type EditProfileQuestionAnswerParams struct {
+	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
+	AnswerURI     sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerKind    sql.NullString `db:"answer_kind" json:"answer_kind"`
+	ID            string         `db:"id" json:"id"`
+}
+
+// EditProfileQuestionAnswer
+//
+//	UPDATE "profile_question"
+//	SET
+//	  answer_content = $1,
+//	  answer_uri = $2,
+//	  answer_kind = $3,
+//	  updated_at = NOW()
+//	WHERE id = $4
+//	  AND deleted_at IS NULL
+func (q *Queries) EditProfileQuestionAnswer(ctx context.Context, arg EditProfileQuestionAnswerParams) error {
+	_, err := q.db.ExecContext(ctx, editProfileQuestionAnswer,
+		arg.AnswerContent,
+		arg.AnswerURI,
+		arg.AnswerKind,
+		arg.ID,
+	)
 	return err
 }
 
@@ -418,35 +418,70 @@ type ListProfileQuestionsByProfileIDParams struct {
 }
 
 type ListProfileQuestionsByProfileIDRow struct {
-	ID                 string         `db:"id" json:"id"`
-	ProfileID          string         `db:"profile_id" json:"profile_id"`
-	AuthorUserID       string         `db:"author_user_id" json:"author_user_id"`
-	Content            string         `db:"content" json:"content"`
-	AnswerContent      sql.NullString `db:"answer_content" json:"answer_content"`
-	AnswerURI          sql.NullString `db:"answer_uri" json:"answer_uri"`
-	AnswerKind         sql.NullString `db:"answer_kind" json:"answer_kind"`
-	AnsweredAt         sql.NullTime   `db:"answered_at" json:"answered_at"`
-	AnsweredBy         sql.NullString `db:"answered_by" json:"answered_by"`
-	IsAnonymous        bool           `db:"is_anonymous" json:"is_anonymous"`
-	IsHidden           bool           `db:"is_hidden" json:"is_hidden"`
-	VoteCount          int32          `db:"vote_count" json:"vote_count"`
-	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
-	DeletedAt          sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	AuthorProfileID    sql.NullString `db:"author_profile_id" json:"author_profile_id"`
-	AuthorProfileSlug  sql.NullString `db:"author_profile_slug" json:"author_profile_slug"`
-	AuthorProfileTitle      sql.NullString `db:"author_profile_title" json:"author_profile_title"`
-	AnsweredByProfileSlug   sql.NullString `db:"answered_by_profile_slug" json:"answered_by_profile_slug"`
-	AnsweredByProfileTitle  sql.NullString `db:"answered_by_profile_title" json:"answered_by_profile_title"`
-	HasViewerVote           bool           `db:"has_viewer_vote" json:"has_viewer_vote"`
+	ID                     string         `db:"id" json:"id"`
+	ProfileID              string         `db:"profile_id" json:"profile_id"`
+	AuthorUserID           string         `db:"author_user_id" json:"author_user_id"`
+	Content                string         `db:"content" json:"content"`
+	AnswerContent          sql.NullString `db:"answer_content" json:"answer_content"`
+	AnswerURI              sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerKind             sql.NullString `db:"answer_kind" json:"answer_kind"`
+	AnsweredAt             sql.NullTime   `db:"answered_at" json:"answered_at"`
+	AnsweredBy             sql.NullString `db:"answered_by" json:"answered_by"`
+	IsAnonymous            bool           `db:"is_anonymous" json:"is_anonymous"`
+	IsHidden               bool           `db:"is_hidden" json:"is_hidden"`
+	VoteCount              int32          `db:"vote_count" json:"vote_count"`
+	CreatedAt              time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt              sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt              sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	AuthorProfileID        sql.NullString `db:"author_profile_id" json:"author_profile_id"`
+	AuthorProfileSlug      sql.NullString `db:"author_profile_slug" json:"author_profile_slug"`
+	AuthorProfileTitle     sql.NullString `db:"author_profile_title" json:"author_profile_title"`
+	AnsweredByProfileSlug  sql.NullString `db:"answered_by_profile_slug" json:"answered_by_profile_slug"`
+	AnsweredByProfileTitle sql.NullString `db:"answered_by_profile_title" json:"answered_by_profile_title"`
+	HasViewerVote          bool           `db:"has_viewer_vote" json:"has_viewer_vote"`
 }
 
 // ListProfileQuestionsByProfileID
 //
-//	SELECT pq.*, author_profile_id, author_profile_slug, author_profile_title, has_viewer_vote
+//	SELECT
+//	  pq.id, pq.profile_id, pq.author_user_id, pq.content, pq.answer_content, pq.answer_uri, pq.answer_kind, pq.answered_at, pq.answered_by, pq.is_anonymous, pq.is_hidden, pq.vote_count, pq.created_at, pq.updated_at, pq.deleted_at,
+//	  u.individual_profile_id AS author_profile_id,
+//	  ap.slug AS author_profile_slug,
+//	  apt.title AS author_profile_title,
+//	  bp.slug AS answered_by_profile_slug,
+//	  bpt.title AS answered_by_profile_title,
+//	  CASE
+//	    WHEN $1::TEXT IS NOT NULL THEN
+//	      EXISTS(
+//	        SELECT 1 FROM "profile_question_vote" pqv
+//	        WHERE pqv.question_id = pq.id
+//	          AND pqv.user_id = $1::TEXT
+//	      )
+//	    ELSE FALSE
+//	  END AS has_viewer_vote
 //	FROM "profile_question" pq
-//	  LEFT JOIN "user" u, "profile" ap, "profile_tx" apt
-//	WHERE pq.profile_id = $3 AND ...
+//	  LEFT JOIN "user" u ON u.id = pq.author_user_id
+//	  LEFT JOIN "profile" ap ON ap.id = u.individual_profile_id
+//	  LEFT JOIN "profile_tx" apt ON apt.profile_id = ap.id
+//	    AND apt.locale_code = (
+//	      SELECT aptf.locale_code FROM "profile_tx" aptf
+//	      WHERE aptf.profile_id = ap.id
+//	        AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
+//	      ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
+//	  LEFT JOIN "profile" bp ON bp.id = pq.answered_by
+//	  LEFT JOIN "profile_tx" bpt ON bpt.profile_id = bp.id
+//	    AND bpt.locale_code = (
+//	      SELECT bptf.locale_code FROM "profile_tx" bptf
+//	      WHERE bptf.profile_id = bp.id
+//	        AND (bptf.locale_code = $2 OR bptf.locale_code = bp.default_locale)
+//	      ORDER BY CASE WHEN bptf.locale_code = $2 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
+//	WHERE pq.profile_id = $3
+//	  AND pq.deleted_at IS NULL
+//	  AND ($4::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
 //	ORDER BY pq.vote_count DESC, pq.created_at DESC
 func (q *Queries) ListProfileQuestionsByProfileID(ctx context.Context, arg ListProfileQuestionsByProfileIDParams) ([]*ListProfileQuestionsByProfileIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, listProfileQuestionsByProfileID,

@@ -1778,7 +1778,7 @@ func storageProfileResourceToBusinessResource(
 		IsManaged:        row.IsManaged,
 		RemoteID:         vars.ToStringPtr(row.RemoteID),
 		PublicID:         vars.ToStringPtr(row.PublicID),
-		URL:              vars.ToStringPtr(row.Url),
+		URL:              vars.ToStringPtr(row.URL),
 		Title:            row.Title,
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
@@ -1794,9 +1794,9 @@ func storageProfileResourceToBusinessResource(
 			ID:                row.AddedByProfileID,
 			Slug:              row.AddedBySlug.String,
 			Kind:              row.AddedByKind.String,
-			Title:             row.AddedByTitle.String,
-			Description:       row.AddedByDescription.String,
-			ProfilePictureURI: vars.ToStringPtr(row.AddedByProfilePictureUri),
+			Title:             row.AddedByTitle,
+			Description:       row.AddedByDescription,
+			ProfilePictureURI: vars.ToStringPtr(row.AddedByProfilePictureURI),
 		}
 	}
 
@@ -1820,7 +1820,7 @@ func (r *Repository) ListProfileResourcesByProfileID(
 	resources := make([]*profiles.ProfileResource, 0, len(rows))
 
 	for _, row := range rows {
-		resources = append(resources, storageProfileResourceToBusinessResource(&row))
+		resources = append(resources, storageProfileResourceToBusinessResource(row))
 	}
 
 	return resources, nil
@@ -1848,7 +1848,7 @@ func (r *Repository) GetProfileResourceByID(
 		IsManaged:        row.IsManaged,
 		RemoteID:         vars.ToStringPtr(row.RemoteID),
 		PublicID:         vars.ToStringPtr(row.PublicID),
-		URL:              vars.ToStringPtr(row.Url),
+		URL:              vars.ToStringPtr(row.URL),
 		Title:            row.Title,
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
@@ -1885,7 +1885,7 @@ func (r *Repository) GetProfileResourceByRemoteID(
 		IsManaged:        row.IsManaged,
 		RemoteID:         vars.ToStringPtr(row.RemoteID),
 		PublicID:         vars.ToStringPtr(row.PublicID),
-		URL:              vars.ToStringPtr(row.Url),
+		URL:              vars.ToStringPtr(row.URL),
 		Title:            row.Title,
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
@@ -1922,7 +1922,7 @@ func (r *Repository) CreateProfileResource(
 		IsManaged:        isManaged,
 		RemoteID:         vars.ToSQLNullString(remoteID),
 		PublicID:         vars.ToSQLNullString(publicID),
-		Url:              vars.ToSQLNullString(url),
+		URL:              vars.ToSQLNullString(url),
 		Title:            title,
 		Description:      vars.ToSQLNullString(description),
 		Properties:       pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
@@ -1939,7 +1939,7 @@ func (r *Repository) CreateProfileResource(
 		IsManaged:        row.IsManaged,
 		RemoteID:         vars.ToStringPtr(row.RemoteID),
 		PublicID:         vars.ToStringPtr(row.PublicID),
-		URL:              vars.ToStringPtr(row.Url),
+		URL:              vars.ToStringPtr(row.URL),
 		Title:            row.Title,
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
