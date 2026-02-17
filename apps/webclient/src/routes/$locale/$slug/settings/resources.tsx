@@ -257,7 +257,7 @@ function ResourcesSettings() {
 
       {/* Add Resource Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {t("Profile.Select GitHub Repository")}
@@ -304,7 +304,7 @@ function ResourcesSettings() {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs text-muted-foreground">
                         {repo.language !== "" && <span>{repo.language}</span>}
                         <span>&#9733; {repo.stars}</span>
                         {repo.private && (

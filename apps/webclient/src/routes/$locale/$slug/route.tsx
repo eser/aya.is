@@ -1,5 +1,5 @@
 // Profile route - loads profile data and passes through to children
-import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
+import { createFileRoute, ErrorComponent, Outlet, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -38,6 +38,7 @@ export const Route = createFileRoute("/$locale/$slug")({
     };
   },
   component: ProfileRoute,
+  errorComponent: ErrorComponent,
   notFoundComponent: ProfileNotFound,
 });
 

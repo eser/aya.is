@@ -10,16 +10,20 @@ export const Route = createFileRoute("/$locale/$slug/settings")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
 
-    // Fetch permissions and profile in parallel
-    const [permissions, profile] = await Promise.all([
-      backend.getProfilePermissions(locale, slug),
-      backend.getProfile(locale, slug),
-    ]);
+    // Fetch permissions first — if this fails, redirect to profile page
+    let permissions;
+    try {
+      permissions = await backend.getProfilePermissions(locale, slug);
+    } catch {
+      throw redirect({ to: `/${locale}/${slug}` });
+    }
 
-    // Redirect if user can't edit
     if (permissions === null || !permissions.can_edit) {
       throw redirect({ to: `/${locale}/${slug}` });
     }
+
+    // Profile fetch is non-critical for the settings layout
+    const profile = await backend.getProfile(locale, slug);
 
     return { permissions, profile, locale, slug };
   },

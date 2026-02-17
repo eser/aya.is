@@ -166,7 +166,7 @@ func RegisterHTTPRoutesForProfileResources(
 			repos, err := providers.GitHub.Client().FetchUserRepos(
 				ctx.Request.Context(),
 				gitHubLink.AuthAccessToken,
-				"owner,collaborator",
+				"owner,collaborator,organization_member",
 				page,
 				100,
 			)
