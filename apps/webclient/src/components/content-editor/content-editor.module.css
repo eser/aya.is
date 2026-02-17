@@ -47,6 +47,10 @@
 }
 
 .editorPanel {
+  @apply h-full flex-1 p-4;
+}
+
+.editorPanelScrollable {
   @apply h-full flex-1 overflow-y-auto p-4;
 }
 

@@ -528,6 +528,8 @@
     "Choose a repository to add as a resource.": "リソースとして追加するリポジトリを選択してください。",
     "Search repositories...": "リポジトリを検索...",
     "No repositories found.": "リポジトリが見つかりません。",
+    "Repositories are listed from your own GitHub account access.": "リポジトリはあなた自身のGitHubアカウントアクセスから一覧表示されます。",
+    "Failed to load repositories": "リポジトリの読み込みに失敗しました",
     "Are you sure you want to remove this resource?": "このリソースを削除してもよろしいですか？",
     "Resource added successfully": "リソースが正常に追加されました",
     "Failed to add resource": "リソースの追加に失敗しました",

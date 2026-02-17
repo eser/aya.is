@@ -1,6 +1,7 @@
 import * as runtime from "react/jsx-runtime";
 import { compile, runSync } from "@mdx-js/mdx";
 import remarkGfm from "remark-gfm";
+import rehypeShiki from "@shikijs/rehype";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import { visit } from "unist-util-visit";
@@ -99,6 +100,13 @@ export async function compileMdx(source: string): Promise<string> {
     outputFormat: "function-body",
     remarkPlugins: [remarkEmbed, remarkGfm],
     rehypePlugins: [
+      [rehypeShiki, {
+        themes: {
+          light: "github-light",
+          dark: "github-dark",
+        },
+        defaultColor: false,
+      }],
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "wrap" }],
       rehypeExternalLinks,

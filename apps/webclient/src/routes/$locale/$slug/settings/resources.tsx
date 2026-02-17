@@ -43,7 +43,6 @@ function ResourcesSettings() {
   const [repos, setRepos] = React.useState<GitHubRepo[]>([]);
   const [reposLoading, setReposLoading] = React.useState(false);
   const [repoSearch, setRepoSearch] = React.useState("");
-  const [reposError, setReposError] = React.useState<string | null>(null);
   const [addingRepo, setAddingRepo] = React.useState(false);
 
   const loadResources = React.useCallback(async () => {
@@ -65,16 +64,13 @@ function ResourcesSettings() {
   const handleOpenAddDialog = async () => {
     setIsAddDialogOpen(true);
     setReposLoading(true);
-    setReposError(null);
     setRepoSearch("");
 
     const data = await backend.listGitHubRepos(params.locale, params.slug);
     if (data !== null) {
       setRepos(data);
     } else {
-      setReposError(
-        t("Profile.This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings."),
-      );
+      toast.error(t("Profile.Failed to load repositories"));
     }
     setReposLoading(false);
   };
@@ -266,58 +262,56 @@ function ResourcesSettings() {
             </DialogDescription>
           </DialogHeader>
 
-          {reposError !== null ? (
-            <p className="text-sm text-destructive">{reposError}</p>
-          ) : (
-            <>
-              <Input
-                placeholder={t("Profile.Search repositories...")}
-                value={repoSearch}
-                onChange={(e) => setRepoSearch(e.target.value)}
-              />
-              <div className={styles.repoList}>
-                {reposLoading ? (
-                  <div className={styles.emptyState}>
-                    <p>{t("Common.Loading")}</p>
-                  </div>
-                ) : availableRepos.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <p>{t("Profile.No repositories found.")}</p>
-                  </div>
-                ) : (
-                  availableRepos.map((repo) => (
-                    <button
-                      key={repo.id}
-                      type="button"
-                      className={styles.repoItem}
-                      disabled={addingRepo}
-                      onClick={() => handleAddRepo(repo)}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <span className="block text-sm font-medium truncate">
-                          {repo.full_name}
-                        </span>
-                        {repo.description !== "" && (
-                          <span className="block text-xs text-muted-foreground truncate">
-                            {repo.description}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs text-muted-foreground">
-                        {repo.language !== "" && <span>{repo.language}</span>}
-                        <span>&#9733; {repo.stars}</span>
-                        {repo.private && (
-                          <span className="text-orange-500">
-                            {t("Common.Private")}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  ))
-                )}
+          <p className="text-xs text-muted-foreground">
+            {t("Profile.Repositories are listed from your own GitHub account access.")}
+          </p>
+
+          <Input
+            placeholder={t("Profile.Search repositories...")}
+            value={repoSearch}
+            onChange={(e) => setRepoSearch(e.target.value)}
+          />
+          <div className={styles.repoList}>
+            {reposLoading ? (
+              <div className={styles.emptyState}>
+                <p>{t("Common.Loading")}</p>
               </div>
-            </>
-          )}
+            ) : availableRepos.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>{t("Profile.No repositories found.")}</p>
+              </div>
+            ) : (
+              availableRepos.map((repo) => (
+                <button
+                  key={repo.id}
+                  type="button"
+                  className={styles.repoItem}
+                  disabled={addingRepo}
+                  onClick={() => handleAddRepo(repo)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium truncate">
+                      {repo.full_name}
+                    </span>
+                    {repo.description !== "" && (
+                      <span className="block text-xs text-muted-foreground truncate">
+                        {repo.description}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs text-muted-foreground">
+                    {repo.language !== "" && <span>{repo.language}</span>}
+                    <span>&#9733; {repo.stars}</span>
+                    {repo.private && (
+                      <span className="text-orange-500">
+                        {t("Common.Private")}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>

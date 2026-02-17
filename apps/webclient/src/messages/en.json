@@ -532,6 +532,8 @@
     "Choose a repository to add as a resource.": "Choose a repository to add as a resource.",
     "Search repositories...": "Search repositories...",
     "No repositories found.": "No repositories found.",
+    "Repositories are listed from your own GitHub account access.": "Repositories are listed from your own GitHub account access.",
+    "Failed to load repositories": "Failed to load repositories",
     "Are you sure you want to remove this resource?": "Are you sure you want to remove this resource?",
     "Resource added successfully": "Resource added successfully",
     "Failed to add resource": "Failed to add resource",

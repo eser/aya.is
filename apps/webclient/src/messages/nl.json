@@ -528,6 +528,8 @@
     "Choose a repository to add as a resource.": "Kies een repository om als bron toe te voegen.",
     "Search repositories...": "Repositories zoeken...",
     "No repositories found.": "Geen repositories gevonden.",
+    "Repositories are listed from your own GitHub account access.": "Repositories worden weergegeven via uw eigen GitHub-accounttoegang.",
+    "Failed to load repositories": "Kan repositories niet laden",
     "Are you sure you want to remove this resource?": "Weet je zeker dat je deze bron wilt verwijderen?",
     "Resource added successfully": "Bron succesvol toegevoegd",
     "Failed to add resource": "Bron toevoegen mislukt",

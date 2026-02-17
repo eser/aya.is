@@ -670,16 +670,15 @@ func transliterateBasic(s string) string {
 func buildStoryContent(videoID string, description string) string {
 	var b strings.Builder
 
-	// YouTube embed
-	b.WriteString(`<iframe width="560" height="315" src="https://www.youtube.com/embed/`)
+	// YouTube embed using %[url] syntax
+	b.WriteString("%[https://www.youtube.com/embed/")
 	b.WriteString(videoID)
-	b.WriteString(
-		`" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
-	)
+	b.WriteString("]")
 
 	if description != "" {
-		b.WriteString("\n\n")
+		b.WriteString("\n\n```plain\n")
 		b.WriteString(description)
+		b.WriteString("\n```")
 	}
 
 	return b.String()

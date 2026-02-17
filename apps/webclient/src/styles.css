@@ -248,15 +248,37 @@
 
   /* Code blocks */
   pre {
-    @apply bg-muted rounded-lg p-4 mb-6 overflow-x-auto text-sm leading-relaxed font-mono border border-border;
+    @apply rounded-lg p-4 mb-6 overflow-x-auto text-sm leading-relaxed font-mono border border-border;
 
     code {
-      @apply bg-transparent p-0 text-[0.9em] text-foreground border-0;
+      @apply bg-transparent p-0 text-[0.9em] border-0;
     }
   }
 
-  :is(.dark &) pre {
+  /* Non-Shiki code blocks (no inline styles from Shiki) */
+  pre:not(.shiki) {
+    @apply bg-muted;
+
+    code {
+      @apply text-foreground;
+    }
+  }
+
+  :is(.dark &) pre:not(.shiki) {
     background: oklch(0.13 0.03 265);
+  }
+
+  /* Shiki dual-theme switching via CSS variables */
+  pre.shiki,
+  pre.shiki span {
+    color: var(--shiki-light);
+    background-color: var(--shiki-light-bg);
+  }
+
+  :is(.dark &) pre.shiki,
+  :is(.dark &) pre.shiki span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
   }
 
   :is(.dark &) :not(pre) > code {

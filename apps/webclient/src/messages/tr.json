@@ -528,6 +528,8 @@
     "Choose a repository to add as a resource.": "Kaynak olarak eklemek için bir repo seçin.",
     "Search repositories...": "Repo ara...",
     "No repositories found.": "Repo bulunamadı.",
+    "Repositories are listed from your own GitHub account access.": "Repolar kendi GitHub hesap erişiminiz üzerinden listelenmektedir.",
+    "Failed to load repositories": "Repolar yüklenemedi",
     "Are you sure you want to remove this resource?": "Bu kaynağı kaldırmak istediğinizden emin misiniz?",
     "Resource added successfully": "Kaynak başarıyla eklendi",
     "Failed to add resource": "Kaynak eklenemedi",

@@ -528,6 +528,8 @@
     "Choose a repository to add as a resource.": "Выберите репозиторий для добавления в качестве ресурса.",
     "Search repositories...": "Поиск репозиториев...",
     "No repositories found.": "Репозитории не найдены.",
+    "Repositories are listed from your own GitHub account access.": "Репозитории отображаются из доступа вашей собственной учётной записи GitHub.",
+    "Failed to load repositories": "Не удалось загрузить репозитории",
     "Are you sure you want to remove this resource?": "Вы уверены, что хотите удалить этот ресурс?",
     "Resource added successfully": "Ресурс успешно добавлен",
     "Failed to add resource": "Не удалось добавить ресурс",

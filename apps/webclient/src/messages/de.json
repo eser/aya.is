@@ -528,6 +528,8 @@
     "Choose a repository to add as a resource.": "Wählen Sie ein Repository als Ressource aus.",
     "Search repositories...": "Repositories suchen...",
     "No repositories found.": "Keine Repositories gefunden.",
+    "Repositories are listed from your own GitHub account access.": "Repositories werden über Ihren eigenen GitHub-Kontozugang aufgelistet.",
+    "Failed to load repositories": "Repositories konnten nicht geladen werden",
     "Are you sure you want to remove this resource?": "Möchten Sie diese Ressource wirklich entfernen?",
     "Resource added successfully": "Ressource erfolgreich hinzugefügt",
     "Failed to add resource": "Ressource konnte nicht hinzugefügt werden",

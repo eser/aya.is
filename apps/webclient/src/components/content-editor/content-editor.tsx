@@ -893,7 +893,7 @@ export function ContentEditor(props: ContentEditorProps) {
                 </ResizablePanel>
                 <ResizableHandle withHandle />
                 <ResizablePanel defaultSize={50} minSize={25}>
-                  <div className={styles.editorPanel} ref={previewScrollRef}>
+                  <div className={styles.editorPanelScrollable} ref={previewScrollRef}>
                     <PreviewPanel content={content} />
                   </div>
                 </ResizablePanel>
@@ -913,7 +913,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
             {/* Preview Only */}
             {viewMode === "preview" && (
-              <div className={styles.editorPanel}>
+              <div className={styles.editorPanelScrollable}>
                 <PreviewPanel content={content} />
               </div>
             )}
