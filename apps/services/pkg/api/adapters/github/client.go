@@ -17,9 +17,12 @@ import (
 
 // Sentinel errors.
 var (
-	ErrFailedToExchangeCode = errors.New("failed to exchange authorization code")
-	ErrFailedToGetUserInfo  = errors.New("failed to get user info")
-	ErrNoUserFound          = errors.New("no user found")
+	ErrFailedToExchangeCode  = errors.New("failed to exchange authorization code")
+	ErrFailedToGetUserInfo   = errors.New("failed to get user info")
+	ErrFailedToFetchRepos    = errors.New("failed to fetch user repos")
+	ErrFailedToFetchRepoInfo = errors.New("failed to fetch repo info")
+	ErrFailedToSearchIssues  = errors.New("failed to search issues")
+	ErrNoUserFound           = errors.New("no user found")
 )
 
 // HTTPClient interface for dependency injection.
@@ -269,4 +272,254 @@ func (c *Client) FetchUserOrganizations(
 	}
 
 	return orgs, nil
+}
+
+// GitHubRepoInfo represents a GitHub repository.
+type GitHubRepoInfo struct {
+	ID          int64  `json:"id"`
+	FullName    string `json:"full_name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	HTMLURL     string `json:"html_url"`
+	Language    string `json:"language"`
+	Stars       int    `json:"stargazers_count"`
+	Forks       int    `json:"forks_count"`
+	Private     bool   `json:"private"`
+	Owner       struct {
+		Login string `json:"login"`
+	} `json:"owner"`
+}
+
+// GitHubContributorInfo represents a GitHub contributor.
+type GitHubContributorInfo struct {
+	ID            int64  `json:"id"`
+	Login         string `json:"login"`
+	Contributions int    `json:"contributions"`
+}
+
+// GitHubIssueSearchResult represents GitHub issue search results.
+type GitHubIssueSearchResult struct {
+	TotalCount int `json:"total_count"`
+}
+
+// FetchUserRepos fetches repositories accessible to the authenticated user from GitHub API.
+func (c *Client) FetchUserRepos(
+	ctx context.Context,
+	accessToken string,
+	affiliation string,
+	page int,
+	perPage int,
+) ([]*GitHubRepoInfo, error) {
+	reqURL := fmt.Sprintf(
+		"https://api.github.com/user/repos?affiliation=%s&sort=updated&per_page=%d&page=%d",
+		url.QueryEscape(affiliation),
+		perPage,
+		page,
+	)
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		reqURL,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepos, err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-Github-Api-Version", "2022-11-28")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.ErrorContext(ctx, "Failed to fetch user repos",
+			slog.String("error", err.Error()))
+
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepos, err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		c.logger.ErrorContext(ctx, "User repos request failed",
+			slog.Int("status", resp.StatusCode),
+			slog.String("response", string(body)))
+
+		return nil, fmt.Errorf("%w: status %d", ErrFailedToFetchRepos, resp.StatusCode)
+	}
+
+	var repos []*GitHubRepoInfo
+
+	if err := json.Unmarshal(body, &repos); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepos, err)
+	}
+
+	return repos, nil
+}
+
+// FetchRepoContributors fetches contributors for a specific GitHub repository.
+func (c *Client) FetchRepoContributors(
+	ctx context.Context,
+	accessToken string,
+	owner string,
+	repo string,
+) ([]*GitHubContributorInfo, error) {
+	reqURL := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/contributors",
+		url.PathEscape(owner),
+		url.PathEscape(repo),
+	)
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		reqURL,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-Github-Api-Version", "2022-11-28")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.ErrorContext(ctx, "Failed to fetch repo contributors",
+			slog.String("error", err.Error()),
+			slog.String("owner", owner),
+			slog.String("repo", repo))
+
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		c.logger.ErrorContext(ctx, "Repo contributors request failed",
+			slog.Int("status", resp.StatusCode),
+			slog.String("response", string(body)))
+
+		return nil, fmt.Errorf("%w: status %d", ErrFailedToFetchRepoInfo, resp.StatusCode)
+	}
+
+	var contributors []*GitHubContributorInfo
+
+	if err := json.Unmarshal(body, &contributors); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	}
+
+	return contributors, nil
+}
+
+// FetchRepoInfo fetches information about a specific GitHub repository.
+func (c *Client) FetchRepoInfo(
+	ctx context.Context,
+	accessToken string,
+	owner string,
+	repo string,
+) (*GitHubRepoInfo, error) {
+	reqURL := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s",
+		url.PathEscape(owner),
+		url.PathEscape(repo),
+	)
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		reqURL,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-Github-Api-Version", "2022-11-28")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.ErrorContext(ctx, "Failed to fetch repo info",
+			slog.String("error", err.Error()),
+			slog.String("owner", owner),
+			slog.String("repo", repo))
+
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		c.logger.ErrorContext(ctx, "Repo info request failed",
+			slog.Int("status", resp.StatusCode),
+			slog.String("response", string(body)))
+
+		return nil, fmt.Errorf("%w: status %d", ErrFailedToFetchRepoInfo, resp.StatusCode)
+	}
+
+	var repoInfo GitHubRepoInfo
+
+	if err := json.Unmarshal(body, &repoInfo); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	}
+
+	return &repoInfo, nil
+}
+
+// SearchIssues searches GitHub issues and returns the total count.
+func (c *Client) SearchIssues(
+	ctx context.Context,
+	accessToken string,
+	query string,
+) (int, error) {
+	reqURL := "https://api.github.com/search/issues?q=" + url.QueryEscape(query)
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		reqURL,
+		nil,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrFailedToSearchIssues, err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-Github-Api-Version", "2022-11-28")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.ErrorContext(ctx, "Failed to search issues",
+			slog.String("error", err.Error()),
+			slog.String("query", query))
+
+		return 0, fmt.Errorf("%w: %w", ErrFailedToSearchIssues, err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		c.logger.ErrorContext(ctx, "Issue search request failed",
+			slog.Int("status", resp.StatusCode),
+			slog.String("response", string(body)))
+
+		return 0, fmt.Errorf("%w: status %d", ErrFailedToSearchIssues, resp.StatusCode)
+	}
+
+	var searchResult GitHubIssueSearchResult
+
+	if err := json.Unmarshal(body, &searchResult); err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrFailedToSearchIssues, err)
+	}
+
+	return searchResult.TotalCount, nil
 }

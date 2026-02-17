@@ -20,5 +20,6 @@ type YouTubeSyncConfig struct {
 // Config holds all worker configurations.
 type Config struct {
 	YouTubeSync YouTubeSyncConfig `conf:"youtube_sync"`
+	GitHubSync  GitHubSyncConfig  `conf:"github_sync"`
 	Queue       QueueWorkerConfig `conf:"queue"`
 }

@@ -27,6 +27,7 @@ var (
 	ErrInvalidURI           = errors.New("invalid URI")
 	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
 	ErrSearchFailed         = errors.New("search failed")
+	ErrDuplicateRecord      = errors.New("duplicate record")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -477,6 +478,56 @@ type Repository interface { //nolint:interfacebloat
 		profileID string,
 		query string,
 	) ([]*UserSearchResult, error)
+
+	// Profile resources
+	ListProfileResourcesByProfileID(
+		ctx context.Context,
+		profileID string,
+	) ([]*ProfileResource, error)
+	GetProfileResourceByID(
+		ctx context.Context,
+		id string,
+	) (*ProfileResource, error)
+	GetProfileResourceByRemoteID(
+		ctx context.Context,
+		profileID string,
+		kind string,
+		remoteID string,
+	) (*ProfileResource, error)
+	CreateProfileResource(
+		ctx context.Context,
+		id string,
+		profileID string,
+		kind string,
+		isManaged bool,
+		remoteID *string,
+		publicID *string,
+		url *string,
+		title string,
+		description *string,
+		properties any,
+		addedByProfileID string,
+	) (*ProfileResource, error)
+	SoftDeleteProfileResource(
+		ctx context.Context,
+		id string,
+	) error
+	UpdateProfileResourceProperties(
+		ctx context.Context,
+		id string,
+		properties any,
+	) error
+	UpdateProfileMembershipProperties(
+		ctx context.Context,
+		id string,
+		properties any,
+	) error
+
+	// Managed GitHub link
+	GetManagedGitHubLinkByProfileID(
+		ctx context.Context,
+		profileID string,
+	) (*ManagedGitHubLink, error)
 }
 
 type Service struct {
@@ -3126,4 +3177,211 @@ func (s *Service) UnfollowProfile(
 	})
 
 	return nil
+}
+
+// ListProfileResources returns all resources associated with a profile,
+// annotating each with whether the current user can remove it.
+func (s *Service) ListProfileResources(
+	ctx context.Context,
+	locale string,
+	userID string,
+	userKind string,
+	profileSlug string,
+) ([]*ProfileResource, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	resources, err := s.repo.ListProfileResourcesByProfileID(ctx, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Determine if the current user can remove each resource
+	if userID != "" {
+		userInfo, userErr := s.repo.GetUserBriefInfo(ctx, userID)
+
+		for _, r := range resources {
+			canRemove := false
+
+			// Site admins can always remove
+			if userKind == "admin" {
+				canRemove = true
+			} else if userErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
+				// Check membership level
+				membershipKind, mkErr := s.repo.GetMembershipBetweenProfiles(
+					ctx, profileID, *userInfo.IndividualProfileID,
+				)
+				if mkErr == nil && membershipKind != "" {
+					level, ok := MembershipKindLevel[membershipKind]
+					if ok && level >= MembershipKindLevel[MembershipKindMaintainer] {
+						canRemove = true
+					}
+				}
+			}
+
+			// The original adder can remove their own resources
+			if !canRemove && userErr == nil && userInfo != nil &&
+				userInfo.IndividualProfileID != nil {
+				if *userInfo.IndividualProfileID == r.AddedByProfileID {
+					canRemove = true
+				}
+			}
+
+			r.CanRemove = canRemove
+		}
+	}
+
+	return resources, nil
+}
+
+// CreateProfileResource creates a new resource linked to a profile.
+func (s *Service) CreateProfileResource(
+	ctx context.Context,
+	locale string,
+	userID string,
+	userKind string,
+	profileSlug string,
+	kind string,
+	isManaged bool,
+	remoteID *string,
+	publicID *string,
+	url *string,
+	title string,
+	description *string,
+	properties any,
+) (*ProfileResource, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	// Check permission - must be maintainer+ or admin
+	if userKind != "admin" {
+		err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Check for duplicates
+	if remoteID != nil {
+		existing, _ := s.repo.GetProfileResourceByRemoteID(ctx, profileID, kind, *remoteID)
+		if existing != nil {
+			return nil, fmt.Errorf("%w: resource already exists", ErrDuplicateRecord)
+		}
+	}
+
+	// Get the user's individual profile for added_by
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
+	if err != nil || userInfo == nil || userInfo.IndividualProfileID == nil {
+		return nil, fmt.Errorf("%w: could not find user profile", ErrFailedToGetRecord)
+	}
+
+	id := string(s.idGenerator())
+
+	resource, err := s.repo.CreateProfileResource(
+		ctx,
+		id,
+		profileID,
+		kind,
+		isManaged,
+		remoteID,
+		publicID,
+		url,
+		title,
+		description,
+		properties,
+		*userInfo.IndividualProfileID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	}
+
+	return resource, nil
+}
+
+// DeleteProfileResource soft-deletes a profile resource with authorization check.
+func (s *Service) DeleteProfileResource(
+	ctx context.Context,
+	locale string,
+	userID string,
+	userKind string,
+	profileSlug string,
+	resourceID string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	// Get the resource
+	resource, err := s.repo.GetProfileResourceByID(ctx, resourceID)
+	if err != nil {
+		return fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, resourceID, err)
+	}
+
+	if resource == nil {
+		return ErrProfileNotFound
+	}
+
+	// Check authorization
+	canDelete := userKind == "admin"
+
+	// Site admins can always delete
+
+	// The original adder can delete
+	if !canDelete && userID != "" {
+		userInfo, upErr := s.repo.GetUserBriefInfo(ctx, userID)
+		if upErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
+			if *userInfo.IndividualProfileID == resource.AddedByProfileID {
+				canDelete = true
+			}
+		}
+	}
+
+	// Maintainers+ can delete
+	if !canDelete {
+		err = s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+		if err == nil {
+			canDelete = true
+		}
+	}
+
+	if !canDelete {
+		return ErrUnauthorized
+	}
+
+	err = s.repo.SoftDeleteProfileResource(ctx, resourceID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToDeleteRecord, err)
+	}
+
+	return nil
+}
+
+// GetManagedGitHubLink returns the managed GitHub link for a profile.
+func (s *Service) GetManagedGitHubLink(
+	ctx context.Context,
+	profileID string,
+) (*ManagedGitHubLink, error) {
+	link, err := s.repo.GetManagedGitHubLinkByProfileID(ctx, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	return link, nil
 }

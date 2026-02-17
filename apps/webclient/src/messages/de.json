@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "Unbekannt",
-    "Remove": "Entfernen"
+    "Remove": "Entfernen",
+    "Loading": "Wird geladen",
+    "Private": "Privat"
   },
   "Layout": {
     "Homepage": "Startseite",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "Erfolgreich entfolgt",
     "Failed to follow": "Folgen fehlgeschlagen",
     "Failed to unfollow": "Entfolgen fehlgeschlagen",
-    "Are you sure you want to unfollow this profile?": "Sind Sie sicher, dass Sie diesem Profil nicht mehr folgen möchten?"
+    "Are you sure you want to unfollow this profile?": "Sind Sie sicher, dass Sie diesem Profil nicht mehr folgen möchten?",
+    "Resources": "Ressourcen",
+    "Manage your resources and integrations.": "Verwalten Sie Ihre Ressourcen und Integrationen.",
+    "Add Resource": "Ressource hinzufügen",
+    "No resources added yet.": "Noch keine Ressourcen hinzugefügt.",
+    "Add Your First Resource": "Erste Ressource hinzufügen",
+    "GitHub Repository": "GitHub-Repository",
+    "Added by": "Hinzugefügt von",
+    "Remove Resource": "Ressource entfernen",
+    "Select GitHub Repository": "GitHub-Repository auswählen",
+    "Choose a repository to add as a resource.": "Wählen Sie ein Repository als Ressource aus.",
+    "Search repositories...": "Repositories suchen...",
+    "No repositories found.": "Keine Repositories gefunden.",
+    "Are you sure you want to remove this resource?": "Möchten Sie diese Ressource wirklich entfernen?",
+    "Resource added successfully": "Ressource erfolgreich hinzugefügt",
+    "Failed to add resource": "Ressource konnte nicht hinzugefügt werden",
+    "Resource removed successfully": "Ressource erfolgreich entfernt",
+    "Failed to remove resource": "Ressource konnte nicht entfernt werden",
+    "Failed to load resources": "Ressourcen konnten nicht geladen werden",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Dieses Profil hat kein verbundenes GitHub-Konto. Bitte verbinden Sie zuerst GitHub in den Social-Links-Einstellungen."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

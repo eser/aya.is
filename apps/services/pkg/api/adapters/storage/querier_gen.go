@@ -368,6 +368,18 @@ type Querier interface {
 	//    $5
 	//  )
 	CreateProfilePageTx(ctx context.Context, arg CreateProfilePageTxParams) error
+	//CreateProfileResource
+	//
+	//  INSERT INTO "profile_resource" (
+	//    id, profile_id, kind, is_managed, remote_id, public_id, url,
+	//    title, description, properties, added_by_profile_id, created_at
+	//  ) VALUES (
+	//    $1, $2, $3, $4,
+	//    $5, $6, $7,
+	//    $8, $9, $10,
+	//    $11, NOW()
+	//  ) RETURNING id, profile_id, kind, is_managed, remote_id, public_id, url, title, description, properties, added_by_profile_id, created_at, updated_at, deleted_at
+	CreateProfileResource(ctx context.Context, arg CreateProfileResourceParams) (ProfileResource, error)
 	//CreateProfileTx
 	//
 	//  INSERT INTO "profile_tx" (profile_id, locale_code, title, description, properties)
@@ -625,6 +637,17 @@ type Querier interface {
 	//    AND remote_id = $2
 	//  LIMIT 1
 	GetLinkImportByRemoteID(ctx context.Context, arg GetLinkImportByRemoteIDParams) (*ProfileLinkImport, error)
+	//GetManagedGitHubLinkByProfileID
+	//
+	//  SELECT id, profile_id, auth_access_token
+	//  FROM "profile_link"
+	//  WHERE profile_id = $1
+	//    AND kind = 'github'
+	//    AND is_managed = true
+	//    AND auth_access_token IS NOT NULL
+	//    AND deleted_at IS NULL
+	//  LIMIT 1
+	GetManagedGitHubLinkByProfileID(ctx context.Context, arg GetManagedGitHubLinkByProfileIDParams) (GetManagedGitHubLinkByProfileIDRow, error)
 	//GetMaxProfileLinkOrder
 	//
 	//  SELECT COALESCE(MAX("order"), 0) as max_order
@@ -892,6 +915,20 @@ type Querier interface {
 	//  WHERE question_id = $1
 	//    AND user_id = $2
 	GetProfileQuestionVote(ctx context.Context, arg GetProfileQuestionVoteParams) (*ProfileQuestionVote, error)
+	//GetProfileResourceByID
+	//
+	//  SELECT id, profile_id, kind, is_managed, remote_id, public_id, url, title, description, properties, added_by_profile_id, created_at, updated_at, deleted_at FROM "profile_resource"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	GetProfileResourceByID(ctx context.Context, arg GetProfileResourceByIDParams) (ProfileResource, error)
+	//GetProfileResourceByRemoteID
+	//
+	//  SELECT id, profile_id, kind, is_managed, remote_id, public_id, url, title, description, properties, added_by_profile_id, created_at, updated_at, deleted_at FROM "profile_resource"
+	//  WHERE profile_id = $1
+	//    AND kind = $2
+	//    AND remote_id = $3
+	//    AND deleted_at IS NULL
+	GetProfileResourceByRemoteID(ctx context.Context, arg GetProfileResourceByRemoteIDParams) (ProfileResource, error)
 	//GetProfileTxByID
 	//
 	//  SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -1420,6 +1457,26 @@ type Querier interface {
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
 	ListFeaturedProfileLinksByProfileID(ctx context.Context, arg ListFeaturedProfileLinksByProfileIDParams) ([]*ListFeaturedProfileLinksByProfileIDRow, error)
+	//ListGitHubResourcesForSync
+	//
+	//  SELECT
+	//    pr.id as resource_id,
+	//    pr.profile_id,
+	//    pr.remote_id,
+	//    pr.public_id,
+	//    pr.properties as resource_properties,
+	//    pl.auth_access_token
+	//  FROM "profile_resource" pr
+	//  JOIN "profile_link" pl ON pl.profile_id = pr.profile_id
+	//    AND pl.kind = 'github'
+	//    AND pl.is_managed = true
+	//    AND pl.auth_access_token IS NOT NULL
+	//    AND pl.deleted_at IS NULL
+	//  WHERE pr.kind = 'github_repo'
+	//    AND pr.deleted_at IS NULL
+	//  ORDER BY pr.profile_id
+	//  LIMIT $1
+	ListGitHubResourcesForSync(ctx context.Context, arg ListGitHubResourcesForSyncParams) ([]ListGitHubResourcesForSyncRow, error)
 	// Returns imports that have matching managed stories (for reconciliation during full sync).
 	//
 	//  SELECT
@@ -1689,6 +1746,21 @@ type Querier interface {
 	//    AND ($4::BOOLEAN = TRUE OR pq.is_hidden = FALSE)
 	//  ORDER BY pq.vote_count DESC, pq.created_at DESC
 	ListProfileQuestionsByProfileID(ctx context.Context, arg ListProfileQuestionsByProfileIDParams) ([]*ListProfileQuestionsByProfileIDRow, error)
+	//ListProfileResourcesByProfileID
+	//
+	//  SELECT
+	//    pr.id, pr.profile_id, pr.kind, pr.is_managed, pr.remote_id, pr.public_id, pr.url, pr.title, pr.description, pr.properties, pr.added_by_profile_id, pr.created_at, pr.updated_at, pr.deleted_at,
+	//    p.slug as added_by_slug,
+	//    p.kind as added_by_kind,
+	//    p.title as added_by_title,
+	//    p.description as added_by_description,
+	//    p.profile_picture_uri as added_by_profile_picture_uri
+	//  FROM "profile_resource" pr
+	//  LEFT JOIN "profile" p ON p.id = pr.added_by_profile_id AND p.deleted_at IS NULL
+	//  WHERE pr.profile_id = $1
+	//    AND pr.deleted_at IS NULL
+	//  ORDER BY pr.created_at DESC
+	ListProfileResourcesByProfileID(ctx context.Context, arg ListProfileResourcesByProfileIDParams) ([]ListProfileResourcesByProfileIDRow, error)
 	//ListProfiles
 	//
 	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.hide_relations, p.hide_links, p.default_locale, p.hide_qa, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -2147,6 +2219,13 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	SetUserIndividualProfileID(ctx context.Context, arg SetUserIndividualProfileIDParams) (int64, error)
+	//SoftDeleteProfileResource
+	//
+	//  UPDATE "profile_resource"
+	//  SET deleted_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	SoftDeleteProfileResource(ctx context.Context, arg SoftDeleteProfileResourceParams) (int64, error)
 	//TerminateSession
 	//
 	//  UPDATE
@@ -2252,6 +2331,14 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	UpdateProfileMembership(ctx context.Context, arg UpdateProfileMembershipParams) (int64, error)
+	//UpdateProfileMembershipProperties
+	//
+	//  UPDATE "profile_membership"
+	//  SET
+	//    properties = $1
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateProfileMembershipProperties(ctx context.Context, arg UpdateProfileMembershipPropertiesParams) (int64, error)
 	//UpdateProfilePage
 	//
 	//  UPDATE "profile_page"
@@ -2274,6 +2361,15 @@ type Querier interface {
 	//  WHERE profile_page_id = $4
 	//    AND locale_code = $5
 	UpdateProfilePageTx(ctx context.Context, arg UpdateProfilePageTxParams) (int64, error)
+	//UpdateProfileResourceProperties
+	//
+	//  UPDATE "profile_resource"
+	//  SET
+	//    properties = $1,
+	//    updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateProfileResourceProperties(ctx context.Context, arg UpdateProfileResourcePropertiesParams) (int64, error)
 	//EditProfileQuestionAnswer
 	//
 	//  UPDATE "profile_question"

@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "Sconosciuto",
-    "Remove": "Rimuovi"
+    "Remove": "Rimuovi",
+    "Loading": "Caricamento",
+    "Private": "Privato"
   },
   "Layout": {
     "Homepage": "Pagina iniziale",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "Non segui più con successo",
     "Failed to follow": "Impossibile seguire",
     "Failed to unfollow": "Impossibile smettere di seguire",
-    "Are you sure you want to unfollow this profile?": "Sei sicuro di voler smettere di seguire questo profilo?"
+    "Are you sure you want to unfollow this profile?": "Sei sicuro di voler smettere di seguire questo profilo?",
+    "Resources": "Risorse",
+    "Manage your resources and integrations.": "Gestisci le tue risorse e integrazioni.",
+    "Add Resource": "Aggiungi risorsa",
+    "No resources added yet.": "Nessuna risorsa aggiunta.",
+    "Add Your First Resource": "Aggiungi la tua prima risorsa",
+    "GitHub Repository": "Repository GitHub",
+    "Added by": "Aggiunto da",
+    "Remove Resource": "Rimuovi risorsa",
+    "Select GitHub Repository": "Seleziona repository GitHub",
+    "Choose a repository to add as a resource.": "Scegli un repository da aggiungere come risorsa.",
+    "Search repositories...": "Cerca repository...",
+    "No repositories found.": "Nessun repository trovato.",
+    "Are you sure you want to remove this resource?": "Sei sicuro di voler rimuovere questa risorsa?",
+    "Resource added successfully": "Risorsa aggiunta con successo",
+    "Failed to add resource": "Impossibile aggiungere la risorsa",
+    "Resource removed successfully": "Risorsa rimossa con successo",
+    "Failed to remove resource": "Impossibile rimuovere la risorsa",
+    "Failed to load resources": "Impossibile caricare le risorse",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Questo profilo non ha un account GitHub connesso. Connetti prima GitHub nelle impostazioni dei link social."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

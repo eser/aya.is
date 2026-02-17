@@ -3,12 +3,15 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
+	"github.com/sqlc-dev/pqtype"
 )
 
 func (r *Repository) GetProfileIDBySlug(ctx context.Context, slug string) (string, error) {
@@ -1760,4 +1763,264 @@ func (r *Repository) UpsertProfileLinkTx(
 	}
 
 	return r.queries.UpsertProfileLinkTx(ctx, params)
+}
+
+// Profile Resource methods
+
+// storageProfileResourceToBusinessResource converts a storage profile resource to a business profile resource.
+func storageProfileResourceToBusinessResource(
+	row *ListProfileResourcesByProfileIDRow,
+) *profiles.ProfileResource {
+	resource := &profiles.ProfileResource{
+		ID:               row.ID,
+		ProfileID:        row.ProfileID,
+		Kind:             row.Kind,
+		IsManaged:        row.IsManaged,
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URL:              vars.ToStringPtr(row.Url),
+		Title:            row.Title,
+		Description:      vars.ToStringPtr(row.Description),
+		Properties:       vars.ToObject(row.Properties),
+		AddedByProfileID: row.AddedByProfileID,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+	}
+
+	// Populate the AddedByProfile brief if join data is present
+	if row.AddedBySlug.Valid {
+		resource.AddedByProfile = &profiles.ProfileBrief{
+			ID:                row.AddedByProfileID,
+			Slug:              row.AddedBySlug.String,
+			Kind:              row.AddedByKind.String,
+			Title:             row.AddedByTitle.String,
+			Description:       row.AddedByDescription.String,
+			ProfilePictureURI: vars.ToStringPtr(row.AddedByProfilePictureUri),
+		}
+	}
+
+	return resource
+}
+
+func (r *Repository) ListProfileResourcesByProfileID(
+	ctx context.Context,
+	profileID string,
+) ([]*profiles.ProfileResource, error) {
+	rows, err := r.queries.ListProfileResourcesByProfileID(
+		ctx,
+		ListProfileResourcesByProfileIDParams{
+			ProfileID: profileID,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resources := make([]*profiles.ProfileResource, 0, len(rows))
+
+	for _, row := range rows {
+		resources = append(resources, storageProfileResourceToBusinessResource(&row))
+	}
+
+	return resources, nil
+}
+
+func (r *Repository) GetProfileResourceByID(
+	ctx context.Context,
+	id string,
+) (*profiles.ProfileResource, error) {
+	row, err := r.queries.GetProfileResourceByID(ctx, GetProfileResourceByIDParams{
+		ID: id,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return &profiles.ProfileResource{
+		ID:               row.ID,
+		ProfileID:        row.ProfileID,
+		Kind:             row.Kind,
+		IsManaged:        row.IsManaged,
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URL:              vars.ToStringPtr(row.Url),
+		Title:            row.Title,
+		Description:      vars.ToStringPtr(row.Description),
+		Properties:       vars.ToObject(row.Properties),
+		AddedByProfileID: row.AddedByProfileID,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+	}, nil
+}
+
+func (r *Repository) GetProfileResourceByRemoteID(
+	ctx context.Context,
+	profileID string,
+	kind string,
+	remoteID string,
+) (*profiles.ProfileResource, error) {
+	row, err := r.queries.GetProfileResourceByRemoteID(ctx, GetProfileResourceByRemoteIDParams{
+		ProfileID: profileID,
+		Kind:      kind,
+		RemoteID:  sql.NullString{String: remoteID, Valid: true},
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return &profiles.ProfileResource{
+		ID:               row.ID,
+		ProfileID:        row.ProfileID,
+		Kind:             row.Kind,
+		IsManaged:        row.IsManaged,
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URL:              vars.ToStringPtr(row.Url),
+		Title:            row.Title,
+		Description:      vars.ToStringPtr(row.Description),
+		Properties:       vars.ToObject(row.Properties),
+		AddedByProfileID: row.AddedByProfileID,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+	}, nil
+}
+
+func (r *Repository) CreateProfileResource(
+	ctx context.Context,
+	id string,
+	profileID string,
+	kind string,
+	isManaged bool,
+	remoteID *string,
+	publicID *string,
+	url *string,
+	title string,
+	description *string,
+	properties any,
+	addedByProfileID string,
+) (*profiles.ProfileResource, error) {
+	propertiesJSON, err := json.Marshal(properties)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal properties: %w", err)
+	}
+
+	row, err := r.queries.CreateProfileResource(ctx, CreateProfileResourceParams{
+		ID:               id,
+		ProfileID:        profileID,
+		Kind:             kind,
+		IsManaged:        isManaged,
+		RemoteID:         vars.ToSQLNullString(remoteID),
+		PublicID:         vars.ToSQLNullString(publicID),
+		Url:              vars.ToSQLNullString(url),
+		Title:            title,
+		Description:      vars.ToSQLNullString(description),
+		Properties:       pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
+		AddedByProfileID: addedByProfileID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &profiles.ProfileResource{
+		ID:               row.ID,
+		ProfileID:        row.ProfileID,
+		Kind:             row.Kind,
+		IsManaged:        row.IsManaged,
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URL:              vars.ToStringPtr(row.Url),
+		Title:            row.Title,
+		Description:      vars.ToStringPtr(row.Description),
+		Properties:       vars.ToObject(row.Properties),
+		AddedByProfileID: row.AddedByProfileID,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+	}, nil
+}
+
+func (r *Repository) SoftDeleteProfileResource(
+	ctx context.Context,
+	id string,
+) error {
+	_, err := r.queries.SoftDeleteProfileResource(ctx, SoftDeleteProfileResourceParams{
+		ID: id,
+	})
+
+	return err
+}
+
+func (r *Repository) UpdateProfileResourceProperties(
+	ctx context.Context,
+	id string,
+	properties any,
+) error {
+	propertiesJSON, err := json.Marshal(properties)
+	if err != nil {
+		return fmt.Errorf("failed to marshal properties: %w", err)
+	}
+
+	_, err = r.queries.UpdateProfileResourceProperties(ctx, UpdateProfileResourcePropertiesParams{
+		ID:         id,
+		Properties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
+	})
+
+	return err
+}
+
+func (r *Repository) UpdateProfileMembershipProperties(
+	ctx context.Context,
+	id string,
+	properties any,
+) error {
+	propertiesJSON, err := json.Marshal(properties)
+	if err != nil {
+		return fmt.Errorf("failed to marshal properties: %w", err)
+	}
+
+	_, err = r.queries.UpdateProfileMembershipProperties(
+		ctx,
+		UpdateProfileMembershipPropertiesParams{
+			ID:         id,
+			Properties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
+		},
+	)
+
+	return err
+}
+
+func (r *Repository) GetManagedGitHubLinkByProfileID(
+	ctx context.Context,
+	profileID string,
+) (*profiles.ManagedGitHubLink, error) {
+	row, err := r.queries.GetManagedGitHubLinkByProfileID(
+		ctx,
+		GetManagedGitHubLinkByProfileIDParams{
+			ProfileID: profileID,
+		},
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return &profiles.ManagedGitHubLink{
+		ID:              row.ID,
+		ProfileID:       row.ProfileID,
+		AuthAccessToken: row.AuthAccessToken.String,
+	}, nil
 }

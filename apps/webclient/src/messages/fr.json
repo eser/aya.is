@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "Inconnu",
-    "Remove": "Retirer"
+    "Remove": "Retirer",
+    "Loading": "Chargement",
+    "Private": "Privé"
   },
   "Layout": {
     "Homepage": "Page d'accueil",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "Désabonné avec succès",
     "Failed to follow": "Échec du suivi",
     "Failed to unfollow": "Échec du désabonnement",
-    "Are you sure you want to unfollow this profile?": "Êtes-vous sûr de vouloir ne plus suivre ce profil ?"
+    "Are you sure you want to unfollow this profile?": "Êtes-vous sûr de vouloir ne plus suivre ce profil ?",
+    "Resources": "Ressources",
+    "Manage your resources and integrations.": "Gérez vos ressources et intégrations.",
+    "Add Resource": "Ajouter une ressource",
+    "No resources added yet.": "Aucune ressource ajoutée.",
+    "Add Your First Resource": "Ajoutez votre première ressource",
+    "GitHub Repository": "Dépôt GitHub",
+    "Added by": "Ajouté par",
+    "Remove Resource": "Supprimer la ressource",
+    "Select GitHub Repository": "Sélectionner un dépôt GitHub",
+    "Choose a repository to add as a resource.": "Choisissez un dépôt à ajouter comme ressource.",
+    "Search repositories...": "Rechercher des dépôts...",
+    "No repositories found.": "Aucun dépôt trouvé.",
+    "Are you sure you want to remove this resource?": "Êtes-vous sûr de vouloir supprimer cette ressource ?",
+    "Resource added successfully": "Ressource ajoutée avec succès",
+    "Failed to add resource": "Échec de l'ajout de la ressource",
+    "Resource removed successfully": "Ressource supprimée avec succès",
+    "Failed to remove resource": "Échec de la suppression de la ressource",
+    "Failed to load resources": "Échec du chargement des ressources",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Ce profil n'a pas de compte GitHub connecté. Veuillez d'abord connecter GitHub dans les paramètres des liens sociaux."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

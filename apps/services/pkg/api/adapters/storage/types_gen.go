@@ -167,6 +167,23 @@ type ProfileMembership struct {
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
+type ProfileResource struct {
+	ID               string                `db:"id" json:"id"`
+	ProfileID        string                `db:"profile_id" json:"profile_id"`
+	Kind             string                `db:"kind" json:"kind"`
+	IsManaged        bool                  `db:"is_managed" json:"is_managed"`
+	RemoteID         sql.NullString        `db:"remote_id" json:"remote_id"`
+	PublicID         sql.NullString        `db:"public_id" json:"public_id"`
+	Url              sql.NullString        `db:"url" json:"url"`
+	Title            string                `db:"title" json:"title"`
+	Description      sql.NullString        `db:"description" json:"description"`
+	Properties       pqtype.NullRawMessage `db:"properties" json:"properties"`
+	AddedByProfileID string                `db:"added_by_profile_id" json:"added_by_profile_id"`
+	CreatedAt        time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt        sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+}
+
 type ProfilePage struct {
 	ID              string         `db:"id" json:"id"`
 	ProfileID       string         `db:"profile_id" json:"profile_id"`

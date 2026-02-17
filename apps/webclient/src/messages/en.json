@@ -46,7 +46,9 @@
     "MonthYear": "{{date, month-year}}",
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
-    "Remove": "Remove"
+    "Remove": "Remove",
+    "Loading": "Loading",
+    "Private": "Private"
   },
   "Layout": {
     "Homepage": "Homepage",
@@ -515,7 +517,26 @@
     "Unfollowed successfully": "Unfollowed successfully",
     "Failed to follow": "Failed to follow",
     "Failed to unfollow": "Failed to unfollow",
-    "Are you sure you want to unfollow this profile?": "Are you sure you want to unfollow this profile?"
+    "Are you sure you want to unfollow this profile?": "Are you sure you want to unfollow this profile?",
+    "Resources": "Resources",
+    "Manage your resources and integrations.": "Manage your resources and integrations.",
+    "Add Resource": "Add Resource",
+    "No resources added yet.": "No resources added yet.",
+    "Add Your First Resource": "Add Your First Resource",
+    "GitHub Repository": "GitHub Repository",
+    "Added by": "Added by",
+    "Remove Resource": "Remove Resource",
+    "Select GitHub Repository": "Select GitHub Repository",
+    "Choose a repository to add as a resource.": "Choose a repository to add as a resource.",
+    "Search repositories...": "Search repositories...",
+    "No repositories found.": "No repositories found.",
+    "Are you sure you want to remove this resource?": "Are you sure you want to remove this resource?",
+    "Resource added successfully": "Resource added successfully",
+    "Failed to add resource": "Failed to add resource",
+    "Resource removed successfully": "Resource removed successfully",
+    "Failed to remove resource": "Failed to remove resource",
+    "Failed to load resources": "Failed to load resources",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

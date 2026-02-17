@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "Desconocido",
-    "Remove": "Eliminar"
+    "Remove": "Eliminar",
+    "Loading": "Cargando",
+    "Private": "Privado"
   },
   "Layout": {
     "Homepage": "Página de inicio",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "Dejó de seguir con éxito",
     "Failed to follow": "Error al seguir",
     "Failed to unfollow": "Error al dejar de seguir",
-    "Are you sure you want to unfollow this profile?": "¿Estás seguro de que quieres dejar de seguir este perfil?"
+    "Are you sure you want to unfollow this profile?": "¿Estás seguro de que quieres dejar de seguir este perfil?",
+    "Resources": "Recursos",
+    "Manage your resources and integrations.": "Gestiona tus recursos e integraciones.",
+    "Add Resource": "Agregar recurso",
+    "No resources added yet.": "Aún no se han agregado recursos.",
+    "Add Your First Resource": "Agrega tu primer recurso",
+    "GitHub Repository": "Repositorio de GitHub",
+    "Added by": "Agregado por",
+    "Remove Resource": "Eliminar recurso",
+    "Select GitHub Repository": "Seleccionar repositorio de GitHub",
+    "Choose a repository to add as a resource.": "Elige un repositorio para agregar como recurso.",
+    "Search repositories...": "Buscar repositorios...",
+    "No repositories found.": "No se encontraron repositorios.",
+    "Are you sure you want to remove this resource?": "¿Estás seguro de que deseas eliminar este recurso?",
+    "Resource added successfully": "Recurso agregado exitosamente",
+    "Failed to add resource": "Error al agregar recurso",
+    "Resource removed successfully": "Recurso eliminado exitosamente",
+    "Failed to remove resource": "Error al eliminar recurso",
+    "Failed to load resources": "Error al cargar recursos",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Este perfil no tiene una cuenta de GitHub conectada. Por favor, conecta GitHub primero en la configuración de enlaces sociales."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

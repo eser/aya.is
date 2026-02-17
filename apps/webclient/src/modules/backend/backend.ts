@@ -41,6 +41,10 @@ import { deleteProfilePage } from "./profiles/delete-profile-page";
 import { listProfilePageTranslationLocales } from "./profiles/list-profile-page-translation-locales";
 import { deleteProfilePageTranslation } from "./profiles/delete-profile-page-translation";
 import { autoTranslateProfilePage } from "./profiles/auto-translate-profile-page";
+import { listProfileResources } from "./profiles/list-profile-resources";
+import { createProfileResource } from "./profiles/create-profile-resource";
+import { deleteProfileResource } from "./profiles/delete-profile-resource";
+import { listGitHubRepos } from "./profiles/list-github-repos";
 import { listProfilePointTransactions } from "./profile-points/list-profile-point-transactions";
 import { getProfileQuestions } from "./questions/get-profile-questions";
 import { createQuestion } from "./questions/create-question";
@@ -99,6 +103,7 @@ export type { AccessibleProfile } from "./sessions/types";
 export type { ToggleWorkerResult } from "./admin/toggle-admin-worker";
 export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
+export type { CreateProfileResourceInput } from "./profiles/create-profile-resource";
 export type { CreateQuestionInput } from "./questions/create-question";
 export type { VoteQuestionResult } from "./questions/vote-question";
 export type { AnswerQuestionInput } from "./questions/answer-question";
@@ -142,6 +147,12 @@ export const backend = {
   initiateProfileLinkOAuth,
   getGitHubAccounts,
   finalizeGitHubConnection,
+
+  // Profile Resources
+  listProfileResources,
+  createProfileResource,
+  deleteProfileResource,
+  listGitHubRepos,
 
   // Profile Memberships
   listProfileMemberships,
@@ -278,6 +289,10 @@ export {
   listProfileMemberships,
   listProfilePages,
   listProfilePointTransactions,
+  listProfileResources,
+  createProfileResource,
+  deleteProfileResource,
+  listGitHubRepos,
   addProfileMembership,
   deleteProfileMembership,
   searchUsersForMembership,

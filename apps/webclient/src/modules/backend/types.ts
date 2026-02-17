@@ -466,6 +466,37 @@ export interface POWSolverResponse {
   elapsed_ms: number;
 }
 
+// Profile Resource Types
+export interface ProfileResource {
+  id: string;
+  profile_id: string;
+  kind: string;
+  is_managed: boolean;
+  remote_id?: string | null;
+  public_id?: string | null;
+  url?: string | null;
+  title: string;
+  description?: string | null;
+  properties?: Record<string, unknown> | null;
+  added_by_profile_id: string;
+  added_by_profile?: ProfileBrief | null;
+  created_at: string;
+  updated_at?: string | null;
+  can_remove: boolean;
+}
+
+export interface GitHubRepo {
+  id: string;
+  full_name: string;
+  name: string;
+  description: string;
+  html_url: string;
+  language: string;
+  stars: number;
+  forks: number;
+  private: boolean;
+}
+
 // Profile Question Types
 export interface ProfileQuestion {
   id: string;

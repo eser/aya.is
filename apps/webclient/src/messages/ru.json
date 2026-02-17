@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "Неизвестно",
-    "Remove": "Удалить"
+    "Remove": "Удалить",
+    "Loading": "Загрузка",
+    "Private": "Приватный"
   },
   "Layout": {
     "Homepage": "Главная страница",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "Подписка отменена",
     "Failed to follow": "Не удалось подписаться",
     "Failed to unfollow": "Не удалось отписаться",
-    "Are you sure you want to unfollow this profile?": "Вы уверены, что хотите отписаться от этого профиля?"
+    "Are you sure you want to unfollow this profile?": "Вы уверены, что хотите отписаться от этого профиля?",
+    "Resources": "Ресурсы",
+    "Manage your resources and integrations.": "Управляйте своими ресурсами и интеграциями.",
+    "Add Resource": "Добавить ресурс",
+    "No resources added yet.": "Ресурсы ещё не добавлены.",
+    "Add Your First Resource": "Добавьте свой первый ресурс",
+    "GitHub Repository": "Репозиторий GitHub",
+    "Added by": "Добавлено",
+    "Remove Resource": "Удалить ресурс",
+    "Select GitHub Repository": "Выбрать репозиторий GitHub",
+    "Choose a repository to add as a resource.": "Выберите репозиторий для добавления в качестве ресурса.",
+    "Search repositories...": "Поиск репозиториев...",
+    "No repositories found.": "Репозитории не найдены.",
+    "Are you sure you want to remove this resource?": "Вы уверены, что хотите удалить этот ресурс?",
+    "Resource added successfully": "Ресурс успешно добавлен",
+    "Failed to add resource": "Не удалось добавить ресурс",
+    "Resource removed successfully": "Ресурс успешно удалён",
+    "Failed to remove resource": "Не удалось удалить ресурс",
+    "Failed to load resources": "Не удалось загрузить ресурсы",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "У этого профиля нет подключённого аккаунта GitHub. Сначала подключите GitHub в настройках социальных ссылок."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

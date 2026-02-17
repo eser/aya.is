@@ -1,0 +1,33 @@
+@reference "@/theme.css";
+
+.resourceCard {
+  @apply flex items-center justify-between rounded-lg border border-border bg-card p-4;
+}
+
+.resourceInfo {
+  @apply flex flex-col gap-1;
+}
+
+.resourceTitle {
+  @apply text-sm font-medium text-foreground;
+}
+
+.resourceMeta {
+  @apply flex items-center gap-2 text-xs text-muted-foreground;
+}
+
+.repoList {
+  @apply max-h-80 overflow-y-auto;
+}
+
+.repoItem {
+  @apply flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-accent;
+}
+
+.repoItemSelected {
+  @apply bg-accent;
+}
+
+.emptyState {
+  @apply flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground;
+}

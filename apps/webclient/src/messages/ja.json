@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "不明",
-    "Remove": "削除"
+    "Remove": "削除",
+    "Loading": "読み込み中",
+    "Private": "プライベート"
   },
   "Layout": {
     "Homepage": "ホームページ",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "フォローを解除しました",
     "Failed to follow": "フォローに失敗しました",
     "Failed to unfollow": "フォロー解除に失敗しました",
-    "Are you sure you want to unfollow this profile?": "このプロフィールのフォローを解除してもよろしいですか？"
+    "Are you sure you want to unfollow this profile?": "このプロフィールのフォローを解除してもよろしいですか？",
+    "Resources": "リソース",
+    "Manage your resources and integrations.": "リソースと連携を管理します。",
+    "Add Resource": "リソースを追加",
+    "No resources added yet.": "まだリソースが追加されていません。",
+    "Add Your First Resource": "最初のリソースを追加",
+    "GitHub Repository": "GitHubリポジトリ",
+    "Added by": "追加者",
+    "Remove Resource": "リソースを削除",
+    "Select GitHub Repository": "GitHubリポジトリを選択",
+    "Choose a repository to add as a resource.": "リソースとして追加するリポジトリを選択してください。",
+    "Search repositories...": "リポジトリを検索...",
+    "No repositories found.": "リポジトリが見つかりません。",
+    "Are you sure you want to remove this resource?": "このリソースを削除してもよろしいですか？",
+    "Resource added successfully": "リソースが正常に追加されました",
+    "Failed to add resource": "リソースの追加に失敗しました",
+    "Resource removed successfully": "リソースが正常に削除されました",
+    "Failed to remove resource": "リソースの削除に失敗しました",
+    "Failed to load resources": "リソースの読み込みに失敗しました",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "このプロフィールにはGitHubアカウントが接続されていません。まずソーシャルリンク設定でGitHubを接続してください。"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

@@ -28,6 +28,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
+	"github.com/eser/aya.is/services/pkg/api/business/resourcesync"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
@@ -65,21 +66,22 @@ type AppContext struct {
 	UnsplashClient  *unsplash.Client
 
 	// Business
-	UploadService           *uploads.Service
-	AuthService             *auth.Service
-	UserService             *users.Service
-	ProfileService          *profiles.Service
-	ProfilePointsService    *profile_points.Service
-	ProfileQuestionsService *profile_questions.Service
-	StoryService            *stories.Service
-	SessionService          *sessions.Service
-	ProtectionService       *protection.Service
-	LinkSyncService         *linksync.Service
-	AuditService            *events.AuditService
-	QueueService            *events.QueueService
-	QueueRegistry           *events.HandlerRegistry
-	RuntimeStateService     *runtime_states.Service
-	WorkerRegistry          *workerfx.Registry
+	UploadService              *uploads.Service
+	AuthService                *auth.Service
+	UserService                *users.Service
+	ProfileService             *profiles.Service
+	ProfilePointsService       *profile_points.Service
+	ProfileQuestionsService    *profile_questions.Service
+	StoryService               *stories.Service
+	SessionService             *sessions.Service
+	ProtectionService          *protection.Service
+	ProfileLinkSyncService     *linksync.Service
+	ProfileResourceSyncService *resourcesync.Service
+	AuditService               *events.AuditService
+	QueueService               *events.QueueService
+	QueueRegistry              *events.HandlerRegistry
+	RuntimeStateService        *runtime_states.Service
+	WorkerRegistry             *workerfx.Registry
 }
 
 func New() *AppContext {
@@ -317,10 +319,15 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.AuditService,
 	)
 
-	a.LinkSyncService = linksync.NewService(
+	a.ProfileLinkSyncService = linksync.NewService(
 		a.Logger,
 		a.Repository,
 		idGen,
+	)
+
+	a.ProfileResourceSyncService = resourcesync.NewService(
+		a.Logger,
+		storage.NewResourceSyncRepository(a.Repository),
 	)
 
 	// Register points event handler

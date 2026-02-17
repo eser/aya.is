@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "Desconhecido",
-    "Remove": "Remover"
+    "Remove": "Remover",
+    "Loading": "A carregar",
+    "Private": "Privado"
   },
   "Layout": {
     "Homepage": "Página Inicial",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "Deixou de seguir com sucesso",
     "Failed to follow": "Falha ao seguir",
     "Failed to unfollow": "Falha ao deixar de seguir",
-    "Are you sure you want to unfollow this profile?": "Tem a certeza de que pretende deixar de seguir este perfil?"
+    "Are you sure you want to unfollow this profile?": "Tem a certeza de que pretende deixar de seguir este perfil?",
+    "Resources": "Recursos",
+    "Manage your resources and integrations.": "Gerir os seus recursos e integrações.",
+    "Add Resource": "Adicionar recurso",
+    "No resources added yet.": "Ainda não foram adicionados recursos.",
+    "Add Your First Resource": "Adicione o seu primeiro recurso",
+    "GitHub Repository": "Repositório GitHub",
+    "Added by": "Adicionado por",
+    "Remove Resource": "Remover recurso",
+    "Select GitHub Repository": "Selecionar repositório GitHub",
+    "Choose a repository to add as a resource.": "Escolha um repositório para adicionar como recurso.",
+    "Search repositories...": "Pesquisar repositórios...",
+    "No repositories found.": "Nenhum repositório encontrado.",
+    "Are you sure you want to remove this resource?": "Tem a certeza de que pretende remover este recurso?",
+    "Resource added successfully": "Recurso adicionado com sucesso",
+    "Failed to add resource": "Falha ao adicionar recurso",
+    "Resource removed successfully": "Recurso removido com sucesso",
+    "Failed to remove resource": "Falha ao remover recurso",
+    "Failed to load resources": "Falha ao carregar recursos",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Este perfil não tem uma conta GitHub conectada. Por favor, conecte o GitHub primeiro nas definições de links sociais."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

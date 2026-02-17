@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "未知",
-    "Remove": "移除"
+    "Remove": "移除",
+    "Loading": "加载中",
+    "Private": "私有"
   },
   "Layout": {
     "Homepage": "首页",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "取消关注成功",
     "Failed to follow": "关注失败",
     "Failed to unfollow": "取消关注失败",
-    "Are you sure you want to unfollow this profile?": "您确定要取消关注此个人资料吗？"
+    "Are you sure you want to unfollow this profile?": "您确定要取消关注此个人资料吗？",
+    "Resources": "资源",
+    "Manage your resources and integrations.": "管理您的资源和集成。",
+    "Add Resource": "添加资源",
+    "No resources added yet.": "尚未添加资源。",
+    "Add Your First Resource": "添加您的第一个资源",
+    "GitHub Repository": "GitHub 仓库",
+    "Added by": "添加者",
+    "Remove Resource": "移除资源",
+    "Select GitHub Repository": "选择 GitHub 仓库",
+    "Choose a repository to add as a resource.": "选择一个仓库作为资源添加。",
+    "Search repositories...": "搜索仓库...",
+    "No repositories found.": "未找到仓库。",
+    "Are you sure you want to remove this resource?": "您确定要移除此资源吗？",
+    "Resource added successfully": "资源添加成功",
+    "Failed to add resource": "添加资源失败",
+    "Resource removed successfully": "资源移除成功",
+    "Failed to remove resource": "移除资源失败",
+    "Failed to load resources": "加载资源失败",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "此个人资料没有关联的 GitHub 帐户。请先在社交链接设置中连接 GitHub。"
   },
   "ContentEditor": {
     "Edit Page": "编辑页面",

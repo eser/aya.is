@@ -7,6 +7,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/processfx"
 	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/appcontext"
+	githubadapter "github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/http"
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -84,7 +85,7 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 	storyProcessor := workers.NewYouTubeStoryProcessor(
 		&appContext.Config.Workers.YouTubeSync,
 		appContext.Logger,
-		appContext.LinkSyncService,
+		appContext.ProfileLinkSyncService,
 		appContext.Repository,
 		idGen,
 	)
@@ -94,7 +95,7 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		fullSyncWorker := workers.NewYouTubeFullSyncWorker(
 			&appContext.Config.Workers.YouTubeSync,
 			appContext.Logger,
-			appContext.LinkSyncService,
+			appContext.ProfileLinkSyncService,
 			appContext.YouTubeProvider,
 			idGen,
 			appContext.RuntimeStateService,
@@ -115,7 +116,7 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		incrementalSyncWorker := workers.NewYouTubeIncrementalSyncWorker(
 			&appContext.Config.Workers.YouTubeSync,
 			appContext.Logger,
-			appContext.LinkSyncService,
+			appContext.ProfileLinkSyncService,
 			appContext.YouTubeProvider,
 			idGen,
 			appContext.RuntimeStateService,
@@ -127,6 +128,27 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("youtube-incremental-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// GitHub resource sync worker
+	if appContext.Config.Workers.GitHubSync.Enabled {
+		githubFetcher := githubadapter.NewResourceFetcherAdapter(appContext.GitHubClient)
+
+		githubSyncWorker := workers.NewGitHubSyncWorker(
+			&appContext.Config.Workers.GitHubSync,
+			appContext.Logger,
+			appContext.ProfileResourceSyncService,
+			githubFetcher,
+			appContext.RuntimeStateService,
+		)
+
+		runner := workerfx.NewRunner(githubSyncWorker, appContext.Logger)
+		runner.SetStateKey("github.resource_sync_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("github-resource-sync-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}

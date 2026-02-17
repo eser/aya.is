@@ -101,6 +101,16 @@ function SettingsLayout() {
             {t("Profile.Social Links")}
           </LocaleLink>
           <LocaleLink
+            to={`/${params.slug}/settings/resources`}
+            className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            activeProps={{
+              className:
+                "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
+            }}
+          >
+            {t("Profile.Resources")}
+          </LocaleLink>
+          <LocaleLink
             to={`/${params.slug}/settings/stories`}
             className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
             activeProps={{

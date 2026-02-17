@@ -891,3 +891,92 @@ INSERT INTO "profile_link_tx" (
   icon = EXCLUDED.icon,
   "group" = EXCLUDED."group",
   description = EXCLUDED.description;
+
+-- name: ListProfileResourcesByProfileID :many
+SELECT
+  pr.*,
+  p.slug as added_by_slug,
+  p.kind as added_by_kind,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
+  p.profile_picture_uri as added_by_profile_picture_uri
+FROM "profile_resource" pr
+LEFT JOIN "profile" p ON p.id = pr.added_by_profile_id AND p.deleted_at IS NULL
+LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p.id
+  AND pt_added.locale_code = p.default_locale
+WHERE pr.profile_id = sqlc.arg(profile_id)
+  AND pr.deleted_at IS NULL
+ORDER BY pr.created_at DESC;
+
+-- name: GetProfileResourceByID :one
+SELECT * FROM "profile_resource"
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: GetProfileResourceByRemoteID :one
+SELECT * FROM "profile_resource"
+WHERE profile_id = sqlc.arg(profile_id)
+  AND kind = sqlc.arg(kind)
+  AND remote_id = sqlc.arg(remote_id)
+  AND deleted_at IS NULL;
+
+-- name: CreateProfileResource :one
+INSERT INTO "profile_resource" (
+  id, profile_id, kind, is_managed, remote_id, public_id, url,
+  title, description, properties, added_by_profile_id, created_at
+) VALUES (
+  sqlc.arg(id), sqlc.arg(profile_id), sqlc.arg(kind), sqlc.arg(is_managed),
+  sqlc.arg(remote_id), sqlc.arg(public_id), sqlc.arg(url),
+  sqlc.arg(title), sqlc.arg(description), sqlc.arg(properties),
+  sqlc.arg(added_by_profile_id), NOW()
+) RETURNING *;
+
+-- name: SoftDeleteProfileResource :execrows
+UPDATE "profile_resource"
+SET deleted_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: UpdateProfileResourceProperties :execrows
+UPDATE "profile_resource"
+SET
+  properties = sqlc.arg(properties),
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: ListGitHubResourcesForSync :many
+SELECT
+  pr.id as resource_id,
+  pr.profile_id,
+  pr.remote_id,
+  pr.public_id,
+  pr.properties as resource_properties,
+  pl.auth_access_token
+FROM "profile_resource" pr
+JOIN "profile_link" pl ON pl.profile_id = pr.profile_id
+  AND pl.kind = 'github'
+  AND pl.is_managed = true
+  AND pl.auth_access_token IS NOT NULL
+  AND pl.deleted_at IS NULL
+WHERE pr.kind = 'github_repo'
+  AND pr.deleted_at IS NULL
+ORDER BY pr.profile_id
+LIMIT sqlc.arg(batch_size);
+
+-- name: GetManagedGitHubLinkByProfileID :one
+SELECT id, profile_id, auth_access_token
+FROM "profile_link"
+WHERE profile_id = sqlc.arg(profile_id)
+  AND kind = 'github'
+  AND is_managed = true
+  AND auth_access_token IS NOT NULL
+  AND deleted_at IS NULL
+LIMIT 1;
+
+-- name: UpdateProfileMembershipProperties :execrows
+UPDATE "profile_membership"
+SET
+  properties = sqlc.arg(properties)
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;

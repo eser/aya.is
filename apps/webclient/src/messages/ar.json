@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "غير معروف",
-    "Remove": "إزالة"
+    "Remove": "إزالة",
+    "Loading": "جاري التحميل",
+    "Private": "خاص"
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "تم إلغاء المتابعة بنجاح",
     "Failed to follow": "فشل في المتابعة",
     "Failed to unfollow": "فشل في إلغاء المتابعة",
-    "Are you sure you want to unfollow this profile?": "هل أنت متأكد أنك تريد إلغاء متابعة هذا الملف الشخصي؟"
+    "Are you sure you want to unfollow this profile?": "هل أنت متأكد أنك تريد إلغاء متابعة هذا الملف الشخصي؟",
+    "Resources": "الموارد",
+    "Manage your resources and integrations.": "إدارة مواردك وتكاملاتك.",
+    "Add Resource": "إضافة مورد",
+    "No resources added yet.": "لم تتم إضافة موارد بعد.",
+    "Add Your First Resource": "أضف موردك الأول",
+    "GitHub Repository": "مستودع GitHub",
+    "Added by": "أضافه",
+    "Remove Resource": "إزالة المورد",
+    "Select GitHub Repository": "اختر مستودع GitHub",
+    "Choose a repository to add as a resource.": "اختر مستودعاً لإضافته كمورد.",
+    "Search repositories...": "البحث في المستودعات...",
+    "No repositories found.": "لم يتم العثور على مستودعات.",
+    "Are you sure you want to remove this resource?": "هل أنت متأكد من إزالة هذا المورد؟",
+    "Resource added successfully": "تمت إضافة المورد بنجاح",
+    "Failed to add resource": "فشل في إضافة المورد",
+    "Resource removed successfully": "تمت إزالة المورد بنجاح",
+    "Failed to remove resource": "فشل في إزالة المورد",
+    "Failed to load resources": "فشل في تحميل الموارد",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "لا يحتوي هذا الملف الشخصي على حساب GitHub متصل. يرجى ربط GitHub أولاً في إعدادات الروابط الاجتماعية."
   },
   "ContentEditor": {
     "Edit Page": "تعديل الصفحة",

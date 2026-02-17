@@ -46,7 +46,9 @@
     "MonthShort": "{{date, month-short}}",
     "RelativeTime": "{{date, relative}}",
     "Unknown": "Onbekend",
-    "Remove": "Verwijderen"
+    "Remove": "Verwijderen",
+    "Loading": "Laden",
+    "Private": "Privé"
   },
   "Layout": {
     "Homepage": "Startpagina",
@@ -511,7 +513,26 @@
     "Unfollowed successfully": "Succesvol ontvolgd",
     "Failed to follow": "Volgen mislukt",
     "Failed to unfollow": "Ontvolgen mislukt",
-    "Are you sure you want to unfollow this profile?": "Weet u zeker dat u dit profiel niet meer wilt volgen?"
+    "Are you sure you want to unfollow this profile?": "Weet u zeker dat u dit profiel niet meer wilt volgen?",
+    "Resources": "Bronnen",
+    "Manage your resources and integrations.": "Beheer je bronnen en integraties.",
+    "Add Resource": "Bron toevoegen",
+    "No resources added yet.": "Nog geen bronnen toegevoegd.",
+    "Add Your First Resource": "Voeg je eerste bron toe",
+    "GitHub Repository": "GitHub-repository",
+    "Added by": "Toegevoegd door",
+    "Remove Resource": "Bron verwijderen",
+    "Select GitHub Repository": "GitHub-repository selecteren",
+    "Choose a repository to add as a resource.": "Kies een repository om als bron toe te voegen.",
+    "Search repositories...": "Repositories zoeken...",
+    "No repositories found.": "Geen repositories gevonden.",
+    "Are you sure you want to remove this resource?": "Weet je zeker dat je deze bron wilt verwijderen?",
+    "Resource added successfully": "Bron succesvol toegevoegd",
+    "Failed to add resource": "Bron toevoegen mislukt",
+    "Resource removed successfully": "Bron succesvol verwijderd",
+    "Failed to remove resource": "Bron verwijderen mislukt",
+    "Failed to load resources": "Bronnen laden mislukt",
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Dit profiel heeft geen verbonden GitHub-account. Verbind eerst GitHub in de sociale links-instellingen."
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",
