@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 import styles from "./resources.module.css";
 
 export const Route = createFileRoute("/$locale/$slug/settings/resources")({
@@ -43,7 +43,8 @@ function ResourcesSettings() {
   const [repos, setRepos] = React.useState<GitHubRepo[]>([]);
   const [reposLoading, setReposLoading] = React.useState(false);
   const [repoSearch, setRepoSearch] = React.useState("");
-  const [addingRepo, setAddingRepo] = React.useState(false);
+  const [selectedRepoIds, setSelectedRepoIds] = React.useState<Set<string>>(new Set());
+  const [addingRepos, setAddingRepos] = React.useState(false);
 
   const loadResources = React.useCallback(async () => {
     setIsLoading(true);
@@ -65,6 +66,7 @@ function ResourcesSettings() {
     setIsAddDialogOpen(true);
     setReposLoading(true);
     setRepoSearch("");
+    setSelectedRepoIds(new Set());
 
     const data = await backend.listGitHubRepos(params.locale, params.slug);
     if (data !== null) {
@@ -75,31 +77,54 @@ function ResourcesSettings() {
     setReposLoading(false);
   };
 
-  const handleAddRepo = async (repo: GitHubRepo) => {
-    setAddingRepo(true);
-    const result = await backend.createProfileResource(params.locale, params.slug, {
-      kind: "github_repo",
-      remote_id: repo.id,
-      public_id: repo.full_name,
-      url: repo.html_url,
-      title: repo.full_name,
-      description: repo.description,
-      properties: {
-        language: repo.language,
-        stars: repo.stars,
-        forks: repo.forks,
-        private: repo.private,
-      },
+  const handleToggleRepo = (repoId: string) => {
+    setSelectedRepoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(repoId)) {
+        next.delete(repoId);
+      } else {
+        next.add(repoId);
+      }
+      return next;
     });
+  };
 
-    if (result !== null) {
-      toast.success(t("Profile.Resource added successfully"));
+  const handleAddSelectedRepos = async () => {
+    if (selectedRepoIds.size === 0) return;
+
+    const selectedRepos = repos.filter((repo) => selectedRepoIds.has(repo.id));
+    setAddingRepos(true);
+
+    let addedCount = 0;
+    for (const repo of selectedRepos) {
+      const result = await backend.createProfileResource(params.locale, params.slug, {
+        kind: "github_repo",
+        remote_id: repo.id,
+        public_id: repo.full_name,
+        url: repo.html_url,
+        title: repo.full_name,
+        description: repo.description,
+        properties: {
+          language: repo.language,
+          stars: repo.stars,
+          forks: repo.forks,
+          private: repo.private,
+        },
+      });
+
+      if (result !== null) {
+        addedCount++;
+      }
+    }
+
+    if (addedCount > 0) {
+      toast.success(t("Profile.Resources added successfully", { count: addedCount }));
       setIsAddDialogOpen(false);
       await loadResources();
     } else {
       toast.error(t("Profile.Failed to add resource"));
     }
-    setAddingRepo(false);
+    setAddingRepos(false);
   };
 
   const handleDeleteResource = async () => {
@@ -263,7 +288,7 @@ function ResourcesSettings() {
               {t("Profile.Select GitHub Repository")}
             </DialogTitle>
             <DialogDescription>
-              {t("Profile.Choose a repository to add as a resource.")}
+              {t("Profile.Select repositories to add as resources.")}
             </DialogDescription>
           </DialogHeader>
 
@@ -286,10 +311,15 @@ function ResourcesSettings() {
                 <button
                   key={repo.id}
                   type="button"
-                  className={styles.repoItem}
-                  disabled={addingRepo}
-                  onClick={() => handleAddRepo(repo)}
+                  className={`${styles.repoItem} ${selectedRepoIds.has(repo.id) ? styles.repoItemSelected : ""}`}
+                  disabled={addingRepos}
+                  onClick={() => handleToggleRepo(repo.id)}
                 >
+                  <div className="flex shrink-0 items-center justify-center size-5 rounded border border-border mt-0.5">
+                    {selectedRepoIds.has(repo.id) && (
+                      <Check className="size-3.5 text-primary" />
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <span className="block text-sm font-medium truncate">
                       {repo.full_name}
@@ -318,9 +348,18 @@ function ResourcesSettings() {
             <p className="text-xs text-muted-foreground text-left">
               {t("Profile.Repositories are listed from your own GitHub account access.")}
             </p>
-            <Button variant="outline" className="shrink-0" onClick={() => setIsAddDialogOpen(false)}>
-              {t("Common.Cancel")}
-            </Button>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                {t("Common.Cancel")}
+              </Button>
+              {selectedRepoIds.size > 0 && (
+                <Button onClick={handleAddSelectedRepos} disabled={addingRepos}>
+                  {addingRepos
+                    ? t("Common.Loading")
+                    : t("Profile.Add Selected", { count: selectedRepoIds.size })}
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
