@@ -234,7 +234,7 @@ function LinksSettingsPage() {
     );
 
     if (success) {
-      toast.success(t("Profile.Connected successfully", { provider: "GitHub" }));
+      toast.success(t("Profile.Connected successfully", { provider: "github" }));
       setIsAccountSelectionOpen(false);
       setPendingGitHubId(null);
       setGitHubAccounts([]);

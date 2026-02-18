@@ -26,7 +26,7 @@ SELECT
   pl.auth_access_token_expires_at,
   pl.auth_refresh_token
 FROM "profile_resource" pr
-  INNER JOIN "profile_link" pl ON pl.profile_id = pr.profile_id
+  INNER JOIN "profile_link" pl ON pl.profile_id = pr.added_by_profile_id
     AND pl.kind = 'github'
     AND pl.is_managed = true
     AND pl.deleted_at IS NULL
