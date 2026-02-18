@@ -87,6 +87,11 @@ export function ProfileMenu(props: ProfileMenuProps) {
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
                 {user.name ?? user.email ?? t("Layout.Profile")}
+                {user.individual_profile?.points !== undefined && (
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    ({user.individual_profile.points.toLocaleString()}xp)
+                  </span>
+                )}
               </p>
               {user.github_handle !== undefined &&
                 user.github_handle !== null && (

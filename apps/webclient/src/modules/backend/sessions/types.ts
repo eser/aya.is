@@ -55,6 +55,7 @@ export interface SessionCurrentResponse {
     title?: string;
     description?: string;
     profile_picture_uri?: string;
+    points?: number;
   };
   accessible_profiles?: AccessibleProfile[];
   preferences?: SessionPreferences;

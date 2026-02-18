@@ -17,6 +17,7 @@ export type IndividualProfile = {
   kind: string;
   title: string;
   profile_picture_uri?: string | null;
+  points?: number;
 };
 
 export type User = {
@@ -91,6 +92,7 @@ export function AuthProvider(props: AuthProviderProps) {
             kind: result.selected_profile.kind,
             title: result.selected_profile.title,
             profile_picture_uri: result.selected_profile.profile_picture_uri,
+            points: result.selected_profile.points,
           }
           : undefined;
 

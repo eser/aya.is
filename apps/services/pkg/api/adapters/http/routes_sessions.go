@@ -124,6 +124,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 						"title":               profile.Title,
 						"description":         profile.Description,
 						"profile_picture_uri": profile.ProfilePictureURI,
+						"points":              profile.Points,
 					}
 				}
 
@@ -246,6 +247,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 								"profile_picture_uri": profile.ProfilePictureURI,
 								"pronouns":            profile.Pronouns,
 								"properties":          profile.Properties,
+								"points":              profile.Points,
 								"created_at":          profile.CreatedAt,
 								"updated_at":          profile.UpdatedAt,
 							}
