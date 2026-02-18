@@ -244,7 +244,20 @@
     "Add Element": "添加元素"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "发现即将举行的活动和聚会"
+    "Activity": "活动",
+    "Add Activity": "添加活动",
+    "Discover upcoming activities and meetups": "发现即将举行的活动和聚会",
+    "No activities yet": "暂无活动",
+    "Meetup": "聚会",
+    "Workshop": "工作坊",
+    "Conference": "会议",
+    "Broadcast": "直播",
+    "Meeting": "会议",
+    "Attending": "参加",
+    "Interested": "感兴趣",
+    "Not Attending": "不参加",
+    "Organized by": "组织者：",
+    "Register Externally": "外部注册"
   },
   "News": {
     "News item image": "新闻图片",

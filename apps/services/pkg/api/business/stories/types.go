@@ -15,12 +15,50 @@ func DefaultIDGenerator() RecordID {
 	return RecordID(lib.IDsGenerateUnique())
 }
 
+// Valid story kinds.
+const (
+	KindStatus       = "status"
+	KindAnnouncement = "announcement"
+	KindArticle      = "article"
+	KindNews         = "news"
+	KindContent      = "content"
+	KindPresentation = "presentation"
+	KindActivity     = "activity"
+)
+
+// ActivityProperties holds activity-specific fields from the story properties JSONB.
+type ActivityProperties struct {
+	ActivityKind          string `json:"activity_kind"`
+	ActivityTimeStart     string `json:"activity_time_start"`
+	ActivityTimeEnd       string `json:"activity_time_end"`
+	ExternalActivityURI   string `json:"external_activity_uri,omitempty"`
+	ExternalAttendanceURI string `json:"external_attendance_uri,omitempty"`
+	RSVPMode              string `json:"rsvp_mode"`
+}
+
+// Valid activity kinds.
+const (
+	ActivityKindMeetup     = "meetup"
+	ActivityKindWorkshop   = "workshop"
+	ActivityKindConference = "conference"
+	ActivityKindBroadcast  = "broadcast"
+	ActivityKindMeeting    = "meeting"
+)
+
+// Valid RSVP modes.
+const (
+	RSVPModeDisabled          = "disabled"
+	RSVPModeManagedExternally = "managed_externally"
+	RSVPModeEnabled           = "enabled"
+)
+
 type Story struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	PublishedAt     *time.Time `json:"published_at"`
 	Properties      any        `json:"properties"`
 	AuthorProfileID *string    `json:"author_profile_id"`
 	StoryPictureURI *string    `json:"story_picture_uri"`
+	SeriesID        *string    `json:"series_id"`
 	UpdatedAt       *time.Time `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at"`
 	ID              string     `json:"id"`

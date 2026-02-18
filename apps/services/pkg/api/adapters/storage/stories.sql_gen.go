@@ -63,7 +63,7 @@ func (q *Queries) DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (i
 
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -130,7 +130,7 @@ type GetStoryByIDRow struct {
 // GetStoryByID
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -196,6 +196,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.Story.DeletedAt,
 		&i.Story.IsManaged,
 		&i.Story.RemoteID,
+		&i.Story.SeriesID,
 		&i.StoryTx.StoryID,
 		&i.StoryTx.LocaleCode,
 		&i.StoryTx.Title,
@@ -257,7 +258,7 @@ func (q *Queries) GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirs
 
 const getStoryForEdit = `-- name: GetStoryForEdit :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
   st.locale_code,
   st.title,
   st.summary,
@@ -294,6 +295,7 @@ type GetStoryForEditRow struct {
 	DeletedAt         sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	IsManaged         bool                  `db:"is_managed" json:"is_managed"`
 	RemoteID          sql.NullString        `db:"remote_id" json:"remote_id"`
+	SeriesID          sql.NullString        `db:"series_id" json:"series_id"`
 	LocaleCode        string                `db:"locale_code" json:"locale_code"`
 	Title             string                `db:"title" json:"title"`
 	Summary           string                `db:"summary" json:"summary"`
@@ -306,7 +308,7 @@ type GetStoryForEditRow struct {
 // Includes is_managed flag to protect synced stories from editing.
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
 //	  st.locale_code,
 //	  st.title,
 //	  st.summary,
@@ -339,6 +341,7 @@ func (q *Queries) GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams
 		&i.DeletedAt,
 		&i.IsManaged,
 		&i.RemoteID,
+		&i.SeriesID,
 		&i.LocaleCode,
 		&i.Title,
 		&i.Summary,
@@ -633,7 +636,7 @@ INSERT INTO "story" (
   $7,
   $8,
   NOW()
-) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id
+) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id
 `
 
 type InsertStoryParams struct {
@@ -669,7 +672,7 @@ type InsertStoryParams struct {
 //	  $7,
 //	  $8,
 //	  NOW()
-//	) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id
+//	) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id
 func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error) {
 	row := q.db.QueryRowContext(ctx, insertStory,
 		arg.ID,
@@ -694,6 +697,7 @@ func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Stor
 		&i.DeletedAt,
 		&i.IsManaged,
 		&i.RemoteID,
+		&i.SeriesID,
 	)
 	return &i, err
 }
@@ -827,9 +831,192 @@ func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) er
 	return err
 }
 
+const listActivityStories = `-- name: ListActivityStories :many
+SELECT
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.approved_at IS NOT NULL
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+  AND p1t.locale_code = (
+    SELECT ptx.locale_code FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.approved_at IS NOT NULL
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = (
+        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+        LIMIT 1
+      )
+    WHERE sp.story_id = s.id
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+WHERE
+  s.kind = 'activity'
+  AND pb.publications IS NOT NULL
+  AND s.deleted_at IS NULL
+  AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
+ORDER BY (s.properties->>'activity_time_start')::timestamptz DESC NULLS LAST
+`
+
+type ListActivityStoriesParams struct {
+	LocaleCode            string         `db:"locale_code" json:"locale_code"`
+	FilterAuthorProfileID sql.NullString `db:"filter_author_profile_id" json:"filter_author_profile_id"`
+}
+
+type ListActivityStoriesRow struct {
+	Story        Story                 `db:"story" json:"story"`
+	StoryTx      StoryTx               `db:"story_tx" json:"story_tx"`
+	Profile      Profile               `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
+	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
+}
+
+// Lists published activity stories sorted by activity_time_start.
+// Activity-specific fields are in the properties JSONB column.
+//
+//	SELECT
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+//	  pb.publications,
+//	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+//	FROM "story" s
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
+//	  AND st.locale_code = (
+//	    SELECT stx.locale_code FROM "story_tx" stx
+//	    WHERE stx.story_id = s.id
+//	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+//	  AND p1.approved_at IS NOT NULL
+//	  AND p1.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+//	  AND p1t.locale_code = (
+//	    SELECT ptx.locale_code FROM "profile_tx" ptx
+//	    WHERE ptx.profile_id = p1.id
+//	    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN LATERAL (
+//	    SELECT JSONB_AGG(
+//	      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+//	    ) AS "publications"
+//	    FROM story_publication sp
+//	      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+//	      AND p2.approved_at IS NOT NULL
+//	      AND p2.deleted_at IS NULL
+//	      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+//	      AND p2t.locale_code = (
+//	        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+//	        WHERE ptx2.profile_id = p2.id
+//	        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+//	        LIMIT 1
+//	      )
+//	    WHERE sp.story_id = s.id
+//	      AND sp.deleted_at IS NULL
+//	  ) pb ON TRUE
+//	WHERE
+//	  s.kind = 'activity'
+//	  AND pb.publications IS NOT NULL
+//	  AND s.deleted_at IS NULL
+//	  AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
+//	ORDER BY (s.properties->>'activity_time_start')::timestamptz DESC NULLS LAST
+func (q *Queries) ListActivityStories(ctx context.Context, arg ListActivityStoriesParams) ([]*ListActivityStoriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActivityStories, arg.LocaleCode, arg.FilterAuthorProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListActivityStoriesRow{}
+	for rows.Next() {
+		var i ListActivityStoriesRow
+		if err := rows.Scan(
+			&i.Story.ID,
+			&i.Story.AuthorProfileID,
+			&i.Story.Slug,
+			&i.Story.Kind,
+			&i.Story.StoryPictureURI,
+			&i.Story.Properties,
+			&i.Story.CreatedAt,
+			&i.Story.UpdatedAt,
+			&i.Story.DeletedAt,
+			&i.Story.IsManaged,
+			&i.Story.RemoteID,
+			&i.Story.SeriesID,
+			&i.StoryTx.StoryID,
+			&i.StoryTx.LocaleCode,
+			&i.StoryTx.Title,
+			&i.StoryTx.Summary,
+			&i.StoryTx.Content,
+			&i.StoryTx.SearchVector,
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
+			&i.Profile.FeatureRelations,
+			&i.Profile.FeatureLinks,
+			&i.Profile.DefaultLocale,
+			&i.Profile.FeatureQa,
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
+			&i.Publications,
+			&i.PublishedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listStoriesByAuthorProfileID = `-- name: ListStoriesByAuthorProfileID :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -897,7 +1084,7 @@ type ListStoriesByAuthorProfileIDRow struct {
 // Publications are included as optional data (LEFT JOIN).
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -964,6 +1151,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 			&i.Story.DeletedAt,
 			&i.Story.IsManaged,
 			&i.Story.RemoteID,
+			&i.Story.SeriesID,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,
@@ -1009,7 +1197,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1074,7 +1262,7 @@ type ListStoriesOfPublicationRow struct {
 // Strict locale matching: only returns stories that have a translation for the requested locale.
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1144,6 +1332,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.Story.DeletedAt,
 			&i.Story.IsManaged,
 			&i.Story.RemoteID,
+			&i.Story.SeriesID,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,

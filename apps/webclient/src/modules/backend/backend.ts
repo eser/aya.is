@@ -84,6 +84,13 @@ import { handleAuthCallback } from "./auth/handle-callback";
 import { getUser } from "./users/get-user";
 import { getUsers } from "./users/get-users";
 import { search } from "./search/search";
+import { getActivities } from "./activities/get-activities";
+import { getActivity } from "./activities/get-activity";
+import { setInteraction } from "./interactions/set-interaction";
+import { removeInteraction } from "./interactions/remove-interaction";
+import { getInteractions } from "./interactions/get-interactions";
+import { getMyInteractions } from "./interactions/get-my-interactions";
+import { getInteractionCounts } from "./interactions/get-interaction-counts";
 import { getPendingAwards } from "./admin/get-pending-awards";
 import { getPendingAwardsStats } from "./admin/get-pending-awards-stats";
 import { approvePendingAward } from "./admin/approve-pending-award";
@@ -203,6 +210,17 @@ export const backend = {
   listStoryTranslationLocales,
   deleteStoryTranslation,
   autoTranslateStory,
+
+  // Activities
+  getActivities,
+  getActivity,
+
+  // Story Interactions
+  setInteraction,
+  removeInteraction,
+  getInteractions,
+  getMyInteractions,
+  getInteractionCounts,
 
   // Uploads
   getPresignedURL,
@@ -332,6 +350,17 @@ export {
   answerQuestion,
   editAnswer,
   hideQuestion,
+
+  // Activities
+  getActivities,
+  getActivity,
+
+  // Story Interactions
+  setInteraction,
+  removeInteraction,
+  getInteractions,
+  getMyInteractions,
+  getInteractionCounts,
 
   // Admin
   approvePendingAward,

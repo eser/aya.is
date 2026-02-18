@@ -351,6 +351,17 @@ type Story struct {
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	IsManaged       bool                  `db:"is_managed" json:"is_managed"`
 	RemoteID        sql.NullString        `db:"remote_id" json:"remote_id"`
+	SeriesID        sql.NullString        `db:"series_id" json:"series_id"`
+}
+
+type StoryInteraction struct {
+	ID        string       `db:"id" json:"id"`
+	StoryID   string       `db:"story_id" json:"story_id"`
+	ProfileID string       `db:"profile_id" json:"profile_id"`
+	Kind      string       `db:"kind" json:"kind"`
+	CreatedAt time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt sql.NullTime `db:"updated_at" json:"updated_at"`
+	DeletedAt sql.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type StoryPublication struct {
@@ -364,6 +375,17 @@ type StoryPublication struct {
 	DeletedAt   sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	IsFeatured  bool                  `db:"is_featured" json:"is_featured"`
 	PublishedAt sql.NullTime          `db:"published_at" json:"published_at"`
+}
+
+type StorySeries struct {
+	ID               string         `db:"id" json:"id"`
+	Slug             string         `db:"slug" json:"slug"`
+	SeriesPictureURI sql.NullString `db:"series_picture_uri" json:"series_picture_uri"`
+	Title            string         `db:"title" json:"title"`
+	Description      string         `db:"description" json:"description"`
+	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt        sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 }
 
 type StoryTx struct {

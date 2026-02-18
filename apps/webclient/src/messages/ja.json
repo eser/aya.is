@@ -244,7 +244,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "イベント",
+    "Add Activity": "アクティビティを追加",
+    "Discover upcoming activities and meetups": "今後のイベントやミートアップを見つけよう",
+    "No activities yet": "まだイベントはありません",
+    "Meetup": "ミートアップ",
+    "Workshop": "ワークショップ",
+    "Conference": "カンファレンス",
+    "Broadcast": "配信",
+    "Meeting": "会議",
+    "Attending": "参加する",
+    "Interested": "興味あり",
+    "Not Attending": "参加しない",
+    "Organized by": "主催:",
+    "Register Externally": "外部登録"
   },
   "News": {
     "News item image": "ニュース画像",

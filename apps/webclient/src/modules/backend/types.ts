@@ -183,16 +183,19 @@ export type StoryKind =
   | "article"
   | "news"
   | "content"
-  | "presentation";
+  | "presentation"
+  | "activity";
 
 export interface Story {
   id: string;
   kind: StoryKind;
   slug: string | null;
   story_picture_uri: string | null;
+  series_id: string | null;
   title: string | null;
   summary: string | null;
   content: string;
+  properties: Record<string, unknown> | null;
   author_profile_id: string | null;
   author_profile: Profile | null;
   published_at: string | null;
@@ -506,6 +509,58 @@ export interface GitHubRepo {
 }
 
 // Profile Question Types
+// Activity Types (stories with kind='activity')
+export type ActivityKind =
+  | "meetup"
+  | "workshop"
+  | "conference"
+  | "broadcast"
+  | "meeting";
+
+export type RSVPMode = "disabled" | "managed_externally" | "enabled";
+
+export interface ActivityProperties {
+  activity_kind: ActivityKind;
+  activity_time_start: string;
+  activity_time_end: string;
+  external_activity_uri?: string;
+  external_attendance_uri?: string;
+  rsvp_mode: RSVPMode;
+}
+
+// Story Interaction Types
+export type InteractionKind =
+  | "attending"
+  | "interested"
+  | "not_attending"
+  | string;
+
+export interface StoryInteraction {
+  id: string;
+  story_id: string;
+  profile_id: string;
+  kind: InteractionKind;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface InteractionWithProfile {
+  id: string;
+  story_id: string;
+  profile_id: string;
+  kind: InteractionKind;
+  created_at: string;
+  profile_slug: string;
+  profile_title: string;
+  profile_picture_uri: string | null;
+  profile_kind: string;
+}
+
+export interface InteractionCount {
+  kind: string;
+  count: number;
+}
+
 export interface ProfileQuestion {
   id: string;
   profile_id: string;

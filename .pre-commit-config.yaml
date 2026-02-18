@@ -135,5 +135,6 @@ repos:
             Makefile|
             CLAUDE.md|
             README.en.md|
-            README.md
+            README.md|
+            MEMORY.md
           )$

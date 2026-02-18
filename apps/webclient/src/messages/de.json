@@ -244,7 +244,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "Veranstaltung",
+    "Add Activity": "Aktivität hinzufügen",
+    "Discover upcoming activities and meetups": "Entdecken Sie bevorstehende Veranstaltungen und Treffen",
+    "No activities yet": "Noch keine Veranstaltungen",
+    "Meetup": "Treffen",
+    "Workshop": "Workshop",
+    "Conference": "Konferenz",
+    "Broadcast": "Übertragung",
+    "Meeting": "Besprechung",
+    "Attending": "Teilnehmen",
+    "Interested": "Interessiert",
+    "Not Attending": "Nicht teilnehmen",
+    "Organized by": "Organisiert von:",
+    "Register Externally": "Extern registrieren"
   },
   "News": {
     "News item image": "Nachrichtenbild",

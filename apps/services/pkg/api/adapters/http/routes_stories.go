@@ -200,7 +200,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			// Validate kind
 			validKinds := map[string]bool{
 				"article": true, "announcement": true, "news": true,
-				"status": true, "content": true, "presentation": true,
+				"status": true, "content": true, "presentation": true, "activity": true,
 			}
 			if !validKinds[requestBody.Kind] {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid story kind"))

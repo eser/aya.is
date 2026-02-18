@@ -66,6 +66,12 @@ const (
 	PointsAwardRejected EventType = "points_award_rejected"
 )
 
+// Story interaction events.
+const (
+	StoryInteractionSet     EventType = "story_interaction_set"
+	StoryInteractionRemoved EventType = "story_interaction_removed"
+)
+
 // Session events.
 const (
 	SessionCreated    EventType = "session_created"

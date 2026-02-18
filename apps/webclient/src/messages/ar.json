@@ -244,7 +244,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "فعالية",
+    "Add Activity": "إضافة نشاط",
+    "Discover upcoming activities and meetups": "اكتشف الفعاليات واللقاءات القادمة",
+    "No activities yet": "لا توجد فعاليات بعد",
+    "Meetup": "لقاء",
+    "Workshop": "ورشة عمل",
+    "Conference": "مؤتمر",
+    "Broadcast": "بث",
+    "Meeting": "اجتماع",
+    "Attending": "سأحضر",
+    "Interested": "مهتم",
+    "Not Attending": "لن أحضر",
+    "Organized by": "نظمه:",
+    "Register Externally": "التسجيل الخارجي"
   },
   "News": {
     "News item image": "صورة الخبر",

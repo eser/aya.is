@@ -21,6 +21,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
+	"github.com/eser/aya.is/services/pkg/api/business/story_interactions"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
@@ -37,6 +38,7 @@ func Run(
 	profilePointsService *profile_points.Service,
 	profileQuestionsService *profile_questions.Service,
 	storyService *stories.Service,
+	storyInteractionService *story_interactions.Service,
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
 	uploadService *uploads.Service,
@@ -169,6 +171,21 @@ func Run(
 		userService,
 		profileService,
 		profileQuestionsService,
+	)
+	RegisterHTTPRoutesForActivities( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		storyService,
+	)
+	RegisterHTTPRoutesForStoryInteractions( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		storyService,
+		storyInteractionService,
 	)
 	RegisterHTTPRoutesForAdminProfiles( //nolint:contextcheck
 		routes,

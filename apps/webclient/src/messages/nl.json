@@ -244,7 +244,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "Evenement",
+    "Add Activity": "Activiteit toevoegen",
+    "Discover upcoming activities and meetups": "Ontdek aankomende evenementen en bijeenkomsten",
+    "No activities yet": "Nog geen evenementen",
+    "Meetup": "Bijeenkomst",
+    "Workshop": "Workshop",
+    "Conference": "Conferentie",
+    "Broadcast": "Uitzending",
+    "Meeting": "Vergadering",
+    "Attending": "Aanwezig",
+    "Interested": "Geïnteresseerd",
+    "Not Attending": "Niet aanwezig",
+    "Organized by": "Georganiseerd door:",
+    "Register Externally": "Extern registreren"
   },
   "News": {
     "News item image": "Nieuwsafbeelding",

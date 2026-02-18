@@ -8,6 +8,7 @@ import {
   Info,
   Images,
   Presentation,
+  Calendar,
 } from "lucide-react";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
@@ -25,6 +26,7 @@ const storyKindIcons: Record<StoryKind, React.ElementType> = {
   status: Info,
   content: Images,
   presentation: Presentation,
+  activity: Calendar,
 };
 
 export type StoryProps = {

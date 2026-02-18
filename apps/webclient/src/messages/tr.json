@@ -244,7 +244,20 @@
     "Add Element": "Bileşen Ekle"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Yaklaşan etkinlikleri ve buluşmaları keşfedin"
+    "Activity": "Etkinlik",
+    "Add Activity": "Etkinlik Ekle",
+    "Discover upcoming activities and meetups": "Yaklaşan etkinlikleri ve buluşmaları keşfedin",
+    "No activities yet": "Henüz etkinlik yok",
+    "Meetup": "Buluşma",
+    "Workshop": "Atölye",
+    "Conference": "Konferans",
+    "Broadcast": "Yayın",
+    "Meeting": "Toplantı",
+    "Attending": "Katılıyorum",
+    "Interested": "İlgileniyorum",
+    "Not Attending": "Katılmıyorum",
+    "Organized by": "Düzenleyen:",
+    "Register Externally": "Harici Kayıt"
   },
   "News": {
     "News item image": "Haber görseli",

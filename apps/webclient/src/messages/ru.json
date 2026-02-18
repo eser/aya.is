@@ -244,7 +244,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "Мероприятие",
+    "Add Activity": "Добавить активность",
+    "Discover upcoming activities and meetups": "Откройте для себя предстоящие мероприятия и встречи",
+    "No activities yet": "Мероприятий пока нет",
+    "Meetup": "Встреча",
+    "Workshop": "Мастер-класс",
+    "Conference": "Конференция",
+    "Broadcast": "Трансляция",
+    "Meeting": "Совещание",
+    "Attending": "Приду",
+    "Interested": "Интересно",
+    "Not Attending": "Не приду",
+    "Organized by": "Организатор:",
+    "Register Externally": "Внешняя регистрация"
   },
   "News": {
     "News item image": "Изображение новости",

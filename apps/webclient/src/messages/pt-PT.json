@@ -244,7 +244,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "Evento",
+    "Add Activity": "Adicionar atividade",
+    "Discover upcoming activities and meetups": "Descubra os próximos eventos e encontros",
+    "No activities yet": "Ainda não há eventos",
+    "Meetup": "Encontro",
+    "Workshop": "Workshop",
+    "Conference": "Conferência",
+    "Broadcast": "Transmissão",
+    "Meeting": "Reunião",
+    "Attending": "Vou participar",
+    "Interested": "Interessado",
+    "Not Attending": "Não vou participar",
+    "Organized by": "Organizado por:",
+    "Register Externally": "Registar externamente"
   },
   "News": {
     "News item image": "Imagem da notícia",

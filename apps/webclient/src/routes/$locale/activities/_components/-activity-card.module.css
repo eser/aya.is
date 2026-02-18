@@ -1,0 +1,66 @@
+@reference "@/theme.css";
+
+.card {
+  @apply flex flex-col md:flex-row items-start gap-4 py-6 border-b border-border;
+
+  &:last-child {
+    @apply border-b-0;
+  }
+
+  &:hover .title {
+    @apply text-primary;
+  }
+}
+
+.imageContainer {
+  @apply flex-shrink-0 relative;
+}
+
+.image {
+  @apply w-full h-full object-cover rounded-md;
+}
+
+.imagePlaceholder {
+  @apply w-full h-full bg-muted rounded-md flex items-center justify-center text-center text-xs p-2
+    text-muted-foreground overflow-hidden;
+}
+
+.contentArea {
+  @apply flex flex-col flex-grow min-w-0;
+}
+
+.topRow {
+  @apply flex items-center gap-2 mb-1;
+}
+
+.badge {
+  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary;
+}
+
+.title {
+  @apply text-lg font-semibold text-foreground transition-colors duration-200;
+}
+
+.summary {
+  @apply text-sm text-muted-foreground leading-relaxed line-clamp-2 mt-1;
+}
+
+.meta {
+  @apply flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2;
+}
+
+.timeRange {
+  @apply flex items-center gap-1;
+}
+
+.organizer {
+  @apply flex items-center gap-1;
+}
+
+.rsvpCounts {
+  @apply flex items-center gap-2 ml-auto;
+}
+
+.rsvpBadge {
+  @apply text-xs px-1.5 py-0.5 rounded bg-muted;
+}

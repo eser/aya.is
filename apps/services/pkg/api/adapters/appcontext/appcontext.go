@@ -34,6 +34,8 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/siteimporter"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
+	"github.com/eser/aya.is/services/pkg/api/business/story_interactions"
+	"github.com/eser/aya.is/services/pkg/api/business/story_series"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	_ "github.com/lib/pq"
@@ -76,6 +78,8 @@ type AppContext struct {
 	ProfilePointsService       *profile_points.Service
 	ProfileQuestionsService    *profile_questions.Service
 	StoryService               *stories.Service
+	StoryInteractionService    *story_interactions.Service
+	StorySeriesService         *story_series.Service
 	SessionService             *sessions.Service
 	ProtectionService          *protection.Service
 	ProfileLinkSyncService     *linksync.Service
@@ -275,6 +279,16 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.AuditService,
 	)
 	a.StoryService = stories.NewService(a.Logger, &a.Config.Stories, a.Repository, a.AuditService)
+	a.StoryInteractionService = story_interactions.NewService(
+		a.Logger,
+		a.Repository,
+		story_interactions.DefaultIDGenerator,
+	)
+	a.StorySeriesService = story_series.NewService(
+		a.Logger,
+		a.Repository,
+		story_series.DefaultIDGenerator,
+	)
 	a.ProfilePointsService = profile_points.NewService(
 		a.Logger,
 		a.Repository,

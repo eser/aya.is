@@ -244,7 +244,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "이벤트",
+    "Add Activity": "활동 추가",
+    "Discover upcoming activities and meetups": "다가오는 이벤트와 모임을 확인하세요",
+    "No activities yet": "아직 이벤트가 없습니다",
+    "Meetup": "밋업",
+    "Workshop": "워크숍",
+    "Conference": "컨퍼런스",
+    "Broadcast": "방송",
+    "Meeting": "회의",
+    "Attending": "참석",
+    "Interested": "관심 있음",
+    "Not Attending": "불참",
+    "Organized by": "주최:",
+    "Register Externally": "외부 등록"
   },
   "News": {
     "News item image": "뉴스 이미지",

@@ -248,7 +248,20 @@
     "Add Element": "Add Element"
   },
   "Activities": {
-    "Discover upcoming activities and meetups": "Discover upcoming events and meetups"
+    "Activity": "Event",
+    "Add Activity": "Add Activity",
+    "Discover upcoming activities and meetups": "Discover upcoming events and meetups",
+    "No activities yet": "No events yet",
+    "Meetup": "Meetup",
+    "Workshop": "Workshop",
+    "Conference": "Conference",
+    "Broadcast": "Broadcast",
+    "Meeting": "Meeting",
+    "Attending": "Attending",
+    "Interested": "Interested",
+    "Not Attending": "Not Attending",
+    "Organized by": "Organized by",
+    "Register Externally": "Register Externally"
   },
   "News": {
     "News item image": "News item image",

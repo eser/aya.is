@@ -249,6 +249,54 @@ func (r *Repository) ListStoriesByAuthorProfileID(
 	return wrappedResponse, nil
 }
 
+func (r *Repository) ListActivityStories(
+	ctx context.Context,
+	localeCode string,
+	filterAuthorProfileID *string,
+) ([]*stories.StoryWithChildren, error) {
+	params := ListActivityStoriesParams{
+		LocaleCode: localeCode,
+		FilterAuthorProfileID: sql.NullString{
+			String: "",
+			Valid:  false,
+		},
+	}
+	if filterAuthorProfileID != nil {
+		params.FilterAuthorProfileID = sql.NullString{
+			String: *filterAuthorProfileID,
+			Valid:  true,
+		}
+	}
+
+	rows, err := r.queries.ListActivityStories(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*stories.StoryWithChildren, len(rows))
+
+	for i, row := range rows {
+		storyWithChildren, err := r.parseStoryWithChildren(
+			row.Profile,
+			row.ProfileTx,
+			row.Story,
+			row.StoryTx,
+			row.Publications,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if t, ok := row.PublishedAt.(time.Time); ok {
+			storyWithChildren.PublishedAt = &t
+		}
+
+		result[i] = storyWithChildren
+	}
+
+	return result, nil
+}
+
 // Story CRUD methods
 
 func (r *Repository) InsertStory(
@@ -285,6 +333,7 @@ func (r *Repository) InsertStory(
 		Kind:            row.Kind,
 		IsManaged:       row.IsManaged,
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
+		SeriesID:        vars.ToStringPtr(row.SeriesID),
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -654,6 +703,7 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Slug:            story.Slug,
 				Kind:            story.Kind,
 				StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
+				SeriesID:        vars.ToStringPtr(story.SeriesID),
 				Title:           storyTx.Title,
 				Summary:         storyTx.Summary,
 				Content:         storyTx.Content,
@@ -697,6 +747,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Slug:            story.Slug,
 			Kind:            story.Kind,
 			StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
+			SeriesID:        vars.ToStringPtr(story.SeriesID),
 			Title:           storyTx.Title,
 			Summary:         storyTx.Summary,
 			Content:         storyTx.Content,

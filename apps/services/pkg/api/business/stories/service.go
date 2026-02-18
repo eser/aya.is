@@ -284,6 +284,11 @@ type Repository interface {
 		profileID string,
 	) (string, error)
 	InvalidateStorySlugCache(ctx context.Context, slug string) error
+	ListActivityStories(
+		ctx context.Context,
+		localeCode string,
+		filterAuthorProfileID *string,
+	) ([]*StoryWithChildren, error)
 }
 
 type Service struct {
@@ -1369,6 +1374,20 @@ func (s *Service) UpdatePublication(
 	})
 
 	return nil
+}
+
+// ListActivities returns published activity stories sorted by activity_time_start.
+func (s *Service) ListActivities(
+	ctx context.Context,
+	localeCode string,
+	filterAuthorProfileID *string,
+) ([]*StoryWithChildren, error) {
+	records, err := s.repo.ListActivityStories(ctx, localeCode, filterAuthorProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return records, nil
 }
 
 // ListPublications returns all publications for a story.
