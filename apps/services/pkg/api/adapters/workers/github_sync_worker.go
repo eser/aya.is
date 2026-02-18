@@ -595,7 +595,8 @@ func (w *GitHubSyncWorker) flushMembershipStats(
 				Total    int `json:"total"`
 				Resolved int `json:"resolved"`
 			}{Total: acc.issuesTotal, Resolved: acc.issuesResolved},
-			Stars: acc.stars,
+			Stars:        acc.stars,
+			LastSyncedAt: time.Now(),
 		},
 	}
 

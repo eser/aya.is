@@ -26,5 +26,6 @@ type GitHubContributorStats struct {
 		Total    int `json:"total"`
 		Resolved int `json:"resolved"`
 	} `json:"issues"`
-	Stars int `json:"stars"`
+	Stars        int       `json:"stars"`
+	LastSyncedAt time.Time `json:"last_synced_at"`
 }
