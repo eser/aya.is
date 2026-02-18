@@ -1,3 +1,4 @@
+-- +goose Up
 -- Rename hide_* columns to feature_* and convert from BOOLEAN to TEXT
 -- with three states: 'public', 'hidden', 'disabled'.
 -- Backward-compatible: false → 'public', true → 'hidden'.
@@ -31,3 +32,31 @@ ALTER TABLE "profile"
 ALTER TABLE "profile"
   ALTER COLUMN "feature_qa" SET DEFAULT 'public',
   ALTER COLUMN "feature_qa" SET NOT NULL;
+
+-- +goose Down
+ALTER TABLE "profile"
+  ALTER COLUMN "feature_qa" DROP DEFAULT,
+  ALTER COLUMN "feature_qa" DROP NOT NULL,
+  ALTER COLUMN "feature_qa" TYPE BOOLEAN USING CASE WHEN feature_qa = 'public' THEN FALSE ELSE TRUE END;
+ALTER TABLE "profile"
+  ALTER COLUMN "feature_qa" SET DEFAULT FALSE,
+  ALTER COLUMN "feature_qa" SET NOT NULL;
+ALTER TABLE "profile" RENAME COLUMN "feature_qa" TO "hide_qa";
+
+ALTER TABLE "profile"
+  ALTER COLUMN "feature_links" DROP DEFAULT,
+  ALTER COLUMN "feature_links" DROP NOT NULL,
+  ALTER COLUMN "feature_links" TYPE BOOLEAN USING CASE WHEN feature_links = 'public' THEN FALSE ELSE TRUE END;
+ALTER TABLE "profile"
+  ALTER COLUMN "feature_links" SET DEFAULT FALSE,
+  ALTER COLUMN "feature_links" SET NOT NULL;
+ALTER TABLE "profile" RENAME COLUMN "feature_links" TO "hide_links";
+
+ALTER TABLE "profile"
+  ALTER COLUMN "feature_relations" DROP DEFAULT,
+  ALTER COLUMN "feature_relations" DROP NOT NULL,
+  ALTER COLUMN "feature_relations" TYPE BOOLEAN USING CASE WHEN feature_relations = 'public' THEN FALSE ELSE TRUE END;
+ALTER TABLE "profile"
+  ALTER COLUMN "feature_relations" SET DEFAULT FALSE,
+  ALTER COLUMN "feature_relations" SET NOT NULL;
+ALTER TABLE "profile" RENAME COLUMN "feature_relations" TO "hide_relations";
