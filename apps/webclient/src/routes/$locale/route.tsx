@@ -1,7 +1,5 @@
 // Locale layout - handles locale validation and i18n sync
 import { CatchNotFound, createFileRoute, Outlet, redirect, notFound } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { DEFAULT_LOCALE, isValidLocale, type SupportedLocaleCode } from "@/config";
 import { PageNotFound } from "@/components/page-not-found";
 
@@ -36,16 +34,7 @@ export const Route = createFileRoute("/$locale")({
 });
 
 function LocaleLayout() {
-  const { locale } = Route.useRouteContext();
-  const { i18n } = useTranslation();
-
-  // Sync i18n language with URL locale
-  useEffect(() => {
-    if (locale !== undefined && i18n.language !== locale) {
-      i18n.changeLanguage(locale);
-    }
-  }, [locale, i18n]);
-
+  // i18n language sync is handled by LocaleSynchronizer in __root.tsx
   return (
     <CatchNotFound fallback={<PageNotFound />}>
       <Outlet />

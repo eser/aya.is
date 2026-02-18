@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { type SupportedLocaleCode, supportedLocales } from "@/config";
 import { useNavigation } from "@/modules/navigation/navigation-context";
@@ -13,15 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function LocaleSwitcher() {
-  const { i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { locale: currentLocaleCode, localeData, isCustomDomain } = useNavigation();
 
   const handleLocaleChange = (newLocaleCode: SupportedLocaleCode) => {
-    // Change i18next language
-    i18n.changeLanguage(newLocaleCode);
-
     // Get the current path without locale prefix
     const { restPath } = parseLocaleFromPath(location.pathname);
 
@@ -32,7 +27,9 @@ export function LocaleSwitcher() {
       currentLocale: newLocaleCode,
     });
 
-    // Navigate to the new localized URL
+    // Navigate to the new localized URL.
+    // i18n language sync is handled by LocaleSynchronizer in __root.tsx
+    // when the URL pathname changes.
     navigate({ to: newPath });
   };
 

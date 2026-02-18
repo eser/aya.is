@@ -114,20 +114,20 @@ function RootComponent() {
   );
 }
 
-// Component to sync i18n language with navigation state
+// Component to sync i18n language with navigation state.
+// The URL pathname is the single source of truth for locale.
 function LocaleSynchronizer() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
-  const { i18n: i18nInstance } = useTranslation();
   const { requestContext } = Route.useRouteContext();
   const host = typeof window !== "undefined" ? globalThis.location.host : undefined;
 
   useEffect(() => {
     const navigationState = detectNavigationState(pathname, requestContext, host);
-    if (i18nInstance.language !== navigationState.locale) {
-      i18nInstance.changeLanguage(navigationState.locale);
+    if (i18n.language !== navigationState.locale) {
+      i18n.changeLanguage(navigationState.locale);
     }
-  }, [pathname, requestContext, host, i18nInstance]);
+  }, [pathname, requestContext, host]);
 
   return null;
 }
