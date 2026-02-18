@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   AlertTriangle,
   ArrowLeft,
+  Calendar,
   Check,
   ImagePlus,
   Images,
@@ -100,6 +101,13 @@ export type ContentEditorData = {
   content: string;
   storyPictureUri?: string | null;
   kind?: StoryKind;
+  // Activity-specific fields (only relevant when kind === "activity")
+  activityKind?: string;
+  activityTimeStart?: string;
+  activityTimeEnd?: string;
+  externalActivityUri?: string;
+  externalAttendanceUri?: string;
+  rsvpMode?: string;
 };
 
 type ContentEditorProps = {
@@ -168,6 +176,14 @@ export function ContentEditor(props: ContentEditorProps) {
   const [kind, setKind] = React.useState<StoryKind>(
     initialData.kind ?? "article",
   );
+
+  // Activity-specific state
+  const [activityKind, setActivityKind] = React.useState(initialData.activityKind ?? "meetup");
+  const [activityTimeStart, setActivityTimeStart] = React.useState(initialData.activityTimeStart ?? "");
+  const [activityTimeEnd, setActivityTimeEnd] = React.useState(initialData.activityTimeEnd ?? "");
+  const [externalActivityUri, setExternalActivityUri] = React.useState(initialData.externalActivityUri ?? "");
+  const [externalAttendanceUri, setExternalAttendanceUri] = React.useState(initialData.externalAttendanceUri ?? "");
+  const [rsvpMode, setRsvpMode] = React.useState(initialData.rsvpMode ?? "enabled");
 
   // Publication state
   const [publications, setPublications] = React.useState<StoryPublication[]>(initialPublications);
@@ -366,15 +382,25 @@ export function ContentEditor(props: ContentEditorProps) {
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
-    return (
+    const baseChanged =
       title !== savedData.title ||
       slug !== savedData.slug ||
       summary !== savedData.summary ||
       content !== savedData.content ||
       storyPictureUri !== (savedData.storyPictureUri ?? null) ||
-      kind !== (savedData.kind ?? "article")
-    );
-  }, [title, slug, summary, content, storyPictureUri, kind, savedData]);
+      kind !== (savedData.kind ?? "article");
+
+    if (kind === "activity") {
+      return baseChanged ||
+        activityKind !== (savedData.activityKind ?? "meetup") ||
+        activityTimeStart !== (savedData.activityTimeStart ?? "") ||
+        activityTimeEnd !== (savedData.activityTimeEnd ?? "") ||
+        externalActivityUri !== (savedData.externalActivityUri ?? "") ||
+        externalAttendanceUri !== (savedData.externalAttendanceUri ?? "") ||
+        rsvpMode !== (savedData.rsvpMode ?? "enabled");
+    }
+    return baseChanged;
+  }, [title, slug, summary, content, storyPictureUri, kind, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, savedData]);
 
   // Auto-generate slug from title for new content (called on title blur)
   const generateSlugFromTitle = React.useCallback(() => {
@@ -401,6 +427,14 @@ export function ContentEditor(props: ContentEditorProps) {
     content,
     storyPictureUri,
     kind,
+    ...(kind === "activity" ? {
+      activityKind,
+      activityTimeStart,
+      activityTimeEnd,
+      externalActivityUri,
+      externalAttendanceUri,
+      rsvpMode,
+    } : {}),
   });
 
   const handleSave = React.useCallback(async () => {
@@ -656,12 +690,14 @@ export function ContentEditor(props: ContentEditorProps) {
                         {kind === "status" && <Info className="size-4" />}
                         {kind === "content" && <Images className="size-4" />}
                         {kind === "presentation" && <Presentation className="size-4" />}
+                        {kind === "activity" && <Calendar className="size-4" />}
                         {kind === "article" && t("Stories.Article")}
                         {kind === "announcement" && t("Stories.Announcement")}
                         {kind === "news" && t("ContentEditor.News")}
                         {kind === "status" && t("Stories.Status")}
                         {kind === "content" && t("Stories.Content")}
                         {kind === "presentation" && t("Stories.Presentation")}
+                        {kind === "activity" && t("Activities.Activity")}
                       </span>
                     </SelectTrigger>
                     <SelectContent>
@@ -701,9 +737,106 @@ export function ContentEditor(props: ContentEditorProps) {
                           {t("Stories.Presentation")}
                         </span>
                       </SelectItem>
+                      <SelectItem value="activity">
+                        <span className="flex items-center gap-2">
+                          <Calendar className="size-4" />
+                          {t("Activities.Activity")}
+                        </span>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
+              )}
+
+              {/* Activity-specific fields */}
+              {contentType === "story" && kind === "activity" && (
+                <>
+                  <Field className={styles.metadataField}>
+                    <FieldLabel htmlFor="activity-kind" className={styles.metadataLabel}>
+                      {t("Activities.Activity Kind")}
+                    </FieldLabel>
+                    <Select value={activityKind} onValueChange={setActivityKind} disabled={isManaged}>
+                      <SelectTrigger id="activity-kind">
+                        <span>{t(`Activities.${activityKind.charAt(0).toUpperCase() + activityKind.slice(1)}`)}</span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="meetup">{t("Activities.Meetup")}</SelectItem>
+                        <SelectItem value="workshop">{t("Activities.Workshop")}</SelectItem>
+                        <SelectItem value="conference">{t("Activities.Conference")}</SelectItem>
+                        <SelectItem value="broadcast">{t("Activities.Broadcast")}</SelectItem>
+                        <SelectItem value="meeting">{t("Activities.Meeting")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field className={styles.metadataField}>
+                    <FieldLabel htmlFor="activity-time-start" className={styles.metadataLabel}>
+                      {t("Activities.Start Time")}
+                    </FieldLabel>
+                    <Input
+                      id="activity-time-start"
+                      type="datetime-local"
+                      value={activityTimeStart}
+                      onChange={(e) => setActivityTimeStart(e.target.value)}
+                      disabled={isManaged}
+                    />
+                  </Field>
+
+                  <Field className={styles.metadataField}>
+                    <FieldLabel htmlFor="activity-time-end" className={styles.metadataLabel}>
+                      {t("Activities.End Time")}
+                    </FieldLabel>
+                    <Input
+                      id="activity-time-end"
+                      type="datetime-local"
+                      value={activityTimeEnd}
+                      onChange={(e) => setActivityTimeEnd(e.target.value)}
+                      disabled={isManaged}
+                    />
+                  </Field>
+
+                  <Field className={styles.metadataField}>
+                    <FieldLabel htmlFor="external-activity-uri" className={styles.metadataLabel}>
+                      {t("Activities.External Activity URL")}
+                    </FieldLabel>
+                    <Input
+                      id="external-activity-uri"
+                      value={externalActivityUri}
+                      onChange={(e) => setExternalActivityUri(e.target.value)}
+                      placeholder="https://..."
+                      disabled={isManaged}
+                    />
+                  </Field>
+
+                  <Field className={styles.metadataField}>
+                    <FieldLabel htmlFor="external-attendance-uri" className={styles.metadataLabel}>
+                      {t("Activities.External Attendance URL")}
+                    </FieldLabel>
+                    <Input
+                      id="external-attendance-uri"
+                      value={externalAttendanceUri}
+                      onChange={(e) => setExternalAttendanceUri(e.target.value)}
+                      placeholder="https://..."
+                      disabled={isManaged}
+                    />
+                  </Field>
+
+                  <Field className={styles.metadataField}>
+                    <FieldLabel htmlFor="rsvp-mode" className={styles.metadataLabel}>
+                      {t("Activities.RSVP Mode")}
+                    </FieldLabel>
+                    <Select value={rsvpMode} onValueChange={setRsvpMode} disabled={isManaged}>
+                      <SelectTrigger id="rsvp-mode">
+                        <span>{t(`Activities.RSVP ${rsvpMode === "enabled" ? "Enabled" : rsvpMode === "managed_externally" ? "Managed Externally" : "Disabled"}`)}</span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="enabled">{t("Activities.RSVP Enabled")}</SelectItem>
+                        <SelectItem value="managed_externally">{t("Activities.RSVP Managed Externally")}</SelectItem>
+                        <SelectItem value="disabled">{t("Activities.RSVP Disabled")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </>
               )}
 
               {/* Title */}

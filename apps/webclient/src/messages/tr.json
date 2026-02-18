@@ -257,7 +257,18 @@
     "Interested": "İlgileniyorum",
     "Not Attending": "Katılmıyorum",
     "Organized by": "Düzenleyen:",
-    "Register Externally": "Harici Kayıt"
+    "Register Externally": "Harici Kayıt",
+    "Activity Kind": "Etkinlik Türü",
+    "Start Time": "Başlangıç Zamanı",
+    "End Time": "Bitiş Zamanı",
+    "External Activity URL": "Harici Etkinlik URL",
+    "External Attendance URL": "Harici Katılım URL",
+    "RSVP Mode": "Katılım Modu",
+    "RSVP Enabled": "Katılım Açık",
+    "RSVP Managed Externally": "Harici Yönetimli",
+    "RSVP Disabled": "Katılım Kapalı",
+    "Activity created successfully": "Etkinlik başarıyla oluşturuldu",
+    "Failed to create activity": "Etkinlik oluşturulamadı"
   },
   "News": {
     "News item image": "Haber görseli",

@@ -257,7 +257,18 @@
     "Interested": "興味あり",
     "Not Attending": "参加しない",
     "Organized by": "主催:",
-    "Register Externally": "外部登録"
+    "Register Externally": "外部登録",
+    "Activity Kind": "アクティビティの種類",
+    "Start Time": "開始時間",
+    "End Time": "終了時間",
+    "External Activity URL": "外部アクティビティURL",
+    "External Attendance URL": "外部参加URL",
+    "RSVP Mode": "参加モード",
+    "RSVP Enabled": "参加受付中",
+    "RSVP Managed Externally": "外部管理",
+    "RSVP Disabled": "参加受付なし",
+    "Activity created successfully": "アクティビティが正常に作成されました",
+    "Failed to create activity": "アクティビティの作成に失敗しました"
   },
   "News": {
     "News item image": "ニュース画像",

@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/page-layouts/default";
 import { getDatePrefix } from "@/lib/slugify";
 
-export const Route = createFileRoute("/$locale/content/new")({
+export const Route = createFileRoute("/$locale/contents/new")({
   component: NewContentPage,
 });
 
@@ -135,7 +135,7 @@ function NewContentPage() {
           profileSlug={userProfileSlug}
           contentType="story"
           initialData={initialData}
-          backUrl={`/${params.locale}/content`}
+          backUrl={`/${params.locale}/contents`}
           userKind={auth.user?.kind}
           validateSlugDatePrefix
           onSave={handleSave}

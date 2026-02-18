@@ -178,13 +178,14 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			profileSlugParam := ctx.Request.PathValue("slug")
 
 			var requestBody struct {
-				Slug              string   `json:"slug"`
-				Kind              string   `json:"kind"`
-				Title             string   `json:"title"`
-				Summary           string   `json:"summary"`
-				Content           string   `json:"content"`
-				StoryPictureURI   *string  `json:"story_picture_uri"`
-				PublishToProfiles []string `json:"publish_to_profiles"`
+				Slug              string         `json:"slug"`
+				Kind              string         `json:"kind"`
+				Title             string         `json:"title"`
+				Summary           string         `json:"summary"`
+				Content           string         `json:"content"`
+				StoryPictureURI   *string        `json:"story_picture_uri"`
+				PublishToProfiles []string       `json:"publish_to_profiles"`
+				Properties        map[string]any `json:"properties"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -263,6 +264,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				requestBody.Content,
 				requestBody.StoryPictureURI,
 				requestBody.PublishToProfiles,
+				requestBody.Properties,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {

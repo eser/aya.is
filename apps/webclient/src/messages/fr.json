@@ -257,7 +257,18 @@
     "Interested": "Intéressé",
     "Not Attending": "Je ne participe pas",
     "Organized by": "Organisé par :",
-    "Register Externally": "S'inscrire en externe"
+    "Register Externally": "S'inscrire en externe",
+    "Activity Kind": "Type d'activité",
+    "Start Time": "Heure de début",
+    "End Time": "Heure de fin",
+    "External Activity URL": "URL d'activité externe",
+    "External Attendance URL": "URL de participation externe",
+    "RSVP Mode": "Mode de réponse",
+    "RSVP Enabled": "Réponse activée",
+    "RSVP Managed Externally": "Gestion externe",
+    "RSVP Disabled": "Réponse désactivée",
+    "Activity created successfully": "Activité créée avec succès",
+    "Failed to create activity": "Échec de la création de l'activité"
   },
   "News": {
     "News item image": "Image de l'actualité",

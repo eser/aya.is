@@ -261,7 +261,18 @@
     "Interested": "Interested",
     "Not Attending": "Not Attending",
     "Organized by": "Organized by",
-    "Register Externally": "Register Externally"
+    "Register Externally": "Register Externally",
+    "Activity Kind": "Activity Kind",
+    "Start Time": "Start Time",
+    "End Time": "End Time",
+    "External Activity URL": "External Activity URL",
+    "External Attendance URL": "External Attendance URL",
+    "RSVP Mode": "RSVP Mode",
+    "RSVP Enabled": "RSVP Enabled",
+    "RSVP Managed Externally": "RSVP Managed Externally",
+    "RSVP Disabled": "RSVP Disabled",
+    "Activity created successfully": "Activity created successfully",
+    "Failed to create activity": "Failed to create activity"
   },
   "News": {
     "News item image": "News item image",

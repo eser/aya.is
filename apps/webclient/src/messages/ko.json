@@ -257,7 +257,18 @@
     "Interested": "관심 있음",
     "Not Attending": "불참",
     "Organized by": "주최:",
-    "Register Externally": "외부 등록"
+    "Register Externally": "외부 등록",
+    "Activity Kind": "활동 종류",
+    "Start Time": "시작 시간",
+    "End Time": "종료 시간",
+    "External Activity URL": "외부 활동 URL",
+    "External Attendance URL": "외부 참석 URL",
+    "RSVP Mode": "참석 모드",
+    "RSVP Enabled": "참석 확인 활성",
+    "RSVP Managed Externally": "외부 관리",
+    "RSVP Disabled": "참석 확인 비활성",
+    "Activity created successfully": "활동이 성공적으로 생성되었습니다",
+    "Failed to create activity": "활동 생성에 실패했습니다"
   },
   "News": {
     "News item image": "뉴스 이미지",

@@ -257,7 +257,18 @@
     "Interested": "Интересно",
     "Not Attending": "Не приду",
     "Organized by": "Организатор:",
-    "Register Externally": "Внешняя регистрация"
+    "Register Externally": "Внешняя регистрация",
+    "Activity Kind": "Тип мероприятия",
+    "Start Time": "Время начала",
+    "End Time": "Время окончания",
+    "External Activity URL": "Внешняя ссылка на мероприятие",
+    "External Attendance URL": "Внешняя ссылка для участия",
+    "RSVP Mode": "Режим подтверждения",
+    "RSVP Enabled": "Подтверждение включено",
+    "RSVP Managed Externally": "Внешнее управление",
+    "RSVP Disabled": "Подтверждение отключено",
+    "Activity created successfully": "Мероприятие успешно создано",
+    "Failed to create activity": "Не удалось создать мероприятие"
   },
   "News": {
     "News item image": "Изображение новости",

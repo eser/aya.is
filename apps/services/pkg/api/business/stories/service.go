@@ -658,6 +658,7 @@ func (s *Service) Create(
 	content string,
 	storyPictureURI *string,
 	publishToProfileSlugs []string,
+	properties map[string]any,
 ) (*Story, error) {
 	// Determine if the story will be published (for slug validation)
 	isPublishing := len(publishToProfileSlugs) > 0
@@ -717,7 +718,7 @@ func (s *Service) Create(
 		slug,
 		kind,
 		storyPictureURI,
-		nil, // No additional properties for now
+		properties,
 		false,
 		nil,
 	)

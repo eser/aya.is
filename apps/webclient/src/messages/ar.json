@@ -257,7 +257,18 @@
     "Interested": "مهتم",
     "Not Attending": "لن أحضر",
     "Organized by": "نظمه:",
-    "Register Externally": "التسجيل الخارجي"
+    "Register Externally": "التسجيل الخارجي",
+    "Activity Kind": "نوع النشاط",
+    "Start Time": "وقت البدء",
+    "End Time": "وقت الانتهاء",
+    "External Activity URL": "رابط النشاط الخارجي",
+    "External Attendance URL": "رابط الحضور الخارجي",
+    "RSVP Mode": "وضع الاستجابة",
+    "RSVP Enabled": "الاستجابة مفعلة",
+    "RSVP Managed Externally": "إدارة خارجية",
+    "RSVP Disabled": "الاستجابة معطلة",
+    "Activity created successfully": "تم إنشاء النشاط بنجاح",
+    "Failed to create activity": "فشل في إنشاء النشاط"
   },
   "News": {
     "News item image": "صورة الخبر",

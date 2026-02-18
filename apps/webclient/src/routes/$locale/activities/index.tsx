@@ -53,9 +53,8 @@ function ActivitiesPage() {
             <h1 className="no-margin">{t("Layout.Activities")}</h1>
             {isAuthenticated && (
               <Link
-                to="/$locale/stories/new"
+                to="/$locale/activities/new"
                 params={{ locale }}
-                search={{ kind: "activity" }}
               >
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />

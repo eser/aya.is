@@ -10,7 +10,7 @@ import { buildUrl, generateMetaTags } from "@/lib/seo";
 import { StoriesPageClient } from "../stories/_components/-stories-page-client";
 import i18next from "i18next";
 
-export const Route = createFileRoute("/$locale/content/")({
+export const Route = createFileRoute("/$locale/contents/")({
   validateSearch: (search: Record<string, unknown>) => {
     const offset = Number(search.offset) || 0;
     return offset > 0 ? { offset } : {};
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/$locale/content/")({
       meta: generateMetaTags({
         title: translatedTitle,
         description: translatedDescription,
-        url: buildUrl(locale, "content"),
+        url: buildUrl(locale, "contents"),
         locale,
         type: "website",
       }),
@@ -56,7 +56,7 @@ function ContentPage() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.Content")}</h1>
             {isAuthenticated && (
-              <Link to="/$locale/content/new" params={{ locale }}>
+              <Link to="/$locale/contents/new" params={{ locale }}>
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />
                   {t("Content.Add Content")}
@@ -67,7 +67,7 @@ function ContentPage() {
 
           <StoriesPageClient
             initialStories={content}
-            basePath={`/${locale}/content`}
+            basePath={`/${locale}/contents`}
           />
         </div>
       </section>

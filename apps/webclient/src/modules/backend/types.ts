@@ -312,6 +312,7 @@ export interface InsertStoryInput {
   content: string;
   story_picture_uri?: string | null;
   publish_to_profiles?: string[];
+  properties?: Record<string, unknown>;
 }
 
 export interface UpdateStoryInput {

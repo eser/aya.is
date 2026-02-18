@@ -257,7 +257,18 @@
     "Interested": "Geïnteresseerd",
     "Not Attending": "Niet aanwezig",
     "Organized by": "Georganiseerd door:",
-    "Register Externally": "Extern registreren"
+    "Register Externally": "Extern registreren",
+    "Activity Kind": "Type activiteit",
+    "Start Time": "Starttijd",
+    "End Time": "Eindtijd",
+    "External Activity URL": "Externe activiteit-URL",
+    "External Attendance URL": "Externe aanwezigheids-URL",
+    "RSVP Mode": "RSVP-modus",
+    "RSVP Enabled": "RSVP ingeschakeld",
+    "RSVP Managed Externally": "Extern beheerd",
+    "RSVP Disabled": "RSVP uitgeschakeld",
+    "Activity created successfully": "Activiteit succesvol aangemaakt",
+    "Failed to create activity": "Activiteit aanmaken mislukt"
   },
   "News": {
     "News item image": "Nieuwsafbeelding",

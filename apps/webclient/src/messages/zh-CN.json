@@ -257,7 +257,18 @@
     "Interested": "感兴趣",
     "Not Attending": "不参加",
     "Organized by": "组织者：",
-    "Register Externally": "外部注册"
+    "Register Externally": "外部注册",
+    "Activity Kind": "活动类型",
+    "Start Time": "开始时间",
+    "End Time": "结束时间",
+    "External Activity URL": "外部活动链接",
+    "External Attendance URL": "外部参与链接",
+    "RSVP Mode": "报名模式",
+    "RSVP Enabled": "报名已开启",
+    "RSVP Managed Externally": "外部管理",
+    "RSVP Disabled": "报名已关闭",
+    "Activity created successfully": "活动创建成功",
+    "Failed to create activity": "活动创建失败"
   },
   "News": {
     "News item image": "新闻图片",
