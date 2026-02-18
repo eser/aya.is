@@ -31,6 +31,7 @@ type storyCreationRepo interface {
 		storyPictureURI *string,
 		properties map[string]any,
 		isManaged bool,
+		remoteID *string,
 	) (*stories.Story, error)
 	InsertStoryTx(
 		ctx context.Context,
@@ -192,6 +193,7 @@ func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:cyclop,funlen
 		storyPictureURI,
 		properties,
 		true,
+		&imp.RemoteID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to insert story: %w", err)

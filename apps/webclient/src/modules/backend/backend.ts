@@ -26,6 +26,7 @@ import { deleteProfileLink } from "./profiles/delete-profile-link";
 import { initiateProfileLinkOAuth } from "./profiles/initiate-profile-link-oauth";
 import { getGitHubAccounts } from "./profiles/get-github-accounts";
 import { finalizeGitHubConnection } from "./profiles/finalize-github-connection";
+import { connectSpeakerDeck } from "./profiles/connect-speakerdeck";
 import { listProfilePages } from "./profiles/list-profile-pages";
 import { listProfileMemberships } from "./profiles/list-profile-memberships";
 import { searchUsersForMembership } from "./profiles/search-users-for-membership";
@@ -147,6 +148,7 @@ export const backend = {
   initiateProfileLinkOAuth,
   getGitHubAccounts,
   finalizeGitHubConnection,
+  connectSpeakerDeck,
 
   // Profile Resources
   listProfileResources,
@@ -252,6 +254,7 @@ export {
   checkPageSlug,
   checkProfileSlug,
   checkStorySlug,
+  connectSpeakerDeck,
   createProfile,
   createProfileLink,
   createProfilePage,

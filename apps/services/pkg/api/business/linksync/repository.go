@@ -55,4 +55,11 @@ type Repository interface {
 		kind string,
 		limit int,
 	) ([]*LinkImportWithStory, error)
+
+	// ListManagedLinksForKindPublic returns managed, non-deleted links of a kind (no OAuth tokens required).
+	ListManagedLinksForKindPublic(
+		ctx context.Context,
+		kind string,
+		limit int,
+	) ([]*PublicManagedLink, error)
 }

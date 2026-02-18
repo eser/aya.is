@@ -17,6 +17,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
+	"github.com/eser/aya.is/services/pkg/api/adapters/speakerdeck"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
@@ -31,6 +32,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/resourcesync"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
+	"github.com/eser/aya.is/services/pkg/api/business/siteimporter"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
@@ -60,10 +62,11 @@ type AppContext struct {
 	S3Client        *s3client.Client
 
 	// External Services
-	GitHubClient    *github.Client
-	GitHubProvider  *github.Provider
-	YouTubeProvider *youtube.Provider
-	UnsplashClient  *unsplash.Client
+	GitHubClient        *github.Client
+	GitHubProvider      *github.Provider
+	YouTubeProvider     *youtube.Provider
+	SpeakerDeckProvider *speakerdeck.Provider
+	UnsplashClient      *unsplash.Client
 
 	// Business
 	UploadService              *uploads.Service
@@ -76,6 +79,7 @@ type AppContext struct {
 	SessionService             *sessions.Service
 	ProtectionService          *protection.Service
 	ProfileLinkSyncService     *linksync.Service
+	SiteImporterService        *siteimporter.Service
 	ProfileResourceSyncService *resourcesync.Service
 	AuditService               *events.AuditService
 	QueueService               *events.QueueService
@@ -325,6 +329,12 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		idGen,
 	)
 
+	a.SiteImporterService = siteimporter.NewService(
+		a.Logger,
+		a.ProfileLinkSyncService,
+		idGen,
+	)
+
 	a.ProfileResourceSyncService = resourcesync.NewService(
 		a.Logger,
 		storage.NewResourceSyncRepository(a.Repository),
@@ -359,6 +369,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Logger,
 		a.HTTPClient,
 	)
+
+	// SpeakerDeck provider (for profile links - no OAuth, RSS-based)
+	a.SpeakerDeckProvider = speakerdeck.NewProvider(
+		a.Logger,
+		a.HTTPClient,
+	)
+	a.SiteImporterService.RegisterProvider(a.SpeakerDeckProvider)
 
 	// Unsplash client (for background images, optional)
 	if a.Config.Externals.Unsplash.IsConfigured() {

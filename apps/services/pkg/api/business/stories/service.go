@@ -212,6 +212,7 @@ type Repository interface {
 		storyPictureURI *string,
 		properties map[string]any,
 		isManaged bool,
+		remoteID *string,
 	) (*Story, error)
 	InsertStoryTx(
 		ctx context.Context,
@@ -713,6 +714,7 @@ func (s *Service) Create(
 		storyPictureURI,
 		nil, // No additional properties for now
 		false,
+		nil,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)

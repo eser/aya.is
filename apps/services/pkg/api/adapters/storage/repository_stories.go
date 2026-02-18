@@ -256,6 +256,7 @@ func (r *Repository) InsertStory(
 	storyPictureURI *string,
 	properties map[string]any,
 	isManaged bool,
+	remoteID *string,
 ) (*stories.Story, error) {
 	params := InsertStoryParams{
 		ID:              id,
@@ -265,6 +266,7 @@ func (r *Repository) InsertStory(
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
 		Properties:      vars.ToSQLNullRawMessage(properties),
 		IsManaged:       isManaged,
+		RemoteID:        vars.ToSQLNullString(remoteID),
 	}
 
 	row, err := r.queries.InsertStory(ctx, params)

@@ -127,7 +127,7 @@ FROM "profile_link_import" pli
   INNER JOIN "profile" p ON p.id = pl.profile_id
   INNER JOIN "story" s ON s.author_profile_id = pl.profile_id
     AND s.is_managed = TRUE
-    AND s.properties->>'remote_id' = pli.remote_id
+    AND s.remote_id = pli.remote_id
     AND s.deleted_at IS NULL
   LEFT JOIN "story_publication" sp ON sp.story_id = s.id
     AND sp.profile_id = pl.profile_id
@@ -174,7 +174,7 @@ type ListImportsWithExistingStoriesRow struct {
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  INNER JOIN "story" s ON s.author_profile_id = pl.profile_id
 //	    AND s.is_managed = TRUE
-//	    AND s.properties->>'remote_id' = pli.remote_id
+//	    AND s.remote_id = pli.remote_id
 //	    AND s.deleted_at IS NULL
 //	  LEFT JOIN "story_publication" sp ON sp.story_id = s.id
 //	    AND sp.profile_id = pl.profile_id
@@ -238,7 +238,7 @@ WHERE pl.kind = $1
     SELECT 1 FROM "story" s
     WHERE s.author_profile_id = pl.profile_id
       AND s.is_managed = TRUE
-      AND s.properties->>'remote_id' = pli.remote_id
+      AND s.remote_id = pli.remote_id
       AND s.deleted_at IS NULL
   )
 ORDER BY pli.created_at ASC
@@ -281,7 +281,7 @@ type ListLinkImportsForStoryCreationRow struct {
 //	    SELECT 1 FROM "story" s
 //	    WHERE s.author_profile_id = pl.profile_id
 //	      AND s.is_managed = TRUE
-//	      AND s.properties->>'remote_id' = pli.remote_id
+//	      AND s.remote_id = pli.remote_id
 //	      AND s.deleted_at IS NULL
 //	  )
 //	ORDER BY pli.created_at ASC
@@ -388,6 +388,77 @@ func (q *Queries) ListManagedLinksForKind(ctx context.Context, arg ListManagedLi
 			&i.AuthAccessToken,
 			&i.AuthAccessTokenExpiresAt,
 			&i.AuthRefreshToken,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listManagedLinksForKindPublic = `-- name: ListManagedLinksForKindPublic :many
+SELECT
+  pl.id,
+  pl.profile_id,
+  pl.kind,
+  pl.remote_id
+FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id
+    AND p.deleted_at IS NULL
+WHERE pl.kind = $1
+  AND pl.is_managed = TRUE
+  AND pl.deleted_at IS NULL
+ORDER BY pl.updated_at ASC NULLS FIRST
+LIMIT $2
+`
+
+type ListManagedLinksForKindPublicParams struct {
+	Kind       string `db:"kind" json:"kind"`
+	LimitCount int32  `db:"limit_count" json:"limit_count"`
+}
+
+type ListManagedLinksForKindPublicRow struct {
+	ID        string         `db:"id" json:"id"`
+	ProfileID string         `db:"profile_id" json:"profile_id"`
+	Kind      string         `db:"kind" json:"kind"`
+	RemoteID  sql.NullString `db:"remote_id" json:"remote_id"`
+}
+
+// For non-OAuth managed links (e.g. SpeakerDeck) that don't require auth tokens.
+//
+//	SELECT
+//	  pl.id,
+//	  pl.profile_id,
+//	  pl.kind,
+//	  pl.remote_id
+//	FROM "profile_link" pl
+//	  INNER JOIN "profile" p ON p.id = pl.profile_id
+//	    AND p.deleted_at IS NULL
+//	WHERE pl.kind = $1
+//	  AND pl.is_managed = TRUE
+//	  AND pl.deleted_at IS NULL
+//	ORDER BY pl.updated_at ASC NULLS FIRST
+//	LIMIT $2
+func (q *Queries) ListManagedLinksForKindPublic(ctx context.Context, arg ListManagedLinksForKindPublicParams) ([]*ListManagedLinksForKindPublicRow, error) {
+	rows, err := q.db.QueryContext(ctx, listManagedLinksForKindPublic, arg.Kind, arg.LimitCount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListManagedLinksForKindPublicRow{}
+	for rows.Next() {
+		var i ListManagedLinksForKindPublicRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProfileID,
+			&i.Kind,
+			&i.RemoteID,
 		); err != nil {
 			return nil, err
 		}

@@ -48,7 +48,8 @@
     "Unknown": "未知",
     "Remove": "移除",
     "Loading": "加载中",
-    "Private": "私有"
+    "Private": "私有",
+    "Connecting...": "Connecting..."
   },
   "Layout": {
     "Homepage": "首页",
@@ -336,7 +337,14 @@
     "Connect YouTube": "连接 YouTube",
     "Connect X": "连接 X",
     "Connect LinkedIn": "连接 LinkedIn",
+    "Connect SpeakerDeck...": "Connect SpeakerDeck...",
     "Manual Link": "手动链接",
+    "Manual Link...": "Manual Link...",
+    "Add New Manual Link": "Add New Manual Link",
+    "Enter SpeakerDeck URL": "Enter SpeakerDeck URL",
+    "SpeakerDeck profile not found": "SpeakerDeck profile not found",
+    "Enter your SpeakerDeck profile URL to connect.": "Enter your SpeakerDeck profile URL to connect.",
+    "Connect": "Connect",
     "Connected": "已连接",
     "Connected successfully": "{{provider}} 连接成功",
     "Connection was cancelled": "连接已取消",

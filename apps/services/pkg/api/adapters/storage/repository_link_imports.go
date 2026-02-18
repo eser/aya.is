@@ -262,6 +262,33 @@ func (r *Repository) ListImportsWithExistingStories(
 	return result, nil
 }
 
+// ListManagedLinksForKindPublic returns managed, non-deleted links of a kind (no OAuth tokens required).
+func (r *Repository) ListManagedLinksForKindPublic(
+	ctx context.Context,
+	kind string,
+	limit int,
+) ([]*linksync.PublicManagedLink, error) {
+	rows, err := r.queries.ListManagedLinksForKindPublic(ctx, ListManagedLinksForKindPublicParams{
+		Kind:       kind,
+		LimitCount: int32(limit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	links := make([]*linksync.PublicManagedLink, len(rows))
+	for i, row := range rows {
+		links[i] = &linksync.PublicManagedLink{
+			ID:        row.ID,
+			ProfileID: row.ProfileID,
+			Kind:      row.Kind,
+			RemoteID:  row.RemoteID.String,
+		}
+	}
+
+	return links, nil
+}
+
 // rowToLinkImport converts a database row to a LinkImport domain object.
 func (r *Repository) rowToLinkImport(row *ProfileLinkImport) *linksync.LinkImport {
 	var properties map[string]any

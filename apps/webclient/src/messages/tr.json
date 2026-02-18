@@ -48,7 +48,8 @@
     "RelativeTime": "{{date, relative}}",
     "Remove": "Kaldır",
     "Loading": "Yükleniyor",
-    "Private": "Gizli"
+    "Private": "Gizli",
+    "Connecting...": "Bağlanıyor..."
   },
   "Layout": {
     "Homepage": "Ana Sayfa",
@@ -336,7 +337,14 @@
     "Connect YouTube": "YouTube'a Bağlan",
     "Connect X": "X'e Bağlan",
     "Connect LinkedIn": "LinkedIn'e Bağlan",
+    "Connect SpeakerDeck...": "SpeakerDeck'e Bağlan...",
     "Manual Link": "Manuel Bağlantı",
+    "Manual Link...": "Manuel Bağlantı...",
+    "Add New Manual Link": "Yeni Manuel Bağlantı Ekle",
+    "Enter SpeakerDeck URL": "SpeakerDeck URL'si Girin",
+    "SpeakerDeck profile not found": "SpeakerDeck profili bulunamadı",
+    "Enter your SpeakerDeck profile URL to connect.": "Bağlanmak için SpeakerDeck profil URL'nizi girin.",
+    "Connect": "Bağlan",
     "Connected": "Bağlı",
     "Connected successfully": "{{provider}} başarıyla bağlandı",
     "Connection was cancelled": "Bağlantı iptal edildi",

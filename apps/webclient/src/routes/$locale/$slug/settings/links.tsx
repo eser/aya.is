@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   RefreshCw,
   Star,
+  Presentation,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount } from "@/modules/backend/backend";
@@ -79,6 +80,7 @@ const LINK_TYPES: LinkTypeConfig[] = [
   { kind: "linkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/in/username" },
   { kind: "instagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/username" },
   { kind: "youtube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@channel" },
+  { kind: "speakerdeck", label: "SpeakerDeck", icon: Presentation, placeholder: "https://speakerdeck.com/username" },
   { kind: "bsky", label: "Bluesky", icon: Bsky, placeholder: "https://bsky.app/profile/handle" },
   { kind: "discord", label: "Discord", icon: Discord, placeholder: "https://discord.gg/invite" },
   { kind: "telegram", label: "Telegram", icon: Telegram, placeholder: "https://t.me/username" },
@@ -163,6 +165,11 @@ function LinksSettingsPage() {
   const [isLoadingAccounts, setIsLoadingAccounts] = React.useState(false);
   const [isConnectingAccount, setIsConnectingAccount] = React.useState(false);
   const isReconnectingRef = React.useRef(false);
+
+  // SpeakerDeck connect state
+  const [isSpeakerDeckDialogOpen, setIsSpeakerDeckDialogOpen] = React.useState(false);
+  const [speakerDeckUrl, setSpeakerDeckUrl] = React.useState("");
+  const [isConnectingSpeakerDeck, setIsConnectingSpeakerDeck] = React.useState(false);
 
   const [formData, setFormData] = React.useState<LinkFormData>({
     kind: "github",
@@ -436,11 +443,42 @@ function LinksSettingsPage() {
     }
   };
 
+  const handleConnectSpeakerDeck = () => {
+    setSpeakerDeckUrl("");
+    setIsSpeakerDeckDialogOpen(true);
+  };
+
+  const handleSubmitSpeakerDeck = async () => {
+    if (speakerDeckUrl.trim() === "") {
+      toast.error(t("Profile.URL is required"));
+      return;
+    }
+
+    setIsConnectingSpeakerDeck(true);
+    const result = await backend.connectSpeakerDeck(
+      params.locale,
+      params.slug,
+      speakerDeckUrl,
+    );
+
+    if (result !== null) {
+      toast.success(t("Profile.Connected successfully", { provider: "speakerdeck" }));
+      setIsSpeakerDeckDialogOpen(false);
+      setSpeakerDeckUrl("");
+      loadLinks();
+    } else {
+      toast.error(t("Profile.SpeakerDeck profile not found"));
+    }
+    setIsConnectingSpeakerDeck(false);
+  };
+
   const handleReconnect = (link: ProfileLink) => {
     if (link.kind === "github") {
       handleConnectGitHub();
     } else if (link.kind === "youtube") {
       handleConnectYouTube();
+    } else if (link.kind === "speakerdeck") {
+      handleConnectSpeakerDeck();
     }
   };
 
@@ -614,6 +652,10 @@ function LinksSettingsPage() {
               <Youtube className="size-4 mr-2" />
               {t("Profile.Connect YouTube")}
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleConnectSpeakerDeck()}>
+              <Presentation className="size-4 mr-2" />
+              {t("Profile.Connect SpeakerDeck...")}
+            </DropdownMenuItem>
             <DropdownMenuItem disabled>
               <X className="size-4 mr-2" />
               {t("Profile.Connect X")}
@@ -627,7 +669,7 @@ function LinksSettingsPage() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleOpenAddDialog}>
               <Plus className="size-4 mr-2" />
-              {t("Profile.Manual Link")}
+              {t("Profile.Manual Link...")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -765,7 +807,7 @@ function LinksSettingsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingLink !== null ? t("Profile.Edit Link") : t("Profile.Add New Link")}
+              {editingLink !== null ? t("Profile.Edit Link") : t("Profile.Add New Manual Link")}
             </DialogTitle>
             <DialogDescription>
               {t("Profile.Configure your social media link or website.")}
@@ -1034,6 +1076,58 @@ function LinksSettingsPage() {
               disabled={isConnectingAccount}
             >
               {t("Common.Cancel")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* SpeakerDeck Connect Dialog */}
+      <Dialog open={isSpeakerDeckDialogOpen} onOpenChange={(open) => {
+        if (!open && !isConnectingSpeakerDeck) {
+          setIsSpeakerDeckDialogOpen(false);
+          setSpeakerDeckUrl("");
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Presentation className="size-5" />
+              {t("Profile.Connect SpeakerDeck...")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("Profile.Enter your SpeakerDeck profile URL to connect.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Field>
+              <FieldLabel htmlFor="speakerdeck-url">{t("Profile.Enter SpeakerDeck URL")}</FieldLabel>
+              <Input
+                id="speakerdeck-url"
+                value={speakerDeckUrl}
+                onChange={(e) => setSpeakerDeckUrl(e.target.value)}
+                placeholder="https://speakerdeck.com/username"
+                disabled={isConnectingSpeakerDeck}
+              />
+            </Field>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsSpeakerDeckDialogOpen(false);
+                setSpeakerDeckUrl("");
+              }}
+              disabled={isConnectingSpeakerDeck}
+            >
+              {t("Common.Cancel")}
+            </Button>
+            <Button
+              onClick={handleSubmitSpeakerDeck}
+              disabled={isConnectingSpeakerDeck || speakerDeckUrl.trim() === ""}
+            >
+              {isConnectingSpeakerDeck ? t("Common.Connecting...") : t("Profile.Connect")}
             </Button>
           </DialogFooter>
         </DialogContent>

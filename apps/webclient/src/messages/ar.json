@@ -48,7 +48,8 @@
     "Unknown": "غير معروف",
     "Remove": "إزالة",
     "Loading": "جاري التحميل",
-    "Private": "خاص"
+    "Private": "خاص",
+    "Connecting...": "Connecting..."
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
@@ -336,7 +337,14 @@
     "Connect YouTube": "Connect YouTube",
     "Connect X": "Connect X",
     "Connect LinkedIn": "Connect LinkedIn",
+    "Connect SpeakerDeck...": "Connect SpeakerDeck...",
     "Manual Link": "Manual Link",
+    "Manual Link...": "Manual Link...",
+    "Add New Manual Link": "Add New Manual Link",
+    "Enter SpeakerDeck URL": "Enter SpeakerDeck URL",
+    "SpeakerDeck profile not found": "SpeakerDeck profile not found",
+    "Enter your SpeakerDeck profile URL to connect.": "Enter your SpeakerDeck profile URL to connect.",
+    "Connect": "Connect",
     "Connected": "Connected",
     "Connected successfully": "{{provider}} connected successfully",
     "Connection was cancelled": "Connection was cancelled",

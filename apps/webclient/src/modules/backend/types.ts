@@ -32,6 +32,7 @@ export type ProfileLinkKind =
   | "linkedin"
   | "instagram"
   | "youtube"
+  | "speakerdeck"
   | "bsky"
   | "discord"
   | "telegram";

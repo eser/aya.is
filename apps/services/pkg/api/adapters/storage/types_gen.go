@@ -350,6 +350,7 @@ type Story struct {
 	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	IsManaged       bool                  `db:"is_managed" json:"is_managed"`
+	RemoteID        sql.NullString        `db:"remote_id" json:"remote_id"`
 }
 
 type StoryPublication struct {

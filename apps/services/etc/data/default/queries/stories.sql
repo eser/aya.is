@@ -95,6 +95,7 @@ INSERT INTO "story" (
   story_picture_uri,
   properties,
   is_managed,
+  remote_id,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -104,6 +105,7 @@ INSERT INTO "story" (
   sqlc.narg(story_picture_uri),
   sqlc.narg(properties),
   sqlc.arg(is_managed),
+  sqlc.narg(remote_id),
   NOW()
 ) RETURNING *;
 

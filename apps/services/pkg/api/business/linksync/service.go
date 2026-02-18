@@ -137,6 +137,20 @@ func (s *Service) ListImportsWithExistingStories(
 	return imports, nil
 }
 
+// GetPublicManagedLinks returns managed links for a given kind (no OAuth tokens required).
+func (s *Service) GetPublicManagedLinks(
+	ctx context.Context,
+	kind string,
+	limit int,
+) ([]*PublicManagedLink, error) {
+	links, err := s.repo.ListManagedLinksForKindPublic(ctx, kind, limit)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetLinks, err)
+	}
+
+	return links, nil
+}
+
 // UpdateLinkTokens updates the OAuth tokens for a link.
 func (s *Service) UpdateLinkTokens(
 	ctx context.Context,

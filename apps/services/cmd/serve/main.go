@@ -54,6 +54,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			&http.ProfileLinkProviders{
 				YouTube:                appContext.YouTubeProvider,
 				GitHub:                 appContext.GitHubProvider,
+				SiteImporter:           appContext.SiteImporterService,
 				PendingConnectionStore: profiles.NewPendingConnectionStore(),
 			},
 			appContext.AIModels,
@@ -149,6 +150,35 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("github-resource-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// SpeakerDeck sync worker
+	if appContext.Config.Workers.SpeakerDeckSync.FullSyncEnabled {
+		speakerDeckStoryProcessor := workers.NewSpeakerDeckStoryProcessor(
+			&appContext.Config.Workers.SpeakerDeckSync,
+			appContext.Logger,
+			appContext.ProfileLinkSyncService,
+			appContext.Repository,
+			idGen,
+		)
+
+		speakerDeckSyncWorker := workers.NewSpeakerDeckSyncWorker(
+			&appContext.Config.Workers.SpeakerDeckSync,
+			appContext.Logger,
+			appContext.ProfileLinkSyncService,
+			appContext.SiteImporterService,
+			speakerDeckStoryProcessor,
+			appContext.RuntimeStateService,
+			idGen,
+		)
+
+		runner := workerfx.NewRunner(speakerDeckSyncWorker, appContext.Logger)
+		runner.SetStateKey("speakerdeck.sync.full_sync_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("speakerdeck-full-sync-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}

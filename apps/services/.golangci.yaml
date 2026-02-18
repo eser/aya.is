@@ -37,6 +37,7 @@ linters:
             - github.com/aws/aws-sdk-go-v2
             - github.com/eser/aya.is/services
             - github.com/getkin/kin-openapi
+            - github.com/mmcdole/gofeed
             - github.com/go-faker/faker/v4
             - github.com/go-rod/rod
             - github.com/golang-jwt/jwt/v5
