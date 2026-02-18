@@ -15,7 +15,7 @@ import i18next from "i18next";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
-import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
+import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 
 const parentRoute = getRouteApi("/$locale/$slug");
@@ -32,6 +32,7 @@ const LINK_TYPES: LinkTypeConfig[] = [
   { kind: "linkedin", label: "LinkedIn", icon: Linkedin },
   { kind: "instagram", label: "Instagram", icon: Instagram },
   { kind: "youtube", label: "YouTube", icon: Youtube },
+  { kind: "speakerdeck", label: "SpeakerDeck", icon: SpeakerDeck },
   { kind: "bsky", label: "Bluesky", icon: Bsky },
   { kind: "discord", label: "Discord", icon: Discord },
   { kind: "telegram", label: "Telegram", icon: Telegram },

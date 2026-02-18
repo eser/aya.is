@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Coins, Ellipsis, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
 import { toast } from "sonner";
-import { Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
+import { Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { backend, type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland";
@@ -45,6 +45,8 @@ function findIcon(kind: string) {
       return Discord;
     case "telegram":
       return Telegram;
+    case "speakerdeck":
+      return SpeakerDeck;
     case "website":
       return Globe;
     default:

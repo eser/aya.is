@@ -19,9 +19,8 @@ import {
   MoreHorizontal,
   RefreshCw,
   Star,
-  Presentation,
 } from "lucide-react";
-import { Icon, Bsky, Discord, GitHub, Telegram, X } from "@/components/icons";
+import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,7 +79,7 @@ const LINK_TYPES: LinkTypeConfig[] = [
   { kind: "linkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/in/username" },
   { kind: "instagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/username" },
   { kind: "youtube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@channel" },
-  { kind: "speakerdeck", label: "SpeakerDeck", icon: Presentation, placeholder: "https://speakerdeck.com/username" },
+  { kind: "speakerdeck", label: "SpeakerDeck", icon: SpeakerDeck, placeholder: "https://speakerdeck.com/username" },
   { kind: "bsky", label: "Bluesky", icon: Bsky, placeholder: "https://bsky.app/profile/handle" },
   { kind: "discord", label: "Discord", icon: Discord, placeholder: "https://discord.gg/invite" },
   { kind: "telegram", label: "Telegram", icon: Telegram, placeholder: "https://t.me/username" },
@@ -653,7 +652,7 @@ function LinksSettingsPage() {
               {t("Profile.Connect YouTube")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleConnectSpeakerDeck()}>
-              <Presentation className="size-4 mr-2" />
+              <SpeakerDeck className="size-4 mr-2" />
               {t("Profile.Connect SpeakerDeck...")}
             </DropdownMenuItem>
             <DropdownMenuItem disabled>
@@ -1091,7 +1090,7 @@ function LinksSettingsPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Presentation className="size-5" />
+              <SpeakerDeck className="size-5" />
               {t("Profile.Connect SpeakerDeck...")}
             </DialogTitle>
             <DialogDescription>

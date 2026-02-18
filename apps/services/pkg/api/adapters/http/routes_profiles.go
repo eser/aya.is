@@ -1169,15 +1169,16 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Validate kind against allowed values
 			validKinds := map[string]bool{
-				"website":   true,
-				"github":    true,
-				"x":         true,
-				"linkedin":  true,
-				"instagram": true,
-				"youtube":   true,
-				"bsky":      true,
-				"discord":   true,
-				"telegram":  true,
+				"website":     true,
+				"github":      true,
+				"x":           true,
+				"linkedin":    true,
+				"instagram":   true,
+				"youtube":     true,
+				"speakerdeck": true,
+				"bsky":        true,
+				"discord":     true,
+				"telegram":    true,
 			}
 			if !validKinds[requestBody.Kind] {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid link kind"))
@@ -1301,15 +1302,16 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Validate kind against allowed values
 			validKinds := map[string]bool{
-				"website":   true,
-				"github":    true,
-				"x":         true,
-				"linkedin":  true,
-				"instagram": true,
-				"youtube":   true,
-				"bsky":      true,
-				"discord":   true,
-				"telegram":  true,
+				"website":     true,
+				"github":      true,
+				"x":           true,
+				"linkedin":    true,
+				"instagram":   true,
+				"youtube":     true,
+				"speakerdeck": true,
+				"bsky":        true,
+				"discord":     true,
+				"telegram":    true,
 			}
 			if !validKinds[requestBody.Kind] {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid link kind"))
