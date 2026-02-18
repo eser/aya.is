@@ -51,7 +51,7 @@ export function Story(props: StoryProps) {
   }
 
   return (
-    <LocaleLink role="card" to={href} className="group no-underline block">
+    <LocaleLink role="card" to={href} className="no-underline block">
       <article className={styles.story}>
         <div className={cn(styles.imageContainer, "w-[250px] h-[150px]")}>
           {props.story.story_picture_uri !== null &&
