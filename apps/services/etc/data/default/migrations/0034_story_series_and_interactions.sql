@@ -33,8 +33,9 @@ CREATE TABLE IF NOT EXISTS "story_interaction" (
 );
 
 -- Index for activity listings sorted by time_start from JSONB properties
+-- Uses text ordering (ISO 8601 strings sort correctly as text)
 CREATE INDEX "story_activity_time_start_idx"
-  ON "story" (((properties->>'activity_time_start')::timestamptz) DESC NULLS LAST)
+  ON "story" ((properties->>'activity_time_start') DESC NULLS LAST)
   WHERE kind = 'activity' AND deleted_at IS NULL;
 
 -- Indexes for interaction lookups

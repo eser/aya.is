@@ -1508,7 +1508,7 @@ type Querier interface {
 	//    AND pb.publications IS NOT NULL
 	//    AND s.deleted_at IS NULL
 	//    AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
-	//  ORDER BY (s.properties->>'activity_time_start')::timestamptz DESC NULLS LAST
+	//  ORDER BY (s.properties->>'activity_time_start') DESC NULLS LAST
 	ListActivityStories(ctx context.Context, arg ListActivityStoriesParams) ([]*ListActivityStoriesRow, error)
 	//ListAllProfileLinksByProfileID
 	//

@@ -498,7 +498,7 @@ WHERE
   AND pb.publications IS NOT NULL
   AND s.deleted_at IS NULL
   AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
-ORDER BY (s.properties->>'activity_time_start')::timestamptz DESC NULLS LAST;
+ORDER BY (s.properties->>'activity_time_start') DESC NULLS LAST;
 
 -- name: GetUserMembershipForProfile :one
 -- Returns the membership kind a user has for a specific profile.
