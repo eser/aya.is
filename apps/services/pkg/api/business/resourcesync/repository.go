@@ -26,4 +26,20 @@ type Repository interface {
 
 	// GetProfileLinkByRemoteID finds a profile_link by kind and remote_id (GitHub user ID).
 	GetProfileLinkByRemoteID(ctx context.Context, kind string, remoteID string) (string, error)
+
+	// GetProfileLinksByRemoteIDs batch-loads profile_links by kind + remote_ids.
+	// Returns map[remoteID]profileID.
+	GetProfileLinksByRemoteIDs(
+		ctx context.Context,
+		kind string,
+		remoteIDs []string,
+	) (map[string]string, error)
+
+	// GetMembershipsByProfilePairs batch-loads memberships for multiple (profileID, memberProfileID) pairs.
+	// Returns map["profileID:memberProfileID"]membershipID.
+	GetMembershipsByProfilePairs(
+		ctx context.Context,
+		profileIDs []string,
+		memberProfileIDs []string,
+	) (map[string]string, error)
 }

@@ -300,13 +300,40 @@ func upsertManagedGitHubLink(
 ) {
 	uri := "https://github.com/" + githubHandle
 
-	// Check if a managed GitHub link already exists for this profile
+	// First check if ANY managed GitHub link already exists for this profile.
+	// This prevents duplicates even when remote_id differs (e.g., manual link vs auto-sync).
+	managedLink, _ := profileService.GetManagedGitHubLink(ctx, profileID)
+	if managedLink != nil {
+		err := profileService.UpdateProfileLinkOAuthTokens(
+			ctx,
+			managedLink.ID,
+			"en",
+			githubHandle,
+			uri,
+			"GitHub",
+			tokenScope,
+			accessToken,
+			nil, // accessTokenExpiresAt — GitHub tokens don't expire
+			nil, // refreshToken
+		)
+		if err != nil {
+			logger.WarnContext(ctx, "Failed to update managed GitHub link tokens",
+				slog.String("profile_id", profileID),
+				slog.String("error", err.Error()))
+		} else {
+			logger.DebugContext(ctx, "Updated managed GitHub link tokens",
+				slog.String("profile_id", profileID))
+		}
+
+		return
+	}
+
+	// Also check by remote_id in case there's a non-managed link with the same remote_id
 	existingLink, _ := profileService.GetProfileLinkByRemoteID(
 		ctx, profileID, "github", githubRemoteID,
 	)
 
 	if existingLink != nil {
-		// Update existing link tokens
 		err := profileService.UpdateProfileLinkOAuthTokens(
 			ctx,
 			existingLink.ID,

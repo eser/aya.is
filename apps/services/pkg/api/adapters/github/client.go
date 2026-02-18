@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,7 +10,10 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
@@ -17,12 +21,13 @@ import (
 
 // Sentinel errors.
 var (
-	ErrFailedToExchangeCode  = errors.New("failed to exchange authorization code")
-	ErrFailedToGetUserInfo   = errors.New("failed to get user info")
-	ErrFailedToFetchRepos    = errors.New("failed to fetch user repos")
-	ErrFailedToFetchRepoInfo = errors.New("failed to fetch repo info")
-	ErrFailedToSearchIssues  = errors.New("failed to search issues")
-	ErrNoUserFound           = errors.New("no user found")
+	ErrFailedToExchangeCode      = errors.New("failed to exchange authorization code")
+	ErrFailedToGetUserInfo       = errors.New("failed to get user info")
+	ErrFailedToFetchRepos        = errors.New("failed to fetch user repos")
+	ErrFailedToFetchRepoInfo     = errors.New("failed to fetch repo info")
+	ErrFailedToSearchIssues      = errors.New("failed to search issues")
+	ErrFailedToGraphQLBatchQuery = errors.New("failed to execute GraphQL batch query")
+	ErrNoUserFound               = errors.New("no user found")
 )
 
 // HTTPClient interface for dependency injection.
@@ -74,6 +79,55 @@ func NewClient(
 		config:     config,
 		logger:     logger,
 		httpClient: httpClient,
+	}
+}
+
+// rateLimitThreshold is the minimum remaining calls before the client
+// pauses and waits for the rate limit to reset. Keeps a small buffer
+// so a few calls can still succeed while we read the headers.
+const rateLimitThreshold = 3
+
+// checkRateLimit inspects GitHub API rate limit headers and sleeps if
+// remaining calls are at or below the threshold. Called after every API
+// response (successful or not) to preemptively throttle before hitting 429/403.
+func (c *Client) checkRateLimit(ctx context.Context, resp *http.Response) {
+	remainingStr := resp.Header.Get("X-Ratelimit-Remaining")
+	resetStr := resp.Header.Get("X-Ratelimit-Reset")
+
+	if remainingStr == "" || resetStr == "" {
+		return
+	}
+
+	remaining, err := strconv.Atoi(remainingStr)
+	if err != nil {
+		return
+	}
+
+	if remaining > rateLimitThreshold {
+		return
+	}
+
+	resetUnix, err := strconv.ParseInt(resetStr, 10, 64)
+	if err != nil {
+		return
+	}
+
+	resetTime := time.Unix(resetUnix, 0)
+	wait := time.Until(resetTime) + time.Second // 1s buffer for clock skew
+
+	if wait <= 0 {
+		return
+	}
+
+	c.logger.WarnContext(ctx, "GitHub API rate limit low, pausing until reset",
+		slog.Int("remaining", remaining),
+		slog.Duration("wait", wait),
+		slog.Time("reset_at", resetTime))
+
+	select {
+	case <-time.After(wait):
+		c.logger.DebugContext(ctx, "GitHub API rate limit reset, resuming")
+	case <-ctx.Done():
 	}
 }
 
@@ -398,6 +452,7 @@ func (c *Client) FetchRepoContributors(
 	defer resp.Body.Close() //nolint:errcheck
 
 	body, _ := io.ReadAll(resp.Body)
+	c.checkRateLimit(ctx, resp)
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.ErrorContext(ctx, "Repo contributors request failed",
@@ -455,6 +510,7 @@ func (c *Client) FetchRepoInfo(
 	defer resp.Body.Close() //nolint:errcheck
 
 	body, _ := io.ReadAll(resp.Body)
+	c.checkRateLimit(ctx, resp)
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.ErrorContext(ctx, "Repo info request failed",
@@ -506,6 +562,7 @@ func (c *Client) SearchIssues(
 	defer resp.Body.Close() //nolint:errcheck
 
 	body, _ := io.ReadAll(resp.Body)
+	c.checkRateLimit(ctx, resp)
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.ErrorContext(ctx, "Issue search request failed",
@@ -522,4 +579,178 @@ func (c *Client) SearchIssues(
 	}
 
 	return searchResult.TotalCount, nil
+}
+
+// graphQLMaxAliasesPerRequest is the maximum number of search aliases to pack
+// into a single GraphQL request. Keeps query size reasonable.
+const graphQLMaxAliasesPerRequest = 100
+
+// graphQLEndpoint is the GitHub GraphQL API URL.
+const graphQLEndpoint = "https://api.github.com/graphql"
+
+// aliasCleanerRegex strips characters that are invalid in GraphQL alias names.
+var aliasCleanerRegex = regexp.MustCompile(`[^a-zA-Z0-9_]`)
+
+// sanitizeAlias converts a string to a valid GraphQL alias name.
+// GraphQL aliases must match /[_A-Za-z][_0-9A-Za-z]*/.
+func sanitizeAlias(s string) string {
+	cleaned := aliasCleanerRegex.ReplaceAllString(s, "_")
+	if len(cleaned) == 0 || (cleaned[0] >= '0' && cleaned[0] <= '9') {
+		cleaned = "a_" + cleaned
+	}
+
+	return cleaned
+}
+
+// graphQLResponse represents the top-level GraphQL response.
+type graphQLResponse struct {
+	Data   map[string]graphQLSearchResult `json:"data"`
+	Errors []graphQLError                 `json:"errors"`
+}
+
+type graphQLSearchResult struct {
+	IssueCount int `json:"issueCount"`
+}
+
+type graphQLError struct {
+	Message string `json:"message"`
+}
+
+// SearchIssueCountsBatch executes multiple GitHub search queries in a single
+// GraphQL API call using aliases. Returns map[alias]count.
+//
+// Each entry in queries maps an alias name to a search query string.
+// Example: {"eser_prs": "repo:org/repo type:pr author:eser"}
+//
+// If len(queries) > graphQLMaxAliasesPerRequest, splits into multiple requests.
+func (c *Client) SearchIssueCountsBatch(
+	ctx context.Context,
+	accessToken string,
+	queries map[string]string,
+) (map[string]int, error) {
+	if len(queries) == 0 {
+		return map[string]int{}, nil
+	}
+
+	// Split into batches
+	batches := make([]map[string]string, 0, (len(queries)/graphQLMaxAliasesPerRequest)+1)
+	current := make(map[string]string)
+
+	for alias, query := range queries {
+		current[alias] = query
+		if len(current) >= graphQLMaxAliasesPerRequest {
+			batches = append(batches, current)
+			current = make(map[string]string)
+		}
+	}
+
+	if len(current) > 0 {
+		batches = append(batches, current)
+	}
+
+	// Execute each batch
+	result := make(map[string]int, len(queries))
+
+	for i, batch := range batches {
+		batchResult, err := c.executeGraphQLSearchBatch(ctx, accessToken, batch)
+		if err != nil {
+			c.logger.WarnContext(ctx, "GraphQL batch search failed",
+				slog.Int("batch", i+1),
+				slog.Int("total_batches", len(batches)),
+				slog.Any("error", err))
+
+			return nil, err
+		}
+
+		for alias, count := range batchResult {
+			result[alias] = count
+		}
+	}
+
+	return result, nil
+}
+
+// executeGraphQLSearchBatch sends a single GraphQL request with multiple search aliases.
+func (c *Client) executeGraphQLSearchBatch(
+	ctx context.Context,
+	accessToken string,
+	queries map[string]string,
+) (map[string]int, error) {
+	// Build GraphQL query with aliases
+	var queryBuilder strings.Builder
+
+	queryBuilder.WriteString("query {")
+
+	for alias, searchQuery := range queries {
+		// Escape double quotes in the search query
+		escapedQuery := strings.ReplaceAll(searchQuery, `"`, `\"`)
+		queryBuilder.WriteString(fmt.Sprintf(
+			` %s: search(query: "%s", type: ISSUE, first: 1) { issueCount }`,
+			alias, escapedQuery,
+		))
+	}
+
+	queryBuilder.WriteString(" }")
+
+	// Build request body
+	reqBody, err := json.Marshal(map[string]string{
+		"query": queryBuilder.String(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGraphQLBatchQuery, err)
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		graphQLEndpoint,
+		bytes.NewReader(reqBody),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGraphQLBatchQuery, err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGraphQLBatchQuery, err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, _ := io.ReadAll(resp.Body)
+	c.checkRateLimit(ctx, resp)
+
+	if resp.StatusCode != http.StatusOK {
+		c.logger.ErrorContext(ctx, "GraphQL batch search request failed",
+			slog.Int("status", resp.StatusCode),
+			slog.String("response", string(body)))
+
+		return nil, fmt.Errorf("%w: status %d", ErrFailedToGraphQLBatchQuery, resp.StatusCode)
+	}
+
+	var gqlResp graphQLResponse
+	if err := json.Unmarshal(body, &gqlResp); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGraphQLBatchQuery, err)
+	}
+
+	if len(gqlResp.Errors) > 0 {
+		c.logger.WarnContext(ctx, "GraphQL batch search returned errors",
+			slog.String("first_error", gqlResp.Errors[0].Message),
+			slog.Int("error_count", len(gqlResp.Errors)))
+
+		return nil, fmt.Errorf("%w: %s", ErrFailedToGraphQLBatchQuery, gqlResp.Errors[0].Message)
+	}
+
+	// Extract counts from response
+	result := make(map[string]int, len(gqlResp.Data))
+	for alias, searchResult := range gqlResp.Data {
+		result[alias] = searchResult.IssueCount
+	}
+
+	c.logger.DebugContext(ctx, "GraphQL batch search completed",
+		slog.Int("aliases", len(result)))
+
+	return result, nil
 }

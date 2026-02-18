@@ -8,6 +8,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/api/business/resourcesync"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
+	"github.com/lib/pq"
 	"github.com/sqlc-dev/pqtype"
 )
 
@@ -137,10 +138,12 @@ func (r *Repository) UpdateProfileResourcePropertiesForResourceSync(
 }
 
 // updateProfileMembershipPropertiesSQL updates the properties of a profile_membership.
-// TODO(sqlc): Replace with r.queries.UpdateProfileMembershipProperties once the sqlc query is generated.
+// Uses JSONB || operator to shallow-merge new properties into existing ones,
+// preserving keys not present in the update (e.g., "videos" when updating "github").
+// Note: profile_membership has no updated_at column.
 const updateProfileMembershipPropertiesSQL = `
 UPDATE "profile_membership"
-SET properties = $1, updated_at = NOW()
+SET properties = COALESCE(properties, '{}'::jsonb) || $1::jsonb
 WHERE id = $2
   AND deleted_at IS NULL
 `
@@ -238,6 +241,87 @@ func (r *Repository) GetProfileLinkByRemoteIDForResourceSync(
 	return profileID, nil
 }
 
+// getProfileLinksByRemoteIDsSQL batch-loads profile_links by kind and multiple remote_ids.
+const getProfileLinksByRemoteIDsSQL = `
+SELECT pl.remote_id, pl.profile_id
+FROM "profile_link" pl
+WHERE pl.kind = $1
+  AND pl.remote_id = ANY($2::TEXT[])
+  AND pl.deleted_at IS NULL
+`
+
+// GetProfileLinksByRemoteIDsForResourceSync batch-loads profile_links and returns map[remoteID]profileID.
+func (r *Repository) GetProfileLinksByRemoteIDsForResourceSync(
+	ctx context.Context,
+	kind string,
+	remoteIDs []string,
+) (map[string]string, error) {
+	rows, err := r.dbtx.QueryContext(ctx, getProfileLinksByRemoteIDsSQL, kind, pq.Array(remoteIDs))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //nolint:errcheck
+
+	result := make(map[string]string, len(remoteIDs))
+
+	for rows.Next() {
+		var remoteID, profileID string
+
+		scanErr := rows.Scan(&remoteID, &profileID)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+
+		result[remoteID] = profileID
+	}
+
+	return result, rows.Err()
+}
+
+// getMembershipsByProfilePairsSQL batch-loads memberships for multiple (profileID, memberProfileID) pairs.
+const getMembershipsByProfilePairsSQL = `
+SELECT pm.profile_id, pm.member_profile_id, pm.id
+FROM "profile_membership" pm
+WHERE pm.profile_id = ANY($1::TEXT[])
+  AND pm.member_profile_id = ANY($2::TEXT[])
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+`
+
+// GetMembershipsByProfilePairsForResourceSync batch-loads memberships.
+// Returns map["profileID:memberProfileID"]membershipID.
+func (r *Repository) GetMembershipsByProfilePairsForResourceSync(
+	ctx context.Context,
+	profileIDs []string,
+	memberProfileIDs []string,
+) (map[string]string, error) {
+	rows, err := r.dbtx.QueryContext(
+		ctx,
+		getMembershipsByProfilePairsSQL,
+		pq.Array(profileIDs),
+		pq.Array(memberProfileIDs),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //nolint:errcheck
+
+	result := make(map[string]string)
+
+	for rows.Next() {
+		var profileID, memberProfileID, membershipID string
+
+		scanErr := rows.Scan(&profileID, &memberProfileID, &membershipID)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+
+		result[profileID+":"+memberProfileID] = membershipID
+	}
+
+	return result, rows.Err()
+}
+
 // resourceSyncAdapter wraps *Repository to satisfy the resourcesync.Repository interface.
 // This is needed because method signatures differ (e.g., GetProfileLinkByRemoteID
 // has no profileID parameter in the resourcesync interface).
@@ -287,4 +371,20 @@ func (a *resourceSyncAdapter) GetProfileLinkByRemoteID(
 	remoteID string,
 ) (string, error) {
 	return a.repo.GetProfileLinkByRemoteIDForResourceSync(ctx, kind, remoteID)
+}
+
+func (a *resourceSyncAdapter) GetProfileLinksByRemoteIDs(
+	ctx context.Context,
+	kind string,
+	remoteIDs []string,
+) (map[string]string, error) {
+	return a.repo.GetProfileLinksByRemoteIDsForResourceSync(ctx, kind, remoteIDs)
+}
+
+func (a *resourceSyncAdapter) GetMembershipsByProfilePairs(
+	ctx context.Context,
+	profileIDs []string,
+	memberProfileIDs []string,
+) (map[string]string, error) {
+	return a.repo.GetMembershipsByProfilePairsForResourceSync(ctx, profileIDs, memberProfileIDs)
 }

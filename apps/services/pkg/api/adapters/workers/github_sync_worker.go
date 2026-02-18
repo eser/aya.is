@@ -40,8 +40,6 @@ type GitHubContributorResult struct {
 }
 
 // GitHubResourceFetcher defines the interface for fetching GitHub repo data.
-// The github.Client will satisfy this interface once FetchRepoInfo, FetchRepoContributors,
-// and SearchIssues are added to it.
 type GitHubResourceFetcher interface {
 	FetchRepoInfo(
 		ctx context.Context,
@@ -56,6 +54,13 @@ type GitHubResourceFetcher interface {
 		repo string,
 	) ([]*GitHubContributorResult, error)
 	SearchIssues(ctx context.Context, accessToken string, query string) (int, error)
+	// SearchIssueCountsBatch executes multiple search queries in a single GraphQL request.
+	// Returns map[alias]count. Falls back to per-query REST if GraphQL is unavailable.
+	SearchIssueCountsBatch(
+		ctx context.Context,
+		accessToken string,
+		queries map[string]string,
+	) (map[string]int, error)
 }
 
 // GitHubSyncWorker syncs GitHub contributor stats for registered profile resources.
@@ -154,11 +159,40 @@ func (w *GitHubSyncWorker) stateKey(suffix string) string {
 	return "github.resource_sync_worker." + suffix
 }
 
-// executeSync runs the actual sync cycle.
-func (w *GitHubSyncWorker) executeSync(ctx context.Context) error {
+// membershipStatsAccumulator aggregates GitHub stats across multiple repos for a single membership.
+type membershipStatsAccumulator struct {
+	commits        int
+	prsTotal       int
+	prsResolved    int
+	issuesTotal    int
+	issuesResolved int
+	stars          int
+}
+
+// contributorRepoStats holds per-repo data collected during the collect phase.
+type contributorRepoStats struct {
+	owner       string
+	repo        string
+	stars       int
+	commits     int
+	accessToken string
+}
+
+// contributorInfo tracks a contributor's appearances across all resources.
+type contributorInfo struct {
+	login string
+	// Key: resource profileID → repos this contributor appeared in under that profile.
+	reposByProfile map[string][]contributorRepoStats
+}
+
+// executeSync runs the actual sync cycle using a batch-match-first approach:
+//  1. Collect: fetch repo info + contributors for all resources
+//  2. Match: batch DB queries to find profiles and memberships
+//  3. Stats: fetch search stats ONLY for matched contributors
+//  4. Flush: write aggregated stats per membership
+func (w *GitHubSyncWorker) executeSync(ctx context.Context) error { //nolint:cyclop,funlen
 	w.logger.WarnContext(ctx, "Starting GitHub resource sync cycle")
 
-	// Get managed GitHub resources
 	resources, err := w.syncService.GetGitHubResourcesForSync(ctx, w.config.BatchSize)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrSyncFailed, err)
@@ -173,192 +207,409 @@ func (w *GitHubSyncWorker) executeSync(ctx context.Context) error {
 	w.logger.WarnContext(ctx, "Processing GitHub resources",
 		slog.Int("count", len(resources)))
 
-	// Process each resource (isolated errors - don't fail the whole batch)
+	// ── Phase 1: Collect ──
+	// Fetch repo info + contributors for all resources, build contributor map.
+	contributorMap := make(map[string]*contributorInfo) // key: GitHub remote ID
+
 	for _, resource := range resources {
-		syncErr := w.syncResource(ctx, resource)
-		if syncErr != nil {
-			w.logger.ErrorContext(ctx, "Failed to sync GitHub resource",
-				slog.String("resource_id", resource.ResourceID),
-				slog.String("profile_id", resource.ProfileID),
-				slog.String("public_id", resource.ResourcePublicID),
-				slog.Any("error", syncErr))
-		} else {
-			w.logger.WarnContext(ctx, "Successfully synced GitHub resource",
-				slog.String("resource_id", resource.ResourceID),
-				slog.String("public_id", resource.ResourcePublicID))
-		}
+		w.collectResourceData(ctx, resource, contributorMap)
 	}
 
-	w.logger.WarnContext(ctx, "Completed GitHub resource sync cycle",
-		slog.Int("resources_processed", len(resources)))
+	w.logger.WarnContext(ctx, "Collected contributors across all resources",
+		slog.Int("unique_contributors", len(contributorMap)))
 
-	return nil
-}
-
-// syncResource syncs a single GitHub resource (repo).
-func (w *GitHubSyncWorker) syncResource( //nolint:cyclop,funlen
-	ctx context.Context,
-	resource *resourcesync.GitHubResourceForSync,
-) error {
-	// Parse owner/repo from ResourcePublicID
-	owner, repo, ok := parseOwnerRepo(resource.ResourcePublicID)
-	if !ok {
-		return fmt.Errorf(
-			"invalid resource public_id format: %s",
-			resource.ResourcePublicID,
-		) //nolint:goerr113
-	}
-
-	accessToken := resource.AuthAccessToken
-
-	// Fetch latest repo info (stars, forks, language, description)
-	repoInfo, err := w.fetcher.FetchRepoInfo(ctx, accessToken, owner, repo)
-	if err != nil {
-		return fmt.Errorf("failed to fetch repo info: %w", err)
-	}
-
-	// Update resource properties with latest repo data
-	resourceProps := mergeResourceProperties(resource.ResourceProperties, repoInfo)
-
-	err = w.syncService.UpdateResourceProperties(ctx, resource.ResourceID, resourceProps)
-	if err != nil {
-		return fmt.Errorf("failed to update resource properties: %w", err)
-	}
-
-	// Fetch contributors and their stats
-	contributors, err := w.fetcher.FetchRepoContributors(ctx, accessToken, owner, repo)
-	if err != nil {
-		w.logger.WarnContext(ctx, "Failed to fetch contributors, skipping contributor sync",
-			slog.String("resource_id", resource.ResourceID),
-			slog.Any("error", err))
+	if len(contributorMap) == 0 {
+		w.logger.WarnContext(ctx, "No contributors found, skipping match phase")
 
 		return nil
 	}
 
-	// Process each contributor
-	for _, contributor := range contributors {
-		w.syncContributor(ctx, resource, accessToken, owner, repo, contributor, repoInfo.Stars)
+	// ── Phase 2: Batch Match ──
+	// Batch-load profile links and memberships to find which contributors are tracked.
+	membershipStats, matchedCount := w.batchMatchContributors(ctx, contributorMap)
+
+	w.logger.WarnContext(ctx, "Matched contributors to memberships",
+		slog.Int("matched_pairs", matchedCount),
+		slog.Int("memberships", len(membershipStats)))
+
+	// ── Phase 3: Flush ──
+	for membershipID, acc := range membershipStats {
+		flushErr := w.flushMembershipStats(ctx, membershipID, acc)
+		if flushErr != nil {
+			w.logger.WarnContext(ctx, "Failed to flush membership stats",
+				slog.String("membership_id", membershipID),
+				slog.Any("error", flushErr))
+		}
 	}
+
+	w.logger.WarnContext(ctx, "Completed GitHub resource sync cycle",
+		slog.Int("resources_processed", len(resources)),
+		slog.Int("memberships_updated", len(membershipStats)))
 
 	return nil
 }
 
-// syncContributor processes a single contributor's stats and updates the membership if found.
-func (w *GitHubSyncWorker) syncContributor(
+// collectResourceData fetches repo info and contributors for a single resource,
+// updates resource properties, and collects contributor appearances.
+func (w *GitHubSyncWorker) collectResourceData(
 	ctx context.Context,
 	resource *resourcesync.GitHubResourceForSync,
-	accessToken string,
-	owner string,
-	repo string,
-	contributor *GitHubContributorResult,
-	stars int,
+	contributorMap map[string]*contributorInfo,
 ) {
-	// Build contributor stats
-	stats := w.buildContributorStats(ctx, accessToken, owner, repo, contributor, stars)
+	owner, repo, ok := parseOwnerRepo(resource.ResourcePublicID)
+	if !ok {
+		w.logger.ErrorContext(ctx, "Invalid resource public_id format",
+			slog.String("resource_id", resource.ResourceID),
+			slog.String("public_id", resource.ResourcePublicID))
 
-	// Try to match contributor to a profile via profile_link
-	contributorRemoteID := strconv.FormatInt(contributor.ID, 10)
+		return
+	}
 
-	profileID, err := w.syncService.GetProfileLinkByRemoteID(ctx, "github", contributorRemoteID)
+	accessToken := resource.AuthAccessToken
+
+	// Fetch latest repo info
+	repoInfo, err := w.fetcher.FetchRepoInfo(ctx, accessToken, owner, repo)
 	if err != nil {
-		// No matching profile found - this is normal for external contributors
-		return
-	}
-
-	if profileID == "" {
-		return
-	}
-
-	// Look for a membership between the resource's profile and the contributor's profile
-	membershipID, err := w.syncService.GetMembershipByProfiles(ctx, resource.ProfileID, profileID)
-	if err != nil {
-		// No membership exists - we do NOT auto-create memberships
-		return
-	}
-
-	if membershipID == "" {
-		return
-	}
-
-	// Update membership properties with contributor stats
-	err = w.updateMembershipWithStats(ctx, membershipID, resource.ResourcePublicID, stats)
-	if err != nil {
-		w.logger.WarnContext(ctx, "Failed to update membership properties",
-			slog.String("membership_id", membershipID),
-			slog.String("contributor", contributor.Login),
+		w.logger.ErrorContext(ctx, "Failed to fetch repo info",
+			slog.String("resource_id", resource.ResourceID),
+			slog.String("public_id", resource.ResourcePublicID),
 			slog.Any("error", err))
+
+		return
+	}
+
+	// Update resource properties
+	resourceProps := mergeResourceProperties(resource.ResourceProperties, repoInfo)
+
+	updateErr := w.syncService.UpdateResourceProperties(ctx, resource.ResourceID, resourceProps)
+	if updateErr != nil {
+		w.logger.WarnContext(ctx, "Failed to update resource properties",
+			slog.String("resource_id", resource.ResourceID),
+			slog.Any("error", updateErr))
+	}
+
+	// Fetch contributors
+	contributors, err := w.fetcher.FetchRepoContributors(ctx, accessToken, owner, repo)
+	if err != nil {
+		w.logger.WarnContext(ctx, "Failed to fetch contributors, skipping",
+			slog.String("resource_id", resource.ResourceID),
+			slog.Any("error", err))
+
+		return
+	}
+
+	// Collect each contributor's appearance under this resource's profile
+	for _, c := range contributors {
+		remoteID := strconv.FormatInt(c.ID, 10)
+
+		info, exists := contributorMap[remoteID]
+		if !exists {
+			info = &contributorInfo{
+				login:          c.Login,
+				reposByProfile: make(map[string][]contributorRepoStats),
+			}
+			contributorMap[remoteID] = info
+		}
+
+		info.reposByProfile[resource.ProfileID] = append(
+			info.reposByProfile[resource.ProfileID],
+			contributorRepoStats{
+				owner:       owner,
+				repo:        repo,
+				stars:       repoInfo.Stars,
+				commits:     c.Contributions,
+				accessToken: accessToken,
+			},
+		)
 	}
 }
 
-// buildContributorStats fetches and assembles contributor stats from GitHub API.
-func (w *GitHubSyncWorker) buildContributorStats(
+// batchMatchContributors batch-loads profile links and memberships, then fetches
+// search stats ONLY for matched contributors. Returns accumulated membership stats.
+func (w *GitHubSyncWorker) batchMatchContributors( //nolint:cyclop,funlen
+	ctx context.Context,
+	contributorMap map[string]*contributorInfo,
+) (map[string]*membershipStatsAccumulator, int) {
+	membershipStats := make(map[string]*membershipStatsAccumulator)
+
+	// Batch load profile links: remoteID → profileID
+	allRemoteIDs := make([]string, 0, len(contributorMap))
+	for remoteID := range contributorMap {
+		allRemoteIDs = append(allRemoteIDs, remoteID)
+	}
+
+	profileLinkMap, err := w.syncService.GetProfileLinksByRemoteIDs(ctx, "github", allRemoteIDs)
+	if err != nil {
+		w.logger.ErrorContext(ctx, "Failed to batch load profile links",
+			slog.Any("error", err))
+
+		return membershipStats, 0
+	}
+
+	w.logger.WarnContext(ctx, "Batch loaded profile links",
+		slog.Int("total_contributors", len(allRemoteIDs)),
+		slog.Int("matched_profiles", len(profileLinkMap)))
+
+	if len(profileLinkMap) == 0 {
+		return membershipStats, 0
+	}
+
+	// Collect unique profile ID pairs for membership batch
+	resourceProfileIDSet := make(map[string]bool)
+	contributorProfileIDSet := make(map[string]bool)
+
+	for remoteID, info := range contributorMap {
+		contribProfileID, found := profileLinkMap[remoteID]
+		if !found {
+			continue
+		}
+
+		for profileID := range info.reposByProfile {
+			resourceProfileIDSet[profileID] = true
+			contributorProfileIDSet[contribProfileID] = true
+		}
+	}
+
+	resourceProfileIDs := mapSetToSlice(resourceProfileIDSet)
+	contributorProfileIDs := mapSetToSlice(contributorProfileIDSet)
+
+	membershipMap, err := w.syncService.GetMembershipsByProfilePairs(
+		ctx, resourceProfileIDs, contributorProfileIDs,
+	)
+	if err != nil {
+		w.logger.ErrorContext(ctx, "Failed to batch load memberships",
+			slog.Any("error", err))
+
+		return membershipStats, 0
+	}
+
+	w.logger.WarnContext(ctx, "Batch loaded memberships",
+		slog.Int("matched_memberships", len(membershipMap)))
+
+	// Build search queries and accumulate commits/stars for matched contributors.
+	// We do this in two passes:
+	//  1. Collect all (commits, stars) and build GraphQL search queries
+	//  2. Execute batch search and distribute results
+
+	matchedCount := 0
+
+	// searchQueries maps GraphQL alias → search query string.
+	searchQueries := make(map[string]string)
+	// aliasToMembership maps GraphQL alias → membershipID for distributing results.
+	aliasToMembership := make(map[string]string)
+	// Track which access token to use (pick any valid one from matched contributors).
+	var batchAccessToken string
+
+	for remoteID, info := range contributorMap {
+		contribProfileID, found := profileLinkMap[remoteID]
+		if !found {
+			continue
+		}
+
+		for profileID, repos := range info.reposByProfile {
+			membershipID, found := membershipMap[profileID+":"+contribProfileID]
+			if !found {
+				continue
+			}
+
+			matchedCount++
+
+			acc, exists := membershipStats[membershipID]
+			if !exists {
+				acc = &membershipStatsAccumulator{}
+				membershipStats[membershipID] = acc
+			}
+
+			for _, r := range repos {
+				// Accumulate commits and stars directly (already fetched from REST).
+				acc.commits += r.commits
+				acc.stars += r.stars
+
+				if batchAccessToken == "" {
+					batchAccessToken = r.accessToken
+				}
+
+				// Build 4 search queries per (contributor, repo) pair.
+				repoQ := "repo:" + r.owner + "/" + r.repo
+				prefix := sanitizeAlias(remoteID + "_" + r.owner + "_" + r.repo)
+
+				searchQueries[prefix+"_pr"] = repoQ + " type:pr author:" + info.login
+				aliasToMembership[prefix+"_pr"] = membershipID
+
+				searchQueries[prefix+"_prm"] = repoQ + " type:pr author:" + info.login + " is:merged"
+				aliasToMembership[prefix+"_prm"] = membershipID
+
+				searchQueries[prefix+"_iss"] = repoQ + " type:issue author:" + info.login
+				aliasToMembership[prefix+"_iss"] = membershipID
+
+				searchQueries[prefix+"_issc"] = repoQ + " type:issue author:" + info.login + " is:closed"
+				aliasToMembership[prefix+"_issc"] = membershipID
+			}
+		}
+	}
+
+	// Execute batch search via GraphQL (or fall back to REST on failure).
+	if len(searchQueries) > 0 && batchAccessToken != "" {
+		w.executeBatchSearch(
+			ctx,
+			batchAccessToken,
+			searchQueries,
+			aliasToMembership,
+			membershipStats,
+		)
+	}
+
+	return membershipStats, matchedCount
+}
+
+// sanitizeAlias converts a string to a valid GraphQL alias name.
+// This is a local re-export of the pattern used by the GitHub client.
+func sanitizeAlias(s string) string {
+	var b strings.Builder
+
+	for _, c := range s {
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' {
+			b.WriteRune(c)
+		} else {
+			b.WriteByte('_')
+		}
+	}
+
+	cleaned := b.String()
+	if len(cleaned) == 0 || (cleaned[0] >= '0' && cleaned[0] <= '9') {
+		return "a_" + cleaned
+	}
+
+	return cleaned
+}
+
+// executeBatchSearch runs all search queries via GraphQL batch. On failure,
+// falls back to individual REST calls.
+func (w *GitHubSyncWorker) executeBatchSearch(
 	ctx context.Context,
 	accessToken string,
-	owner string,
-	repo string,
-	contributor *GitHubContributorResult,
-	stars int,
-) *resourcesync.GitHubContributorStats {
-	stats := &resourcesync.GitHubContributorStats{} //nolint:exhaustruct
-	stats.Commits = contributor.Contributions
-	stats.Stars = stars
+	searchQueries map[string]string,
+	aliasToMembership map[string]string,
+	membershipStats map[string]*membershipStatsAccumulator,
+) {
+	w.logger.WarnContext(ctx, "Executing GraphQL batch search",
+		slog.Int("query_count", len(searchQueries)))
 
-	repoQualifier := "repo:" + owner + "/" + repo
+	results, err := w.fetcher.SearchIssueCountsBatch(ctx, accessToken, searchQueries)
+	if err != nil {
+		w.logger.WarnContext(ctx, "GraphQL batch search failed, falling back to REST",
+			slog.Any("error", err))
 
-	// Fetch total PRs
-	totalPRs, err := w.fetcher.SearchIssues(
-		ctx, accessToken,
-		repoQualifier+" type:pr author:"+contributor.Login,
-	)
-	if err == nil {
-		stats.PRs.Total = totalPRs
+		w.fallbackToRESTSearch(ctx, accessToken, searchQueries, aliasToMembership, membershipStats)
+
+		return
 	}
 
-	// Fetch resolved (merged) PRs
-	resolvedPRs, err := w.fetcher.SearchIssues(
-		ctx, accessToken,
-		repoQualifier+" type:pr author:"+contributor.Login+" is:merged",
-	)
-	if err == nil {
-		stats.PRs.Resolved = resolvedPRs
-	}
+	w.logger.WarnContext(ctx, "GraphQL batch search completed",
+		slog.Int("results", len(results)))
 
-	// Fetch total issues
-	totalIssues, err := w.fetcher.SearchIssues(
-		ctx, accessToken,
-		repoQualifier+" type:issue author:"+contributor.Login,
-	)
-	if err == nil {
-		stats.Issues.Total = totalIssues
-	}
+	// Distribute results back to membership accumulators.
+	for alias, count := range results {
+		membershipID, found := aliasToMembership[alias]
+		if !found {
+			continue
+		}
 
-	// Fetch resolved (closed) issues
-	resolvedIssues, err := w.fetcher.SearchIssues(
-		ctx, accessToken,
-		repoQualifier+" type:issue author:"+contributor.Login+" is:closed",
-	)
-	if err == nil {
-		stats.Issues.Resolved = resolvedIssues
-	}
+		acc := membershipStats[membershipID]
+		if acc == nil {
+			continue
+		}
 
-	return stats
+		// Parse stat type from alias suffix.
+		switch {
+		case strings.HasSuffix(alias, "_prm"):
+			acc.prsResolved += count
+		case strings.HasSuffix(alias, "_pr"):
+			acc.prsTotal += count
+		case strings.HasSuffix(alias, "_issc"):
+			acc.issuesResolved += count
+		case strings.HasSuffix(alias, "_iss"):
+			acc.issuesTotal += count
+		}
+	}
 }
 
-// updateMembershipWithStats merges GitHub contributor stats into membership properties.
-func (w *GitHubSyncWorker) updateMembershipWithStats(
+// fallbackToRESTSearch executes search queries one at a time via REST API
+// when GraphQL batch search fails.
+func (w *GitHubSyncWorker) fallbackToRESTSearch(
+	ctx context.Context,
+	accessToken string,
+	searchQueries map[string]string,
+	aliasToMembership map[string]string,
+	membershipStats map[string]*membershipStatsAccumulator,
+) {
+	for alias, query := range searchQueries {
+		membershipID, found := aliasToMembership[alias]
+		if !found {
+			continue
+		}
+
+		acc := membershipStats[membershipID]
+		if acc == nil {
+			continue
+		}
+
+		count, err := w.fetcher.SearchIssues(ctx, accessToken, query)
+		if err != nil {
+			w.logger.WarnContext(ctx, "REST search fallback failed",
+				slog.String("alias", alias),
+				slog.Any("error", err))
+
+			continue
+		}
+
+		switch {
+		case strings.HasSuffix(alias, "_prm"):
+			acc.prsResolved += count
+		case strings.HasSuffix(alias, "_pr"):
+			acc.prsTotal += count
+		case strings.HasSuffix(alias, "_issc"):
+			acc.issuesResolved += count
+		case strings.HasSuffix(alias, "_iss"):
+			acc.issuesTotal += count
+		}
+	}
+}
+
+// flushMembershipStats writes aggregated GitHub stats to a membership's properties.
+// The flat format matches what the frontend expects: {"github": {"commits": N, "prs": {...}, ...}}.
+// Uses JSONB merge so non-github keys (e.g., "videos") are preserved.
+func (w *GitHubSyncWorker) flushMembershipStats(
 	ctx context.Context,
 	membershipID string,
-	resourcePublicID string,
-	stats *resourcesync.GitHubContributorStats,
+	acc *membershipStatsAccumulator,
 ) error {
-	// Build the properties map with github stats nested under the resource key
 	properties := map[string]any{
-		"github": map[string]any{
-			resourcePublicID: stats,
+		"github": &resourcesync.GitHubContributorStats{
+			Commits: acc.commits,
+			PRs: struct {
+				Total    int `json:"total"`
+				Resolved int `json:"resolved"`
+			}{Total: acc.prsTotal, Resolved: acc.prsResolved},
+			Issues: struct {
+				Total    int `json:"total"`
+				Resolved int `json:"resolved"`
+			}{Total: acc.issuesTotal, Resolved: acc.issuesResolved},
+			Stars: acc.stars,
 		},
 	}
 
 	return w.syncService.UpdateMembershipProperties(ctx, membershipID, properties)
+}
+
+// mapSetToSlice converts a map[string]bool set to a string slice.
+func mapSetToSlice(set map[string]bool) []string {
+	result := make([]string, 0, len(set))
+	for k := range set {
+		result = append(result, k)
+	}
+
+	return result
 }
 
 // parseOwnerRepo splits "owner/repo" into its parts.

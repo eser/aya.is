@@ -77,3 +77,12 @@ func (a *ResourceFetcherAdapter) SearchIssues(
 ) (int, error) {
 	return a.client.SearchIssues(ctx, accessToken, query)
 }
+
+// SearchIssueCountsBatch executes multiple search queries in a single GraphQL request.
+func (a *ResourceFetcherAdapter) SearchIssueCountsBatch(
+	ctx context.Context,
+	accessToken string,
+	queries map[string]string,
+) (map[string]int, error) {
+	return a.client.SearchIssueCountsBatch(ctx, accessToken, queries)
+}

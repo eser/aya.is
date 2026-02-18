@@ -79,3 +79,21 @@ func (s *Service) GetProfileLinkByRemoteID(
 ) (string, error) {
 	return s.repo.GetProfileLinkByRemoteID(ctx, kind, remoteID)
 }
+
+// GetProfileLinksByRemoteIDs batch-loads profile_links by kind and multiple remote_ids.
+func (s *Service) GetProfileLinksByRemoteIDs(
+	ctx context.Context,
+	kind string,
+	remoteIDs []string,
+) (map[string]string, error) {
+	return s.repo.GetProfileLinksByRemoteIDs(ctx, kind, remoteIDs)
+}
+
+// GetMembershipsByProfilePairs batch-loads memberships for multiple profile pairs.
+func (s *Service) GetMembershipsByProfilePairs(
+	ctx context.Context,
+	profileIDs []string,
+	memberProfileIDs []string,
+) (map[string]string, error) {
+	return s.repo.GetMembershipsByProfilePairs(ctx, profileIDs, memberProfileIDs)
+}
