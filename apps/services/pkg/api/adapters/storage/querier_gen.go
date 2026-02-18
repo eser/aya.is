@@ -748,6 +748,20 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error)
+	//GetProfileFeatureLinksVisibility
+	//
+	//  SELECT feature_links
+	//  FROM "profile"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	GetProfileFeatureLinksVisibility(ctx context.Context, arg GetProfileFeatureLinksVisibilityParams) (string, error)
+	//GetProfileFeatureRelationsVisibility
+	//
+	//  SELECT feature_relations
+	//  FROM "profile"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	GetProfileFeatureRelationsVisibility(ctx context.Context, arg GetProfileFeatureRelationsVisibilityParams) (string, error)
 	//GetProfileIDBySlug
 	//
 	//  SELECT id

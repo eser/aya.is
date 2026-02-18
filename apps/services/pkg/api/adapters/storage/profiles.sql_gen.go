@@ -1097,6 +1097,54 @@ func (q *Queries) GetProfileByID(ctx context.Context, arg GetProfileByIDParams) 
 	return &i, err
 }
 
+const getProfileFeatureLinksVisibility = `-- name: GetProfileFeatureLinksVisibility :one
+SELECT feature_links
+FROM "profile"
+WHERE id = $1
+  AND deleted_at IS NULL
+`
+
+type GetProfileFeatureLinksVisibilityParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// GetProfileFeatureLinksVisibility
+//
+//	SELECT feature_links
+//	FROM "profile"
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) GetProfileFeatureLinksVisibility(ctx context.Context, arg GetProfileFeatureLinksVisibilityParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getProfileFeatureLinksVisibility, arg.ID)
+	var feature_links string
+	err := row.Scan(&feature_links)
+	return feature_links, err
+}
+
+const getProfileFeatureRelationsVisibility = `-- name: GetProfileFeatureRelationsVisibility :one
+SELECT feature_relations
+FROM "profile"
+WHERE id = $1
+  AND deleted_at IS NULL
+`
+
+type GetProfileFeatureRelationsVisibilityParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// GetProfileFeatureRelationsVisibility
+//
+//	SELECT feature_relations
+//	FROM "profile"
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) GetProfileFeatureRelationsVisibility(ctx context.Context, arg GetProfileFeatureRelationsVisibilityParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getProfileFeatureRelationsVisibility, arg.ID)
+	var feature_relations string
+	err := row.Scan(&feature_relations)
+	return feature_relations, err
+}
+
 const getProfileIDBySlug = `-- name: GetProfileIDBySlug :one
 SELECT id
 FROM "profile"

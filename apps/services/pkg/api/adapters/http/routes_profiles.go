@@ -282,6 +282,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				"", // Empty = anonymous viewer, only public links visible
 			)
 			if err != nil {
+				if errors.Is(err, profiles.ErrLinksNotEnabled) {
+					return ctx.Results.Error(
+						http.StatusNotFound,
+						httpfx.WithErrorMessage("links feature is not enabled for this profile"),
+					)
+				}
+
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
 					httpfx.WithSanitizedError(err),
@@ -429,6 +436,15 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					cursor,
 				)
 				if err != nil {
+					if errors.Is(err, profiles.ErrRelationsNotEnabled) {
+						return ctx.Results.Error(
+							http.StatusNotFound,
+							httpfx.WithErrorMessage(
+								"relations feature is not enabled for this profile",
+							),
+						)
+					}
+
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
 						httpfx.WithSanitizedError(err),
@@ -461,6 +477,15 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					cursor,
 				)
 				if err != nil {
+					if errors.Is(err, profiles.ErrRelationsNotEnabled) {
+						return ctx.Results.Error(
+							http.StatusNotFound,
+							httpfx.WithErrorMessage(
+								"relations feature is not enabled for this profile",
+							),
+						)
+					}
+
 					return ctx.Results.Error(
 						http.StatusInternalServerError,
 						httpfx.WithSanitizedError(err),

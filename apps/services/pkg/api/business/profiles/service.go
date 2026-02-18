@@ -29,6 +29,8 @@ var (
 	ErrSearchFailed         = errors.New("search failed")
 	ErrDuplicateRecord      = errors.New("duplicate record")
 	ErrInvalidInput         = errors.New("invalid input")
+	ErrRelationsNotEnabled  = errors.New("relations feature is not enabled for this profile")
+	ErrLinksNotEnabled      = errors.New("links feature is not enabled for this profile")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -153,6 +155,8 @@ type RecentPostsFetcher interface {
 
 type Repository interface { //nolint:interfacebloat
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
+	GetFeatureRelationsVisibility(ctx context.Context, profileID string) (string, error)
+	GetFeatureLinksVisibility(ctx context.Context, profileID string) (string, error)
 	GetCustomDomainByDomain(ctx context.Context, domain string) (*ProfileCustomDomain, error)
 	ListCustomDomainsByProfileID(
 		ctx context.Context,
@@ -993,6 +997,19 @@ func (s *Service) ListProfileContributionsBySlug(
 		)
 	}
 
+	visibility, err := s.repo.GetFeatureRelationsVisibility(ctx, profileID)
+	if err != nil {
+		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToGetRecord,
+			err,
+		)
+	}
+
+	if visibility == "disabled" {
+		return cursors.Cursored[[]*ProfileMembership]{}, ErrRelationsNotEnabled
+	}
+
 	memberships, err := s.repo.ListProfileContributions(
 		ctx,
 		localeCode,
@@ -1025,6 +1042,19 @@ func (s *Service) ListProfileMembersBySlug(
 			slug,
 			err,
 		)
+	}
+
+	visibility, err := s.repo.GetFeatureRelationsVisibility(ctx, profileID)
+	if err != nil {
+		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToGetRecord,
+			err,
+		)
+	}
+
+	if visibility == "disabled" {
+		return cursors.Cursored[[]*ProfileMembership]{}, ErrRelationsNotEnabled
 	}
 
 	memberships, err := s.repo.ListProfileMembers(
@@ -2642,6 +2672,15 @@ func (s *Service) ListAllLinksBySlug(
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	visibility, err := s.repo.GetFeatureLinksVisibility(ctx, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if visibility == "disabled" {
+		return nil, ErrLinksNotEnabled
 	}
 
 	links, err := s.repo.ListAllProfileLinksByProfileID(ctx, localeCode, profileID)

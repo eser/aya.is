@@ -102,6 +102,18 @@ WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL;
 
+-- name: GetProfileFeatureRelationsVisibility :one
+SELECT feature_relations
+FROM "profile"
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: GetProfileFeatureLinksVisibility :one
+SELECT feature_links
+FROM "profile"
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
 -- name: CreateProfile :exec
 INSERT INTO "profile" (id, slug, kind, default_locale, profile_picture_uri, pronouns, properties, approved_at)
 VALUES (sqlc.arg(id), sqlc.arg(slug), sqlc.arg(kind), sqlc.arg(default_locale), sqlc.narg(profile_picture_uri), sqlc.narg(pronouns), sqlc.narg(properties), NOW());

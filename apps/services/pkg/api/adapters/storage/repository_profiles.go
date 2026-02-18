@@ -38,6 +38,50 @@ func (r *Repository) GetProfileIDBySlug(ctx context.Context, slug string) (strin
 	return result, err //nolint:wrapcheck
 }
 
+// GetFeatureRelationsVisibility returns the relations module visibility for a profile.
+func (r *Repository) GetFeatureRelationsVisibility(
+	ctx context.Context,
+	profileID string,
+) (string, error) {
+	visibility, err := r.queries.GetProfileFeatureRelationsVisibility(
+		ctx,
+		GetProfileFeatureRelationsVisibilityParams{
+			ID: profileID,
+		},
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "public", nil
+		}
+
+		return "public", err
+	}
+
+	return visibility, nil
+}
+
+// GetFeatureLinksVisibility returns the links module visibility for a profile.
+func (r *Repository) GetFeatureLinksVisibility(
+	ctx context.Context,
+	profileID string,
+) (string, error) {
+	visibility, err := r.queries.GetProfileFeatureLinksVisibility(
+		ctx,
+		GetProfileFeatureLinksVisibilityParams{
+			ID: profileID,
+		},
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "public", nil
+		}
+
+		return "public", err
+	}
+
+	return visibility, nil
+}
+
 func (r *Repository) CheckProfileSlugExists(ctx context.Context, slug string) (bool, error) {
 	var result bool
 
