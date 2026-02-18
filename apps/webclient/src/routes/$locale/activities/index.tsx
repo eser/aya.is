@@ -1,8 +1,11 @@
 // Activities listing page
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
+import { Button } from "@/components/ui/button";
 import { backend } from "@/modules/backend/backend";
+import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
 import { ActivityCard } from "./_components/-activity-card";
 import i18next from "i18next";
@@ -40,6 +43,7 @@ export const Route = createFileRoute("/$locale/activities/")({
 function ActivitiesPage() {
   const { activities, locale } = Route.useLoaderData();
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
 
   return (
     <PageLayout>
@@ -47,6 +51,18 @@ function ActivitiesPage() {
         <div className="content">
           <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.Activities")}</h1>
+            {isAuthenticated && (
+              <Link
+                to="/$locale/stories/new"
+                params={{ locale }}
+                search={{ kind: "activity" }}
+              >
+                <Button variant="default" size="sm">
+                  <Plus className="mr-1.5 size-4" />
+                  {t("Activities.Add Activity")}
+                </Button>
+              </Link>
+            )}
           </div>
 
           {activities === null || activities.length === 0
