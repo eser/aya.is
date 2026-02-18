@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { ChildNotFound } from "../route";
 
 const profileRoute = getRouteApi("/$locale/$slug");
 
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
     };
   },
   component: ProfileCustomPage,
-  notFoundComponent: PageNotFound,
+  notFoundComponent: ChildNotFound,
 });
 
 function ProfileCustomPage() {
@@ -71,7 +72,7 @@ function ProfileCustomPage() {
 
   // If notFound flag is set, render 404 page
   if (loaderData.notFound || loaderData.page === null || profile === null) {
-    return <PageNotFound />;
+    return <ChildNotFound />;
   }
 
   const { page, compiledContent, locale, slug } = loaderData;
@@ -103,20 +104,5 @@ function ProfileCustomPage() {
         />
       </div>
     </ProfileSidebarLayout>
-  );
-}
-
-function PageNotFound() {
-  const { t } = useTranslation();
-
-  return (
-    <div className="content">
-      <h2>{t("Layout.Page not found")}</h2>
-      <p className="text-muted-foreground">
-        {t(
-          "Layout.The page you are looking for does not exist. Please check your spelling and try again.",
-        )}
-      </p>
-    </div>
   );
 }

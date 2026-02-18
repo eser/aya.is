@@ -1,7 +1,8 @@
 // Profile Q&A page
-import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+import { ChildNotFound } from "../route";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
 import { QAPageClient } from "./-components/qa-page-client";
@@ -14,13 +15,13 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile?.feature_qa === "disabled") {
-      throw notFound();
+      return { questionsData: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
     }
 
     const questionsData = await backend.getProfileQuestions(locale, slug);
 
     if (questionsData === null) {
-      throw notFound();
+      return { questionsData: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
     }
 
     await i18next.loadLanguages(locale);
@@ -35,10 +36,11 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
       profileTitle: profile?.title ?? slug,
       translatedTitle,
       translatedDescription,
+      notFound: false as const,
     };
   },
   head: ({ loaderData }) => {
-    if (loaderData === undefined) {
+    if (loaderData === undefined || loaderData.notFound) {
       return { meta: [] };
     }
 
@@ -55,15 +57,18 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
     };
   },
   component: QAIndexPage,
+  notFoundComponent: ChildNotFound,
 });
 
 function QAIndexPage() {
-  const { questionsData, locale, slug } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
   const { profile, permissions } = parentRoute.useLoaderData();
 
-  if (profile === null) {
-    return null;
+  if (loaderData.notFound || loaderData.questionsData === null || profile === null) {
+    return <ChildNotFound />;
   }
+
+  const { questionsData, locale, slug } = loaderData;
 
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>

@@ -1,7 +1,6 @@
 // Profile story page
 import * as React from "react";
-import { createFileRoute, notFound, getRouteApi } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { StoryContent } from "@/components/widgets/story-content";
 import { compileMdx } from "@/lib/mdx";
@@ -9,6 +8,7 @@ import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { generateMetaTags, truncateDescription } from "@/lib/seo";
+import { ChildNotFound } from "../../route";
 
 const profileRoute = getRouteApi("/$locale/$slug");
 
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     const story = await backend.getProfileStory(locale, slug, storyslug);
 
     if (story === null || story === undefined) {
-      throw notFound();
+      return { story: null, compiledContent: null, currentUrl: null, locale, slug, notFound: true as const };
     }
 
     // Compile MDX content on the server
@@ -35,10 +35,10 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     // Build current URL for sharing
     const currentUrl = `${siteConfig.host}/${locale}/${slug}/stories/${storyslug}`;
 
-    return { story, compiledContent, currentUrl, locale, slug };
+    return { story, compiledContent, currentUrl, locale, slug, notFound: false as const };
   },
   head: ({ loaderData }) => {
-    if (loaderData === undefined) {
+    if (loaderData === undefined || loaderData.notFound || loaderData.story === null) {
       return { meta: [] };
     }
     const { story, currentUrl, locale } = loaderData;
@@ -57,15 +57,21 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     };
   },
   component: ProfileStoryPage,
-  notFoundComponent: StoryNotFound,
+  notFoundComponent: ChildNotFound,
 });
 
 function ProfileStoryPage() {
   const params = Route.useParams();
   const auth = useAuth();
-  const { story, compiledContent, currentUrl, locale, slug } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
   const { profile, permissions } = profileRoute.useLoaderData();
   const [canEdit, setCanEdit] = React.useState(false);
+
+  if (loaderData.notFound || loaderData.story === null || profile === null) {
+    return <ChildNotFound />;
+  }
+
+  const { story, compiledContent, currentUrl, locale, slug } = loaderData;
 
   // Check edit permissions
   React.useEffect(() => {
@@ -81,10 +87,6 @@ function ProfileStoryPage() {
       setCanEdit(false);
     }
   }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug, story.id]);
-
-  if (profile === null) {
-    return <StoryNotFound />;
-  }
 
   const editUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/edit` : undefined;
 
@@ -104,20 +106,5 @@ function ProfileStoryPage() {
         editUrl={editUrl}
       />
     </ProfileSidebarLayout>
-  );
-}
-
-function StoryNotFound() {
-  const { t } = useTranslation();
-
-  return (
-    <div className="content">
-      <h2>{t("Layout.Page not found")}</h2>
-      <p className="text-muted-foreground">
-        {t(
-          "Layout.The page you are looking for does not exist. Please check your spelling and try again.",
-        )}
-      </p>
-    </div>
   );
 }

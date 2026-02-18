@@ -1,6 +1,7 @@
 // Profile links page
-import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ChildNotFound } from "./route";
 import {
   Globe,
   Instagram,
@@ -47,13 +48,13 @@ export const Route = createFileRoute("/$locale/$slug/links")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile?.feature_links === "disabled") {
-      throw notFound();
+      return { links: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
     }
 
     const links = await backend.getProfileLinks(locale, slug);
 
     if (links === null) {
-      throw notFound();
+      return { links: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
     }
 
     // Ensure locale translations are loaded before translating
@@ -69,10 +70,11 @@ export const Route = createFileRoute("/$locale/$slug/links")({
       profileTitle: profile?.title ?? slug,
       translatedTitle,
       translatedDescription,
+      notFound: false as const,
     };
   },
   head: ({ loaderData }) => {
-    if (loaderData === undefined) {
+    if (loaderData === undefined || loaderData.notFound) {
       return { meta: [] };
     }
 
@@ -89,16 +91,19 @@ export const Route = createFileRoute("/$locale/$slug/links")({
     };
   },
   component: LinksPage,
+  notFoundComponent: ChildNotFound,
 });
 
 function LinksPage() {
-  const { links, locale, slug } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
   const { profile, permissions } = parentRoute.useLoaderData();
   const { t } = useTranslation();
 
-  if (profile === null) {
-    return null;
+  if (loaderData.notFound || loaderData.links === null || profile === null) {
+    return <ChildNotFound />;
   }
+
+  const { links, locale, slug } = loaderData;
 
   // Group links by their group field
   const groupedLinks = groupLinksByGroup(links ?? []);

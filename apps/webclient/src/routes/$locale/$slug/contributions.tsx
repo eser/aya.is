@@ -1,11 +1,12 @@
 // Profile contributions page
-import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { ContributionCard } from "@/components/userland/contribution-card/contribution-card";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
+import { ChildNotFound } from "./route";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
@@ -15,13 +16,13 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile?.feature_relations === "disabled") {
-      throw notFound();
+      return { contributions: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
     }
 
     const contributions = await backend.getProfileContributions(locale, slug);
 
     if (contributions === null) {
-      throw notFound();
+      return { contributions: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
     }
 
     // Ensure locale translations are loaded before translating
@@ -37,10 +38,11 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
       profileTitle: profile?.title ?? slug,
       translatedTitle,
       translatedDescription,
+      notFound: false as const,
     };
   },
   head: ({ loaderData }) => {
-    if (loaderData === undefined) {
+    if (loaderData === undefined || loaderData.notFound) {
       return { meta: [] };
     }
 
@@ -57,16 +59,19 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
     };
   },
   component: ContributionsPage,
+  notFoundComponent: ChildNotFound,
 });
 
 function ContributionsPage() {
-  const { contributions, locale, slug } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
   const { profile, permissions } = parentRoute.useLoaderData();
   const { t } = useTranslation();
 
-  if (profile === null) {
-    return null;
+  if (loaderData.notFound || loaderData.contributions === null || profile === null) {
+    return <ChildNotFound />;
   }
+
+  const { contributions, locale, slug } = loaderData;
 
   return (
     <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
