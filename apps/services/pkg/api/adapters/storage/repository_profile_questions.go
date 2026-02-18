@@ -10,20 +10,20 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/vars"
 )
 
-// IsQAHidden checks whether Q&A is hidden for a profile.
-func (r *Repository) IsQAHidden(ctx context.Context, profileID string) (bool, error) {
-	hidden, err := r.queries.IsProfileQAHidden(ctx, IsProfileQAHiddenParams{
+// GetQAVisibility returns the Q&A module visibility for a profile.
+func (r *Repository) GetQAVisibility(ctx context.Context, profileID string) (string, error) {
+	visibility, err := r.queries.GetProfileQAVisibility(ctx, GetProfileQAVisibilityParams{
 		ID: profileID,
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
+			return "public", nil
 		}
 
-		return false, err
+		return "public", err
 	}
 
-	return hidden, nil
+	return visibility, nil
 }
 
 // GetQuestion returns a single question by ID.

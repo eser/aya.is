@@ -1,5 +1,5 @@
 // Profile members page
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
@@ -12,8 +12,13 @@ const parentRoute = getRouteApi("/$locale/$slug");
 export const Route = createFileRoute("/$locale/$slug/members")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
-    const members = await backend.getProfileMembers(locale, slug);
     const profile = await backend.getProfile(locale, slug);
+
+    if (profile?.feature_relations === "disabled") {
+      throw notFound();
+    }
+
+    const members = await backend.getProfileMembers(locale, slug);
 
     // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);

@@ -1,5 +1,5 @@
 // Profile contributions page
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
@@ -12,8 +12,13 @@ const parentRoute = getRouteApi("/$locale/$slug");
 export const Route = createFileRoute("/$locale/$slug/contributions")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
-    const contributions = await backend.getProfileContributions(locale, slug);
     const profile = await backend.getProfile(locale, slug);
+
+    if (profile?.feature_relations === "disabled") {
+      throw notFound();
+    }
+
+    const contributions = await backend.getProfileContributions(locale, slug);
 
     // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);

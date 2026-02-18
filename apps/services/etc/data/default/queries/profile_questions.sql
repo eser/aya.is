@@ -1,5 +1,5 @@
--- name: IsProfileQAHidden :one
-SELECT hide_qa
+-- name: GetProfileQAVisibility :one
+SELECT feature_qa
 FROM "profile"
 WHERE id = sqlc.arg(id);
 

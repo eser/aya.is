@@ -60,12 +60,12 @@ func (s *Service) ListQuestions(
 		)
 	}
 
-	hidden, err := s.repo.IsQAHidden(ctx, profileID)
+	visibility, err := s.repo.GetQAVisibility(ctx, profileID)
 	if err != nil {
 		return cursors.Cursored[[]*Question]{}, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	if hidden {
+	if visibility == "disabled" {
 		return cursors.Cursored[[]*Question]{}, ErrQANotEnabled
 	}
 
@@ -112,12 +112,12 @@ func (s *Service) CreateQuestion(
 		return nil, fmt.Errorf("%w (slug: %s): %w", ErrFailedToGetRecord, params.ProfileSlug, err)
 	}
 
-	hidden, err := s.repo.IsQAHidden(ctx, profileID)
+	visibility, err := s.repo.GetQAVisibility(ctx, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	if hidden {
+	if visibility == "disabled" {
 		return nil, ErrQANotEnabled
 	}
 
@@ -283,12 +283,12 @@ func (s *Service) ToggleVote(ctx context.Context, params VoteParams) (bool, erro
 		return false, fmt.Errorf("%w (slug: %s): %w", ErrFailedToGetRecord, params.ProfileSlug, err)
 	}
 
-	hidden, err := s.repo.IsQAHidden(ctx, profileID)
+	visibility, err := s.repo.GetQAVisibility(ctx, profileID)
 	if err != nil {
 		return false, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	if hidden {
+	if visibility == "disabled" {
 		return false, ErrQANotEnabled
 	}
 

@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { backend, type Profile } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import { Switch } from "@/components/ui/switch";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 const settingsRoute = getRouteApi("/$locale/$slug/settings");
@@ -15,6 +16,57 @@ const settingsRoute = getRouteApi("/$locale/$slug/settings");
 export const Route = createFileRoute("/$locale/$slug/settings/preferences")({
   component: PreferencesPage,
 });
+
+type ModuleVisibility = "public" | "hidden" | "disabled";
+
+function VisibilityRadioGroup(props: {
+  value: ModuleVisibility;
+  onChange: (value: ModuleVisibility) => void;
+  t: (key: string) => string;
+  name: string;
+}) {
+  return (
+    <RadioGroup
+      value={props.value}
+      onValueChange={(val: ModuleVisibility) => props.onChange(val)}
+      className="gap-3"
+    >
+      <div className="flex items-start gap-2">
+        <RadioGroupItem value="public" id={`${props.name}-public`} className="mt-0.5" />
+        <div>
+          <Label htmlFor={`${props.name}-public`} className="font-medium cursor-pointer">
+            {props.t("Profile.Public")}
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            {props.t("Profile.Visible in navigation and accessible by everyone.")}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-start gap-2">
+        <RadioGroupItem value="hidden" id={`${props.name}-hidden`} className="mt-0.5" />
+        <div>
+          <Label htmlFor={`${props.name}-hidden`} className="font-medium cursor-pointer">
+            {props.t("Profile.Hidden")}
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            {props.t("Profile.Not shown in navigation, but accessible via direct link.")}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-start gap-2">
+        <RadioGroupItem value="disabled" id={`${props.name}-disabled`} className="mt-0.5" />
+        <div>
+          <Label htmlFor={`${props.name}-disabled`} className="font-medium cursor-pointer">
+            {props.t("Profile.Disabled")}
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            {props.t("Profile.Page is completely disabled and returns 404.")}
+          </p>
+        </div>
+      </div>
+    </RadioGroup>
+  );
+}
 
 function PreferencesPage() {
   const { t } = useTranslation();
@@ -26,26 +78,32 @@ function PreferencesPage() {
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [currentProfile, setCurrentProfile] = React.useState<Profile>(initialProfile);
-  const [hideRelations, setHideRelations] = React.useState(initialProfile.hide_relations ?? false);
-  const [hideLinks, setHideLinks] = React.useState(initialProfile.hide_links ?? false);
-  const [hideQA, setHideQA] = React.useState(initialProfile.hide_qa ?? false);
+  const [featureRelations, setFeatureRelations] = React.useState<ModuleVisibility>(
+    (initialProfile.feature_relations as ModuleVisibility) ?? "public",
+  );
+  const [featureLinks, setFeatureLinks] = React.useState<ModuleVisibility>(
+    (initialProfile.feature_links as ModuleVisibility) ?? "public",
+  );
+  const [featureQA, setFeatureQA] = React.useState<ModuleVisibility>(
+    (initialProfile.feature_qa as ModuleVisibility) ?? "public",
+  );
 
   // Update local state when loader data changes
   React.useEffect(() => {
     setCurrentProfile(initialProfile);
-    setHideRelations(initialProfile.hide_relations ?? false);
-    setHideLinks(initialProfile.hide_links ?? false);
-    setHideQA(initialProfile.hide_qa ?? false);
+    setFeatureRelations((initialProfile.feature_relations as ModuleVisibility) ?? "public");
+    setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? "public");
+    setFeatureQA((initialProfile.feature_qa as ModuleVisibility) ?? "public");
   }, [initialProfile]);
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
     return (
-      hideRelations !== (initialProfile.hide_relations ?? false) ||
-      hideLinks !== (initialProfile.hide_links ?? false) ||
-      hideQA !== (initialProfile.hide_qa ?? false)
+      featureRelations !== ((initialProfile.feature_relations as ModuleVisibility) ?? "public") ||
+      featureLinks !== ((initialProfile.feature_links as ModuleVisibility) ?? "public") ||
+      featureQA !== ((initialProfile.feature_qa as ModuleVisibility) ?? "public")
     );
-  }, [hideRelations, hideLinks, hideQA, initialProfile]);
+  }, [featureRelations, featureLinks, featureQA, initialProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,9 +111,9 @@ function PreferencesPage() {
 
     try {
       const result = await backend.updateProfile(params.locale, params.slug, {
-        hide_relations: hideRelations,
-        hide_links: hideLinks,
-        hide_qa: hideQA,
+        feature_relations: featureRelations,
+        feature_links: featureLinks,
+        feature_qa: featureQA,
       });
 
       if (result === null) {
@@ -68,9 +126,9 @@ function PreferencesPage() {
       // Update local state with new values
       setCurrentProfile((prev) => ({
         ...prev,
-        hide_relations: hideRelations,
-        hide_links: hideLinks,
-        hide_qa: hideQA,
+        feature_relations: featureRelations,
+        feature_links: featureLinks,
+        feature_qa: featureQA,
       }));
 
       // Invalidate router cache to refresh profile data
@@ -97,62 +155,61 @@ function PreferencesPage() {
             {t("Profile.Preferences")}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t("Profile.Control what appears on your profile sidebar.")}
+            {t("Profile.Control how modules appear on your profile.")}
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-        {/* Hide Relations (Members for org/product, Contributions for individual) */}
+      <form onSubmit={handleSubmit} className="mt-6 space-y-8">
+        {/* Relations (Members for org/product, Contributions for individual) */}
         {(showRelationsPreference || showContributionsPreference) && (
-          <Field orientation="horizontal" className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <FieldLabel>
-                {showContributionsPreference
-                  ? t("Profile.Hide Contributions")
-                  : t("Profile.Hide Members")}
-              </FieldLabel>
-              <FieldDescription>
-                {showContributionsPreference
-                  ? t("Profile.Hide the Contributions section from your profile sidebar.")
-                  : t("Profile.Hide the Members section from your profile sidebar.")}
-              </FieldDescription>
+          <Field>
+            <FieldLabel className="text-base font-medium">
+              {showContributionsPreference
+                ? t("Profile.Contributions Visibility")
+                : t("Profile.Members Visibility")}
+            </FieldLabel>
+            <div className="mt-2">
+              <VisibilityRadioGroup
+                value={featureRelations}
+                onChange={setFeatureRelations}
+                t={t}
+                name="relations"
+              />
             </div>
-            <Switch
-              checked={hideRelations}
-              onCheckedChange={setHideRelations}
-            />
           </Field>
         )}
 
-        {/* Hide Links */}
+        {/* Links */}
         {showLinksPreference && (
-          <Field orientation="horizontal" className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <FieldLabel>{t("Profile.Hide Links")}</FieldLabel>
-              <FieldDescription>
-                {t("Profile.Hide the Links section from your profile sidebar.")}
-              </FieldDescription>
+          <Field>
+            <FieldLabel className="text-base font-medium">
+              {t("Profile.Links Visibility")}
+            </FieldLabel>
+            <div className="mt-2">
+              <VisibilityRadioGroup
+                value={featureLinks}
+                onChange={setFeatureLinks}
+                t={t}
+                name="links"
+              />
             </div>
-            <Switch
-              checked={hideLinks}
-              onCheckedChange={setHideLinks}
-            />
           </Field>
         )}
 
-        {/* Hide Q&A */}
-        <Field orientation="horizontal" className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <FieldLabel>{t("Profile.Hide Q&A")}</FieldLabel>
-            <FieldDescription>
-              {t("Profile.Hide the Q&A section from your profile.")}
-            </FieldDescription>
+        {/* Q&A */}
+        <Field>
+          <FieldLabel className="text-base font-medium">
+            {t("Profile.Q&A Visibility")}
+          </FieldLabel>
+          <div className="mt-2">
+            <VisibilityRadioGroup
+              value={featureQA}
+              onChange={setFeatureQA}
+              t={t}
+              name="qa"
+            />
           </div>
-          <Switch
-            checked={hideQA}
-            onCheckedChange={setHideQA}
-          />
         </Field>
 
         {/* Save Button */}

@@ -8,8 +8,8 @@ import (
 
 // Repository defines the storage operations for profile questions (port).
 type Repository interface {
-	// IsQAHidden checks whether Q&A is hidden for a profile.
-	IsQAHidden(ctx context.Context, profileID string) (bool, error)
+	// GetQAVisibility returns the Q&A module visibility for a profile.
+	GetQAVisibility(ctx context.Context, profileID string) (string, error)
 
 	// GetQuestion returns a single question by ID.
 	GetQuestion(ctx context.Context, id string) (*Question, error)

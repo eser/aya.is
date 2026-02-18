@@ -5,9 +5,9 @@ export type UpdateProfileRequest = {
   profile_picture_uri?: string | null;
   pronouns?: string | null;
   properties?: Record<string, unknown> | null;
-  hide_relations?: boolean;
-  hide_links?: boolean;
-  hide_qa?: boolean;
+  feature_relations?: string;
+  feature_links?: string;
+  feature_qa?: string;
 };
 
 export async function updateProfile(

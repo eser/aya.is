@@ -273,7 +273,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             </LocaleLink>
           </li>
 
-          {props.profile.kind === "individual" && props.profile.hide_relations !== true && (
+          {props.profile.kind === "individual" && props.profile.feature_relations === "public" && (
             <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
               <LocaleLink
                 to={`/${props.slug}/contributions`}
@@ -287,7 +287,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
           {(props.profile.kind === "organization" ||
             props.profile.kind === "product") && (
             <>
-              {props.profile.hide_relations !== true && (
+              {props.profile.feature_relations === "public" && (
                 <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
                   <LocaleLink
                     to={`/${props.slug}/members`}
@@ -297,7 +297,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                   </LocaleLink>
                 </li>
               )}
-              {props.profile.hide_links !== true && (
+              {props.profile.feature_links === "public" && (
                 <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
                   <LocaleLink
                     to={`/${props.slug}/links`}
@@ -310,7 +310,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             </>
           )}
 
-          {props.profile.hide_qa !== true && (
+          {props.profile.feature_qa === "public" && (
             <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
               <LocaleLink
                 to={`/${props.slug}/qa`}

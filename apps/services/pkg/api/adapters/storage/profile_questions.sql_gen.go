@@ -120,6 +120,28 @@ func (q *Queries) EditProfileQuestionAnswer(ctx context.Context, arg EditProfile
 	return err
 }
 
+const getProfileQAVisibility = `-- name: GetProfileQAVisibility :one
+SELECT feature_qa
+FROM "profile"
+WHERE id = $1
+`
+
+type GetProfileQAVisibilityParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// GetProfileQAVisibility
+//
+//	SELECT feature_qa
+//	FROM "profile"
+//	WHERE id = $1
+func (q *Queries) GetProfileQAVisibility(ctx context.Context, arg GetProfileQAVisibilityParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getProfileQAVisibility, arg.ID)
+	var feature_qa string
+	err := row.Scan(&feature_qa)
+	return feature_qa, err
+}
+
 const getProfileQuestion = `-- name: GetProfileQuestion :one
 SELECT id, profile_id, author_user_id, content, answer_content, answer_uri, answer_kind, answered_at, answered_by, is_anonymous, is_hidden, vote_count, created_at, updated_at, deleted_at
 FROM "profile_question"
@@ -343,28 +365,6 @@ func (q *Queries) InsertProfileQuestionVote(ctx context.Context, arg InsertProfi
 		&i.CreatedAt,
 	)
 	return &i, err
-}
-
-const isProfileQAHidden = `-- name: IsProfileQAHidden :one
-SELECT hide_qa
-FROM "profile"
-WHERE id = $1
-`
-
-type IsProfileQAHiddenParams struct {
-	ID string `db:"id" json:"id"`
-}
-
-// IsProfileQAHidden
-//
-//	SELECT hide_qa
-//	FROM "profile"
-//	WHERE id = $1
-func (q *Queries) IsProfileQAHidden(ctx context.Context, arg IsProfileQAHiddenParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, isProfileQAHidden, arg.ID)
-	var hide_qa bool
-	err := row.Scan(&hide_qa)
-	return hide_qa, err
 }
 
 const listProfileQuestionsByProfileID = `-- name: ListProfileQuestionsByProfileID :many

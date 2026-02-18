@@ -1,5 +1,5 @@
 // Profile Q&A page
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
@@ -11,8 +11,13 @@ const parentRoute = getRouteApi("/$locale/$slug");
 export const Route = createFileRoute("/$locale/$slug/qa/")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
-    const questionsData = await backend.getProfileQuestions(locale, slug);
     const profile = await backend.getProfile(locale, slug);
+
+    if (profile?.feature_qa === "disabled") {
+      throw notFound();
+    }
+
+    const questionsData = await backend.getProfileQuestions(locale, slug);
 
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);

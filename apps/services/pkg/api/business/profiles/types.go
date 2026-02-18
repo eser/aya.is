@@ -28,6 +28,15 @@ const (
 	LinkVisibilityOwners       LinkVisibility = "owners"       // Owners only
 )
 
+// ModuleVisibility defines the visibility state of a profile module (e.g. Q&A, contributions).
+type ModuleVisibility string
+
+const (
+	ModuleVisibilityPublic   ModuleVisibility = "public"   // Enabled and shown in navigation
+	ModuleVisibilityHidden   ModuleVisibility = "hidden"   // Enabled but not shown in navigation
+	ModuleVisibilityDisabled ModuleVisibility = "disabled" // Completely disabled, returns 404
+)
+
 // MembershipKind represents the type of membership a profile has with another.
 type MembershipKind string
 
@@ -77,9 +86,9 @@ type Profile struct {
 	DefaultLocale     string     `json:"default_locale"`
 	Points            uint64     `json:"points"`
 	HasTranslation    bool       `json:"has_translation"`
-	HideRelations     bool       `json:"hide_relations"` // Hides Members/Contributions from sidebar
-	HideLinks         bool       `json:"hide_links"`     // Hides Links from sidebar
-	HideQA            bool       `json:"hide_qa"`
+	FeatureRelations  string     `json:"feature_relations"` // Visibility of Members/Contributions module
+	FeatureLinks      string     `json:"feature_links"`     // Visibility of Links module
+	FeatureQA         string     `json:"feature_qa"`        // Visibility of Q&A module
 }
 
 type ProfileCustomDomain struct {

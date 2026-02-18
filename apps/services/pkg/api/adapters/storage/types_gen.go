@@ -98,10 +98,10 @@ type Profile struct {
 	DeletedAt         sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 	ApprovedAt        sql.NullTime          `db:"approved_at" json:"approved_at"`
 	Points            int32                 `db:"points" json:"points"`
-	HideRelations     bool                  `db:"hide_relations" json:"hide_relations"`
-	HideLinks         bool                  `db:"hide_links" json:"hide_links"`
+	FeatureRelations  string                `db:"feature_relations" json:"feature_relations"`
+	FeatureLinks      string                `db:"feature_links" json:"feature_links"`
 	DefaultLocale     string                `db:"default_locale" json:"default_locale"`
-	HideQa            bool                  `db:"hide_qa" json:"hide_qa"`
+	FeatureQa         string                `db:"feature_qa" json:"feature_qa"`
 }
 
 type ProfileCustomDomain struct {

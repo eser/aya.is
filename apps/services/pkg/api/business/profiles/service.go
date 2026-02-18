@@ -28,6 +28,7 @@ var (
 	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
 	ErrSearchFailed         = errors.New("search failed")
 	ErrDuplicateRecord      = errors.New("duplicate record")
+	ErrInvalidInput         = errors.New("invalid input")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -249,9 +250,9 @@ type Repository interface { //nolint:interfacebloat
 		profilePictureURI *string,
 		pronouns *string,
 		properties map[string]any,
-		hideRelations *bool,
-		hideLinks *bool,
-		hideQA *bool,
+		featureRelations *string,
+		featureLinks *string,
+		featureQA *string,
 	) error
 	UpdateProfileTx(
 		ctx context.Context,
@@ -1414,9 +1415,9 @@ func (s *Service) Update(
 	profilePictureURI *string,
 	pronouns *string,
 	properties map[string]any,
-	hideRelations *bool,
-	hideLinks *bool,
-	hideQA *bool,
+	featureRelations *string,
+	featureLinks *string,
+	featureQA *string,
 ) (*Profile, error) {
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
@@ -1445,6 +1446,17 @@ func (s *Service) Update(
 		}
 	}
 
+	// Validate module visibility values
+	for _, v := range []*string{featureRelations, featureLinks, featureQA} {
+		if v != nil {
+			switch ModuleVisibility(*v) {
+			case ModuleVisibilityPublic, ModuleVisibilityHidden, ModuleVisibilityDisabled:
+			default:
+				return nil, ErrInvalidInput
+			}
+		}
+	}
+
 	// Update the profile
 	err = s.repo.UpdateProfile(
 		ctx,
@@ -1452,9 +1464,9 @@ func (s *Service) Update(
 		profilePictureURI,
 		pronouns,
 		properties,
-		hideRelations,
-		hideLinks,
-		hideQA,
+		featureRelations,
+		featureLinks,
+		featureQA,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToUpdateRecord, profileID, err)

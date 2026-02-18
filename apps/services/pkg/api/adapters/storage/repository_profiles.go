@@ -256,9 +256,9 @@ func (r *Repository) GetProfileByID(
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
 		Points:            uint64(row.Profile.Points),
-		HideRelations:     row.Profile.HideRelations,
-		HideLinks:         row.Profile.HideLinks,
-		HideQA:            row.Profile.HideQa,
+		FeatureRelations:  row.Profile.FeatureRelations,
+		FeatureLinks:      row.Profile.FeatureLinks,
+		FeatureQA:         row.Profile.FeatureQa,
 	}
 
 	return result, nil
@@ -298,9 +298,9 @@ func (r *Repository) ListProfiles(
 			CreatedAt:         row.Profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
-			HideRelations:     row.Profile.HideRelations,
-			HideLinks:         row.Profile.HideLinks,
-			HideQA:            row.Profile.HideQa,
+			FeatureRelations:  row.Profile.FeatureRelations,
+			FeatureLinks:      row.Profile.FeatureLinks,
+			FeatureQA:         row.Profile.FeatureQa,
 		}
 	}
 
@@ -667,18 +667,18 @@ func (r *Repository) UpdateProfile(
 	profilePictureURI *string,
 	pronouns *string,
 	properties map[string]any,
-	hideRelations *bool,
-	hideLinks *bool,
-	hideQA *bool,
+	featureRelations *string,
+	featureLinks *string,
+	featureQA *string,
 ) error {
 	params := UpdateProfileParams{
 		ID:                id,
 		ProfilePictureURI: vars.ToSQLNullString(profilePictureURI),
 		Pronouns:          vars.ToSQLNullString(pronouns),
 		Properties:        vars.ToSQLNullRawMessage(properties),
-		HideRelations:     vars.ToSQLNullBool(hideRelations),
-		HideLinks:         vars.ToSQLNullBool(hideLinks),
-		HideQa:            vars.ToSQLNullBool(hideQA),
+		FeatureRelations:  vars.ToSQLNullString(featureRelations),
+		FeatureLinks:      vars.ToSQLNullString(featureLinks),
+		FeatureQa:         vars.ToSQLNullString(featureQA),
 	}
 
 	_, err := r.queries.UpdateProfile(ctx, params)

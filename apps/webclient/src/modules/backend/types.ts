@@ -18,9 +18,9 @@ export interface Profile {
   pages?: ProfilePage[];
   points: number;
   has_translation?: boolean;
-  hide_relations?: boolean; // Hides Members/Contributions from sidebar
-  hide_links?: boolean; // Hides Links from sidebar
-  hide_qa?: boolean; // Hides Q&A section from sidebar
+  feature_relations?: string; // Visibility of Members/Contributions module
+  feature_links?: string; // Visibility of Links module
+  feature_qa?: string; // Visibility of Q&A module
   created_at: string;
   updated_at: string;
 }

@@ -1,5 +1,5 @@
 // Profile links page
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, notFound } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
   Globe,
@@ -44,8 +44,13 @@ function getLinkTypeConfig(kind: ProfileLinkKind): LinkTypeConfig {
 export const Route = createFileRoute("/$locale/$slug/links")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
-    const links = await backend.getProfileLinks(locale, slug);
     const profile = await backend.getProfile(locale, slug);
+
+    if (profile?.feature_links === "disabled") {
+      throw notFound();
+    }
+
+    const links = await backend.getProfileLinks(locale, slug);
 
     // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);
