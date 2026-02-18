@@ -34,11 +34,7 @@
 }
 
 .title {
-  @apply text-xl font-semibold text-foreground mb-1 transition-colors duration-200;
-
-  &:hover {
-    @apply text-primary;
-  }
+  @apply text-xl font-semibold text-foreground mb-1 transition-colors duration-200 group-hover:text-primary;
 }
 
 .summary {
