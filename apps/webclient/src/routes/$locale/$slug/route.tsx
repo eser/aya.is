@@ -1,5 +1,5 @@
 // Profile route - loads profile data and passes through to children
-import { createFileRoute, ErrorComponent, Outlet, useMatches } from "@tanstack/react-router";
+import { CatchNotFound, createFileRoute, ErrorComponent, Outlet, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -60,6 +60,19 @@ function ProfileNotFound() {
   );
 }
 
+function ChildNotFound() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="py-16 text-center">
+      <h2 className="font-serif text-2xl font-bold mb-4">{t("Layout.Page not found")}</h2>
+      <p className="text-muted-foreground">
+        {t("Layout.The page you are looking for does not exist. Please check your spelling and try again.")}
+      </p>
+    </div>
+  );
+}
+
 function ProfileRoute() {
   const loaderData = Route.useLoaderData();
   const matches = useMatches();
@@ -77,7 +90,9 @@ function ProfileRoute() {
   if (isFullWidthRoute) {
     return (
       <PageLayout fullHeight>
-        <Outlet />
+        <CatchNotFound fallback={<ChildNotFound />}>
+          <Outlet />
+        </CatchNotFound>
       </PageLayout>
     );
   }
@@ -86,7 +101,9 @@ function ProfileRoute() {
   return (
     <PageLayout>
       <section className="container px-4 py-8 mx-auto">
-        <Outlet />
+        <CatchNotFound fallback={<ChildNotFound />}>
+          <Outlet />
+        </CatchNotFound>
       </section>
     </PageLayout>
   );

@@ -52,29 +52,7 @@ export const Route = createFileRoute("/$locale/$slug/members")({
     };
   },
   component: MembersPage,
-  notFoundComponent: MembersNotFound,
 });
-
-function MembersNotFound() {
-  const { profile, permissions } = parentRoute.useLoaderData();
-  const { t } = useTranslation();
-  const { locale, slug } = Route.useParams();
-
-  if (profile === null) {
-    return null;
-  }
-
-  return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
-      <div className="py-16 text-center">
-        <h2 className="font-serif text-2xl font-bold mb-4">{t("Layout.Page not found")}</h2>
-        <p className="text-muted-foreground">
-          {t("Layout.The page you are looking for does not exist. Please check your spelling and try again.")}
-        </p>
-      </div>
-    </ProfileSidebarLayout>
-  );
-}
 
 function MembersPage() {
   const { members, locale, slug } = Route.useLoaderData();
