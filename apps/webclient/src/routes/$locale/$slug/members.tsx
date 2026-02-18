@@ -20,6 +20,10 @@ export const Route = createFileRoute("/$locale/$slug/members")({
 
     const members = await backend.getProfileMembers(locale, slug);
 
+    if (members === null) {
+      throw notFound();
+    }
+
     // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);

@@ -19,6 +19,10 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
 
     const questionsData = await backend.getProfileQuestions(locale, slug);
 
+    if (questionsData === null) {
+      throw notFound();
+    }
+
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = `${t("Layout.Q&A")} - ${profile?.title ?? slug}`;
