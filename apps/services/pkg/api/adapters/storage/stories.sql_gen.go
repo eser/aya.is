@@ -67,7 +67,8 @@ SELECT
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
-  pb.publications
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = (
@@ -123,6 +124,7 @@ type GetStoryByIDRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // GetStoryByID
@@ -132,7 +134,8 @@ type GetStoryByIDRow struct {
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
-//	  pb.publications
+//	  pb.publications,
+//	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = (
@@ -221,6 +224,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.ProfileTx.Properties,
 		&i.ProfileTx.SearchVector,
 		&i.Publications,
+		&i.PublishedAt,
 	)
 	return &i, err
 }

@@ -7,4 +7,4 @@ export { ListItem } from "./list/list-item";
 export { Story } from "./story/story";
 export { SiteLink } from "./site-link/site-link";
 export { SiteAvatar, type SiteAvatarProps } from "./site-avatar";
-export { Embed, TwitterEmbed, YouTubeEmbed } from "./embeds";
+export { Embed, PDF, TwitterEmbed, YouTubeEmbed } from "./embeds";

@@ -88,6 +88,7 @@ type speakerDeckImportMeta struct {
 	description     string
 	thumbnailURL    string
 	link            string
+	pdfURL          string
 	publishedAt     time.Time
 	storyPictureURI *string
 }
@@ -98,6 +99,7 @@ func extractImportMeta(imp *linksync.LinkImportForStoryCreation) *speakerDeckImp
 	description, _ := imp.Properties["description"].(string)
 	thumbnailURL, _ := imp.Properties["thumbnail_url"].(string)
 	link, _ := imp.Properties["link"].(string)
+	pdfURL, _ := imp.Properties["pdf_url"].(string)
 	publishedAtStr, _ := imp.Properties["published_at"].(string)
 
 	if title == "" {
@@ -122,6 +124,7 @@ func extractImportMeta(imp *linksync.LinkImportForStoryCreation) *speakerDeckImp
 		description:     description,
 		thumbnailURL:    thumbnailURL,
 		link:            link,
+		pdfURL:          pdfURL,
 		publishedAt:     publishedAt,
 		storyPictureURI: storyPictureURI,
 	}
@@ -156,7 +159,7 @@ func (w *SpeakerDeckStoryProcessor) createStoryFromImport(
 		return fmt.Errorf("failed to insert story: %w", err)
 	}
 
-	content := buildSpeakerDeckStoryContent(meta.link, meta.description)
+	content := buildSpeakerDeckStoryContent(meta.pdfURL, meta.link, meta.description)
 	summary := truncateSummary(meta.description, maxSummaryLength)
 
 	err = w.storyRepo.InsertStoryTx(ctx, storyID, locale, meta.title, summary, content)
@@ -182,10 +185,17 @@ func (w *SpeakerDeckStoryProcessor) createStoryFromImport(
 }
 
 // buildSpeakerDeckStoryContent builds the story content from a SpeakerDeck presentation.
-func buildSpeakerDeckStoryContent(presentationLink string, description string) string {
+// Uses <PDF> MDX component when PDF URL is available, falls back to %[link] embed.
+func buildSpeakerDeckStoryContent(
+	pdfURL string,
+	presentationLink string,
+	description string,
+) string {
 	var content string
 
-	if presentationLink != "" {
+	if pdfURL != "" {
+		content = `<PDF src="` + pdfURL + `" />`
+	} else if presentationLink != "" {
 		content = "%[" + presentationLink + "]"
 	}
 

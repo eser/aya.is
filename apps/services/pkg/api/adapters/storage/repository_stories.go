@@ -136,6 +136,10 @@ func (r *Repository) GetStoryByID(
 		return nil, err
 	}
 
+	if t, ok := row.PublishedAt.(time.Time); ok {
+		result.PublishedAt = &t
+	}
+
 	return result, nil
 }
 

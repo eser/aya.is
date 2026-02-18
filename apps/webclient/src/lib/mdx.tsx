@@ -13,6 +13,7 @@ import {
   Embed,
   List,
   ListItem,
+  PDF,
   ProfileCard,
   ProfileList,
   SiteLink,
@@ -77,6 +78,7 @@ export function createMdxComponents(
     components.Embed = Embed;
     components.List = List;
     components.ListItem = ListItem;
+    components.PDF = PDF;
     components.ProfileCard = ProfileCard;
     components.ProfileList = ProfileList;
     components.SiteLink = SiteLink;

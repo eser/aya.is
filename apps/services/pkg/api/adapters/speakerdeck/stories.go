@@ -99,6 +99,17 @@ func (p *Provider) parseRSSItem(ctx context.Context, item *gofeed.Item) *siteimp
 	// Extract thumbnail URL from media:content or enclosures
 	thumbnailURL := extractThumbnailURL(item)
 
+	// Fetch PDF URL from the presentation page (via JSON-LD)
+	pdfURL := ""
+	if item.Link != "" {
+		pdfURL = p.FetchPDFURL(ctx, item.Link)
+	}
+
+	props := make(map[string]any)
+	if pdfURL != "" {
+		props["pdf_url"] = pdfURL
+	}
+
 	return &siteimporter.ImportItem{
 		RemoteID:     remoteID,
 		Title:        item.Title,
@@ -107,7 +118,7 @@ func (p *Provider) parseRSSItem(ctx context.Context, item *gofeed.Item) *siteimp
 		Link:         item.Link,
 		ThumbnailURL: thumbnailURL,
 		StoryKind:    "presentation",
-		Properties:   make(map[string]any),
+		Properties:   props,
 	}
 }
 

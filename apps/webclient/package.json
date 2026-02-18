@@ -42,6 +42,7 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "^19.2.3",
     "react-i18next": "^16.5.3",
+    "react-pdf": "^10.3.0",
     "react-resizable-panels": "^4.4.1",
     "reading-time": "^1.5.0",
     "recharts": "2.15.4",

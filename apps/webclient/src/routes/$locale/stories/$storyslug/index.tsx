@@ -48,7 +48,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
         image: story.story_picture_uri,
         locale,
         type: "article",
-        publishedTime: story.created_at,
+        publishedTime: story.published_at ?? story.created_at,
         modifiedTime: story.updated_at,
         author: story.author_profile?.title ?? null,
       }),

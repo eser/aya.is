@@ -44,7 +44,8 @@ SELECT
   sqlc.embed(st),
   sqlc.embed(p),
   sqlc.embed(pt),
-  pb.publications
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = (
