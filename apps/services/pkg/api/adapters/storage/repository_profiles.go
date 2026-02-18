@@ -1409,6 +1409,42 @@ func (r *Repository) GetProfileLinkByRemoteID(
 	return result, nil
 }
 
+// isProfileLinkRemoteIDInUseSQL checks if a remote_id is already used by another profile's active link.
+const isProfileLinkRemoteIDInUseSQL = `
+SELECT EXISTS(
+  SELECT 1
+  FROM "profile_link"
+  WHERE kind = $1
+    AND remote_id = $2
+    AND profile_id != $3
+    AND deleted_at IS NULL
+)
+`
+
+// IsProfileLinkRemoteIDInUse returns true if the given remote_id is already used
+// by another profile's active link of the same kind.
+func (r *Repository) IsProfileLinkRemoteIDInUse(
+	ctx context.Context,
+	kind string,
+	remoteID string,
+	excludeProfileID string,
+) (bool, error) {
+	var exists bool
+
+	err := r.dbtx.QueryRowContext(
+		ctx,
+		isProfileLinkRemoteIDInUseSQL,
+		kind,
+		remoteID,
+		excludeProfileID,
+	).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
 func (r *Repository) CreateOAuthProfileLink(
 	ctx context.Context,
 	id string,

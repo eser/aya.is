@@ -368,6 +368,37 @@ func RegisterHTTPRoutesForProfileLinks(
 				return ctx.Results.Redirect(redirectURL)
 			}
 
+			// Check if this remote_id is already used by another profile's link
+			inUse, checkErr := profileService.IsProfileLinkRemoteIDInUse(
+				ctx.Request.Context(),
+				linkKind,
+				result.RemoteID,
+				profileID,
+			)
+			if checkErr != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to check remote_id uniqueness",
+					slog.String("error", checkErr.Error()),
+					slog.String("remote_id", result.RemoteID))
+
+				redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?error=oauth_failed",
+					stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug)
+
+				return ctx.Results.Redirect(redirectURL)
+			}
+
+			if inUse {
+				logger.WarnContext(ctx.Request.Context(),
+					"Remote ID already in use by another profile",
+					slog.String("remote_id", result.RemoteID),
+					slog.String("kind", linkKind),
+					slog.String("profile_id", profileID))
+
+				redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?error=remote_id_in_use",
+					stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug)
+
+				return ctx.Results.Redirect(redirectURL)
+			}
+
 			var expiresAt *sql.NullTime
 			if result.AccessTokenExpiresAt != nil {
 				expiresAt = &sql.NullTime{Time: *result.AccessTokenExpiresAt, Valid: true}
@@ -623,6 +654,32 @@ func RegisterHTTPRoutesForProfileLinks(
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
 					httpfx.WithErrorMessage("Failed to check existing link"),
+				)
+			}
+
+			// Check if this remote_id is already used by another profile
+			inUse, checkErr := profileService.IsProfileLinkRemoteIDInUse(
+				ctx.Request.Context(),
+				"github",
+				reqBody.AccountID,
+				profileID,
+			)
+			if checkErr != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to check remote_id uniqueness",
+					slog.String("error", checkErr.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to check remote ID"),
+				)
+			}
+
+			if inUse {
+				return ctx.Results.Error(
+					http.StatusConflict,
+					httpfx.WithErrorMessage(
+						"This GitHub account is already connected to another profile",
+					),
 				)
 			}
 

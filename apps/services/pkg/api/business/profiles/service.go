@@ -403,6 +403,12 @@ type Repository interface { //nolint:interfacebloat
 		kind string,
 		remoteID string,
 	) (*ProfileLink, error)
+	IsProfileLinkRemoteIDInUse(
+		ctx context.Context,
+		kind string,
+		remoteID string,
+		excludeProfileID string,
+	) (bool, error)
 	CreateOAuthProfileLink(
 		ctx context.Context,
 		id string,
@@ -2513,6 +2519,18 @@ func (s *Service) GetProfileLinkByRemoteID(
 	remoteID string,
 ) (*ProfileLink, error) {
 	return s.repo.GetProfileLinkByRemoteID(ctx, profileID, kind, remoteID)
+}
+
+// IsProfileLinkRemoteIDInUse checks if a remote_id is already used by another
+// profile's active link of the same kind (e.g., prevents connecting the same
+// GitHub account to multiple profiles).
+func (s *Service) IsProfileLinkRemoteIDInUse(
+	ctx context.Context,
+	kind string,
+	remoteID string,
+	excludeProfileID string,
+) (bool, error) {
+	return s.repo.IsProfileLinkRemoteIDInUse(ctx, kind, remoteID, excludeProfileID)
 }
 
 // UpdateProfileLinkOAuthTokens updates the OAuth tokens for an existing profile link.

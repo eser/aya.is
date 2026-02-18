@@ -242,9 +242,12 @@ func (r *Repository) GetProfileLinkByRemoteIDForResourceSync(
 }
 
 // getProfileLinksByRemoteIDsSQL batch-loads profile_links by kind and multiple remote_ids.
+// Joins with profile to filter for individual profiles only, since contributor matching
+// should find the person, not organizations/products that share the same OAuth token.
 const getProfileLinksByRemoteIDsSQL = `
 SELECT pl.remote_id, pl.profile_id
 FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id AND p.kind = 'individual'
 WHERE pl.kind = $1
   AND pl.remote_id = ANY($2::TEXT[])
   AND pl.deleted_at IS NULL
