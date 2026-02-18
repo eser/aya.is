@@ -785,7 +785,13 @@ SELECT
   pt.profile_id IS NOT NULL as has_translation
 FROM "profile" p
   LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = sqlc.arg(locale_code)
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
+    ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE p.deleted_at IS NULL
   AND (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
 ORDER BY p.created_at DESC
@@ -814,7 +820,13 @@ SELECT
   pt.profile_id IS NOT NULL as has_translation
 FROM "profile" p
   LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = sqlc.arg(locale_code)
+  AND pt.locale_code = (
+    SELECT ptf.locale_code FROM "profile_tx" ptf
+    WHERE ptf.profile_id = p.id
+    AND (ptf.locale_code = sqlc.arg(locale_code) OR ptf.locale_code = p.default_locale)
+    ORDER BY CASE WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
 WHERE p.slug = sqlc.arg(slug)
   AND p.deleted_at IS NULL
 LIMIT 1;

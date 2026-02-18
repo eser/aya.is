@@ -614,7 +614,13 @@ type Querier interface {
 	//    pt.profile_id IS NOT NULL as has_translation
 	//  FROM "profile" p
 	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
-	//    AND pt.locale_code = $1
+	//    AND pt.locale_code = (
+	//      SELECT ptf.locale_code FROM "profile_tx" ptf
+	//      WHERE ptf.profile_id = p.id
+	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
+	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      LIMIT 1
+	//    )
 	//  WHERE p.slug = $2
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
@@ -1446,7 +1452,13 @@ type Querier interface {
 	//    pt.profile_id IS NOT NULL as has_translation
 	//  FROM "profile" p
 	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
-	//    AND pt.locale_code = $1
+	//    AND pt.locale_code = (
+	//      SELECT ptf.locale_code FROM "profile_tx" ptf
+	//      WHERE ptf.profile_id = p.id
+	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
+	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      LIMIT 1
+	//    )
 	//  WHERE p.deleted_at IS NULL
 	//    AND ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
 	//  ORDER BY p.created_at DESC
