@@ -493,7 +493,8 @@ FROM
     )
 WHERE pm.deleted_at IS NULL
     AND (sqlc.narg(filter_profile_id)::TEXT IS NULL OR pm.profile_id = sqlc.narg(filter_profile_id)::TEXT)
-    AND (sqlc.narg(filter_member_profile_id)::TEXT IS NULL OR pm.member_profile_id = sqlc.narg(filter_member_profile_id)::TEXT);
+    AND (sqlc.narg(filter_member_profile_id)::TEXT IS NULL OR pm.member_profile_id = sqlc.narg(filter_member_profile_id)::TEXT)
+    AND (sqlc.narg(filter_membership_kind_exclude)::TEXT IS NULL OR pm.kind != sqlc.narg(filter_membership_kind_exclude)::TEXT);
 
 -- name: GetProfileMembershipsByMemberProfileID :many
 SELECT

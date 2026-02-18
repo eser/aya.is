@@ -1677,6 +1677,7 @@ type Querier interface {
 	//  WHERE pm.deleted_at IS NULL
 	//      AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
 	//      AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
+	//      AND ($6::TEXT IS NULL OR pm.kind != $6::TEXT)
 	ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error)
 	//ListProfileMembershipsForSettings
 	//

@@ -2869,14 +2869,16 @@ FROM
 WHERE pm.deleted_at IS NULL
     AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
     AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
+    AND ($6::TEXT IS NULL OR pm.kind != $6::TEXT)
 `
 
 type ListProfileMembershipsParams struct {
-	FilterProfileKind       sql.NullString `db:"filter_profile_kind" json:"filter_profile_kind"`
-	LocaleCode              string         `db:"locale_code" json:"locale_code"`
-	FilterMemberProfileKind sql.NullString `db:"filter_member_profile_kind" json:"filter_member_profile_kind"`
-	FilterProfileID         sql.NullString `db:"filter_profile_id" json:"filter_profile_id"`
-	FilterMemberProfileID   sql.NullString `db:"filter_member_profile_id" json:"filter_member_profile_id"`
+	FilterProfileKind           sql.NullString `db:"filter_profile_kind" json:"filter_profile_kind"`
+	LocaleCode                  string         `db:"locale_code" json:"locale_code"`
+	FilterMemberProfileKind     sql.NullString `db:"filter_member_profile_kind" json:"filter_member_profile_kind"`
+	FilterProfileID             sql.NullString `db:"filter_profile_id" json:"filter_profile_id"`
+	FilterMemberProfileID       sql.NullString `db:"filter_member_profile_id" json:"filter_member_profile_id"`
+	FilterMembershipKindExclude sql.NullString `db:"filter_membership_kind_exclude" json:"filter_membership_kind_exclude"`
 }
 
 type ListProfileMembershipsRow struct {
@@ -2924,6 +2926,7 @@ type ListProfileMembershipsRow struct {
 //	WHERE pm.deleted_at IS NULL
 //	    AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
 //	    AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
+//	    AND ($6::TEXT IS NULL OR pm.kind != $6::TEXT)
 func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listProfileMemberships,
 		arg.FilterProfileKind,
@@ -2931,6 +2934,7 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 		arg.FilterMemberProfileKind,
 		arg.FilterProfileID,
 		arg.FilterMemberProfileID,
+		arg.FilterMembershipKindExclude,
 	)
 	if err != nil {
 		return nil, err
