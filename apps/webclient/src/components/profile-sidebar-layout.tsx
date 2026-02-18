@@ -64,7 +64,7 @@ export function ProfileSidebarLayout(props: ProfileSidebarLayoutProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start">
       <ProfileSidebar profile={props.profile} slug={props.slug} locale={props.locale} viewerMembershipKind={props.viewerMembershipKind} />
-      <main>{props.children}</main>
+      <main className="min-w-0">{props.children}</main>
     </div>
   );
 }
