@@ -237,6 +237,7 @@ type Repository interface {
 		id string,
 		slug string,
 		storyPictureURI *string,
+		properties map[string]any,
 	) error
 	UpdateStoryTx(
 		ctx context.Context,
@@ -804,7 +805,7 @@ func (s *Service) Create(
 	return story, nil
 }
 
-// Update updates an existing story (slug and picture only).
+// Update updates an existing story (slug, picture, and properties).
 func (s *Service) Update(
 	ctx context.Context,
 	locale string,
@@ -813,6 +814,7 @@ func (s *Service) Update(
 	storyID string,
 	slug string,
 	storyPictureURI *string,
+	properties map[string]any,
 ) (*StoryForEdit, error) {
 	// Check authorization
 	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
@@ -867,7 +869,7 @@ func (s *Service) Update(
 	}
 
 	// Update the story
-	err = s.repo.UpdateStory(ctx, storyID, slug, storyPictureURI)
+	err = s.repo.UpdateStory(ctx, storyID, slug, storyPictureURI, properties)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToUpdateRecord, storyID, err)
 	}

@@ -30,7 +30,7 @@
 }
 
 .badge {
-  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary mr-2 align-middle;
+  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle;
 }
 
 .title {

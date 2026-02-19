@@ -318,6 +318,7 @@ export interface InsertStoryInput {
 export interface UpdateStoryInput {
   slug: string;
   story_picture_uri?: string | null;
+  properties?: Record<string, unknown>;
 }
 
 export interface UpdateStoryTranslationInput {
@@ -351,6 +352,7 @@ export interface StoryEditData {
   title: string | null;
   summary: string | null;
   content: string;
+  properties?: Record<string, unknown> | null;
   author_profile_id: string | null;
   author_profile_slug: string | null;
   created_at: string;

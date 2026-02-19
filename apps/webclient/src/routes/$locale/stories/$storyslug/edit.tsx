@@ -194,6 +194,19 @@ function EditStoryPage() {
   // translationState.data is undefined when no translation exists for the selected locale
   const isNewTranslation = translationState.data === undefined;
 
+  // Extract activity-specific fields from properties when kind is "activity"
+  const props = storyData.properties as Record<string, unknown> | null | undefined;
+  const activityFields = storyData.kind === "activity" && props !== null && props !== undefined
+    ? {
+        activityKind: (props.activity_kind as string) ?? "meetup",
+        activityTimeStart: (props.activity_time_start as string) ?? "",
+        activityTimeEnd: (props.activity_time_end as string) ?? "",
+        externalActivityUri: (props.external_activity_uri as string) ?? "",
+        externalAttendanceUri: (props.external_attendance_uri as string) ?? "",
+        rsvpMode: (props.rsvp_mode as string) ?? "enabled",
+      }
+    : {};
+
   const initialData: ContentEditorData = {
     title: isNewTranslation ? "" : translationState.data.title,
     slug: storyData.slug ?? "",
@@ -201,6 +214,7 @@ function EditStoryPage() {
     content: isNewTranslation ? "" : translationState.data.content,
     storyPictureUri: storyData.story_picture_uri,
     kind: (storyData.kind as ContentEditorData["kind"]) ?? "article",
+    ...activityFields,
   };
 
   const handleLocaleChange = (newLocale: string) => {
@@ -208,6 +222,18 @@ function EditStoryPage() {
   };
 
   const handleSave = async (data: ContentEditorData) => {
+    // Assemble properties for activity kind
+    const properties = data.kind === "activity"
+      ? {
+          activity_kind: data.activityKind ?? "meetup",
+          activity_time_start: data.activityTimeStart ?? "",
+          activity_time_end: data.activityTimeEnd ?? "",
+          external_activity_uri: data.externalActivityUri ?? "",
+          external_attendance_uri: data.externalAttendanceUri ?? "",
+          rsvp_mode: data.rsvpMode ?? "enabled",
+        }
+      : undefined;
+
     // Update the story main fields
     const updateResult = await backend.updateStory(
       params.locale,
@@ -216,6 +242,7 @@ function EditStoryPage() {
       {
         slug: data.slug,
         story_picture_uri: data.storyPictureUri,
+        properties,
       },
     );
 

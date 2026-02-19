@@ -2705,8 +2705,9 @@ type Querier interface {
 	//  SET
 	//    slug = $1,
 	//    story_picture_uri = $2,
+	//    properties = $3,
 	//    updated_at = NOW()
-	//  WHERE id = $3
+	//  WHERE id = $4
 	//    AND deleted_at IS NULL
 	UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error)
 	//UpdateStoryPublication

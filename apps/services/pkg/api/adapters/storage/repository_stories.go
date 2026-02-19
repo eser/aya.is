@@ -388,11 +388,13 @@ func (r *Repository) UpdateStory(
 	id string,
 	slug string,
 	storyPictureURI *string,
+	properties map[string]any,
 ) error {
 	params := UpdateStoryParams{
 		ID:              id,
 		Slug:            slug,
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
+		Properties:      vars.ToSQLNullRawMessage(properties),
 	}
 
 	_, err := r.queries.UpdateStory(ctx, params)
@@ -499,6 +501,7 @@ func (r *Repository) GetStoryForEdit(
 		Kind:              row.Kind,
 		LocaleCode:        row.LocaleCode,
 		StoryPictureURI:   vars.ToStringPtr(row.StoryPictureURI),
+		Properties:        vars.ToObject(row.Properties),
 		Title:             row.Title,
 		Summary:           row.Summary,
 		Content:           row.Content,

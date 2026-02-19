@@ -62,8 +62,8 @@ export function ActivityCard(props: ActivityCardProps) {
         </div>
         <div className={styles.contentArea}>
           <h3 className={styles.title}>
-            <span className={styles.badge}>{t(kindLabelKey)}</span>
             {stripMarkdown(props.activity.title ?? "")}
+            <span className={styles.badge}>{t(kindLabelKey)}</span>
           </h3>
           {props.activity.summary !== null && props.activity.summary !== undefined && (
             <InlineMarkdown content={props.activity.summary} className={styles.summary} />

@@ -1702,15 +1702,17 @@ UPDATE "story"
 SET
   slug = $1,
   story_picture_uri = $2,
+  properties = $3,
   updated_at = NOW()
-WHERE id = $3
+WHERE id = $4
   AND deleted_at IS NULL
 `
 
 type UpdateStoryParams struct {
-	Slug            string         `db:"slug" json:"slug"`
-	StoryPictureURI sql.NullString `db:"story_picture_uri" json:"story_picture_uri"`
-	ID              string         `db:"id" json:"id"`
+	Slug            string                `db:"slug" json:"slug"`
+	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	ID              string                `db:"id" json:"id"`
 }
 
 // UpdateStory
@@ -1719,11 +1721,17 @@ type UpdateStoryParams struct {
 //	SET
 //	  slug = $1,
 //	  story_picture_uri = $2,
+//	  properties = $3,
 //	  updated_at = NOW()
-//	WHERE id = $3
+//	WHERE id = $4
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, updateStory, arg.Slug, arg.StoryPictureURI, arg.ID)
+	result, err := q.db.ExecContext(ctx, updateStory,
+		arg.Slug,
+		arg.StoryPictureURI,
+		arg.Properties,
+		arg.ID,
+	)
 	if err != nil {
 		return 0, err
 	}

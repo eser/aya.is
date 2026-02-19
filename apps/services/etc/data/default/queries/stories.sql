@@ -151,6 +151,7 @@ UPDATE "story"
 SET
   slug = sqlc.arg(slug),
   story_picture_uri = sqlc.narg(story_picture_uri),
+  properties = sqlc.narg(properties),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;

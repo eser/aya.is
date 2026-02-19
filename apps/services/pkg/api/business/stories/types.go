@@ -80,6 +80,7 @@ type StoryWithChildren struct {
 // StoryForEdit contains the raw story data for editing (without compiled content).
 type StoryForEdit struct {
 	CreatedAt         time.Time  `json:"created_at"`
+	Properties        any        `json:"properties"`
 	AuthorProfileID   *string    `json:"author_profile_id"`
 	AuthorProfileSlug *string    `json:"author_profile_slug"`
 	StoryPictureURI   *string    `json:"story_picture_uri"`
