@@ -84,7 +84,7 @@ jobs:
 
       - name: Lint
         working-directory: ./apps/services/
-        run: go tool golangci-lint run --out-format=github-actions ./...
+        run: go tool golangci-lint run ./...
 
       - name: Static analysis
         working-directory: ./apps/services/
