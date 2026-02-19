@@ -19,9 +19,14 @@ import {
   MoreHorizontal,
   RefreshCw,
   Star,
+  Copy,
+  Check,
+  ExternalLink,
+  CircleCheck,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount } from "@/modules/backend/backend";
+import { Spinner } from "@/components/ui/spinner";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -169,6 +174,16 @@ function LinksSettingsPage() {
   const [isSpeakerDeckDialogOpen, setIsSpeakerDeckDialogOpen] = React.useState(false);
   const [speakerDeckUrl, setSpeakerDeckUrl] = React.useState("");
   const [isConnectingSpeakerDeck, setIsConnectingSpeakerDeck] = React.useState(false);
+
+  // Telegram connect state
+  const [isTelegramDialogOpen, setIsTelegramDialogOpen] = React.useState(false);
+  const [telegramDeepLink, setTelegramDeepLink] = React.useState("");
+  const [isGeneratingTelegramToken, setIsGeneratingTelegramToken] = React.useState(false);
+  const [isTelegramLinkCopied, setIsTelegramLinkCopied] = React.useState(false);
+  const [telegramConnectionStatus, setTelegramConnectionStatus] = React.useState<
+    "idle" | "waiting" | "connected" | "error"
+  >("idle");
+  const telegramPollIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [formData, setFormData] = React.useState<LinkFormData>({
     kind: "github",
@@ -471,6 +486,90 @@ function LinksSettingsPage() {
     setIsConnectingSpeakerDeck(false);
   };
 
+  const handleConnectTelegram = async () => {
+    setTelegramDeepLink("");
+    setIsTelegramLinkCopied(false);
+    setTelegramConnectionStatus("idle");
+    setIsTelegramDialogOpen(true);
+    setIsGeneratingTelegramToken(true);
+
+    if (telegramPollIntervalRef.current !== null) {
+      clearInterval(telegramPollIntervalRef.current);
+      telegramPollIntervalRef.current = null;
+    }
+
+    const result = await backend.generateTelegramToken(
+      params.locale,
+      params.slug,
+    );
+
+    if (result !== null) {
+      setTelegramDeepLink(result.deep_link);
+      setTelegramConnectionStatus("waiting");
+      setIsGeneratingTelegramToken(false);
+
+      const hadTelegram = links.some((l) => l.kind === "telegram" && l.is_managed === true);
+
+      telegramPollIntervalRef.current = setInterval(async () => {
+        const updatedLinks = await backend.listProfileLinks(
+          params.locale,
+          params.slug,
+        );
+        if (updatedLinks !== null) {
+          const hasTelegramNow = updatedLinks.some(
+            (l) => l.kind === "telegram" && l.is_managed === true,
+          );
+          if (hasTelegramNow && !hadTelegram) {
+            setTelegramConnectionStatus("connected");
+            setLinks(updatedLinks);
+            if (telegramPollIntervalRef.current !== null) {
+              clearInterval(telegramPollIntervalRef.current);
+              telegramPollIntervalRef.current = null;
+            }
+            toast.success(
+              t("Profile.Connected successfully", { provider: "telegram" }),
+            );
+          }
+        }
+      }, 3000);
+    } else {
+      setTelegramConnectionStatus("error");
+      setIsGeneratingTelegramToken(false);
+    }
+  };
+
+  const handleCopyTelegramLink = async () => {
+    try {
+      await navigator.clipboard.writeText(telegramDeepLink);
+      setIsTelegramLinkCopied(true);
+      setTimeout(() => setIsTelegramLinkCopied(false), 2000);
+    } catch {
+      toast.error(t("Profile.Failed to copy link"));
+    }
+  };
+
+  const handleCloseTelegramDialog = () => {
+    setIsTelegramDialogOpen(false);
+    setTelegramDeepLink("");
+    setTelegramConnectionStatus("idle");
+    setIsGeneratingTelegramToken(false);
+    setIsTelegramLinkCopied(false);
+    if (telegramPollIntervalRef.current !== null) {
+      clearInterval(telegramPollIntervalRef.current);
+      telegramPollIntervalRef.current = null;
+    }
+  };
+
+  // Cleanup Telegram polling on unmount
+  React.useEffect(() => {
+    return () => {
+      if (telegramPollIntervalRef.current !== null) {
+        clearInterval(telegramPollIntervalRef.current);
+        telegramPollIntervalRef.current = null;
+      }
+    };
+  }, []);
+
   const handleReconnect = (link: ProfileLink) => {
     if (link.kind === "github") {
       handleConnectGitHub();
@@ -478,6 +577,8 @@ function LinksSettingsPage() {
       handleConnectYouTube();
     } else if (link.kind === "speakerdeck") {
       handleConnectSpeakerDeck();
+    } else if (link.kind === "telegram") {
+      handleConnectTelegram();
     }
   };
 
@@ -654,6 +755,10 @@ function LinksSettingsPage() {
             <DropdownMenuItem onClick={() => handleConnectSpeakerDeck()}>
               <SpeakerDeck className="size-4 mr-2" />
               {t("Profile.Connect SpeakerDeck...")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleConnectTelegram()}>
+              <Telegram className="size-4 mr-2" />
+              {t("Profile.Connect Telegram...")}
             </DropdownMenuItem>
             <DropdownMenuItem disabled>
               <X className="size-4 mr-2" />
@@ -1128,6 +1233,160 @@ function LinksSettingsPage() {
             >
               {isConnectingSpeakerDeck ? t("Common.Connecting...") : t("Profile.Connect")}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Telegram Connect Dialog */}
+      <Dialog open={isTelegramDialogOpen} onOpenChange={(open) => {
+        if (!open && !isGeneratingTelegramToken) {
+          handleCloseTelegramDialog();
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Telegram className="size-5" />
+              {t("Profile.Connect Telegram...")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("Profile.Connect your Telegram account to this profile via our bot.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            {isGeneratingTelegramToken ? (
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="size-6" />
+                <span className="ml-2 text-muted-foreground">
+                  {t("Profile.Generating link...")}
+                </span>
+              </div>
+            ) : telegramConnectionStatus === "error" ? (
+              <div className="text-center py-6">
+                <p className="text-destructive mb-4">
+                  {t("Profile.Failed to generate Telegram link. The profile may already be connected.")}
+                </p>
+                <Button variant="outline" onClick={handleCloseTelegramDialog}>
+                  {t("Common.Cancel")}
+                </Button>
+              </div>
+            ) : telegramConnectionStatus === "connected" ? (
+              <div className="text-center py-6">
+                <div className="flex items-center justify-center mb-4">
+                  <CircleCheck className="size-12 text-green-600" />
+                </div>
+                <p className="text-lg font-medium text-foreground mb-2">
+                  {t("Profile.Telegram connected!")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("Profile.Your Telegram account has been linked to this profile.")}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Step 1 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
+                      {t("Profile.Open Telegram Bot")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.Click the link below to open our Telegram bot.")}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Input
+                        value={telegramDeepLink}
+                        readOnly
+                        className="text-sm font-mono"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopyTelegramLink}
+                        title={t("Profile.Copy link")}
+                      >
+                        {isTelegramLinkCopied
+                          ? <Check className="size-4 text-green-600" />
+                          : <Copy className="size-4" />}
+                      </Button>
+                    </div>
+                    <a
+                      href={telegramDeepLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 mt-2 text-sm text-primary hover:underline"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      {t("Profile.Open in Telegram")}
+                    </a>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
+                      {t("Profile.Start the bot")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.Press the Start button or send /start in the chat.")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
+                      {t("Profile.Come back here")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.Once done, return to this page. We'll detect the connection automatically.")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Waiting indicator */}
+                {telegramConnectionStatus === "waiting" && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+                    <Spinner className="size-4" />
+                    <span className="text-sm text-muted-foreground">
+                      {t("Profile.Waiting for Telegram connection...")}
+                    </span>
+                  </div>
+                )}
+
+                {/* Token expiry notice */}
+                <p className="text-xs text-muted-foreground">
+                  {t("Profile.This link expires in 10 minutes. If it expires, close this dialog and try again.")}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            {telegramConnectionStatus === "connected" ? (
+              <Button onClick={handleCloseTelegramDialog}>
+                {t("Common.Done")}
+              </Button>
+            ) : telegramConnectionStatus !== "error" && !isGeneratingTelegramToken && (
+              <Button
+                variant="outline"
+                onClick={handleCloseTelegramDialog}
+              >
+                {t("Common.Cancel")}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

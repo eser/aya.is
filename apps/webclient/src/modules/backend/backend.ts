@@ -27,6 +27,7 @@ import { initiateProfileLinkOAuth } from "./profiles/initiate-profile-link-oauth
 import { getGitHubAccounts } from "./profiles/get-github-accounts";
 import { finalizeGitHubConnection } from "./profiles/finalize-github-connection";
 import { connectSpeakerDeck } from "./profiles/connect-speakerdeck";
+import { generateTelegramToken } from "./profiles/generate-telegram-token";
 import { listProfilePages } from "./profiles/list-profile-pages";
 import { listProfileMemberships } from "./profiles/list-profile-memberships";
 import { searchUsersForMembership } from "./profiles/search-users-for-membership";
@@ -111,6 +112,7 @@ export type { AccessibleProfile } from "./sessions/types";
 export type { ToggleWorkerResult } from "./admin/toggle-admin-worker";
 export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
+export type { GenerateTelegramTokenResponse } from "./profiles/generate-telegram-token";
 export type { CreateProfileResourceInput } from "./profiles/create-profile-resource";
 export type { CreateQuestionInput } from "./questions/create-question";
 export type { VoteQuestionResult } from "./questions/vote-question";
@@ -156,6 +158,7 @@ export const backend = {
   getGitHubAccounts,
   finalizeGitHubConnection,
   connectSpeakerDeck,
+  generateTelegramToken,
 
   // Profile Resources
   listProfileResources,
@@ -280,6 +283,7 @@ export {
   deleteProfileLink,
   deleteProfilePage,
   finalizeGitHubConnection,
+  generateTelegramToken,
   getCurrentSession,
   getGitHubAccounts,
   getPOWChallenge,
