@@ -26,6 +26,7 @@ export type SiteConfig = {
   environment: string;
   host: string;
   backendUri: string;
+  telegramBotUsername: string;
 };
 
 export const siteConfig: SiteConfig = {
@@ -47,6 +48,7 @@ export const siteConfig: SiteConfig = {
   // Use VITE_ prefix for client-side variables (Vite bundles them)
   host: import.meta.env.VITE_HOST ?? "https://aya.is",
   backendUri: import.meta.env.VITE_BACKEND_URI ?? "https://api.aya.is",
+  telegramBotUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME ?? "ayaisbot",
 };
 
 export const getBackendUri = (): string => {

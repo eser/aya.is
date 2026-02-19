@@ -3,18 +3,21 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	telegramadapter "github.com/eser/aya.is/services/pkg/api/adapters/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
+	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
-// RegisterHTTPRoutesForTelegram registers the Telegram webhook and token generation endpoints.
+// RegisterHTTPRoutesForTelegram registers the Telegram webhook and code verification endpoints.
 func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen
 	routes *httpfx.Router,
 	logger *logfx.Logger,
@@ -56,10 +59,10 @@ func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen
 		HasSummary("Telegram Webhook").
 		HasDescription("Receives updates from Telegram Bot API.")
 
-	// POST /{locale}/profiles/{slug}/_links/telegram/generate-token
-	// Authenticated endpoint: generates a link token and returns the deep link URL
+	// POST /{locale}/profiles/{slug}/_links/telegram/verify-code
+	// Authenticated endpoint: verifies a code from the bot and creates the managed link
 	routes.Route(
-		"POST /{locale}/profiles/{slug}/_links/telegram/generate-token",
+		"POST /{locale}/profiles/{slug}/_links/telegram/verify-code",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
 			_, localeOk := validateLocale(ctx)
@@ -107,45 +110,70 @@ func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen
 				)
 			}
 
-			// Get profile ID
-			profile, err := profileService.GetBySlug(ctx.Request.Context(), "en", slugParam)
-			if err != nil || profile == nil {
+			// Parse request body
+			var body struct {
+				Code string `json:"code"`
+			}
+
+			err := json.NewDecoder(ctx.Request.Body).Decode(&body)
+			if err != nil || strings.TrimSpace(body.Code) == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Missing or invalid verification code"),
+				)
+			}
+
+			// Normalize code to uppercase
+			code := strings.ToUpper(strings.TrimSpace(body.Code))
+
+			// Get profile
+			profile, profileErr := profileService.GetBySlug(ctx.Request.Context(), "en", slugParam)
+			if profileErr != nil || profile == nil {
 				return ctx.Results.Error(
 					http.StatusNotFound,
 					httpfx.WithErrorMessage("Profile not found"),
 				)
 			}
 
-			// Generate link token
-			token, tokenErr := telegram.Service.GenerateLinkToken(
+			// Verify code and create link
+			result, verifyErr := telegram.Service.VerifyCodeAndLink(
 				ctx.Request.Context(),
+				code,
 				profile.ID,
 				profile.Slug,
 				*session.LoggedInUserID,
 			)
-			if tokenErr != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Failed to generate Telegram link token",
-					slog.String("error", tokenErr.Error()),
+			if verifyErr != nil {
+				logger.WarnContext(ctx.Request.Context(), "Telegram code verification failed",
+					slog.String("error", verifyErr.Error()),
 					slog.String("slug", slugParam))
 
+				statusCode := http.StatusBadRequest
+
+				switch {
+				case errors.Is(verifyErr, telegrambiz.ErrCodeNotFound):
+					statusCode = http.StatusNotFound
+				case errors.Is(verifyErr, telegrambiz.ErrAlreadyLinked),
+					errors.Is(verifyErr, telegrambiz.ErrProfileAlreadyHasTelegram):
+					statusCode = http.StatusConflict
+				}
+
 				return ctx.Results.Error(
-					http.StatusConflict,
-					httpfx.WithErrorMessage(tokenErr.Error()),
+					statusCode,
+					httpfx.WithErrorMessage(verifyErr.Error()),
 				)
 			}
 
-			// Build deep link using the bot client
-			deepLink := telegram.Bot.Client().DeepLink(token)
-
 			return ctx.Results.JSON(map[string]any{
-				"data": map[string]string{
-					"token":     token,
-					"deep_link": deepLink,
+				"data": map[string]any{
+					"profile_id":        result.ProfileID,
+					"profile_slug":      result.ProfileSlug,
+					"telegram_user_id":  result.TelegramUserID,
+					"telegram_username": result.TelegramUsername,
 				},
 				"error": nil,
 			})
 		},
 	).
-		HasSummary("Generate Telegram Link Token").
-		HasDescription("Generates a link token for connecting a Telegram account to a profile.")
+		HasSummary("Verify Telegram Code").
+		HasDescription("Verifies a code from the Telegram bot and links the account to the profile.")
 }

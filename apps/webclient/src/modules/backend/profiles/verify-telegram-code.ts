@@ -1,20 +1,23 @@
 import { getBackendUri } from "@/config.ts";
 import { getAuthToken } from "../fetcher.ts";
 
-export type GenerateTelegramTokenResponse = {
-  token: string;
-  deep_link: string;
+export type VerifyTelegramCodeResponse = {
+  profile_id: string;
+  profile_slug: string;
+  telegram_user_id: number;
+  telegram_username: string;
 };
 
-export async function generateTelegramToken(
+export async function verifyTelegramCode(
   locale: string,
   slug: string,
-): Promise<GenerateTelegramTokenResponse | null> {
+  code: string,
+): Promise<VerifyTelegramCodeResponse | null> {
   const token = getAuthToken();
   if (token === null) return null;
 
   const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_links/telegram/generate-token`,
+    `${getBackendUri()}/${locale}/profiles/${slug}/_links/telegram/verify-code`,
     {
       method: "POST",
       headers: {
@@ -22,6 +25,7 @@ export async function generateTelegramToken(
         Authorization: `Bearer ${token}`,
       },
       credentials: "include",
+      body: JSON.stringify({ code }),
     },
   );
 

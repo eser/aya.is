@@ -33,7 +33,7 @@ func (b *Bot) Client() *Client {
 }
 
 // HandleUpdate processes a single Telegram update.
-func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclop
+func (b *Bot) HandleUpdate(ctx context.Context, update *Update) {
 	if update.Message == nil {
 		return
 	}
@@ -50,17 +50,14 @@ func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclo
 
 	text := strings.TrimSpace(msg.Text)
 
-	switch {
-	case strings.HasPrefix(text, "/start "):
-		token := strings.TrimPrefix(text, "/start ")
-		b.handleStartWithToken(ctx, msg, strings.TrimSpace(token))
-	case text == "/start":
+	switch text {
+	case "/start":
 		b.handleStart(ctx, msg)
-	case text == "/help":
+	case "/help":
 		b.handleHelp(ctx, msg)
-	case text == "/status":
+	case "/status":
 		b.handleStatus(ctx, msg)
-	case text == "/unlink":
+	case "/unlink":
 		b.handleUnlink(ctx, msg)
 	default:
 		b.handleUnknown(ctx, msg)
@@ -68,58 +65,51 @@ func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclo
 }
 
 func (b *Bot) handleStart(ctx context.Context, msg *Message) {
-	text := "Welcome to <b>AYA Bot</b>!\n\n" +
-		"To connect your Telegram account to your AYA profile, " +
-		"go to your profile settings on aya.is and click <b>Connect Telegram</b>.\n\n" +
-		"Commands:\n" +
-		"/status — Check your linked AYA profile\n" +
-		"/unlink — Disconnect your Telegram account\n" +
-		"/help — Show this help message"
+	// Check if already linked
+	existing, existingErr := b.service.GetLinkedProfile(ctx, msg.From.ID)
+	if existingErr == nil && existing != nil {
+		slug, slugErr := b.service.GetProfileSlugByID(ctx, existing.ProfileID)
+		if slugErr != nil || slug == "" {
+			slug = existing.ProfileID
+		}
 
-	_ = b.client.SendMessage(ctx, msg.Chat.ID, text)
-}
+		text := fmt.Sprintf(
+			"Your Telegram account is already linked to AYA profile <b>@%s</b>.\n\n"+
+				"Use /unlink first to disconnect, then try again.",
+			slug,
+		)
 
-func (b *Bot) handleStartWithToken(ctx context.Context, msg *Message, token string) {
-	if token == "" {
-		b.handleStart(ctx, msg)
+		_ = b.client.SendMessage(ctx, msg.Chat.ID, text)
 
 		return
 	}
 
-	result, err := b.service.LinkAccountByToken(
-		ctx,
-		token,
-		msg.From.ID,
-		msg.From.Username,
-	)
+	// Generate verification code
+	code, err := b.service.GenerateVerificationCode(ctx, msg.From.ID, msg.From.Username)
 	if err != nil {
-		b.logger.WarnContext(ctx, "Telegram link failed",
+		b.logger.WarnContext(ctx, "Failed to generate verification code",
 			slog.Int64("telegram_user_id", msg.From.ID),
 			slog.String("error", err.Error()))
 
-		var errMsg string
-
-		switch {
-		case errors.Is(err, telegrambiz.ErrTokenNotFound):
-			errMsg = "This link has expired or is invalid. Please generate a new one from your AYA profile settings."
-		case errors.Is(err, telegrambiz.ErrAlreadyLinked):
-			errMsg = "Your Telegram account is already linked to an AYA profile. " +
-				"Use /unlink first to disconnect, then try again."
-		case errors.Is(err, telegrambiz.ErrProfileAlreadyHasTelegram):
-			errMsg = "This AYA profile already has a Telegram account connected. Remove the existing connection first."
-		default:
-			errMsg = "Something went wrong while linking your account. Please try again later."
+		if errors.Is(err, telegrambiz.ErrAlreadyLinked) {
+			_ = b.client.SendMessage(ctx, msg.Chat.ID,
+				"Your Telegram account is already linked to an AYA profile.\n"+
+					"Use /unlink first to disconnect, then try again.")
+		} else {
+			_ = b.client.SendMessage(ctx, msg.Chat.ID,
+				"Something went wrong. Please try again later.")
 		}
-
-		_ = b.client.SendMessage(ctx, msg.Chat.ID, errMsg)
 
 		return
 	}
 
 	text := fmt.Sprintf(
-		"Successfully linked to AYA profile <b>@%s</b>!\n\n"+
-			"Your Telegram account is now connected and managed by AYA.",
-		result.ProfileSlug,
+		"Your verification code is:\n\n"+
+			"<code>%s</code>\n\n"+
+			"Go to your profile settings on <b>aya.is</b>, "+
+			"click <b>Connect Telegram</b>, and paste this code.\n\n"+
+			"This code expires in 10 minutes.",
+		code,
 	)
 
 	_ = b.client.SendMessage(ctx, msg.Chat.ID, text)
@@ -127,7 +117,7 @@ func (b *Bot) handleStartWithToken(ctx context.Context, msg *Message, token stri
 
 func (b *Bot) handleHelp(ctx context.Context, msg *Message) {
 	text := "<b>AYA Bot Commands</b>\n\n" +
-		"/start — Welcome message and setup instructions\n" +
+		"/start — Get a verification code to link your account\n" +
 		"/status — Check your linked AYA profile\n" +
 		"/unlink — Disconnect your Telegram account from AYA\n" +
 		"/help — Show this help message"
@@ -139,15 +129,20 @@ func (b *Bot) handleStatus(ctx context.Context, msg *Message) {
 	info, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
 	if err != nil {
 		text := "Your Telegram account is <b>not linked</b> to any AYA profile.\n\n" +
-			"To connect, go to your profile settings on aya.is and click <b>Connect Telegram</b>."
+			"Send /start to get a verification code."
 		_ = b.client.SendMessage(ctx, msg.Chat.ID, text)
 
 		return
 	}
 
+	slug, slugErr := b.service.GetProfileSlugByID(ctx, info.ProfileID)
+	if slugErr != nil || slug == "" {
+		slug = info.ProfileID
+	}
+
 	text := fmt.Sprintf(
-		"Your Telegram account is linked to AYA profile <b>%s</b>.",
-		info.ProfileID,
+		"Your Telegram account is linked to AYA profile <b>@%s</b>.",
+		slug,
 	)
 
 	_ = b.client.SendMessage(ctx, msg.Chat.ID, text)

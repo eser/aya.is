@@ -1,23 +1,23 @@
--- name: CreateTelegramLinkToken :exec
-INSERT INTO "telegram_link_token" (id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at)
-VALUES (sqlc.arg(id), sqlc.arg(token), sqlc.arg(profile_id), sqlc.arg(profile_slug), sqlc.arg(created_by_user_id), NOW(), sqlc.arg(expires_at));
+-- name: CreateTelegramVerificationCode :exec
+INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
+VALUES (sqlc.arg(id), sqlc.arg(code), sqlc.arg(telegram_user_id), sqlc.arg(telegram_username), NOW(), sqlc.arg(expires_at));
 
--- name: GetTelegramLinkTokenByToken :one
+-- name: GetTelegramVerificationCodeByCode :one
 SELECT *
-FROM "telegram_link_token"
-WHERE token = sqlc.arg(token)
+FROM "telegram_verification_code"
+WHERE code = sqlc.arg(code)
   AND consumed_at IS NULL
   AND expires_at > NOW()
 LIMIT 1;
 
--- name: ConsumeTelegramLinkToken :execrows
-UPDATE "telegram_link_token"
+-- name: ConsumeTelegramVerificationCode :execrows
+UPDATE "telegram_verification_code"
 SET consumed_at = NOW()
-WHERE token = sqlc.arg(token)
+WHERE code = sqlc.arg(code)
   AND consumed_at IS NULL;
 
--- name: CleanupExpiredTelegramLinkTokens :execrows
-DELETE FROM "telegram_link_token"
+-- name: CleanupExpiredTelegramVerificationCodes :execrows
+DELETE FROM "telegram_verification_code"
 WHERE expires_at < NOW() - INTERVAL '1 hour';
 
 -- name: GetProfileLinkByTelegramRemoteID :one

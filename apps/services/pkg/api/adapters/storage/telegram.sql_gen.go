@@ -11,73 +11,71 @@ import (
 	"time"
 )
 
-const cleanupExpiredTelegramLinkTokens = `-- name: CleanupExpiredTelegramLinkTokens :execrows
-DELETE FROM "telegram_link_token"
+const cleanupExpiredTelegramVerificationCodes = `-- name: CleanupExpiredTelegramVerificationCodes :execrows
+DELETE FROM "telegram_verification_code"
 WHERE expires_at < NOW() - INTERVAL '1 hour'
 `
 
-// CleanupExpiredTelegramLinkTokens
+// CleanupExpiredTelegramVerificationCodes
 //
-//	DELETE FROM "telegram_link_token"
+//	DELETE FROM "telegram_verification_code"
 //	WHERE expires_at < NOW() - INTERVAL '1 hour'
-func (q *Queries) CleanupExpiredTelegramLinkTokens(ctx context.Context) (int64, error) {
-	result, err := q.db.ExecContext(ctx, cleanupExpiredTelegramLinkTokens)
+func (q *Queries) CleanupExpiredTelegramVerificationCodes(ctx context.Context) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupExpiredTelegramVerificationCodes)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-const consumeTelegramLinkToken = `-- name: ConsumeTelegramLinkToken :execrows
-UPDATE "telegram_link_token"
+const consumeTelegramVerificationCode = `-- name: ConsumeTelegramVerificationCode :execrows
+UPDATE "telegram_verification_code"
 SET consumed_at = NOW()
-WHERE token = $1
+WHERE code = $1
   AND consumed_at IS NULL
 `
 
-type ConsumeTelegramLinkTokenParams struct {
-	Token string `db:"token" json:"token"`
+type ConsumeTelegramVerificationCodeParams struct {
+	Code string `db:"code" json:"code"`
 }
 
-// ConsumeTelegramLinkToken
+// ConsumeTelegramVerificationCode
 //
-//	UPDATE "telegram_link_token"
+//	UPDATE "telegram_verification_code"
 //	SET consumed_at = NOW()
-//	WHERE token = $1
+//	WHERE code = $1
 //	  AND consumed_at IS NULL
-func (q *Queries) ConsumeTelegramLinkToken(ctx context.Context, arg ConsumeTelegramLinkTokenParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, consumeTelegramLinkToken, arg.Token)
+func (q *Queries) ConsumeTelegramVerificationCode(ctx context.Context, arg ConsumeTelegramVerificationCodeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, consumeTelegramVerificationCode, arg.Code)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-const createTelegramLinkToken = `-- name: CreateTelegramLinkToken :exec
-INSERT INTO "telegram_link_token" (id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at)
-VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+const createTelegramVerificationCode = `-- name: CreateTelegramVerificationCode :exec
+INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
+VALUES ($1, $2, $3, $4, NOW(), $5)
 `
 
-type CreateTelegramLinkTokenParams struct {
-	ID              string    `db:"id" json:"id"`
-	Token           string    `db:"token" json:"token"`
-	ProfileID       string    `db:"profile_id" json:"profile_id"`
-	ProfileSlug     string    `db:"profile_slug" json:"profile_slug"`
-	CreatedByUserID string    `db:"created_by_user_id" json:"created_by_user_id"`
-	ExpiresAt       time.Time `db:"expires_at" json:"expires_at"`
+type CreateTelegramVerificationCodeParams struct {
+	ID               string    `db:"id" json:"id"`
+	Code             string    `db:"code" json:"code"`
+	TelegramUserID   int64     `db:"telegram_user_id" json:"telegram_user_id"`
+	TelegramUsername string    `db:"telegram_username" json:"telegram_username"`
+	ExpiresAt        time.Time `db:"expires_at" json:"expires_at"`
 }
 
-// CreateTelegramLinkToken
+// CreateTelegramVerificationCode
 //
-//	INSERT INTO "telegram_link_token" (id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at)
-//	VALUES ($1, $2, $3, $4, $5, NOW(), $6)
-func (q *Queries) CreateTelegramLinkToken(ctx context.Context, arg CreateTelegramLinkTokenParams) error {
-	_, err := q.db.ExecContext(ctx, createTelegramLinkToken,
+//	INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
+//	VALUES ($1, $2, $3, $4, NOW(), $5)
+func (q *Queries) CreateTelegramVerificationCode(ctx context.Context, arg CreateTelegramVerificationCodeParams) error {
+	_, err := q.db.ExecContext(ctx, createTelegramVerificationCode,
 		arg.ID,
-		arg.Token,
-		arg.ProfileID,
-		arg.ProfileSlug,
-		arg.CreatedByUserID,
+		arg.Code,
+		arg.TelegramUserID,
+		arg.TelegramUsername,
 		arg.ExpiresAt,
 	)
 	return err
@@ -191,36 +189,35 @@ func (q *Queries) GetProfileSlugByIDForTelegram(ctx context.Context, arg GetProf
 	return slug, err
 }
 
-const getTelegramLinkTokenByToken = `-- name: GetTelegramLinkTokenByToken :one
-SELECT id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at, consumed_at
-FROM "telegram_link_token"
-WHERE token = $1
+const getTelegramVerificationCodeByCode = `-- name: GetTelegramVerificationCodeByCode :one
+SELECT id, code, telegram_user_id, telegram_username, created_at, expires_at, consumed_at
+FROM "telegram_verification_code"
+WHERE code = $1
   AND consumed_at IS NULL
   AND expires_at > NOW()
 LIMIT 1
 `
 
-type GetTelegramLinkTokenByTokenParams struct {
-	Token string `db:"token" json:"token"`
+type GetTelegramVerificationCodeByCodeParams struct {
+	Code string `db:"code" json:"code"`
 }
 
-// GetTelegramLinkTokenByToken
+// GetTelegramVerificationCodeByCode
 //
-//	SELECT id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at, consumed_at
-//	FROM "telegram_link_token"
-//	WHERE token = $1
+//	SELECT id, code, telegram_user_id, telegram_username, created_at, expires_at, consumed_at
+//	FROM "telegram_verification_code"
+//	WHERE code = $1
 //	  AND consumed_at IS NULL
 //	  AND expires_at > NOW()
 //	LIMIT 1
-func (q *Queries) GetTelegramLinkTokenByToken(ctx context.Context, arg GetTelegramLinkTokenByTokenParams) (*TelegramLinkToken, error) {
-	row := q.db.QueryRowContext(ctx, getTelegramLinkTokenByToken, arg.Token)
-	var i TelegramLinkToken
+func (q *Queries) GetTelegramVerificationCodeByCode(ctx context.Context, arg GetTelegramVerificationCodeByCodeParams) (*TelegramVerificationCode, error) {
+	row := q.db.QueryRowContext(ctx, getTelegramVerificationCodeByCode, arg.Code)
+	var i TelegramVerificationCode
 	err := row.Scan(
 		&i.ID,
-		&i.Token,
-		&i.ProfileID,
-		&i.ProfileSlug,
-		&i.CreatedByUserID,
+		&i.Code,
+		&i.TelegramUserID,
+		&i.TelegramUsername,
 		&i.CreatedAt,
 		&i.ExpiresAt,
 		&i.ConsumedAt,

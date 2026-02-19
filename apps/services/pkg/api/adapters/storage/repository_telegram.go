@@ -19,43 +19,44 @@ func NewTelegramRepository(repo *Repository) telegrambiz.Repository {
 	return &telegramAdapter{repo: repo}
 }
 
-func (a *telegramAdapter) CreateLinkToken(
+func (a *telegramAdapter) CreateVerificationCode(
 	ctx context.Context,
-	token *telegrambiz.TelegramLinkToken,
+	code *telegrambiz.TelegramVerificationCode,
 ) error {
-	return a.repo.queries.CreateTelegramLinkToken(ctx, CreateTelegramLinkTokenParams{
-		ID:              token.ID,
-		Token:           token.Token,
-		ProfileID:       token.ProfileID,
-		ProfileSlug:     token.ProfileSlug,
-		CreatedByUserID: token.CreatedByUserID,
-		ExpiresAt:       time.Now().Add(telegrambiz.TokenExpiryMinutes * time.Minute),
+	return a.repo.queries.CreateTelegramVerificationCode(ctx, CreateTelegramVerificationCodeParams{
+		ID:               code.ID,
+		Code:             code.Code,
+		TelegramUserID:   code.TelegramUserID,
+		TelegramUsername: code.TelegramUsername,
+		ExpiresAt:        time.Now().Add(telegrambiz.CodeExpiryMinutes * time.Minute),
 	})
 }
 
-func (a *telegramAdapter) GetLinkTokenByToken(
+func (a *telegramAdapter) GetVerificationCodeByCode(
 	ctx context.Context,
-	token string,
-) (*telegrambiz.TelegramLinkToken, error) {
-	row, err := a.repo.queries.GetTelegramLinkTokenByToken(ctx, GetTelegramLinkTokenByTokenParams{
-		Token: token,
-	})
+	code string,
+) (*telegrambiz.TelegramVerificationCode, error) {
+	row, err := a.repo.queries.GetTelegramVerificationCodeByCode(
+		ctx,
+		GetTelegramVerificationCodeByCodeParams{
+			Code: code,
+		},
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, telegrambiz.ErrTokenNotFound
+			return nil, telegrambiz.ErrCodeNotFound
 		}
 
 		return nil, err
 	}
 
-	result := &telegrambiz.TelegramLinkToken{
-		ID:              row.ID,
-		Token:           row.Token,
-		ProfileID:       row.ProfileID,
-		ProfileSlug:     row.ProfileSlug,
-		CreatedByUserID: row.CreatedByUserID,
-		CreatedAt:       row.CreatedAt,
-		ExpiresAt:       row.ExpiresAt,
+	result := &telegrambiz.TelegramVerificationCode{
+		ID:               row.ID,
+		Code:             row.Code,
+		TelegramUserID:   row.TelegramUserID,
+		TelegramUsername: row.TelegramUsername,
+		CreatedAt:        row.CreatedAt,
+		ExpiresAt:        row.ExpiresAt,
 	}
 
 	if row.ConsumedAt.Valid {
@@ -66,11 +67,11 @@ func (a *telegramAdapter) GetLinkTokenByToken(
 	return result, nil
 }
 
-func (a *telegramAdapter) ConsumeLinkToken(ctx context.Context, token string) error {
-	rowsAffected, err := a.repo.queries.ConsumeTelegramLinkToken(
+func (a *telegramAdapter) ConsumeVerificationCode(ctx context.Context, code string) error {
+	rowsAffected, err := a.repo.queries.ConsumeTelegramVerificationCode(
 		ctx,
-		ConsumeTelegramLinkTokenParams{
-			Token: token,
+		ConsumeTelegramVerificationCodeParams{
+			Code: code,
 		},
 	)
 	if err != nil {
@@ -78,14 +79,14 @@ func (a *telegramAdapter) ConsumeLinkToken(ctx context.Context, token string) er
 	}
 
 	if rowsAffected == 0 {
-		return telegrambiz.ErrTokenConsumed
+		return telegrambiz.ErrCodeConsumed
 	}
 
 	return nil
 }
 
-func (a *telegramAdapter) CleanupExpiredTokens(ctx context.Context) error {
-	_, err := a.repo.queries.CleanupExpiredTelegramLinkTokens(ctx)
+func (a *telegramAdapter) CleanupExpiredCodes(ctx context.Context) error {
+	_, err := a.repo.queries.CleanupExpiredTelegramVerificationCodes(ctx)
 
 	return err
 }

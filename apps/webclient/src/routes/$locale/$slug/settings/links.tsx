@@ -19,13 +19,11 @@ import {
   MoreHorizontal,
   RefreshCw,
   Star,
-  Copy,
-  Check,
-  ExternalLink,
   CircleCheck,
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount } from "@/modules/backend/backend";
+import { siteConfig } from "@/config";
 import { Spinner } from "@/components/ui/spinner";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -177,13 +175,12 @@ function LinksSettingsPage() {
 
   // Telegram connect state
   const [isTelegramDialogOpen, setIsTelegramDialogOpen] = React.useState(false);
-  const [telegramDeepLink, setTelegramDeepLink] = React.useState("");
-  const [isGeneratingTelegramToken, setIsGeneratingTelegramToken] = React.useState(false);
-  const [isTelegramLinkCopied, setIsTelegramLinkCopied] = React.useState(false);
+  const [telegramCode, setTelegramCode] = React.useState("");
+  const [isVerifyingTelegramCode, setIsVerifyingTelegramCode] = React.useState(false);
   const [telegramConnectionStatus, setTelegramConnectionStatus] = React.useState<
-    "idle" | "waiting" | "connected" | "error"
+    "idle" | "connected" | "error"
   >("idle");
-  const telegramPollIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const [telegramErrorMessage, setTelegramErrorMessage] = React.useState("");
 
   const [formData, setFormData] = React.useState<LinkFormData>({
     kind: "github",
@@ -486,89 +483,57 @@ function LinksSettingsPage() {
     setIsConnectingSpeakerDeck(false);
   };
 
-  const handleConnectTelegram = async () => {
-    setTelegramDeepLink("");
-    setIsTelegramLinkCopied(false);
+  const handleConnectTelegram = () => {
+    setTelegramCode("");
     setTelegramConnectionStatus("idle");
+    setTelegramErrorMessage("");
+    setIsVerifyingTelegramCode(false);
     setIsTelegramDialogOpen(true);
-    setIsGeneratingTelegramToken(true);
+  };
 
-    if (telegramPollIntervalRef.current !== null) {
-      clearInterval(telegramPollIntervalRef.current);
-      telegramPollIntervalRef.current = null;
-    }
+  const handleVerifyTelegramCode = async () => {
+    const code = telegramCode.trim().toUpperCase();
+    if (code === "") return;
 
-    const result = await backend.generateTelegramToken(
+    setIsVerifyingTelegramCode(true);
+    setTelegramErrorMessage("");
+
+    const result = await backend.verifyTelegramCode(
       params.locale,
       params.slug,
+      code,
     );
 
     if (result !== null) {
-      setTelegramDeepLink(result.deep_link);
-      setTelegramConnectionStatus("waiting");
-      setIsGeneratingTelegramToken(false);
+      setTelegramConnectionStatus("connected");
+      setIsVerifyingTelegramCode(false);
 
-      const hadTelegram = links.some((l) => l.kind === "telegram" && l.is_managed === true);
+      // Refresh links list
+      const updatedLinks = await backend.listProfileLinks(
+        params.locale,
+        params.slug,
+      );
+      if (updatedLinks !== null) {
+        setLinks(updatedLinks);
+      }
 
-      telegramPollIntervalRef.current = setInterval(async () => {
-        const updatedLinks = await backend.listProfileLinks(
-          params.locale,
-          params.slug,
-        );
-        if (updatedLinks !== null) {
-          const hasTelegramNow = updatedLinks.some(
-            (l) => l.kind === "telegram" && l.is_managed === true,
-          );
-          if (hasTelegramNow && !hadTelegram) {
-            setTelegramConnectionStatus("connected");
-            setLinks(updatedLinks);
-            if (telegramPollIntervalRef.current !== null) {
-              clearInterval(telegramPollIntervalRef.current);
-              telegramPollIntervalRef.current = null;
-            }
-            toast.success(
-              t("Profile.Connected successfully", { provider: "telegram" }),
-            );
-          }
-        }
-      }, 3000);
+      toast.success(
+        t("Profile.Connected successfully", { provider: "telegram" }),
+      );
     } else {
       setTelegramConnectionStatus("error");
-      setIsGeneratingTelegramToken(false);
-    }
-  };
-
-  const handleCopyTelegramLink = async () => {
-    try {
-      await navigator.clipboard.writeText(telegramDeepLink);
-      setIsTelegramLinkCopied(true);
-      setTimeout(() => setIsTelegramLinkCopied(false), 2000);
-    } catch {
-      toast.error(t("Profile.Failed to copy link"));
+      setTelegramErrorMessage(t("Profile.Invalid or expired verification code. Please try again."));
+      setIsVerifyingTelegramCode(false);
     }
   };
 
   const handleCloseTelegramDialog = () => {
     setIsTelegramDialogOpen(false);
-    setTelegramDeepLink("");
+    setTelegramCode("");
     setTelegramConnectionStatus("idle");
-    setIsGeneratingTelegramToken(false);
-    setIsTelegramLinkCopied(false);
-    if (telegramPollIntervalRef.current !== null) {
-      clearInterval(telegramPollIntervalRef.current);
-      telegramPollIntervalRef.current = null;
-    }
+    setTelegramErrorMessage("");
+    setIsVerifyingTelegramCode(false);
   };
-
-  // Cleanup Telegram polling on unmount
-  React.useEffect(() => {
-    return () => {
-      if (telegramPollIntervalRef.current !== null) {
-        clearInterval(telegramPollIntervalRef.current);
-        telegramPollIntervalRef.current = null;
-      }
-    };
-  }, []);
 
   const handleReconnect = (link: ProfileLink) => {
     if (link.kind === "github") {
@@ -1239,7 +1204,7 @@ function LinksSettingsPage() {
 
       {/* Telegram Connect Dialog */}
       <Dialog open={isTelegramDialogOpen} onOpenChange={(open) => {
-        if (!open && !isGeneratingTelegramToken) {
+        if (!open && !isVerifyingTelegramCode) {
           handleCloseTelegramDialog();
         }
       }}>
@@ -1255,23 +1220,7 @@ function LinksSettingsPage() {
           </DialogHeader>
 
           <div className="py-4">
-            {isGeneratingTelegramToken ? (
-              <div className="flex items-center justify-center py-8">
-                <Spinner className="size-6" />
-                <span className="ml-2 text-muted-foreground">
-                  {t("Profile.Generating link...")}
-                </span>
-              </div>
-            ) : telegramConnectionStatus === "error" ? (
-              <div className="text-center py-6">
-                <p className="text-destructive mb-4">
-                  {t("Profile.Failed to generate Telegram link. The profile may already be connected.")}
-                </p>
-                <Button variant="outline" onClick={handleCloseTelegramDialog}>
-                  {t("Common.Cancel")}
-                </Button>
-              </div>
-            ) : telegramConnectionStatus === "connected" ? (
+            {telegramConnectionStatus === "connected" ? (
               <div className="text-center py-6">
                 <div className="flex items-center justify-center mb-4">
                   <CircleCheck className="size-12 text-green-600" />
@@ -1295,34 +1244,8 @@ function LinksSettingsPage() {
                       {t("Profile.Open Telegram Bot")}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Click the link below to open our Telegram bot.")}
+                      {t("Profile.Open {{botUsername}} on Telegram and send /start.", { botUsername: `@${siteConfig.telegramBotUsername}` })}
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <Input
-                        value={telegramDeepLink}
-                        readOnly
-                        className="text-sm font-mono"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleCopyTelegramLink}
-                        title={t("Profile.Copy link")}
-                      >
-                        {isTelegramLinkCopied
-                          ? <Check className="size-4 text-green-600" />
-                          : <Copy className="size-4" />}
-                      </Button>
-                    </div>
-                    <a
-                      href={telegramDeepLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 mt-2 text-sm text-primary hover:underline"
-                    >
-                      <ExternalLink className="size-3.5" />
-                      {t("Profile.Open in Telegram")}
-                    </a>
                   </div>
                 </div>
 
@@ -1333,42 +1256,45 @@ function LinksSettingsPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">
-                      {t("Profile.Start the bot")}
+                      {t("Profile.Paste verification code")}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Press the Start button or send /start in the chat.")}
+                      {t("Profile.The bot will reply with a verification code. Paste it below.")}
                     </p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Input
+                        value={telegramCode}
+                        onChange={(e) => setTelegramCode(e.target.value)}
+                        placeholder={t("Profile.Enter verification code")}
+                        className="text-sm font-mono uppercase"
+                        maxLength={10}
+                        disabled={isVerifyingTelegramCode}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleVerifyTelegramCode();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={handleVerifyTelegramCode}
+                        disabled={isVerifyingTelegramCode || telegramCode.trim() === ""}
+                      >
+                        {isVerifyingTelegramCode
+                          ? <Spinner className="size-4" />
+                          : t("Profile.Verify")}
+                      </Button>
+                    </div>
+                    {telegramErrorMessage !== "" && (
+                      <p className="text-sm text-destructive mt-2">
+                        {telegramErrorMessage}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                {/* Step 3 */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    3
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Come back here")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Once done, return to this page. We'll detect the connection automatically.")}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Waiting indicator */}
-                {telegramConnectionStatus === "waiting" && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-                    <Spinner className="size-4" />
-                    <span className="text-sm text-muted-foreground">
-                      {t("Profile.Waiting for Telegram connection...")}
-                    </span>
-                  </div>
-                )}
-
-                {/* Token expiry notice */}
+                {/* Expiry notice */}
                 <p className="text-xs text-muted-foreground">
-                  {t("Profile.This link expires in 10 minutes. If it expires, close this dialog and try again.")}
+                  {t("Profile.The code expires in 10 minutes. If it expires, send /start again to get a new one.")}
                 </p>
               </div>
             )}
@@ -1379,10 +1305,11 @@ function LinksSettingsPage() {
               <Button onClick={handleCloseTelegramDialog}>
                 {t("Common.Done")}
               </Button>
-            ) : telegramConnectionStatus !== "error" && !isGeneratingTelegramToken && (
+            ) : (
               <Button
                 variant="outline"
                 onClick={handleCloseTelegramDialog}
+                disabled={isVerifyingTelegramCode}
               >
                 {t("Common.Cancel")}
               </Button>

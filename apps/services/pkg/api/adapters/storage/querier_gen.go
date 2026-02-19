@@ -121,11 +121,11 @@ type Querier interface {
 	//  WHERE
 	//    window_start < NOW() - INTERVAL '2 hours'
 	CleanupExpiredSessionRateLimits(ctx context.Context) error
-	//CleanupExpiredTelegramLinkTokens
+	//CleanupExpiredTelegramVerificationCodes
 	//
-	//  DELETE FROM "telegram_link_token"
+	//  DELETE FROM "telegram_verification_code"
 	//  WHERE expires_at < NOW() - INTERVAL '1 hour'
-	CleanupExpiredTelegramLinkTokens(ctx context.Context) (int64, error)
+	CleanupExpiredTelegramVerificationCodes(ctx context.Context) (int64, error)
 	// Worker ID check prevents a timed-out worker from completing
 	// a job that was already re-claimed by another worker.
 	//
@@ -138,13 +138,13 @@ type Querier interface {
 	//    AND status = 'processing'
 	//    AND worker_id = $2
 	CompleteQueueItem(ctx context.Context, arg CompleteQueueItemParams) (int64, error)
-	//ConsumeTelegramLinkToken
+	//ConsumeTelegramVerificationCode
 	//
-	//  UPDATE "telegram_link_token"
+	//  UPDATE "telegram_verification_code"
 	//  SET consumed_at = NOW()
-	//  WHERE token = $1
+	//  WHERE code = $1
 	//    AND consumed_at IS NULL
-	ConsumeTelegramLinkToken(ctx context.Context, arg ConsumeTelegramLinkTokenParams) (int64, error)
+	ConsumeTelegramVerificationCode(ctx context.Context, arg ConsumeTelegramVerificationCodeParams) (int64, error)
 	//CopySessionPreferences
 	//
 	//  INSERT INTO
@@ -448,11 +448,11 @@ type Querier interface {
 	//      $15
 	//    )
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
-	//CreateTelegramLinkToken
+	//CreateTelegramVerificationCode
 	//
-	//  INSERT INTO "telegram_link_token" (id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at)
-	//  VALUES ($1, $2, $3, $4, $5, NOW(), $6)
-	CreateTelegramLinkToken(ctx context.Context, arg CreateTelegramLinkTokenParams) error
+	//  INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
+	//  VALUES ($1, $2, $3, $4, NOW(), $5)
+	CreateTelegramVerificationCode(ctx context.Context, arg CreateTelegramVerificationCodeParams) error
 	//CreateUser
 	//
 	//  INSERT INTO "user" (
@@ -1295,15 +1295,15 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*StorySeries, error)
-	//GetTelegramLinkTokenByToken
+	//GetTelegramVerificationCodeByCode
 	//
-	//  SELECT id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at, consumed_at
-	//  FROM "telegram_link_token"
-	//  WHERE token = $1
+	//  SELECT id, code, telegram_user_id, telegram_username, created_at, expires_at, consumed_at
+	//  FROM "telegram_verification_code"
+	//  WHERE code = $1
 	//    AND consumed_at IS NULL
 	//    AND expires_at > NOW()
 	//  LIMIT 1
-	GetTelegramLinkTokenByToken(ctx context.Context, arg GetTelegramLinkTokenByTokenParams) (*TelegramLinkToken, error)
+	GetTelegramVerificationCodeByCode(ctx context.Context, arg GetTelegramVerificationCodeByCodeParams) (*TelegramVerificationCode, error)
 	//GetUserBriefInfoByID
 	//
 	//  SELECT kind, individual_profile_id
