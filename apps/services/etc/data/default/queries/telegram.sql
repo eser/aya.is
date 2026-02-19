@@ -33,6 +33,7 @@ SELECT pl.id, pl.profile_id, pl.remote_id, pl.public_id
 FROM "profile_link" pl
 WHERE pl.profile_id = sqlc.arg(profile_id)
   AND pl.kind = 'telegram'
+  AND pl.is_managed = TRUE
   AND pl.deleted_at IS NULL
 LIMIT 1;
 

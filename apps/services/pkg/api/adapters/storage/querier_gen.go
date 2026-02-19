@@ -834,6 +834,7 @@ type Querier interface {
 	//  FROM "profile_link" pl
 	//  WHERE pl.profile_id = $1
 	//    AND pl.kind = 'telegram'
+	//    AND pl.is_managed = TRUE
 	//    AND pl.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileLinkByProfileIDAndTelegram(ctx context.Context, arg GetProfileLinkByProfileIDAndTelegramParams) (*GetProfileLinkByProfileIDAndTelegramRow, error)
