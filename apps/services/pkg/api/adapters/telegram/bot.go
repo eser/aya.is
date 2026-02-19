@@ -358,6 +358,7 @@ func (b *Bot) handleCallbackQuery(ctx context.Context, cq *CallbackQuery) { //no
 	}
 
 	var props envelopes.InvitationProperties
+
 	unmarshalErr := json.Unmarshal(propsJSON, &props)
 	if unmarshalErr != nil {
 		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Invalid invitation data.")

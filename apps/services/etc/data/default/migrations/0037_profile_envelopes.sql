@@ -1,3 +1,5 @@
+-- +goose Up
+
 -- Profile Envelopes: inbox items sent to profiles (invitations, messages, badges, passes).
 CREATE TABLE IF NOT EXISTS "profile_envelope" (
   "id"                 CHAR(26) NOT NULL PRIMARY KEY,
@@ -25,3 +27,9 @@ CREATE INDEX IF NOT EXISTS "profile_envelope_target_profile_id_idx"
 CREATE INDEX IF NOT EXISTS "profile_envelope_status_idx"
   ON "profile_envelope" ("status", "created_at" DESC)
   WHERE "deleted_at" IS NULL;
+
+-- +goose Down
+
+DROP INDEX IF EXISTS "profile_envelope_status_idx";
+DROP INDEX IF EXISTS "profile_envelope_target_profile_id_idx";
+DROP TABLE IF EXISTS "profile_envelope";
