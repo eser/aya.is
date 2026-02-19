@@ -1244,7 +1244,14 @@ function LinksSettingsPage() {
                       {t("Profile.Open Telegram Bot")}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Open {{botUsername}} on Telegram and send /start.", { botUsername: `@${siteConfig.telegramBotUsername}` })}
+                      <a
+                        href={`https://t.me/${siteConfig.telegramBotUsername}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline"
+                      >
+                        @{siteConfig.telegramBotUsername}
+                      </a>
                     </p>
                   </div>
                 </div>
@@ -1256,10 +1263,25 @@ function LinksSettingsPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">
+                      {t("Profile.Type /start, get the code")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.Send /start to the bot and it will reply with a verification code.")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
                       {t("Profile.Paste verification code")}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.The bot will reply with a verification code. Paste it below.")}
+                      {t("Profile.Paste the code below and click Verify.")}
                     </p>
                     <div className="mt-3 flex items-center gap-2">
                       <Input
