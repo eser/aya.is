@@ -208,7 +208,11 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 		if link.ProfileSlug != currentSlug {
 			currentSlug = link.ProfileSlug
 			builder.WriteString(
-				fmt.Sprintf("\n<b>%s</b> (@%s)\n", link.ProfileTitle, link.ProfileSlug),
+				fmt.Sprintf(
+					"\n<b>%s</b> (https://aya.is/%s)\n",
+					link.ProfileTitle,
+					link.ProfileSlug,
+				),
 			)
 		}
 
@@ -226,7 +230,9 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 		}
 	}
 
-	_ = b.client.SendMessage(ctx, msg.Chat.ID, builder.String())
+	_ = b.client.SendMessageWithOpts(ctx, msg.Chat.ID, builder.String(), SendMessageOpts{
+		DisableLinkPreview: true,
+	})
 }
 
 func (b *Bot) handleUnknown(ctx context.Context, msg *Message) {

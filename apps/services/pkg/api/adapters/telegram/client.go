@@ -188,12 +188,33 @@ func (c *Client) GetUpdates(ctx context.Context, offset int64, timeout int) ([]U
 	return updates, nil
 }
 
+// SendMessageOpts holds optional parameters for sending a Telegram message.
+type SendMessageOpts struct {
+	DisableLinkPreview bool
+}
+
 // SendMessage sends a text message to a chat.
 func (c *Client) SendMessage(ctx context.Context, chatID int64, text string) error {
+	return c.SendMessageWithOpts(ctx, chatID, text, SendMessageOpts{})
+}
+
+// SendMessageWithOpts sends a text message to a chat with optional parameters.
+func (c *Client) SendMessageWithOpts(
+	ctx context.Context,
+	chatID int64,
+	text string,
+	opts SendMessageOpts,
+) error {
 	payload := map[string]any{
 		"chat_id":    chatID,
 		"text":       text,
 		"parse_mode": "HTML",
+	}
+
+	if opts.DisableLinkPreview {
+		payload["link_preview_options"] = map[string]any{
+			"is_disabled": true,
+		}
 	}
 
 	_, err := c.callAPI(ctx, "sendMessage", payload)
