@@ -65,3 +65,38 @@ FROM "profile"
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL
 LIMIT 1;
+
+-- name: GetMemberProfileTelegramLinks :many
+-- For a given member profile, find all non-individual profiles they belong to
+-- and return the telegram links on those profiles (visibility filtering happens in Go).
+SELECT
+  p.id as profile_id,
+  p.slug as profile_slug,
+  pt.title as profile_title,
+  pm.kind as membership_kind,
+  pl.id as link_id,
+  pl.uri,
+  pl.public_id as link_public_id,
+  pl.visibility as link_visibility,
+  COALESCE(plt.title, '') as link_title
+FROM "profile_membership" pm
+  INNER JOIN "profile" p ON p.id = pm.profile_id
+    AND p.kind != 'individual'
+    AND p.approved_at IS NOT NULL
+    AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      ORDER BY CASE WHEN ptf.locale_code = p.default_locale THEN 0 ELSE 1 END
+      LIMIT 1
+    )
+  INNER JOIN "profile_link" pl ON pl.profile_id = p.id
+    AND pl.kind = 'telegram'
+    AND pl.deleted_at IS NULL
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = pt.locale_code
+WHERE pm.member_profile_id = sqlc.arg(member_profile_id)
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+ORDER BY p.slug, pl."order";

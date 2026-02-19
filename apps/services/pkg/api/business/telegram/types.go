@@ -30,6 +30,27 @@ type ProfileLinkInfo struct {
 	PublicID  string
 }
 
+// RawGroupTelegramLink is an intermediate type returned from the repository,
+// before visibility filtering is applied in the service layer.
+type RawGroupTelegramLink struct {
+	ProfileSlug    string
+	ProfileTitle   string
+	MembershipKind string
+	LinkTitle      string
+	LinkURI        string
+	LinkPublicID   string
+	LinkVisibility string
+}
+
+// GroupTelegramLink represents a Telegram link from a group profile visible to the user.
+type GroupTelegramLink struct {
+	ProfileSlug  string
+	ProfileTitle string
+	LinkTitle    string
+	LinkURI      string
+	LinkPublicID string
+}
+
 // CreateProfileLinkParams contains parameters for creating a telegram profile link.
 type CreateProfileLinkParams struct {
 	ID               string

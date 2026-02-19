@@ -208,6 +208,37 @@ func (a *telegramAdapter) SoftDeleteTelegramProfileLink(
 	return nil
 }
 
+func (a *telegramAdapter) GetMemberProfileTelegramLinks(
+	ctx context.Context,
+	memberProfileID string,
+) ([]telegrambiz.RawGroupTelegramLink, error) {
+	rows, err := a.repo.queries.GetMemberProfileTelegramLinks(
+		ctx,
+		GetMemberProfileTelegramLinksParams{
+			MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]telegrambiz.RawGroupTelegramLink, 0, len(rows))
+
+	for _, row := range rows {
+		result = append(result, telegrambiz.RawGroupTelegramLink{
+			ProfileSlug:    row.ProfileSlug,
+			ProfileTitle:   row.ProfileTitle,
+			MembershipKind: row.MembershipKind,
+			LinkTitle:      row.LinkTitle,
+			LinkURI:        row.URI.String,
+			LinkPublicID:   row.LinkPublicID.String,
+			LinkVisibility: row.LinkVisibility,
+		})
+	}
+
+	return result, nil
+}
+
 func (a *telegramAdapter) GetMaxProfileLinkOrder(
 	ctx context.Context,
 	profileID string,

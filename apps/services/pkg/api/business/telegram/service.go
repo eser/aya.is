@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 )
 
 const (
@@ -36,7 +37,7 @@ var (
 )
 
 // Repository defines storage operations for the Telegram service.
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	CreateVerificationCode(ctx context.Context, code *TelegramVerificationCode) error
 	GetVerificationCodeByCode(ctx context.Context, code string) (*TelegramVerificationCode, error)
 	ConsumeVerificationCode(ctx context.Context, code string) error
@@ -53,6 +54,13 @@ type Repository interface {
 
 	// GetProfileSlugByID resolves a profile ID to its slug (for bot status messages).
 	GetProfileSlugByID(ctx context.Context, profileID string) (string, error)
+
+	// GetMemberProfileTelegramLinks returns all telegram links from non-individual profiles
+	// that the given member profile belongs to (visibility filtering happens in the service).
+	GetMemberProfileTelegramLinks(
+		ctx context.Context,
+		memberProfileID string,
+	) ([]RawGroupTelegramLink, error)
 }
 
 // Service provides Telegram account linking business logic.
@@ -249,6 +257,41 @@ func (s *Service) CleanupExpiredCodes(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// GetGroupTelegramLinks returns Telegram links from non-individual profiles
+// that the user is a member of, filtered by the user's membership-based visibility access.
+func (s *Service) GetGroupTelegramLinks(
+	ctx context.Context,
+	memberProfileID string,
+) ([]GroupTelegramLink, error) {
+	rawLinks, err := s.repo.GetMemberProfileTelegramLinks(ctx, memberProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("get member profile telegram links: %w", err)
+	}
+
+	result := make([]GroupTelegramLink, 0, len(rawLinks))
+
+	for _, raw := range rawLinks {
+		memberLevel := profiles.MembershipKindLevel[profiles.MembershipKind(raw.MembershipKind)]
+		requiredMembership := profiles.MinMembershipForVisibility[profiles.LinkVisibility(raw.LinkVisibility)]
+		requiredLevel := profiles.MembershipKindLevel[requiredMembership]
+
+		// Public links (requiredMembership == "") are always visible
+		if requiredMembership != "" && memberLevel < requiredLevel {
+			continue
+		}
+
+		result = append(result, GroupTelegramLink{
+			ProfileSlug:  raw.ProfileSlug,
+			ProfileTitle: raw.ProfileTitle,
+			LinkTitle:    raw.LinkTitle,
+			LinkURI:      raw.LinkURI,
+			LinkPublicID: raw.LinkPublicID,
+		})
+	}
+
+	return result, nil
 }
 
 // generateCode creates a random verification code using crypto/rand.
