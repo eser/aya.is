@@ -1,8 +1,8 @@
 // Activity detail page
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Calendar, Clock, ExternalLink, User } from "lucide-react";
+import { Calendar, Clock, ExternalLink, PencilLine, User } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { compileMdx } from "@/lib/mdx";
@@ -91,12 +91,31 @@ function ActivityDetailPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const auth = useAuth();
+  const [canEdit, setCanEdit] = React.useState(false);
 
   if (loaderData.notFound || loaderData.activity === null) {
     return <PageNotFound />;
   }
 
   const { activity, compiledContent, myInteractions, interactionCounts } = loaderData;
+
+  // Get author profile slug for permissions check
+  const authorProfileSlug = activity.author_profile?.slug ?? null;
+
+  // Check edit permissions
+  React.useEffect(() => {
+    if (auth.isAuthenticated && !auth.isLoading && authorProfileSlug !== null) {
+      backend
+        .getStoryPermissions(params.locale, authorProfileSlug, activity.id)
+        .then((perms) => {
+          if (perms !== null) {
+            setCanEdit(perms.can_edit);
+          }
+        });
+    } else {
+      setCanEdit(false);
+    }
+  }, [auth.isAuthenticated, auth.isLoading, params.locale, authorProfileSlug, activity.id]);
 
   const activityProps = (activity.properties ?? {}) as unknown as ActivityProperties;
   const rsvpMode: RSVPMode = activityProps.rsvp_mode ?? "enabled";
@@ -163,6 +182,20 @@ function ActivityDetailPage() {
               </a>
             )}
           </div>
+
+          {/* Edit link */}
+          {canEdit && (
+            <div className="flex justify-end mb-4 not-prose">
+              <Link
+                to="/$locale/stories/$storyslug/edit"
+                params={{ locale: params.locale, storyslug: params.activityslug }}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors no-underline"
+              >
+                <PencilLine className="size-3.5" />
+                {t("ContentEditor.Edit Story")}
+              </Link>
+            </div>
+          )}
 
           {/* RSVP section */}
           <RSVPButtons

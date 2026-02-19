@@ -61,10 +61,8 @@ export function ActivityCard(props: ActivityCardProps) {
             )}
         </div>
         <div className={styles.contentArea}>
-          <div className={styles.topRow}>
-            <span className={styles.badge}>{t(kindLabelKey)}</span>
-          </div>
           <h3 className={styles.title}>
+            <span className={styles.badge}>{t(kindLabelKey)}</span>
             {stripMarkdown(props.activity.title ?? "")}
           </h3>
           {props.activity.summary !== null && props.activity.summary !== undefined && (
