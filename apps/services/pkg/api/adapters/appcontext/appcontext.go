@@ -19,6 +19,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/speakerdeck"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
+	telegramadapter "github.com/eser/aya.is/services/pkg/api/adapters/telegram"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
@@ -36,6 +37,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/story_interactions"
 	"github.com/eser/aya.is/services/pkg/api/business/story_series"
+	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 	_ "github.com/lib/pq"
@@ -69,8 +71,11 @@ type AppContext struct {
 	YouTubeProvider     *youtube.Provider
 	SpeakerDeckProvider *speakerdeck.Provider
 	UnsplashClient      *unsplash.Client
+	TelegramClient      *telegramadapter.Client
+	TelegramBot         *telegramadapter.Bot
 
 	// Business
+	TelegramService            *telegrambiz.Service
 	UploadService              *uploads.Service
 	AuthService                *auth.Service
 	UserService                *users.Service
@@ -404,6 +409,54 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			"[AppContext] Unsplash client initialized",
 			slog.String("module", "appcontext"),
 		)
+	}
+
+	// ----------------------------------------------------
+	// Telegram Bot (optional - only if configured)
+	// ----------------------------------------------------
+	if a.Config.Telegram.Enabled && a.Config.Telegram.IsConfigured() {
+		a.TelegramClient = telegramadapter.NewClient(
+			&a.Config.Telegram,
+			a.Logger,
+			a.HTTPClient,
+		)
+
+		telegramRepo := storage.NewTelegramRepository(a.Repository)
+
+		a.TelegramService = telegrambiz.NewService(
+			a.Logger,
+			telegramRepo,
+			idGen,
+		)
+
+		a.TelegramBot = telegramadapter.NewBot(
+			a.TelegramClient,
+			a.TelegramService,
+			a.Logger,
+		)
+
+		// Set up webhook or clear it for polling mode
+		if !a.Config.Telegram.UsePolling && a.Config.Telegram.WebhookURL != "" {
+			webhookErr := a.TelegramClient.SetWebhook(
+				ctx,
+				a.Config.Telegram.WebhookURL,
+				a.Config.Telegram.WebhookSecret,
+			)
+			if webhookErr != nil {
+				a.Logger.WarnContext(
+					ctx,
+					"[AppContext] Failed to set Telegram webhook (continuing without)",
+					slog.String("module", "appcontext"),
+					slog.String("error", webhookErr.Error()),
+				)
+			}
+		} else if a.Config.Telegram.UsePolling {
+			_ = a.TelegramClient.DeleteWebhook(ctx)
+		}
+
+		a.Logger.DebugContext(ctx, "[AppContext] Telegram bot initialized",
+			slog.String("module", "appcontext"),
+			slog.String("bot_username", a.Config.Telegram.BotUsername))
 	}
 
 	// ----------------------------------------------------

@@ -63,6 +63,29 @@ EOF
 
 > **Note:** `AUTH__JWT_SECRET` is required for authentication. You can use any value for local development.
 
+#### Telegram Bot (Optional)
+
+To enable the Telegram integration, create a bot via [@BotFather](https://t.me/BotFather) and add the following
+environment variables:
+
+```bash
+# Local development (polling mode — no public URL required)
+TELEGRAM__ENABLED=true
+TELEGRAM__BOT_TOKEN=<your-token-from-BotFather>
+TELEGRAM__BOT_USERNAME=ayabot
+TELEGRAM__USE_POLLING=true
+WORKERS__TELEGRAM_BOT__ENABLED=true
+```
+
+```bash
+# Production (webhook mode)
+TELEGRAM__ENABLED=true
+TELEGRAM__BOT_TOKEN=<your-token-from-BotFather>
+TELEGRAM__BOT_USERNAME=ayabot
+TELEGRAM__WEBHOOK_URL=https://api.aya.is/telegram/webhook
+TELEGRAM__WEBHOOK_SECRET=<random-secret-string>
+```
+
 Use Make commands to start the project:
 
 ```bash

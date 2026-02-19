@@ -58,6 +58,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 				SiteImporter:           appContext.SiteImporterService,
 				PendingConnectionStore: profiles.NewPendingConnectionStore(),
 			},
+			buildTelegramProviders(appContext),
 			appContext.AIModels,
 			appContext.RuntimeStateService,
 			appContext.WorkerRegistry,
@@ -78,7 +79,19 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 	})
 }
 
-func startWorkers(process *processfx.Process, appContext *appcontext.AppContext) {
+func buildTelegramProviders(appContext *appcontext.AppContext) *http.TelegramProviders {
+	if appContext.TelegramBot == nil {
+		return nil
+	}
+
+	return &http.TelegramProviders{
+		Bot:           appContext.TelegramBot,
+		Service:       appContext.TelegramService,
+		WebhookSecret: appContext.Config.Telegram.WebhookSecret,
+	}
+}
+
+func startWorkers(process *processfx.Process, appContext *appcontext.AppContext) { //nolint:funlen
 	idGen := func() string {
 		return string(users.DefaultIDGenerator())
 	}
@@ -201,6 +214,26 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("queue-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// Telegram bot polling worker (dev mode — alternative to webhooks)
+	if appContext.TelegramBot != nil &&
+		appContext.Config.Telegram.UsePolling &&
+		appContext.Config.Workers.TelegramBot.Enabled {
+		telegramPollWorker := workers.NewTelegramPollWorker(
+			&appContext.Config.Workers.TelegramBot,
+			appContext.Logger,
+			appContext.TelegramClient,
+			appContext.TelegramBot,
+		)
+
+		runner := workerfx.NewRunner(telegramPollWorker, appContext.Logger)
+		runner.SetStateKey("telegram.bot.poll_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("telegram-bot-poll-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}

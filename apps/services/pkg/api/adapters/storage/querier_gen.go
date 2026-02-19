@@ -121,6 +121,11 @@ type Querier interface {
 	//  WHERE
 	//    window_start < NOW() - INTERVAL '2 hours'
 	CleanupExpiredSessionRateLimits(ctx context.Context) error
+	//CleanupExpiredTelegramLinkTokens
+	//
+	//  DELETE FROM "telegram_link_token"
+	//  WHERE expires_at < NOW() - INTERVAL '1 hour'
+	CleanupExpiredTelegramLinkTokens(ctx context.Context) (int64, error)
 	// Worker ID check prevents a timed-out worker from completing
 	// a job that was already re-claimed by another worker.
 	//
@@ -133,6 +138,13 @@ type Querier interface {
 	//    AND status = 'processing'
 	//    AND worker_id = $2
 	CompleteQueueItem(ctx context.Context, arg CompleteQueueItemParams) (int64, error)
+	//ConsumeTelegramLinkToken
+	//
+	//  UPDATE "telegram_link_token"
+	//  SET consumed_at = NOW()
+	//  WHERE token = $1
+	//    AND consumed_at IS NULL
+	ConsumeTelegramLinkToken(ctx context.Context, arg ConsumeTelegramLinkTokenParams) (int64, error)
 	//CopySessionPreferences
 	//
 	//  INSERT INTO
@@ -436,6 +448,11 @@ type Querier interface {
 	//      $15
 	//    )
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
+	//CreateTelegramLinkToken
+	//
+	//  INSERT INTO "telegram_link_token" (id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at)
+	//  VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+	CreateTelegramLinkToken(ctx context.Context, arg CreateTelegramLinkTokenParams) error
 	//CreateUser
 	//
 	//  INSERT INTO "user" (
@@ -811,6 +828,15 @@ type Querier interface {
 	//  WHERE pl.id = $2
 	//    AND pl.deleted_at IS NULL
 	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*GetProfileLinkRow, error)
+	//GetProfileLinkByProfileIDAndTelegram
+	//
+	//  SELECT pl.id, pl.profile_id, pl.remote_id, pl.public_id
+	//  FROM "profile_link" pl
+	//  WHERE pl.profile_id = $1
+	//    AND pl.kind = 'telegram'
+	//    AND pl.deleted_at IS NULL
+	//  LIMIT 1
+	GetProfileLinkByProfileIDAndTelegram(ctx context.Context, arg GetProfileLinkByProfileIDAndTelegramParams) (*GetProfileLinkByProfileIDAndTelegramRow, error)
 	//GetProfileLinkByRemoteID
 	//
 	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
@@ -821,6 +847,15 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLinkByRemoteIDParams) (*ProfileLink, error)
+	//GetProfileLinkByTelegramRemoteID
+	//
+	//  SELECT pl.id, pl.profile_id, pl.remote_id, pl.public_id
+	//  FROM "profile_link" pl
+	//  WHERE pl.kind = 'telegram'
+	//    AND pl.remote_id = $1
+	//    AND pl.deleted_at IS NULL
+	//  LIMIT 1
+	GetProfileLinkByTelegramRemoteID(ctx context.Context, arg GetProfileLinkByTelegramRemoteIDParams) (*GetProfileLinkByTelegramRemoteIDRow, error)
 	//GetProfileLinkTx
 	//
 	//  SELECT profile_link_id, locale_code, title, "group", description, icon
@@ -984,6 +1019,14 @@ type Querier interface {
 	//    AND remote_id = $3
 	//    AND deleted_at IS NULL
 	GetProfileResourceByRemoteID(ctx context.Context, arg GetProfileResourceByRemoteIDParams) (*ProfileResource, error)
+	//GetProfileSlugByIDForTelegram
+	//
+	//  SELECT slug
+	//  FROM "profile"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	//  LIMIT 1
+	GetProfileSlugByIDForTelegram(ctx context.Context, arg GetProfileSlugByIDForTelegramParams) (string, error)
 	//GetProfileTxByID
 	//
 	//  SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -1251,6 +1294,15 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*StorySeries, error)
+	//GetTelegramLinkTokenByToken
+	//
+	//  SELECT id, token, profile_id, profile_slug, created_by_user_id, created_at, expires_at, consumed_at
+	//  FROM "telegram_link_token"
+	//  WHERE token = $1
+	//    AND consumed_at IS NULL
+	//    AND expires_at > NOW()
+	//  LIMIT 1
+	GetTelegramLinkTokenByToken(ctx context.Context, arg GetTelegramLinkTokenByTokenParams) (*TelegramLinkToken, error)
 	//GetUserBriefInfoByID
 	//
 	//  SELECT kind, individual_profile_id
@@ -1719,6 +1771,22 @@ type Querier interface {
 	//  ORDER BY pl.updated_at ASC NULLS FIRST
 	//  LIMIT $2
 	ListManagedLinksForKindPublic(ctx context.Context, arg ListManagedLinksForKindPublicParams) ([]*ListManagedLinksForKindPublicRow, error)
+	//ListManagedTelegramLinks
+	//
+	//  SELECT
+	//    pl.id,
+	//    pl.profile_id,
+	//    pl.remote_id,
+	//    pl.public_id
+	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
+	//      AND p.deleted_at IS NULL
+	//  WHERE pl.kind = 'telegram'
+	//    AND pl.is_managed = TRUE
+	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl.updated_at ASC NULLS FIRST
+	//  LIMIT $1
+	ListManagedTelegramLinks(ctx context.Context, arg ListManagedTelegramLinksParams) ([]*ListManagedTelegramLinksRow, error)
 	//ListPendingAwards
 	//
 	//  SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
@@ -2492,6 +2560,14 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	SoftDeleteProfileResource(ctx context.Context, arg SoftDeleteProfileResourceParams) (int64, error)
+	//SoftDeleteTelegramProfileLink
+	//
+	//  UPDATE "profile_link"
+	//  SET deleted_at = NOW()
+	//  WHERE kind = 'telegram'
+	//    AND remote_id = $1
+	//    AND deleted_at IS NULL
+	SoftDeleteTelegramProfileLink(ctx context.Context, arg SoftDeleteTelegramProfileLinkParams) (int64, error)
 	//TerminateSession
 	//
 	//  UPDATE

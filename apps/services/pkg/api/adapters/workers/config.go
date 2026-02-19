@@ -27,8 +27,9 @@ type SpeakerDeckSyncConfig struct {
 
 // Config holds all worker configurations.
 type Config struct {
-	YouTubeSync     YouTubeSyncConfig     `conf:"youtube_sync"`
-	GitHubSync      GitHubSyncConfig      `conf:"github_sync"`
-	SpeakerDeckSync SpeakerDeckSyncConfig `conf:"speakerdeck_sync"`
-	Queue           QueueWorkerConfig     `conf:"queue"`
+	YouTubeSync     YouTubeSyncConfig        `conf:"youtube_sync"`
+	GitHubSync      GitHubSyncConfig         `conf:"github_sync"`
+	SpeakerDeckSync SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
+	Queue           QueueWorkerConfig        `conf:"queue"`
+	TelegramBot     TelegramBotPollingConfig `conf:"telegram_bot"`
 }

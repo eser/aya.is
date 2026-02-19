@@ -66,6 +66,29 @@ EOF
 
 > **Not:** `AUTH__JWT_SECRET` kimlik doğrulama için zorunludur. Geliştirme ortamında herhangi bir değer kullanabilirsiniz.
 
+#### Telegram Bot (İsteğe Bağlı)
+
+Telegram entegrasyonunu etkinleştirmek için [@BotFather](https://t.me/BotFather) üzerinden bir bot oluşturun ve aşağıdaki
+ortam değişkenlerini ekleyin:
+
+```bash
+# Geliştirme ortamı (polling modu — public URL gerektirmez)
+TELEGRAM__ENABLED=true
+TELEGRAM__BOT_TOKEN=<BotFather'dan aldığınız token>
+TELEGRAM__BOT_USERNAME=ayabot
+TELEGRAM__USE_POLLING=true
+WORKERS__TELEGRAM_BOT__ENABLED=true
+```
+
+```bash
+# Production ortamı (webhook modu)
+TELEGRAM__ENABLED=true
+TELEGRAM__BOT_TOKEN=<BotFather'dan aldığınız token>
+TELEGRAM__BOT_USERNAME=ayabot
+TELEGRAM__WEBHOOK_URL=https://api.aya.is/telegram/webhook
+TELEGRAM__WEBHOOK_SECRET=<rastgele-gizli-anahtar>
+```
+
 Projeyi başlatmak için Make komutlarını kullanın:
 
 ```bash

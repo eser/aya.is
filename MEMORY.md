@@ -60,6 +60,38 @@ Activity-specific fields live in `story.properties` rather than dedicated column
 - `remote_id` stores external identifier (unique per author_profile_id)
 - Workers periodically sync and create/update managed stories
 
+### Telegram Integration
+
+Profiles can connect their Telegram accounts via the `profile_link` system (`kind='telegram'`, `is_managed=true`).
+
+**Bot:** "ayabot" — handles account linking, status checks, and unlinking via private messages.
+
+**Deep Link Token Flow:**
+1. User clicks "Connect Telegram" in AYA web UI
+2. API generates a crypto-random token (32 bytes → 64 hex chars, 10min TTL), stores in `telegram_link_token` table
+3. Returns deep link: `https://t.me/ayabot?start=<token>`
+4. User opens link → sends `/start <token>` to bot
+5. Bot validates token → creates `profile_link` with `kind='telegram'` → confirms
+
+**Bot Commands:** `/start`, `/start <token>`, `/help`, `/status`, `/unlink`
+
+**Two Modes:**
+- **Webhooks** (production): Telegram pushes to `POST /telegram/webhook`, verified via `X-Telegram-Bot-Api-Secret-Token`
+- **Long-polling** (dev): Polling worker fetches updates — no public URL needed
+
+**Environment Variables:**
+| Variable | Default | Description |
+|---|---|---|
+| `TELEGRAM__ENABLED` | `false` | Enable Telegram integration |
+| `TELEGRAM__BOT_TOKEN` | *(required)* | Token from @BotFather |
+| `TELEGRAM__BOT_USERNAME` | `ayabot` | Bot username for deep links |
+| `TELEGRAM__WEBHOOK_URL` | — | Webhook URL (production) |
+| `TELEGRAM__WEBHOOK_SECRET` | — | Webhook secret header |
+| `TELEGRAM__USE_POLLING` | `false` | Use polling instead of webhooks |
+| `WORKERS__TELEGRAM_BOT__ENABLED` | `false` | Enable polling worker |
+
+**Key Tables:** `telegram_link_token` (migration 0035), `profile_link` (existing, `kind='telegram'`)
+
 ### Publishing Model
 - Stories have no direct `published_at` — it's on `story_publication`
 - A story without active publications is a draft

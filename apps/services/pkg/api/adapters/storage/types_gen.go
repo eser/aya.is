@@ -397,6 +397,17 @@ type StoryTx struct {
 	SearchVector interface{} `db:"search_vector" json:"search_vector"`
 }
 
+type TelegramLinkToken struct {
+	ID              string       `db:"id" json:"id"`
+	Token           string       `db:"token" json:"token"`
+	ProfileID       string       `db:"profile_id" json:"profile_id"`
+	ProfileSlug     string       `db:"profile_slug" json:"profile_slug"`
+	CreatedByUserID string       `db:"created_by_user_id" json:"created_by_user_id"`
+	CreatedAt       time.Time    `db:"created_at" json:"created_at"`
+	ExpiresAt       time.Time    `db:"expires_at" json:"expires_at"`
+	ConsumedAt      sql.NullTime `db:"consumed_at" json:"consumed_at"`
+}
+
 type User struct {
 	ID                  string         `db:"id" json:"id"`
 	Kind                string         `db:"kind" json:"kind"`

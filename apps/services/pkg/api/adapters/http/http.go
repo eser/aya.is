@@ -12,6 +12,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	mcpadapter "github.com/eser/aya.is/services/pkg/api/adapters/mcp"
+	telegramadapter "github.com/eser/aya.is/services/pkg/api/adapters/telegram"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
@@ -22,9 +23,17 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/story_interactions"
+	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
+
+// TelegramProviders holds Telegram bot components (nil when Telegram is disabled).
+type TelegramProviders struct {
+	Bot           *telegramadapter.Bot
+	Service       *telegrambiz.Service
+	WebhookSecret string
+}
 
 func Run(
 	ctx context.Context,
@@ -44,6 +53,7 @@ func Run(
 	uploadService *uploads.Service,
 	unsplashClient *unsplash.Client,
 	profileLinkProviders *ProfileLinkProviders,
+	telegramProviders *TelegramProviders,
 	aiModels *aifx.Registry,
 	runtimeStatesService *runtime_states.Service,
 	workerRegistry *workerfx.Registry,
@@ -210,6 +220,17 @@ func Run(
 		runtimeStatesService,
 		workerRegistry,
 	)
+
+	if telegramProviders != nil {
+		RegisterHTTPRoutesForTelegram( //nolint:contextcheck
+			routes,
+			logger,
+			authService,
+			userService,
+			profileService,
+			telegramProviders,
+		)
+	}
 
 	// run
 	return httpService.Start(ctx) //nolint:wrapcheck
