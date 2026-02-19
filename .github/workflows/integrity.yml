@@ -1,5 +1,6 @@
-# This workflow will build a deno project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# This workflow runs integrity checks (lint, static analysis, tests, format) for both
+# the Go backend (apps/services) and the Web Client (apps/webclient).
+# Mirrors the `make ok` command run locally before committing.
 
 name: Integrity Pipeline
 
@@ -36,10 +37,71 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  integration:
-    name: Integration
+  services:
+    name: Services
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
+
+    permissions:
+      contents: read # Needed to clone the repository
+      checks: write  # Needed for golangci-lint GitHub annotations
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          # - windows-latest
+          # - macOS-latest
+        golang-version:
+          - 1.25.7
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false # Disable to avoid exposing secrets in PRs from forks
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Setup Golang ${{ matrix.golang-version }}
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.golang-version }}
+          cache: true
+          cache-dependency-path: ./apps/services/go.sum
+
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.1
+
+      - name: Build
+        working-directory: ./apps/services/
+        run: go build -v ./...
+
+      - name: Lint
+        working-directory: ./apps/services/
+        run: go tool golangci-lint run --out-format=github-actions ./...
+
+      - name: Static analysis
+        working-directory: ./apps/services/
+        run: |
+          go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./...
+          go tool govulncheck ./...
+          go tool betteralign ./...
+          go vet ./...
+
+      - name: Test
+        working-directory: ./apps/services/
+        run: go test -failfast -race -count 1 -v ./...
+
+  webclient:
+    name: Webclient
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
 
     permissions:
       contents: read # Needed to clone the repository
@@ -53,43 +115,31 @@ jobs:
           # - macOS-latest
         deno-version:
           - 2.4.1
-        golang-version:
-          - 1.25.7
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 2
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.x"
+          persist-credentials: false # Disable to avoid exposing secrets in PRs from forks
 
       - name: Setup Deno ${{ matrix.deno-version }}
         uses: denoland/setup-deno@v2
         with:
           deno-version: ${{ matrix.deno-version }}
 
-      - name: Setup Golang ${{ matrix.golang-version }}
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ matrix.golang-version }}
-          cache: true
-          cache-dependency-path: ./apps/services/go.sum
+      - name: Lint
+        working-directory: ./apps/webclient/
+        run: deno lint
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
+      - name: Format check
+        working-directory: ./apps/webclient/
+        run: deno fmt --check
 
-      - name: Build services
-        working-directory: ./apps/services/
-        run: go build -v ./...
-
-      # - name: Generate webclient coverage report
+      # - name: Generate coverage report
       #   run: deno task test:coverage-gen
 
-      # - name: Upload webclient coverage
+      # - name: Upload coverage
       #   uses: codecov/codecov-action@v4
       #   env:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
