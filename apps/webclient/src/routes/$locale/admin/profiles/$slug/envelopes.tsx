@@ -25,8 +25,7 @@ function AdminProfileEnvelopes() {
   const { profile } = Route.useLoaderData();
 
   const [targetSlug, setTargetSlug] = useState("");
-  const [telegramChatId, setTelegramChatId] = useState("");
-  const [groupName, setGroupName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -37,31 +36,17 @@ function AdminProfileEnvelopes() {
     return null;
   }
 
-  const handleGroupNameChange = (value: string) => {
-    setGroupName(value);
-    // Auto-generate title if not manually edited
-    if (title === "" || title === `${groupName} Telegram Group`) {
-      setTitle(value !== "" ? `${value} Telegram Group` : "");
-    }
-  };
-
   const handleSend = async () => {
     if (targetSlug.trim() === "") {
       setSendError(t("Admin.Target Profile Slug") + " is required");
       return;
     }
-    if (telegramChatId.trim() === "") {
-      setSendError(t("Admin.Telegram Chat ID") + " is required");
+    if (inviteCode.trim() === "") {
+      setSendError(t("Admin.Invite Code") + " is required");
       return;
     }
     if (title.trim() === "") {
       setSendError(t("Common.Title") + " is required");
-      return;
-    }
-
-    const chatIdNum = Number.parseInt(telegramChatId, 10);
-    if (Number.isNaN(chatIdNum)) {
-      setSendError(t("Admin.Telegram Chat ID") + " must be a number");
       return;
     }
 
@@ -85,18 +70,12 @@ function AdminProfileEnvelopes() {
         kind: "invitation",
         title: title.trim(),
         description: description.trim() !== "" ? description.trim() : undefined,
-        properties: {
-          invitation_kind: "telegram_group",
-          telegram_chat_id: chatIdNum,
-          group_profile_slug: params.slug,
-          group_name: groupName.trim(),
-        },
+        inviteCode: inviteCode.trim(),
       });
 
       if (result !== null) {
         setTargetSlug("");
-        setTelegramChatId("");
-        setGroupName("");
+        setInviteCode("");
         setTitle("");
         setDescription("");
         setSendSuccess(true);
@@ -132,53 +111,46 @@ function AdminProfileEnvelopes() {
               <Input
                 id="targetSlug"
                 type="text"
-                placeholder="seyma"
+                placeholder="someone"
                 value={targetSlug}
                 onChange={(e) => setTargetSlug(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="telegramChatId">{t("Admin.Telegram Chat ID")}</Label>
+              <Label htmlFor="inviteCode">{t("Admin.Invite Code")}</Label>
               <Input
-                id="telegramChatId"
+                id="inviteCode"
                 type="text"
-                placeholder="-100123456789"
-                value={telegramChatId}
-                onChange={(e) => setTelegramChatId(e.target.value)}
+                placeholder="ABC123"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
               />
+              <p className="text-xs text-muted-foreground">
+                {t("Admin.Use /invite in a Telegram group to get a code")}
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="groupName">{t("Admin.Group Name")}</Label>
-              <Input
-                id="groupName"
-                type="text"
-                placeholder="ajanstack dev"
-                value={groupName}
-                onChange={(e) => handleGroupNameChange(e.target.value)}
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="title">{t("Common.Title")}</Label>
               <Input
                 id="title"
                 type="text"
-                placeholder="ajanstack dev Telegram Group"
+                placeholder="Telegram Group Invitation"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">{t("Common.Description")}</Label>
-            <Textarea
-              id="description"
-              placeholder={t("Admin.Optional description for the invitation")}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="description">{t("Common.Description")}</Label>
+              <Textarea
+                id="description"
+                placeholder={t("Admin.Optional description for the invitation")}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+              />
+            </div>
           </div>
           {sendError !== null && (
             <p className="text-sm text-destructive">{sendError}</p>

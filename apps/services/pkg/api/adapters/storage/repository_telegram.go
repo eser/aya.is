@@ -239,6 +239,74 @@ func (a *telegramAdapter) GetMemberProfileTelegramLinks(
 	return result, nil
 }
 
+func (a *telegramAdapter) CreateGroupInviteCode(
+	ctx context.Context,
+	code *telegrambiz.TelegramGroupInviteCode,
+) error {
+	return a.repo.queries.CreateTelegramGroupInviteCode(ctx, CreateTelegramGroupInviteCodeParams{
+		ID:                      code.ID,
+		Code:                    code.Code,
+		TelegramChatID:          code.TelegramChatID,
+		TelegramChatTitle:       code.TelegramChatTitle,
+		CreatedByTelegramUserID: code.CreatedByTelegramUserID,
+		ExpiresAt:               code.ExpiresAt,
+	})
+}
+
+func (a *telegramAdapter) GetGroupInviteCodeByCode(
+	ctx context.Context,
+	code string,
+) (*telegrambiz.TelegramGroupInviteCode, error) {
+	row, err := a.repo.queries.GetTelegramGroupInviteCodeByCode(
+		ctx,
+		GetTelegramGroupInviteCodeByCodeParams{
+			Code: code,
+		},
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, telegrambiz.ErrGroupInviteCodeNotFound
+		}
+
+		return nil, err
+	}
+
+	result := &telegrambiz.TelegramGroupInviteCode{
+		ID:                      row.ID,
+		Code:                    row.Code,
+		TelegramChatID:          row.TelegramChatID,
+		TelegramChatTitle:       row.TelegramChatTitle,
+		CreatedByTelegramUserID: row.CreatedByTelegramUserID,
+		CreatedAt:               row.CreatedAt,
+		ExpiresAt:               row.ExpiresAt,
+	}
+
+	if row.ConsumedAt.Valid {
+		t := row.ConsumedAt.Time
+		result.ConsumedAt = &t
+	}
+
+	return result, nil
+}
+
+func (a *telegramAdapter) ConsumeGroupInviteCode(ctx context.Context, code string) error {
+	rowsAffected, err := a.repo.queries.ConsumeTelegramGroupInviteCode(
+		ctx,
+		ConsumeTelegramGroupInviteCodeParams{
+			Code: code,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return telegrambiz.ErrGroupInviteCodeConsumed
+	}
+
+	return nil
+}
+
 func (a *telegramAdapter) GetMaxProfileLinkOrder(
 	ctx context.Context,
 	profileID string,

@@ -34,6 +34,9 @@ var (
 	ErrFailedToLink              = errors.New("failed to link telegram account")
 	ErrFailedToUnlink            = errors.New("failed to unlink telegram account")
 	ErrNotLinked                 = errors.New("telegram account is not linked")
+	ErrGroupInviteCodeNotFound   = errors.New("group invite code not found or expired")
+	ErrGroupInviteCodeConsumed   = errors.New("group invite code already consumed")
+	ErrFailedToCreateInviteCode  = errors.New("failed to create group invite code")
 )
 
 // Repository defines storage operations for the Telegram service.
@@ -61,6 +64,11 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		memberProfileID string,
 	) ([]RawGroupTelegramLink, error)
+
+	// Group invite code operations.
+	CreateGroupInviteCode(ctx context.Context, code *TelegramGroupInviteCode) error
+	GetGroupInviteCodeByCode(ctx context.Context, code string) (*TelegramGroupInviteCode, error)
+	ConsumeGroupInviteCode(ctx context.Context, code string) error
 }
 
 // Service provides Telegram account linking business logic.
@@ -292,6 +300,69 @@ func (s *Service) GetGroupTelegramLinks(
 	}
 
 	return result, nil
+}
+
+// GenerateGroupInviteCode creates a short code for the Telegram group invite flow.
+// Called by the bot when a lead types /invite in a group chat.
+func (s *Service) GenerateGroupInviteCode(
+	ctx context.Context,
+	chatID int64,
+	chatTitle string,
+	telegramUserID int64,
+) (string, error) {
+	code, err := generateCode()
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToCreateInviteCode, err)
+	}
+
+	now := time.Now()
+
+	inviteCode := &TelegramGroupInviteCode{
+		ID:                      s.idGenerator(),
+		Code:                    code,
+		TelegramChatID:          chatID,
+		TelegramChatTitle:       chatTitle,
+		CreatedByTelegramUserID: telegramUserID,
+		CreatedAt:               now,
+		ExpiresAt:               now.Add(CodeExpiryMinutes * time.Minute),
+		ConsumedAt:              nil,
+	}
+
+	err = s.repo.CreateGroupInviteCode(ctx, inviteCode)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToCreateInviteCode, err)
+	}
+
+	s.logger.DebugContext(ctx, "Telegram group invite code generated",
+		slog.Int64("chat_id", chatID),
+		slog.String("chat_title", chatTitle),
+		slog.Int64("telegram_user_id", telegramUserID))
+
+	return code, nil
+}
+
+// ResolveGroupInviteCode looks up a group invite code and returns its data if valid.
+// Does NOT consume the code — consumption happens after envelope creation.
+func (s *Service) ResolveGroupInviteCode(
+	ctx context.Context,
+	code string,
+) (*TelegramGroupInviteCode, error) {
+	inviteCode, err := s.repo.GetGroupInviteCodeByCode(ctx, code)
+	if err != nil {
+		return nil, ErrGroupInviteCodeNotFound
+	}
+
+	return inviteCode, nil
+}
+
+// ConsumeGroupInviteCode marks an invite code as consumed after envelope creation.
+func (s *Service) ConsumeGroupInviteCode(ctx context.Context, code string) error {
+	err := s.repo.ConsumeGroupInviteCode(ctx, code)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrGroupInviteCodeConsumed, err)
+	}
+
+	return nil
 }
 
 // generateCode creates a random verification code using crypto/rand.

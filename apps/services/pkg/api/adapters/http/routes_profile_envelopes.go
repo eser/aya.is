@@ -9,6 +9,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	envelopes "github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
+	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
@@ -19,6 +20,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 	userService *users.Service,
 	profileService *profiles.Service,
 	envelopeService *envelopes.Service,
+	telegramService *telegrambiz.Service,
 ) {
 	// GET /{locale}/profiles/{slug}/_envelopes — list envelopes (inbox)
 	routes.
@@ -136,6 +138,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					TargetProfileID string `json:"target_profile_id"`
 					Title           string `json:"title"`
 					Description     string `json:"description"`
+					InviteCode      string `json:"invite_code"`
 					Properties      any    `json:"properties"`
 				}
 
@@ -147,6 +150,34 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 				if body.Kind == "" || body.TargetProfileID == "" || body.Title == "" {
 					return ctx.Results.BadRequest(
 						httpfx.WithErrorMessage("kind, target_profile_id, and title are required"),
+					)
+				}
+
+				// If an invite code is provided, resolve it to get chat_id and title
+				if body.InviteCode != "" {
+					if telegramService == nil {
+						return ctx.Results.BadRequest(
+							httpfx.WithErrorMessage("Telegram is not configured"),
+						)
+					}
+
+					inviteCode, resolveErr := telegramService.ResolveGroupInviteCode(
+						ctx.Request.Context(), body.InviteCode,
+					)
+					if resolveErr != nil {
+						return ctx.Results.BadRequest(
+							httpfx.WithErrorMessage("Invalid or expired invite code"),
+						)
+					}
+
+					body.Properties = map[string]any{
+						"invitation_kind":  "telegram_group",
+						"telegram_chat_id": inviteCode.TelegramChatID,
+						"group_name":       inviteCode.TelegramChatTitle,
+					}
+
+					_ = telegramService.ConsumeGroupInviteCode(
+						ctx.Request.Context(), body.InviteCode,
 					)
 				}
 

@@ -28,6 +28,31 @@ func (q *Queries) CleanupExpiredTelegramVerificationCodes(ctx context.Context) (
 	return result.RowsAffected()
 }
 
+const consumeTelegramGroupInviteCode = `-- name: ConsumeTelegramGroupInviteCode :execrows
+UPDATE "telegram_group_invite_code"
+SET consumed_at = NOW()
+WHERE code = $1
+  AND consumed_at IS NULL
+`
+
+type ConsumeTelegramGroupInviteCodeParams struct {
+	Code string `db:"code" json:"code"`
+}
+
+// ConsumeTelegramGroupInviteCode
+//
+//	UPDATE "telegram_group_invite_code"
+//	SET consumed_at = NOW()
+//	WHERE code = $1
+//	  AND consumed_at IS NULL
+func (q *Queries) ConsumeTelegramGroupInviteCode(ctx context.Context, arg ConsumeTelegramGroupInviteCodeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, consumeTelegramGroupInviteCode, arg.Code)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const consumeTelegramVerificationCode = `-- name: ConsumeTelegramVerificationCode :execrows
 UPDATE "telegram_verification_code"
 SET consumed_at = NOW()
@@ -51,6 +76,36 @@ func (q *Queries) ConsumeTelegramVerificationCode(ctx context.Context, arg Consu
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const createTelegramGroupInviteCode = `-- name: CreateTelegramGroupInviteCode :exec
+INSERT INTO "telegram_group_invite_code" (id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at)
+VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+`
+
+type CreateTelegramGroupInviteCodeParams struct {
+	ID                      string    `db:"id" json:"id"`
+	Code                    string    `db:"code" json:"code"`
+	TelegramChatID          int64     `db:"telegram_chat_id" json:"telegram_chat_id"`
+	TelegramChatTitle       string    `db:"telegram_chat_title" json:"telegram_chat_title"`
+	CreatedByTelegramUserID int64     `db:"created_by_telegram_user_id" json:"created_by_telegram_user_id"`
+	ExpiresAt               time.Time `db:"expires_at" json:"expires_at"`
+}
+
+// CreateTelegramGroupInviteCode
+//
+//	INSERT INTO "telegram_group_invite_code" (id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at)
+//	VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+func (q *Queries) CreateTelegramGroupInviteCode(ctx context.Context, arg CreateTelegramGroupInviteCodeParams) error {
+	_, err := q.db.ExecContext(ctx, createTelegramGroupInviteCode,
+		arg.ID,
+		arg.Code,
+		arg.TelegramChatID,
+		arg.TelegramChatTitle,
+		arg.CreatedByTelegramUserID,
+		arg.ExpiresAt,
+	)
+	return err
 }
 
 const createTelegramVerificationCode = `-- name: CreateTelegramVerificationCode :exec
@@ -304,6 +359,43 @@ func (q *Queries) GetProfileSlugByIDForTelegram(ctx context.Context, arg GetProf
 	var slug string
 	err := row.Scan(&slug)
 	return slug, err
+}
+
+const getTelegramGroupInviteCodeByCode = `-- name: GetTelegramGroupInviteCodeByCode :one
+SELECT id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at, consumed_at
+FROM "telegram_group_invite_code"
+WHERE code = $1
+  AND consumed_at IS NULL
+  AND expires_at > NOW()
+LIMIT 1
+`
+
+type GetTelegramGroupInviteCodeByCodeParams struct {
+	Code string `db:"code" json:"code"`
+}
+
+// GetTelegramGroupInviteCodeByCode
+//
+//	SELECT id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at, consumed_at
+//	FROM "telegram_group_invite_code"
+//	WHERE code = $1
+//	  AND consumed_at IS NULL
+//	  AND expires_at > NOW()
+//	LIMIT 1
+func (q *Queries) GetTelegramGroupInviteCodeByCode(ctx context.Context, arg GetTelegramGroupInviteCodeByCodeParams) (*TelegramGroupInviteCode, error) {
+	row := q.db.QueryRowContext(ctx, getTelegramGroupInviteCodeByCode, arg.Code)
+	var i TelegramGroupInviteCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.TelegramChatID,
+		&i.TelegramChatTitle,
+		&i.CreatedByTelegramUserID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.ConsumedAt,
+	)
+	return &i, err
 }
 
 const getTelegramVerificationCodeByCode = `-- name: GetTelegramVerificationCodeByCode :one

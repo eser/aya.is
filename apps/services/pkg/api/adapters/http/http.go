@@ -184,6 +184,12 @@ func Run(
 		profileService,
 		profileQuestionsService,
 	)
+
+	var telegramServiceForEnvelopes *telegrambiz.Service
+	if telegramProviders != nil {
+		telegramServiceForEnvelopes = telegramProviders.Service
+	}
+
 	RegisterHTTPRoutesForProfileEnvelopes( //nolint:contextcheck
 		routes,
 		logger,
@@ -191,6 +197,7 @@ func Run(
 		userService,
 		profileService,
 		profileEnvelopesService,
+		telegramServiceForEnvelopes,
 	)
 	RegisterHTTPRoutesForActivities( //nolint:contextcheck
 		routes,

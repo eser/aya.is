@@ -52,8 +52,7 @@ function InboxSettingsPage() {
   // Send form state
   const [sendFormOpen, setSendFormOpen] = React.useState(false);
   const [targetSlug, setTargetSlug] = React.useState("");
-  const [telegramChatId, setTelegramChatId] = React.useState("");
-  const [groupName, setGroupName] = React.useState("");
+  const [inviteCode, setInviteCode] = React.useState("");
   const [sendTitle, setSendTitle] = React.useState("");
   const [sendDescription, setSendDescription] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
@@ -91,30 +90,17 @@ function InboxSettingsPage() {
     setActionInProgress(null);
   };
 
-  const handleGroupNameChange = (value: string) => {
-    setGroupName(value);
-    if (sendTitle === "" || sendTitle === `${groupName} Telegram Group`) {
-      setSendTitle(value !== "" ? `${value} Telegram Group` : "");
-    }
-  };
-
   const handleSend = async () => {
     if (targetSlug.trim() === "") {
       setSendError(t("Admin.Target Profile Slug") + " is required");
       return;
     }
-    if (telegramChatId.trim() === "") {
-      setSendError(t("Admin.Telegram Chat ID") + " is required");
+    if (inviteCode.trim() === "") {
+      setSendError(t("Admin.Invite Code") + " is required");
       return;
     }
     if (sendTitle.trim() === "") {
       setSendError(t("Common.Title") + " is required");
-      return;
-    }
-
-    const chatIdNum = Number.parseInt(telegramChatId, 10);
-    if (Number.isNaN(chatIdNum)) {
-      setSendError(t("Admin.Telegram Chat ID") + " must be a number");
       return;
     }
 
@@ -137,18 +123,12 @@ function InboxSettingsPage() {
         kind: "invitation",
         title: sendTitle.trim(),
         description: sendDescription.trim() !== "" ? sendDescription.trim() : undefined,
-        properties: {
-          invitation_kind: "telegram_group",
-          telegram_chat_id: chatIdNum,
-          group_profile_slug: params.slug,
-          group_name: groupName.trim(),
-        },
+        inviteCode: inviteCode.trim(),
       });
 
       if (result !== null) {
         setTargetSlug("");
-        setTelegramChatId("");
-        setGroupName("");
+        setInviteCode("");
         setSendTitle("");
         setSendDescription("");
         setSendSuccess(true);
@@ -222,53 +202,46 @@ function InboxSettingsPage() {
                   <Input
                     id="targetSlug"
                     type="text"
-                    placeholder="seyma"
+                    placeholder="someone"
                     value={targetSlug}
                     onChange={(e) => setTargetSlug(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="telegramChatId">{t("Admin.Telegram Chat ID")}</Label>
+                  <Label htmlFor="inviteCode">{t("Admin.Invite Code")}</Label>
                   <Input
-                    id="telegramChatId"
+                    id="inviteCode"
                     type="text"
-                    placeholder="-100123456789"
-                    value={telegramChatId}
-                    onChange={(e) => setTelegramChatId(e.target.value)}
+                    placeholder="ABC123"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    {t("Admin.Use /invite in a Telegram group to get a code")}
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="groupName">{t("Admin.Group Name")}</Label>
-                  <Input
-                    id="groupName"
-                    type="text"
-                    placeholder="ajanstack dev"
-                    value={groupName}
-                    onChange={(e) => handleGroupNameChange(e.target.value)}
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="sendTitle">{t("Common.Title")}</Label>
                   <Input
                     id="sendTitle"
                     type="text"
-                    placeholder="ajanstack dev Telegram Group"
+                    placeholder="Telegram Group Invitation"
                     value={sendTitle}
                     onChange={(e) => setSendTitle(e.target.value)}
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sendDescription">{t("Common.Description")}</Label>
-                <Textarea
-                  id="sendDescription"
-                  placeholder={t("Admin.Optional description for the invitation")}
-                  value={sendDescription}
-                  onChange={(e) => setSendDescription(e.target.value)}
-                  rows={2}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="sendDescription">{t("Common.Description")}</Label>
+                  <Textarea
+                    id="sendDescription"
+                    placeholder={t("Admin.Optional description for the invitation")}
+                    value={sendDescription}
+                    onChange={(e) => setSendDescription(e.target.value)}
+                    rows={2}
+                  />
+                </div>
               </div>
               {sendError !== null && (
                 <p className="text-sm text-destructive">{sendError}</p>

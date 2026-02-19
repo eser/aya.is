@@ -100,3 +100,21 @@ WHERE pm.member_profile_id = sqlc.arg(member_profile_id)
   AND pm.deleted_at IS NULL
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 ORDER BY p.slug, pl."order";
+
+-- name: CreateTelegramGroupInviteCode :exec
+INSERT INTO "telegram_group_invite_code" (id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at)
+VALUES (sqlc.arg(id), sqlc.arg(code), sqlc.arg(telegram_chat_id), sqlc.arg(telegram_chat_title), sqlc.arg(created_by_telegram_user_id), NOW(), sqlc.arg(expires_at));
+
+-- name: GetTelegramGroupInviteCodeByCode :one
+SELECT *
+FROM "telegram_group_invite_code"
+WHERE code = sqlc.arg(code)
+  AND consumed_at IS NULL
+  AND expires_at > NOW()
+LIMIT 1;
+
+-- name: ConsumeTelegramGroupInviteCode :execrows
+UPDATE "telegram_group_invite_code"
+SET consumed_at = NOW()
+WHERE code = sqlc.arg(code)
+  AND consumed_at IS NULL;

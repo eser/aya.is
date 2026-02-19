@@ -91,8 +91,9 @@ type User struct {
 
 // Chat represents a Telegram chat.
 type Chat struct {
-	ID   int64  `json:"id"`
-	Type string `json:"type"` // "private", "group", "supergroup", "channel"
+	ID    int64  `json:"id"`
+	Type  string `json:"type"`  // "private", "group", "supergroup", "channel"
+	Title string `json:"title"` // group/supergroup/channel title
 }
 
 // BotInfo represents bot identity information.

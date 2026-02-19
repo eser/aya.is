@@ -138,6 +138,13 @@ type Querier interface {
 	//    AND status = 'processing'
 	//    AND worker_id = $2
 	CompleteQueueItem(ctx context.Context, arg CompleteQueueItemParams) (int64, error)
+	//ConsumeTelegramGroupInviteCode
+	//
+	//  UPDATE "telegram_group_invite_code"
+	//  SET consumed_at = NOW()
+	//  WHERE code = $1
+	//    AND consumed_at IS NULL
+	ConsumeTelegramGroupInviteCode(ctx context.Context, arg ConsumeTelegramGroupInviteCodeParams) (int64, error)
 	//ConsumeTelegramVerificationCode
 	//
 	//  UPDATE "telegram_verification_code"
@@ -474,6 +481,11 @@ type Querier interface {
 	//      $15
 	//    )
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
+	//CreateTelegramGroupInviteCode
+	//
+	//  INSERT INTO "telegram_group_invite_code" (id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at)
+	//  VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+	CreateTelegramGroupInviteCode(ctx context.Context, arg CreateTelegramGroupInviteCodeParams) error
 	//CreateTelegramVerificationCode
 	//
 	//  INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
@@ -1363,6 +1375,15 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*StorySeries, error)
+	//GetTelegramGroupInviteCodeByCode
+	//
+	//  SELECT id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at, consumed_at
+	//  FROM "telegram_group_invite_code"
+	//  WHERE code = $1
+	//    AND consumed_at IS NULL
+	//    AND expires_at > NOW()
+	//  LIMIT 1
+	GetTelegramGroupInviteCodeByCode(ctx context.Context, arg GetTelegramGroupInviteCodeByCodeParams) (*TelegramGroupInviteCode, error)
 	//GetTelegramVerificationCodeByCode
 	//
 	//  SELECT id, code, telegram_user_id, telegram_username, created_at, expires_at, consumed_at

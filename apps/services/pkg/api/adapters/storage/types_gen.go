@@ -416,6 +416,17 @@ type StoryTx struct {
 	SearchVector interface{} `db:"search_vector" json:"search_vector"`
 }
 
+type TelegramGroupInviteCode struct {
+	ID                      string       `db:"id" json:"id"`
+	Code                    string       `db:"code" json:"code"`
+	TelegramChatID          int64        `db:"telegram_chat_id" json:"telegram_chat_id"`
+	TelegramChatTitle       string       `db:"telegram_chat_title" json:"telegram_chat_title"`
+	CreatedByTelegramUserID int64        `db:"created_by_telegram_user_id" json:"created_by_telegram_user_id"`
+	CreatedAt               time.Time    `db:"created_at" json:"created_at"`
+	ExpiresAt               time.Time    `db:"expires_at" json:"expires_at"`
+	ConsumedAt              sql.NullTime `db:"consumed_at" json:"consumed_at"`
+}
+
 type TelegramVerificationCode struct {
 	ID               string       `db:"id" json:"id"`
 	Code             string       `db:"code" json:"code"`

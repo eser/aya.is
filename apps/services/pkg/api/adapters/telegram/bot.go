@@ -59,7 +59,17 @@ func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclo
 		return
 	}
 
-	// Only handle private messages
+	// Handle group commands (only /invite is allowed in groups)
+	if msg.Chat.Type == "group" || msg.Chat.Type == "supergroup" {
+		text := strings.TrimSpace(msg.Text)
+		if text == "/invite" || strings.HasPrefix(text, "/invite@") {
+			b.handleGroupInvite(ctx, msg)
+		}
+
+		return
+	}
+
+	// Only handle private messages for all other commands
 	if msg.Chat.Type != "private" {
 		return
 	}
@@ -141,6 +151,7 @@ func (b *Bot) handleHelp(ctx context.Context, msg *Message) {
 		"/status — Check your linked AYA profile\n" +
 		"/groups — List Telegram groups from your profiles\n" +
 		"/invitations — View and redeem your accepted invitations\n" +
+		"/invite — Generate an invite code (use in a group chat)\n" +
 		"/unlink — Disconnect your Telegram account from AYA\n" +
 		"/help — Show this help message"
 
@@ -301,6 +312,61 @@ func (b *Bot) handleInvitations(ctx context.Context, msg *Message) {
 		"<b>Your Invitations</b>\n\nTap an invitation to get your invite link:",
 		keyboard,
 	)
+}
+
+func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
+	if msg.From == nil || msg.From.IsBot {
+		return
+	}
+
+	// Verify the user has a linked AYA profile
+	_, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
+	if err != nil {
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Please link your Telegram account first by sending /start to me in a DM.")
+
+		return
+	}
+
+	// Generate a group invite code
+	code, codeErr := b.service.GenerateGroupInviteCode(
+		ctx, msg.Chat.ID, msg.Chat.Title, msg.From.ID,
+	)
+	if codeErr != nil {
+		b.logger.WarnContext(ctx, "Failed to generate group invite code",
+			slog.Int64("chat_id", msg.Chat.ID),
+			slog.Int64("telegram_user_id", msg.From.ID),
+			slog.String("error", codeErr.Error()))
+
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Something went wrong. Please try again later.")
+
+		return
+	}
+
+	// DM the code to the user
+	dmText := fmt.Sprintf(
+		"Your group invite code for <b>%s</b> is:\n\n"+
+			"<code>%s</code>\n\n"+
+			"Paste this code in the invitation form on <b>aya.is</b>.\n"+
+			"It expires in 10 minutes.",
+		msg.Chat.Title,
+		code,
+	)
+
+	dmErr := b.client.SendMessage(ctx, msg.From.ID, dmText)
+	if dmErr != nil {
+		// User may not have started a DM with the bot yet
+		_ = b.client.SendMessage(
+			ctx,
+			msg.Chat.ID,
+			"I couldn't send you a DM. Please start a chat with me first by sending /start in a DM.",
+		)
+
+		return
+	}
+
+	_ = b.client.SendMessage(ctx, msg.Chat.ID, "Invite code sent to your DM.")
 }
 
 func (b *Bot) handleCallbackQuery(ctx context.Context, cq *CallbackQuery) { //nolint:funlen,cyclop

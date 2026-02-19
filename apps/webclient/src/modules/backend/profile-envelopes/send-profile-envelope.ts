@@ -11,6 +11,7 @@ export interface SendProfileEnvelopeParams {
   kind: string;
   title: string;
   description?: string;
+  inviteCode?: string;
   properties?: Record<string, unknown>;
 }
 
@@ -38,6 +39,10 @@ export async function sendProfileEnvelope(
 
   if (params.description !== undefined && params.description !== "") {
     body.description = params.description;
+  }
+
+  if (params.inviteCode !== undefined && params.inviteCode !== "") {
+    body.invite_code = params.inviteCode;
   }
 
   if (params.properties !== undefined) {
