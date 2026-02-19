@@ -18,6 +18,7 @@
     "Page": "Страница",
     "Kind": "Тип",
     "Points": "Баллы",
+    "Inbox": "Входящие",
     "Individual": "Физическое лицо",
     "Organization": "Организация",
     "Product": "Продукт",
@@ -526,6 +527,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "Ваши входящие и приглашения.",
+    "No inbox items yet.": "Пока нет элементов во входящих.",
+    "Accept": "Принять",
+    "Reject": "Отклонить",
+    "Use /invitations in bot to redeem": "Используйте /invitations в боте для активации",
+    "EnvelopeStatus": {
+      "pending": "Ожидает",
+      "accepted": "Принято",
+      "rejected": "Отклонено",
+      "revoked": "Отозвано",
+      "redeemed": "Активировано"
     },
     "Access": "Доступ",
     "Manage who has access to this profile and their permission levels.": "Управляйте тем, кто имеет доступ к этому профилю и их уровнями разрешений.",

@@ -181,6 +181,14 @@ type Querier interface {
 	//    AND created_at > NOW() - INTERVAL '1 hour'
 	//    AND used = FALSE
 	CountPOWChallengesByIPHash(ctx context.Context, arg CountPOWChallengesByIPHashParams) (int64, error)
+	//CountPendingProfileEnvelopes
+	//
+	//  SELECT COUNT(*)::INT as count
+	//  FROM "profile_envelope"
+	//  WHERE target_profile_id = $1
+	//    AND status = 'pending'
+	//    AND deleted_at IS NULL
+	CountPendingProfileEnvelopes(ctx context.Context, arg CountPendingProfileEnvelopesParams) (int32, error)
 	//CountProfileOwners
 	//
 	//  SELECT COUNT(*) as owner_count
@@ -274,6 +282,24 @@ type Querier interface {
 	//  INSERT INTO "profile" (id, slug, kind, default_locale, profile_picture_uri, pronouns, properties, approved_at)
 	//  VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 	CreateProfile(ctx context.Context, arg CreateProfileParams) error
+	//CreateProfileEnvelope
+	//
+	//  INSERT INTO "profile_envelope" (
+	//    id, target_profile_id, sender_profile_id, sender_user_id,
+	//    kind, status, title, description, properties, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    'pending',
+	//    $6,
+	//    $7,
+	//    $8,
+	//    NOW()
+	//  )
+	CreateProfileEnvelope(ctx context.Context, arg CreateProfileEnvelopeParams) error
 	//CreateProfileLink
 	//
 	//  INSERT INTO "profile_link" (
@@ -814,6 +840,13 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error)
+	//GetProfileEnvelopeByID
+	//
+	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
+	//  FROM "profile_envelope"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	GetProfileEnvelopeByID(ctx context.Context, arg GetProfileEnvelopeByIDParams) (*ProfileEnvelope, error)
 	//GetProfileFeatureLinksVisibility
 	//
 	//  SELECT feature_links
@@ -1545,6 +1578,18 @@ type Querier interface {
 	//    $5
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
+	//ListAcceptedInvitations
+	//
+	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
+	//  FROM "profile_envelope"
+	//  WHERE target_profile_id = $1
+	//    AND kind = 'invitation'
+	//    AND status = 'accepted'
+	//    AND deleted_at IS NULL
+	//    AND ($2::TEXT IS NULL
+	//         OR properties->>'invitation_kind' = $2)
+	//  ORDER BY created_at DESC
+	ListAcceptedInvitations(ctx context.Context, arg ListAcceptedInvitationsParams) ([]*ProfileEnvelope, error)
 	// Lists published activity stories sorted by activity_time_start.
 	// Activity-specific fields are in the properties JSONB column.
 	//
@@ -1839,6 +1884,16 @@ type Querier interface {
 	//  ORDER BY created_at DESC
 	//  LIMIT $2
 	ListPendingAwardsByStatus(ctx context.Context, arg ListPendingAwardsByStatusParams) ([]*ProfilePointPendingAward, error)
+	//ListProfileEnvelopesByTargetProfileID
+	//
+	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
+	//  FROM "profile_envelope"
+	//  WHERE target_profile_id = $1
+	//    AND deleted_at IS NULL
+	//    AND ($2::TEXT IS NULL OR status = $2)
+	//  ORDER BY created_at DESC
+	//  LIMIT $3
+	ListProfileEnvelopesByTargetProfileID(ctx context.Context, arg ListProfileEnvelopesByTargetProfileIDParams) ([]*ProfileEnvelope, error)
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT
@@ -2651,6 +2706,54 @@ type Querier interface {
 	//  WHERE id = $7
 	//    AND deleted_at IS NULL
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
+	//UpdateProfileEnvelopeProperties
+	//
+	//  UPDATE "profile_envelope"
+	//  SET properties = $1,
+	//      updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateProfileEnvelopeProperties(ctx context.Context, arg UpdateProfileEnvelopePropertiesParams) error
+	//UpdateProfileEnvelopeStatusToAccepted
+	//
+	//  UPDATE "profile_envelope"
+	//  SET status = 'accepted',
+	//      accepted_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'pending'
+	//    AND deleted_at IS NULL
+	UpdateProfileEnvelopeStatusToAccepted(ctx context.Context, arg UpdateProfileEnvelopeStatusToAcceptedParams) (int64, error)
+	//UpdateProfileEnvelopeStatusToRedeemed
+	//
+	//  UPDATE "profile_envelope"
+	//  SET status = 'redeemed',
+	//      redeemed_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'accepted'
+	//    AND deleted_at IS NULL
+	UpdateProfileEnvelopeStatusToRedeemed(ctx context.Context, arg UpdateProfileEnvelopeStatusToRedeemedParams) (int64, error)
+	//UpdateProfileEnvelopeStatusToRejected
+	//
+	//  UPDATE "profile_envelope"
+	//  SET status = 'rejected',
+	//      rejected_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'pending'
+	//    AND deleted_at IS NULL
+	UpdateProfileEnvelopeStatusToRejected(ctx context.Context, arg UpdateProfileEnvelopeStatusToRejectedParams) (int64, error)
+	//UpdateProfileEnvelopeStatusToRevoked
+	//
+	//  UPDATE "profile_envelope"
+	//  SET status = 'revoked',
+	//      revoked_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'pending'
+	//    AND deleted_at IS NULL
+	UpdateProfileEnvelopeStatusToRevoked(ctx context.Context, arg UpdateProfileEnvelopeStatusToRevokedParams) (int64, error)
 	//UpdateProfileLink
 	//
 	//  UPDATE "profile_link"

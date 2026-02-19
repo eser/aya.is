@@ -18,6 +18,7 @@
     "Page": "Seite",
     "Kind": "Art",
     "Points": "Punkte",
+    "Inbox": "Posteingang",
     "Individual": "Einzelperson",
     "Organization": "Organisation",
     "Product": "Produkt",
@@ -526,6 +527,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "Ihre Posteingangs- und Einladungselemente.",
+    "No inbox items yet.": "Noch keine Elemente im Posteingang.",
+    "Accept": "Akzeptieren",
+    "Reject": "Ablehnen",
+    "Use /invitations in bot to redeem": "/invitations im Bot verwenden",
+    "EnvelopeStatus": {
+      "pending": "Ausstehend",
+      "accepted": "Akzeptiert",
+      "rejected": "Abgelehnt",
+      "revoked": "Widerrufen",
+      "redeemed": "Eingelöst"
     },
     "Access": "Zugriff",
     "Manage who has access to this profile and their permission levels.": "Verwalten Sie, wer Zugriff auf dieses Profil hat und welche Berechtigungsstufen sie haben.",

@@ -18,6 +18,7 @@
     "Page": "페이지",
     "Kind": "종류",
     "Points": "포인트",
+    "Inbox": "받은편지함",
     "Individual": "개인",
     "Organization": "조직",
     "Product": "제품",
@@ -526,6 +527,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "받은편지함 항목 및 초대장.",
+    "No inbox items yet.": "아직 받은편지함에 항목이 없습니다.",
+    "Accept": "수락",
+    "Reject": "거부",
+    "Use /invitations in bot to redeem": "봇에서 /invitations로 사용",
+    "EnvelopeStatus": {
+      "pending": "대기 중",
+      "accepted": "수락됨",
+      "rejected": "거부됨",
+      "revoked": "취소됨",
+      "redeemed": "사용됨"
     },
     "Access": "접근",
     "Manage who has access to this profile and their permission levels.": "이 프로필에 대한 접근 권한을 가진 사용자와 권한 수준을 관리합니다.",

@@ -15,6 +15,7 @@ import (
 	telegramadapter "github.com/eser/aya.is/services/pkg/api/adapters/telegram"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -46,6 +47,7 @@ func Run(
 	profileService *profiles.Service,
 	profilePointsService *profile_points.Service,
 	profileQuestionsService *profile_questions.Service,
+	profileEnvelopesService *profile_envelopes.Service,
 	storyService *stories.Service,
 	storyInteractionService *story_interactions.Service,
 	sessionService *sessions.Service,
@@ -181,6 +183,14 @@ func Run(
 		userService,
 		profileService,
 		profileQuestionsService,
+	)
+	RegisterHTTPRoutesForProfileEnvelopes( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		profileService,
+		profileEnvelopesService,
 	)
 	RegisterHTTPRoutesForActivities( //nolint:contextcheck
 		routes,

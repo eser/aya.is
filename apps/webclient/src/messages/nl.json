@@ -18,6 +18,7 @@
     "Page": "Pagina",
     "Kind": "Type",
     "Points": "Punten",
+    "Inbox": "Inbox",
     "Individual": "Individu",
     "Organization": "Organisatie",
     "Product": "Product",
@@ -526,6 +527,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "Uw inbox-items en uitnodigingen.",
+    "No inbox items yet.": "Nog geen items in de inbox.",
+    "Accept": "Accepteren",
+    "Reject": "Afwijzen",
+    "Use /invitations in bot to redeem": "Gebruik /invitations in de bot om in te wisselen",
+    "EnvelopeStatus": {
+      "pending": "In afwachting",
+      "accepted": "Geaccepteerd",
+      "rejected": "Afgewezen",
+      "revoked": "Ingetrokken",
+      "redeemed": "Ingewisseld"
     },
     "Access": "Toegang",
     "Manage who has access to this profile and their permission levels.": "Beheer wie toegang heeft tot dit profiel en hun machtigingsniveaus.",

@@ -18,6 +18,7 @@
     "Page": "页",
     "Kind": "类型",
     "Points": "积分",
+    "Inbox": "收件箱",
     "Individual": "个人",
     "Organization": "组织",
     "Product": "产品",
@@ -526,6 +527,18 @@
       "GAIN": "获得",
       "SPEND": "花费",
       "TRANSFER": "转账"
+    },
+    "Your inbox items and invitations.": "您的收件箱项目和邀请。",
+    "No inbox items yet.": "收件箱中还没有项目。",
+    "Accept": "接受",
+    "Reject": "拒绝",
+    "Use /invitations in bot to redeem": "在机器人中使用 /invitations 兑换",
+    "EnvelopeStatus": {
+      "pending": "待处理",
+      "accepted": "已接受",
+      "rejected": "已拒绝",
+      "revoked": "已撤销",
+      "redeemed": "已兑换"
     },
     "Access": "访问权限",
     "Manage who has access to this profile and their permission levels.": "管理谁可以访问此个人资料及其权限级别。",

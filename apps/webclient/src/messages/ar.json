@@ -18,6 +18,7 @@
     "Page": "صفحة",
     "Kind": "النوع",
     "Points": "النقاط",
+    "Inbox": "صندوق الوارد",
     "Individual": "فردي",
     "Organization": "منظمة",
     "Product": "منتج",
@@ -526,6 +527,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "عناصر صندوق الوارد والدعوات.",
+    "No inbox items yet.": "لا توجد عناصر في صندوق الوارد بعد.",
+    "Accept": "قبول",
+    "Reject": "رفض",
+    "Use /invitations in bot to redeem": "استخدم /invitations في البوت للاسترداد",
+    "EnvelopeStatus": {
+      "pending": "قيد الانتظار",
+      "accepted": "مقبول",
+      "rejected": "مرفوض",
+      "revoked": "ملغى",
+      "redeemed": "مُستبدل"
     },
     "Access": "الوصول",
     "Manage who has access to this profile and their permission levels.": "إدارة من لديه حق الوصول إلى هذا الملف الشخصي ومستويات صلاحياتهم.",

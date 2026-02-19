@@ -48,6 +48,9 @@ import { createProfileResource } from "./profiles/create-profile-resource";
 import { deleteProfileResource } from "./profiles/delete-profile-resource";
 import { listGitHubRepos } from "./profiles/list-github-repos";
 import { listProfilePointTransactions } from "./profile-points/list-profile-point-transactions";
+import { listProfileEnvelopes } from "./profile-envelopes/list-profile-envelopes";
+import { acceptProfileEnvelope } from "./profile-envelopes/accept-profile-envelope";
+import { rejectProfileEnvelope } from "./profile-envelopes/reject-profile-envelope";
 import { getProfileQuestions } from "./questions/get-profile-questions";
 import { createQuestion } from "./questions/create-question";
 import { voteQuestion } from "./questions/vote-question";
@@ -187,6 +190,11 @@ export const backend = {
 
   // Profile Points
   listProfilePointTransactions,
+
+  // Profile Envelopes (Inbox)
+  listProfileEnvelopes,
+  acceptProfileEnvelope,
+  rejectProfileEnvelope,
 
   // Profile Questions (Q&A)
   getProfileQuestions,
@@ -365,6 +373,11 @@ export {
   getInteractions,
   getMyInteractions,
   getInteractionCounts,
+
+  // Profile Envelopes (Inbox)
+  listProfileEnvelopes,
+  acceptProfileEnvelope,
+  rejectProfileEnvelope,
 
   // Admin
   approvePendingAward,

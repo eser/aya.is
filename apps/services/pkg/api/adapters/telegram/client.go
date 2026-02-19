@@ -47,8 +47,28 @@ type HTTPClient interface {
 
 // Update represents a Telegram update.
 type Update struct {
-	UpdateID int64    `json:"update_id"`
-	Message  *Message `json:"message"`
+	UpdateID      int64          `json:"update_id"`
+	Message       *Message       `json:"message"`
+	CallbackQuery *CallbackQuery `json:"callback_query"`
+}
+
+// CallbackQuery represents a Telegram callback query from an inline keyboard button.
+type CallbackQuery struct {
+	ID      string   `json:"id"`
+	From    *User    `json:"from"`
+	Message *Message `json:"message"`
+	Data    string   `json:"data"`
+}
+
+// InlineKeyboardMarkup represents an inline keyboard attached to a message.
+type InlineKeyboardMarkup struct {
+	InlineKeyboard [][]InlineKeyboardButton `json:"inline_keyboard"`
+}
+
+// InlineKeyboardButton represents one button of an inline keyboard.
+type InlineKeyboardButton struct {
+	Text         string `json:"text"`
+	CallbackData string `json:"callback_data,omitempty"`
 }
 
 // Message represents a Telegram message.
@@ -141,7 +161,7 @@ func (c *Client) SetWebhook(ctx context.Context, url string, secret string) erro
 	payload := map[string]any{
 		"url":             url,
 		"secret_token":    secret,
-		"allowed_updates": []string{"message"},
+		"allowed_updates": []string{"message", "callback_query"},
 	}
 
 	_, err := c.callAPI(ctx, "setWebhook", payload)
@@ -172,7 +192,7 @@ func (c *Client) GetUpdates(ctx context.Context, offset int64, timeout int) ([]U
 	payload := map[string]any{
 		"offset":          offset,
 		"timeout":         timeout,
-		"allowed_updates": []string{"message"},
+		"allowed_updates": []string{"message", "callback_query"},
 	}
 
 	result, err := c.callAPI(ctx, "getUpdates", payload)
@@ -230,8 +250,52 @@ func (c *Client) SendMessageWithOpts(
 	return nil
 }
 
+// SendMessageWithKeyboard sends a text message with an inline keyboard.
+func (c *Client) SendMessageWithKeyboard(
+	ctx context.Context,
+	chatID int64,
+	text string,
+	keyboard *InlineKeyboardMarkup,
+) error {
+	payload := map[string]any{
+		"chat_id":      chatID,
+		"text":         text,
+		"parse_mode":   "HTML",
+		"reply_markup": keyboard,
+	}
+
+	_, err := c.callAPI(ctx, "sendMessage", payload)
+	if err != nil {
+		c.logger.WarnContext(ctx, "Failed to send Telegram message with keyboard",
+			slog.Int64("chat_id", chatID),
+			slog.String("error", err.Error()))
+
+		return fmt.Errorf("%w: %w", ErrSendMessageFailed, err)
+	}
+
+	return nil
+}
+
+// AnswerCallbackQuery sends a response to a callback query from an inline keyboard button.
+func (c *Client) AnswerCallbackQuery(
+	ctx context.Context,
+	callbackQueryID string,
+	text string,
+) error {
+	payload := map[string]any{
+		"callback_query_id": callbackQueryID,
+		"text":              text,
+	}
+
+	_, err := c.callAPI(ctx, "answerCallbackQuery", payload)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrAPICallFailed, err)
+	}
+
+	return nil
+}
+
 // CreateChatInviteLink creates a single-use invite link for a chat.
-// This is a stub for future channel invitation functionality.
 func (c *Client) CreateChatInviteLink(
 	ctx context.Context,
 	chatID int64,

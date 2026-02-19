@@ -26,6 +26,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -82,6 +83,7 @@ type AppContext struct {
 	ProfileService             *profiles.Service
 	ProfilePointsService       *profile_points.Service
 	ProfileQuestionsService    *profile_questions.Service
+	ProfileEnvelopesService    *profile_envelopes.Service
 	StoryService               *stories.Service
 	StoryInteractionService    *story_interactions.Service
 	StorySeriesService         *story_series.Service
@@ -309,6 +311,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		profile_questions.DefaultIDGenerator,
 	)
 
+	envelopeRepo := storage.NewEnvelopeRepository(a.Repository)
+	a.ProfileEnvelopesService = profile_envelopes.NewService(
+		a.Logger,
+		envelopeRepo,
+		idGen,
+	)
+
 	// UploadService (only if S3 client is available)
 	if a.S3Client != nil {
 		a.UploadService = uploads.NewService(a.Logger, a.S3Client)
@@ -432,6 +441,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.TelegramBot = telegramadapter.NewBot(
 			a.TelegramClient,
 			a.TelegramService,
+			a.ProfileEnvelopesService,
 			a.Logger,
 		)
 

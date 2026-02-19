@@ -18,6 +18,7 @@
     "Page": "Page",
     "Kind": "Kind",
     "Points": "Points",
+    "Inbox": "Inbox",
     "Individual": "Individual",
     "Organization": "Organization",
     "Product": "Product",
@@ -530,6 +531,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "Your inbox items and invitations.",
+    "No inbox items yet.": "No inbox items yet.",
+    "Accept": "Accept",
+    "Reject": "Reject",
+    "Use /invitations in bot to redeem": "Use /invitations in bot to redeem",
+    "EnvelopeStatus": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "revoked": "Revoked",
+      "redeemed": "Redeemed"
     },
     "Access": "Access",
     "Manage who has access to this profile and their permission levels.": "Manage who has access to this profile and their permission levels.",

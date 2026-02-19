@@ -18,6 +18,7 @@
     "Page": "Sayfa",
     "Kind": "Tür",
     "Points": "Puanlar",
+    "Inbox": "Gelenler",
     "Individual": "Kişisel",
     "Organization": "Organizasyon",
     "Product": "Üretim",
@@ -526,6 +527,18 @@
       "GAIN": "Kazanım",
       "SPEND": "Harcama",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "Gelen kutusu ve davetiyeleriniz.",
+    "No inbox items yet.": "Henüz gelen kutusunda öğe yok.",
+    "Accept": "Kabul Et",
+    "Reject": "Reddet",
+    "Use /invitations in bot to redeem": "Kullanmak için botta /invitations yazın",
+    "EnvelopeStatus": {
+      "pending": "Beklemede",
+      "accepted": "Kabul Edildi",
+      "rejected": "Reddedildi",
+      "revoked": "İptal Edildi",
+      "redeemed": "Kullanıldı"
     },
     "Access": "Yetkiler",
     "Manage who has access to this profile and their permission levels.": "Bu profile kimlerin erişebileceğini ve yetki seviyelerini yönetin.",

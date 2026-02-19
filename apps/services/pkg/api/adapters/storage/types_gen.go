@@ -113,6 +113,25 @@ type ProfileCustomDomain struct {
 	UpdatedAt     sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
 
+type ProfileEnvelope struct {
+	ID              string                `db:"id" json:"id"`
+	TargetProfileID string                `db:"target_profile_id" json:"target_profile_id"`
+	SenderProfileID sql.NullString        `db:"sender_profile_id" json:"sender_profile_id"`
+	SenderUserID    sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
+	Kind            string                `db:"kind" json:"kind"`
+	Status          string                `db:"status" json:"status"`
+	Title           string                `db:"title" json:"title"`
+	Description     sql.NullString        `db:"description" json:"description"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	AcceptedAt      sql.NullTime          `db:"accepted_at" json:"accepted_at"`
+	RejectedAt      sql.NullTime          `db:"rejected_at" json:"rejected_at"`
+	RevokedAt       sql.NullTime          `db:"revoked_at" json:"revoked_at"`
+	RedeemedAt      sql.NullTime          `db:"redeemed_at" json:"redeemed_at"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+}
+
 type ProfileLink struct {
 	ID                        string                `db:"id" json:"id"`
 	ProfileID                 string                `db:"profile_id" json:"profile_id"`

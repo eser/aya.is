@@ -18,6 +18,7 @@
     "Page": "ページ",
     "Kind": "種類",
     "Points": "ポイント",
+    "Inbox": "受信トレイ",
     "Individual": "個人",
     "Organization": "組織",
     "Product": "製品",
@@ -526,6 +527,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "受信トレイと招待状。",
+    "No inbox items yet.": "受信トレイにはまだアイテムがありません。",
+    "Accept": "承認",
+    "Reject": "拒否",
+    "Use /invitations in bot to redeem": "ボットで /invitations を使用して引き換え",
+    "EnvelopeStatus": {
+      "pending": "保留中",
+      "accepted": "承認済み",
+      "rejected": "拒否済み",
+      "revoked": "取り消し済み",
+      "redeemed": "引き換え済み"
     },
     "Access": "アクセス",
     "Manage who has access to this profile and their permission levels.": "このプロフィールへのアクセス権を持つユーザーとその権限レベルを管理します。",

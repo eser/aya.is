@@ -395,6 +395,27 @@ export interface ProfilePointTransaction {
   created_at: string;
 }
 
+// Profile Envelope Types
+export type EnvelopeKind = "invitation" | "message" | "badge" | "pass";
+export type EnvelopeStatus = "pending" | "accepted" | "rejected" | "revoked" | "redeemed";
+
+export interface ProfileEnvelope {
+  id: string;
+  target_profile_id: string;
+  sender_profile_id: string | null;
+  sender_user_id: string | null;
+  kind: EnvelopeKind;
+  status: EnvelopeStatus;
+  title: string;
+  description: string | null;
+  properties: Record<string, unknown> | null;
+  created_at: string;
+  accepted_at: string | null;
+  rejected_at: string | null;
+  revoked_at: string | null;
+  redeemed_at: string | null;
+}
+
 // Pending Award Types
 export type PendingAwardStatus = "pending" | "approved" | "rejected";
 

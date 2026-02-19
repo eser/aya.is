@@ -18,6 +18,7 @@
     "Page": "Página",
     "Kind": "Tipo",
     "Points": "Pontos",
+    "Inbox": "Caixa de entrada",
     "Individual": "Individual",
     "Organization": "Organização",
     "Product": "Produto",
@@ -526,6 +527,18 @@
       "GAIN": "Gain",
       "SPEND": "Spend",
       "TRANSFER": "Transfer"
+    },
+    "Your inbox items and invitations.": "Os seus itens de caixa de entrada e convites.",
+    "No inbox items yet.": "Ainda não há itens na caixa de entrada.",
+    "Accept": "Aceitar",
+    "Reject": "Rejeitar",
+    "Use /invitations in bot to redeem": "Use /invitations no bot para resgatar",
+    "EnvelopeStatus": {
+      "pending": "Pendente",
+      "accepted": "Aceite",
+      "rejected": "Rejeitado",
+      "revoked": "Revogado",
+      "redeemed": "Resgatado"
     },
     "Access": "Acesso",
     "Manage who has access to this profile and their permission levels.": "Gira quem tem acesso a este perfil e os seus níveis de permissão.",
