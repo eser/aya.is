@@ -488,7 +488,7 @@ export function ContentEditor(props: ContentEditorProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [slug, title, summary, content, kind, slugError, slugAvailability, titleError, shouldValidateSlugDatePrefix, isPublished, earliestPublishedAt, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
+  }, [slug, title, summary, content, kind, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, slugError, slugAvailability, titleError, shouldValidateSlugDatePrefix, isPublished, earliestPublishedAt, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
 
   const handleDelete = async () => {
     if (onDelete === undefined) return;
