@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount } from "@/modules/backend/backend";
+import type { LinkedInAccount } from "@/modules/backend/profiles/get-linkedin-accounts";
 import { siteConfig } from "@/config";
 import { Spinner } from "@/components/ui/spinner";
 import { Card } from "@/components/ui/card";
@@ -168,6 +169,14 @@ function LinksSettingsPage() {
   const [isConnectingAccount, setIsConnectingAccount] = React.useState(false);
   const isReconnectingRef = React.useRef(false);
 
+  // LinkedIn account selection state
+  const [isLinkedInAccountSelectionOpen, setIsLinkedInAccountSelectionOpen] = React.useState(false);
+  const [pendingLinkedInId, setPendingLinkedInId] = React.useState<string | null>(null);
+  const [linkedInAccounts, setLinkedInAccounts] = React.useState<LinkedInAccount[]>([]);
+  const [pendingLinkedInProfileKind, setPendingLinkedInProfileKind] = React.useState<string | null>(null);
+  const [isLoadingLinkedInAccounts, setIsLoadingLinkedInAccounts] = React.useState(false);
+  const [isConnectingLinkedInAccount, setIsConnectingLinkedInAccount] = React.useState(false);
+
   // SpeakerDeck connect state
   const [isSpeakerDeckDialogOpen, setIsSpeakerDeckDialogOpen] = React.useState(false);
   const [speakerDeckUrl, setSpeakerDeckUrl] = React.useState("");
@@ -204,7 +213,7 @@ function LinksSettingsPage() {
     if (connected !== null) {
       toast.success(t("Profile.Connected successfully", { provider: connected }));
       // Clean URL
-      window.history.replaceState({}, "", globalThis.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
 
     if (error !== null) {
@@ -214,7 +223,7 @@ function LinksSettingsPage() {
         toast.error(t("Profile.Failed to connect", { error }));
       }
       // Clean URL
-      window.history.replaceState({}, "", globalThis.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
 
     // Handle pending GitHub connection for organization profiles
@@ -223,7 +232,16 @@ function LinksSettingsPage() {
       setIsAccountSelectionOpen(true);
       loadGitHubAccounts(pendingId);
       // Clean URL
-      window.history.replaceState({}, "", globalThis.location.pathname);
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
+    }
+
+    // Handle pending LinkedIn connection for organization profiles
+    if (pending === "linkedin" && pendingId !== null) {
+      setPendingLinkedInId(pendingId);
+      setIsLinkedInAccountSelectionOpen(true);
+      loadLinkedInAccounts(pendingId);
+      // Clean URL
+      globalThis.history.replaceState({}, "", globalThis.location.pathname);
     }
   }, [t]);
 
@@ -262,6 +280,47 @@ function LinksSettingsPage() {
       toast.error(t("Profile.Connection failed"));
     }
     setIsConnectingAccount(false);
+  };
+
+  const loadLinkedInAccounts = async (pendingId: string) => {
+    setIsLoadingLinkedInAccounts(true);
+    const result = await backend.getLinkedInAccounts(
+      params.locale,
+      params.slug,
+      pendingId,
+    );
+    if (result !== null) {
+      setLinkedInAccounts(result.accounts);
+      setPendingLinkedInProfileKind(result.profile_kind);
+    } else {
+      toast.error(t("Profile.Failed to load LinkedIn accounts"));
+      setIsLinkedInAccountSelectionOpen(false);
+    }
+    setIsLoadingLinkedInAccounts(false);
+  };
+
+  const handleSelectLinkedInAccount = async (account: LinkedInAccount) => {
+    if (pendingLinkedInId === null) return;
+
+    setIsConnectingLinkedInAccount(true);
+    const success = await backend.finalizeLinkedInConnection(
+      params.locale,
+      params.slug,
+      account,
+      pendingLinkedInId,
+    );
+
+    if (success) {
+      toast.success(t("Profile.Connected successfully", { provider: "linkedin" }));
+      setIsLinkedInAccountSelectionOpen(false);
+      setPendingLinkedInId(null);
+      setLinkedInAccounts([]);
+      setPendingLinkedInProfileKind(null);
+      loadLinks();
+    } else {
+      toast.error(t("Profile.Connection failed"));
+    }
+    setIsConnectingLinkedInAccount(false);
   };
 
   // Load links on mount
@@ -454,6 +513,30 @@ function LinksSettingsPage() {
     }
   };
 
+  const handleConnectLinkedIn = async () => {
+    if (isReconnectingRef.current) return;
+    isReconnectingRef.current = true;
+
+    try {
+      const result = await backend.initiateProfileLinkOAuth(
+        params.locale,
+        params.slug,
+        "linkedin",
+      );
+      if (result === null) {
+        toast.error(t("Profile", "Failed to connect"));
+        isReconnectingRef.current = false;
+        return;
+      }
+      // Navigate to OAuth provider - use replace to avoid back button issues
+      globalThis.location.replace(result.auth_url);
+    } catch (error) {
+      console.error("OAuth initiation failed:", error);
+      toast.error(t("Profile", "Failed to connect"));
+      isReconnectingRef.current = false;
+    }
+  };
+
   const handleConnectSpeakerDeck = () => {
     setSpeakerDeckUrl("");
     setIsSpeakerDeckDialogOpen(true);
@@ -544,6 +627,8 @@ function LinksSettingsPage() {
       handleConnectSpeakerDeck();
     } else if (link.kind === "telegram") {
       handleConnectTelegram();
+    } else if (link.kind === "linkedin") {
+      handleConnectLinkedIn();
     }
   };
 
@@ -730,10 +815,9 @@ function LinksSettingsPage() {
               {t("Profile.Connect X")}
               <span className="ml-auto text-xs text-muted-foreground">{t("Common.Coming soon")}</span>
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onClick={() => handleConnectLinkedIn()}>
               <Linkedin className="size-4 mr-2" />
               {t("Profile.Connect LinkedIn")}
-              <span className="ml-auto text-xs text-muted-foreground">{t("Common.Coming soon")}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleOpenAddDialog}>
@@ -1143,6 +1227,110 @@ function LinksSettingsPage() {
                 setPendingProfileKind(null);
               }}
               disabled={isConnectingAccount}
+            >
+              {t("Common.Cancel")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* LinkedIn Account Selection Dialog */}
+      <Dialog open={isLinkedInAccountSelectionOpen} onOpenChange={(open) => {
+        if (!open && !isConnectingLinkedInAccount) {
+          setIsLinkedInAccountSelectionOpen(false);
+          setPendingLinkedInId(null);
+          setLinkedInAccounts([]);
+          setPendingLinkedInProfileKind(null);
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Linkedin className="size-5" />
+              {t("Profile.Select LinkedIn Account")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("Profile.Choose which LinkedIn account or organization page to connect.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            {isLoadingLinkedInAccounts ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <Skeleton className="size-10 rounded-full" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-32 mb-2" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {linkedInAccounts.map((account) => {
+                  // For organization/product profiles, only allow selecting organizations
+                  const isDisabled = isConnectingLinkedInAccount ||
+                    ((pendingLinkedInProfileKind === "organization" || pendingLinkedInProfileKind === "product") &&
+                      account.type === "Personal");
+
+                  return (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => handleSelectLinkedInAccount(account)}
+                      disabled={isDisabled}
+                      className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {account.logo_url !== undefined && account.logo_url !== "" ? (
+                        <img
+                          src={account.logo_url}
+                          alt={account.name}
+                          className="size-10 rounded-full"
+                        />
+                      ) : (
+                        <div className="size-10 rounded-full bg-muted flex items-center justify-center">
+                          <Linkedin className="size-5 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{account.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {account.type === "Organization" && (
+                            <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                              {t("Profile.Organization")}
+                            </span>
+                          )}
+                          {account.type === "Personal" && (pendingLinkedInProfileKind === "organization" || pendingLinkedInProfileKind === "product") && (
+                            <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">
+                              {t("Profile.Individual profiles not allowed")}
+                            </span>
+                          )}
+                          {account.type === "Personal" && pendingLinkedInProfileKind !== "organization" && pendingLinkedInProfileKind !== "product" && (
+                            <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                              {t("Profile.Personal")}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsLinkedInAccountSelectionOpen(false);
+                setPendingLinkedInId(null);
+                setLinkedInAccounts([]);
+                setPendingLinkedInProfileKind(null);
+              }}
+              disabled={isConnectingLinkedInAccount}
             >
               {t("Common.Cancel")}
             </Button>

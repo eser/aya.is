@@ -16,6 +16,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
+	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/speakerdeck"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
@@ -69,6 +70,7 @@ type AppContext struct {
 	// External Services
 	GitHubClient        *github.Client
 	GitHubProvider      *github.Provider
+	LinkedInProvider    *linkedin.Provider
 	YouTubeProvider     *youtube.Provider
 	SpeakerDeckProvider *speakerdeck.Provider
 	UnsplashClient      *unsplash.Client
@@ -394,6 +396,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	// YouTube provider (for profile links)
 	a.YouTubeProvider = youtube.NewProvider(
 		&a.Config.Auth.YouTube,
+		a.Logger,
+		a.HTTPClient,
+	)
+
+	// LinkedIn provider (for profile links)
+	a.LinkedInProvider = linkedin.NewProvider(
+		&a.Config.Auth.LinkedIn,
 		a.Logger,
 		a.HTTPClient,
 	)

@@ -26,6 +26,8 @@ import { deleteProfileLink } from "./profiles/delete-profile-link";
 import { initiateProfileLinkOAuth } from "./profiles/initiate-profile-link-oauth";
 import { getGitHubAccounts } from "./profiles/get-github-accounts";
 import { finalizeGitHubConnection } from "./profiles/finalize-github-connection";
+import { getLinkedInAccounts } from "./profiles/get-linkedin-accounts";
+import { finalizeLinkedInConnection } from "./profiles/finalize-linkedin-connection";
 import { connectSpeakerDeck } from "./profiles/connect-speakerdeck";
 import { verifyTelegramCode } from "./profiles/verify-telegram-code";
 import { listProfilePages } from "./profiles/list-profile-pages";
@@ -162,6 +164,8 @@ export const backend = {
   initiateProfileLinkOAuth,
   getGitHubAccounts,
   finalizeGitHubConnection,
+  getLinkedInAccounts,
+  finalizeLinkedInConnection,
   connectSpeakerDeck,
   verifyTelegramCode,
 
@@ -294,9 +298,11 @@ export {
   deleteProfileLink,
   deleteProfilePage,
   finalizeGitHubConnection,
+  finalizeLinkedInConnection,
   verifyTelegramCode,
   getCurrentSession,
   getGitHubAccounts,
+  getLinkedInAccounts,
   getPOWChallenge,
   getPresignedURL,
   getProfile,

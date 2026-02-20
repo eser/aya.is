@@ -13,6 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
+	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -24,6 +25,7 @@ import (
 type ProfileLinkProviders struct {
 	YouTube                *youtube.Provider
 	GitHub                 *github.Provider
+	LinkedIn               *linkedin.Provider
 	SiteImporter           *siteimporter.Service
 	PendingConnectionStore *profiles.PendingConnectionStore
 }
@@ -62,10 +64,11 @@ func RegisterHTTPRoutesForProfileLinks(
 			providerParam := ctx.Request.PathValue("provider")
 
 			// Validate provider
-			if providerParam != "youtube" && providerParam != "github" {
+			if providerParam != "youtube" && providerParam != "github" &&
+				providerParam != "linkedin" {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage(
-						"Unsupported provider. Supported: 'youtube', 'github'.",
+						"Unsupported provider. Supported: 'youtube', 'github', 'linkedin'.",
 					),
 				)
 			}
@@ -154,6 +157,12 @@ func RegisterHTTPRoutesForProfileLinks(
 					redirectURI,
 					encodedState,
 				)
+			case "linkedin":
+				authURL, err = providers.LinkedIn.InitiateProfileLinkOAuth(
+					ctx.Request.Context(),
+					redirectURI,
+					encodedState,
+				)
 			}
 
 			if err != nil {
@@ -205,7 +214,8 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Validate provider
-			if providerParam != "youtube" && providerParam != "github" {
+			if providerParam != "youtube" && providerParam != "github" &&
+				providerParam != "linkedin" {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Unsupported provider"),
 				)
@@ -269,6 +279,12 @@ func RegisterHTTPRoutesForProfileLinks(
 					code,
 					redirectURI,
 				)
+			case "linkedin":
+				result, err = providers.LinkedIn.HandleOAuthCallback(
+					ctx.Request.Context(),
+					code,
+					redirectURI,
+				)
 			}
 
 			// Helper to build redirect URL
@@ -303,10 +319,11 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
-			// For GitHub with organization/product profiles, store pending connection for account selection
-			if providerParam == "github" &&
+			// For GitHub/LinkedIn with organization/product profiles, store pending connection for account selection
+			if (providerParam == "github" || providerParam == "linkedin") &&
 				(stateObj.ProfileKind == "organization" || stateObj.ProfileKind == "product") {
-				pendingConn := &profiles.PendingGitHubConnection{
+				pendingConn := &profiles.PendingOAuthConnection{
+					Provider:    providerParam,
 					AccessToken: result.AccessToken,
 					Scope:       result.Scope,
 					ProfileSlug: stateObj.ProfileSlug,
@@ -318,14 +335,21 @@ func RegisterHTTPRoutesForProfileLinks(
 
 				logger.DebugContext(
 					ctx.Request.Context(),
-					"Stored pending GitHub connection for account selection",
+					"Stored pending connection for account selection",
 					slog.String("pending_id", pendingID),
+					slog.String("provider", providerParam),
 					slog.String("profile_slug", stateObj.ProfileSlug),
 				)
 
 				// Redirect with pending status for frontend to show account selection
-				redirectURL := fmt.Sprintf("%s/%s/%s/settings/links?pending=github&pending_id=%s",
-					stateObj.RedirectOrigin, stateObj.Locale, stateObj.ProfileSlug, pendingID)
+				redirectURL := fmt.Sprintf(
+					"%s/%s/%s/settings/links?pending=%s&pending_id=%s",
+					stateObj.RedirectOrigin,
+					stateObj.Locale,
+					stateObj.ProfileSlug,
+					providerParam,
+					pendingID,
+				)
 
 				return ctx.Results.Redirect(redirectURL)
 			}
@@ -349,7 +373,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Determine link kind from provider
-			linkKind := providerParam // "youtube" or "github"
+			linkKind := providerParam // "youtube", "github", or "linkedin"
 
 			// Check if a link with this remote ID already exists
 			existingLink, err := profileService.GetProfileLinkByRemoteID(
@@ -758,6 +782,264 @@ func RegisterHTTPRoutesForProfileLinks(
 		}).
 		HasSummary("Finalize GitHub Connection").
 		HasDescription("Complete the GitHub connection with the selected account.").
+		HasResponse(http.StatusOK)
+
+	// Get available LinkedIn accounts for selection (personal + organization pages)
+	routes.Route(
+		"GET /{locale}/profiles/{slug}/_links/linkedin/accounts",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			pendingID := ctx.Request.URL.Query().Get("pending_id")
+			if pendingID == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Missing pending_id parameter"),
+				)
+			}
+
+			// Get pending connection
+			pendingConn := providers.PendingConnectionStore.Get(pendingID)
+			if pendingConn == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Pending connection not found or expired"),
+				)
+			}
+
+			// Fetch user info
+			userInfo, err := providers.LinkedIn.FetchUserInfo(
+				ctx.Request.Context(),
+				pendingConn.AccessToken,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to fetch LinkedIn user info",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to fetch LinkedIn account info"),
+				)
+			}
+
+			// Fetch organization pages
+			orgPages, err := providers.LinkedIn.FetchOrganizationPages(
+				ctx.Request.Context(),
+				pendingConn.AccessToken,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to fetch LinkedIn organizations",
+					slog.String("error", err.Error()))
+				// Don't fail, just return empty orgs
+				orgPages = []*linkedin.OrgPageInfo{}
+			}
+
+			// Build response with personal account and organization pages
+			accounts := []profiles.LinkedInAccount{
+				{
+					ID:   userInfo.Sub,
+					Name: userInfo.Name,
+					URI:  "", // LinkedIn does not expose vanity name via userinfo
+					Type: "Personal",
+				},
+			}
+
+			for _, org := range orgPages {
+				accounts = append(accounts, profiles.LinkedInAccount{
+					ID:         org.ID,
+					Name:       org.Name,
+					VanityName: org.VanityName,
+					LogoURL:    org.LogoURL,
+					URI:        org.URI,
+					Type:       "Organization",
+				})
+			}
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]any{
+					"accounts":     accounts,
+					"profile_kind": pendingConn.ProfileKind,
+				},
+				"error": nil,
+			})
+		}).
+		HasSummary("Get LinkedIn Accounts").
+		HasDescription("Get available LinkedIn accounts (personal and organization pages) for linking.").
+		HasResponse(http.StatusOK)
+
+	// Finalize LinkedIn connection with selected account
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_links/linkedin/finalize",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			slugParam := ctx.Request.PathValue("slug")
+
+			// Parse request body
+			var reqBody struct {
+				PendingID  string `json:"pending_id"`
+				AccountID  string `json:"account_id"`
+				Name       string `json:"name"`
+				VanityName string `json:"vanity_name"`
+				URI        string `json:"uri"`
+				Type       string `json:"type"`
+			}
+
+			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Invalid request body"),
+				)
+			}
+
+			if reqBody.PendingID == "" || reqBody.AccountID == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Missing required fields"),
+				)
+			}
+
+			// Get pending connection
+			pendingConn := providers.PendingConnectionStore.Get(reqBody.PendingID)
+			if pendingConn == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Pending connection not found or expired"),
+				)
+			}
+
+			// Verify the pending connection is for this profile
+			if pendingConn.ProfileSlug != slugParam {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Pending connection does not match profile"),
+				)
+			}
+
+			// Get profile ID
+			profileID, err := profileService.GetProfileIDBySlug(
+				ctx.Request.Context(),
+				slugParam,
+			)
+			if err != nil || profileID == "" {
+				return ctx.Results.Error(
+					http.StatusNotFound,
+					httpfx.WithErrorMessage("Profile not found"),
+				)
+			}
+
+			// Check if a link with this remote ID already exists
+			existingLink, err := profileService.GetProfileLinkByRemoteID(
+				ctx.Request.Context(),
+				profileID,
+				"linkedin",
+				reqBody.AccountID,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to check existing link",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to check existing link"),
+				)
+			}
+
+			// Check if this remote_id is already used by another profile
+			inUse, checkErr := profileService.IsProfileLinkRemoteIDInUse(
+				ctx.Request.Context(),
+				"linkedin",
+				reqBody.AccountID,
+				profileID,
+			)
+			if checkErr != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to check remote_id uniqueness",
+					slog.String("error", checkErr.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to check remote ID"),
+				)
+			}
+
+			if inUse {
+				return ctx.Results.Error(
+					http.StatusConflict,
+					httpfx.WithErrorMessage(
+						"This LinkedIn account is already connected to another profile",
+					),
+				)
+			}
+
+			// Use vanity_name as public_id, construct URI if not provided
+			publicID := reqBody.VanityName
+			uri := reqBody.URI
+
+			if existingLink != nil {
+				// Update existing link
+				err = profileService.UpdateProfileLinkOAuthTokens(
+					ctx.Request.Context(),
+					existingLink.ID,
+					pendingConn.Locale,
+					publicID,
+					uri,
+					reqBody.Name,
+					pendingConn.Scope,
+					pendingConn.AccessToken,
+					nil,
+					nil,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Failed to update link",
+						slog.String("error", err.Error()))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithErrorMessage("Failed to update link"),
+					)
+				}
+			} else {
+				// Create new link
+				linkID := lib.IDsGenerateUnique()
+				maxOrder, _ := profileService.GetMaxProfileLinkOrder(ctx.Request.Context(), profileID)
+
+				_, err = profileService.CreateOAuthProfileLink(
+					ctx.Request.Context(),
+					linkID,
+					"linkedin",
+					profileID,
+					maxOrder+1,
+					pendingConn.Locale,
+					reqBody.AccountID,
+					publicID,
+					uri,
+					reqBody.Name,
+					"linkedin",
+					pendingConn.Scope,
+					pendingConn.AccessToken,
+					nil,
+					nil,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Failed to create link",
+						slog.String("error", err.Error()))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithErrorMessage("Failed to create link"),
+					)
+				}
+			}
+
+			// Clean up pending connection
+			providers.PendingConnectionStore.Delete(reqBody.PendingID)
+
+			logger.DebugContext(ctx.Request.Context(), "Finalized LinkedIn connection",
+				slog.String("profile_slug", slugParam),
+				slog.String("account_name", reqBody.Name),
+				slog.String("account_type", reqBody.Type))
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{
+					"status": "connected",
+				},
+				"error": nil,
+			})
+		}).
+		HasSummary("Finalize LinkedIn Connection").
+		HasDescription("Complete the LinkedIn connection with the selected account.").
 		HasResponse(http.StatusOK)
 
 	// Connect SpeakerDeck (non-OAuth, RSS-based)

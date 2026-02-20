@@ -21,9 +21,17 @@ type YouTubeOAuthConfig struct {
 	Scope        string `conf:"scope"         default:"https://www.googleapis.com/auth/youtube.readonly"`
 }
 
+type LinkedInOAuthConfig struct {
+	ClientID         string `conf:"client_id"`
+	ClientSecret     string `conf:"client_secret"`
+	Scope            string `conf:"scope"              default:"openid profile email"`
+	ProfileLinkScope string `conf:"profile_link_scope" default:"openid profile email r_organization_social"`
+}
+
 type Config struct {
 	GitHub    GitHubAuthProviderConfig `conf:"github"`
 	YouTube   YouTubeOAuthConfig       `conf:"youtube"`
+	LinkedIn  LinkedInOAuthConfig      `conf:"linkedin"`
 	JwtSecret string                   `conf:"jwt_secret"`                 // Required - no default for security
 	TokenTTL  time.Duration            `conf:"token_ttl"  default:"8760h"` // 365 days in hours (Go doesn't support "d")
 

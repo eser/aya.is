@@ -192,14 +192,27 @@ type GitHubAccount struct {
 	Description string `json:"description,omitempty"`
 }
 
-// PendingGitHubConnection stores temporary OAuth data for account selection.
-type PendingGitHubConnection struct {
+// PendingOAuthConnection stores temporary OAuth data for account selection.
+// Used by providers that support organization/page account selection (GitHub, LinkedIn).
+type PendingOAuthConnection struct {
+	Provider    string    `json:"provider"` // "github" or "linkedin"
 	AccessToken string    `json:"access_token"`
 	Scope       string    `json:"scope"`
 	ProfileSlug string    `json:"profile_slug"`
 	ProfileKind string    `json:"profile_kind"`
 	Locale      string    `json:"locale"`
 	ExpiresAt   time.Time `json:"expires_at"`
+}
+
+// LinkedInAccount represents a LinkedIn account (personal or organization page) for selection.
+type LinkedInAccount struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	VanityName  string `json:"vanity_name,omitempty"`
+	LogoURL     string `json:"logo_url,omitempty"`
+	URI         string `json:"uri"`
+	Type        string `json:"type"` // "Personal" or "Organization"
+	Description string `json:"description,omitempty"`
 }
 
 type ProfileMembership struct {

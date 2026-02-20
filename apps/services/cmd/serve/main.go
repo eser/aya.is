@@ -56,6 +56,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			&http.ProfileLinkProviders{
 				YouTube:                appContext.YouTubeProvider,
 				GitHub:                 appContext.GitHubProvider,
+				LinkedIn:               appContext.LinkedInProvider,
 				SiteImporter:           appContext.SiteImporterService,
 				PendingConnectionStore: profiles.NewPendingConnectionStore(),
 			},

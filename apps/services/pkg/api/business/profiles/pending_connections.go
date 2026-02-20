@@ -10,13 +10,13 @@ import (
 // PendingConnectionStore stores temporary OAuth connections awaiting account selection.
 type PendingConnectionStore struct {
 	mu          sync.RWMutex
-	connections map[string]*PendingGitHubConnection
+	connections map[string]*PendingOAuthConnection
 }
 
 // NewPendingConnectionStore creates a new pending connection store.
 func NewPendingConnectionStore() *PendingConnectionStore {
 	store := &PendingConnectionStore{
-		connections: make(map[string]*PendingGitHubConnection),
+		connections: make(map[string]*PendingOAuthConnection),
 	}
 
 	// Start cleanup goroutine
@@ -26,7 +26,7 @@ func NewPendingConnectionStore() *PendingConnectionStore {
 }
 
 // Store stores a pending connection and returns its ID.
-func (s *PendingConnectionStore) Store(conn *PendingGitHubConnection) string {
+func (s *PendingConnectionStore) Store(conn *PendingOAuthConnection) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -38,7 +38,7 @@ func (s *PendingConnectionStore) Store(conn *PendingGitHubConnection) string {
 }
 
 // Get retrieves a pending connection by ID.
-func (s *PendingConnectionStore) Get(id string) *PendingGitHubConnection {
+func (s *PendingConnectionStore) Get(id string) *PendingOAuthConnection {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
