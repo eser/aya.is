@@ -25,7 +25,7 @@ type LinkedInOAuthConfig struct {
 	ClientID         string `conf:"client_id"`
 	ClientSecret     string `conf:"client_secret"`
 	Scope            string `conf:"scope"              default:"openid profile email"`
-	ProfileLinkScope string `conf:"profile_link_scope" default:"openid profile email r_organization_social"`
+	ProfileLinkScope string `conf:"profile_link_scope" default:"openid profile email r_basicprofile r_organization_social"`
 }
 
 type Config struct {
