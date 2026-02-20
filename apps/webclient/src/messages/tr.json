@@ -534,6 +534,9 @@
     "No inbox items yet.": "Henüz gelen kutusunda öğe yok.",
     "Accept": "Kabul Et",
     "Reject": "Reddet",
+    "Reject Envelope": "Zarfı Reddet",
+    "Are you sure you want to reject this? This action cannot be undone.": "Bunu reddetmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "From": "Gönderen",
     "Use /invitations in bot to redeem": "Kullanmak için botta /invitations yazın",
     "EnvelopeStatus": {
       "pending": "Beklemede",

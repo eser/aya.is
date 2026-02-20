@@ -538,6 +538,9 @@
     "No inbox items yet.": "No inbox items yet.",
     "Accept": "Accept",
     "Reject": "Reject",
+    "Reject Envelope": "Reject Envelope",
+    "Are you sure you want to reject this? This action cannot be undone.": "Are you sure you want to reject this? This action cannot be undone.",
+    "From": "From",
     "Use /invitations in bot to redeem": "Use /invitations in bot to redeem",
     "EnvelopeStatus": {
       "pending": "Pending",

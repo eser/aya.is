@@ -534,6 +534,9 @@
     "No inbox items yet.": "受信トレイにはまだアイテムがありません。",
     "Accept": "承認",
     "Reject": "拒否",
+    "Reject Envelope": "メッセージを拒否",
+    "Are you sure you want to reject this? This action cannot be undone.": "本当に拒否しますか？この操作は取り消せません。",
+    "From": "送信元",
     "Use /invitations in bot to redeem": "ボットで /invitations を使用して引き換え",
     "EnvelopeStatus": {
       "pending": "保留中",

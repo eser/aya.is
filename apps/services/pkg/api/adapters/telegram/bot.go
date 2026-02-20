@@ -337,6 +337,12 @@ func (b *Bot) handleInvitations(ctx context.Context, msg *Message) {
 			detail += fmt.Sprintf("\n    Group: <i>%s</i>", groupName)
 		}
 
+		if inv.SenderProfileTitle != nil && *inv.SenderProfileTitle != "" {
+			detail += fmt.Sprintf("\n    From: <i>%s</i>", *inv.SenderProfileTitle)
+		} else if inv.SenderProfileID == nil {
+			detail += "\n    From: <i>System</i>"
+		}
+
 		details = append(details, detail)
 	}
 

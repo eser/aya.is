@@ -534,6 +534,9 @@
     "No inbox items yet.": "收件箱中还没有项目。",
     "Accept": "接受",
     "Reject": "拒绝",
+    "Reject Envelope": "拒绝信封",
+    "Are you sure you want to reject this? This action cannot be undone.": "您确定要拒绝吗？此操作无法撤销。",
+    "From": "来自",
     "Use /invitations in bot to redeem": "在机器人中使用 /invitations 兑换",
     "EnvelopeStatus": {
       "pending": "待处理",

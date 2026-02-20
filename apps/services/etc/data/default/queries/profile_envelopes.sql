@@ -22,12 +22,19 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: ListProfileEnvelopesByTargetProfileID :many
-SELECT *
-FROM "profile_envelope"
-WHERE target_profile_id = sqlc.arg(target_profile_id)
-  AND deleted_at IS NULL
-  AND (sqlc.narg(status_filter)::TEXT IS NULL OR status = sqlc.narg(status_filter))
-ORDER BY created_at DESC
+SELECT
+  pe.*,
+  sp.slug as sender_profile_slug,
+  COALESCE(spt.title, '') as sender_profile_title,
+  sp.profile_picture_uri as sender_profile_picture_uri,
+  sp.kind as sender_profile_kind
+FROM "profile_envelope" pe
+  LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+  LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+WHERE pe.target_profile_id = sqlc.arg(target_profile_id)
+  AND pe.deleted_at IS NULL
+  AND (sqlc.narg(status_filter)::TEXT IS NULL OR pe.status = sqlc.narg(status_filter))
+ORDER BY pe.created_at DESC
 LIMIT sqlc.arg(limit_count);
 
 -- name: UpdateProfileEnvelopeStatusToAccepted :execrows
@@ -74,15 +81,22 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: ListAcceptedInvitations :many
-SELECT *
-FROM "profile_envelope"
-WHERE target_profile_id = sqlc.arg(target_profile_id)
-  AND kind = 'invitation'
-  AND status = 'accepted'
-  AND deleted_at IS NULL
+SELECT
+  pe.*,
+  sp.slug as sender_profile_slug,
+  COALESCE(spt.title, '') as sender_profile_title,
+  sp.profile_picture_uri as sender_profile_picture_uri,
+  sp.kind as sender_profile_kind
+FROM "profile_envelope" pe
+  LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+  LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+WHERE pe.target_profile_id = sqlc.arg(target_profile_id)
+  AND pe.kind = 'invitation'
+  AND pe.status = 'accepted'
+  AND pe.deleted_at IS NULL
   AND (sqlc.narg(invitation_kind)::TEXT IS NULL
-       OR properties->>'invitation_kind' = sqlc.narg(invitation_kind))
-ORDER BY created_at DESC;
+       OR pe.properties->>'invitation_kind' = sqlc.narg(invitation_kind))
+ORDER BY pe.created_at DESC;
 
 -- name: CountPendingProfileEnvelopes :one
 SELECT COUNT(*)::INT as count

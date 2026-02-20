@@ -534,6 +534,9 @@
     "No inbox items yet.": "Noch keine Elemente im Posteingang.",
     "Accept": "Akzeptieren",
     "Reject": "Ablehnen",
+    "Reject Envelope": "Nachricht ablehnen",
+    "Are you sure you want to reject this? This action cannot be undone.": "Möchten Sie dies wirklich ablehnen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "From": "Von",
     "Use /invitations in bot to redeem": "/invitations im Bot verwenden",
     "EnvelopeStatus": {
       "pending": "Ausstehend",

@@ -534,6 +534,9 @@
     "No inbox items yet.": "Пока нет элементов во входящих.",
     "Accept": "Принять",
     "Reject": "Отклонить",
+    "Reject Envelope": "Отклонить сообщение",
+    "Are you sure you want to reject this? This action cannot be undone.": "Вы уверены, что хотите отклонить это? Это действие нельзя отменить.",
+    "From": "От",
     "Use /invitations in bot to redeem": "Используйте /invitations в боте для активации",
     "EnvelopeStatus": {
       "pending": "Ожидает",

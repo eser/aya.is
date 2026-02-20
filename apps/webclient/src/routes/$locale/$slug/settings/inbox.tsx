@@ -1,6 +1,6 @@
 // Profile inbox (envelope) settings
 import * as React from "react";
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
   Mail,
@@ -27,6 +27,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatDateString } from "@/lib/date";
 
 const settingsRoute = getRouteApi("/$locale/$slug/settings");
@@ -47,6 +57,28 @@ export const Route = createFileRoute("/$locale/$slug/settings/inbox")({
   component: InboxSettingsPage,
 });
 
+function SenderInfo(props: { envelope: ProfileEnvelope; locale: string }) {
+  const { t } = useTranslation();
+
+  if (props.envelope.sender_profile_slug !== null && props.envelope.sender_profile_slug !== "") {
+    return (
+      <Link
+        to="/$locale/$slug"
+        params={{ locale: props.locale, slug: props.envelope.sender_profile_slug }}
+        className="text-sm text-primary hover:underline"
+      >
+        {props.envelope.sender_profile_title ?? props.envelope.sender_profile_slug}
+      </Link>
+    );
+  }
+
+  if (props.envelope.sender_profile_id !== null) {
+    return <span className="text-sm text-muted-foreground">{t("Common.Unknown")}</span>;
+  }
+
+  return <span className="text-sm text-muted-foreground italic">{t("Common.System")}</span>;
+}
+
 function InboxSettingsPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
@@ -59,6 +91,10 @@ function InboxSettingsPage() {
   const [envelopes, setEnvelopes] = React.useState<ProfileEnvelope[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [actionInProgress, setActionInProgress] = React.useState<string | null>(null);
+
+  // Reject confirmation dialog state
+  const [rejectDialogOpen, setRejectDialogOpen] = React.useState(false);
+  const [rejectTargetId, setRejectTargetId] = React.useState<string | null>(null);
 
   // Send form state
   const [sendFormOpen, setSendFormOpen] = React.useState(false);
@@ -94,13 +130,26 @@ function InboxSettingsPage() {
     setActionInProgress(null);
   };
 
-  const handleReject = async (envelopeId: string) => {
-    setActionInProgress(envelopeId);
-    const success = await backend.rejectProfileEnvelope(params.locale, params.slug, envelopeId);
+  const promptReject = (envelopeId: string) => {
+    setRejectTargetId(envelopeId);
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (rejectTargetId === null) {
+      return;
+    }
+
+    setRejectDialogOpen(false);
+    setActionInProgress(rejectTargetId);
+
+    const success = await backend.rejectProfileEnvelope(params.locale, params.slug, rejectTargetId);
     if (success) {
       await loadEnvelopes();
     }
+
     setActionInProgress(null);
+    setRejectTargetId(null);
   };
 
   const handleSend = async () => {
@@ -356,9 +405,12 @@ function InboxSettingsPage() {
                     {envelope.description !== null && (
                       <p className="text-sm text-muted-foreground truncate">{envelope.description}</p>
                     )}
-                    <p className="text-xs text-muted-foreground">
-                      {formatDateString(envelope.created_at, locale)}
-                    </p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span>{t("Profile.From")}:</span>
+                      <SenderInfo envelope={envelope} locale={locale} />
+                      <span className="mx-1">&middot;</span>
+                      <span>{formatDateString(envelope.created_at, locale)}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={statusColors[envelope.status]}>
@@ -381,7 +433,7 @@ function InboxSettingsPage() {
                           variant="outline"
                           className="text-red-700 border-red-300 hover:bg-red-50"
                           disabled={isProcessing}
-                          onClick={() => handleReject(envelope.id)}
+                          onClick={() => promptReject(envelope.id)}
                         >
                           <X className="size-4 mr-1" />
                           {t("Profile.Reject")}
@@ -400,6 +452,27 @@ function InboxSettingsPage() {
           </div>
         )}
       </Card>
+
+      {/* Reject Confirmation Dialog */}
+      <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Profile.Reject Envelope")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Profile.Are you sure you want to reject this? This action cannot be undone.")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleRejectConfirm}
+            >
+              {t("Profile.Reject")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

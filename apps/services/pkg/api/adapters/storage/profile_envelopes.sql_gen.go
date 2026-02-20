@@ -8,6 +8,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sqlc-dev/pqtype"
 )
@@ -140,15 +141,22 @@ func (q *Queries) GetProfileEnvelopeByID(ctx context.Context, arg GetProfileEnve
 }
 
 const listAcceptedInvitations = `-- name: ListAcceptedInvitations :many
-SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
-FROM "profile_envelope"
-WHERE target_profile_id = $1
-  AND kind = 'invitation'
-  AND status = 'accepted'
-  AND deleted_at IS NULL
+SELECT
+  pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
+  sp.slug as sender_profile_slug,
+  COALESCE(spt.title, '') as sender_profile_title,
+  sp.profile_picture_uri as sender_profile_picture_uri,
+  sp.kind as sender_profile_kind
+FROM "profile_envelope" pe
+  LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+  LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+WHERE pe.target_profile_id = $1
+  AND pe.kind = 'invitation'
+  AND pe.status = 'accepted'
+  AND pe.deleted_at IS NULL
   AND ($2::TEXT IS NULL
-       OR properties->>'invitation_kind' = $2)
-ORDER BY created_at DESC
+       OR pe.properties->>'invitation_kind' = $2)
+ORDER BY pe.created_at DESC
 `
 
 type ListAcceptedInvitationsParams struct {
@@ -156,26 +164,56 @@ type ListAcceptedInvitationsParams struct {
 	InvitationKind  sql.NullString `db:"invitation_kind" json:"invitation_kind"`
 }
 
+type ListAcceptedInvitationsRow struct {
+	ID                      string                `db:"id" json:"id"`
+	TargetProfileID         string                `db:"target_profile_id" json:"target_profile_id"`
+	SenderProfileID         sql.NullString        `db:"sender_profile_id" json:"sender_profile_id"`
+	SenderUserID            sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
+	Kind                    string                `db:"kind" json:"kind"`
+	Status                  string                `db:"status" json:"status"`
+	Title                   string                `db:"title" json:"title"`
+	Description             sql.NullString        `db:"description" json:"description"`
+	Properties              pqtype.NullRawMessage `db:"properties" json:"properties"`
+	AcceptedAt              sql.NullTime          `db:"accepted_at" json:"accepted_at"`
+	RejectedAt              sql.NullTime          `db:"rejected_at" json:"rejected_at"`
+	RevokedAt               sql.NullTime          `db:"revoked_at" json:"revoked_at"`
+	RedeemedAt              sql.NullTime          `db:"redeemed_at" json:"redeemed_at"`
+	CreatedAt               time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt               sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt               sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	SenderProfileSlug       sql.NullString        `db:"sender_profile_slug" json:"sender_profile_slug"`
+	SenderProfileTitle      string                `db:"sender_profile_title" json:"sender_profile_title"`
+	SenderProfilePictureURI sql.NullString        `db:"sender_profile_picture_uri" json:"sender_profile_picture_uri"`
+	SenderProfileKind       sql.NullString        `db:"sender_profile_kind" json:"sender_profile_kind"`
+}
+
 // ListAcceptedInvitations
 //
-//	SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
-//	FROM "profile_envelope"
-//	WHERE target_profile_id = $1
-//	  AND kind = 'invitation'
-//	  AND status = 'accepted'
-//	  AND deleted_at IS NULL
+//	SELECT
+//	  pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
+//	  sp.slug as sender_profile_slug,
+//	  COALESCE(spt.title, '') as sender_profile_title,
+//	  sp.profile_picture_uri as sender_profile_picture_uri,
+//	  sp.kind as sender_profile_kind
+//	FROM "profile_envelope" pe
+//	  LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+//	  LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+//	WHERE pe.target_profile_id = $1
+//	  AND pe.kind = 'invitation'
+//	  AND pe.status = 'accepted'
+//	  AND pe.deleted_at IS NULL
 //	  AND ($2::TEXT IS NULL
-//	       OR properties->>'invitation_kind' = $2)
-//	ORDER BY created_at DESC
-func (q *Queries) ListAcceptedInvitations(ctx context.Context, arg ListAcceptedInvitationsParams) ([]*ProfileEnvelope, error) {
+//	       OR pe.properties->>'invitation_kind' = $2)
+//	ORDER BY pe.created_at DESC
+func (q *Queries) ListAcceptedInvitations(ctx context.Context, arg ListAcceptedInvitationsParams) ([]*ListAcceptedInvitationsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listAcceptedInvitations, arg.TargetProfileID, arg.InvitationKind)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []*ProfileEnvelope{}
+	items := []*ListAcceptedInvitationsRow{}
 	for rows.Next() {
-		var i ProfileEnvelope
+		var i ListAcceptedInvitationsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.TargetProfileID,
@@ -193,6 +231,10 @@ func (q *Queries) ListAcceptedInvitations(ctx context.Context, arg ListAcceptedI
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.SenderProfileSlug,
+			&i.SenderProfileTitle,
+			&i.SenderProfilePictureURI,
+			&i.SenderProfileKind,
 		); err != nil {
 			return nil, err
 		}
@@ -208,12 +250,19 @@ func (q *Queries) ListAcceptedInvitations(ctx context.Context, arg ListAcceptedI
 }
 
 const listProfileEnvelopesByTargetProfileID = `-- name: ListProfileEnvelopesByTargetProfileID :many
-SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
-FROM "profile_envelope"
-WHERE target_profile_id = $1
-  AND deleted_at IS NULL
-  AND ($2::TEXT IS NULL OR status = $2)
-ORDER BY created_at DESC
+SELECT
+  pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
+  sp.slug as sender_profile_slug,
+  COALESCE(spt.title, '') as sender_profile_title,
+  sp.profile_picture_uri as sender_profile_picture_uri,
+  sp.kind as sender_profile_kind
+FROM "profile_envelope" pe
+  LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+  LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+WHERE pe.target_profile_id = $1
+  AND pe.deleted_at IS NULL
+  AND ($2::TEXT IS NULL OR pe.status = $2)
+ORDER BY pe.created_at DESC
 LIMIT $3
 `
 
@@ -223,24 +272,54 @@ type ListProfileEnvelopesByTargetProfileIDParams struct {
 	LimitCount      int32          `db:"limit_count" json:"limit_count"`
 }
 
+type ListProfileEnvelopesByTargetProfileIDRow struct {
+	ID                      string                `db:"id" json:"id"`
+	TargetProfileID         string                `db:"target_profile_id" json:"target_profile_id"`
+	SenderProfileID         sql.NullString        `db:"sender_profile_id" json:"sender_profile_id"`
+	SenderUserID            sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
+	Kind                    string                `db:"kind" json:"kind"`
+	Status                  string                `db:"status" json:"status"`
+	Title                   string                `db:"title" json:"title"`
+	Description             sql.NullString        `db:"description" json:"description"`
+	Properties              pqtype.NullRawMessage `db:"properties" json:"properties"`
+	AcceptedAt              sql.NullTime          `db:"accepted_at" json:"accepted_at"`
+	RejectedAt              sql.NullTime          `db:"rejected_at" json:"rejected_at"`
+	RevokedAt               sql.NullTime          `db:"revoked_at" json:"revoked_at"`
+	RedeemedAt              sql.NullTime          `db:"redeemed_at" json:"redeemed_at"`
+	CreatedAt               time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt               sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt               sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	SenderProfileSlug       sql.NullString        `db:"sender_profile_slug" json:"sender_profile_slug"`
+	SenderProfileTitle      string                `db:"sender_profile_title" json:"sender_profile_title"`
+	SenderProfilePictureURI sql.NullString        `db:"sender_profile_picture_uri" json:"sender_profile_picture_uri"`
+	SenderProfileKind       sql.NullString        `db:"sender_profile_kind" json:"sender_profile_kind"`
+}
+
 // ListProfileEnvelopesByTargetProfileID
 //
-//	SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
-//	FROM "profile_envelope"
-//	WHERE target_profile_id = $1
-//	  AND deleted_at IS NULL
-//	  AND ($2::TEXT IS NULL OR status = $2)
-//	ORDER BY created_at DESC
+//	SELECT
+//	  pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
+//	  sp.slug as sender_profile_slug,
+//	  COALESCE(spt.title, '') as sender_profile_title,
+//	  sp.profile_picture_uri as sender_profile_picture_uri,
+//	  sp.kind as sender_profile_kind
+//	FROM "profile_envelope" pe
+//	  LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+//	  LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+//	WHERE pe.target_profile_id = $1
+//	  AND pe.deleted_at IS NULL
+//	  AND ($2::TEXT IS NULL OR pe.status = $2)
+//	ORDER BY pe.created_at DESC
 //	LIMIT $3
-func (q *Queries) ListProfileEnvelopesByTargetProfileID(ctx context.Context, arg ListProfileEnvelopesByTargetProfileIDParams) ([]*ProfileEnvelope, error) {
+func (q *Queries) ListProfileEnvelopesByTargetProfileID(ctx context.Context, arg ListProfileEnvelopesByTargetProfileIDParams) ([]*ListProfileEnvelopesByTargetProfileIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, listProfileEnvelopesByTargetProfileID, arg.TargetProfileID, arg.StatusFilter, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []*ProfileEnvelope{}
+	items := []*ListProfileEnvelopesByTargetProfileIDRow{}
 	for rows.Next() {
-		var i ProfileEnvelope
+		var i ListProfileEnvelopesByTargetProfileIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.TargetProfileID,
@@ -258,6 +337,10 @@ func (q *Queries) ListProfileEnvelopesByTargetProfileID(ctx context.Context, arg
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.SenderProfileSlug,
+			&i.SenderProfileTitle,
+			&i.SenderProfilePictureURI,
+			&i.SenderProfileKind,
 		); err != nil {
 			return nil, err
 		}

@@ -42,6 +42,12 @@ type Envelope struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       *time.Time `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at"`
+
+	// Sender profile info (populated from JOINs in list queries).
+	SenderProfileSlug       *string `json:"sender_profile_slug"`
+	SenderProfileTitle      *string `json:"sender_profile_title"`
+	SenderProfilePictureURI *string `json:"sender_profile_picture_uri"`
+	SenderProfileKind       *string `json:"sender_profile_kind"`
 }
 
 // InvitationProperties holds kind-specific data for invitation envelopes.

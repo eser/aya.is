@@ -534,6 +534,9 @@
     "No inbox items yet.": "Ainda não há itens na caixa de entrada.",
     "Accept": "Aceitar",
     "Reject": "Rejeitar",
+    "Reject Envelope": "Rejeitar mensagem",
+    "Are you sure you want to reject this? This action cannot be undone.": "Tem a certeza de que pretende rejeitar isto? Esta ação não pode ser desfeita.",
+    "From": "De",
     "Use /invitations in bot to redeem": "Use /invitations no bot para resgatar",
     "EnvelopeStatus": {
       "pending": "Pendente",

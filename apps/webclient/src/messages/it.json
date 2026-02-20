@@ -534,6 +534,9 @@
     "No inbox items yet.": "Nessun elemento nella posta in arrivo.",
     "Accept": "Accetta",
     "Reject": "Rifiuta",
+    "Reject Envelope": "Rifiuta messaggio",
+    "Are you sure you want to reject this? This action cannot be undone.": "Sei sicuro di voler rifiutare? Questa azione non può essere annullata.",
+    "From": "Da",
     "Use /invitations in bot to redeem": "Usa /invitations nel bot per riscattare",
     "EnvelopeStatus": {
       "pending": "In attesa",

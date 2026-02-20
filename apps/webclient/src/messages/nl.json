@@ -534,6 +534,9 @@
     "No inbox items yet.": "Nog geen items in de inbox.",
     "Accept": "Accepteren",
     "Reject": "Afwijzen",
+    "Reject Envelope": "Bericht weigeren",
+    "Are you sure you want to reject this? This action cannot be undone.": "Weet je zeker dat je dit wilt weigeren? Deze actie kan niet ongedaan worden gemaakt.",
+    "From": "Van",
     "Use /invitations in bot to redeem": "Gebruik /invitations in de bot om in te wisselen",
     "EnvelopeStatus": {
       "pending": "In afwachting",

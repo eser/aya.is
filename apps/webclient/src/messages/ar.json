@@ -534,6 +534,9 @@
     "No inbox items yet.": "لا توجد عناصر في صندوق الوارد بعد.",
     "Accept": "قبول",
     "Reject": "رفض",
+    "Reject Envelope": "رفض الظرف",
+    "Are you sure you want to reject this? This action cannot be undone.": "هل أنت متأكد أنك تريد رفض هذا؟ لا يمكن التراجع عن هذا الإجراء.",
+    "From": "من",
     "Use /invitations in bot to redeem": "استخدم /invitations في البوت للاسترداد",
     "EnvelopeStatus": {
       "pending": "قيد الانتظار",

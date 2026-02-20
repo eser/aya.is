@@ -1580,16 +1580,23 @@ type Querier interface {
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
 	//ListAcceptedInvitations
 	//
-	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
-	//  FROM "profile_envelope"
-	//  WHERE target_profile_id = $1
-	//    AND kind = 'invitation'
-	//    AND status = 'accepted'
-	//    AND deleted_at IS NULL
+	//  SELECT
+	//    pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
+	//    sp.slug as sender_profile_slug,
+	//    COALESCE(spt.title, '') as sender_profile_title,
+	//    sp.profile_picture_uri as sender_profile_picture_uri,
+	//    sp.kind as sender_profile_kind
+	//  FROM "profile_envelope" pe
+	//    LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+	//  WHERE pe.target_profile_id = $1
+	//    AND pe.kind = 'invitation'
+	//    AND pe.status = 'accepted'
+	//    AND pe.deleted_at IS NULL
 	//    AND ($2::TEXT IS NULL
-	//         OR properties->>'invitation_kind' = $2)
-	//  ORDER BY created_at DESC
-	ListAcceptedInvitations(ctx context.Context, arg ListAcceptedInvitationsParams) ([]*ProfileEnvelope, error)
+	//         OR pe.properties->>'invitation_kind' = $2)
+	//  ORDER BY pe.created_at DESC
+	ListAcceptedInvitations(ctx context.Context, arg ListAcceptedInvitationsParams) ([]*ListAcceptedInvitationsRow, error)
 	// Lists published activity stories sorted by activity_time_start.
 	// Activity-specific fields are in the properties JSONB column.
 	//
@@ -1886,14 +1893,21 @@ type Querier interface {
 	ListPendingAwardsByStatus(ctx context.Context, arg ListPendingAwardsByStatusParams) ([]*ProfilePointPendingAward, error)
 	//ListProfileEnvelopesByTargetProfileID
 	//
-	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
-	//  FROM "profile_envelope"
-	//  WHERE target_profile_id = $1
-	//    AND deleted_at IS NULL
-	//    AND ($2::TEXT IS NULL OR status = $2)
-	//  ORDER BY created_at DESC
+	//  SELECT
+	//    pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
+	//    sp.slug as sender_profile_slug,
+	//    COALESCE(spt.title, '') as sender_profile_title,
+	//    sp.profile_picture_uri as sender_profile_picture_uri,
+	//    sp.kind as sender_profile_kind
+	//  FROM "profile_envelope" pe
+	//    LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+	//  WHERE pe.target_profile_id = $1
+	//    AND pe.deleted_at IS NULL
+	//    AND ($2::TEXT IS NULL OR pe.status = $2)
+	//  ORDER BY pe.created_at DESC
 	//  LIMIT $3
-	ListProfileEnvelopesByTargetProfileID(ctx context.Context, arg ListProfileEnvelopesByTargetProfileIDParams) ([]*ProfileEnvelope, error)
+	ListProfileEnvelopesByTargetProfileID(ctx context.Context, arg ListProfileEnvelopesByTargetProfileIDParams) ([]*ListProfileEnvelopesByTargetProfileIDRow, error)
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT

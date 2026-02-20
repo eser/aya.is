@@ -88,7 +88,7 @@ func (a *envelopeAdapter) ListEnvelopesByTargetProfileID(
 
 	result := make([]*envelopes.Envelope, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, rowToEnvelope(row))
+		result = append(result, listRowToEnvelope(row))
 	}
 
 	return result, nil
@@ -177,7 +177,7 @@ func (a *envelopeAdapter) ListAcceptedInvitations(
 
 	result := make([]*envelopes.Envelope, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, rowToEnvelope(row))
+		result = append(result, invitationRowToEnvelope(row))
 	}
 
 	return result, nil
@@ -248,6 +248,122 @@ func rowToEnvelope(row *ProfileEnvelope) *envelopes.Envelope {
 
 	if row.DeletedAt.Valid {
 		envelope.DeletedAt = &row.DeletedAt.Time
+	}
+
+	return envelope
+}
+
+// listRowToEnvelope converts a ListProfileEnvelopesByTargetProfileIDRow to the business type.
+func listRowToEnvelope(row *ListProfileEnvelopesByTargetProfileIDRow) *envelopes.Envelope {
+	envelope := &envelopes.Envelope{
+		ID:              row.ID,
+		TargetProfileID: row.TargetProfileID,
+		SenderProfileID: vars.ToStringPtr(row.SenderProfileID),
+		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
+		Kind:            row.Kind,
+		Status:          row.Status,
+		Title:           row.Title,
+		Description:     vars.ToStringPtr(row.Description),
+		CreatedAt:       row.CreatedAt,
+	}
+
+	if row.Properties.Valid {
+		var props any
+
+		_ = json.Unmarshal(row.Properties.RawMessage, &props)
+
+		envelope.Properties = props
+	}
+
+	if row.AcceptedAt.Valid {
+		envelope.AcceptedAt = &row.AcceptedAt.Time
+	}
+
+	if row.RejectedAt.Valid {
+		envelope.RejectedAt = &row.RejectedAt.Time
+	}
+
+	if row.RevokedAt.Valid {
+		envelope.RevokedAt = &row.RevokedAt.Time
+	}
+
+	if row.RedeemedAt.Valid {
+		envelope.RedeemedAt = &row.RedeemedAt.Time
+	}
+
+	if row.UpdatedAt.Valid {
+		envelope.UpdatedAt = &row.UpdatedAt.Time
+	}
+
+	if row.DeletedAt.Valid {
+		envelope.DeletedAt = &row.DeletedAt.Time
+	}
+
+	// Sender profile info from JOIN
+	envelope.SenderProfileSlug = vars.ToStringPtr(row.SenderProfileSlug)
+	envelope.SenderProfileKind = vars.ToStringPtr(row.SenderProfileKind)
+	envelope.SenderProfilePictureURI = vars.ToStringPtr(row.SenderProfilePictureURI)
+
+	if row.SenderProfileTitle != "" {
+		envelope.SenderProfileTitle = &row.SenderProfileTitle
+	}
+
+	return envelope
+}
+
+// invitationRowToEnvelope converts a ListAcceptedInvitationsRow to the business type.
+func invitationRowToEnvelope(row *ListAcceptedInvitationsRow) *envelopes.Envelope {
+	envelope := &envelopes.Envelope{
+		ID:              row.ID,
+		TargetProfileID: row.TargetProfileID,
+		SenderProfileID: vars.ToStringPtr(row.SenderProfileID),
+		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
+		Kind:            row.Kind,
+		Status:          row.Status,
+		Title:           row.Title,
+		Description:     vars.ToStringPtr(row.Description),
+		CreatedAt:       row.CreatedAt,
+	}
+
+	if row.Properties.Valid {
+		var props any
+
+		_ = json.Unmarshal(row.Properties.RawMessage, &props)
+
+		envelope.Properties = props
+	}
+
+	if row.AcceptedAt.Valid {
+		envelope.AcceptedAt = &row.AcceptedAt.Time
+	}
+
+	if row.RejectedAt.Valid {
+		envelope.RejectedAt = &row.RejectedAt.Time
+	}
+
+	if row.RevokedAt.Valid {
+		envelope.RevokedAt = &row.RevokedAt.Time
+	}
+
+	if row.RedeemedAt.Valid {
+		envelope.RedeemedAt = &row.RedeemedAt.Time
+	}
+
+	if row.UpdatedAt.Valid {
+		envelope.UpdatedAt = &row.UpdatedAt.Time
+	}
+
+	if row.DeletedAt.Valid {
+		envelope.DeletedAt = &row.DeletedAt.Time
+	}
+
+	// Sender profile info from JOIN
+	envelope.SenderProfileSlug = vars.ToStringPtr(row.SenderProfileSlug)
+	envelope.SenderProfileKind = vars.ToStringPtr(row.SenderProfileKind)
+	envelope.SenderProfilePictureURI = vars.ToStringPtr(row.SenderProfilePictureURI)
+
+	if row.SenderProfileTitle != "" {
+		envelope.SenderProfileTitle = &row.SenderProfileTitle
 	}
 
 	return envelope

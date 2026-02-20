@@ -534,6 +534,9 @@
     "No inbox items yet.": "아직 받은편지함에 항목이 없습니다.",
     "Accept": "수락",
     "Reject": "거부",
+    "Reject Envelope": "메시지 거부",
+    "Are you sure you want to reject this? This action cannot be undone.": "정말 거부하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "From": "보낸 사람",
     "Use /invitations in bot to redeem": "봇에서 /invitations로 사용",
     "EnvelopeStatus": {
       "pending": "대기 중",

@@ -414,6 +414,10 @@ export interface ProfileEnvelope {
   rejected_at: string | null;
   revoked_at: string | null;
   redeemed_at: string | null;
+  sender_profile_slug: string | null;
+  sender_profile_title: string | null;
+  sender_profile_picture_uri: string | null;
+  sender_profile_kind: string | null;
 }
 
 // Pending Award Types
