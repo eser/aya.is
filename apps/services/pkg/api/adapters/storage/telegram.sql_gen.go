@@ -9,131 +9,114 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/sqlc-dev/pqtype"
 )
 
-const cleanupExpiredTelegramVerificationCodes = `-- name: CleanupExpiredTelegramVerificationCodes :execrows
-DELETE FROM "telegram_verification_code"
+const cleanupExpiredExternalCodes = `-- name: CleanupExpiredExternalCodes :execrows
+DELETE FROM "external_code"
 WHERE expires_at < NOW() - INTERVAL '1 hour'
 `
 
-// CleanupExpiredTelegramVerificationCodes
+// CleanupExpiredExternalCodes
 //
-//	DELETE FROM "telegram_verification_code"
+//	DELETE FROM "external_code"
 //	WHERE expires_at < NOW() - INTERVAL '1 hour'
-func (q *Queries) CleanupExpiredTelegramVerificationCodes(ctx context.Context) (int64, error) {
-	result, err := q.db.ExecContext(ctx, cleanupExpiredTelegramVerificationCodes)
+func (q *Queries) CleanupExpiredExternalCodes(ctx context.Context) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cleanupExpiredExternalCodes)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-const consumeTelegramGroupInviteCode = `-- name: ConsumeTelegramGroupInviteCode :execrows
-UPDATE "telegram_group_invite_code"
+const consumeExternalCode = `-- name: ConsumeExternalCode :execrows
+UPDATE "external_code"
 SET consumed_at = NOW()
 WHERE code = $1
   AND consumed_at IS NULL
 `
 
-type ConsumeTelegramGroupInviteCodeParams struct {
+type ConsumeExternalCodeParams struct {
 	Code string `db:"code" json:"code"`
 }
 
-// ConsumeTelegramGroupInviteCode
+// ConsumeExternalCode
 //
-//	UPDATE "telegram_group_invite_code"
+//	UPDATE "external_code"
 //	SET consumed_at = NOW()
 //	WHERE code = $1
 //	  AND consumed_at IS NULL
-func (q *Queries) ConsumeTelegramGroupInviteCode(ctx context.Context, arg ConsumeTelegramGroupInviteCodeParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, consumeTelegramGroupInviteCode, arg.Code)
+func (q *Queries) ConsumeExternalCode(ctx context.Context, arg ConsumeExternalCodeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, consumeExternalCode, arg.Code)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
 }
 
-const consumeTelegramVerificationCode = `-- name: ConsumeTelegramVerificationCode :execrows
-UPDATE "telegram_verification_code"
-SET consumed_at = NOW()
-WHERE code = $1
-  AND consumed_at IS NULL
-`
-
-type ConsumeTelegramVerificationCodeParams struct {
-	Code string `db:"code" json:"code"`
-}
-
-// ConsumeTelegramVerificationCode
-//
-//	UPDATE "telegram_verification_code"
-//	SET consumed_at = NOW()
-//	WHERE code = $1
-//	  AND consumed_at IS NULL
-func (q *Queries) ConsumeTelegramVerificationCode(ctx context.Context, arg ConsumeTelegramVerificationCodeParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, consumeTelegramVerificationCode, arg.Code)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
-const createTelegramGroupInviteCode = `-- name: CreateTelegramGroupInviteCode :exec
-INSERT INTO "telegram_group_invite_code" (id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at)
-VALUES ($1, $2, $3, $4, $5, NOW(), $6)
-`
-
-type CreateTelegramGroupInviteCodeParams struct {
-	ID                      string    `db:"id" json:"id"`
-	Code                    string    `db:"code" json:"code"`
-	TelegramChatID          int64     `db:"telegram_chat_id" json:"telegram_chat_id"`
-	TelegramChatTitle       string    `db:"telegram_chat_title" json:"telegram_chat_title"`
-	CreatedByTelegramUserID int64     `db:"created_by_telegram_user_id" json:"created_by_telegram_user_id"`
-	ExpiresAt               time.Time `db:"expires_at" json:"expires_at"`
-}
-
-// CreateTelegramGroupInviteCode
-//
-//	INSERT INTO "telegram_group_invite_code" (id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at)
-//	VALUES ($1, $2, $3, $4, $5, NOW(), $6)
-func (q *Queries) CreateTelegramGroupInviteCode(ctx context.Context, arg CreateTelegramGroupInviteCodeParams) error {
-	_, err := q.db.ExecContext(ctx, createTelegramGroupInviteCode,
-		arg.ID,
-		arg.Code,
-		arg.TelegramChatID,
-		arg.TelegramChatTitle,
-		arg.CreatedByTelegramUserID,
-		arg.ExpiresAt,
-	)
-	return err
-}
-
-const createTelegramVerificationCode = `-- name: CreateTelegramVerificationCode :exec
-INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
+const createExternalCode = `-- name: CreateExternalCode :exec
+INSERT INTO "external_code" (id, code, external_system, properties, created_at, expires_at)
 VALUES ($1, $2, $3, $4, NOW(), $5)
 `
 
-type CreateTelegramVerificationCodeParams struct {
-	ID               string    `db:"id" json:"id"`
-	Code             string    `db:"code" json:"code"`
-	TelegramUserID   int64     `db:"telegram_user_id" json:"telegram_user_id"`
-	TelegramUsername string    `db:"telegram_username" json:"telegram_username"`
-	ExpiresAt        time.Time `db:"expires_at" json:"expires_at"`
+type CreateExternalCodeParams struct {
+	ID             string                `db:"id" json:"id"`
+	Code           string                `db:"code" json:"code"`
+	ExternalSystem string                `db:"external_system" json:"external_system"`
+	Properties     pqtype.NullRawMessage `db:"properties" json:"properties"`
+	ExpiresAt      time.Time             `db:"expires_at" json:"expires_at"`
 }
 
-// CreateTelegramVerificationCode
+// CreateExternalCode
 //
-//	INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
+//	INSERT INTO "external_code" (id, code, external_system, properties, created_at, expires_at)
 //	VALUES ($1, $2, $3, $4, NOW(), $5)
-func (q *Queries) CreateTelegramVerificationCode(ctx context.Context, arg CreateTelegramVerificationCodeParams) error {
-	_, err := q.db.ExecContext(ctx, createTelegramVerificationCode,
+func (q *Queries) CreateExternalCode(ctx context.Context, arg CreateExternalCodeParams) error {
+	_, err := q.db.ExecContext(ctx, createExternalCode,
 		arg.ID,
 		arg.Code,
-		arg.TelegramUserID,
-		arg.TelegramUsername,
+		arg.ExternalSystem,
+		arg.Properties,
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const getExternalCodeByCode = `-- name: GetExternalCodeByCode :one
+SELECT id, code, external_system, properties, created_at, expires_at, consumed_at
+FROM "external_code"
+WHERE code = $1
+  AND consumed_at IS NULL
+  AND expires_at > NOW()
+LIMIT 1
+`
+
+type GetExternalCodeByCodeParams struct {
+	Code string `db:"code" json:"code"`
+}
+
+// GetExternalCodeByCode
+//
+//	SELECT id, code, external_system, properties, created_at, expires_at, consumed_at
+//	FROM "external_code"
+//	WHERE code = $1
+//	  AND consumed_at IS NULL
+//	  AND expires_at > NOW()
+//	LIMIT 1
+func (q *Queries) GetExternalCodeByCode(ctx context.Context, arg GetExternalCodeByCodeParams) (*ExternalCode, error) {
+	row := q.db.QueryRowContext(ctx, getExternalCodeByCode, arg.Code)
+	var i ExternalCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ExternalSystem,
+		&i.Properties,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.ConsumedAt,
+	)
+	return &i, err
 }
 
 const getMemberProfileTelegramLinks = `-- name: GetMemberProfileTelegramLinks :many
@@ -359,79 +342,6 @@ func (q *Queries) GetProfileSlugByIDForTelegram(ctx context.Context, arg GetProf
 	var slug string
 	err := row.Scan(&slug)
 	return slug, err
-}
-
-const getTelegramGroupInviteCodeByCode = `-- name: GetTelegramGroupInviteCodeByCode :one
-SELECT id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at, consumed_at
-FROM "telegram_group_invite_code"
-WHERE code = $1
-  AND consumed_at IS NULL
-  AND expires_at > NOW()
-LIMIT 1
-`
-
-type GetTelegramGroupInviteCodeByCodeParams struct {
-	Code string `db:"code" json:"code"`
-}
-
-// GetTelegramGroupInviteCodeByCode
-//
-//	SELECT id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at, consumed_at
-//	FROM "telegram_group_invite_code"
-//	WHERE code = $1
-//	  AND consumed_at IS NULL
-//	  AND expires_at > NOW()
-//	LIMIT 1
-func (q *Queries) GetTelegramGroupInviteCodeByCode(ctx context.Context, arg GetTelegramGroupInviteCodeByCodeParams) (*TelegramGroupInviteCode, error) {
-	row := q.db.QueryRowContext(ctx, getTelegramGroupInviteCodeByCode, arg.Code)
-	var i TelegramGroupInviteCode
-	err := row.Scan(
-		&i.ID,
-		&i.Code,
-		&i.TelegramChatID,
-		&i.TelegramChatTitle,
-		&i.CreatedByTelegramUserID,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-		&i.ConsumedAt,
-	)
-	return &i, err
-}
-
-const getTelegramVerificationCodeByCode = `-- name: GetTelegramVerificationCodeByCode :one
-SELECT id, code, telegram_user_id, telegram_username, created_at, expires_at, consumed_at
-FROM "telegram_verification_code"
-WHERE code = $1
-  AND consumed_at IS NULL
-  AND expires_at > NOW()
-LIMIT 1
-`
-
-type GetTelegramVerificationCodeByCodeParams struct {
-	Code string `db:"code" json:"code"`
-}
-
-// GetTelegramVerificationCodeByCode
-//
-//	SELECT id, code, telegram_user_id, telegram_username, created_at, expires_at, consumed_at
-//	FROM "telegram_verification_code"
-//	WHERE code = $1
-//	  AND consumed_at IS NULL
-//	  AND expires_at > NOW()
-//	LIMIT 1
-func (q *Queries) GetTelegramVerificationCodeByCode(ctx context.Context, arg GetTelegramVerificationCodeByCodeParams) (*TelegramVerificationCode, error) {
-	row := q.db.QueryRowContext(ctx, getTelegramVerificationCodeByCode, arg.Code)
-	var i TelegramVerificationCode
-	err := row.Scan(
-		&i.ID,
-		&i.Code,
-		&i.TelegramUserID,
-		&i.TelegramUsername,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-		&i.ConsumedAt,
-	)
-	return &i, err
 }
 
 const listManagedTelegramLinks = `-- name: ListManagedTelegramLinks :many

@@ -153,15 +153,15 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					)
 				}
 
-				// If an invite code is provided, resolve it to get chat_id and title
+				// If an invite code is provided, resolve it and merge properties
 				if body.InviteCode != "" {
 					if telegramService == nil {
 						return ctx.Results.BadRequest(
-							httpfx.WithErrorMessage("Telegram is not configured"),
+							httpfx.WithErrorMessage("External code service is not configured"),
 						)
 					}
 
-					inviteCode, resolveErr := telegramService.ResolveGroupInviteCode(
+					externalCode, resolveErr := telegramService.ResolveGroupInviteCode(
 						ctx.Request.Context(), body.InviteCode,
 					)
 					if resolveErr != nil {
@@ -170,11 +170,16 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 						)
 					}
 
-					body.Properties = map[string]any{
-						"invitation_kind":  "telegram_group",
-						"telegram_chat_id": inviteCode.TelegramChatID,
-						"group_name":       inviteCode.TelegramChatTitle,
+					// Map external code properties into envelope properties.
+					// The envelope format is the contract consumed by the bot.
+					props := map[string]any{
+						"external_system":  externalCode.ExternalSystem,
+						"invitation_kind":  body.Kind,
+						"telegram_chat_id": externalCode.Properties["telegram_chat_id"],
+						"group_name":       externalCode.Properties["telegram_chat_title"],
 					}
+
+					body.Properties = props
 
 					_ = telegramService.ConsumeGroupInviteCode(
 						ctx.Request.Context(), body.InviteCode,

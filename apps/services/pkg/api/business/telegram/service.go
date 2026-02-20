@@ -3,6 +3,7 @@ package telegram
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -14,36 +15,34 @@ import (
 )
 
 const (
-	// CodeLength is the number of characters in a verification code.
+	// CodeLength is the number of characters in generated codes.
 	CodeLength = 6
-	// CodeExpiryMinutes is the TTL for a verification code.
+	// CodeExpiryMinutes is the TTL for generated codes.
 	CodeExpiryMinutes = 10
 )
 
-// codeChars are the characters used for verification codes.
+// codeChars are the characters used for generated codes.
 // Removed confusing characters: 0/O, 1/I/L to improve readability.
 var codeChars = []byte("ABCDEFGHJKMNPQRSTUVWXYZ23456789") //nolint:gochecknoglobals
 
 // Sentinel errors.
 var (
-	ErrCodeNotFound              = errors.New("verification code not found or expired")
-	ErrCodeConsumed              = errors.New("verification code already consumed")
+	ErrCodeNotFound              = errors.New("code not found or expired")
+	ErrCodeConsumed              = errors.New("code already consumed")
 	ErrAlreadyLinked             = errors.New("telegram account already linked to a profile")
 	ErrProfileAlreadyHasTelegram = errors.New("profile already has a telegram link")
-	ErrFailedToCreateCode        = errors.New("failed to create verification code")
+	ErrFailedToCreateCode        = errors.New("failed to create code")
 	ErrFailedToLink              = errors.New("failed to link telegram account")
 	ErrFailedToUnlink            = errors.New("failed to unlink telegram account")
 	ErrNotLinked                 = errors.New("telegram account is not linked")
-	ErrGroupInviteCodeNotFound   = errors.New("group invite code not found or expired")
-	ErrGroupInviteCodeConsumed   = errors.New("group invite code already consumed")
-	ErrFailedToCreateInviteCode  = errors.New("failed to create group invite code")
 )
 
 // Repository defines storage operations for the Telegram service.
 type Repository interface { //nolint:interfacebloat
-	CreateVerificationCode(ctx context.Context, code *TelegramVerificationCode) error
-	GetVerificationCodeByCode(ctx context.Context, code string) (*TelegramVerificationCode, error)
-	ConsumeVerificationCode(ctx context.Context, code string) error
+	// External code operations (unified for all code types).
+	CreateExternalCode(ctx context.Context, code *ExternalCode) error
+	GetExternalCodeByCode(ctx context.Context, code string) (*ExternalCode, error)
+	ConsumeExternalCode(ctx context.Context, code string) error
 	CleanupExpiredCodes(ctx context.Context) error
 
 	GetProfileLinkByTelegramRemoteID(ctx context.Context, remoteID string) (*ProfileLinkInfo, error)
@@ -64,11 +63,6 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		memberProfileID string,
 	) ([]RawGroupTelegramLink, error)
-
-	// Group invite code operations.
-	CreateGroupInviteCode(ctx context.Context, code *TelegramGroupInviteCode) error
-	GetGroupInviteCodeByCode(ctx context.Context, code string) (*TelegramGroupInviteCode, error)
-	ConsumeGroupInviteCode(ctx context.Context, code string) error
 }
 
 // Service provides Telegram account linking business logic.
@@ -114,22 +108,26 @@ func (s *Service) GenerateVerificationCode(
 
 	now := time.Now()
 
-	verificationCode := &TelegramVerificationCode{
-		ID:               s.idGenerator(),
-		Code:             code,
-		TelegramUserID:   telegramUserID,
-		TelegramUsername: telegramUsername,
-		CreatedAt:        now,
-		ExpiresAt:        now.Add(CodeExpiryMinutes * time.Minute),
-		ConsumedAt:       nil,
+	externalCode := &ExternalCode{
+		ID:             s.idGenerator(),
+		Code:           code,
+		ExternalSystem: "telegram",
+		Properties: map[string]any{
+			"kind":              "verification",
+			"telegram_user_id":  telegramUserID,
+			"telegram_username": telegramUsername,
+		},
+		CreatedAt:  now,
+		ExpiresAt:  now.Add(CodeExpiryMinutes * time.Minute),
+		ConsumedAt: nil,
 	}
 
-	err = s.repo.CreateVerificationCode(ctx, verificationCode)
+	err = s.repo.CreateExternalCode(ctx, externalCode)
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
 	}
 
-	s.logger.DebugContext(ctx, "Telegram verification code generated",
+	s.logger.DebugContext(ctx, "Verification code generated",
 		slog.Int64("telegram_user_id", telegramUserID))
 
 	return code, nil
@@ -145,12 +143,16 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 	userID string,
 ) (*LinkResult, error) {
 	// Look up the code
-	verificationCode, err := s.repo.GetVerificationCodeByCode(ctx, code)
+	externalCode, err := s.repo.GetExternalCodeByCode(ctx, code)
 	if err != nil {
 		return nil, ErrCodeNotFound
 	}
 
-	remoteID := strconv.FormatInt(verificationCode.TelegramUserID, 10)
+	// Extract Telegram-specific data from properties
+	telegramUserID := getInt64Prop(externalCode.Properties, "telegram_user_id")
+	telegramUsername := getStringProp(externalCode.Properties, "telegram_username")
+
+	remoteID := strconv.FormatInt(telegramUserID, 10)
 
 	// Check if this Telegram user is already linked to any profile
 	existing, err := s.repo.GetProfileLinkByTelegramRemoteID(ctx, remoteID)
@@ -172,8 +174,8 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 
 	// Build the Telegram URI
 	uri := ""
-	if verificationCode.TelegramUsername != "" {
-		uri = "https://t.me/" + verificationCode.TelegramUsername
+	if telegramUsername != "" {
+		uri = "https://t.me/" + telegramUsername
 	}
 
 	// Create the profile link
@@ -181,7 +183,7 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 		ID:               s.idGenerator(),
 		ProfileID:        profileID,
 		RemoteID:         remoteID,
-		PublicID:         verificationCode.TelegramUsername,
+		PublicID:         telegramUsername,
 		URI:              uri,
 		Order:            maxOrder + 1,
 		AddedByProfileID: profileID,
@@ -191,23 +193,23 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 	}
 
 	// Consume the code (mark as used)
-	err = s.repo.ConsumeVerificationCode(ctx, code)
+	err = s.repo.ConsumeExternalCode(ctx, code)
 	if err != nil {
-		s.logger.WarnContext(ctx, "Failed to consume verification code (link was already created)",
-			slog.String("code_id", verificationCode.ID),
+		s.logger.WarnContext(ctx, "Failed to consume code (link was already created)",
+			slog.String("code_id", externalCode.ID),
 			slog.String("error", err.Error()))
 	}
 
 	s.logger.InfoContext(ctx, "Telegram account linked via verification code",
 		slog.String("profile_id", profileID),
 		slog.String("profile_slug", profileSlug),
-		slog.Int64("telegram_user_id", verificationCode.TelegramUserID))
+		slog.Int64("telegram_user_id", telegramUserID))
 
 	return &LinkResult{
 		ProfileID:        profileID,
 		ProfileSlug:      profileSlug,
-		TelegramUserID:   verificationCode.TelegramUserID,
-		TelegramUsername: verificationCode.TelegramUsername,
+		TelegramUserID:   telegramUserID,
+		TelegramUsername: telegramUsername,
 	}, nil
 }
 
@@ -257,7 +259,7 @@ func (s *Service) GetProfileSlugByID(ctx context.Context, profileID string) (str
 	return slug, nil
 }
 
-// CleanupExpiredCodes removes expired verification codes from the database.
+// CleanupExpiredCodes removes expired codes from the database.
 func (s *Service) CleanupExpiredCodes(ctx context.Context) error {
 	err := s.repo.CleanupExpiredCodes(ctx)
 	if err != nil {
@@ -312,28 +314,32 @@ func (s *Service) GenerateGroupInviteCode(
 ) (string, error) {
 	code, err := generateCode()
 	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrFailedToCreateInviteCode, err)
+		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
 	}
 
 	now := time.Now()
 
-	inviteCode := &TelegramGroupInviteCode{
-		ID:                      s.idGenerator(),
-		Code:                    code,
-		TelegramChatID:          chatID,
-		TelegramChatTitle:       chatTitle,
-		CreatedByTelegramUserID: telegramUserID,
-		CreatedAt:               now,
-		ExpiresAt:               now.Add(CodeExpiryMinutes * time.Minute),
-		ConsumedAt:              nil,
+	externalCode := &ExternalCode{
+		ID:             s.idGenerator(),
+		Code:           code,
+		ExternalSystem: "telegram",
+		Properties: map[string]any{
+			"kind":                        "group_invite",
+			"telegram_chat_id":            chatID,
+			"telegram_chat_title":         chatTitle,
+			"created_by_telegram_user_id": telegramUserID,
+		},
+		CreatedAt:  now,
+		ExpiresAt:  now.Add(CodeExpiryMinutes * time.Minute),
+		ConsumedAt: nil,
 	}
 
-	err = s.repo.CreateGroupInviteCode(ctx, inviteCode)
+	err = s.repo.CreateExternalCode(ctx, externalCode)
 	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrFailedToCreateInviteCode, err)
+		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
 	}
 
-	s.logger.DebugContext(ctx, "Telegram group invite code generated",
+	s.logger.DebugContext(ctx, "Group invite code generated",
 		slog.Int64("chat_id", chatID),
 		slog.String("chat_title", chatTitle),
 		slog.Int64("telegram_user_id", telegramUserID))
@@ -346,26 +352,26 @@ func (s *Service) GenerateGroupInviteCode(
 func (s *Service) ResolveGroupInviteCode(
 	ctx context.Context,
 	code string,
-) (*TelegramGroupInviteCode, error) {
-	inviteCode, err := s.repo.GetGroupInviteCodeByCode(ctx, code)
+) (*ExternalCode, error) {
+	externalCode, err := s.repo.GetExternalCodeByCode(ctx, code)
 	if err != nil {
-		return nil, ErrGroupInviteCodeNotFound
+		return nil, ErrCodeNotFound
 	}
 
-	return inviteCode, nil
+	return externalCode, nil
 }
 
 // ConsumeGroupInviteCode marks an invite code as consumed after envelope creation.
 func (s *Service) ConsumeGroupInviteCode(ctx context.Context, code string) error {
-	err := s.repo.ConsumeGroupInviteCode(ctx, code)
+	err := s.repo.ConsumeExternalCode(ctx, code)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrGroupInviteCodeConsumed, err)
+		return fmt.Errorf("%w: %w", ErrCodeConsumed, err)
 	}
 
 	return nil
 }
 
-// generateCode creates a random verification code using crypto/rand.
+// generateCode creates a random code using crypto/rand.
 func generateCode() (string, error) {
 	randomBytes := make([]byte, CodeLength)
 
@@ -382,4 +388,49 @@ func generateCode() (string, error) {
 	}
 
 	return string(code), nil
+}
+
+// getStringProp safely extracts a string from a properties map.
+func getStringProp(props map[string]any, key string) string {
+	if props == nil {
+		return ""
+	}
+
+	val, ok := props[key]
+	if !ok {
+		return ""
+	}
+
+	str, ok := val.(string)
+	if !ok {
+		return ""
+	}
+
+	return str
+}
+
+// getInt64Prop safely extracts an int64 from a properties map.
+// JSON numbers unmarshal as float64, so we handle that conversion.
+func getInt64Prop(props map[string]any, key string) int64 {
+	if props == nil {
+		return 0
+	}
+
+	val, ok := props[key]
+	if !ok {
+		return 0
+	}
+
+	switch v := val.(type) {
+	case float64:
+		return int64(v)
+	case int64:
+		return v
+	case json.Number:
+		n, _ := v.Int64()
+
+		return n
+	default:
+		return 0
+	}
 }

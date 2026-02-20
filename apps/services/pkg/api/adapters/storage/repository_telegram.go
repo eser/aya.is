@@ -3,11 +3,13 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
+	"github.com/sqlc-dev/pqtype"
 )
 
 type telegramAdapter struct {
@@ -19,26 +21,31 @@ func NewTelegramRepository(repo *Repository) telegrambiz.Repository {
 	return &telegramAdapter{repo: repo}
 }
 
-func (a *telegramAdapter) CreateVerificationCode(
+func (a *telegramAdapter) CreateExternalCode(
 	ctx context.Context,
-	code *telegrambiz.TelegramVerificationCode,
+	code *telegrambiz.ExternalCode,
 ) error {
-	return a.repo.queries.CreateTelegramVerificationCode(ctx, CreateTelegramVerificationCodeParams{
-		ID:               code.ID,
-		Code:             code.Code,
-		TelegramUserID:   code.TelegramUserID,
-		TelegramUsername: code.TelegramUsername,
-		ExpiresAt:        time.Now().Add(telegrambiz.CodeExpiryMinutes * time.Minute),
+	propsJSON, err := json.Marshal(code.Properties)
+	if err != nil {
+		return err
+	}
+
+	return a.repo.queries.CreateExternalCode(ctx, CreateExternalCodeParams{
+		ID:             code.ID,
+		Code:           code.Code,
+		ExternalSystem: code.ExternalSystem,
+		Properties:     pqtype.NullRawMessage{RawMessage: propsJSON, Valid: true},
+		ExpiresAt:      time.Now().Add(telegrambiz.CodeExpiryMinutes * time.Minute),
 	})
 }
 
-func (a *telegramAdapter) GetVerificationCodeByCode(
+func (a *telegramAdapter) GetExternalCodeByCode(
 	ctx context.Context,
 	code string,
-) (*telegrambiz.TelegramVerificationCode, error) {
-	row, err := a.repo.queries.GetTelegramVerificationCodeByCode(
+) (*telegrambiz.ExternalCode, error) {
+	row, err := a.repo.queries.GetExternalCodeByCode(
 		ctx,
-		GetTelegramVerificationCodeByCodeParams{
+		GetExternalCodeByCodeParams{
 			Code: code,
 		},
 	)
@@ -50,13 +57,22 @@ func (a *telegramAdapter) GetVerificationCodeByCode(
 		return nil, err
 	}
 
-	result := &telegrambiz.TelegramVerificationCode{
-		ID:               row.ID,
-		Code:             row.Code,
-		TelegramUserID:   row.TelegramUserID,
-		TelegramUsername: row.TelegramUsername,
-		CreatedAt:        row.CreatedAt,
-		ExpiresAt:        row.ExpiresAt,
+	props := make(map[string]any)
+
+	if row.Properties.Valid && len(row.Properties.RawMessage) > 0 {
+		err = json.Unmarshal(row.Properties.RawMessage, &props)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	result := &telegrambiz.ExternalCode{
+		ID:             row.ID,
+		Code:           row.Code,
+		ExternalSystem: row.ExternalSystem,
+		Properties:     props,
+		CreatedAt:      row.CreatedAt,
+		ExpiresAt:      row.ExpiresAt,
 	}
 
 	if row.ConsumedAt.Valid {
@@ -67,10 +83,10 @@ func (a *telegramAdapter) GetVerificationCodeByCode(
 	return result, nil
 }
 
-func (a *telegramAdapter) ConsumeVerificationCode(ctx context.Context, code string) error {
-	rowsAffected, err := a.repo.queries.ConsumeTelegramVerificationCode(
+func (a *telegramAdapter) ConsumeExternalCode(ctx context.Context, code string) error {
+	rowsAffected, err := a.repo.queries.ConsumeExternalCode(
 		ctx,
-		ConsumeTelegramVerificationCodeParams{
+		ConsumeExternalCodeParams{
 			Code: code,
 		},
 	)
@@ -86,7 +102,7 @@ func (a *telegramAdapter) ConsumeVerificationCode(ctx context.Context, code stri
 }
 
 func (a *telegramAdapter) CleanupExpiredCodes(ctx context.Context) error {
-	_, err := a.repo.queries.CleanupExpiredTelegramVerificationCodes(ctx)
+	_, err := a.repo.queries.CleanupExpiredExternalCodes(ctx)
 
 	return err
 }
@@ -237,74 +253,6 @@ func (a *telegramAdapter) GetMemberProfileTelegramLinks(
 	}
 
 	return result, nil
-}
-
-func (a *telegramAdapter) CreateGroupInviteCode(
-	ctx context.Context,
-	code *telegrambiz.TelegramGroupInviteCode,
-) error {
-	return a.repo.queries.CreateTelegramGroupInviteCode(ctx, CreateTelegramGroupInviteCodeParams{
-		ID:                      code.ID,
-		Code:                    code.Code,
-		TelegramChatID:          code.TelegramChatID,
-		TelegramChatTitle:       code.TelegramChatTitle,
-		CreatedByTelegramUserID: code.CreatedByTelegramUserID,
-		ExpiresAt:               code.ExpiresAt,
-	})
-}
-
-func (a *telegramAdapter) GetGroupInviteCodeByCode(
-	ctx context.Context,
-	code string,
-) (*telegrambiz.TelegramGroupInviteCode, error) {
-	row, err := a.repo.queries.GetTelegramGroupInviteCodeByCode(
-		ctx,
-		GetTelegramGroupInviteCodeByCodeParams{
-			Code: code,
-		},
-	)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, telegrambiz.ErrGroupInviteCodeNotFound
-		}
-
-		return nil, err
-	}
-
-	result := &telegrambiz.TelegramGroupInviteCode{
-		ID:                      row.ID,
-		Code:                    row.Code,
-		TelegramChatID:          row.TelegramChatID,
-		TelegramChatTitle:       row.TelegramChatTitle,
-		CreatedByTelegramUserID: row.CreatedByTelegramUserID,
-		CreatedAt:               row.CreatedAt,
-		ExpiresAt:               row.ExpiresAt,
-	}
-
-	if row.ConsumedAt.Valid {
-		t := row.ConsumedAt.Time
-		result.ConsumedAt = &t
-	}
-
-	return result, nil
-}
-
-func (a *telegramAdapter) ConsumeGroupInviteCode(ctx context.Context, code string) error {
-	rowsAffected, err := a.repo.queries.ConsumeTelegramGroupInviteCode(
-		ctx,
-		ConsumeTelegramGroupInviteCodeParams{
-			Code: code,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return telegrambiz.ErrGroupInviteCodeConsumed
-	}
-
-	return nil
 }
 
 func (a *telegramAdapter) GetMaxProfileLinkOrder(

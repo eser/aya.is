@@ -1,4 +1,4 @@
-// Admin profile envelopes tab — send invitations to profiles
+// Admin profile envelopes tab — send envelopes to profiles
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,7 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Send, Loader2, CheckCircle } from "lucide-react";
+
+const ENVELOPE_KINDS = [
+  { value: "telegram_group", labelKey: "ProfileSettings.Telegram Group Invite" },
+] as const;
 
 export const Route = createFileRoute("/$locale/admin/profiles/$slug/envelopes")({
   loader: async ({ params }) => {
@@ -24,6 +35,7 @@ function AdminProfileEnvelopes() {
   const params = Route.useParams();
   const { profile } = Route.useLoaderData();
 
+  const [envelopeKind, setEnvelopeKind] = useState("telegram_group");
   const [targetSlug, setTargetSlug] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [title, setTitle] = useState("");
@@ -38,11 +50,11 @@ function AdminProfileEnvelopes() {
 
   const handleSend = async () => {
     if (targetSlug.trim() === "") {
-      setSendError(t("Admin.Target Profile Slug") + " is required");
+      setSendError(t("ProfileSettings.Target Profile Slug") + " is required");
       return;
     }
-    if (inviteCode.trim() === "") {
-      setSendError(t("Admin.Invite Code") + " is required");
+    if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
+      setSendError(t("ProfileSettings.Invite Code") + " is required");
       return;
     }
     if (title.trim() === "") {
@@ -55,10 +67,9 @@ function AdminProfileEnvelopes() {
     setSendSuccess(false);
 
     try {
-      // Resolve target slug to profile ID
       const targetProfile = await backend.getProfile(params.locale, targetSlug.trim());
       if (targetProfile === null) {
-        setSendError(t("Admin.Profile not found"));
+        setSendError(t("ProfileSettings.Profile not found"));
         setIsSending(false);
         return;
       }
@@ -70,7 +81,7 @@ function AdminProfileEnvelopes() {
         kind: "invitation",
         title: title.trim(),
         description: description.trim() !== "" ? description.trim() : undefined,
-        inviteCode: inviteCode.trim(),
+        inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
       });
 
       if (result !== null) {
@@ -81,11 +92,11 @@ function AdminProfileEnvelopes() {
         setSendSuccess(true);
         setTimeout(() => setSendSuccess(false), 3000);
       } else {
-        setSendError(t("Admin.Failed to send invitation"));
+        setSendError(t("ProfileSettings.Failed to send invitation"));
       }
     } catch (error) {
       setSendError(
-        error instanceof Error ? error.message : t("Admin.Failed to send invitation"),
+        error instanceof Error ? error.message : t("ProfileSettings.Failed to send invitation"),
       );
     } finally {
       setIsSending(false);
@@ -98,16 +109,33 @@ function AdminProfileEnvelopes() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
-            {t("Admin.Send Telegram Invitation")}
+            {t("ProfileSettings.Send In-mail")}
           </CardTitle>
           <CardDescription>
-            {t("Admin.Send an invitation to a profile")}
+            {t("ProfileSettings.Send an envelope to a profile")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="targetSlug">{t("Admin.Target Profile Slug")}</Label>
+              <Label htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</Label>
+              <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
+                <SelectTrigger id="envelopeKind" className="w-full">
+                  <SelectValue>
+                    {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {ENVELOPE_KINDS.map((kind) => (
+                    <SelectItem key={kind.value} value={kind.value}>
+                      {t(kind.labelKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="targetSlug">{t("ProfileSettings.Target Profile Slug")}</Label>
               <Input
                 id="targetSlug"
                 type="text"
@@ -116,8 +144,10 @@ function AdminProfileEnvelopes() {
                 onChange={(e) => setTargetSlug(e.target.value)}
               />
             </div>
+          </div>
+          {envelopeKind === "telegram_group" && (
             <div className="space-y-2">
-              <Label htmlFor="inviteCode">{t("Admin.Invite Code")}</Label>
+              <Label htmlFor="inviteCode">{t("ProfileSettings.Invite Code")}</Label>
               <Input
                 id="inviteCode"
                 type="text"
@@ -126,31 +156,29 @@ function AdminProfileEnvelopes() {
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
               />
               <p className="text-xs text-muted-foreground">
-                {t("Admin.Use /invite in a Telegram group to get a code")}
+                {t("ProfileSettings.Use /invite in a Telegram group to get a code")}
               </p>
             </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="title">{t("Common.Title")}</Label>
+            <Input
+              id="title"
+              type="text"
+              placeholder={t("ProfileSettings.Title for the message")}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">{t("Common.Title")}</Label>
-              <Input
-                id="title"
-                type="text"
-                placeholder="Telegram Group Invitation"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">{t("Common.Description")}</Label>
-              <Textarea
-                id="description"
-                placeholder={t("Admin.Optional description for the invitation")}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">{t("Common.Description")}</Label>
+            <Textarea
+              id="description"
+              placeholder={t("ProfileSettings.Optional message text")}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
           </div>
           {sendError !== null && (
             <p className="text-sm text-destructive">{sendError}</p>
@@ -158,7 +186,7 @@ function AdminProfileEnvelopes() {
           {sendSuccess && (
             <p className="text-sm text-green-600 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              {t("Admin.Invitation sent successfully")}
+              {t("ProfileSettings.Invitation sent successfully")}
             </p>
           )}
           <Button onClick={handleSend} disabled={isSending}>
@@ -167,7 +195,7 @@ function AdminProfileEnvelopes() {
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            {t("Admin.Send Telegram Invitation")}
+            {t("ProfileSettings.Send In-mail")}
           </Button>
         </CardContent>
       </Card>

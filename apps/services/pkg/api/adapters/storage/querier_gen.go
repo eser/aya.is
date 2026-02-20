@@ -115,17 +115,17 @@ type Querier interface {
 	//  WHERE "event_queue".id = claimable.id
 	//  RETURNING event_queue.id, event_queue.type, event_queue.payload, event_queue.status, event_queue.retry_count, event_queue.max_retries, event_queue.visible_at, event_queue.visibility_timeout_secs, event_queue.started_at, event_queue.completed_at, event_queue.failed_at, event_queue.created_at, event_queue.updated_at, event_queue.error_message, event_queue.worker_id
 	ClaimNextQueueItem(ctx context.Context, arg ClaimNextQueueItemParams) (*EventQueue, error)
+	//CleanupExpiredExternalCodes
+	//
+	//  DELETE FROM "external_code"
+	//  WHERE expires_at < NOW() - INTERVAL '1 hour'
+	CleanupExpiredExternalCodes(ctx context.Context) (int64, error)
 	//CleanupExpiredSessionRateLimits
 	//
 	//  DELETE FROM session_rate_limit
 	//  WHERE
 	//    window_start < NOW() - INTERVAL '2 hours'
 	CleanupExpiredSessionRateLimits(ctx context.Context) error
-	//CleanupExpiredTelegramVerificationCodes
-	//
-	//  DELETE FROM "telegram_verification_code"
-	//  WHERE expires_at < NOW() - INTERVAL '1 hour'
-	CleanupExpiredTelegramVerificationCodes(ctx context.Context) (int64, error)
 	// Worker ID check prevents a timed-out worker from completing
 	// a job that was already re-claimed by another worker.
 	//
@@ -138,20 +138,13 @@ type Querier interface {
 	//    AND status = 'processing'
 	//    AND worker_id = $2
 	CompleteQueueItem(ctx context.Context, arg CompleteQueueItemParams) (int64, error)
-	//ConsumeTelegramGroupInviteCode
+	//ConsumeExternalCode
 	//
-	//  UPDATE "telegram_group_invite_code"
+	//  UPDATE "external_code"
 	//  SET consumed_at = NOW()
 	//  WHERE code = $1
 	//    AND consumed_at IS NULL
-	ConsumeTelegramGroupInviteCode(ctx context.Context, arg ConsumeTelegramGroupInviteCodeParams) (int64, error)
-	//ConsumeTelegramVerificationCode
-	//
-	//  UPDATE "telegram_verification_code"
-	//  SET consumed_at = NOW()
-	//  WHERE code = $1
-	//    AND consumed_at IS NULL
-	ConsumeTelegramVerificationCode(ctx context.Context, arg ConsumeTelegramVerificationCodeParams) (int64, error)
+	ConsumeExternalCode(ctx context.Context, arg ConsumeExternalCodeParams) (int64, error)
 	//CopySessionPreferences
 	//
 	//  INSERT INTO
@@ -232,6 +225,11 @@ type Querier interface {
 	//  INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
 	//  VALUES ($1, $2, $3, $4)
 	CreateCustomDomain(ctx context.Context, arg CreateCustomDomainParams) error
+	//CreateExternalCode
+	//
+	//  INSERT INTO "external_code" (id, code, external_system, properties, created_at, expires_at)
+	//  VALUES ($1, $2, $3, $4, NOW(), $5)
+	CreateExternalCode(ctx context.Context, arg CreateExternalCodeParams) error
 	//CreateLinkImport
 	//
 	//  INSERT INTO "profile_link_import" (id, profile_link_id, remote_id, properties, created_at)
@@ -481,16 +479,6 @@ type Querier interface {
 	//      $15
 	//    )
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
-	//CreateTelegramGroupInviteCode
-	//
-	//  INSERT INTO "telegram_group_invite_code" (id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at)
-	//  VALUES ($1, $2, $3, $4, $5, NOW(), $6)
-	CreateTelegramGroupInviteCode(ctx context.Context, arg CreateTelegramGroupInviteCodeParams) error
-	//CreateTelegramVerificationCode
-	//
-	//  INSERT INTO "telegram_verification_code" (id, code, telegram_user_id, telegram_username, created_at, expires_at)
-	//  VALUES ($1, $2, $3, $4, NOW(), $5)
-	CreateTelegramVerificationCode(ctx context.Context, arg CreateTelegramVerificationCodeParams) error
 	//CreateUser
 	//
 	//  INSERT INTO "user" (
@@ -695,6 +683,15 @@ type Querier interface {
 	//  WHERE pcd.domain = $1
 	//  LIMIT 1
 	GetCustomDomainByDomain(ctx context.Context, arg GetCustomDomainByDomainParams) (*ProfileCustomDomain, error)
+	//GetExternalCodeByCode
+	//
+	//  SELECT id, code, external_system, properties, created_at, expires_at, consumed_at
+	//  FROM "external_code"
+	//  WHERE code = $1
+	//    AND consumed_at IS NULL
+	//    AND expires_at > NOW()
+	//  LIMIT 1
+	GetExternalCodeByCode(ctx context.Context, arg GetExternalCodeByCodeParams) (*ExternalCode, error)
 	//GetFromCache
 	//
 	//  SELECT value, updated_at
@@ -1375,24 +1372,6 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*StorySeries, error)
-	//GetTelegramGroupInviteCodeByCode
-	//
-	//  SELECT id, code, telegram_chat_id, telegram_chat_title, created_by_telegram_user_id, created_at, expires_at, consumed_at
-	//  FROM "telegram_group_invite_code"
-	//  WHERE code = $1
-	//    AND consumed_at IS NULL
-	//    AND expires_at > NOW()
-	//  LIMIT 1
-	GetTelegramGroupInviteCodeByCode(ctx context.Context, arg GetTelegramGroupInviteCodeByCodeParams) (*TelegramGroupInviteCode, error)
-	//GetTelegramVerificationCodeByCode
-	//
-	//  SELECT id, code, telegram_user_id, telegram_username, created_at, expires_at, consumed_at
-	//  FROM "telegram_verification_code"
-	//  WHERE code = $1
-	//    AND consumed_at IS NULL
-	//    AND expires_at > NOW()
-	//  LIMIT 1
-	GetTelegramVerificationCodeByCode(ctx context.Context, arg GetTelegramVerificationCodeByCodeParams) (*TelegramVerificationCode, error)
 	//GetUserBriefInfoByID
 	//
 	//  SELECT kind, individual_profile_id

@@ -348,8 +348,8 @@ func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
 	dmText := fmt.Sprintf(
 		"Your group invite code for <b>%s</b> is:\n\n"+
 			"<code>%s</code>\n\n"+
-			"Paste this code in the invitation form on <b>aya.is</b>.\n"+
-			"It expires in 10 minutes.",
+			"Paste this code in the invitation form on <b>aya.is</b> within 10 minutes.\n"+
+			"Once the invitation is sent, the recipient can accept it at any time.",
 		msg.Chat.Title,
 		code,
 	)
