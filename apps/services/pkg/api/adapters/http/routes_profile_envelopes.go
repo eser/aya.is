@@ -174,7 +174,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					// The envelope format is the contract consumed by the bot.
 					props := map[string]any{
 						"external_system":  externalCode.ExternalSystem,
-						"invitation_kind":  body.Kind,
+						"invitation_kind":  envelopes.InvitationKindTelegramGroup,
 						"telegram_chat_id": externalCode.Properties["telegram_chat_id"],
 						"group_name":       externalCode.Properties["telegram_chat_title"],
 					}

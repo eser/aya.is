@@ -290,26 +290,64 @@ func (b *Bot) handleInvitations(ctx context.Context, msg *Message) {
 	}
 
 	if len(invitations) == 0 {
-		_ = b.client.SendMessage(ctx, msg.Chat.ID,
-			"You have no pending invitations to redeem.\n\n"+
-				"Check your Inbox on <b>aya.is</b> for new invitations.")
+		noInvMsg := "You have no pending invitations to redeem.\n\n" +
+			"Check your Inbox on <b>aya.is</b> for new invitations."
+
+		pendingCount, countErr := b.envelopeService.CountPendingEnvelopes(ctx, info.ProfileID)
+		if countErr == nil && pendingCount > 0 {
+			noInvMsg = fmt.Sprintf(
+				"You have no pending invitations to redeem.\n\n"+
+					"Check your Inbox on <b>aya.is</b> for new invitations, "+
+					"there are still <b>%d</b> messages not yet responded.",
+				pendingCount,
+			)
+		}
+
+		_ = b.client.SendMessage(ctx, msg.Chat.ID, noInvMsg)
 
 		return
 	}
 
 	// Build inline keyboard with one button per invitation
-	var rows [][]InlineKeyboardButton
+	var (
+		rows    [][]InlineKeyboardButton
+		details []string
+	)
 
-	for _, inv := range invitations {
+	for i, inv := range invitations {
+		// Extract group name from properties for display
+		buttonText := inv.Title
+		groupName := ""
+
+		if inv.Properties != nil {
+			if propsMap, ok := inv.Properties.(map[string]any); ok {
+				if gn, gnOk := propsMap["group_name"].(string); gnOk && gn != "" {
+					groupName = gn
+					buttonText = fmt.Sprintf("%s → %s", inv.Title, gn)
+				}
+			}
+		}
+
 		rows = append(rows, []InlineKeyboardButton{
-			{Text: inv.Title, CallbackData: "invite:" + inv.ID},
+			{Text: buttonText, CallbackData: "invite:" + inv.ID},
 		})
+
+		detail := fmt.Sprintf("%d. <b>%s</b>", i+1, inv.Title)
+		if groupName != "" {
+			detail += fmt.Sprintf("\n    Group: <i>%s</i>", groupName)
+		}
+
+		details = append(details, detail)
 	}
 
 	keyboard := &InlineKeyboardMarkup{InlineKeyboard: rows}
 
+	msgText := "<b>Your Invitations</b>\n\n" +
+		strings.Join(details, "\n") +
+		"\n\nTap an invitation to get your invite link:"
+
 	_ = b.client.SendMessageWithKeyboard(ctx, msg.Chat.ID,
-		"<b>Your Invitations</b>\n\nTap an invitation to get your invite link:",
+		msgText,
 		keyboard,
 	)
 }

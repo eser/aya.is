@@ -336,6 +336,9 @@ function InboxSettingsPage() {
               const isPending = envelope.status === "pending";
               const isAccepted = envelope.status === "accepted";
               const isProcessing = actionInProgress === envelope.id;
+              const groupName = envelope.properties !== null && envelope.properties !== undefined
+                ? (envelope.properties as Record<string, unknown>).group_name as string | undefined
+                : undefined;
 
               return (
                 <div
@@ -347,6 +350,9 @@ function InboxSettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{envelope.title}</p>
+                    {groupName !== undefined && groupName !== "" && (
+                      <p className="text-sm text-foreground/70 truncate">{groupName}</p>
+                    )}
                     {envelope.description !== null && (
                       <p className="text-sm text-muted-foreground truncate">{envelope.description}</p>
                     )}
