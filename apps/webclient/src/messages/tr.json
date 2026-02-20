@@ -52,7 +52,8 @@
     "Loading": "Yükleniyor",
     "Private": "Gizli",
     "Connecting...": "Bağlanıyor...",
-    "Done": "Tamam"
+    "Done": "Tamam",
+    "This field is required": "Bu alan zorunludur"
   },
   "Layout": {
     "Homepage": "Ana Sayfa",

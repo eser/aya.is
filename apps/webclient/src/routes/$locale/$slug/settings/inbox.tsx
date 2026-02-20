@@ -17,9 +17,9 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -69,6 +69,7 @@ function InboxSettingsPage() {
   const [sendDescription, setSendDescription] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
   const [sendError, setSendError] = React.useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string | null>>({});
   const [sendSuccess, setSendSuccess] = React.useState(false);
 
   React.useEffect(() => {
@@ -103,16 +104,19 @@ function InboxSettingsPage() {
   };
 
   const handleSend = async () => {
+    const errors: Record<string, string | null> = {};
     if (targetSlug.trim() === "") {
-      setSendError(t("ProfileSettings.Target Profile Slug") + " is required");
-      return;
+      errors.targetSlug = t("Common.This field is required");
     }
     if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
-      setSendError(t("ProfileSettings.Invite Code") + " is required");
-      return;
+      errors.inviteCode = t("Common.This field is required");
     }
     if (sendTitle.trim() === "") {
-      setSendError(t("Common.Title") + " is required");
+      errors.title = t("Common.This field is required");
+    }
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
@@ -209,8 +213,8 @@ function InboxSettingsPage() {
           {sendFormOpen && (
             <div className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</Label>
+                <Field>
+                  <FieldLabel htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
                   <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
                     <SelectTrigger id="envelopeKind" className="w-full">
                       <SelectValue>
@@ -225,45 +229,63 @@ function InboxSettingsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="targetSlug">{t("ProfileSettings.Target Profile Slug")}</Label>
+                </Field>
+                <Field data-invalid={fieldErrors.targetSlug !== undefined && fieldErrors.targetSlug !== null}>
+                  <FieldLabel htmlFor="targetSlug">{t("ProfileSettings.Target Profile Slug")}</FieldLabel>
                   <Input
                     id="targetSlug"
                     type="text"
                     placeholder="someone"
                     value={targetSlug}
-                    onChange={(e) => setTargetSlug(e.target.value)}
+                    onChange={(e) => {
+                      setTargetSlug(e.target.value);
+                      setFieldErrors((prev) => ({ ...prev, targetSlug: null }));
+                    }}
                   />
-                </div>
+                  {fieldErrors.targetSlug !== null && fieldErrors.targetSlug !== undefined && (
+                    <FieldError>{fieldErrors.targetSlug}</FieldError>
+                  )}
+                </Field>
               </div>
               {envelopeKind === "telegram_group" && (
-                <div className="space-y-2">
-                  <Label htmlFor="inviteCode">{t("ProfileSettings.Invite Code")}</Label>
+                <Field data-invalid={fieldErrors.inviteCode !== undefined && fieldErrors.inviteCode !== null}>
+                  <FieldLabel htmlFor="inviteCode">{t("ProfileSettings.Invite Code")}</FieldLabel>
                   <Input
                     id="inviteCode"
                     type="text"
                     placeholder="ABC123"
                     value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      setInviteCode(e.target.value.toUpperCase());
+                      setFieldErrors((prev) => ({ ...prev, inviteCode: null }));
+                    }}
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <FieldDescription>
                     {t("ProfileSettings.Use /invite in a Telegram group to get a code")}
-                  </p>
-                </div>
+                  </FieldDescription>
+                  {fieldErrors.inviteCode !== null && fieldErrors.inviteCode !== undefined && (
+                    <FieldError>{fieldErrors.inviteCode}</FieldError>
+                  )}
+                </Field>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="sendTitle">{t("Common.Title")}</Label>
+              <Field data-invalid={fieldErrors.title !== undefined && fieldErrors.title !== null}>
+                <FieldLabel htmlFor="sendTitle">{t("Common.Title")}</FieldLabel>
                 <Input
                   id="sendTitle"
                   type="text"
                   placeholder={t("ProfileSettings.Title for the message")}
                   value={sendTitle}
-                  onChange={(e) => setSendTitle(e.target.value)}
+                  onChange={(e) => {
+                    setSendTitle(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, title: null }));
+                  }}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sendDescription">{t("Common.Description")}</Label>
+                {fieldErrors.title !== null && fieldErrors.title !== undefined && (
+                  <FieldError>{fieldErrors.title}</FieldError>
+                )}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="sendDescription">{t("Common.Description")}</FieldLabel>
                 <Textarea
                   id="sendDescription"
                   placeholder={t("ProfileSettings.Optional message text")}
@@ -271,9 +293,9 @@ function InboxSettingsPage() {
                   onChange={(e) => setSendDescription(e.target.value)}
                   rows={2}
                 />
-              </div>
+              </Field>
               {sendError !== null && (
-                <p className="text-sm text-destructive">{sendError}</p>
+                <FieldError>{sendError}</FieldError>
               )}
               {sendSuccess && (
                 <p className="text-sm text-green-600 flex items-center gap-2">

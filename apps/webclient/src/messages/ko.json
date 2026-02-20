@@ -52,7 +52,8 @@
     "Loading": "로딩 중",
     "Private": "비공개",
     "Connecting...": "Connecting...",
-    "Done": "완료"
+    "Done": "완료",
+    "This field is required": "이 항목은 필수입니다"
   },
   "Layout": {
     "Homepage": "홈페이지",

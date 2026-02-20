@@ -52,7 +52,8 @@
     "Loading": "Caricamento",
     "Private": "Privato",
     "Connecting...": "Connecting...",
-    "Done": "Fatto"
+    "Done": "Fatto",
+    "This field is required": "Questo campo è obbligatorio"
   },
   "Layout": {
     "Homepage": "Pagina iniziale",

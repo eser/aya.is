@@ -52,7 +52,8 @@
     "Loading": "Загрузка",
     "Private": "Приватный",
     "Connecting...": "Connecting...",
-    "Done": "Готово"
+    "Done": "Готово",
+    "This field is required": "Это поле обязательно"
   },
   "Layout": {
     "Homepage": "Главная страница",

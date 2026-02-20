@@ -52,7 +52,8 @@
     "Loading": "Laden",
     "Private": "Privé",
     "Connecting...": "Connecting...",
-    "Done": "Klaar"
+    "Done": "Klaar",
+    "This field is required": "Dit veld is verplicht"
   },
   "Layout": {
     "Homepage": "Startpagina",

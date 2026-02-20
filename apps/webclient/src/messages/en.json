@@ -52,7 +52,8 @@
     "Loading": "Loading",
     "Private": "Private",
     "Connecting...": "Connecting...",
-    "Done": "Done"
+    "Done": "Done",
+    "This field is required": "This field is required"
   },
   "Layout": {
     "Homepage": "Homepage",

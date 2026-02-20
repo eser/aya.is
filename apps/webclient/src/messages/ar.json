@@ -52,7 +52,8 @@
     "Loading": "جاري التحميل",
     "Private": "خاص",
     "Connecting...": "Connecting...",
-    "Done": "تم"
+    "Done": "تم",
+    "This field is required": "هذا الحقل مطلوب"
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
