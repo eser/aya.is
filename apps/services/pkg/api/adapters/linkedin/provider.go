@@ -98,6 +98,17 @@ func (p *Provider) HandleOAuthCallback(
 		return auth.OAuthCallbackResult{}, err
 	}
 
+	// Try /v2/me to get vanityName for constructing profile URL
+	vanityName := p.fetchVanityName(ctx, tokenResp.AccessToken)
+
+	profileURI := ""
+	username := userInfo.Name
+
+	if vanityName != "" {
+		profileURI = "https://www.linkedin.com/in/" + vanityName
+		username = vanityName
+	}
+
 	// Calculate token expiry
 	var expiresAt *time.Time
 
@@ -108,14 +119,15 @@ func (p *Provider) HandleOAuthCallback(
 
 	p.logger.DebugContext(ctx, "LinkedIn OAuth callback successful",
 		slog.String("sub", userInfo.Sub),
-		slog.String("name", userInfo.Name))
+		slog.String("name", userInfo.Name),
+		slog.String("vanity_name", vanityName))
 
 	return auth.OAuthCallbackResult{
 		RemoteID:             userInfo.Sub,
-		Username:             userInfo.Name,
+		Username:             username,
 		Name:                 userInfo.Name,
 		Email:                userInfo.Email,
-		URI:                  "", // LinkedIn does not expose vanity name via OpenID Connect userinfo
+		URI:                  profileURI,
 		AccessToken:          tokenResp.AccessToken,
 		RefreshToken:         tokenResp.RefreshToken,
 		AccessTokenExpiresAt: expiresAt,
@@ -267,6 +279,50 @@ func (p *Provider) FetchUserInfo(
 	}
 
 	return &userInfo, nil
+}
+
+// fetchVanityName calls /v2/me to retrieve the member's vanityName.
+// Returns empty string if unavailable (non-fatal).
+func (p *Provider) fetchVanityName(ctx context.Context, accessToken string) string {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		"https://api.linkedin.com/v2/me?projection=(vanityName)",
+		nil,
+	)
+	if err != nil {
+		return ""
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		p.logger.DebugContext(ctx, "Failed to fetch /v2/me for vanityName",
+			slog.String("error", err.Error()))
+
+		return ""
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		p.logger.DebugContext(ctx, "LinkedIn /v2/me returned non-200",
+			slog.Int("status", resp.StatusCode))
+
+		return ""
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var meResp struct {
+		VanityName string `json:"vanityName"`
+	}
+
+	if err := json.Unmarshal(body, &meResp); err != nil {
+		return ""
+	}
+
+	return meResp.VanityName
 }
 
 // FetchOrganizationPages retrieves LinkedIn organization pages the user administers.
