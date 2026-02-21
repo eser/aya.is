@@ -255,8 +255,10 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Date prefix validation for published stories
-    if (shouldValidateSlugDatePrefix && isPublished && earliestPublishedAt !== null) {
+    // Date prefix validation for published stories — only when server-side
+    // slug check won't run (the server already validates the date prefix)
+    const serverWillCheck = slug.length >= 3 && (isNew ? showSlugValidation : slug !== initialData.slug);
+    if (shouldValidateSlugDatePrefix && isPublished && earliestPublishedAt !== null && !serverWillCheck) {
       const { valid, expectedPrefix } = validateSlugPrefix(slug, earliestPublishedAt);
       if (!valid && expectedPrefix !== null) {
         setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
@@ -265,7 +267,7 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     setSlugError(null);
-  }, [slug, showSlugValidation, earliestPublishedAt, isPublished, shouldValidateSlugDatePrefix]);
+  }, [slug, showSlugValidation, earliestPublishedAt, isPublished, shouldValidateSlugDatePrefix, isNew, initialData.slug]);
 
   // Debounced slug availability check
   React.useEffect(() => {
@@ -463,12 +465,16 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Validate slug prefix for published content (stories only)
+    // Validate slug prefix for published content (stories only) — skip when
+    // the server-side slug check already ran (it validates the date prefix)
     if (shouldValidateSlugDatePrefix && isPublished && earliestPublishedAt !== null) {
-      const { valid, expectedPrefix } = validateSlugPrefix(slug, earliestPublishedAt);
-      if (!valid && expectedPrefix !== null) {
-        setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
-        return;
+      const serverChecked = slugAvailability.isAvailable !== null;
+      if (!serverChecked) {
+        const { valid, expectedPrefix } = validateSlugPrefix(slug, earliestPublishedAt);
+        if (!valid && expectedPrefix !== null) {
+          setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
+          return;
+        }
       }
     }
 
