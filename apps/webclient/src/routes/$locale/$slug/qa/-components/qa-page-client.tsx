@@ -82,6 +82,7 @@ export function QAPageClient(props: QAPageClientProps) {
   }, [auth.isAuthenticated, auth.user, props.profileId]);
 
   const viewerProfileId = auth.user?.individual_profile?.id ?? null;
+  const isOwnProfile = viewerProfileId !== null && viewerProfileId === props.profileId;
 
   const handleQuestionCreated = React.useCallback((question: ProfileQuestion) => {
     // The API returns the raw inserted row without JOINed author info.
@@ -204,6 +205,7 @@ export function QAPageClient(props: QAPageClientProps) {
             type="button"
             onClick={() => setShowForm(true)}
             className={styles.askButton}
+            disabled={isOwnProfile}
           >
             {t("QA.Ask a Question")}
           </button>
@@ -245,9 +247,11 @@ export function QAPageClient(props: QAPageClientProps) {
             <p className="text-muted-foreground">
               {t("QA.No questions yet.")}
             </p>
-            <p className="text-sm text-muted-foreground">
-              {t("QA.Be the first to ask a question!")}
-            </p>
+            {!isOwnProfile && (
+              <p className="text-sm text-muted-foreground">
+                {t("QA.Be the first to ask a question!")}
+              </p>
+            )}
           </div>
         )}
     </div>
