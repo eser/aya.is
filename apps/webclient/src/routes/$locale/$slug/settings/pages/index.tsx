@@ -120,20 +120,18 @@ function PagesSettingsPage() {
   const [featureRelations, setFeatureRelations] = React.useState<ModuleVisibility>(
     (initialProfile.feature_relations as ModuleVisibility) ?? "public",
   );
-  const linksDefault: ModuleVisibility = initialProfile.kind === "individual" ? "disabled" : "public";
   const [featureLinks, setFeatureLinks] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_links as ModuleVisibility) ?? linksDefault,
+    (initialProfile.feature_links as ModuleVisibility) ?? "disabled",
   );
   const [featureQA, setFeatureQA] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_qa as ModuleVisibility) ?? "public",
+    (initialProfile.feature_qa as ModuleVisibility) ?? "disabled",
   );
 
   // Sync dialog state when profile changes
   React.useEffect(() => {
-    const linksDefaultVal: ModuleVisibility = initialProfile.kind === "individual" ? "disabled" : "public";
     setFeatureRelations((initialProfile.feature_relations as ModuleVisibility) ?? "public");
-    setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? linksDefaultVal);
-    setFeatureQA((initialProfile.feature_qa as ModuleVisibility) ?? "public");
+    setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? "disabled");
+    setFeatureQA((initialProfile.feature_qa as ModuleVisibility) ?? "disabled");
   }, [initialProfile]);
 
   // Drag and drop state

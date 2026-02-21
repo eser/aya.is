@@ -556,11 +556,15 @@ func (r *Repository) ListProfileMembers(
 	rows, err := r.queries.ListProfileMemberships(
 		ctx,
 		ListProfileMembershipsParams{
-			LocaleCode:              localeCode,
-			FilterProfileID:         sql.NullString{String: profileID, Valid: true},
-			FilterProfileKind:       sql.NullString{String: "", Valid: false},
-			FilterMemberProfileID:   sql.NullString{String: "", Valid: false},
-			FilterMemberProfileKind: sql.NullString{String: strings.Join(kinds, ","), Valid: true},
+			LocaleCode:            localeCode,
+			FilterProfileID:       sql.NullString{String: profileID, Valid: true},
+			FilterProfileKind:     sql.NullString{String: "", Valid: false},
+			FilterMemberProfileID: sql.NullString{String: "", Valid: false},
+			FilterMemberProfileKind: sql.NullString{
+				String: strings.Join(kinds, ","),
+				Valid:  true,
+			},
+			FilterMembershipKindExclude: sql.NullString{String: "follower", Valid: true},
 		},
 	)
 	if err != nil {
