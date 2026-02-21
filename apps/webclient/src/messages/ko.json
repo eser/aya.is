@@ -141,7 +141,8 @@
     "A platform connecting the elements that produce and develop for the community": "커뮤니티를 위해 생산하고 개발하는 요소들을 연결하는 플랫폼",
     "About AYA": "AYA 소개",
     "GitHub": "GitHub",
-    "IntroText": "**AYA (Açık Yazılım Ağı의 약자로, 터키어로 오픈 소스 네트워크를 의미)**는 사회적 이익을 창출하려는 동기를 가지고 양질의 IT 솔루션을 만드는 자원봉사자들이 모여 프로젝트를 실현할 수 있게 하는 이니셔티브입니다.\n\n처음부터 사람들이 AYA의 기반을 형성했습니다. IT와 기술에 관련된 서로 아는 사람들이 거대한 커뮤니티를 만들어 가장 필요한 순간에 프로젝트를 실현할 수 있었습니다. 이러한 프로젝트는 오픈 소스 라이선스를 가진 IT 솔루션이 되어 공공 기관과 시민 사회 단체를 비롯한 모든 사람의 사용과 감독에 개방되었습니다.\n\nIT와 기술 생태계에서 생산하는 사람들이 이토록 중요한 역할을 하는 가운데, 이 생태계의 사람들을 더 잘 알고 그들의 작업을 부각시키기 위한 [플랫폼의 필요성](/ko/stories/20241203-developer-platformu-eksikligi)이 있다고 생각하여 현재 여러분이 보고 계신 aya.is 플랫폼을 만들었습니다.\n\n[엘리먼트](/ko/elements), [프로덕트](/ko/products), [콘텐츠](/ko/content), [아티클](/ko/stories) 섹션에서 플랫폼 탐색을 시작해 보세요!"
+    "IntroText": "**AYA (Açık Yazılım Ağı의 약자로, 터키어로 오픈 소스 네트워크를 의미)**는 사회적 이익을 창출하려는 동기를 가지고 양질의 IT 솔루션을 만드는 자원봉사자들이 모여 프로젝트를 실현할 수 있게 하는 이니셔티브입니다.\n\n처음부터 사람들이 AYA의 기반을 형성했습니다. IT와 기술에 관련된 서로 아는 사람들이 거대한 커뮤니티를 만들어 가장 필요한 순간에 프로젝트를 실현할 수 있었습니다. 이러한 프로젝트는 오픈 소스 라이선스를 가진 IT 솔루션이 되어 공공 기관과 시민 사회 단체를 비롯한 모든 사람의 사용과 감독에 개방되었습니다.\n\nIT와 기술 생태계에서 생산하는 사람들이 이토록 중요한 역할을 하는 가운데, 이 생태계의 사람들을 더 잘 알고 그들의 작업을 부각시키기 위한 [플랫폼의 필요성](/ko/stories/20241203-developer-platformu-eksikligi)이 있다고 생각하여 현재 여러분이 보고 계신 aya.is 플랫폼을 만들었습니다.",
+    "Latest Stories": "최신 스토리"
   },
   "Stories": {
     "Description": "Articles, announcements and content from the AYA community.",

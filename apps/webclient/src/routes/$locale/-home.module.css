@@ -1,0 +1,29 @@
+@reference "@/theme.css";
+
+.heroSection {
+  @apply sticky top-0 min-h-[75dvh] flex flex-col justify-center overflow-hidden;
+}
+
+.heroContainer {
+  @apply container items-center px-4 mx-auto relative;
+}
+
+.heroContent {
+  @apply flex max-w-[980px] flex-col items-start pt-10;
+}
+
+.astronautWrapper {
+  @apply absolute hidden xl:inline-block right-0 top-0 z-0;
+}
+
+.storiesSection {
+  @apply relative z-10 bg-background;
+}
+
+.storiesContainer {
+  @apply container mx-auto px-4 py-16;
+}
+
+.storiesHeader {
+  @apply text-2xl font-bold mb-8 pb-4 border-b border-border;
+}

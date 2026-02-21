@@ -1,17 +1,38 @@
-// Homepage for locale - shows landing page
+// Homepage for locale - shows landing page with parallax hero and latest stories
 // On custom domain, server-side URL rewriting redirects to profile page
+import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
-import { Button } from "@/components/ui/button";
-import { LocaleLink } from "@/components/locale-link";
 import { Astronaut } from "@/components/widgets/astronaut";
 import { MdxContent } from "@/components/userland/mdx-content";
+import { Story } from "@/components/userland/story";
 import { compileMdx } from "@/lib/mdx";
+import { formatMonthYear, parseDateFromSlug } from "@/lib/date";
 import { siteConfig } from "@/config";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
+import { backend } from "@/modules/backend/backend";
+import type { StoryEx } from "@/modules/backend/types";
 import i18next from "i18next";
+import styles from "./-home.module.css";
+
+const STORY_KINDS = [
+  "article",
+  "news",
+  "announcement",
+  "status",
+  "content",
+  "presentation",
+  "activity",
+];
+
+const MAX_STORIES = 20;
+
+type GroupedStories = {
+  monthYear: string;
+  date: Date;
+  stories: StoryEx[];
+};
 
 export const Route = createFileRoute("/$locale/")({
   loader: async ({ params }) => {
@@ -19,7 +40,10 @@ export const Route = createFileRoute("/$locale/")({
     await i18next.loadLanguages(locale);
     const introText = i18next.getFixedT(locale)("Home.IntroText");
     const compiledIntro = await compileMdx(introText);
-    return { compiledIntro, locale };
+
+    const allStories = await backend.getStoriesByKinds(locale, STORY_KINDS);
+
+    return { compiledIntro, allStories, locale };
   },
   head: ({ loaderData }) => {
     const { locale } = loaderData;
@@ -36,51 +60,106 @@ export const Route = createFileRoute("/$locale/")({
   component: LocaleHomePage,
 });
 
+function groupStoriesByMonth(
+  stories: StoryEx[],
+  locale: string,
+): GroupedStories[] {
+  const storiesWithDates = stories
+    .map((story) => ({
+      story,
+      date: parseDateFromSlug(story.slug),
+    }))
+    .filter(
+      (item): item is { story: StoryEx; date: Date } => item.date !== null,
+    );
+
+  storiesWithDates.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  const limited = storiesWithDates.slice(0, MAX_STORIES);
+
+  const groups = new Map<string, GroupedStories>();
+
+  limited.forEach(({ story, date }) => {
+    const monthYear = formatMonthYear(date, locale);
+
+    if (!groups.has(monthYear)) {
+      groups.set(monthYear, {
+        monthYear,
+        date,
+        stories: [],
+      });
+    }
+
+    groups.get(monthYear)!.stories.push(story);
+  });
+
+  return Array.from(groups.values()).sort(
+    (a, b) => b.date.getTime() - a.date.getTime(),
+  );
+}
+
 function LocaleHomePage() {
-  const { t } = useTranslation();
-  const { compiledIntro } = Route.useLoaderData();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
+  const { compiledIntro, allStories } = Route.useLoaderData();
+
+  const groupedStories = React.useMemo(() => {
+    if (allStories === null) return [];
+    return groupStoriesByMonth(allStories, locale);
+  }, [allStories, locale]);
 
   return (
     <PageLayout>
-      <section className="container items-center px-4 mx-auto grid">
-        <div className="flex max-w-[980px] flex-col items-start pt-10">
-          {/* Astronaut - hidden on small screens, shown on xl */}
-          <div className="absolute hidden xl:inline-block end-0 z-0">
-            <Astronaut width={400} height={400} />
+      {/* Hero section - sticky for parallax effect */}
+      <section className={styles.heroSection}>
+        <div className={styles.heroContainer}>
+          <div className={styles.heroContent}>
+            {/* Astronaut - positioned on the right side */}
+            <div className={styles.astronautWrapper}>
+              <Astronaut width={400} height={400} />
+            </div>
+
+            <article className="content relative z-10">
+              <h1 className="hero">{t("Home.AYA the Open Source Network")}</h1>
+              <h2 className="subtitle">
+                {t(
+                  "Home.A platform connecting the elements that produce and develop for the community",
+                )}
+              </h2>
+
+              <div className="mt-10" />
+
+              {compiledIntro !== null && <MdxContent compiledSource={compiledIntro} />}
+            </article>
           </div>
-
-          <article className="content relative z-10">
-            <h1 className="hero">{t("Home.AYA the Open Source Network")}</h1>
-            <h2 className="subtitle">
-              {t(
-                "Home.A platform connecting the elements that produce and develop for the community",
-              )}
-            </h2>
-
-            <div className="mt-10" />
-
-            {compiledIntro !== null && <MdxContent compiledSource={compiledIntro} />}
-          </article>
         </div>
+      </section>
 
-        <div className="flex gap-4 mt-4 mb-20">
-          <Button size="lg" render={<LocaleLink to="/aya/about" />}>
-            {t("Home.About AYA")}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            render={
-              <a
-                target="_blank"
-                rel="noreferrer"
-                href={siteConfig.links.github}
-              />
-            }
-          >
-            {t("Home.GitHub")}
-          </Button>
+      {/* Stories section - scrolls over hero for parallax */}
+      <section className={styles.storiesSection}>
+        <div className={styles.storiesContainer}>
+          <h2 className={styles.storiesHeader}>
+            {t("Home.Latest Stories")}
+          </h2>
+
+          {groupedStories.length === 0 && (
+            <p className="text-muted-foreground">
+              {t("Layout.Content not yet available.")}
+            </p>
+          )}
+
+          {groupedStories.map((group) => (
+            <div key={group.monthYear} className="mb-8">
+              <h3 className="text-lg font-semibold text-muted-foreground mb-4 pb-2 border-b border-border">
+                {formatMonthYear(group.date, locale)}
+              </h3>
+              <div>
+                {group.stories.map((story) => (
+                  <Story key={story.id} story={story} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </PageLayout>
