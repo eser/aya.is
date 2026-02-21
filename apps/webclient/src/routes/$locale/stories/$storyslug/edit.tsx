@@ -351,7 +351,6 @@ function EditStoryPage() {
         initialData={initialData}
         backUrl={`/${params.locale}/stories/${params.storyslug}`}
         userKind={auth.user?.kind}
-        validateSlugDatePrefix
         onSave={handleSave}
         onDelete={handleDelete}
         excludeId={storyData.id}

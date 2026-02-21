@@ -63,30 +63,6 @@ const optionalUrlSchema = z.union([
   ),
 ]);
 
-// Helper to format date as YYYYMMDD-
-function formatDatePrefix(dateString: string | null): string | null {
-  if (dateString === null || dateString === "") return null;
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return null;
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}${month}${day}-`;
-}
-
-// Validate slug starts with YYYYMMDD- of publish date
-function validateSlugPrefix(
-  slug: string,
-  publishedAt: string | null,
-): { valid: boolean; expectedPrefix: string | null } {
-  const expectedPrefix = formatDatePrefix(publishedAt);
-  if (expectedPrefix === null) {
-    return { valid: true, expectedPrefix: null };
-  }
-  const valid = slug.startsWith(expectedPrefix);
-  return { valid, expectedPrefix };
-}
-
 // Known API messages that need translation
 const API_MESSAGE_KEYS: Record<string, string> = {
   "Slug must be at least 12 characters": "ContentEditor.Slug must be at least 12 characters",
@@ -121,7 +97,6 @@ type ContentEditorProps = {
   initialData: ContentEditorData;
   backUrl: string;
   userKind?: string;
-  validateSlugDatePrefix?: boolean;
   onSave: (data: ContentEditorData) => Promise<void>;
   onDelete?: () => Promise<void>;
   isNew?: boolean;
@@ -145,7 +120,6 @@ export function ContentEditor(props: ContentEditorProps) {
     initialData,
     backUrl,
     userKind,
-    validateSlugDatePrefix: shouldValidateSlugDatePrefix = false,
     onSave,
     onDelete,
     isNew = false,
@@ -255,19 +229,8 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Date prefix validation for published stories — only when server-side
-    // slug check won't run (the server already validates the date prefix)
-    const serverWillCheck = slug.length >= 3 && (isNew ? showSlugValidation : slug !== initialData.slug);
-    if (shouldValidateSlugDatePrefix && isPublished && earliestPublishedAt !== null && !serverWillCheck) {
-      const { valid, expectedPrefix } = validateSlugPrefix(slug, earliestPublishedAt);
-      if (!valid && expectedPrefix !== null) {
-        setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
-        return;
-      }
-    }
-
     setSlugError(null);
-  }, [slug, showSlugValidation, earliestPublishedAt, isPublished, shouldValidateSlugDatePrefix, isNew, initialData.slug]);
+  }, [slug, showSlugValidation]);
 
   // Debounced slug availability check
   React.useEffect(() => {
@@ -278,9 +241,10 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Skip availability check if slug hasn't changed from initial (for editing)
-    if (!isNew && slug === initialData.slug) {
-      setSlugAvailability({ isChecking: false, isAvailable: true, message: null, severity: null });
+    // For existing content with unchanged slug, still validate on initial load
+    // (server checks date prefix, availability, etc. with correct timezone)
+    // but skip re-checking on subsequent renders where slug hasn't changed
+    if (!isNew && slug === initialData.slug && slugAvailability.isAvailable !== null) {
       return;
     }
 
@@ -465,19 +429,6 @@ export function ContentEditor(props: ContentEditorProps) {
       return;
     }
 
-    // Validate slug prefix for published content (stories only) — skip when
-    // the server-side slug check already ran (it validates the date prefix)
-    if (shouldValidateSlugDatePrefix && isPublished && earliestPublishedAt !== null) {
-      const serverChecked = slugAvailability.isAvailable !== null;
-      if (!serverChecked) {
-        const { valid, expectedPrefix } = validateSlugPrefix(slug, earliestPublishedAt);
-        if (!valid && expectedPrefix !== null) {
-          setSlugError(t("ContentEditor.Slug must start with") + ` ${expectedPrefix}`);
-          return;
-        }
-      }
-    }
-
     // Validate URI prefix for non-admin users
     if (!isAdmin && storyPictureUri !== null && storyPictureUri !== "") {
       const prefixes = imageFieldConfig.allowedPrefixes;
@@ -503,7 +454,7 @@ export function ContentEditor(props: ContentEditorProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [slug, title, summary, content, kind, visibility, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, slugError, slugAvailability, titleError, shouldValidateSlugDatePrefix, isPublished, earliestPublishedAt, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
+  }, [slug, title, summary, content, kind, visibility, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, slugError, slugAvailability, titleError, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
 
   const handleDelete = async () => {
     if (onDelete === undefined) return;

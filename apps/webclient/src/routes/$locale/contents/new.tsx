@@ -137,7 +137,6 @@ function NewContentPage() {
           initialData={initialData}
           backUrl={`/${params.locale}/contents`}
           userKind={auth.user?.kind}
-          validateSlugDatePrefix
           onSave={handleSave}
           isNew
           accessibleProfiles={auth.user?.accessible_profiles ?? []}

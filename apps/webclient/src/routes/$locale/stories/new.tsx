@@ -145,7 +145,6 @@ function NewStoryPage() {
         initialData={initialData}
         backUrl={`/${params.locale}/stories`}
         userKind={auth.user?.kind}
-        validateSlugDatePrefix
         onSave={handleSave}
         isNew
         accessibleProfiles={auth.user?.accessible_profiles ?? []}

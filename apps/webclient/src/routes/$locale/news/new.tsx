@@ -137,7 +137,6 @@ function NewNewsPage() {
           initialData={initialData}
           backUrl={`/${params.locale}/news`}
           userKind={auth.user?.kind}
-          validateSlugDatePrefix
           onSave={handleSave}
           isNew
           accessibleProfiles={auth.user?.accessible_profiles ?? []}

@@ -153,7 +153,6 @@ function NewActivityPage() {
         initialData={initialData}
         backUrl={`/${params.locale}/activities`}
         userKind={auth.user?.kind}
-        validateSlugDatePrefix
         onSave={handleSave}
         isNew
         accessibleProfiles={auth.user?.accessible_profiles ?? []}
