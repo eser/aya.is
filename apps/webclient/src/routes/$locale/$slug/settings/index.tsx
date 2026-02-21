@@ -91,6 +91,17 @@ function SettingsIndexPage() {
     router.invalidate();
   };
 
+  const handlePictureRemove = () => {
+    // Clear picture URI from local state
+    setCurrentProfile((prev) => ({
+      ...prev,
+      profile_picture_uri: null,
+    }));
+
+    // Invalidate router cache to refresh profile data
+    router.invalidate();
+  };
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between">
@@ -115,6 +126,7 @@ function SettingsIndexPage() {
             profileTitle={currentProfile.title}
             locale={params.locale}
             onUploadComplete={handlePictureUpload}
+            onRemoveComplete={handlePictureRemove}
           />
         </div>
 

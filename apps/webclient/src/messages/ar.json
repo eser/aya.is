@@ -476,7 +476,6 @@
     "Pages reordered successfully": "Pages reordered successfully",
     "Failed to reorder pages": "Failed to reorder pages",
     "Failed to load profile pages": "Failed to load profile pages",
-    "Generate Content": "إنشاء محتوى",
     "Generating...": "جارٍ الإنشاء...",
     "CV from LinkedIn": "سيرة ذاتية من LinkedIn",
     "CV page generated successfully": "تم إنشاء صفحة السيرة الذاتية بنجاح",
@@ -609,7 +608,16 @@
     "Resource removed successfully": "تمت إزالة المورد بنجاح",
     "Failed to remove resource": "فشل في إزالة المورد",
     "Failed to load resources": "فشل في تحميل الموارد",
-    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "لا يحتوي هذا الملف الشخصي على حساب GitHub متصل. يرجى ربط GitHub أولاً في إعدادات الروابط الاجتماعية."
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "لا يحتوي هذا الملف الشخصي على حساب GitHub متصل. يرجى ربط GitHub أولاً في إعدادات الروابط الاجتماعية.",
+    "Generate": "إنشاء",
+    "Remove Picture": "إزالة الصورة",
+    "Removing...": "جارٍ الإزالة...",
+    "Are you sure you want to remove your profile picture?": "هل أنت متأكد أنك تريد إزالة صورة ملفك الشخصي؟",
+    "Picture removed successfully": "تمت إزالة الصورة بنجاح",
+    "Failed to remove picture": "فشل في إزالة الصورة",
+    "Predefined Pages...": "صفحات محددة مسبقاً...",
+    "Predefined Pages": "صفحات محددة مسبقاً",
+    "Control how predefined pages appear on your profile.": "تحكم في كيفية ظهور الصفحات المحددة مسبقاً على ملفك الشخصي."
   },
   "ProfileSettings": {
     "Send In-mail": "إرسال رسالة",

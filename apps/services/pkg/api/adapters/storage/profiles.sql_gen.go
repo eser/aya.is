@@ -4262,7 +4262,11 @@ func (q *Queries) UpdateCustomDomain(ctx context.Context, arg UpdateCustomDomain
 const updateProfile = `-- name: UpdateProfile :execrows
 UPDATE "profile"
 SET
-  profile_picture_uri = COALESCE($1, profile_picture_uri),
+  profile_picture_uri = CASE
+    WHEN $1::text IS NULL THEN profile_picture_uri
+    WHEN $1::text = '' THEN NULL
+    ELSE $1
+  END,
   pronouns = COALESCE($2, pronouns),
   properties = COALESCE($3, properties),
   feature_relations = COALESCE($4, feature_relations),
@@ -4287,7 +4291,11 @@ type UpdateProfileParams struct {
 //
 //	UPDATE "profile"
 //	SET
-//	  profile_picture_uri = COALESCE($1, profile_picture_uri),
+//	  profile_picture_uri = CASE
+//	    WHEN $1::text IS NULL THEN profile_picture_uri
+//	    WHEN $1::text = '' THEN NULL
+//	    ELSE $1
+//	  END,
 //	  pronouns = COALESCE($2, pronouns),
 //	  properties = COALESCE($3, properties),
 //	  feature_relations = COALESCE($4, feature_relations),

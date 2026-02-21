@@ -1471,16 +1471,19 @@ func (s *Service) Update(
 		return nil, err
 	}
 
-	// Validate profile picture URI
-	if err := validateOptionalURL(profilePictureURI); err != nil {
-		return nil, err
-	}
-
-	// Non-admin users can only use URIs from allowed prefixes
-	if userKind != "admin" {
-		err := validateURIPrefixes(profilePictureURI, s.config.GetAllowedURIPrefixes())
+	// Validate profile picture URI (empty string means "remove picture")
+	if profilePictureURI == nil || *profilePictureURI != "" {
+		err := validateOptionalURL(profilePictureURI)
 		if err != nil {
 			return nil, err
+		}
+
+		// Non-admin users can only use URIs from allowed prefixes
+		if userKind != "admin" {
+			err := validateURIPrefixes(profilePictureURI, s.config.GetAllowedURIPrefixes())
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

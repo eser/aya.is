@@ -125,7 +125,11 @@ VALUES (sqlc.arg(profile_id), sqlc.arg(locale_code), sqlc.arg(title), sqlc.arg(d
 -- name: UpdateProfile :execrows
 UPDATE "profile"
 SET
-  profile_picture_uri = COALESCE(sqlc.narg(profile_picture_uri), profile_picture_uri),
+  profile_picture_uri = CASE
+    WHEN sqlc.narg(profile_picture_uri)::text IS NULL THEN profile_picture_uri
+    WHEN sqlc.narg(profile_picture_uri)::text = '' THEN NULL
+    ELSE sqlc.narg(profile_picture_uri)
+  END,
   pronouns = COALESCE(sqlc.narg(pronouns), pronouns),
   properties = COALESCE(sqlc.narg(properties), properties),
   feature_relations = COALESCE(sqlc.narg(feature_relations), feature_relations),

@@ -1,20 +1,41 @@
 // Profile pages settings
 import * as React from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { EyeOff, FileText, GripVertical, ExternalLink, Lock, Pencil, Plus, Sparkles, Linkedin, ChevronDown } from "lucide-react";
-import { backend, type ProfilePage } from "@/modules/backend/backend";
+import { EyeOff, FileText, GripVertical, ExternalLink, Lock, Loader2, Pencil, Plus, Settings2, Sparkles, Linkedin, ChevronDown } from "lucide-react";
+import { backend, type Profile, type ProfilePage } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { LocaleLink } from "@/components/locale-link";
+
+const settingsRoute = getRouteApi("/$locale/$slug/settings");
+
+type ModuleVisibility = "public" | "hidden" | "disabled";
 
 export const Route = createFileRoute("/$locale/$slug/settings/pages/")({
   component: PagesSettingsPage,
@@ -24,10 +45,33 @@ function PagesSettingsPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
   const navigate = useNavigate();
+  const router = useRouter();
+
+  const { profile: initialProfile } = settingsRoute.useLoaderData();
 
   const [pages, setPages] = React.useState<ProfilePage[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isGenerating, setIsGenerating] = React.useState(false);
+
+  // Predefined Pages dialog state
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [isSavingPrefs, setIsSavingPrefs] = React.useState(false);
+  const [featureRelations, setFeatureRelations] = React.useState<ModuleVisibility>(
+    (initialProfile.feature_relations as ModuleVisibility) ?? "public",
+  );
+  const [featureLinks, setFeatureLinks] = React.useState<ModuleVisibility>(
+    (initialProfile.feature_links as ModuleVisibility) ?? "public",
+  );
+  const [featureQA, setFeatureQA] = React.useState<ModuleVisibility>(
+    (initialProfile.feature_qa as ModuleVisibility) ?? "public",
+  );
+
+  // Sync dialog state when profile changes
+  React.useEffect(() => {
+    setFeatureRelations((initialProfile.feature_relations as ModuleVisibility) ?? "public");
+    setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? "public");
+    setFeatureQA((initialProfile.feature_qa as ModuleVisibility) ?? "public");
+  }, [initialProfile]);
 
   // Drag and drop state
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
@@ -155,6 +199,33 @@ function PagesSettingsPage() {
     }
   };
 
+  const handleSavePreferences = async () => {
+    setIsSavingPrefs(true);
+    try {
+      const result = await backend.updateProfile(params.locale, params.slug, {
+        feature_relations: featureRelations,
+        feature_links: featureLinks,
+        feature_qa: featureQA,
+      });
+
+      if (result === null) {
+        toast.error(t("Profile.Failed to update profile"));
+        return;
+      }
+
+      toast.success(t("Profile.Preferences saved"));
+      router.invalidate();
+      setDialogOpen(false);
+    } catch {
+      toast.error(t("Profile.Failed to update profile"));
+    } finally {
+      setIsSavingPrefs(false);
+    }
+  };
+
+  // Determine which preferences to show based on profile kind
+  const isOrgOrProduct = initialProfile.kind === "organization" || initialProfile.kind === "product";
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -192,13 +263,102 @@ function PagesSettingsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings2 className="mr-1.5 size-4" />
+                {t("Profile.Predefined Pages...")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("Profile.Predefined Pages")}</DialogTitle>
+                <DialogDescription>
+                  {t("Profile.Control how predefined pages appear on your profile.")}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                {/* Contributions / Members */}
+                <Field>
+                  <FieldLabel>
+                    {isOrgOrProduct
+                      ? t("Profile.Members Visibility")
+                      : t("Profile.Contributions Visibility")}
+                  </FieldLabel>
+                  <Select
+                    value={featureRelations}
+                    onValueChange={(val: string) => setFeatureRelations(val as ModuleVisibility)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">{t("Profile.Public")}</SelectItem>
+                      <SelectItem value="hidden">{t("Profile.Hidden")}</SelectItem>
+                      <SelectItem value="disabled">{t("Profile.Disabled")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                {/* Links (only for org/product) */}
+                {isOrgOrProduct && (
+                  <Field>
+                    <FieldLabel>{t("Profile.Links Visibility")}</FieldLabel>
+                    <Select
+                      value={featureLinks}
+                      onValueChange={(val: string) => setFeatureLinks(val as ModuleVisibility)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">{t("Profile.Public")}</SelectItem>
+                        <SelectItem value="hidden">{t("Profile.Hidden")}</SelectItem>
+                        <SelectItem value="disabled">{t("Profile.Disabled")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+
+                {/* Q&A */}
+                <Field>
+                  <FieldLabel>{t("Profile.Q&A Visibility")}</FieldLabel>
+                  <Select
+                    value={featureQA}
+                    onValueChange={(val: string) => setFeatureQA(val as ModuleVisibility)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">{t("Profile.Public")}</SelectItem>
+                      <SelectItem value="hidden">{t("Profile.Hidden")}</SelectItem>
+                      <SelectItem value="disabled">{t("Profile.Disabled")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  onClick={handleSavePreferences}
+                  disabled={isSavingPrefs}
+                >
+                  {isSavingPrefs && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {isSavingPrefs ? t("Common.Saving...") : t("Profile.Save Changes")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" disabled={isGenerating}>
                 <Sparkles className="mr-1.5 size-4" />
                 {isGenerating
                   ? t("Profile.Generating...")
-                  : t("Profile.Generate Content")}
+                  : t("Profile.Generate")}
                 <ChevronDown className="ml-1.5 size-3" />
               </Button>
             </DropdownMenuTrigger>

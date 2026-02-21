@@ -476,7 +476,6 @@
     "Pages reordered successfully": "页面重新排序成功",
     "Failed to reorder pages": "重新排序页面失败",
     "Failed to load profile pages": "加载个人资料页面失败",
-    "Generate Content": "生成内容",
     "Generating...": "生成中...",
     "CV from LinkedIn": "从LinkedIn生成简历",
     "CV page generated successfully": "简历页面已成功生成",
@@ -609,7 +608,16 @@
     "Resource removed successfully": "资源移除成功",
     "Failed to remove resource": "移除资源失败",
     "Failed to load resources": "加载资源失败",
-    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "此个人资料没有关联的 GitHub 帐户。请先在社交链接设置中连接 GitHub。"
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "此个人资料没有关联的 GitHub 帐户。请先在社交链接设置中连接 GitHub。",
+    "Generate": "生成",
+    "Remove Picture": "删除图片",
+    "Removing...": "删除中...",
+    "Are you sure you want to remove your profile picture?": "确定要删除您的头像吗？",
+    "Picture removed successfully": "图片已成功删除",
+    "Failed to remove picture": "删除图片失败",
+    "Predefined Pages...": "预定义页面...",
+    "Predefined Pages": "预定义页面",
+    "Control how predefined pages appear on your profile.": "控制预定义页面在您个人资料上的显示方式。"
   },
   "ProfileSettings": {
     "Send In-mail": "发送站内信",

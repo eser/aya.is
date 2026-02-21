@@ -476,7 +476,6 @@
     "Pages reordered successfully": "Sayfalar başarıyla yeniden sıralandı",
     "Failed to reorder pages": "Sayfalar yeniden sıralanamadı",
     "Failed to load profile pages": "Profil sayfaları yüklenemedi",
-    "Generate Content": "İçerik Oluştur",
     "Generating...": "Oluşturuluyor...",
     "CV from LinkedIn": "LinkedIn'den CV",
     "CV page generated successfully": "CV sayfası başarıyla oluşturuldu",
@@ -613,7 +612,16 @@
     "Resource removed successfully": "Kaynak başarıyla kaldırıldı",
     "Failed to remove resource": "Kaynak kaldırılamadı",
     "Failed to load resources": "Kaynaklar yüklenemedi",
-    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Bu profilin bağlı bir GitHub hesabı yok. Lütfen önce Sosyal Bağlantılar ayarlarından GitHub'ı bağlayın."
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Bu profilin bağlı bir GitHub hesabı yok. Lütfen önce Sosyal Bağlantılar ayarlarından GitHub'ı bağlayın.",
+    "Generate": "Oluştur",
+    "Remove Picture": "Fotoğrafı Kaldır",
+    "Removing...": "Kaldırılıyor...",
+    "Are you sure you want to remove your profile picture?": "Profil fotoğrafınızı kaldırmak istediğinizden emin misiniz?",
+    "Picture removed successfully": "Fotoğraf başarıyla kaldırıldı",
+    "Failed to remove picture": "Fotoğraf kaldırılamadı",
+    "Predefined Pages...": "Ön Tanımlı Sayfalar...",
+    "Predefined Pages": "Ön Tanımlı Sayfalar",
+    "Control how predefined pages appear on your profile.": "Ön tanımlı sayfaların profilinizdeki görünümünü kontrol edin."
   },
   "ProfileSettings": {
     "Send In-mail": "Mesaj Gönder",

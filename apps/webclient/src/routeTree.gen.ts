@@ -58,7 +58,6 @@ import { Route as LocaleStoriesStoryslugEditRouteImport } from './routes/$locale
 import { Route as LocaleStoriesStoryslugCoverRouteImport } from './routes/$locale/stories/$storyslug/cover'
 import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/$slug/settings/stories'
 import { Route as LocaleSlugSettingsResourcesRouteImport } from './routes/$locale/$slug/settings/resources'
-import { Route as LocaleSlugSettingsPreferencesRouteImport } from './routes/$locale/$slug/settings/preferences'
 import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$slug/settings/points'
 import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
 import { Route as LocaleSlugSettingsInboxRouteImport } from './routes/$locale/$slug/settings/inbox'
@@ -327,12 +326,6 @@ const LocaleSlugSettingsResourcesRoute =
     path: '/resources',
     getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
-const LocaleSlugSettingsPreferencesRoute =
-  LocaleSlugSettingsPreferencesRouteImport.update({
-    id: '/preferences',
-    path: '/preferences',
-    getParentRoute: () => LocaleSlugSettingsRouteRoute,
-  } as any)
 const LocaleSlugSettingsPointsRoute =
   LocaleSlugSettingsPointsRouteImport.update({
     id: '/points',
@@ -453,7 +446,6 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/settings/inbox': typeof LocaleSlugSettingsInboxRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
-  '/$locale/$slug/settings/preferences': typeof LocaleSlugSettingsPreferencesRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
@@ -503,7 +495,6 @@ export interface FileRoutesByTo {
   '/$locale/$slug/settings/inbox': typeof LocaleSlugSettingsInboxRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
-  '/$locale/$slug/settings/preferences': typeof LocaleSlugSettingsPreferencesRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
@@ -569,7 +560,6 @@ export interface FileRoutesById {
   '/$locale/$slug/settings/inbox': typeof LocaleSlugSettingsInboxRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
-  '/$locale/$slug/settings/preferences': typeof LocaleSlugSettingsPreferencesRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
@@ -636,7 +626,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/inbox'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
-    | '/$locale/$slug/settings/preferences'
     | '/$locale/$slug/settings/resources'
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
@@ -686,7 +675,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/inbox'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
-    | '/$locale/$slug/settings/preferences'
     | '/$locale/$slug/settings/resources'
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
@@ -751,7 +739,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/inbox'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
-    | '/$locale/$slug/settings/preferences'
     | '/$locale/$slug/settings/resources'
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
@@ -1125,13 +1112,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsResourcesRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
-    '/$locale/$slug/settings/preferences': {
-      id: '/$locale/$slug/settings/preferences'
-      path: '/preferences'
-      fullPath: '/$locale/$slug/settings/preferences'
-      preLoaderRoute: typeof LocaleSlugSettingsPreferencesRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
     '/$locale/$slug/settings/points': {
       id: '/$locale/$slug/settings/points'
       path: '/points'
@@ -1258,7 +1238,6 @@ interface LocaleSlugSettingsRouteRouteChildren {
   LocaleSlugSettingsInboxRoute: typeof LocaleSlugSettingsInboxRoute
   LocaleSlugSettingsLinksRoute: typeof LocaleSlugSettingsLinksRoute
   LocaleSlugSettingsPointsRoute: typeof LocaleSlugSettingsPointsRoute
-  LocaleSlugSettingsPreferencesRoute: typeof LocaleSlugSettingsPreferencesRoute
   LocaleSlugSettingsResourcesRoute: typeof LocaleSlugSettingsResourcesRoute
   LocaleSlugSettingsStoriesRoute: typeof LocaleSlugSettingsStoriesRoute
   LocaleSlugSettingsIndexRoute: typeof LocaleSlugSettingsIndexRoute
@@ -1272,7 +1251,6 @@ const LocaleSlugSettingsRouteRouteChildren: LocaleSlugSettingsRouteRouteChildren
     LocaleSlugSettingsInboxRoute: LocaleSlugSettingsInboxRoute,
     LocaleSlugSettingsLinksRoute: LocaleSlugSettingsLinksRoute,
     LocaleSlugSettingsPointsRoute: LocaleSlugSettingsPointsRoute,
-    LocaleSlugSettingsPreferencesRoute: LocaleSlugSettingsPreferencesRoute,
     LocaleSlugSettingsResourcesRoute: LocaleSlugSettingsResourcesRoute,
     LocaleSlugSettingsStoriesRoute: LocaleSlugSettingsStoriesRoute,
     LocaleSlugSettingsIndexRoute: LocaleSlugSettingsIndexRoute,

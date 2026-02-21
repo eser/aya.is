@@ -1,9 +1,20 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Camera, Loader2, User } from "lucide-react";
+import { Camera, Loader2, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type ProfilePictureUploadProps = {
@@ -12,6 +23,7 @@ type ProfilePictureUploadProps = {
   profileTitle: string;
   locale: string;
   onUploadComplete: (newUri: string) => void;
+  onRemoveComplete?: () => void;
 };
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -21,6 +33,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
   const { t } = useTranslation();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isRemoving, setIsRemoving] = React.useState(false);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,11 +118,39 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
     }
   };
 
+  const handleRemove = async () => {
+    setIsRemoving(true);
+    try {
+      // Send empty string to signal "remove picture" to the backend
+      const result = await backend.updateProfilePicture(
+        props.locale,
+        props.profileSlug,
+        "",
+      );
+
+      if (result !== null) {
+        toast.success(t("Profile.Picture removed successfully"));
+        setPreviewUrl(null);
+        if (props.onRemoveComplete !== undefined) {
+          props.onRemoveComplete();
+        }
+      } else {
+        toast.error(t("Profile.Failed to remove picture"));
+      }
+    } catch {
+      toast.error(t("Profile.Failed to remove picture"));
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
   const handleClick = () => {
-    if (!isUploading && fileInputRef.current !== null) {
+    if (!isUploading && !isRemoving && fileInputRef.current !== null) {
       fileInputRef.current.click();
     }
   };
+
+  const isBusy = isUploading || isRemoving;
 
   // Determine which image to display
   const displayImageUri = previewUrl ?? props.currentImageUri;
@@ -122,10 +163,10 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
         <button
           type="button"
           onClick={handleClick}
-          disabled={isUploading}
+          disabled={isBusy}
           className={cn(
             "relative size-32 rounded-full overflow-hidden border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-            isUploading && "cursor-not-allowed opacity-50",
+            isBusy && "cursor-not-allowed opacity-50",
           )}
         >
           {hasImage ? (
@@ -142,7 +183,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {isUploading ? (
+            {isBusy ? (
               <Loader2 className="size-8 text-white animate-spin" />
             ) : (
               <Camera className="size-8 text-white" />
@@ -161,23 +202,64 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
         />
       </div>
 
-      {/* Change Picture Button */}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleClick}
-        disabled={isUploading}
-      >
-        {isUploading ? (
-          <>
-            <Loader2 className="size-4 mr-2 animate-spin" />
-            {t("Profile.Uploading...")}
-          </>
-        ) : (
-          t("Profile.Change Picture")
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleClick}
+          disabled={isBusy}
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="size-4 mr-2 animate-spin" />
+              {t("Profile.Uploading...")}
+            </>
+          ) : (
+            t("Profile.Change Picture")
+          )}
+        </Button>
+
+        {hasImage && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isBusy}
+              >
+                {isRemoving ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    {t("Profile.Removing...")}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="size-4 mr-2" />
+                    {t("Profile.Remove Picture")}
+                  </>
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("Profile.Remove Picture")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("Profile.Are you sure you want to remove your profile picture?")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRemove}>
+                  {t("Profile.Remove Picture")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
-      </Button>
+      </div>
     </div>
   );
 }

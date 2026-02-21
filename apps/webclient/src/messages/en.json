@@ -480,7 +480,6 @@
     "Pages reordered successfully": "Pages reordered successfully",
     "Failed to reorder pages": "Failed to reorder pages",
     "Failed to load profile pages": "Failed to load profile pages",
-    "Generate Content": "Generate Content",
     "Generating...": "Generating...",
     "CV from LinkedIn": "CV from LinkedIn",
     "CV page generated successfully": "CV page generated successfully",
@@ -617,7 +616,16 @@
     "Resource removed successfully": "Resource removed successfully",
     "Failed to remove resource": "Failed to remove resource",
     "Failed to load resources": "Failed to load resources",
-    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings."
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.",
+    "Generate": "Generate",
+    "Remove Picture": "Remove Picture",
+    "Removing...": "Removing...",
+    "Are you sure you want to remove your profile picture?": "Are you sure you want to remove your profile picture?",
+    "Picture removed successfully": "Picture removed successfully",
+    "Failed to remove picture": "Failed to remove picture",
+    "Predefined Pages...": "Predefined Pages...",
+    "Predefined Pages": "Predefined Pages",
+    "Control how predefined pages appear on your profile.": "Control how predefined pages appear on your profile."
   },
   "ProfileSettings": {
     "Send In-mail": "Send In-mail",

@@ -476,7 +476,6 @@
     "Pages reordered successfully": "Pages reordered successfully",
     "Failed to reorder pages": "Failed to reorder pages",
     "Failed to load profile pages": "Failed to load profile pages",
-    "Generate Content": "Inhoud genereren",
     "Generating...": "Bezig met genereren...",
     "CV from LinkedIn": "CV van LinkedIn",
     "CV page generated successfully": "CV-pagina succesvol gegenereerd",
@@ -609,7 +608,16 @@
     "Resource removed successfully": "Bron succesvol verwijderd",
     "Failed to remove resource": "Bron verwijderen mislukt",
     "Failed to load resources": "Bronnen laden mislukt",
-    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Dit profiel heeft geen verbonden GitHub-account. Verbind eerst GitHub in de sociale links-instellingen."
+    "This profile does not have a connected GitHub account. Please connect GitHub first in Social Links settings.": "Dit profiel heeft geen verbonden GitHub-account. Verbind eerst GitHub in de sociale links-instellingen.",
+    "Generate": "Genereren",
+    "Remove Picture": "Afbeelding verwijderen",
+    "Removing...": "Verwijderen...",
+    "Are you sure you want to remove your profile picture?": "Weet je zeker dat je je profielfoto wilt verwijderen?",
+    "Picture removed successfully": "Afbeelding succesvol verwijderd",
+    "Failed to remove picture": "Afbeelding verwijderen mislukt",
+    "Predefined Pages...": "Voorgedefinieerde pagina's...",
+    "Predefined Pages": "Voorgedefinieerde pagina's",
+    "Control how predefined pages appear on your profile.": "Bepaal hoe voorgedefinieerde pagina's op je profiel worden weergegeven."
   },
   "ProfileSettings": {
     "Send In-mail": "Bericht versturen",
