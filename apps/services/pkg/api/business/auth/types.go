@@ -11,8 +11,8 @@ import (
 type GitHubAuthProviderConfig struct {
 	ClientID         string `conf:"client_id"`
 	ClientSecret     string `conf:"client_secret"`
-	Scope            string `conf:"scope"              default:"read:user user:email read:org"`
-	ProfileLinkScope string `conf:"profile_link_scope" default:"read:user user:email read:org repo"`
+	Scope            string `conf:"scope"              default:"read:user user:email read:org public_repo"`
+	ProfileLinkScope string `conf:"profile_link_scope" default:"read:user user:email read:org public_repo"`
 }
 
 type YouTubeOAuthConfig struct {
