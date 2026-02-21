@@ -7,6 +7,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
+	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
 // Sentinel errors for AI content generation.
@@ -121,7 +122,7 @@ func (s *Service) GenerateCVPage(
 		ctx,
 		params.Locale,
 		params.ProfileSlug,
-		nil,
+		cursors.NewCursor(0, nil),
 	)
 	if contribErr != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetProfileData, contribErr)
