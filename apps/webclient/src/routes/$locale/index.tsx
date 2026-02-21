@@ -41,7 +41,12 @@ export const Route = createFileRoute("/$locale/")({
     const introText = i18next.getFixedT(locale)("Home.IntroText");
     const compiledIntro = await compileMdx(introText);
 
-    const allStories = await backend.getStoriesByKinds(locale, STORY_KINDS);
+    let allStories: StoryEx[] | null = null;
+    try {
+      allStories = await backend.getStoriesByKinds(locale, STORY_KINDS);
+    } catch {
+      // Fetch can fail during HMR — render page without stories
+    }
 
     return { compiledIntro, allStories, locale };
   },
@@ -103,6 +108,13 @@ function LocaleHomePage() {
   const locale = i18n.language;
   const { compiledIntro, allStories } = Route.useLoaderData();
 
+  React.useEffect(() => {
+    document.documentElement.classList.add("scroll-smooth");
+    return () => {
+      document.documentElement.classList.remove("scroll-smooth");
+    };
+  }, []);
+
   const groupedStories = React.useMemo(() => {
     if (allStories === null) return [];
     return groupStoriesByMonth(allStories, locale);
@@ -136,30 +148,34 @@ function LocaleHomePage() {
       </section>
 
       {/* Stories section - scrolls over hero for parallax */}
-      <section className={styles.storiesSection}>
+      <section id="latest" className={styles.storiesSection}>
         <div className={styles.storiesContainer}>
-          <h2 className={styles.storiesHeader}>
-            {t("Home.Latest Stories")}
-          </h2>
+          <div className="content">
+            <h2 className={styles.storiesHeader}>
+              <a href="#latest" className={styles.storiesHeaderLink}>
+                {t("Home.Latest Stories")}
+              </a>
+            </h2>
 
-          {groupedStories.length === 0 && (
-            <p className="text-muted-foreground">
-              {t("Layout.Content not yet available.")}
-            </p>
-          )}
+            {groupedStories.length === 0 && (
+              <p className="text-muted-foreground">
+                {t("Layout.Content not yet available.")}
+              </p>
+            )}
 
-          {groupedStories.map((group) => (
-            <div key={group.monthYear} className="mb-8">
-              <h3 className="text-lg font-semibold text-muted-foreground mb-4 pb-2 border-b border-border">
-                {formatMonthYear(group.date, locale)}
-              </h3>
-              <div>
-                {group.stories.map((story) => (
-                  <Story key={story.id} story={story} />
-                ))}
+            {groupedStories.map((group) => (
+              <div key={group.monthYear} className="mb-8">
+                <h3 className="text-lg font-semibold text-muted-foreground mb-4 pb-2 border-b border-border">
+                  {formatMonthYear(group.date, locale)}
+                </h3>
+                <div>
+                  {group.stories.map((story) => (
+                    <Story key={story.id} story={story} />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
     </PageLayout>
