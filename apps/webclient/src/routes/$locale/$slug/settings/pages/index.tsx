@@ -3,7 +3,7 @@ import * as React from "react";
 import { createFileRoute, Link, useNavigate, useRouter, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { EyeOff, FileText, GripVertical, ExternalLink, Lock, Loader2, Pencil, Plus, Settings2, Sparkles, Linkedin, ChevronDown } from "lucide-react";
+import { CheckIcon, EyeOff, FileText, GripVertical, ExternalLink, Lock, Loader2, Pencil, Plus, Settings2, Sparkles, Linkedin, ChevronDown } from "lucide-react";
 import { backend, type Profile, type ProfilePage } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,10 +23,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select as SelectPrimitive } from "@base-ui/react/select";
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -36,6 +36,57 @@ import { LocaleLink } from "@/components/locale-link";
 const settingsRoute = getRouteApi("/$locale/$slug/settings");
 
 type ModuleVisibility = "public" | "hidden" | "disabled";
+
+type VisibilityOption = {
+  value: ModuleVisibility;
+  label: string;
+  description: string;
+};
+
+function VisibilitySelectItem(props: { option: VisibilityOption }) {
+  return (
+    <SelectPrimitive.Item
+      value={props.option.value}
+      className="focus:bg-accent focus:text-accent-foreground gap-2 rounded-sm py-2 pr-8 pl-2 text-sm relative flex w-full cursor-default items-start outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+    >
+      <SelectPrimitive.ItemIndicator
+        render={<span className="pointer-events-none absolute right-2 top-2.5 flex size-4 items-center justify-center" />}
+      >
+        <CheckIcon className="size-4 pointer-events-none" />
+      </SelectPrimitive.ItemIndicator>
+      <div className="flex flex-col gap-0.5">
+        <SelectPrimitive.ItemText className="font-medium">
+          {props.option.label}
+        </SelectPrimitive.ItemText>
+        <span className="text-xs text-muted-foreground">
+          {props.option.description}
+        </span>
+      </div>
+    </SelectPrimitive.Item>
+  );
+}
+
+function VisibilitySelect(props: {
+  value: ModuleVisibility;
+  onChange: (value: ModuleVisibility) => void;
+  options: VisibilityOption[];
+}) {
+  return (
+    <Select
+      value={props.value}
+      onValueChange={(val: string) => props.onChange(val as ModuleVisibility)}
+    >
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        {props.options.map((option) => (
+          <VisibilitySelectItem key={option.value} option={option} />
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 export const Route = createFileRoute("/$locale/$slug/settings/pages/")({
   component: PagesSettingsPage,
@@ -59,8 +110,9 @@ function PagesSettingsPage() {
   const [featureRelations, setFeatureRelations] = React.useState<ModuleVisibility>(
     (initialProfile.feature_relations as ModuleVisibility) ?? "public",
   );
+  const linksDefault: ModuleVisibility = initialProfile.kind === "individual" ? "disabled" : "public";
   const [featureLinks, setFeatureLinks] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_links as ModuleVisibility) ?? "public",
+    (initialProfile.feature_links as ModuleVisibility) ?? linksDefault,
   );
   const [featureQA, setFeatureQA] = React.useState<ModuleVisibility>(
     (initialProfile.feature_qa as ModuleVisibility) ?? "public",
@@ -68,8 +120,9 @@ function PagesSettingsPage() {
 
   // Sync dialog state when profile changes
   React.useEffect(() => {
+    const linksDefaultVal: ModuleVisibility = initialProfile.kind === "individual" ? "disabled" : "public";
     setFeatureRelations((initialProfile.feature_relations as ModuleVisibility) ?? "public");
-    setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? "public");
+    setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? linksDefaultVal);
     setFeatureQA((initialProfile.feature_qa as ModuleVisibility) ?? "public");
   }, [initialProfile]);
 
@@ -226,6 +279,24 @@ function PagesSettingsPage() {
   // Determine which preferences to show based on profile kind
   const isOrgOrProduct = initialProfile.kind === "organization" || initialProfile.kind === "product";
 
+  const visibilityOptions: VisibilityOption[] = [
+    {
+      value: "public",
+      label: t("Profile.Public"),
+      description: t("Profile.Visible in navigation and accessible by everyone."),
+    },
+    {
+      value: "hidden",
+      label: t("Profile.Hidden"),
+      description: t("Profile.Not shown in navigation, but accessible via direct link."),
+    },
+    {
+      value: "disabled",
+      label: t("Profile.Disabled"),
+      description: t("Profile.Page is completely disabled and returns 404."),
+    },
+  ];
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -286,57 +357,31 @@ function PagesSettingsPage() {
                       ? t("Profile.Members Visibility")
                       : t("Profile.Contributions Visibility")}
                   </FieldLabel>
-                  <Select
+                  <VisibilitySelect
                     value={featureRelations}
-                    onValueChange={(val: string) => setFeatureRelations(val as ModuleVisibility)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">{t("Profile.Public")}</SelectItem>
-                      <SelectItem value="hidden">{t("Profile.Hidden")}</SelectItem>
-                      <SelectItem value="disabled">{t("Profile.Disabled")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onChange={setFeatureRelations}
+                    options={visibilityOptions}
+                  />
                 </Field>
 
-                {/* Links (only for org/product) */}
-                {isOrgOrProduct && (
-                  <Field>
-                    <FieldLabel>{t("Profile.Links Visibility")}</FieldLabel>
-                    <Select
-                      value={featureLinks}
-                      onValueChange={(val: string) => setFeatureLinks(val as ModuleVisibility)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="public">{t("Profile.Public")}</SelectItem>
-                        <SelectItem value="hidden">{t("Profile.Hidden")}</SelectItem>
-                        <SelectItem value="disabled">{t("Profile.Disabled")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                )}
+                {/* Links */}
+                <Field>
+                  <FieldLabel>{t("Profile.Links Visibility")}</FieldLabel>
+                  <VisibilitySelect
+                    value={featureLinks}
+                    onChange={setFeatureLinks}
+                    options={visibilityOptions}
+                  />
+                </Field>
 
                 {/* Q&A */}
                 <Field>
                   <FieldLabel>{t("Profile.Q&A Visibility")}</FieldLabel>
-                  <Select
+                  <VisibilitySelect
                     value={featureQA}
-                    onValueChange={(val: string) => setFeatureQA(val as ModuleVisibility)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">{t("Profile.Public")}</SelectItem>
-                      <SelectItem value="hidden">{t("Profile.Hidden")}</SelectItem>
-                      <SelectItem value="disabled">{t("Profile.Disabled")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onChange={setFeatureQA}
+                    options={visibilityOptions}
+                  />
                 </Field>
               </div>
 
