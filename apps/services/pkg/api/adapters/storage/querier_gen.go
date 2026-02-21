@@ -658,6 +658,15 @@ type Querier interface {
 	//    AND status = 'processing'
 	//    AND worker_id = $4
 	FailQueueItem(ctx context.Context, arg FailQueueItemParams) (int64, error)
+	//FindProfileLinkProfileByKindAndRemoteID
+	//
+	//  SELECT pl.profile_id
+	//  FROM "profile_link" pl
+	//  WHERE pl.kind = $1
+	//    AND pl.remote_id = $2
+	//    AND pl.deleted_at IS NULL
+	//  LIMIT 1
+	FindProfileLinkProfileByKindAndRemoteID(ctx context.Context, arg FindProfileLinkProfileByKindAndRemoteIDParams) (string, error)
 	//GetAdminProfileBySlug
 	//
 	//  SELECT
@@ -797,6 +806,25 @@ type Querier interface {
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	//  LIMIT 1
 	GetMembershipBetweenProfiles(ctx context.Context, arg GetMembershipBetweenProfilesParams) (string, error)
+	//GetMembershipIDBetweenProfiles
+	//
+	//  SELECT pm.id
+	//  FROM "profile_membership" pm
+	//  WHERE pm.profile_id = $1
+	//    AND pm.member_profile_id = $2
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	//  LIMIT 1
+	GetMembershipIDBetweenProfiles(ctx context.Context, arg GetMembershipIDBetweenProfilesParams) (string, error)
+	//GetMembershipsByProfilePairs
+	//
+	//  SELECT pm.profile_id, pm.member_profile_id, pm.id
+	//  FROM "profile_membership" pm
+	//  WHERE pm.profile_id = ANY($1::TEXT[])
+	//    AND pm.member_profile_id = ANY($2::TEXT[])
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	GetMembershipsByProfilePairs(ctx context.Context, arg GetMembershipsByProfilePairsParams) ([]*GetMembershipsByProfilePairsRow, error)
 	//GetPOWChallengeByID
 	//
 	//  SELECT
@@ -953,6 +981,15 @@ type Querier interface {
 	//    AND locale_code = $2
 	//  LIMIT 1
 	GetProfileLinkTx(ctx context.Context, arg GetProfileLinkTxParams) (*ProfileLinkTx, error)
+	//GetProfileLinksByRemoteIDs
+	//
+	//  SELECT pl.remote_id, pl.profile_id
+	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id AND p.kind = 'individual'
+	//  WHERE pl.kind = $1
+	//    AND pl.remote_id = ANY($2::TEXT[])
+	//    AND pl.deleted_at IS NULL
+	GetProfileLinksByRemoteIDs(ctx context.Context, arg GetProfileLinksByRemoteIDsParams) ([]*GetProfileLinksByRemoteIDsRow, error)
 	//GetProfileMembershipByID
 	//
 	//  SELECT
@@ -1763,19 +1800,23 @@ type Querier interface {
 	//  SELECT
 	//    pr.id as resource_id,
 	//    pr.profile_id,
-	//    pr.remote_id,
-	//    pr.public_id,
+	//    pr.remote_id as resource_remote_id,
+	//    pr.public_id as resource_public_id,
 	//    pr.properties as resource_properties,
-	//    pl.auth_access_token
+	//    pl.id as link_id,
+	//    pl.auth_access_token,
+	//    pl.auth_access_token_expires_at,
+	//    pl.auth_refresh_token
 	//  FROM "profile_resource" pr
-	//  JOIN "profile_link" pl ON pl.profile_id = pr.profile_id
-	//    AND pl.kind = 'github'
-	//    AND pl.is_managed = true
-	//    AND pl.auth_access_token IS NOT NULL
-	//    AND pl.deleted_at IS NULL
+	//    INNER JOIN "profile_link" pl ON pl.profile_id = pr.added_by_profile_id
+	//      AND pl.kind = 'github'
+	//      AND pl.is_managed = true
+	//      AND pl.deleted_at IS NULL
+	//      AND pl.auth_access_token IS NOT NULL
 	//  WHERE pr.kind = 'github_repo'
+	//    AND pr.is_managed = true
 	//    AND pr.deleted_at IS NULL
-	//  ORDER BY pr.profile_id
+	//  ORDER BY pr.created_at ASC
 	//  LIMIT $1
 	ListGitHubResourcesForSync(ctx context.Context, arg ListGitHubResourcesForSyncParams) ([]*ListGitHubResourcesForSyncRow, error)
 	// Returns imports that have matching managed stories (for reconciliation during full sync).
@@ -2396,6 +2437,14 @@ type Querier interface {
 	//  WHERE
 	//    id = $1
 	MarkPOWChallengeUsed(ctx context.Context, arg MarkPOWChallengeUsedParams) error
+	//MergeProfileMembershipProperties
+	//
+	//  UPDATE "profile_membership"
+	//  SET
+	//    properties = COALESCE(properties, '{}'::jsonb) || $1
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	MergeProfileMembershipProperties(ctx context.Context, arg MergeProfileMembershipPropertiesParams) (int64, error)
 	//RecordProfilePointTransaction
 	//
 	//  INSERT INTO "profile_point_transaction" (

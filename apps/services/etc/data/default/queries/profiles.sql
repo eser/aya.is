@@ -1003,19 +1003,23 @@ WHERE id = sqlc.arg(id)
 SELECT
   pr.id as resource_id,
   pr.profile_id,
-  pr.remote_id,
-  pr.public_id,
+  pr.remote_id as resource_remote_id,
+  pr.public_id as resource_public_id,
   pr.properties as resource_properties,
-  pl.auth_access_token
+  pl.id as link_id,
+  pl.auth_access_token,
+  pl.auth_access_token_expires_at,
+  pl.auth_refresh_token
 FROM "profile_resource" pr
-JOIN "profile_link" pl ON pl.profile_id = pr.profile_id
-  AND pl.kind = 'github'
-  AND pl.is_managed = true
-  AND pl.auth_access_token IS NOT NULL
-  AND pl.deleted_at IS NULL
+  INNER JOIN "profile_link" pl ON pl.profile_id = pr.added_by_profile_id
+    AND pl.kind = 'github'
+    AND pl.is_managed = true
+    AND pl.deleted_at IS NULL
+    AND pl.auth_access_token IS NOT NULL
 WHERE pr.kind = 'github_repo'
+  AND pr.is_managed = true
   AND pr.deleted_at IS NULL
-ORDER BY pr.profile_id
+ORDER BY pr.created_at ASC
 LIMIT sqlc.arg(batch_size);
 
 -- name: GetManagedGitHubLinkByProfileID :one
@@ -1034,3 +1038,43 @@ SET
   properties = sqlc.arg(properties)
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
+
+-- name: MergeProfileMembershipProperties :execrows
+UPDATE "profile_membership"
+SET
+  properties = COALESCE(properties, '{}'::jsonb) || sqlc.arg(properties)
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
+-- name: GetMembershipIDBetweenProfiles :one
+SELECT pm.id
+FROM "profile_membership" pm
+WHERE pm.profile_id = sqlc.arg(profile_id)
+  AND pm.member_profile_id = sqlc.arg(member_profile_id)
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+LIMIT 1;
+
+-- name: FindProfileLinkProfileByKindAndRemoteID :one
+SELECT pl.profile_id
+FROM "profile_link" pl
+WHERE pl.kind = sqlc.arg(kind)
+  AND pl.remote_id = sqlc.arg(remote_id)
+  AND pl.deleted_at IS NULL
+LIMIT 1;
+
+-- name: GetProfileLinksByRemoteIDs :many
+SELECT pl.remote_id, pl.profile_id
+FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id AND p.kind = 'individual'
+WHERE pl.kind = sqlc.arg(kind)
+  AND pl.remote_id = ANY(sqlc.arg(remote_ids)::TEXT[])
+  AND pl.deleted_at IS NULL;
+
+-- name: GetMembershipsByProfilePairs :many
+SELECT pm.profile_id, pm.member_profile_id, pm.id
+FROM "profile_membership" pm
+WHERE pm.profile_id = ANY(sqlc.arg(profile_ids)::TEXT[])
+  AND pm.member_profile_id = ANY(sqlc.arg(member_profile_ids)::TEXT[])
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW());

@@ -853,6 +853,35 @@ func (q *Queries) DeleteProfilePageTx(ctx context.Context, arg DeleteProfilePage
 	return result.RowsAffected()
 }
 
+const findProfileLinkProfileByKindAndRemoteID = `-- name: FindProfileLinkProfileByKindAndRemoteID :one
+SELECT pl.profile_id
+FROM "profile_link" pl
+WHERE pl.kind = $1
+  AND pl.remote_id = $2
+  AND pl.deleted_at IS NULL
+LIMIT 1
+`
+
+type FindProfileLinkProfileByKindAndRemoteIDParams struct {
+	Kind     string         `db:"kind" json:"kind"`
+	RemoteID sql.NullString `db:"remote_id" json:"remote_id"`
+}
+
+// FindProfileLinkProfileByKindAndRemoteID
+//
+//	SELECT pl.profile_id
+//	FROM "profile_link" pl
+//	WHERE pl.kind = $1
+//	  AND pl.remote_id = $2
+//	  AND pl.deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) FindProfileLinkProfileByKindAndRemoteID(ctx context.Context, arg FindProfileLinkProfileByKindAndRemoteIDParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, findProfileLinkProfileByKindAndRemoteID, arg.Kind, arg.RemoteID)
+	var profile_id string
+	err := row.Scan(&profile_id)
+	return profile_id, err
+}
+
 const getAdminProfileBySlug = `-- name: GetAdminProfileBySlug :one
 SELECT
   p.id,
@@ -1070,6 +1099,88 @@ func (q *Queries) GetMembershipBetweenProfiles(ctx context.Context, arg GetMembe
 	var kind string
 	err := row.Scan(&kind)
 	return kind, err
+}
+
+const getMembershipIDBetweenProfiles = `-- name: GetMembershipIDBetweenProfiles :one
+SELECT pm.id
+FROM "profile_membership" pm
+WHERE pm.profile_id = $1
+  AND pm.member_profile_id = $2
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+LIMIT 1
+`
+
+type GetMembershipIDBetweenProfilesParams struct {
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString `db:"member_profile_id" json:"member_profile_id"`
+}
+
+// GetMembershipIDBetweenProfiles
+//
+//	SELECT pm.id
+//	FROM "profile_membership" pm
+//	WHERE pm.profile_id = $1
+//	  AND pm.member_profile_id = $2
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	LIMIT 1
+func (q *Queries) GetMembershipIDBetweenProfiles(ctx context.Context, arg GetMembershipIDBetweenProfilesParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getMembershipIDBetweenProfiles, arg.ProfileID, arg.MemberProfileID)
+	var id string
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getMembershipsByProfilePairs = `-- name: GetMembershipsByProfilePairs :many
+SELECT pm.profile_id, pm.member_profile_id, pm.id
+FROM "profile_membership" pm
+WHERE pm.profile_id = ANY($1::TEXT[])
+  AND pm.member_profile_id = ANY($2::TEXT[])
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+`
+
+type GetMembershipsByProfilePairsParams struct {
+	ProfileIds       []string `db:"profile_ids" json:"profile_ids"`
+	MemberProfileIds []string `db:"member_profile_ids" json:"member_profile_ids"`
+}
+
+type GetMembershipsByProfilePairsRow struct {
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
+	MemberProfileID sql.NullString `db:"member_profile_id" json:"member_profile_id"`
+	ID              string         `db:"id" json:"id"`
+}
+
+// GetMembershipsByProfilePairs
+//
+//	SELECT pm.profile_id, pm.member_profile_id, pm.id
+//	FROM "profile_membership" pm
+//	WHERE pm.profile_id = ANY($1::TEXT[])
+//	  AND pm.member_profile_id = ANY($2::TEXT[])
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+func (q *Queries) GetMembershipsByProfilePairs(ctx context.Context, arg GetMembershipsByProfilePairsParams) ([]*GetMembershipsByProfilePairsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMembershipsByProfilePairs, pq.Array(arg.ProfileIds), pq.Array(arg.MemberProfileIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetMembershipsByProfilePairsRow{}
+	for rows.Next() {
+		var i GetMembershipsByProfilePairsRow
+		if err := rows.Scan(&i.ProfileID, &i.MemberProfileID, &i.ID); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProfileByID = `-- name: GetProfileByID :one
@@ -1452,6 +1563,56 @@ func (q *Queries) GetProfileLinkTx(ctx context.Context, arg GetProfileLinkTxPara
 		&i.Icon,
 	)
 	return &i, err
+}
+
+const getProfileLinksByRemoteIDs = `-- name: GetProfileLinksByRemoteIDs :many
+SELECT pl.remote_id, pl.profile_id
+FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id AND p.kind = 'individual'
+WHERE pl.kind = $1
+  AND pl.remote_id = ANY($2::TEXT[])
+  AND pl.deleted_at IS NULL
+`
+
+type GetProfileLinksByRemoteIDsParams struct {
+	Kind      string   `db:"kind" json:"kind"`
+	RemoteIds []string `db:"remote_ids" json:"remote_ids"`
+}
+
+type GetProfileLinksByRemoteIDsRow struct {
+	RemoteID  sql.NullString `db:"remote_id" json:"remote_id"`
+	ProfileID string         `db:"profile_id" json:"profile_id"`
+}
+
+// GetProfileLinksByRemoteIDs
+//
+//	SELECT pl.remote_id, pl.profile_id
+//	FROM "profile_link" pl
+//	  INNER JOIN "profile" p ON p.id = pl.profile_id AND p.kind = 'individual'
+//	WHERE pl.kind = $1
+//	  AND pl.remote_id = ANY($2::TEXT[])
+//	  AND pl.deleted_at IS NULL
+func (q *Queries) GetProfileLinksByRemoteIDs(ctx context.Context, arg GetProfileLinksByRemoteIDsParams) ([]*GetProfileLinksByRemoteIDsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getProfileLinksByRemoteIDs, arg.Kind, pq.Array(arg.RemoteIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetProfileLinksByRemoteIDsRow{}
+	for rows.Next() {
+		var i GetProfileLinksByRemoteIDsRow
+		if err := rows.Scan(&i.RemoteID, &i.ProfileID); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProfileMembershipByID = `-- name: GetProfileMembershipByID :one
@@ -2586,19 +2747,23 @@ const listGitHubResourcesForSync = `-- name: ListGitHubResourcesForSync :many
 SELECT
   pr.id as resource_id,
   pr.profile_id,
-  pr.remote_id,
-  pr.public_id,
+  pr.remote_id as resource_remote_id,
+  pr.public_id as resource_public_id,
   pr.properties as resource_properties,
-  pl.auth_access_token
+  pl.id as link_id,
+  pl.auth_access_token,
+  pl.auth_access_token_expires_at,
+  pl.auth_refresh_token
 FROM "profile_resource" pr
-JOIN "profile_link" pl ON pl.profile_id = pr.profile_id
-  AND pl.kind = 'github'
-  AND pl.is_managed = true
-  AND pl.auth_access_token IS NOT NULL
-  AND pl.deleted_at IS NULL
+  INNER JOIN "profile_link" pl ON pl.profile_id = pr.added_by_profile_id
+    AND pl.kind = 'github'
+    AND pl.is_managed = true
+    AND pl.deleted_at IS NULL
+    AND pl.auth_access_token IS NOT NULL
 WHERE pr.kind = 'github_repo'
+  AND pr.is_managed = true
   AND pr.deleted_at IS NULL
-ORDER BY pr.profile_id
+ORDER BY pr.created_at ASC
 LIMIT $1
 `
 
@@ -2607,12 +2772,15 @@ type ListGitHubResourcesForSyncParams struct {
 }
 
 type ListGitHubResourcesForSyncRow struct {
-	ResourceID         string                `db:"resource_id" json:"resource_id"`
-	ProfileID          string                `db:"profile_id" json:"profile_id"`
-	RemoteID           sql.NullString        `db:"remote_id" json:"remote_id"`
-	PublicID           sql.NullString        `db:"public_id" json:"public_id"`
-	ResourceProperties pqtype.NullRawMessage `db:"resource_properties" json:"resource_properties"`
-	AuthAccessToken    sql.NullString        `db:"auth_access_token" json:"auth_access_token"`
+	ResourceID               string                `db:"resource_id" json:"resource_id"`
+	ProfileID                string                `db:"profile_id" json:"profile_id"`
+	ResourceRemoteID         sql.NullString        `db:"resource_remote_id" json:"resource_remote_id"`
+	ResourcePublicID         sql.NullString        `db:"resource_public_id" json:"resource_public_id"`
+	ResourceProperties       pqtype.NullRawMessage `db:"resource_properties" json:"resource_properties"`
+	LinkID                   string                `db:"link_id" json:"link_id"`
+	AuthAccessToken          sql.NullString        `db:"auth_access_token" json:"auth_access_token"`
+	AuthAccessTokenExpiresAt sql.NullTime          `db:"auth_access_token_expires_at" json:"auth_access_token_expires_at"`
+	AuthRefreshToken         sql.NullString        `db:"auth_refresh_token" json:"auth_refresh_token"`
 }
 
 // ListGitHubResourcesForSync
@@ -2620,19 +2788,23 @@ type ListGitHubResourcesForSyncRow struct {
 //	SELECT
 //	  pr.id as resource_id,
 //	  pr.profile_id,
-//	  pr.remote_id,
-//	  pr.public_id,
+//	  pr.remote_id as resource_remote_id,
+//	  pr.public_id as resource_public_id,
 //	  pr.properties as resource_properties,
-//	  pl.auth_access_token
+//	  pl.id as link_id,
+//	  pl.auth_access_token,
+//	  pl.auth_access_token_expires_at,
+//	  pl.auth_refresh_token
 //	FROM "profile_resource" pr
-//	JOIN "profile_link" pl ON pl.profile_id = pr.profile_id
-//	  AND pl.kind = 'github'
-//	  AND pl.is_managed = true
-//	  AND pl.auth_access_token IS NOT NULL
-//	  AND pl.deleted_at IS NULL
+//	  INNER JOIN "profile_link" pl ON pl.profile_id = pr.added_by_profile_id
+//	    AND pl.kind = 'github'
+//	    AND pl.is_managed = true
+//	    AND pl.deleted_at IS NULL
+//	    AND pl.auth_access_token IS NOT NULL
 //	WHERE pr.kind = 'github_repo'
+//	  AND pr.is_managed = true
 //	  AND pr.deleted_at IS NULL
-//	ORDER BY pr.profile_id
+//	ORDER BY pr.created_at ASC
 //	LIMIT $1
 func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHubResourcesForSyncParams) ([]*ListGitHubResourcesForSyncRow, error) {
 	rows, err := q.db.QueryContext(ctx, listGitHubResourcesForSync, arg.BatchSize)
@@ -2646,10 +2818,13 @@ func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHub
 		if err := rows.Scan(
 			&i.ResourceID,
 			&i.ProfileID,
-			&i.RemoteID,
-			&i.PublicID,
+			&i.ResourceRemoteID,
+			&i.ResourcePublicID,
 			&i.ResourceProperties,
+			&i.LinkID,
 			&i.AuthAccessToken,
+			&i.AuthAccessTokenExpiresAt,
+			&i.AuthRefreshToken,
 		); err != nil {
 			return nil, err
 		}
@@ -3604,6 +3779,34 @@ func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*
 		return nil, err
 	}
 	return items, nil
+}
+
+const mergeProfileMembershipProperties = `-- name: MergeProfileMembershipProperties :execrows
+UPDATE "profile_membership"
+SET
+  properties = COALESCE(properties, '{}'::jsonb) || $1
+WHERE id = $2
+  AND deleted_at IS NULL
+`
+
+type MergeProfileMembershipPropertiesParams struct {
+	Properties pqtype.NullRawMessage `db:"properties" json:"properties"`
+	ID         string                `db:"id" json:"id"`
+}
+
+// MergeProfileMembershipProperties
+//
+//	UPDATE "profile_membership"
+//	SET
+//	  properties = COALESCE(properties, '{}'::jsonb) || $1
+//	WHERE id = $2
+//	  AND deleted_at IS NULL
+func (q *Queries) MergeProfileMembershipProperties(ctx context.Context, arg MergeProfileMembershipPropertiesParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, mergeProfileMembershipProperties, arg.Properties, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const removeProfile = `-- name: RemoveProfile :execrows
