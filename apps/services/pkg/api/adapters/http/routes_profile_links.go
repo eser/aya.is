@@ -412,7 +412,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Check if this remote_id is already used by another profile's link
-			inUse, checkErr := profileService.IsProfileLinkRemoteIDInUse(
+			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
 				ctx.Request.Context(),
 				linkKind,
 				result.RemoteID,
@@ -476,6 +476,16 @@ func RegisterHTTPRoutesForProfileLinks(
 					slog.String("link_id", existingLink.ID),
 					slog.String("provider", providerParam))
 			} else {
+				// Clear remote_id on any existing non-managed link to avoid unique constraint violation
+				clearErr := profileService.ClearNonManagedProfileLinkRemoteID(
+					ctx.Request.Context(), profileID, linkKind, result.RemoteID)
+				if clearErr != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Failed to clear non-managed link remote_id",
+						slog.String("error", clearErr.Error()),
+						slog.String("profile_id", profileID),
+						slog.String("remote_id", result.RemoteID))
+				}
+
 				// Create new OAuth profile link
 				linkID := lib.IDsGenerateUnique()
 
@@ -701,7 +711,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Check if this remote_id is already used by another profile
-			inUse, checkErr := profileService.IsProfileLinkRemoteIDInUse(
+			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
 				ctx.Request.Context(),
 				"github",
 				reqBody.AccountID,
@@ -955,7 +965,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Check if this remote_id is already used by another profile
-			inUse, checkErr := profileService.IsProfileLinkRemoteIDInUse(
+			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
 				ctx.Request.Context(),
 				"linkedin",
 				reqBody.AccountID,
@@ -1187,7 +1197,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Check if this remote_id is already used by another profile
-			inUse, checkErr := profileService.IsProfileLinkRemoteIDInUse(
+			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
 				ctx.Request.Context(),
 				"speakerdeck",
 				checkResult.Username,

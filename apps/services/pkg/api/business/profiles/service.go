@@ -408,12 +408,18 @@ type Repository interface { //nolint:interfacebloat
 		kind string,
 		remoteID string,
 	) (*ProfileLink, error)
-	IsProfileLinkRemoteIDInUse(
+	IsManagedProfileLinkRemoteIDInUse(
 		ctx context.Context,
 		kind string,
 		remoteID string,
 		excludeProfileID string,
 	) (bool, error)
+	ClearNonManagedProfileLinkRemoteID(
+		ctx context.Context,
+		profileID string,
+		kind string,
+		remoteID string,
+	) error
 	CreateOAuthProfileLink(
 		ctx context.Context,
 		id string,
@@ -2563,16 +2569,27 @@ func (s *Service) GetProfileLinkByRemoteID(
 	return s.repo.GetProfileLinkByRemoteID(ctx, profileID, kind, remoteID)
 }
 
-// IsProfileLinkRemoteIDInUse checks if a remote_id is already used by another
+// IsManagedProfileLinkRemoteIDInUse checks if a remote_id is already used by another
 // profile's active link of the same kind (e.g., prevents connecting the same
 // GitHub account to multiple profiles).
-func (s *Service) IsProfileLinkRemoteIDInUse(
+func (s *Service) IsManagedProfileLinkRemoteIDInUse(
 	ctx context.Context,
 	kind string,
 	remoteID string,
 	excludeProfileID string,
 ) (bool, error) {
-	return s.repo.IsProfileLinkRemoteIDInUse(ctx, kind, remoteID, excludeProfileID)
+	return s.repo.IsManagedProfileLinkRemoteIDInUse(ctx, kind, remoteID, excludeProfileID)
+}
+
+// ClearNonManagedProfileLinkRemoteID nulls out remote_id on non-managed links
+// to avoid unique constraint violations when creating a new managed link.
+func (s *Service) ClearNonManagedProfileLinkRemoteID(
+	ctx context.Context,
+	profileID string,
+	kind string,
+	remoteID string,
+) error {
+	return s.repo.ClearNonManagedProfileLinkRemoteID(ctx, profileID, kind, remoteID)
 }
 
 // UpdateProfileLinkOAuthTokens updates the OAuth tokens for an existing profile link.

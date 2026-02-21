@@ -91,6 +91,39 @@ func (q *Queries) CheckProfileSlugExistsIncludingDeleted(ctx context.Context, ar
 	return exists, err
 }
 
+const clearNonManagedProfileLinkRemoteID = `-- name: ClearNonManagedProfileLinkRemoteID :execrows
+UPDATE "profile_link"
+SET remote_id = NULL, updated_at = NOW()
+WHERE profile_id = $1
+  AND kind = $2
+  AND remote_id = $3
+  AND is_managed = FALSE
+  AND deleted_at IS NULL
+`
+
+type ClearNonManagedProfileLinkRemoteIDParams struct {
+	ProfileID string         `db:"profile_id" json:"profile_id"`
+	Kind      string         `db:"kind" json:"kind"`
+	RemoteID  sql.NullString `db:"remote_id" json:"remote_id"`
+}
+
+// ClearNonManagedProfileLinkRemoteID
+//
+//	UPDATE "profile_link"
+//	SET remote_id = NULL, updated_at = NOW()
+//	WHERE profile_id = $1
+//	  AND kind = $2
+//	  AND remote_id = $3
+//	  AND is_managed = FALSE
+//	  AND deleted_at IS NULL
+func (q *Queries) ClearNonManagedProfileLinkRemoteID(ctx context.Context, arg ClearNonManagedProfileLinkRemoteIDParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, clearNonManagedProfileLinkRemoteID, arg.ProfileID, arg.Kind, arg.RemoteID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const countAllProfilesForAdmin = `-- name: CountAllProfilesForAdmin :one
 SELECT COUNT(*) as count
 FROM "profile" p
@@ -1336,6 +1369,7 @@ FROM "profile_link"
 WHERE profile_id = $1
   AND kind = $2
   AND remote_id = $3
+  AND is_managed = TRUE
   AND deleted_at IS NULL
 LIMIT 1
 `
@@ -1353,6 +1387,7 @@ type GetProfileLinkByRemoteIDParams struct {
 //	WHERE profile_id = $1
 //	  AND kind = $2
 //	  AND remote_id = $3
+//	  AND is_managed = TRUE
 //	  AND deleted_at IS NULL
 //	LIMIT 1
 func (q *Queries) GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLinkByRemoteIDParams) (*ProfileLink, error) {

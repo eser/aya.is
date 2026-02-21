@@ -1457,7 +1457,28 @@ func (r *Repository) GetProfileLinkByRemoteID(
 	return result, nil
 }
 
-// isProfileLinkRemoteIDInUseSQL checks if a remote_id is already used by another profile's active link.
+// ClearNonManagedProfileLinkRemoteID nulls out remote_id on non-managed links
+// with matching (profile_id, kind, remote_id) to avoid unique constraint violations
+// when creating a new managed link.
+func (r *Repository) ClearNonManagedProfileLinkRemoteID(
+	ctx context.Context,
+	profileID string,
+	kind string,
+	remoteID string,
+) error {
+	_, err := r.queries.ClearNonManagedProfileLinkRemoteID(
+		ctx,
+		ClearNonManagedProfileLinkRemoteIDParams{
+			ProfileID: profileID,
+			Kind:      kind,
+			RemoteID:  sql.NullString{String: remoteID, Valid: true},
+		},
+	)
+
+	return err
+}
+
+// isProfileLinkRemoteIDInUseSQL checks if a remote_id is already used by another profile's active managed link.
 const isProfileLinkRemoteIDInUseSQL = `
 SELECT EXISTS(
   SELECT 1
@@ -1465,13 +1486,14 @@ SELECT EXISTS(
   WHERE kind = $1
     AND remote_id = $2
     AND profile_id != $3
+    AND is_managed = TRUE
     AND deleted_at IS NULL
 )
 `
 
-// IsProfileLinkRemoteIDInUse returns true if the given remote_id is already used
+// IsManagedProfileLinkRemoteIDInUse returns true if the given remote_id is already used
 // by another profile's active link of the same kind.
-func (r *Repository) IsProfileLinkRemoteIDInUse(
+func (r *Repository) IsManagedProfileLinkRemoteIDInUse(
 	ctx context.Context,
 	kind string,
 	remoteID string,

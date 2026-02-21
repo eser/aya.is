@@ -126,6 +126,16 @@ type Querier interface {
 	//  WHERE
 	//    window_start < NOW() - INTERVAL '2 hours'
 	CleanupExpiredSessionRateLimits(ctx context.Context) error
+	//ClearNonManagedProfileLinkRemoteID
+	//
+	//  UPDATE "profile_link"
+	//  SET remote_id = NULL, updated_at = NOW()
+	//  WHERE profile_id = $1
+	//    AND kind = $2
+	//    AND remote_id = $3
+	//    AND is_managed = FALSE
+	//    AND deleted_at IS NULL
+	ClearNonManagedProfileLinkRemoteID(ctx context.Context, arg ClearNonManagedProfileLinkRemoteIDParams) (int64, error)
 	// Worker ID check prevents a timed-out worker from completing
 	// a job that was already re-claimed by another worker.
 	//
@@ -922,6 +932,7 @@ type Querier interface {
 	//  WHERE profile_id = $1
 	//    AND kind = $2
 	//    AND remote_id = $3
+	//    AND is_managed = TRUE
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLinkByRemoteIDParams) (*ProfileLink, error)

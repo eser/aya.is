@@ -592,8 +592,18 @@ FROM "profile_link"
 WHERE profile_id = sqlc.arg(profile_id)
   AND kind = sqlc.arg(kind)
   AND remote_id = sqlc.arg(remote_id)
+  AND is_managed = TRUE
   AND deleted_at IS NULL
 LIMIT 1;
+
+-- name: ClearNonManagedProfileLinkRemoteID :execrows
+UPDATE "profile_link"
+SET remote_id = NULL, updated_at = NOW()
+WHERE profile_id = sqlc.arg(profile_id)
+  AND kind = sqlc.arg(kind)
+  AND remote_id = sqlc.arg(remote_id)
+  AND is_managed = FALSE
+  AND deleted_at IS NULL;
 
 -- name: UpdateProfileLinkOAuthTokens :execrows
 UPDATE "profile_link"
