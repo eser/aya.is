@@ -604,6 +604,7 @@ SET
   auth_access_token_expires_at = sqlc.narg(auth_access_token_expires_at),
   auth_refresh_token = sqlc.narg(auth_refresh_token),
   auth_access_token_scope = sqlc.narg(auth_access_token_scope),
+  is_managed = TRUE,
   is_verified = TRUE,
   updated_at = NOW()
 WHERE id = sqlc.arg(id)

@@ -2791,6 +2791,7 @@ type Querier interface {
 	//    auth_access_token_expires_at = $4,
 	//    auth_refresh_token = $5,
 	//    auth_access_token_scope = $6,
+	//    is_managed = TRUE,
 	//    is_verified = TRUE,
 	//    updated_at = NOW()
 	//  WHERE id = $7
