@@ -1600,6 +1600,7 @@ FROM "story" s
     )
 WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
   AND s.deleted_at IS NULL
+  AND s.visibility = 'public'
   AND EXISTS (
     SELECT 1 FROM story_publication sp
     WHERE sp.story_id = s.id AND sp.deleted_at IS NULL
@@ -1655,6 +1656,7 @@ type SearchStoriesRow struct {
 //	    )
 //	WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
 //	  AND s.deleted_at IS NULL
+//	  AND s.visibility = 'public'
 //	  AND EXISTS (
 //	    SELECT 1 FROM story_publication sp
 //	    WHERE sp.story_id = s.id AND sp.deleted_at IS NULL

@@ -584,6 +584,7 @@ FROM "profile_page" pp
     )
 WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
   AND pp.deleted_at IS NULL
+  AND pp.visibility = 'public'
   AND p.approved_at IS NOT NULL
   AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
 ORDER BY rank DESC

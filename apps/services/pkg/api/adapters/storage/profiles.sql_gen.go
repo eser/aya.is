@@ -3871,6 +3871,7 @@ FROM "profile_page" pp
     )
 WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
   AND pp.deleted_at IS NULL
+  AND pp.visibility = 'public'
   AND p.approved_at IS NOT NULL
   AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 ORDER BY rank DESC
@@ -3922,6 +3923,7 @@ type SearchProfilePagesRow struct {
 //	    )
 //	WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
 //	  AND pp.deleted_at IS NULL
+//	  AND pp.visibility = 'public'
 //	  AND p.approved_at IS NOT NULL
 //	  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 //	ORDER BY rank DESC

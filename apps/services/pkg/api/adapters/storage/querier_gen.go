@@ -2583,6 +2583,7 @@ type Querier interface {
 	//      )
 	//  WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
 	//    AND pp.deleted_at IS NULL
+	//    AND pp.visibility = 'public'
 	//    AND p.approved_at IS NOT NULL
 	//    AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 	//  ORDER BY rank DESC
@@ -2634,6 +2635,7 @@ type Querier interface {
 	//      )
 	//  WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
 	//    AND s.deleted_at IS NULL
+	//    AND s.visibility = 'public'
 	//    AND EXISTS (
 	//      SELECT 1 FROM story_publication sp
 	//      WHERE sp.story_id = s.id AND sp.deleted_at IS NULL

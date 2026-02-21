@@ -248,11 +248,20 @@
 
   /* Code blocks */
   pre {
-    @apply rounded-lg p-4 mb-6 overflow-x-auto text-sm leading-relaxed font-mono border border-border;
+    @apply rounded-lg p-4 mb-6 text-sm leading-relaxed font-mono border border-border;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
 
     code {
       @apply bg-transparent p-0 text-[0.9em] border-0;
     }
+  }
+
+  /* Syntax-highlighted code blocks keep horizontal scroll */
+  pre.shiki {
+    @apply overflow-x-auto;
+    white-space: pre;
+    overflow-wrap: normal;
   }
 
   /* Non-Shiki code blocks (no inline styles from Shiki) */
