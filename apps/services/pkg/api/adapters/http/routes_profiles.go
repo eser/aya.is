@@ -2091,6 +2091,125 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		HasDescription("Delete a profile page translation for a specific locale.").
 		HasResponse(http.StatusOK)
 
+	// Generate CV page from profile data using AI
+	pageGenerator := NewAIContentGenerator(aiModels)
+
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_pages/generate-cv",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
+
+			slugParam := ctx.Request.PathValue("slug")
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			user, userErr := userService.GetByID(ctx.Request.Context(), *session.LoggedInUserID)
+			if userErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get user information"),
+				)
+			}
+
+			if user.IndividualProfileID == nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("User has no individual profile"),
+				)
+			}
+
+			// Extend HTTP write deadline for long-running AI call
+			rc := http.NewResponseController(ctx.ResponseWriter)
+			_ = rc.SetWriteDeadline(time.Now().Add(90 * time.Second))
+
+			page, err := profileService.GenerateCVPage(
+				ctx.Request.Context(),
+				profiles.GenerateCVPageParams{
+					UserID:              *session.LoggedInUserID,
+					UserKind:            user.Kind,
+					IndividualProfileID: *user.IndividualProfileID,
+					ProfileSlug:         slugParam,
+					Locale:              localeParam,
+				},
+				pageGenerator,
+				profilePointsService,
+			)
+			if err != nil {
+				if errors.Is(err, profiles.ErrUnauthorized) {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
+					)
+				}
+
+				if errors.Is(err, profile_points.ErrInsufficientPoints) {
+					return ctx.Results.Error(
+						http.StatusPaymentRequired,
+						httpfx.WithErrorMessage(
+							"Insufficient points for content generation (requires 5 points)",
+						),
+					)
+				}
+
+				if errors.Is(err, ErrAITranslationNotAvailable) {
+					return ctx.Results.Error(
+						http.StatusServiceUnavailable,
+						httpfx.WithErrorMessage("AI content generation not available"),
+					)
+				}
+
+				if errors.Is(err, profiles.ErrCVPageAlreadyExists) {
+					return ctx.Results.Error(
+						http.StatusConflict,
+						httpfx.WithErrorMessage("A CV page already exists for this profile"),
+					)
+				}
+
+				if errors.Is(err, profiles.ErrNoLinkedInLinkFound) {
+					return ctx.Results.BadRequest(
+						httpfx.WithErrorMessage("No LinkedIn link found on this profile"),
+					)
+				}
+
+				logger.Error(
+					"Failed to generate CV page",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam),
+				)
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithSanitizedError(err),
+				)
+			}
+
+			wrappedResponse := map[string]any{
+				"data":  page,
+				"error": nil,
+			}
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Generate CV Page").
+		HasDescription("Generate a CV page from profile data using AI.")
+
 	// Auto-translate profile page
 	pageTranslator := NewAIContentTranslator(aiModels)
 

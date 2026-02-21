@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/aifx"
+	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 )
 
 var (
@@ -121,6 +122,145 @@ Content:
 	}
 
 	return translated.Title, translated.Summary, translated.Content, nil
+}
+
+// AIContentGenerator implements profiles.ContentGenerator
+// using the aifx registry for AI-powered content generation.
+type AIContentGenerator struct {
+	aiModels *aifx.Registry
+}
+
+// NewAIContentGenerator creates a new AIContentGenerator.
+func NewAIContentGenerator(aiModels *aifx.Registry) *AIContentGenerator {
+	return &AIContentGenerator{aiModels: aiModels}
+}
+
+// GenerateCV implements the ContentGenerator interface.
+// It generates a professional CV page from the user's profile data using AI.
+func (g *AIContentGenerator) GenerateCV(
+	ctx context.Context,
+	locale string,
+	profileTitle string,
+	profileDescription string,
+	linkedInURL string,
+	links []*profiles.ProfileLinkBrief,
+	contributions []*profiles.ProfileMembership,
+) (string, string, string, error) {
+	if g.aiModels == nil {
+		return "", "", "", ErrAITranslationNotAvailable
+	}
+
+	model := g.aiModels.GetDefault()
+	if model == nil {
+		return "", "", "", ErrAITranslationNotAvailable
+	}
+
+	targetLang := languageNameForLocale(locale)
+
+	// Build context from links
+	var linksContext strings.Builder
+
+	for _, link := range links {
+		if link.URI != "" {
+			linksContext.WriteString(fmt.Sprintf("- %s: %s", link.Kind, link.URI))
+
+			if link.Title != "" {
+				linksContext.WriteString(fmt.Sprintf(" (%s)", link.Title))
+			}
+
+			linksContext.WriteString("\n")
+		}
+	}
+
+	// Build context from contributions (organization memberships)
+	var contributionsContext strings.Builder
+
+	for _, membership := range contributions {
+		if membership.Profile == nil {
+			continue
+		}
+
+		role := membership.Kind
+		orgName := membership.Profile.Title
+
+		contributionsContext.WriteString(fmt.Sprintf("- %s at %s", role, orgName))
+
+		if membership.StartedAt != nil {
+			contributionsContext.WriteString(
+				fmt.Sprintf(" (since %s)", membership.StartedAt.Format("January 2006")),
+			)
+		}
+
+		if membership.FinishedAt != nil {
+			contributionsContext.WriteString(
+				fmt.Sprintf(" (until %s)", membership.FinishedAt.Format("January 2006")),
+			)
+		}
+
+		if membership.Profile.Description != "" {
+			contributionsContext.WriteString(
+				"\n  Organization: " + membership.Profile.Description,
+			)
+		}
+
+		contributionsContext.WriteString("\n")
+	}
+
+	prompt := fmt.Sprintf(
+		`Based on the profile information provided below, generate a professional CV page in markdown.
+The output MUST be written entirely in %s.
+
+Profile Name: %s
+Profile Bio: %s
+LinkedIn Profile: %s
+
+Connected Accounts and Links:
+%s
+Organization Memberships and Contributions:
+%s
+Instructions:
+- Generate a professional CV/resume page in markdown format.
+- Structure the CV with ## Experience, ## Education, and ## Certificates sections.
+- For experience entries, use ### Role at Company format with date ranges and achievement bullet points.
+- Use all available context to generate realistic professional content.
+- The user will review and edit this draft afterward, so focus on providing a solid starting structure.
+- Do not invent specific details that cannot be inferred from the provided context.
+- Keep the tone professional and concise.
+
+Return ONLY a valid JSON object with exactly these three keys: "title", "summary", "content".
+Do not include any other text, explanation, or markdown formatting around the JSON.
+The "content" field should contain the full markdown CV.`,
+		targetLang,
+		profileTitle,
+		profileDescription,
+		linkedInURL,
+		linksContext.String(),
+		contributionsContext.String(),
+	)
+
+	result, err := model.GenerateText(ctx, &aifx.GenerateTextOptions{
+		Messages: []aifx.Message{
+			aifx.NewTextMessage(aifx.RoleUser, prompt),
+		},
+		System: "You are a professional CV/resume writer. " +
+			"Generate well-structured, professional CV content based on the provided profile information. " +
+			"Always respond with valid JSON only.",
+		MaxTokens: 8192,
+	})
+	if err != nil {
+		return "", "", "", fmt.Errorf("%w: %w", ErrAIGenerationFailed, err)
+	}
+
+	responseText := extractJSON(result.Text())
+
+	var generated translationResult
+
+	err = json.Unmarshal([]byte(responseText), &generated)
+	if err != nil {
+		return "", "", "", fmt.Errorf("%w: %w", ErrFailedToParseAIResponse, err)
+	}
+
+	return generated.Title, generated.Summary, generated.Content, nil
 }
 
 // extractJSON strips markdown code fences from AI responses.

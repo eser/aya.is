@@ -112,7 +112,8 @@ type AwardCategory struct {
 
 // Spend costs.
 const (
-	CostAutoTranslate uint64 = 5
+	CostAutoTranslate   uint64 = 5
+	CostGenerateContent uint64 = 5
 )
 
 // Triggering event identifiers.
@@ -121,6 +122,7 @@ const (
 	EventProfileVerified   = "PROFILE_VERIFIED"
 	EventFirstContribution = "FIRST_CONTRIBUTION"
 	EventAutoTranslate     = "AUTO_TRANSLATE"
+	EventGenerateContent   = "GENERATE_CONTENT"
 )
 
 // AwardCategories defines the point amounts and rules for each event type.

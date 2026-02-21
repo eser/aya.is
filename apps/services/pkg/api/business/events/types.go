@@ -32,6 +32,7 @@ const (
 	ProfilePageTranslationUpdated EventType = "profile_page_translation_updated"
 	ProfilePageTranslationDeleted EventType = "profile_page_translation_deleted"
 	ProfilePageAutoTranslated     EventType = "profile_page_auto_translated"
+	ProfilePageAIGenerated        EventType = "profile_page_ai_generated"
 )
 
 // Profile link events.

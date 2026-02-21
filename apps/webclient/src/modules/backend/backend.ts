@@ -45,6 +45,7 @@ import { deleteProfilePage } from "./profiles/delete-profile-page";
 import { listProfilePageTranslationLocales } from "./profiles/list-profile-page-translation-locales";
 import { deleteProfilePageTranslation } from "./profiles/delete-profile-page-translation";
 import { autoTranslateProfilePage } from "./profiles/auto-translate-profile-page";
+import { generateCVPage } from "./profiles/generate-cv-page";
 import { listProfileResources } from "./profiles/list-profile-resources";
 import { createProfileResource } from "./profiles/create-profile-resource";
 import { deleteProfileResource } from "./profiles/delete-profile-resource";
@@ -193,6 +194,7 @@ export const backend = {
   listProfilePageTranslationLocales,
   deleteProfilePageTranslation,
   autoTranslateProfilePage,
+  generateCVPage,
 
   // Profile Points
   listProfilePointTransactions,
@@ -363,6 +365,7 @@ export {
   listProfilePageTranslationLocales,
   deleteProfilePageTranslation,
   autoTranslateProfilePage,
+  generateCVPage,
 
   // Profile Questions (Q&A)
   getProfileQuestions,

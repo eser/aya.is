@@ -1,13 +1,19 @@
 // Profile pages settings
 import * as React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { FileText, GripVertical, ExternalLink, Pencil, Plus } from "lucide-react";
+import { FileText, GripVertical, ExternalLink, Pencil, Plus, Sparkles, Linkedin, ChevronDown } from "lucide-react";
 import { backend, type ProfilePage } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LocaleLink } from "@/components/locale-link";
 
 export const Route = createFileRoute("/$locale/$slug/settings/pages/")({
@@ -17,9 +23,11 @@ export const Route = createFileRoute("/$locale/$slug/settings/pages/")({
 function PagesSettingsPage() {
   const { t } = useTranslation();
   const params = Route.useParams();
+  const navigate = useNavigate();
 
   const [pages, setPages] = React.useState<ProfilePage[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isGenerating, setIsGenerating] = React.useState(false);
 
   // Drag and drop state
   const [draggedId, setDraggedId] = React.useState<string | null>(null);
@@ -126,6 +134,26 @@ function PagesSettingsPage() {
     }
   };
 
+  const handleGenerateCVFromLinkedIn = async () => {
+    setIsGenerating(true);
+    const result = await backend.generateCVPage(params.locale, params.slug);
+    setIsGenerating(false);
+
+    if (result !== null) {
+      toast.success(t("Profile.CV page generated successfully"));
+      navigate({
+        to: "/$locale/$slug/$pageslug/edit",
+        params: {
+          locale: params.locale,
+          slug: params.slug,
+          pageslug: result.slug,
+        },
+      });
+    } else {
+      toast.error(t("Profile.Failed to generate CV page"));
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -162,15 +190,35 @@ function PagesSettingsPage() {
             {t("Profile.Manage and reorder your profile pages.")}
           </p>
         </div>
-        <Link
-          to="/$locale/$slug/settings/pages/new"
-          params={{ locale: params.locale, slug: params.slug }}
-        >
-          <Button variant="default" size="sm">
-            <Plus className="mr-1.5 size-4" />
-            {t("ContentEditor.Add Page")}
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={isGenerating}>
+                <Sparkles className="mr-1.5 size-4" />
+                {isGenerating
+                  ? t("Profile.Generating...")
+                  : t("Profile.Generate Content")}
+                <ChevronDown className="ml-1.5 size-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleGenerateCVFromLinkedIn}>
+                <Linkedin className="size-4 mr-2" />
+                {t("Profile.CV from LinkedIn")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Link
+            to="/$locale/$slug/settings/pages/new"
+            params={{ locale: params.locale, slug: params.slug }}
+          >
+            <Button variant="default" size="sm">
+              <Plus className="mr-1.5 size-4" />
+              {t("ContentEditor.Add Page")}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {pages.length === 0 ? (
