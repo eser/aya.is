@@ -28,10 +28,18 @@ type LinkedInOAuthConfig struct {
 	ProfileLinkScope string `conf:"profile_link_scope" default:"openid profile email r_basicprofile r_organization_social"`
 }
 
+type XOAuthConfig struct {
+	ClientID         string `conf:"client_id"`
+	ClientSecret     string `conf:"client_secret"`
+	Scope            string `conf:"scope"              default:"tweet.read users.read offline.access"`
+	ProfileLinkScope string `conf:"profile_link_scope" default:"tweet.read tweet.write users.read media.write offline.access"`
+}
+
 type Config struct {
 	GitHub    GitHubAuthProviderConfig `conf:"github"`
 	YouTube   YouTubeOAuthConfig       `conf:"youtube"`
 	LinkedIn  LinkedInOAuthConfig      `conf:"linkedin"`
+	X         XOAuthConfig             `conf:"x"`
 	JwtSecret string                   `conf:"jwt_secret"`                 // Required - no default for security
 	TokenTTL  time.Duration            `conf:"token_ttl"  default:"8760h"` // 365 days in hours (Go doesn't support "d")
 

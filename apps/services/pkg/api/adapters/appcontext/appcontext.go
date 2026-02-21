@@ -23,6 +23,7 @@ import (
 	telegramadapter "github.com/eser/aya.is/services/pkg/api/adapters/telegram"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/adapters/workers"
+	xadapter "github.com/eser/aya.is/services/pkg/api/adapters/x"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
@@ -73,6 +74,8 @@ type AppContext struct {
 	LinkedInProvider    *linkedin.Provider
 	YouTubeProvider     *youtube.Provider
 	SpeakerDeckProvider *speakerdeck.Provider
+	XProvider           *xadapter.Provider
+	PKCEStore           *profiles.PKCEStore
 	UnsplashClient      *unsplash.Client
 	TelegramClient      *telegramadapter.Client
 	TelegramBot         *telegramadapter.Bot
@@ -405,6 +408,15 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		&a.Config.Auth.LinkedIn,
 		a.Logger,
 		a.HTTPClient,
+	)
+
+	// X provider (for profile links - OAuth 2.0 with PKCE)
+	a.PKCEStore = profiles.NewPKCEStore()
+	a.XProvider = xadapter.NewProvider(
+		&a.Config.Auth.X,
+		a.Logger,
+		a.HTTPClient,
+		a.PKCEStore,
 	)
 
 	// SpeakerDeck provider (for profile links - no OAuth, RSS-based)

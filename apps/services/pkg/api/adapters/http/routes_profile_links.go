@@ -14,6 +14,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
+	xadapter "github.com/eser/aya.is/services/pkg/api/adapters/x"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -26,8 +27,10 @@ type ProfileLinkProviders struct {
 	YouTube                *youtube.Provider
 	GitHub                 *github.Provider
 	LinkedIn               *linkedin.Provider
+	X                      *xadapter.Provider
 	SiteImporter           *siteimporter.Service
 	PendingConnectionStore *profiles.PendingConnectionStore
+	PKCEStore              *profiles.PKCEStore
 }
 
 // RegisterHTTPRoutesForProfileLinks registers the OAuth routes for profile links.
@@ -65,10 +68,10 @@ func RegisterHTTPRoutesForProfileLinks(
 
 			// Validate provider
 			if providerParam != "youtube" && providerParam != "github" &&
-				providerParam != "linkedin" {
+				providerParam != "linkedin" && providerParam != "x" {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage(
-						"Unsupported provider. Supported: 'youtube', 'github', 'linkedin'.",
+						"Unsupported provider. Supported: 'youtube', 'github', 'linkedin', 'x'.",
 					),
 				)
 			}
@@ -125,7 +128,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Generate state for linking flow (service layer responsibility)
-			_, encodedState, err := profiles.CreateProfileLinkState(
+			stateObj, encodedState, err := profiles.CreateProfileLinkState(
 				slugParam,
 				profile.Kind,
 				localeParam,
@@ -162,6 +165,13 @@ func RegisterHTTPRoutesForProfileLinks(
 					ctx.Request.Context(),
 					redirectURI,
 					encodedState,
+				)
+			case "x":
+				authURL, err = providers.X.InitiateProfileLinkOAuth(
+					ctx.Request.Context(),
+					redirectURI,
+					encodedState,
+					stateObj.State,
 				)
 			}
 
@@ -215,7 +225,7 @@ func RegisterHTTPRoutesForProfileLinks(
 
 			// Validate provider
 			if providerParam != "youtube" && providerParam != "github" &&
-				providerParam != "linkedin" {
+				providerParam != "linkedin" && providerParam != "x" {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Unsupported provider"),
 				)
@@ -284,6 +294,13 @@ func RegisterHTTPRoutesForProfileLinks(
 					ctx.Request.Context(),
 					code,
 					redirectURI,
+				)
+			case "x":
+				result, err = providers.X.HandleOAuthCallback(
+					ctx.Request.Context(),
+					code,
+					redirectURI,
+					stateObj.State,
 				)
 			}
 

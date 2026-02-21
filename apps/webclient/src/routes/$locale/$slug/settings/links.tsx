@@ -618,6 +618,29 @@ function LinksSettingsPage() {
     setIsVerifyingTelegramCode(false);
   };
 
+  const handleConnectX = async () => {
+    if (isReconnectingRef.current) return;
+    isReconnectingRef.current = true;
+
+    try {
+      const result = await backend.initiateProfileLinkOAuth(
+        params.locale,
+        params.slug,
+        "x",
+      );
+      if (result === null) {
+        toast.error(t("Profile", "Failed to connect"));
+        isReconnectingRef.current = false;
+        return;
+      }
+      globalThis.location.replace(result.auth_url);
+    } catch (error) {
+      console.error("OAuth initiation failed:", error);
+      toast.error(t("Profile", "Failed to connect"));
+      isReconnectingRef.current = false;
+    }
+  };
+
   const handleReconnect = (link: ProfileLink) => {
     if (link.kind === "github") {
       handleConnectGitHub();
@@ -629,6 +652,8 @@ function LinksSettingsPage() {
       handleConnectTelegram();
     } else if (link.kind === "linkedin") {
       handleConnectLinkedIn();
+    } else if (link.kind === "x") {
+      handleConnectX();
     }
   };
 
@@ -810,10 +835,9 @@ function LinksSettingsPage() {
               <Telegram className="size-4 mr-2" />
               {t("Profile.Connect Telegram...")}
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onClick={() => handleConnectX()}>
               <X className="size-4 mr-2" />
               {t("Profile.Connect X")}
-              <span className="ml-auto text-xs text-muted-foreground">{t("Common.Coming soon")}</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleConnectLinkedIn()}>
               <Linkedin className="size-4 mr-2" />
