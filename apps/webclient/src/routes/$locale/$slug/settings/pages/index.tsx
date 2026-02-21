@@ -71,13 +71,23 @@ function VisibilitySelect(props: {
   onChange: (value: ModuleVisibility) => void;
   options: VisibilityOption[];
 }) {
+  const labelMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const option of props.options) {
+      map.set(option.value, option.label);
+    }
+    return map;
+  }, [props.options]);
+
   return (
     <Select
       value={props.value}
       onValueChange={(val: string) => props.onChange(val as ModuleVisibility)}
     >
       <SelectTrigger>
-        <SelectValue />
+        <SelectValue>
+          {(value: string) => labelMap.get(value) ?? value}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
         {props.options.map((option) => (

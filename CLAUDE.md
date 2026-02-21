@@ -122,6 +122,18 @@ function Component({ title }: Props) {}
 - Generated code - follows shadcn patterns (props destructuring allowed)
 - Don't modify inline Tailwind in these files
 
+### Base UI Select (CRITICAL)
+
+`<SelectValue />` renders the **raw value** by default. Always use a children render function:
+
+```tsx
+<SelectValue>
+  {(value: string) => labelMap.get(value) ?? value}
+</SelectValue>
+```
+
+For rich items with descriptions, use `SelectPrimitive.Item` directly — label in `ItemText`, description outside it.
+
 ## Remember
 
 - **Run `make ok` before committing**
