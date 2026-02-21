@@ -38,6 +38,7 @@ function NewPagePage() {
     summary: "",
     content: "",
     storyPictureUri: null,
+    visibility: "public",
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -51,6 +52,7 @@ function NewPagePage() {
         content: data.content,
         cover_picture_uri: data.storyPictureUri,
         published_at: null,
+        visibility: data.visibility ?? "public",
       },
     );
 

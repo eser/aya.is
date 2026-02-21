@@ -213,6 +213,7 @@ type Repository interface {
 		properties map[string]any,
 		isManaged bool,
 		remoteID *string,
+		visibility string,
 	) (*Story, error)
 	InsertStoryTx(
 		ctx context.Context,
@@ -238,6 +239,7 @@ type Repository interface {
 		slug string,
 		storyPictureURI *string,
 		properties map[string]any,
+		visibility string,
 	) error
 	UpdateStoryTx(
 		ctx context.Context,
@@ -660,6 +662,7 @@ func (s *Service) Create(
 	storyPictureURI *string,
 	publishToProfileSlugs []string,
 	properties map[string]any,
+	visibility string,
 ) (*Story, error) {
 	// Determine if the story will be published (for slug validation)
 	isPublishing := len(publishToProfileSlugs) > 0
@@ -722,6 +725,7 @@ func (s *Service) Create(
 		properties,
 		false,
 		nil,
+		visibility,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
@@ -815,6 +819,7 @@ func (s *Service) Update(
 	slug string,
 	storyPictureURI *string,
 	properties map[string]any,
+	visibility string,
 ) (*StoryForEdit, error) {
 	// Check authorization
 	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
@@ -869,7 +874,7 @@ func (s *Service) Update(
 	}
 
 	// Update the story
-	err = s.repo.UpdateStory(ctx, storyID, slug, storyPictureURI, properties)
+	err = s.repo.UpdateStory(ctx, storyID, slug, storyPictureURI, properties, visibility)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToUpdateRecord, storyID, err)
 	}

@@ -10,7 +10,10 @@ import {
   ImagePlus,
   Images,
   Info,
+  Eye,
+  EyeOff,
   Loader2,
+  Lock,
   Megaphone,
   Newspaper,
   PanelLeftClose,
@@ -25,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import type { StoryKind, StoryPublication } from "@/modules/backend/types";
+import type { ContentVisibility, StoryKind, StoryPublication } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/backend";
 import type { IndividualProfile } from "@/lib/auth/auth-context";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -101,6 +104,7 @@ export type ContentEditorData = {
   content: string;
   storyPictureUri?: string | null;
   kind?: StoryKind;
+  visibility?: ContentVisibility;
   // Activity-specific fields (only relevant when kind === "activity")
   activityKind?: string;
   activityTimeStart?: string;
@@ -175,6 +179,9 @@ export function ContentEditor(props: ContentEditorProps) {
   );
   const [kind, setKind] = React.useState<StoryKind>(
     initialData.kind ?? "article",
+  );
+  const [visibility, setVisibility] = React.useState<ContentVisibility>(
+    initialData.visibility ?? "public",
   );
 
   // Activity-specific state
@@ -388,7 +395,8 @@ export function ContentEditor(props: ContentEditorProps) {
       summary !== savedData.summary ||
       content !== savedData.content ||
       storyPictureUri !== (savedData.storyPictureUri ?? null) ||
-      kind !== (savedData.kind ?? "article");
+      kind !== (savedData.kind ?? "article") ||
+      visibility !== (savedData.visibility ?? "public");
 
     if (kind === "activity") {
       return baseChanged ||
@@ -400,7 +408,7 @@ export function ContentEditor(props: ContentEditorProps) {
         rsvpMode !== (savedData.rsvpMode ?? "enabled");
     }
     return baseChanged;
-  }, [title, slug, summary, content, storyPictureUri, kind, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, savedData]);
+  }, [title, slug, summary, content, storyPictureUri, kind, visibility, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, savedData]);
 
   // Auto-generate slug from title for new content (called on title blur)
   const generateSlugFromTitle = React.useCallback(() => {
@@ -427,6 +435,7 @@ export function ContentEditor(props: ContentEditorProps) {
     content,
     storyPictureUri,
     kind,
+    visibility,
     ...(kind === "activity" ? {
       activityKind,
       activityTimeStart,
@@ -488,7 +497,7 @@ export function ContentEditor(props: ContentEditorProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [slug, title, summary, content, kind, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, slugError, slugAvailability, titleError, shouldValidateSlugDatePrefix, isPublished, earliestPublishedAt, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
+  }, [slug, title, summary, content, kind, visibility, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, slugError, slugAvailability, titleError, shouldValidateSlugDatePrefix, isPublished, earliestPublishedAt, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
 
   const handleDelete = async () => {
     if (onDelete === undefined) return;
@@ -995,6 +1004,53 @@ export function ContentEditor(props: ContentEditorProps) {
                     className="mt-2 rounded-md max-h-32 w-full object-cover"
                   />
                 )}
+              </Field>
+
+              {/* Visibility */}
+              <Field className={styles.metadataField}>
+                <FieldLabel htmlFor="visibility" className={styles.metadataLabel}>
+                  {t("ContentEditor.Visibility")}
+                </FieldLabel>
+                <Select
+                  value={visibility}
+                  onValueChange={(value) => setVisibility(value as ContentVisibility)}
+                >
+                  <SelectTrigger id="visibility">
+                    <span className="flex items-center gap-2">
+                      {visibility === "public" && <Eye className="size-4" />}
+                      {visibility === "unlisted" && <EyeOff className="size-4" />}
+                      {visibility === "private" && <Lock className="size-4" />}
+                      {visibility === "public" && t("ContentEditor.Public")}
+                      {visibility === "unlisted" && t("ContentEditor.Unlisted")}
+                      {visibility === "private" && t("ContentEditor.Private")}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">
+                      <span className="flex items-center gap-2">
+                        <Eye className="size-4" />
+                        {t("ContentEditor.Public")}
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="unlisted">
+                      <span className="flex items-center gap-2">
+                        <EyeOff className="size-4" />
+                        {t("ContentEditor.Unlisted")}
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="private">
+                      <span className="flex items-center gap-2">
+                        <Lock className="size-4" />
+                        {t("ContentEditor.Private")}
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  {visibility === "public" && t("ContentEditor.Public description")}
+                  {visibility === "unlisted" && t("ContentEditor.Unlisted description")}
+                  {visibility === "private" && t("ContentEditor.Private description")}
+                </FieldDescription>
               </Field>
             </div>
           )}

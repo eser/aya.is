@@ -214,6 +214,7 @@ function EditStoryPage() {
     content: isNewTranslation ? "" : translationState.data.content,
     storyPictureUri: storyData.story_picture_uri,
     kind: (storyData.kind as ContentEditorData["kind"]) ?? "article",
+    visibility: storyData.visibility ?? "public",
     ...activityFields,
   };
 
@@ -243,6 +244,7 @@ function EditStoryPage() {
         slug: data.slug,
         story_picture_uri: data.storyPictureUri,
         properties,
+        visibility: data.visibility ?? "public",
       },
     );
 

@@ -733,6 +733,13 @@
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
     "AI translation not available": "AI translation not available",
+    "Visibility": "公開設定",
+    "Public": "公開",
+    "Public description": "全員に表示され、プロフィールサイドバーに一覧表示されます",
+    "Unlisted": "限定公開",
+    "Unlisted description": "リンクを知っている人は閲覧可能、サイドバーやフィードには表示されません",
+    "Private": "非公開",
+    "Private description": "プロフィルの貢献者と管理者のみ閲覧可能",
     "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {

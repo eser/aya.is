@@ -323,7 +323,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             </li>
           )}
 
-          {props.profile.pages?.map((page) => (
+          {props.profile.pages?.filter((page) => page.visibility === "public").map((page) => (
             <li
               key={page.slug}
               className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none"

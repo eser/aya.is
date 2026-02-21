@@ -733,6 +733,13 @@
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
     "AI translation not available": "AI translation not available",
+    "Visibility": "可见性",
+    "Public": "公开",
+    "Public description": "对所有人可见，并在个人资料侧边栏中列出",
+    "Unlisted": "未列出",
+    "Unlisted description": "拥有链接的人可以查看，不会在侧边栏或动态中列出",
+    "Private": "私密",
+    "Private description": "仅个人资料贡献者和管理员可以查看",
     "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {

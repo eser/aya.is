@@ -3,7 +3,7 @@ import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { FileText, GripVertical, ExternalLink, Pencil, Plus, Sparkles, Linkedin, ChevronDown } from "lucide-react";
+import { EyeOff, FileText, GripVertical, ExternalLink, Lock, Pencil, Plus, Sparkles, Linkedin, ChevronDown } from "lucide-react";
 import { backend, type ProfilePage } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -117,6 +117,7 @@ function PagesSettingsPage() {
           order: newOrder,
           cover_picture_uri: null,
           published_at: null,
+          visibility: page.visibility ?? "public",
         });
       }
       return Promise.resolve(null);
@@ -254,7 +255,17 @@ function PagesSettingsPage() {
                   <FileText className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{page.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium truncate">{page.title}</p>
+                    {page.visibility !== "public" && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                        {page.visibility === "unlisted" && <EyeOff className="size-3" />}
+                        {page.visibility === "private" && <Lock className="size-3" />}
+                        {page.visibility === "unlisted" && t("ContentEditor.Unlisted")}
+                        {page.visibility === "private" && t("ContentEditor.Private")}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground">/{page.slug}</p>
                 </div>
                 <div className="flex items-center gap-1">

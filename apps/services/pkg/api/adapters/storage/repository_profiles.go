@@ -381,6 +381,7 @@ func (r *Repository) ListProfilePagesByProfileID(
 			CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
 			Title:           row.Title,
 			Summary:         row.Summary,
+			Visibility:      profiles.PageVisibility(row.Visibility),
 		}
 	}
 
@@ -418,6 +419,7 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 		Summary:          row.Summary,
 		Content:          row.Content,
 		SortOrder:        row.Order,
+		Visibility:       profiles.PageVisibility(row.Visibility),
 		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 	}
@@ -1247,6 +1249,7 @@ func (r *Repository) GetProfilePage(
 		ID:               row.ID,
 		Slug:             row.Slug,
 		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		Visibility:       profiles.PageVisibility(row.Visibility),
 		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 		// Note: Title, Summary, Content need to be fetched from profile_page_tx table
@@ -1264,6 +1267,7 @@ func (r *Repository) CreateProfilePage(
 	coverPictureURI *string,
 	publishedAt *string,
 	addedByProfileID *string,
+	visibility string,
 ) (*profiles.ProfilePage, error) {
 	var publishedAtTime sql.NullTime
 	if publishedAt != nil {
@@ -1279,6 +1283,7 @@ func (r *Repository) CreateProfilePage(
 		CoverPictureURI:  vars.ToSQLNullString(coverPictureURI),
 		PublishedAt:      publishedAtTime,
 		AddedByProfileID: vars.ToSQLNullString(addedByProfileID),
+		Visibility:       visibility,
 	})
 	if err != nil {
 		return nil, err
@@ -1288,6 +1293,7 @@ func (r *Repository) CreateProfilePage(
 		ID:               row.ID,
 		Slug:             row.Slug,
 		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		Visibility:       profiles.PageVisibility(row.Visibility),
 		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 		// Note: Title, Summary, Content need to be fetched from profile_page_tx table
@@ -1322,6 +1328,7 @@ func (r *Repository) UpdateProfilePage(
 	order int,
 	coverPictureURI *string,
 	publishedAt *string,
+	visibility string,
 ) error {
 	var publishedAtTime sql.NullTime
 	if publishedAt != nil {
@@ -1335,6 +1342,7 @@ func (r *Repository) UpdateProfilePage(
 		PageOrder:       int32(order),
 		CoverPictureURI: vars.ToSQLNullString(coverPictureURI),
 		PublishedAt:     publishedAtTime,
+		Visibility:      visibility,
 	}
 
 	_, err := r.queries.UpdateProfilePage(ctx, params)

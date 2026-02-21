@@ -510,6 +510,7 @@ INSERT INTO "profile_page" (
   cover_picture_uri,
   published_at,
   added_by_profile_id,
+  visibility,
   created_at
 ) VALUES (
   $1,
@@ -519,8 +520,9 @@ INSERT INTO "profile_page" (
   $5,
   $6,
   $7,
+  $8,
   NOW()
-) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
+) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id, visibility
 `
 
 type CreateProfilePageParams struct {
@@ -531,6 +533,7 @@ type CreateProfilePageParams struct {
 	CoverPictureURI  sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
 	PublishedAt      sql.NullTime   `db:"published_at" json:"published_at"`
 	AddedByProfileID sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	Visibility       string         `db:"visibility" json:"visibility"`
 }
 
 // CreateProfilePage
@@ -543,6 +546,7 @@ type CreateProfilePageParams struct {
 //	  cover_picture_uri,
 //	  published_at,
 //	  added_by_profile_id,
+//	  visibility,
 //	  created_at
 //	) VALUES (
 //	  $1,
@@ -552,8 +556,9 @@ type CreateProfilePageParams struct {
 //	  $5,
 //	  $6,
 //	  $7,
+//	  $8,
 //	  NOW()
-//	) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
+//	) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id, visibility
 func (q *Queries) CreateProfilePage(ctx context.Context, arg CreateProfilePageParams) (*ProfilePage, error) {
 	row := q.db.QueryRowContext(ctx, createProfilePage,
 		arg.ID,
@@ -563,6 +568,7 @@ func (q *Queries) CreateProfilePage(ctx context.Context, arg CreateProfilePagePa
 		arg.CoverPictureURI,
 		arg.PublishedAt,
 		arg.AddedByProfileID,
+		arg.Visibility,
 	)
 	var i ProfilePage
 	err := row.Scan(
@@ -576,6 +582,7 @@ func (q *Queries) CreateProfilePage(ctx context.Context, arg CreateProfilePagePa
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.AddedByProfileID,
+		&i.Visibility,
 	)
 	return &i, err
 }
@@ -1932,7 +1939,7 @@ func (q *Queries) GetProfileOwnershipForUser(ctx context.Context, arg GetProfile
 }
 
 const getProfilePage = `-- name: GetProfilePage :one
-SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
+SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id, visibility
 FROM "profile_page"
 WHERE id = $1
   AND deleted_at IS NULL
@@ -1944,7 +1951,7 @@ type GetProfilePageParams struct {
 
 // GetProfilePage
 //
-//	SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
+//	SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id, visibility
 //	FROM "profile_page"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
@@ -1962,12 +1969,13 @@ func (q *Queries) GetProfilePage(ctx context.Context, arg GetProfilePageParams) 
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.AddedByProfileID,
+		&i.Visibility,
 	)
 	return &i, err
 }
 
 const getProfilePageByProfileIDAndSlug = `-- name: GetProfilePageByProfileIDAndSlug :one
-SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 FROM "profile_page" pp
   INNER JOIN "profile" p ON p.id = pp.profile_id
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -1999,6 +2007,7 @@ type GetProfilePageByProfileIDAndSlugRow struct {
 	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt        sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	AddedByProfileID sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	Visibility       string         `db:"visibility" json:"visibility"`
 	ProfilePageID    string         `db:"profile_page_id" json:"profile_page_id"`
 	LocaleCode       string         `db:"locale_code" json:"locale_code"`
 	Title            string         `db:"title" json:"title"`
@@ -2009,7 +2018,7 @@ type GetProfilePageByProfileIDAndSlugRow struct {
 
 // GetProfilePageByProfileIDAndSlug
 //
-//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile" p ON p.id = pp.profile_id
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -2036,6 +2045,7 @@ func (q *Queries) GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetP
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.AddedByProfileID,
+		&i.Visibility,
 		&i.ProfilePageID,
 		&i.LocaleCode,
 		&i.Title,
@@ -3473,7 +3483,7 @@ func (q *Queries) ListProfilePageTxLocales(ctx context.Context, arg ListProfileP
 }
 
 const listProfilePagesByProfileID = `-- name: ListProfilePagesByProfileID :many
-SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
   p_added.slug as added_by_slug,
   p_added.kind as added_by_kind,
   COALESCE(pt_added.title, '') as added_by_title,
@@ -3512,6 +3522,7 @@ type ListProfilePagesByProfileIDRow struct {
 	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt                sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	AddedByProfileID         sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	Visibility               string         `db:"visibility" json:"visibility"`
 	ProfilePageID            string         `db:"profile_page_id" json:"profile_page_id"`
 	LocaleCode               string         `db:"locale_code" json:"locale_code"`
 	Title                    string         `db:"title" json:"title"`
@@ -3527,7 +3538,7 @@ type ListProfilePagesByProfileIDRow struct {
 
 // ListProfilePagesByProfileID
 //
-//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
 //	  p_added.slug as added_by_slug,
 //	  p_added.kind as added_by_kind,
 //	  COALESCE(pt_added.title, '') as added_by_title,
@@ -3568,6 +3579,7 @@ func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfi
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.AddedByProfileID,
+			&i.Visibility,
 			&i.ProfilePageID,
 			&i.LocaleCode,
 			&i.Title,
@@ -4512,8 +4524,9 @@ SET
   "order" = $2,
   cover_picture_uri = $3,
   published_at = $4,
+  visibility = $5,
   updated_at = NOW()
-WHERE id = $5
+WHERE id = $6
   AND deleted_at IS NULL
 `
 
@@ -4522,6 +4535,7 @@ type UpdateProfilePageParams struct {
 	PageOrder       int32          `db:"page_order" json:"page_order"`
 	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
 	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
+	Visibility      string         `db:"visibility" json:"visibility"`
 	ID              string         `db:"id" json:"id"`
 }
 
@@ -4533,8 +4547,9 @@ type UpdateProfilePageParams struct {
 //	  "order" = $2,
 //	  cover_picture_uri = $3,
 //	  published_at = $4,
+//	  visibility = $5,
 //	  updated_at = NOW()
-//	WHERE id = $5
+//	WHERE id = $6
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfilePage(ctx context.Context, arg UpdateProfilePageParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateProfilePage,
@@ -4542,6 +4557,7 @@ func (q *Queries) UpdateProfilePage(ctx context.Context, arg UpdateProfilePagePa
 		arg.PageOrder,
 		arg.CoverPictureURI,
 		arg.PublishedAt,
+		arg.Visibility,
 		arg.ID,
 	)
 	if err != nil {

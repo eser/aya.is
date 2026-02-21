@@ -37,6 +37,15 @@ const (
 	ModuleVisibilityDisabled ModuleVisibility = "disabled" // Completely disabled, returns 404
 )
 
+// PageVisibility defines who can see a profile page.
+type PageVisibility string
+
+const (
+	PageVisibilityPublic   PageVisibility = "public"   // Listed in sidebar, visible to all
+	PageVisibilityUnlisted PageVisibility = "unlisted" // Accessible via direct link, not listed
+	PageVisibilityPrivate  PageVisibility = "private"  // Only contributors+ and admins
+)
+
 // MembershipKind represents the type of membership a profile has with another.
 type MembershipKind string
 
@@ -108,26 +117,28 @@ type ProfileWithChildren struct {
 }
 
 type ProfilePage struct {
-	CoverPictureURI  *string       `json:"cover_picture_uri"`
-	PublishedAt      *time.Time    `json:"published_at"`
-	AddedByProfileID *string       `json:"added_by_profile_id"`
-	AddedByProfile   *ProfileBrief `json:"added_by_profile,omitempty"`
-	ID               string        `json:"id"`
-	Slug             string        `json:"slug"`
-	LocaleCode       string        `json:"locale_code"`
-	Title            string        `json:"title"`
-	Summary          string        `json:"summary"`
-	Content          string        `json:"content"`
-	SortOrder        int32         `json:"sort_order"`
-	CanRemove        bool          `json:"can_remove"`
+	CoverPictureURI  *string        `json:"cover_picture_uri"`
+	PublishedAt      *time.Time     `json:"published_at"`
+	AddedByProfileID *string        `json:"added_by_profile_id"`
+	AddedByProfile   *ProfileBrief  `json:"added_by_profile,omitempty"`
+	ID               string         `json:"id"`
+	Slug             string         `json:"slug"`
+	LocaleCode       string         `json:"locale_code"`
+	Title            string         `json:"title"`
+	Summary          string         `json:"summary"`
+	Content          string         `json:"content"`
+	Visibility       PageVisibility `json:"visibility"`
+	SortOrder        int32          `json:"sort_order"`
+	CanRemove        bool           `json:"can_remove"`
 }
 
 type ProfilePageBrief struct {
-	ID              string  `json:"id"`
-	Slug            string  `json:"slug"`
-	CoverPictureURI *string `json:"cover_picture_uri"`
-	Title           string  `json:"title"`
-	Summary         string  `json:"summary"`
+	ID              string         `json:"id"`
+	Slug            string         `json:"slug"`
+	CoverPictureURI *string        `json:"cover_picture_uri"`
+	Title           string         `json:"title"`
+	Summary         string         `json:"summary"`
+	Visibility      PageVisibility `json:"visibility"`
 }
 
 type ProfileLink struct {

@@ -1579,10 +1579,15 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Content         string  `json:"content"`
 				CoverPictureURI *string `json:"cover_picture_uri"`
 				PublishedAt     *string `json:"published_at"`
+				Visibility      string  `json:"visibility"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
+			}
+
+			if requestBody.Visibility == "" {
+				requestBody.Visibility = string(profiles.PageVisibilityPublic)
 			}
 
 			// Sanitize inputs
@@ -1648,6 +1653,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Content,
 				requestBody.CoverPictureURI,
 				requestBody.PublishedAt,
+				requestBody.Visibility,
 			)
 			if err != nil {
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
@@ -1704,10 +1710,15 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Order           int     `json:"order"`
 				CoverPictureURI *string `json:"cover_picture_uri"`
 				PublishedAt     *string `json:"published_at"`
+				Visibility      string  `json:"visibility"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
+			}
+
+			if requestBody.Visibility == "" {
+				requestBody.Visibility = string(profiles.PageVisibilityPublic)
 			}
 
 			// Sanitize inputs
@@ -1761,6 +1772,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Order,
 				requestBody.CoverPictureURI,
 				requestBody.PublishedAt,
+				requestBody.Visibility,
 			)
 			if err != nil {
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {

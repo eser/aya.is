@@ -46,6 +46,8 @@ export type LinkVisibility =
   | "leads"
   | "owners";
 
+export type ContentVisibility = "public" | "unlisted" | "private";
+
 export interface ProfileLink {
   id: string;
   kind: ProfileLinkKind;
@@ -81,6 +83,7 @@ export type ProfilePage = {
   published_at?: string | null;
   added_by_profile_id?: string | null;
   added_by_profile?: ProfileBrief | null;
+  visibility: ContentVisibility;
   can_remove: boolean;
 };
 
@@ -198,6 +201,7 @@ export interface Story {
   properties: Record<string, unknown> | null;
   author_profile_id: string | null;
   author_profile: Profile | null;
+  visibility: ContentVisibility;
   published_at: string | null;
   created_at: string;
   updated_at: string | null;
@@ -313,12 +317,14 @@ export interface InsertStoryInput {
   story_picture_uri?: string | null;
   publish_to_profiles?: string[];
   properties?: Record<string, unknown>;
+  visibility?: ContentVisibility;
 }
 
 export interface UpdateStoryInput {
   slug: string;
   story_picture_uri?: string | null;
   properties?: Record<string, unknown>;
+  visibility?: ContentVisibility;
 }
 
 export interface UpdateStoryTranslationInput {
@@ -355,6 +361,7 @@ export interface StoryEditData {
   properties?: Record<string, unknown> | null;
   author_profile_id: string | null;
   author_profile_slug: string | null;
+  visibility: ContentVisibility;
   created_at: string;
   updated_at: string | null;
   publications?: StoryPublication[];

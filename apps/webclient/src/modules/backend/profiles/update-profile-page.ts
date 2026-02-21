@@ -1,11 +1,12 @@
 import { fetcher } from "../fetcher";
-import type { ProfilePage } from "../types";
+import type { ContentVisibility, ProfilePage } from "../types";
 
 export type UpdateProfilePageRequest = {
   slug: string;
   order: number;
   cover_picture_uri: string | null;
   published_at: string | null;
+  visibility: ContentVisibility;
 };
 
 export async function updateProfilePage(

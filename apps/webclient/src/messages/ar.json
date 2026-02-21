@@ -733,6 +733,13 @@
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
     "AI translation not available": "AI translation not available",
+    "Visibility": "الظهور",
+    "Public": "عام",
+    "Public description": "مرئي للجميع ومدرج في الشريط الجانبي للملف الشخصي",
+    "Unlisted": "غير مدرج",
+    "Unlisted description": "يمكن لأي شخص لديه الرابط المشاهدة، غير مدرج في الشريط الجانبي أو التغذيات",
+    "Private": "خاص",
+    "Private description": "فقط المساهمون في الملف الشخصي والمسؤولون يمكنهم المشاهدة",
     "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {

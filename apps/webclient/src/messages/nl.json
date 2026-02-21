@@ -733,6 +733,13 @@
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
     "AI translation not available": "AI translation not available",
+    "Visibility": "Zichtbaarheid",
+    "Public": "Openbaar",
+    "Public description": "Zichtbaar voor iedereen en vermeld in de zijbalk van het profiel",
+    "Unlisted": "Niet vermeld",
+    "Unlisted description": "Iedereen met de link kan bekijken, niet vermeld in zijbalk of feeds",
+    "Private": "Privé",
+    "Private description": "Alleen profielbijdragers en beheerders kunnen bekijken",
     "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {

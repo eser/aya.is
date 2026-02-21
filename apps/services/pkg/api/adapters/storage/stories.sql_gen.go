@@ -63,7 +63,7 @@ func (q *Queries) DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (i
 
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -130,7 +130,7 @@ type GetStoryByIDRow struct {
 // GetStoryByID
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -197,6 +197,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.Story.IsManaged,
 		&i.Story.RemoteID,
 		&i.Story.SeriesID,
+		&i.Story.Visibility,
 		&i.StoryTx.StoryID,
 		&i.StoryTx.LocaleCode,
 		&i.StoryTx.Title,
@@ -258,7 +259,7 @@ func (q *Queries) GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirs
 
 const getStoryForEdit = `-- name: GetStoryForEdit :one
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
   st.locale_code,
   st.title,
   st.summary,
@@ -296,6 +297,7 @@ type GetStoryForEditRow struct {
 	IsManaged         bool                  `db:"is_managed" json:"is_managed"`
 	RemoteID          sql.NullString        `db:"remote_id" json:"remote_id"`
 	SeriesID          sql.NullString        `db:"series_id" json:"series_id"`
+	Visibility        string                `db:"visibility" json:"visibility"`
 	LocaleCode        string                `db:"locale_code" json:"locale_code"`
 	Title             string                `db:"title" json:"title"`
 	Summary           string                `db:"summary" json:"summary"`
@@ -308,7 +310,7 @@ type GetStoryForEditRow struct {
 // Includes is_managed flag to protect synced stories from editing.
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 //	  st.locale_code,
 //	  st.title,
 //	  st.summary,
@@ -342,6 +344,7 @@ func (q *Queries) GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams
 		&i.IsManaged,
 		&i.RemoteID,
 		&i.SeriesID,
+		&i.Visibility,
 		&i.LocaleCode,
 		&i.Title,
 		&i.Summary,
@@ -356,10 +359,7 @@ SELECT s.id
 FROM "story" s
 WHERE s.slug = $1
   AND s.deleted_at IS NULL
-  AND EXISTS (
-    SELECT 1 FROM story_publication sp
-    WHERE sp.story_id = s.id AND sp.deleted_at IS NULL
-  )
+  AND s.visibility IN ('public', 'unlisted')
 LIMIT 1
 `
 
@@ -367,16 +367,13 @@ type GetStoryIDBySlugParams struct {
 	Slug string `db:"slug" json:"slug"`
 }
 
-// GetStoryIDBySlug
+// Returns story ID for unauthenticated access (public and unlisted stories only).
 //
 //	SELECT s.id
 //	FROM "story" s
 //	WHERE s.slug = $1
 //	  AND s.deleted_at IS NULL
-//	  AND EXISTS (
-//	    SELECT 1 FROM story_publication sp
-//	    WHERE sp.story_id = s.id AND sp.deleted_at IS NULL
-//	  )
+//	  AND s.visibility IN ('public', 'unlisted')
 //	LIMIT 1
 func (q *Queries) GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, getStoryIDBySlug, arg.Slug)
@@ -396,7 +393,7 @@ LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
 WHERE s.slug = $2
   AND s.deleted_at IS NULL
   AND (
-    EXISTS (SELECT 1 FROM story_publication sp WHERE sp.story_id = s.id AND sp.deleted_at IS NULL)
+    s.visibility IN ('public', 'unlisted')
     OR u.kind = 'admin'
     OR s.author_profile_id = u.individual_profile_id
     OR pm.kind IN ('owner', 'lead', 'maintainer')
@@ -409,32 +406,27 @@ type GetStoryIDBySlugForViewerParams struct {
 	Slug         string         `db:"slug" json:"slug"`
 }
 
-// Returns story ID if:
+// Returns story ID based on visibility:
 //
-//  1. Story has at least one active publication, OR
+//	 public/unlisted: anyone with the slug can access
+//	 private: only admin, author, or profile maintainer+
 //
-//  2. Viewer is admin, OR
-//
-//  3. Viewer is the author (individual profile owner)
-//
-//  4. Viewer is owner/lead/maintainer of the author profile
-//
-//     SELECT s.id
-//     FROM "story" s
-//     LEFT JOIN "user" u ON u.id = $1::CHAR(26)
-//     LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
-//     AND pm.member_profile_id = u.individual_profile_id
-//     AND pm.deleted_at IS NULL
-//     AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
-//     WHERE s.slug = $2
-//     AND s.deleted_at IS NULL
-//     AND (
-//     EXISTS (SELECT 1 FROM story_publication sp WHERE sp.story_id = s.id AND sp.deleted_at IS NULL)
-//     OR u.kind = 'admin'
-//     OR s.author_profile_id = u.individual_profile_id
-//     OR pm.kind IN ('owner', 'lead', 'maintainer')
-//     )
-//     LIMIT 1
+//	SELECT s.id
+//	FROM "story" s
+//	LEFT JOIN "user" u ON u.id = $1::CHAR(26)
+//	LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+//	  AND pm.member_profile_id = u.individual_profile_id
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	WHERE s.slug = $2
+//	  AND s.deleted_at IS NULL
+//	  AND (
+//	    s.visibility IN ('public', 'unlisted')
+//	    OR u.kind = 'admin'
+//	    OR s.author_profile_id = u.individual_profile_id
+//	    OR pm.kind IN ('owner', 'lead', 'maintainer')
+//	  )
+//	LIMIT 1
 func (q *Queries) GetStoryIDBySlugForViewer(ctx context.Context, arg GetStoryIDBySlugForViewerParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, getStoryIDBySlugForViewer, arg.ViewerUserID, arg.Slug)
 	var id string
@@ -625,6 +617,7 @@ INSERT INTO "story" (
   properties,
   is_managed,
   remote_id,
+  visibility,
   created_at
 ) VALUES (
   $1,
@@ -635,8 +628,9 @@ INSERT INTO "story" (
   $6,
   $7,
   $8,
+  $9,
   NOW()
-) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id
+) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id, visibility
 `
 
 type InsertStoryParams struct {
@@ -648,6 +642,7 @@ type InsertStoryParams struct {
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	IsManaged       bool                  `db:"is_managed" json:"is_managed"`
 	RemoteID        sql.NullString        `db:"remote_id" json:"remote_id"`
+	Visibility      string                `db:"visibility" json:"visibility"`
 }
 
 // InsertStory
@@ -661,6 +656,7 @@ type InsertStoryParams struct {
 //	  properties,
 //	  is_managed,
 //	  remote_id,
+//	  visibility,
 //	  created_at
 //	) VALUES (
 //	  $1,
@@ -671,8 +667,9 @@ type InsertStoryParams struct {
 //	  $6,
 //	  $7,
 //	  $8,
+//	  $9,
 //	  NOW()
-//	) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id
+//	) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id, visibility
 func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error) {
 	row := q.db.QueryRowContext(ctx, insertStory,
 		arg.ID,
@@ -683,6 +680,7 @@ func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Stor
 		arg.Properties,
 		arg.IsManaged,
 		arg.RemoteID,
+		arg.Visibility,
 	)
 	var i Story
 	err := row.Scan(
@@ -698,6 +696,7 @@ func (q *Queries) InsertStory(ctx context.Context, arg InsertStoryParams) (*Stor
 		&i.IsManaged,
 		&i.RemoteID,
 		&i.SeriesID,
+		&i.Visibility,
 	)
 	return &i, err
 }
@@ -833,7 +832,7 @@ func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) er
 
 const listActivityStories = `-- name: ListActivityStories :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -901,7 +900,7 @@ type ListActivityStoriesRow struct {
 // Activity-specific fields are in the properties JSONB column.
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -971,6 +970,7 @@ func (q *Queries) ListActivityStories(ctx context.Context, arg ListActivityStori
 			&i.Story.IsManaged,
 			&i.Story.RemoteID,
 			&i.Story.SeriesID,
+			&i.Story.Visibility,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,
@@ -1016,7 +1016,7 @@ func (q *Queries) ListActivityStories(ctx context.Context, arg ListActivityStori
 
 const listStoriesByAuthorProfileID = `-- name: ListStoriesByAuthorProfileID :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1084,7 +1084,7 @@ type ListStoriesByAuthorProfileIDRow struct {
 // Publications are included as optional data (LEFT JOIN).
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1152,6 +1152,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 			&i.Story.IsManaged,
 			&i.Story.RemoteID,
 			&i.Story.SeriesID,
+			&i.Story.Visibility,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,
@@ -1197,7 +1198,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
   st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1237,6 +1238,7 @@ FROM "story" s
   ) pb ON TRUE
 WHERE
   pb.publications IS NOT NULL
+  AND s.visibility = 'public'
   AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
   AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
   AND s.deleted_at IS NULL
@@ -1262,7 +1264,7 @@ type ListStoriesOfPublicationRow struct {
 // Strict locale matching: only returns stories that have a translation for the requested locale.
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -1302,6 +1304,7 @@ type ListStoriesOfPublicationRow struct {
 //	  ) pb ON TRUE
 //	WHERE
 //	  pb.publications IS NOT NULL
+//	  AND s.visibility = 'public'
 //	  AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
 //	  AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
 //	  AND s.deleted_at IS NULL
@@ -1333,6 +1336,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.Story.IsManaged,
 			&i.Story.RemoteID,
 			&i.Story.SeriesID,
+			&i.Story.Visibility,
 			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,
@@ -1703,8 +1707,9 @@ SET
   slug = $1,
   story_picture_uri = $2,
   properties = $3,
+  visibility = $4,
   updated_at = NOW()
-WHERE id = $4
+WHERE id = $5
   AND deleted_at IS NULL
 `
 
@@ -1712,6 +1717,7 @@ type UpdateStoryParams struct {
 	Slug            string                `db:"slug" json:"slug"`
 	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	Visibility      string                `db:"visibility" json:"visibility"`
 	ID              string                `db:"id" json:"id"`
 }
 
@@ -1722,14 +1728,16 @@ type UpdateStoryParams struct {
 //	  slug = $1,
 //	  story_picture_uri = $2,
 //	  properties = $3,
+//	  visibility = $4,
 //	  updated_at = NOW()
-//	WHERE id = $4
+//	WHERE id = $5
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateStory,
 		arg.Slug,
 		arg.StoryPictureURI,
 		arg.Properties,
+		arg.Visibility,
 		arg.ID,
 	)
 	if err != nil {

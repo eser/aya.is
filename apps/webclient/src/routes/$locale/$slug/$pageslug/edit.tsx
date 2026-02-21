@@ -204,6 +204,7 @@ function EditPagePage() {
     summary: isNewTranslation ? "" : translationState.data.summary,
     content: isNewTranslation ? "" : translationState.data.content,
     storyPictureUri: page.cover_picture_uri ?? null,
+    visibility: page.visibility ?? "public",
   };
 
   const handleLocaleChange = (newLocale: string) => {
@@ -221,6 +222,7 @@ function EditPagePage() {
         order: page.sort_order,
         cover_picture_uri: data.storyPictureUri ?? null,
         published_at: null,
+        visibility: data.visibility ?? "public",
       },
     );
 

@@ -186,6 +186,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				StoryPictureURI   *string        `json:"story_picture_uri"`
 				PublishToProfiles []string       `json:"publish_to_profiles"`
 				Properties        map[string]any `json:"properties"`
+				Visibility        string         `json:"visibility"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -197,6 +198,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			requestBody.Kind = strings.TrimSpace(requestBody.Kind)
 			requestBody.Title = strings.TrimSpace(requestBody.Title)
 			requestBody.Summary = strings.TrimSpace(requestBody.Summary)
+
+			if requestBody.Visibility == "" {
+				requestBody.Visibility = "public"
+			}
 
 			// Validate kind
 			validKinds := map[string]bool{
@@ -265,6 +270,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				requestBody.StoryPictureURI,
 				requestBody.PublishToProfiles,
 				requestBody.Properties,
+				requestBody.Visibility,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {
@@ -415,6 +421,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				Slug            string         `json:"slug"`
 				StoryPictureURI *string        `json:"story_picture_uri"`
 				Properties      map[string]any `json:"properties"`
+				Visibility      string         `json:"visibility"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -423,6 +430,10 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 			// Sanitize inputs
 			requestBody.Slug = lib.SanitizeSlug(strings.TrimSpace(requestBody.Slug))
+
+			if requestBody.Visibility == "" {
+				requestBody.Visibility = "public"
+			}
 
 			// Validate slug
 			if len(requestBody.Slug) < 2 {
@@ -469,6 +480,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				requestBody.Slug,
 				requestBody.StoryPictureURI,
 				requestBody.Properties,
+				requestBody.Visibility,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {

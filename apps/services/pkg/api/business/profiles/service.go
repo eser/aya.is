@@ -357,6 +357,7 @@ type Repository interface { //nolint:interfacebloat
 		coverPictureURI *string,
 		publishedAt *string,
 		addedByProfileID *string,
+		visibility string,
 	) (*ProfilePage, error)
 	CreateProfilePageTx(
 		ctx context.Context,
@@ -373,6 +374,7 @@ type Repository interface { //nolint:interfacebloat
 		order int,
 		coverPictureURI *string,
 		publishedAt *string,
+		visibility string,
 	) error
 	UpdateProfilePageTx(
 		ctx context.Context,
@@ -2037,6 +2039,7 @@ func (s *Service) CreateProfilePage(
 	content string,
 	coverPictureURI *string,
 	publishedAt *string,
+	visibility string,
 ) (*ProfilePage, error) {
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
@@ -2108,6 +2111,7 @@ func (s *Service) CreateProfilePage(
 		coverPictureURI,
 		publishedAt,
 		addedByProfileID,
+		visibility,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
@@ -2160,6 +2164,7 @@ func (s *Service) UpdateProfilePage(
 	order int,
 	coverPictureURI *string,
 	publishedAt *string,
+	visibility string,
 ) (*ProfilePage, error) {
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
@@ -2209,7 +2214,15 @@ func (s *Service) UpdateProfilePage(
 	}
 
 	// Update the page
-	err = s.repo.UpdateProfilePage(ctx, pageID, slug, order, coverPictureURI, publishedAt)
+	err = s.repo.UpdateProfilePage(
+		ctx,
+		pageID,
+		slug,
+		order,
+		coverPictureURI,
+		publishedAt,
+		visibility,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(pageID: %s): %w", ErrFailedToUpdateRecord, pageID, err)
 	}

@@ -208,6 +208,7 @@ type ProfilePage struct {
 	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt        sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	AddedByProfileID sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	Visibility       string         `db:"visibility" json:"visibility"`
 }
 
 type ProfilePageTx struct {
@@ -381,6 +382,7 @@ type Story struct {
 	IsManaged       bool                  `db:"is_managed" json:"is_managed"`
 	RemoteID        sql.NullString        `db:"remote_id" json:"remote_id"`
 	SeriesID        sql.NullString        `db:"series_id" json:"series_id"`
+	Visibility      string                `db:"visibility" json:"visibility"`
 }
 
 type StoryInteraction struct {

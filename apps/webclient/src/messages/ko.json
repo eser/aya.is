@@ -733,6 +733,13 @@
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
     "AI translation not available": "AI translation not available",
+    "Visibility": "공개 설정",
+    "Public": "공개",
+    "Public description": "모든 사람에게 표시되며 프로필 사이드바에 나열됩니다",
+    "Unlisted": "미등록",
+    "Unlisted description": "링크가 있는 사람은 볼 수 있으며, 사이드바나 피드에는 나열되지 않습니다",
+    "Private": "비공개",
+    "Private description": "프로필 기여자와 관리자만 볼 수 있습니다",
     "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {

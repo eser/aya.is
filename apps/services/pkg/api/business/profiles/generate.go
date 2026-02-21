@@ -69,13 +69,13 @@ func (s *Service) GenerateCVPage(
 		)
 	}
 
-	// Find an available slug: cv, cv_2, cv_3, ...
+	// Find an available slug: cv, cv-2, cv-3, ...
 	pageSlug := "cv"
 
 	for i := 1; ; i++ {
 		candidate := "cv"
 		if i > 1 {
-			candidate = fmt.Sprintf("cv_%d", i)
+			candidate = fmt.Sprintf("cv-%d", i)
 		}
 
 		slugResult, slugErr := s.CheckPageSlugAvailability(
@@ -170,6 +170,7 @@ func (s *Service) GenerateCVPage(
 		content,
 		nil,
 		nil,
+		"public",
 	)
 	if createErr != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreatePage, createErr)

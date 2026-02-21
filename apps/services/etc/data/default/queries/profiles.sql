@@ -284,6 +284,7 @@ INSERT INTO "profile_page" (
   cover_picture_uri,
   published_at,
   added_by_profile_id,
+  visibility,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -293,6 +294,7 @@ INSERT INTO "profile_page" (
   sqlc.narg(cover_picture_uri),
   sqlc.narg(published_at),
   sqlc.narg(added_by_profile_id),
+  sqlc.arg(visibility),
   NOW()
 ) RETURNING *;
 
@@ -318,6 +320,7 @@ SET
   "order" = sqlc.arg(page_order),
   cover_picture_uri = sqlc.narg(cover_picture_uri),
   published_at = sqlc.narg(published_at),
+  visibility = sqlc.arg(visibility),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;

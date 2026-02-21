@@ -1,20 +1,16 @@
 -- name: GetStoryIDBySlug :one
+-- Returns story ID for unauthenticated access (public and unlisted stories only).
 SELECT s.id
 FROM "story" s
 WHERE s.slug = sqlc.arg(slug)
   AND s.deleted_at IS NULL
-  AND EXISTS (
-    SELECT 1 FROM story_publication sp
-    WHERE sp.story_id = s.id AND sp.deleted_at IS NULL
-  )
+  AND s.visibility IN ('public', 'unlisted')
 LIMIT 1;
 
 -- name: GetStoryIDBySlugForViewer :one
--- Returns story ID if:
---   1. Story has at least one active publication, OR
---   2. Viewer is admin, OR
---   3. Viewer is the author (individual profile owner)
---   4. Viewer is owner/lead/maintainer of the author profile
+-- Returns story ID based on visibility:
+--   public/unlisted: anyone with the slug can access
+--   private: only admin, author, or profile maintainer+
 SELECT s.id
 FROM "story" s
 LEFT JOIN "user" u ON u.id = sqlc.narg(viewer_user_id)::CHAR(26)
@@ -25,7 +21,7 @@ LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
 WHERE s.slug = sqlc.arg(slug)
   AND s.deleted_at IS NULL
   AND (
-    EXISTS (SELECT 1 FROM story_publication sp WHERE sp.story_id = s.id AND sp.deleted_at IS NULL)
+    s.visibility IN ('public', 'unlisted')
     OR u.kind = 'admin'
     OR s.author_profile_id = u.individual_profile_id
     OR pm.kind IN ('owner', 'lead', 'maintainer')
@@ -97,6 +93,7 @@ INSERT INTO "story" (
   properties,
   is_managed,
   remote_id,
+  visibility,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -107,6 +104,7 @@ INSERT INTO "story" (
   sqlc.narg(properties),
   sqlc.arg(is_managed),
   sqlc.narg(remote_id),
+  sqlc.arg(visibility),
   NOW()
 ) RETURNING *;
 
@@ -152,6 +150,7 @@ SET
   slug = sqlc.arg(slug),
   story_picture_uri = sqlc.narg(story_picture_uri),
   properties = sqlc.narg(properties),
+  visibility = sqlc.arg(visibility),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
@@ -288,6 +287,7 @@ FROM "story" s
   ) pb ON TRUE
 WHERE
   pb.publications IS NOT NULL
+  AND s.visibility = 'public'
   AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
   AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
   AND s.deleted_at IS NULL

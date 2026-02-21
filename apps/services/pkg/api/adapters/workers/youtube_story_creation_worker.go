@@ -32,6 +32,7 @@ type storyCreationRepo interface {
 		properties map[string]any,
 		isManaged bool,
 		remoteID *string,
+		visibility string,
 	) (*stories.Story, error)
 	InsertStoryTx(
 		ctx context.Context,
@@ -57,6 +58,7 @@ type storyCreationRepo interface {
 		slug string,
 		storyPictureURI *string,
 		properties map[string]any,
+		visibility string,
 	) error
 	UpsertStoryTx(
 		ctx context.Context,
@@ -195,6 +197,7 @@ func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:cyclop,funlen
 		properties,
 		true,
 		&imp.RemoteID,
+		"public",
 	)
 	if err != nil {
 		return fmt.Errorf("failed to insert story: %w", err)
@@ -358,7 +361,7 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 	}
 
 	// Update story (slug + picture)
-	err := w.storyRepo.UpdateStory(ctx, imp.StoryID, slug, storyPictureURI, nil)
+	err := w.storyRepo.UpdateStory(ctx, imp.StoryID, slug, storyPictureURI, nil, "public")
 	if err != nil {
 		return fmt.Errorf("failed to update story: %w", err)
 	}

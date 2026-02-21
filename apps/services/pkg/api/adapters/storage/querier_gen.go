@@ -405,6 +405,7 @@ type Querier interface {
 	//    cover_picture_uri,
 	//    published_at,
 	//    added_by_profile_id,
+	//    visibility,
 	//    created_at
 	//  ) VALUES (
 	//    $1,
@@ -414,8 +415,9 @@ type Querier interface {
 	//    $5,
 	//    $6,
 	//    $7,
+	//    $8,
 	//    NOW()
-	//  ) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
+	//  ) RETURNING id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id, visibility
 	CreateProfilePage(ctx context.Context, arg CreateProfilePageParams) (*ProfilePage, error)
 	//CreateProfilePageTx
 	//
@@ -1077,14 +1079,14 @@ type Querier interface {
 	GetProfileOwnershipForUser(ctx context.Context, arg GetProfileOwnershipForUserParams) (*GetProfileOwnershipForUserRow, error)
 	//GetProfilePage
 	//
-	//  SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id
+	//  SELECT id, profile_id, slug, "order", cover_picture_uri, published_at, created_at, updated_at, deleted_at, added_by_profile_id, visibility
 	//  FROM "profile_page"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	GetProfilePage(ctx context.Context, arg GetProfilePageParams) (*ProfilePage, error)
 	//GetProfilePageByProfileIDAndSlug
 	//
-	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
 	//  FROM "profile_page" pp
 	//    INNER JOIN "profile" p ON p.id = pp.profile_id
 	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -1245,7 +1247,7 @@ type Querier interface {
 	//GetStoryByID
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -1305,7 +1307,7 @@ type Querier interface {
 	// Includes is_managed flag to protect synced stories from editing.
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 	//    st.locale_code,
 	//    st.title,
 	//    st.summary,
@@ -1324,23 +1326,18 @@ type Querier interface {
 	//    AND s.deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams) (*GetStoryForEditRow, error)
-	//GetStoryIDBySlug
+	// Returns story ID for unauthenticated access (public and unlisted stories only).
 	//
 	//  SELECT s.id
 	//  FROM "story" s
 	//  WHERE s.slug = $1
 	//    AND s.deleted_at IS NULL
-	//    AND EXISTS (
-	//      SELECT 1 FROM story_publication sp
-	//      WHERE sp.story_id = s.id AND sp.deleted_at IS NULL
-	//    )
+	//    AND s.visibility IN ('public', 'unlisted')
 	//  LIMIT 1
 	GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error)
-	// Returns story ID if:
-	//   1. Story has at least one active publication, OR
-	//   2. Viewer is admin, OR
-	//   3. Viewer is the author (individual profile owner)
-	//   4. Viewer is owner/lead/maintainer of the author profile
+	// Returns story ID based on visibility:
+	//   public/unlisted: anyone with the slug can access
+	//   private: only admin, author, or profile maintainer+
 	//
 	//  SELECT s.id
 	//  FROM "story" s
@@ -1352,7 +1349,7 @@ type Querier interface {
 	//  WHERE s.slug = $2
 	//    AND s.deleted_at IS NULL
 	//    AND (
-	//      EXISTS (SELECT 1 FROM story_publication sp WHERE sp.story_id = s.id AND sp.deleted_at IS NULL)
+	//      s.visibility IN ('public', 'unlisted')
 	//      OR u.kind = 'admin'
 	//      OR s.author_profile_id = u.individual_profile_id
 	//      OR pm.kind IN ('owner', 'lead', 'maintainer')
@@ -1562,6 +1559,7 @@ type Querier interface {
 	//    properties,
 	//    is_managed,
 	//    remote_id,
+	//    visibility,
 	//    created_at
 	//  ) VALUES (
 	//    $1,
@@ -1572,8 +1570,9 @@ type Querier interface {
 	//    $6,
 	//    $7,
 	//    $8,
+	//    $9,
 	//    NOW()
-	//  ) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id
+	//  ) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id, visibility
 	InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error)
 	//InsertStoryPublication
 	//
@@ -1649,7 +1648,7 @@ type Querier interface {
 	// Activity-specific fields are in the properties JSONB column.
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -2092,7 +2091,7 @@ type Querier interface {
 	ListProfilePageTxLocales(ctx context.Context, arg ListProfilePageTxLocalesParams) ([]string, error)
 	//ListProfilePagesByProfileID
 	//
-	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
 	//    p_added.slug as added_by_slug,
 	//    p_added.kind as added_by_kind,
 	//    COALESCE(pt_added.title, '') as added_by_title,
@@ -2244,7 +2243,7 @@ type Querier interface {
 	// Publications are included as optional data (LEFT JOIN).
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -2294,7 +2293,7 @@ type Querier interface {
 	// Strict locale matching: only returns stories that have a translation for the requested locale.
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -2334,6 +2333,7 @@ type Querier interface {
 	//    ) pb ON TRUE
 	//  WHERE
 	//    pb.publications IS NOT NULL
+	//    AND s.visibility = 'public'
 	//    AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
 	//    AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
 	//    AND s.deleted_at IS NULL
@@ -2903,8 +2903,9 @@ type Querier interface {
 	//    "order" = $2,
 	//    cover_picture_uri = $3,
 	//    published_at = $4,
+	//    visibility = $5,
 	//    updated_at = NOW()
-	//  WHERE id = $5
+	//  WHERE id = $6
 	//    AND deleted_at IS NULL
 	UpdateProfilePage(ctx context.Context, arg UpdateProfilePageParams) (int64, error)
 	//UpdateProfilePageTx
@@ -2996,8 +2997,9 @@ type Querier interface {
 	//    slug = $1,
 	//    story_picture_uri = $2,
 	//    properties = $3,
+	//    visibility = $4,
 	//    updated_at = NOW()
-	//  WHERE id = $4
+	//  WHERE id = $5
 	//    AND deleted_at IS NULL
 	UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error)
 	//UpdateStoryPublication

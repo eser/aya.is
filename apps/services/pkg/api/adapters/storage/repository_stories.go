@@ -309,6 +309,7 @@ func (r *Repository) InsertStory(
 	properties map[string]any,
 	isManaged bool,
 	remoteID *string,
+	visibility string,
 ) (*stories.Story, error) {
 	params := InsertStoryParams{
 		ID:              id,
@@ -319,6 +320,7 @@ func (r *Repository) InsertStory(
 		Properties:      vars.ToSQLNullRawMessage(properties),
 		IsManaged:       isManaged,
 		RemoteID:        vars.ToSQLNullString(remoteID),
+		Visibility:      visibility,
 	}
 
 	row, err := r.queries.InsertStory(ctx, params)
@@ -334,6 +336,7 @@ func (r *Repository) InsertStory(
 		IsManaged:       row.IsManaged,
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
 		SeriesID:        vars.ToStringPtr(row.SeriesID),
+		Visibility:      row.Visibility,
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -389,12 +392,14 @@ func (r *Repository) UpdateStory(
 	slug string,
 	storyPictureURI *string,
 	properties map[string]any,
+	visibility string,
 ) error {
 	params := UpdateStoryParams{
 		ID:              id,
 		Slug:            slug,
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
 		Properties:      vars.ToSQLNullRawMessage(properties),
+		Visibility:      visibility,
 	}
 
 	_, err := r.queries.UpdateStory(ctx, params)
@@ -505,6 +510,7 @@ func (r *Repository) GetStoryForEdit(
 		Title:             row.Title,
 		Summary:           row.Summary,
 		Content:           row.Content,
+		Visibility:        row.Visibility,
 		CreatedAt:         row.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
 		IsManaged:         row.IsManaged,
@@ -711,6 +717,7 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Summary:         storyTx.Summary,
 				Content:         storyTx.Content,
 				Properties:      vars.ToObject(story.Properties),
+				Visibility:      story.Visibility,
 				CreatedAt:       story.CreatedAt,
 				UpdatedAt:       vars.ToTimePtr(story.UpdatedAt),
 				DeletedAt:       vars.ToTimePtr(story.DeletedAt),
@@ -755,6 +762,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Summary:         storyTx.Summary,
 			Content:         storyTx.Content,
 			Properties:      vars.ToObject(story.Properties),
+			Visibility:      story.Visibility,
 			CreatedAt:       story.CreatedAt,
 			UpdatedAt:       vars.ToTimePtr(story.UpdatedAt),
 			DeletedAt:       vars.ToTimePtr(story.DeletedAt),

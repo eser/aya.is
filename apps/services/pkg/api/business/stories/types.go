@@ -67,6 +67,7 @@ type Story struct {
 	Title           string     `json:"title"`
 	Summary         string     `json:"summary"`
 	Content         string     `json:"content"`
+	Visibility      string     `json:"visibility"`
 	IsManaged       bool       `json:"is_managed"`
 }
 
@@ -92,6 +93,7 @@ type StoryForEdit struct {
 	Title             string     `json:"title"`
 	Summary           string     `json:"summary"`
 	Content           string     `json:"content"`
+	Visibility        string     `json:"visibility"`
 	IsManaged         bool       `json:"is_managed"`
 }
 

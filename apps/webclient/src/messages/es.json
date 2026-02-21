@@ -733,6 +733,13 @@
     "Auto-translate confirmation": "Are you sure you want to auto-translate to {{locale}}? This will use AI to generate the translation.",
     "Translate": "Translate",
     "AI translation not available": "AI translation not available",
+    "Visibility": "Visibilidad",
+    "Public": "Público",
+    "Public description": "Visible para todos y listado en la barra lateral del perfil",
+    "Unlisted": "No listado",
+    "Unlisted description": "Cualquiera con el enlace puede ver, no listado en la barra lateral ni en los feeds",
+    "Private": "Privado",
+    "Private description": "Solo los colaboradores del perfil y los administradores pueden ver",
     "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
   },
   "Admin": {

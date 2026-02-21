@@ -737,6 +737,13 @@
     "Auto-translate confirmation": "{{locale}} diline otomatik çeviri yapmak istediğinizden emin misiniz? Çeviri oluşturmak için yapay zeka kullanılacaktır.",
     "Translate": "Çevir",
     "AI translation not available": "Yapay zeka çevirisi mevcut değil",
+    "Visibility": "Görünürlük",
+    "Public": "Herkese Açık",
+    "Public description": "Herkese görünür ve profil kenar çubuğunda listelenir",
+    "Unlisted": "Liste Dışı",
+    "Unlisted description": "Bağlantıya sahip herkes görüntüleyebilir, kenar çubuğunda veya akışlarda listelenmez",
+    "Private": "Gizli",
+    "Private description": "Yalnızca profil katkıda bulunanları ve yöneticiler görüntüleyebilir",
     "This story is synced from an external source. Some fields cannot be edited.": "Bu hikaye harici bir kaynaktan senkronize edilmiştir. Bazı alanlar düzenlenemez."
   },
   "Admin": {
