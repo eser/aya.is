@@ -14,7 +14,6 @@ var (
 	ErrFailedToGetProfileData  = errors.New("failed to get profile data")
 	ErrFailedToGenerateContent = errors.New("failed to generate content")
 	ErrFailedToCreatePage      = errors.New("failed to create generated page")
-	ErrCVPageAlreadyExists     = errors.New("a page with slug 'cv' already exists")
 	ErrNoLinkedInLinkFound     = errors.New("no LinkedIn link found on this profile")
 )
 
@@ -69,21 +68,32 @@ func (s *Service) GenerateCVPage(
 		)
 	}
 
-	// Check if "cv" slug already exists
-	slugResult, slugErr := s.CheckPageSlugAvailability(
-		ctx,
-		params.Locale,
-		params.ProfileSlug,
-		"cv",
-		nil,
-		false,
-	)
-	if slugErr != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToGetProfileData, slugErr)
-	}
+	// Find an available slug: cv, cv_2, cv_3, ...
+	pageSlug := "cv"
 
-	if !slugResult.Available && slugResult.Severity == SeverityError {
-		return nil, ErrCVPageAlreadyExists
+	for i := 1; ; i++ {
+		candidate := "cv"
+		if i > 1 {
+			candidate = fmt.Sprintf("cv_%d", i)
+		}
+
+		slugResult, slugErr := s.CheckPageSlugAvailability(
+			ctx,
+			params.Locale,
+			params.ProfileSlug,
+			candidate,
+			nil,
+			false,
+		)
+		if slugErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToGetProfileData, slugErr)
+		}
+
+		if slugResult.Available || slugResult.Severity != SeverityError {
+			pageSlug = candidate
+
+			break
+		}
 	}
 
 	// Deduct points for content generation
@@ -152,7 +162,7 @@ func (s *Service) GenerateCVPage(
 		params.UserID,
 		params.UserKind,
 		params.ProfileSlug,
-		"cv",
+		pageSlug,
 		params.Locale,
 		title,
 		summary,

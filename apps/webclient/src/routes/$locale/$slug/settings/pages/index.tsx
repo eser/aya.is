@@ -139,18 +139,18 @@ function PagesSettingsPage() {
     const result = await backend.generateCVPage(params.locale, params.slug);
     setIsGenerating(false);
 
-    if (result !== null) {
+    if (result.ok) {
       toast.success(t("Profile.CV page generated successfully"));
       navigate({
         to: "/$locale/$slug/$pageslug/edit",
         params: {
           locale: params.locale,
           slug: params.slug,
-          pageslug: result.slug,
+          pageslug: result.data.slug,
         },
       });
     } else {
-      toast.error(t("Profile.Failed to generate CV page"));
+      toast.error(result.error);
     }
   };
 

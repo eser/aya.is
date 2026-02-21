@@ -2175,13 +2175,6 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					)
 				}
 
-				if errors.Is(err, profiles.ErrCVPageAlreadyExists) {
-					return ctx.Results.Error(
-						http.StatusConflict,
-						httpfx.WithErrorMessage("A CV page already exists for this profile"),
-					)
-				}
-
 				if errors.Is(err, profiles.ErrNoLinkedInLinkFound) {
 					return ctx.Results.BadRequest(
 						httpfx.WithErrorMessage("No LinkedIn link found on this profile"),
