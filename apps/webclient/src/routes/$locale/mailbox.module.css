@@ -160,6 +160,20 @@
   @apply flex-1 overflow-y-auto p-4 space-y-3;
 }
 
+.dateSeparator {
+  @apply flex items-center gap-3 py-1;
+}
+
+.dateSeparator::before,
+.dateSeparator::after {
+  content: "";
+  @apply flex-1 h-px bg-border;
+}
+
+.dateSeparatorLabel {
+  @apply text-xs text-muted-foreground font-medium shrink-0;
+}
+
 .messageBubble {
   @apply rounded-lg border border-border px-3 py-2 transition-colors;
 }

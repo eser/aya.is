@@ -72,7 +72,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDateString } from "@/lib/date";
+import { formatDateShort, formatDateString, formatTimeString } from "@/lib/date";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import styles from "./mailbox.module.css";
@@ -270,22 +270,17 @@ function EnvelopeBubble(props: {
                     && props.userProfileSlugs.has(reaction.profile_slug);
                   const ownerName = reaction.profile_title ?? reaction.profile_slug ?? "";
 
-                  if (isOwn) {
-                    return (
-                      <button
-                        key={reaction.id}
-                        type="button"
-                        className={styles.reactionChip}
-                        onClick={() => props.onRemoveReaction(env.id, reaction.emoji)}
-                      >
-                        {reaction.emoji}
-                      </button>
-                    );
-                  }
-
                   return (
                     <Tooltip key={reaction.id}>
-                      <TooltipTrigger render={<button type="button" className={styles.reactionChipStatic} />}>
+                      <TooltipTrigger
+                        render={
+                          <button
+                            type="button"
+                            className={isOwn ? styles.reactionChip : styles.reactionChipStatic}
+                            onClick={isOwn ? () => props.onRemoveReaction(env.id, reaction.emoji) : undefined}
+                          />
+                        }
+                      >
                         {reaction.emoji}
                       </TooltipTrigger>
                       <TooltipContent>
@@ -317,7 +312,7 @@ function EnvelopeBubble(props: {
             </div>
           )}
           <span className={styles.messageTime}>
-            {formatDateString(env.created_at, props.locale)}
+            {formatTimeString(env.created_at, props.locale)}
           </span>
         </div>
 
@@ -1164,23 +1159,42 @@ function MailboxPage() {
 
                   {/* Message Thread */}
                   <div ref={messageThreadRef} className={styles.messageThread}>
-                    {convDetail.envelopes.map((envelope, index) => (
-                      <EnvelopeBubble
-                        key={envelope.id}
-                        envelope={envelope}
-                        locale={locale}
-                        conversationKind={convDetail.conversation.kind}
-                        isFirstEnvelope={index === 0}
-                        firstEnvelopeStatus={convDetail.envelopes.length > 0 ? convDetail.envelopes[0].status : "pending"}
-                        userTelegramLinked={userTelegramLinked}
-                        userProfileSlugs={userProfileSlugs}
-                        onAccept={handleAccept}
-                        onReject={promptReject}
-                        onReaction={handleReaction}
-                        onRemoveReaction={handleRemoveReaction}
-                        actionInProgress={actionInProgress}
-                      />
-                    ))}
+                    {(() => {
+                      const firstStatus = convDetail.envelopes.length > 0 ? convDetail.envelopes[0].status : "pending" as const;
+                      let lastDateKey = "";
+
+                      return convDetail.envelopes.map((envelope, index) => {
+                        const dateKey = envelope.created_at !== null
+                          ? formatDateShort(new Date(envelope.created_at), locale)
+                          : "";
+                        const showDateHeader = dateKey !== lastDateKey;
+                        lastDateKey = dateKey;
+
+                        return (
+                          <React.Fragment key={envelope.id}>
+                            {showDateHeader && dateKey !== "" && (
+                              <div className={styles.dateSeparator}>
+                                <span className={styles.dateSeparatorLabel}>{dateKey}</span>
+                              </div>
+                            )}
+                            <EnvelopeBubble
+                              envelope={envelope}
+                              locale={locale}
+                              conversationKind={convDetail.conversation.kind}
+                              isFirstEnvelope={index === 0}
+                              firstEnvelopeStatus={firstStatus}
+                              userTelegramLinked={userTelegramLinked}
+                              userProfileSlugs={userProfileSlugs}
+                              onAccept={handleAccept}
+                              onReject={promptReject}
+                              onReaction={handleReaction}
+                              onRemoveReaction={handleRemoveReaction}
+                              actionInProgress={actionInProgress}
+                            />
+                          </React.Fragment>
+                        );
+                      });
+                    })()}
                   </div>
 
                   {/* Compose Area — for conversations where the first envelope is accepted or redeemed */}

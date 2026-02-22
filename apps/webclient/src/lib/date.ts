@@ -68,6 +68,27 @@ export function formatMonthShort(date: Date, locale: string): string {
 }
 
 /**
+ * Format time only (e.g., "14:30")
+ */
+export function formatTime(date: Date, locale: string): string {
+  return date.toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Format time from string (returns empty string if null)
+ */
+export function formatTimeString(dateString: string | null, locale: string): string {
+  if (dateString === null) {
+    return "";
+  }
+
+  return formatTime(new Date(dateString), locale);
+}
+
+/**
  * Format date from string (returns empty string if null)
  */
 export function formatDateString(dateString: string | null, locale: string): string {
