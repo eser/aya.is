@@ -619,7 +619,8 @@
     "Failed to remove picture": "사진 삭제에 실패했습니다",
     "Predefined Pages...": "기본 페이지...",
     "Predefined Pages": "기본 페이지",
-    "Control how predefined pages appear on your profile.": "프로필에서 기본 페이지가 표시되는 방식을 설정합니다."
+    "Control how predefined pages appear on your profile.": "프로필에서 기본 페이지가 표시되는 방식을 설정합니다.",
+    "To": "받는이"
   },
   "ProfileSettings": {
     "Send In-mail": "메시지 보내기",
@@ -634,7 +635,8 @@
     "Optional message text": "선택적 메시지 텍스트",
     "Invitation sent successfully": "초대가 성공적으로 전송되었습니다",
     "Profile not found": "프로필을 찾을 수 없습니다",
-    "Failed to send invitation": "초대 전송에 실패했습니다"
+    "Failed to send invitation": "초대 전송에 실패했습니다",
+    "Standard Message": "일반 메시지"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

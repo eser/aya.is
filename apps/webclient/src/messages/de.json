@@ -619,7 +619,8 @@
     "Failed to remove picture": "Bild konnte nicht entfernt werden",
     "Predefined Pages...": "Vordefinierte Seiten...",
     "Predefined Pages": "Vordefinierte Seiten",
-    "Control how predefined pages appear on your profile.": "Legen Sie fest, wie vordefinierte Seiten auf Ihrem Profil angezeigt werden."
+    "Control how predefined pages appear on your profile.": "Legen Sie fest, wie vordefinierte Seiten auf Ihrem Profil angezeigt werden.",
+    "To": "An"
   },
   "ProfileSettings": {
     "Send In-mail": "Nachricht senden",
@@ -634,7 +635,8 @@
     "Optional message text": "Optionaler Nachrichtentext",
     "Invitation sent successfully": "Einladung erfolgreich gesendet",
     "Profile not found": "Profil nicht gefunden",
-    "Failed to send invitation": "Einladung konnte nicht gesendet werden"
+    "Failed to send invitation": "Einladung konnte nicht gesendet werden",
+    "Standard Message": "Standardnachricht"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

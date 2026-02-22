@@ -623,7 +623,8 @@
     "Failed to remove picture": "Fotoğraf kaldırılamadı",
     "Predefined Pages...": "Ön Tanımlı Sayfalar...",
     "Predefined Pages": "Ön Tanımlı Sayfalar",
-    "Control how predefined pages appear on your profile.": "Ön tanımlı sayfaların profilinizdeki görünümünü kontrol edin."
+    "Control how predefined pages appear on your profile.": "Ön tanımlı sayfaların profilinizdeki görünümünü kontrol edin.",
+    "To": "Kime"
   },
   "ProfileSettings": {
     "Send In-mail": "Mesaj Gönder",
@@ -638,7 +639,8 @@
     "Optional message text": "İsteğe bağlı mesaj metni",
     "Invitation sent successfully": "Davetiye başarıyla gönderildi",
     "Profile not found": "Profil bulunamadı",
-    "Failed to send invitation": "Davetiye gönderilemedi"
+    "Failed to send invitation": "Davetiye gönderilemedi",
+    "Standard Message": "Standart Mesaj"
   },
   "ContentEditor": {
     "Edit Page": "Sayfayı Düzenle",

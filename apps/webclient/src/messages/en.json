@@ -627,7 +627,8 @@
     "Failed to remove picture": "Failed to remove picture",
     "Predefined Pages...": "Predefined Pages...",
     "Predefined Pages": "Predefined Pages",
-    "Control how predefined pages appear on your profile.": "Control how predefined pages appear on your profile."
+    "Control how predefined pages appear on your profile.": "Control how predefined pages appear on your profile.",
+    "To": "To"
   },
   "ProfileSettings": {
     "Send In-mail": "Send In-mail",
@@ -642,7 +643,8 @@
     "Optional message text": "Optional message text",
     "Invitation sent successfully": "Invitation sent successfully",
     "Profile not found": "Profile not found",
-    "Failed to send invitation": "Failed to send invitation"
+    "Failed to send invitation": "Failed to send invitation",
+    "Standard Message": "Standard Message"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

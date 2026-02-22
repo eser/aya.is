@@ -44,6 +44,7 @@ import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import styles from "./mailbox.module.css";
 
 const ENVELOPE_KINDS = [
+  { value: "standard", labelKey: "ProfileSettings.Standard Message" },
   { value: "telegram_group", labelKey: "ProfileSettings.Telegram Group Invite" },
 ] as const;
 
@@ -101,7 +102,7 @@ function MailboxPage() {
   // Send form state
   const [sendFormOpen, setSendFormOpen] = React.useState(false);
   const [sendFromSlug, setSendFromSlug] = React.useState("");
-  const [envelopeKind, setEnvelopeKind] = React.useState("telegram_group");
+  const [envelopeKind, setEnvelopeKind] = React.useState("standard");
   const [targetSlug, setTargetSlug] = React.useState("");
   const [inviteCode, setInviteCode] = React.useState("");
   const [sendTitle, setSendTitle] = React.useState("");
@@ -390,39 +391,39 @@ function MailboxPage() {
                       </SelectContent>
                     </Select>
                   </Field>
-                  <Field>
-                    <FieldLabel htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
-                    <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
-                      <SelectTrigger id="envelopeKind" className="w-full">
-                        <SelectValue>
-                          {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ENVELOPE_KINDS.map((kind) => (
-                          <SelectItem key={kind.value} value={kind.value}>
-                            {t(kind.labelKey)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <Field data-invalid={fieldErrors.targetSlug !== undefined && fieldErrors.targetSlug !== null}>
+                    <FieldLabel htmlFor="targetSlug">{t("ProfileSettings.Target Profile Slug")}</FieldLabel>
+                    <Input
+                      id="targetSlug"
+                      type="text"
+                      placeholder="someone"
+                      value={targetSlug}
+                      onChange={(e) => {
+                        setTargetSlug(e.target.value);
+                        setFieldErrors((prev) => ({ ...prev, targetSlug: null }));
+                      }}
+                    />
+                    {fieldErrors.targetSlug !== null && fieldErrors.targetSlug !== undefined && (
+                      <FieldError>{fieldErrors.targetSlug}</FieldError>
+                    )}
                   </Field>
                 </div>
-                <Field data-invalid={fieldErrors.targetSlug !== undefined && fieldErrors.targetSlug !== null}>
-                  <FieldLabel htmlFor="targetSlug">{t("ProfileSettings.Target Profile Slug")}</FieldLabel>
-                  <Input
-                    id="targetSlug"
-                    type="text"
-                    placeholder="someone"
-                    value={targetSlug}
-                    onChange={(e) => {
-                      setTargetSlug(e.target.value);
-                      setFieldErrors((prev) => ({ ...prev, targetSlug: null }));
-                    }}
-                  />
-                  {fieldErrors.targetSlug !== null && fieldErrors.targetSlug !== undefined && (
-                    <FieldError>{fieldErrors.targetSlug}</FieldError>
-                  )}
+                <Field>
+                  <FieldLabel htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
+                  <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
+                    <SelectTrigger id="envelopeKind" className="w-full">
+                      <SelectValue>
+                        {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ENVELOPE_KINDS.map((kind) => (
+                        <SelectItem key={kind.value} value={kind.value}>
+                          {t(kind.labelKey)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 {envelopeKind === "telegram_group" && (
                   <Field data-invalid={fieldErrors.inviteCode !== undefined && fieldErrors.inviteCode !== null}>
@@ -480,14 +481,16 @@ function MailboxPage() {
                     {t("ProfileSettings.Invitation sent successfully")}
                   </p>
                 )}
-                <Button onClick={handleSend} disabled={isSending}>
-                  {isSending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  {t("ProfileSettings.Send In-mail")}
-                </Button>
+                <div className="flex justify-end">
+                  <Button onClick={handleSend} disabled={isSending}>
+                    {isSending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    {t("ProfileSettings.Send In-mail")}
+                  </Button>
+                </div>
               </div>
             )}
           </Card>
@@ -537,18 +540,19 @@ function MailboxPage() {
                         <p className={styles.envelopeDescription}>{envelope.description}</p>
                       )}
                       <div className={styles.envelopeMeta}>
+                        <span>{formatDateString(envelope.created_at, locale)}</span>
+                        <span className="mx-1">&middot;</span>
+                        <span>{t("Profile.From")}:</span>
+                        <SenderInfo envelope={envelope} locale={locale} />
                         {maintainerProfiles.length > 1 && (
                           <>
+                            <span className="mx-1">&middot;</span>
+                            <span>{t("Profile.To")}:</span>
                             <span className={styles.profileBadge}>
                               {envelope.owning_profile_title}
                             </span>
-                            <span className="mx-1">&middot;</span>
                           </>
                         )}
-                        <span>{t("Profile.From")}:</span>
-                        <SenderInfo envelope={envelope} locale={locale} />
-                        <span className="mx-1">&middot;</span>
-                        <span>{formatDateString(envelope.created_at, locale)}</span>
                       </div>
                     </div>
                     <div className={styles.envelopeActions}>

@@ -619,7 +619,8 @@
     "Failed to remove picture": "Afbeelding verwijderen mislukt",
     "Predefined Pages...": "Voorgedefinieerde pagina's...",
     "Predefined Pages": "Voorgedefinieerde pagina's",
-    "Control how predefined pages appear on your profile.": "Bepaal hoe voorgedefinieerde pagina's op je profiel worden weergegeven."
+    "Control how predefined pages appear on your profile.": "Bepaal hoe voorgedefinieerde pagina's op je profiel worden weergegeven.",
+    "To": "Aan"
   },
   "ProfileSettings": {
     "Send In-mail": "Bericht versturen",
@@ -634,7 +635,8 @@
     "Optional message text": "Optionele berichttekst",
     "Invitation sent successfully": "Uitnodiging succesvol verzonden",
     "Profile not found": "Profiel niet gevonden",
-    "Failed to send invitation": "Uitnodiging verzenden mislukt"
+    "Failed to send invitation": "Uitnodiging verzenden mislukt",
+    "Standard Message": "Standaardbericht"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

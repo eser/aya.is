@@ -619,7 +619,8 @@
     "Failed to remove picture": "Не удалось удалить фото",
     "Predefined Pages...": "Предустановленные страницы...",
     "Predefined Pages": "Предустановленные страницы",
-    "Control how predefined pages appear on your profile.": "Управляйте отображением предустановленных страниц в вашем профиле."
+    "Control how predefined pages appear on your profile.": "Управляйте отображением предустановленных страниц в вашем профиле.",
+    "To": "Кому"
   },
   "ProfileSettings": {
     "Send In-mail": "Отправить сообщение",
@@ -634,7 +635,8 @@
     "Optional message text": "Необязательный текст сообщения",
     "Invitation sent successfully": "Приглашение успешно отправлено",
     "Profile not found": "Профиль не найден",
-    "Failed to send invitation": "Не удалось отправить приглашение"
+    "Failed to send invitation": "Не удалось отправить приглашение",
+    "Standard Message": "Стандартное сообщение"
   },
   "ContentEditor": {
     "Edit Page": "Edit Page",

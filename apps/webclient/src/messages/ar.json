@@ -619,7 +619,8 @@
     "Failed to remove picture": "فشل في إزالة الصورة",
     "Predefined Pages...": "صفحات محددة مسبقاً...",
     "Predefined Pages": "صفحات محددة مسبقاً",
-    "Control how predefined pages appear on your profile.": "تحكم في كيفية ظهور الصفحات المحددة مسبقاً على ملفك الشخصي."
+    "Control how predefined pages appear on your profile.": "تحكم في كيفية ظهور الصفحات المحددة مسبقاً على ملفك الشخصي.",
+    "To": "إلى"
   },
   "ProfileSettings": {
     "Send In-mail": "إرسال رسالة",
@@ -634,7 +635,8 @@
     "Optional message text": "نص الرسالة الاختياري",
     "Invitation sent successfully": "تم إرسال الدعوة بنجاح",
     "Profile not found": "الملف الشخصي غير موجود",
-    "Failed to send invitation": "فشل إرسال الدعوة"
+    "Failed to send invitation": "فشل إرسال الدعوة",
+    "Standard Message": "رسالة عادية"
   },
   "ContentEditor": {
     "Edit Page": "تعديل الصفحة",

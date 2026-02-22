@@ -103,9 +103,6 @@ export function ProfileMenu(props: ProfileMenuProps) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleProfileClick}>
-          {t("Auth.My Profile")}
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigateToMain(`/${locale}/mailbox`)}>
           {t("Layout.Mailbox")}
           {user.total_pending_envelopes !== undefined && (
@@ -113,6 +110,10 @@ export function ProfileMenu(props: ProfileMenuProps) {
               ({user.total_pending_envelopes})
             </span>
           )}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleProfileClick}>
+          {t("Auth.My Profile")}
         </DropdownMenuItem>
         {accessibleProfiles.length > 0 && (
           <DropdownMenuSub>

@@ -23,10 +23,13 @@
 .filterBadge {
   @apply px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-colors;
   @apply border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30;
+
+  &.filterBadgeActive {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
 }
 
 .filterBadgeActive {
-  @apply bg-foreground text-background border-foreground;
 }
 
 .envelopeCard {

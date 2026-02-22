@@ -619,7 +619,8 @@
     "Failed to remove picture": "删除图片失败",
     "Predefined Pages...": "预定义页面...",
     "Predefined Pages": "预定义页面",
-    "Control how predefined pages appear on your profile.": "控制预定义页面在您个人资料上的显示方式。"
+    "Control how predefined pages appear on your profile.": "控制预定义页面在您个人资料上的显示方式。",
+    "To": "收件人"
   },
   "ProfileSettings": {
     "Send In-mail": "发送站内信",
@@ -634,7 +635,8 @@
     "Optional message text": "可选消息文本",
     "Invitation sent successfully": "邀请发送成功",
     "Profile not found": "未找到资料",
-    "Failed to send invitation": "发送邀请失败"
+    "Failed to send invitation": "发送邀请失败",
+    "Standard Message": "标准消息"
   },
   "ContentEditor": {
     "Edit Page": "编辑页面",
