@@ -466,6 +466,15 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			a.Logger,
 		)
 
+		// Register Telegram as an envelope notifier so recipients get a DM
+		// when a new envelope arrives in their mailbox.
+		envelopeNotifier := telegramadapter.NewEnvelopeNotifier(
+			a.TelegramClient,
+			a.TelegramService,
+			a.Logger,
+		)
+		a.ProfileEnvelopesService.RegisterNotifier(envelopeNotifier)
+
 		// Set up webhook or clear it for polling mode
 		if !a.Config.Telegram.UsePolling && a.Config.Telegram.WebhookURL != "" {
 			webhookErr := a.TelegramClient.SetWebhook(

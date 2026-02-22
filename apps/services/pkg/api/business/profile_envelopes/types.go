@@ -1,6 +1,9 @@
 package profile_envelopes
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // Envelope kinds (broad categories).
 const (
@@ -68,4 +71,22 @@ type CreateEnvelopeParams struct {
 	Title           string
 	Description     *string
 	Properties      any
+
+	// Notification context (optional, used for notifying the recipient).
+	SenderProfileTitle string
+	Locale             string
+}
+
+// EnvelopeNotifier is a port for sending notifications when envelopes are created.
+// Implementations are best-effort — notification failures must not affect envelope creation.
+type EnvelopeNotifier interface {
+	NotifyNewEnvelope(ctx context.Context, params *EnvelopeNotification)
+}
+
+// EnvelopeNotification contains the data needed to notify a recipient about a new envelope.
+type EnvelopeNotification struct {
+	TargetProfileID    string
+	EnvelopeTitle      string
+	SenderProfileTitle string
+	Locale             string
 }

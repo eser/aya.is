@@ -97,7 +97,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 			"POST /{locale}/profiles/{slug}/_envelopes",
 			AuthMiddleware(authService, userService),
 			func(ctx *httpfx.Context) httpfx.Result {
-				_, localeOk := validateLocale(ctx)
+				localeParam, localeOk := validateLocale(ctx)
 				if !localeOk {
 					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
 				}
@@ -202,13 +202,15 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 				envelope, createErr := envelopeService.CreateEnvelope(
 					ctx.Request.Context(),
 					&envelopes.CreateEnvelopeParams{
-						TargetProfileID: body.TargetProfileID,
-						SenderProfileID: &senderProfile.ID,
-						SenderUserID:    &user.ID,
-						Kind:            body.Kind,
-						Title:           body.Title,
-						Description:     descPtr,
-						Properties:      body.Properties,
+						TargetProfileID:    body.TargetProfileID,
+						SenderProfileID:    &senderProfile.ID,
+						SenderUserID:       &user.ID,
+						Kind:               body.Kind,
+						Title:              body.Title,
+						Description:        descPtr,
+						Properties:         body.Properties,
+						SenderProfileTitle: senderProfile.Title,
+						Locale:             localeParam,
 					},
 				)
 				if createErr != nil {

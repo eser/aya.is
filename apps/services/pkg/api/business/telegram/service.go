@@ -249,6 +249,19 @@ func (s *Service) UnlinkAccount(ctx context.Context, telegramUserID int64) error
 	return nil
 }
 
+// GetProfileTelegramLink returns the managed Telegram link for a profile, if one exists.
+func (s *Service) GetProfileTelegramLink(
+	ctx context.Context,
+	profileID string,
+) (*ProfileLinkInfo, error) {
+	link, err := s.repo.GetProfileLinkByProfileIDAndTelegram(ctx, profileID)
+	if err != nil {
+		return nil, ErrNotLinked
+	}
+
+	return link, nil
+}
+
 // GetProfileSlugByID resolves a profile ID to its slug.
 func (s *Service) GetProfileSlugByID(ctx context.Context, profileID string) (string, error) {
 	slug, err := s.repo.GetProfileSlugByID(ctx, profileID)
