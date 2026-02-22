@@ -96,7 +96,6 @@ func (a *mailboxAdapter) ListConversationsForProfile(
 			CreatedByProfileID: vars.ToStringPtr(row.CreatedByProfileID),
 			CreatedAt:          row.CreatedAt,
 			UnreadCount:        int(row.UnreadCount),
-			IsArchived:         row.IsArchived,
 		}
 
 		if row.UpdatedAt.Valid {

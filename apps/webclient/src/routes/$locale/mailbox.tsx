@@ -932,6 +932,22 @@ function MailboxPage() {
     return convDetail.conversation.participants;
   }, [convDetail]);
 
+  const viewerIsArchived = React.useMemo(() => {
+    if (convDetail === null || convDetail.conversation.participants === null || user === null) {
+      return false;
+    }
+    const individualSlug = user.individual_profile !== undefined && user.individual_profile !== null
+      ? user.individual_profile.slug
+      : null;
+    if (individualSlug === null) {
+      return false;
+    }
+    const viewerParticipant = convDetail.conversation.participants.find(
+      (p) => p.profile_slug === individualSlug,
+    );
+    return viewerParticipant !== undefined && viewerParticipant.is_archived;
+  }, [convDetail, user]);
+
   if (authLoading) {
     return (
       <PageLayout>
@@ -1130,7 +1146,7 @@ function MailboxPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="min-w-[200px]">
-                          {convDetail.conversation.is_archived ? (
+                          {viewerIsArchived ? (
                             <DropdownMenuItem onClick={handleUnarchive}>
                               <ArchiveRestore className="size-4 mr-2" />
                               {t("Mailbox.Unarchive conversation")}

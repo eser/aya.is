@@ -52,11 +52,18 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				var allConversations []*mailbox.Conversation
 
+				individualProfileID := ""
+				if user.IndividualProfileID != nil {
+					individualProfileID = *user.IndividualProfileID
+				}
+
 				seen := make(map[string]bool)
 
 				for _, profileID := range profileIDs {
+					// Fetch all conversations (both archived and non-archived) for each profile,
+					// then filter by the individual profile's archive status below.
 					convs, listErr := mailboxService.ListConversations(
-						ctx.Request.Context(), profileID, includeArchived, 50,
+						ctx.Request.Context(), profileID, true, 50,
 					)
 					if listErr != nil {
 						logger.ErrorContext(ctx.Request.Context(), "failed to list conversations",
@@ -79,6 +86,20 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 						)
 						if pErr == nil {
 							conv.Participants = participants
+						}
+
+						// Filter by the individual profile's archive status.
+						individualArchived := false
+						for _, p := range conv.Participants {
+							if p.ProfileID == individualProfileID {
+								individualArchived = p.IsArchived
+
+								break
+							}
+						}
+
+						if includeArchived != individualArchived {
+							continue
 						}
 
 						allConversations = append(allConversations, conv)
@@ -208,16 +229,14 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				conversationID := ctx.Request.PathValue("id")
 
-				_, profileIDs, err := resolveMailboxProfileIDs(ctx, userService, profileService)
+				user, _, err := resolveMailboxProfileIDs(ctx, userService, profileService)
 				if err != nil {
 					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
 				}
 
-				for _, profileID := range profileIDs {
-					_ = mailboxService.ArchiveConversation(
-						ctx.Request.Context(), conversationID, profileID,
-					)
-				}
+				_ = mailboxService.ArchiveConversation(
+					ctx.Request.Context(), conversationID, *user.IndividualProfileID,
+				)
 
 				return ctx.Results.JSON(map[string]any{"data": "ok"})
 			},
@@ -238,16 +257,14 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				conversationID := ctx.Request.PathValue("id")
 
-				_, profileIDs, err := resolveMailboxProfileIDs(ctx, userService, profileService)
+				user, _, err := resolveMailboxProfileIDs(ctx, userService, profileService)
 				if err != nil {
 					return ctx.Results.Unauthorized(httpfx.WithErrorMessage(err.Error()))
 				}
 
-				for _, profileID := range profileIDs {
-					_ = mailboxService.UnarchiveConversation(
-						ctx.Request.Context(), conversationID, profileID,
-					)
-				}
+				_ = mailboxService.UnarchiveConversation(
+					ctx.Request.Context(), conversationID, *user.IndividualProfileID,
+				)
 
 				return ctx.Results.JSON(map[string]any{"data": "ok"})
 			},

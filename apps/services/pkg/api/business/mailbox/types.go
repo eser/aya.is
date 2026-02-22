@@ -63,7 +63,6 @@ type Conversation struct {
 	Participants []*Participant   `json:"participants,omitempty"`
 	LastEnvelope *EnvelopePreview `json:"last_envelope,omitempty"`
 	UnreadCount  int              `json:"unread_count"`
-	IsArchived   bool             `json:"is_archived"`
 }
 
 // EnvelopePreview is a summary of the latest envelope in a conversation.
