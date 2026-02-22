@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { formatDateString } from "@/lib/date";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
@@ -353,26 +354,23 @@ function MailboxPage() {
         {/* Send In-mail Section — only when user has org/product profiles */}
         {sendableProfiles.length > 0 && (
           <Card className={styles.sendSection}>
-            <button
-              type="button"
-              className={styles.sendToggle}
-              onClick={() => setSendFormOpen(!sendFormOpen)}
-            >
-              <div className={styles.sendToggleLabel}>
-                <Send className={styles.sendToggleIcon} />
-                <h3 className={styles.sendToggleTitle}>
-                  {t("ProfileSettings.Send In-mail")}
-                </h3>
-              </div>
-              {sendFormOpen ? (
-                <ChevronUp className={styles.sendToggleIcon} />
-              ) : (
-                <ChevronDown className={styles.sendToggleIcon} />
-              )}
-            </button>
+            <Collapsible open={sendFormOpen} onOpenChange={setSendFormOpen}>
+              <CollapsibleTrigger className={styles.sendToggle}>
+                <div className={styles.sendToggleLabel}>
+                  <Send className={styles.sendToggleIcon} />
+                  <h3 className={styles.sendToggleTitle}>
+                    {t("ProfileSettings.Send In-mail")}
+                  </h3>
+                </div>
+                {sendFormOpen ? (
+                  <ChevronUp className={styles.sendToggleIcon} />
+                ) : (
+                  <ChevronDown className={styles.sendToggleIcon} />
+                )}
+              </CollapsibleTrigger>
 
-            {sendFormOpen && (
-              <div className={styles.sendForm}>
+              <CollapsibleContent>
+                <div className={styles.sendForm}>
                 <div className={styles.sendFormGrid}>
                   <Field>
                     <FieldLabel htmlFor="sendFromSlug">{t("Profile.From")}</FieldLabel>
@@ -492,7 +490,8 @@ function MailboxPage() {
                   </Button>
                 </div>
               </div>
-            )}
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
         )}
 
@@ -542,6 +541,12 @@ function MailboxPage() {
                       <div className={styles.envelopeMeta}>
                         <span>{formatDateString(envelope.created_at, locale)}</span>
                         <span className="mx-1">&middot;</span>
+                        <span className={styles.profileBadge}>
+                          {groupName !== undefined && groupName !== ""
+                            ? t("ProfileSettings.Telegram Group Invite")
+                            : t("ProfileSettings.Standard Message")}
+                        </span>
+                        <span className="mx-1">&middot;</span>
                         <span>{t("Profile.From")}:</span>
                         <SenderInfo envelope={envelope} locale={locale} />
                         {maintainerProfiles.length > 1 && (
@@ -583,7 +588,7 @@ function MailboxPage() {
                           </Button>
                         </>
                       )}
-                      {isAccepted && envelope.kind === "invitation" && (
+                      {isAccepted && groupName !== undefined && groupName !== "" && (
                         <span className="text-xs text-muted-foreground">
                           {t("Profile.Use /invitations in bot to redeem")}
                         </span>
