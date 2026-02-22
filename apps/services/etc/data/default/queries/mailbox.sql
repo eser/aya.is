@@ -81,7 +81,7 @@ FROM "mailbox_conversation" mc
     ON mp.conversation_id = mc.id
     AND mp.profile_id = sqlc.arg(profile_id)
     AND mp.left_at IS NULL
-WHERE (sqlc.arg(include_archived)::BOOLEAN = TRUE OR mp.is_archived = FALSE)
+WHERE mp.is_archived = sqlc.arg(include_archived)::BOOLEAN
 ORDER BY last_envelope_at DESC NULLS LAST
 LIMIT sqlc.arg(limit_count);
 

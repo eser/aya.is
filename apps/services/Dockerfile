@@ -64,17 +64,20 @@ FROM base AS production-builder
 # Copy services module files for dependency download
 COPY apps/services/go.mod apps/services/go.sum ./apps/services/
 
-# Download dependencies
+# Download dependencies (cached across builds)
 WORKDIR /srv/monorepo/apps/services
-RUN go mod download && go mod verify
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download && go mod verify
 
 # Copy the rest of the services application
 WORKDIR /srv/monorepo
 COPY ./apps/services/ ./apps/services/
 
-# Build the application
+# Build the application (with module + build cache)
 WORKDIR /srv/monorepo/apps/services
-RUN go build ./cmd/serve/
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go build -trimpath -ldflags="-s -w" ./cmd/serve/
 
 
 # Production image, copy all the files and run next
@@ -83,6 +86,7 @@ FROM upstream-runner AS production-runner
 # Install base system dependencies
 RUN apt-get update && \
   apt-get -y install --no-install-recommends curl ca-certificates && \
+  rm -rf /var/lib/apt/lists/* && \
   groupadd -r nonroot && \
   useradd -r -g nonroot nonroot
 

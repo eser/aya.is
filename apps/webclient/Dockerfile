@@ -11,9 +11,9 @@
 FROM denoland/deno:2.6.5 AS base
 
 # ------------------------------------------------------------
-# Development stage (with hot reload)
+# Dependencies stage (shared by development and builder)
 # ------------------------------------------------------------
-FROM base AS development
+FROM base AS deps
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
   ca-certificates \
@@ -26,15 +26,22 @@ WORKDIR /monorepo
 COPY ./deno.json ./
 
 # Install root dependencies (if any)
-RUN deno install
+RUN --mount=type=cache,target=/root/.cache/deno \
+    deno install
 
 WORKDIR /monorepo/apps/webclient
 
 # Copy webclient package files (no lock file - let Deno resolve all transitive deps)
 COPY ./apps/webclient/package.json ./apps/webclient/deno.json ./
 
-# Install webclient dependencies
-RUN deno install
+# Install webclient dependencies (cached across builds)
+RUN --mount=type=cache,target=/root/.cache/deno \
+    deno install
+
+# ------------------------------------------------------------
+# Development stage (with hot reload)
+# ------------------------------------------------------------
+FROM deps AS development
 
 # Copy source code
 COPY ./apps/webclient/ ./
@@ -47,34 +54,14 @@ CMD ["deno", "task", "dev"]
 # ------------------------------------------------------------
 # Builder stage
 # ------------------------------------------------------------
-FROM base AS builder
-
-RUN apt-get update && apt-get -y install --no-install-recommends \
-  ca-certificates \
-  curl \
-  && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /monorepo
-
-# Copy root deno.json (shared lint/fmt settings)
-COPY ./deno.json ./
-
-# Install root dependencies (if any)
-RUN deno install
-
-WORKDIR /monorepo/apps/webclient
-
-# Copy webclient package files
-COPY ./apps/webclient/package.json ./apps/webclient/deno.json ./
-
-# Install webclient dependencies
-RUN deno install
+FROM deps AS builder
 
 # Copy source code
 COPY ./apps/webclient/ ./
 
-# Build the application
-RUN deno task build
+# Build the application (with Deno cache)
+RUN --mount=type=cache,target=/root/.cache/deno \
+    deno task build
 
 # ------------------------------------------------------------
 # Production runner (Deno)
@@ -86,7 +73,7 @@ USER deno
 
 WORKDIR /app
 
-# Copy built output from builder (self-contained, no package.json needed)
+# Copy built output from builder (self-contained Nitro server)
 COPY --from=builder /monorepo/apps/webclient/.output ./
 
 EXPOSE 3000
@@ -94,4 +81,4 @@ ENV PORT=3000
 ENV HOST=::
 
 # Start the Nitro server directly
-CMD ["deno", "task", "start"]
+CMD ["deno", "run", "-A", "server/index.mjs"]

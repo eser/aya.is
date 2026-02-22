@@ -167,9 +167,11 @@ function EnvelopeBubble(props: {
   envelope: MailboxEnvelope;
   locale: string;
   isFirstEnvelope: boolean;
+  firstEnvelopeAccepted: boolean;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onReaction: (envelopeId: string, emoji: string) => void;
+  onRemoveReaction: (envelopeId: string, emoji: string) => void;
   actionInProgress: string | null;
 }) {
   const { t } = useTranslation();
@@ -179,8 +181,10 @@ function EnvelopeBubble(props: {
   const isInvitationLike = env.kind === "invitation" || env.kind === "badge" || env.kind === "pass";
   // Show accept/reject: always for invitation-like kinds, or for the first envelope in a conversation
   const showActions = isPending && (isInvitationLike || props.isFirstEnvelope);
-  // Reactions only on accepted or redeemed envelopes
-  const allowReactions = env.status === "accepted" || env.status === "redeemed";
+  // Follow-up messages in an accepted conversation are implicitly accepted — hide the badge
+  const hideStatusBadge = !props.isFirstEnvelope && !isInvitationLike && props.firstEnvelopeAccepted;
+  // Reactions allowed on accepted/redeemed envelopes, or on follow-up messages in accepted conversations
+  const allowReactions = env.status === "accepted" || env.status === "redeemed" || hideStatusBadge;
 
   const groupName = env.properties !== null && env.properties !== undefined
     ? (env.properties as Record<string, unknown>).group_name as string | undefined
@@ -193,9 +197,11 @@ function EnvelopeBubble(props: {
           <span className={styles.messageTitle}>
             {env.message}
           </span>
-          <Badge variant="outline" className={statusColors[env.status]}>
-            {t(`Profile.EnvelopeStatus.${env.status}`)}
-          </Badge>
+          {!hideStatusBadge && (
+            <Badge variant="outline" className={statusColors[env.status]}>
+              {t(`Profile.EnvelopeStatus.${env.status}`)}
+            </Badge>
+          )}
         </div>
         {groupName !== undefined && groupName !== "" && (
           <p className={styles.messageGroup}>{groupName}</p>
@@ -223,9 +229,15 @@ function EnvelopeBubble(props: {
           <div className={styles.reactionsRow}>
             {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
               env.reactions.map((reaction) => (
-                <span key={reaction.id} className={styles.reactionChip}>
+                <button
+                  key={reaction.id}
+                  type="button"
+                  className={styles.reactionChip}
+                  onClick={() => props.onRemoveReaction(env.id, reaction.emoji)}
+                  title={reaction.profile_title ?? reaction.profile_slug ?? ""}
+                >
                   {reaction.emoji}
-                </span>
+                </button>
               ))
             )}
             <Popover>
@@ -747,6 +759,13 @@ function MailboxPage() {
     }
   };
 
+  const handleRemoveReaction = async (envelopeId: string, emoji: string) => {
+    await backend.removeReaction(locale, envelopeId, emoji);
+    if (selectedConvId !== null) {
+      await loadConversationDetail(selectedConvId);
+    }
+  };
+
   const handleArchive = async () => {
     if (selectedConvId === null) {
       return;
@@ -1023,9 +1042,11 @@ function MailboxPage() {
                         envelope={envelope}
                         locale={locale}
                         isFirstEnvelope={index === 0}
+                        firstEnvelopeAccepted={convDetail.envelopes.length > 0 && convDetail.envelopes[0].status === "accepted"}
                         onAccept={handleAccept}
                         onReject={promptReject}
                         onReaction={handleReaction}
+                        onRemoveReaction={handleRemoveReaction}
                         actionInProgress={actionInProgress}
                       />
                     ))}

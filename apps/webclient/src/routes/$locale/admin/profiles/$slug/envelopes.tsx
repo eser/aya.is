@@ -18,6 +18,7 @@ import {
 import { Send, Loader2, CheckCircle } from "lucide-react";
 
 const ENVELOPE_KINDS = [
+  { value: "message", labelKey: "ProfileSettings.Standard Message" },
   { value: "telegram_group", labelKey: "ProfileSettings.Telegram Group Invite" },
 ] as const;
 
@@ -35,7 +36,7 @@ function AdminProfileEnvelopes() {
   const params = Route.useParams();
   const { profile } = Route.useLoaderData();
 
-  const [envelopeKind, setEnvelopeKind] = useState("telegram_group");
+  const [envelopeKind, setEnvelopeKind] = useState("message");
   const [targetSlug, setTargetSlug] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [conversationTitle, setConversationTitle] = useState("");
@@ -57,9 +58,6 @@ function AdminProfileEnvelopes() {
     if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
       errors.inviteCode = t("Common.This field is required");
     }
-    if (conversationTitle.trim() === "") {
-      errors.conversationTitle = t("Common.This field is required");
-    }
     if (message.trim() === "") {
       errors.message = t("Common.This field is required");
     }
@@ -74,36 +72,58 @@ function AdminProfileEnvelopes() {
     setSendSuccess(false);
 
     try {
-      const targetProfile = await backend.getProfile(params.locale, targetSlug.trim());
-      if (targetProfile === null) {
-        setSendError(t("ProfileSettings.Profile not found"));
-        setIsSending(false);
-        return;
-      }
+      if (envelopeKind === "message") {
+        // Standard message — use the mailbox API
+        const result = await backend.sendMailboxMessage({
+          locale: params.locale,
+          senderProfileSlug: params.slug,
+          targetProfileSlug: targetSlug.trim(),
+          conversationTitle: conversationTitle.trim() !== "" ? conversationTitle.trim() : undefined,
+          message: message.trim(),
+        });
 
-      const result = await backend.sendProfileEnvelope({
-        locale: params.locale,
-        senderSlug: params.slug,
-        targetProfileId: targetProfile.id,
-        kind: "invitation",
-        conversationTitle: conversationTitle.trim(),
-        message: message.trim(),
-        inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
-      });
-
-      if (result !== null) {
-        setTargetSlug("");
-        setInviteCode("");
-        setConversationTitle("");
-        setMessage("");
-        setSendSuccess(true);
-        setTimeout(() => setSendSuccess(false), 3000);
+        if (result !== null) {
+          setTargetSlug("");
+          setConversationTitle("");
+          setMessage("");
+          setSendSuccess(true);
+          setTimeout(() => setSendSuccess(false), 3000);
+        } else {
+          setSendError(t("Mailbox.Failed to send"));
+        }
       } else {
-        setSendError(t("ProfileSettings.Failed to send invitation"));
+        // Invitation kinds — resolve target profile, use profile envelope API
+        const targetProfile = await backend.getProfile(params.locale, targetSlug.trim());
+        if (targetProfile === null) {
+          setSendError(t("ProfileSettings.Profile not found"));
+          setIsSending(false);
+          return;
+        }
+
+        const result = await backend.sendProfileEnvelope({
+          locale: params.locale,
+          senderSlug: params.slug,
+          targetProfileId: targetProfile.id,
+          kind: "invitation",
+          conversationTitle: conversationTitle.trim() !== "" ? conversationTitle.trim() : undefined,
+          message: message.trim(),
+          inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
+        });
+
+        if (result !== null) {
+          setTargetSlug("");
+          setInviteCode("");
+          setConversationTitle("");
+          setMessage("");
+          setSendSuccess(true);
+          setTimeout(() => setSendSuccess(false), 3000);
+        } else {
+          setSendError(t("Mailbox.Failed to send"));
+        }
       }
     } catch (error) {
       setSendError(
-        error instanceof Error ? error.message : t("ProfileSettings.Failed to send invitation"),
+        error instanceof Error ? error.message : t("Mailbox.Failed to send"),
       );
     } finally {
       setIsSending(false);
@@ -179,21 +199,15 @@ function AdminProfileEnvelopes() {
               )}
             </Field>
           )}
-          <Field data-invalid={fieldErrors.conversationTitle !== undefined && fieldErrors.conversationTitle !== null}>
+          <Field>
             <FieldLabel htmlFor="conversationTitle">{t("Common.Title")}</FieldLabel>
             <Input
               id="conversationTitle"
               type="text"
-              placeholder={t("ProfileSettings.Title for the message")}
+              placeholder={t("Mailbox.Title (optional)")}
               value={conversationTitle}
-              onChange={(e) => {
-                setConversationTitle(e.target.value);
-                setFieldErrors((prev) => ({ ...prev, conversationTitle: null }));
-              }}
+              onChange={(e) => setConversationTitle(e.target.value)}
             />
-            {fieldErrors.conversationTitle !== null && fieldErrors.conversationTitle !== undefined && (
-              <FieldError>{fieldErrors.conversationTitle}</FieldError>
-            )}
           </Field>
           <Field data-invalid={fieldErrors.message !== undefined && fieldErrors.message !== null}>
             <FieldLabel htmlFor="message">{t("Mailbox.Message")}</FieldLabel>
@@ -217,7 +231,7 @@ function AdminProfileEnvelopes() {
           {sendSuccess && (
             <p className="text-sm text-green-600 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              {t("ProfileSettings.Invitation sent successfully")}
+              {t("Mailbox.Sent successfully")}
             </p>
           )}
           <Button onClick={handleSend} disabled={isSending}>

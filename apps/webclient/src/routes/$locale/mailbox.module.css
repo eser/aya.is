@@ -38,15 +38,14 @@
 }
 
 .sidebarHeader {
-  @apply p-3 space-y-2 border-b border-border;
+  @apply p-3 border-b border-border flex items-center gap-2;
 }
 
 .filterTabs {
-  @apply w-full;
 }
 
 .sidebarActions {
-  @apply flex items-center gap-2 justify-end;
+  @apply flex items-center gap-2 shrink-0;
 }
 
 .conversationList {
@@ -206,7 +205,11 @@
 }
 
 .reactionChip {
-  @apply text-sm px-1.5 py-0.5 rounded-full bg-muted;
+  @apply text-sm px-1.5 py-0.5 rounded-full bg-muted cursor-pointer border-0;
+
+  &:hover {
+    @apply bg-muted/70;
+  }
 }
 
 .reactionButton {

@@ -1928,7 +1928,7 @@ type Querier interface {
 	//      ON mp.conversation_id = mc.id
 	//      AND mp.profile_id = $1
 	//      AND mp.left_at IS NULL
-	//  WHERE ($2::BOOLEAN = TRUE OR mp.is_archived = FALSE)
+	//  WHERE mp.is_archived = $2::BOOLEAN
 	//  ORDER BY last_envelope_at DESC NULLS LAST
 	//  LIMIT $3
 	ListConversationsForProfile(ctx context.Context, arg ListConversationsForProfileParams) ([]*ListConversationsForProfileRow, error)

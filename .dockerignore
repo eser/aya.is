@@ -31,3 +31,17 @@
 # Config files not needed in build
 **/.pre-commit-config.yaml
 **/LICENSE
+
+# Documentation (not needed in builds)
+**/*.md
+
+# Test files
+**/*_test.go
+**/testdata
+
+# Development tooling
+.claude/
+apps/services/tmp/
+**/.air.toml
+**/.golangci.yaml
+**/Makefile
