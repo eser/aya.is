@@ -907,7 +907,8 @@
     "Send": "Gönder",
     "Type a message title...": "İleti başlığı yazın...",
     "Add details (optional)": "Detay ekleyin (isteğe bağlı)",
-    "Profile slug": "Profil slug",
+    "Target profile slug placeholder": "hedef-profil-slug",
+    "Target profile slug description": "Alıcı profilin, profil URL'sinde görünen benzersiz tanımlayıcısı (slug).",
     "Message title": "İleti başlığı"
   }
 }

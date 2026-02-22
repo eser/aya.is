@@ -8,6 +8,7 @@ import {
   X,
   Send,
   Loader2,
+  CheckCircle,
   ChevronLeft,
   Archive,
   ArchiveRestore,
@@ -29,7 +30,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
@@ -351,6 +359,11 @@ function ComposeArea(props: {
 }
 
 // --- New Conversation Form ---
+const ENVELOPE_KINDS = [
+  { value: "message", labelKey: "ProfileSettings.Standard Message" },
+  { value: "telegram_group", labelKey: "ProfileSettings.Telegram Group Invite" },
+] as const;
+
 function NewConversationForm(props: {
   locale: string;
   senderProfiles: Array<{ slug: string; title: string; kind: string }>;
@@ -358,7 +371,9 @@ function NewConversationForm(props: {
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const [envelopeKind, setEnvelopeKind] = React.useState("message");
   const [targetSlug, setTargetSlug] = React.useState("");
+  const [inviteCode, setInviteCode] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [senderSlug, setSenderSlug] = React.useState(() => {
@@ -368,11 +383,15 @@ function NewConversationForm(props: {
   const [isSending, setIsSending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string | null>>({});
+  const [sendSuccess, setSendSuccess] = React.useState(false);
 
   const handleSend = async () => {
     const errors: Record<string, string | null> = {};
     if (targetSlug.trim() === "") {
       errors.targetSlug = t("Common.This field is required");
+    }
+    if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
+      errors.inviteCode = t("Common.This field is required");
     }
     if (title.trim() === "") {
       errors.title = t("Common.This field is required");
@@ -384,22 +403,70 @@ function NewConversationForm(props: {
 
     setIsSending(true);
     setError(null);
+    setSendSuccess(false);
 
-    const result = await backend.sendMailboxMessage({
-      locale: props.locale,
-      senderProfileSlug: senderSlug,
-      targetProfileSlug: targetSlug.trim(),
-      title: title.trim(),
-      description: description.trim() !== "" ? description.trim() : undefined,
-    });
+    try {
+      if (envelopeKind === "message") {
+        const result = await backend.sendMailboxMessage({
+          locale: props.locale,
+          senderProfileSlug: senderSlug,
+          targetProfileSlug: targetSlug.trim(),
+          title: title.trim(),
+          description: description.trim() !== "" ? description.trim() : undefined,
+        });
 
-    if (result !== null) {
-      props.onConversationCreated();
-    } else {
-      setError(t("ProfileSettings.Failed to send invitation"));
+        if (result !== null) {
+          setTargetSlug("");
+          setTitle("");
+          setDescription("");
+          setSendSuccess(true);
+          setTimeout(() => {
+            setSendSuccess(false);
+            props.onConversationCreated();
+          }, 1500);
+        } else {
+          setError(t("ProfileSettings.Failed to send invitation"));
+        }
+      } else {
+        // For invitation kinds, resolve target profile then use profile envelope API.
+        const targetProfile = await backend.getProfile(props.locale, targetSlug.trim());
+        if (targetProfile === null) {
+          setError(t("ProfileSettings.Profile not found"));
+          setIsSending(false);
+          return;
+        }
+
+        const result = await backend.sendProfileEnvelope({
+          locale: props.locale,
+          senderSlug,
+          targetProfileId: targetProfile.id,
+          kind: "invitation",
+          title: title.trim(),
+          description: description.trim() !== "" ? description.trim() : undefined,
+          inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
+        });
+
+        if (result !== null) {
+          setTargetSlug("");
+          setInviteCode("");
+          setTitle("");
+          setDescription("");
+          setSendSuccess(true);
+          setTimeout(() => {
+            setSendSuccess(false);
+            props.onConversationCreated();
+          }, 1500);
+        } else {
+          setError(t("ProfileSettings.Failed to send invitation"));
+        }
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : t("ProfileSettings.Failed to send invitation"),
+      );
+    } finally {
+      setIsSending(false);
     }
-
-    setIsSending(false);
   };
 
   return (
@@ -412,36 +479,78 @@ function NewConversationForm(props: {
         <h3 className={styles.newConversationTitle}>{t("Mailbox.New Message")}</h3>
       </div>
       <div className={styles.newConversationFields}>
-        {props.senderProfiles.length > 1 && (
+        <div className="grid grid-cols-2 gap-4">
           <Field>
             <FieldLabel htmlFor="compose-from">{t("Profile.From")}</FieldLabel>
-            <select
-              id="compose-from"
-              className={styles.nativeSelect}
-              value={senderSlug}
-              onChange={(e) => setSenderSlug(e.target.value)}
-            >
-              {props.senderProfiles.map((p) => (
-                <option key={p.slug} value={p.slug}>{p.title}</option>
-              ))}
-            </select>
+            <Select value={senderSlug} onValueChange={setSenderSlug}>
+              <SelectTrigger id="compose-from">
+                <SelectValue>
+                  {props.senderProfiles.find((p) => p.slug === senderSlug)?.title ?? senderSlug}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {props.senderProfiles.map((p) => (
+                  <SelectItem key={p.slug} value={p.slug}>
+                    {p.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
-        )}
+          <Field>
+            <FieldLabel htmlFor="compose-kind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
+            <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
+              <SelectTrigger id="compose-kind">
+                <SelectValue>
+                  {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {ENVELOPE_KINDS.map((kind) => (
+                  <SelectItem key={kind.value} value={kind.value}>
+                    {t(kind.labelKey)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </div>
         <Field data-invalid={fieldErrors.targetSlug !== undefined && fieldErrors.targetSlug !== null}>
           <FieldLabel htmlFor="compose-to">{t("Profile.To")}</FieldLabel>
           <Input
             id="compose-to"
-            placeholder={t("Mailbox.Profile slug")}
+            placeholder={t("Mailbox.Target profile slug placeholder")}
             value={targetSlug}
             onChange={(e) => {
               setTargetSlug(e.target.value);
               setFieldErrors((prev) => ({ ...prev, targetSlug: null }));
             }}
           />
+          <FieldDescription>{t("Mailbox.Target profile slug description")}</FieldDescription>
           {fieldErrors.targetSlug !== null && fieldErrors.targetSlug !== undefined && (
             <FieldError>{fieldErrors.targetSlug}</FieldError>
           )}
         </Field>
+        {envelopeKind === "telegram_group" && (
+          <Field data-invalid={fieldErrors.inviteCode !== undefined && fieldErrors.inviteCode !== null}>
+            <FieldLabel htmlFor="compose-invite-code">{t("ProfileSettings.Invite Code")}</FieldLabel>
+            <Input
+              id="compose-invite-code"
+              placeholder="ABC123"
+              value={inviteCode}
+              onChange={(e) => {
+                setInviteCode(e.target.value.toUpperCase());
+                setFieldErrors((prev) => ({ ...prev, inviteCode: null }));
+              }}
+            />
+            <FieldDescription>
+              {t("ProfileSettings.Use /invite in a Telegram group to get a code")}
+            </FieldDescription>
+            {fieldErrors.inviteCode !== null && fieldErrors.inviteCode !== undefined && (
+              <FieldError>{fieldErrors.inviteCode}</FieldError>
+            )}
+          </Field>
+        )}
         <Field data-invalid={fieldErrors.title !== undefined && fieldErrors.title !== null}>
           <FieldLabel htmlFor="compose-title">{t("Common.Title")}</FieldLabel>
           <Input
@@ -468,6 +577,12 @@ function NewConversationForm(props: {
           />
         </Field>
         {error !== null && <p className="text-sm text-destructive">{error}</p>}
+        {sendSuccess && (
+          <p className="text-sm text-green-600 flex items-center gap-2">
+            <CheckCircle className="size-4" />
+            {t("ProfileSettings.Invitation sent successfully")}
+          </p>
+        )}
         <div className="flex justify-end">
           <Button onClick={handleSend} disabled={isSending}>
             {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}

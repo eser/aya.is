@@ -259,10 +259,6 @@
   @apply space-y-4;
 }
 
-.nativeSelect {
-  @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background;
-}
-
 /* Empty State */
 .emptyState {
   @apply text-center py-12;

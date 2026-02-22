@@ -50,6 +50,8 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				var allConversations []*mailbox.Conversation
 
+				seen := make(map[string]bool)
+
 				for _, profileID := range profileIDs {
 					convs, listErr := mailboxService.ListConversations(
 						ctx.Request.Context(), profileID, includeArchived, 50,
@@ -62,17 +64,23 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 						continue
 					}
 
-					// Populate all participants for each conversation.
 					for _, conv := range convs {
+						if seen[conv.ID] {
+							continue
+						}
+
+						seen[conv.ID] = true
+
+						// Populate all participants for each conversation.
 						participants, pErr := mailboxService.GetConversationParticipants(
 							ctx.Request.Context(), conv.ID,
 						)
 						if pErr == nil {
 							conv.Participants = participants
 						}
-					}
 
-					allConversations = append(allConversations, convs...)
+						allConversations = append(allConversations, conv)
+					}
 				}
 
 				return ctx.Results.JSON(map[string]any{"data": allConversations})
