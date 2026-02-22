@@ -214,7 +214,7 @@
 }
 
 .reactionChipStatic {
-  @apply text-sm px-1.5 py-0.5 rounded-full bg-muted cursor-default;
+  @apply text-sm px-1.5 py-0.5 rounded-full bg-muted cursor-default border-0 appearance-none;
 }
 
 .reactionButton {

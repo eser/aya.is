@@ -286,9 +286,9 @@ function EnvelopeBubble(props: {
                   return (
                     <Tooltip key={reaction.id}>
                       <TooltipTrigger asChild>
-                        <span className={styles.reactionChipStatic}>
+                        <button type="button" className={styles.reactionChipStatic}>
                           {reaction.emoji}
-                        </span>
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent>
                         {ownerName}
@@ -699,6 +699,7 @@ function MailboxPage() {
 
   // Ref for auto-scrolling message thread to bottom
   const messageThreadRef = React.useRef<HTMLDivElement>(null);
+  const shouldScrollToBottom = React.useRef(false);
 
   // Maintainer+ profiles
   const maintainerProfiles = React.useMemo(() => {
@@ -806,15 +807,17 @@ function MailboxPage() {
     }
   }, [selectedConvId, loadConversationDetail]);
 
-  // Auto-scroll message thread to bottom when detail loads or messages change
+  // Auto-scroll message thread to bottom only on conversation switch or after sending
   React.useEffect(() => {
-    if (convDetail !== null && messageThreadRef.current !== null) {
+    if (shouldScrollToBottom.current && convDetail !== null && messageThreadRef.current !== null) {
       messageThreadRef.current.scrollTop = messageThreadRef.current.scrollHeight;
+      shouldScrollToBottom.current = false;
     }
   }, [convDetail]);
 
   // Handlers
   const handleSelectConversation = (convId: string) => {
+    shouldScrollToBottom.current = true;
     setSelectedConvId(convId);
     setShowNewMessage(false);
   };
@@ -901,6 +904,7 @@ function MailboxPage() {
   };
 
   const handleMessageSent = async () => {
+    shouldScrollToBottom.current = true;
     if (selectedConvId !== null) {
       await refreshConversationDetail(selectedConvId);
     }
