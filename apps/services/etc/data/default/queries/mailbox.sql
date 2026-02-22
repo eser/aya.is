@@ -300,6 +300,29 @@ WHERE mr.envelope_id = sqlc.arg(envelope_id)
 ORDER BY mr.created_at;
 
 -- ============================================================
+-- Hard delete (admin only)
+-- ============================================================
+
+-- name: DeleteReactionsByConversation :exec
+DELETE FROM "mailbox_reaction"
+WHERE envelope_id IN (
+  SELECT id FROM "mailbox_envelope"
+  WHERE conversation_id = sqlc.arg(conversation_id)
+);
+
+-- name: DeleteEnvelopesByConversation :exec
+DELETE FROM "mailbox_envelope"
+WHERE conversation_id = sqlc.arg(conversation_id);
+
+-- name: DeleteParticipantsByConversation :exec
+DELETE FROM "mailbox_participant"
+WHERE conversation_id = sqlc.arg(conversation_id);
+
+-- name: DeleteConversation :exec
+DELETE FROM "mailbox_conversation"
+WHERE id = sqlc.arg(id);
+
+-- ============================================================
 -- Aggregate counts
 -- ============================================================
 

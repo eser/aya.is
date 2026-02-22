@@ -614,17 +614,32 @@ type Querier interface {
 	//  WHERE
 	//    session_id = $1
 	DeleteAllSessionPreferences(ctx context.Context, arg DeleteAllSessionPreferencesParams) error
+	//DeleteConversation
+	//
+	//  DELETE FROM "mailbox_conversation"
+	//  WHERE id = $1
+	DeleteConversation(ctx context.Context, arg DeleteConversationParams) error
 	//DeleteCustomDomain
 	//
 	//  DELETE FROM "profile_custom_domain"
 	//  WHERE id = $1
 	DeleteCustomDomain(ctx context.Context, arg DeleteCustomDomainParams) (int64, error)
+	//DeleteEnvelopesByConversation
+	//
+	//  DELETE FROM "mailbox_envelope"
+	//  WHERE conversation_id = $1
+	DeleteEnvelopesByConversation(ctx context.Context, arg DeleteEnvelopesByConversationParams) error
 	//DeleteExpiredPOWChallenges
 	//
 	//  DELETE FROM protection_pow_challenge
 	//  WHERE
 	//    expires_at < NOW()
 	DeleteExpiredPOWChallenges(ctx context.Context) error
+	//DeleteParticipantsByConversation
+	//
+	//  DELETE FROM "mailbox_participant"
+	//  WHERE conversation_id = $1
+	DeleteParticipantsByConversation(ctx context.Context, arg DeleteParticipantsByConversationParams) error
 	//DeleteProfileLink
 	//
 	//  UPDATE "profile_link"
@@ -660,6 +675,17 @@ type Querier interface {
 	//  WHERE question_id = $1
 	//    AND user_id = $2
 	DeleteProfileQuestionVote(ctx context.Context, arg DeleteProfileQuestionVoteParams) error
+	// ============================================================
+	// Hard delete (admin only)
+	// ============================================================
+	//
+	//
+	//  DELETE FROM "mailbox_reaction"
+	//  WHERE envelope_id IN (
+	//    SELECT id FROM "mailbox_envelope"
+	//    WHERE conversation_id = $1
+	//  )
+	DeleteReactionsByConversation(ctx context.Context, arg DeleteReactionsByConversationParams) error
 	//DeleteSessionPreference
 	//
 	//  DELETE FROM session_preference

@@ -16,6 +16,7 @@ import {
   Inbox,
   SmilePlus,
   Ellipsis,
+  Trash2,
 } from "lucide-react";
 import {
   backend,
@@ -166,6 +167,7 @@ function ConversationRow(props: {
 function EnvelopeBubble(props: {
   envelope: MailboxEnvelope;
   locale: string;
+  conversationKind: string;
   isFirstEnvelope: boolean;
   firstEnvelopeAccepted: boolean;
   onAccept: (id: string) => void;
@@ -183,18 +185,32 @@ function EnvelopeBubble(props: {
   const showActions = isPending && (isInvitationLike || props.isFirstEnvelope);
   // Follow-up messages in an accepted conversation are implicitly accepted — hide the badge
   const hideStatusBadge = !props.isFirstEnvelope && !isInvitationLike && props.firstEnvelopeAccepted;
-  // Reactions allowed on accepted/redeemed envelopes, or on follow-up messages in accepted conversations
-  const allowReactions = env.status === "accepted" || env.status === "redeemed" || hideStatusBadge;
+  // Reactions allowed on accepted/redeemed envelopes in direct conversations only (not system)
+  const allowReactions = props.conversationKind !== "system"
+    && (env.status === "accepted" || env.status === "redeemed" || hideStatusBadge);
 
   const groupName = env.properties !== null && env.properties !== undefined
     ? (env.properties as Record<string, unknown>).group_name as string | undefined
     : undefined;
 
+  const senderName = env.sender_profile_title ?? env.sender_profile_slug ?? null;
+
   return (
     <div className={styles.messageBubble}>
       <div className={styles.messageContent}>
+        {/* Row 1: Sender: message ... [status] */}
         <div className={styles.messageHeader}>
           <span className={styles.messageTitle}>
+            {senderName !== null && senderName !== "" && (
+              <Link
+                to="/$locale/$slug"
+                params={{ locale: props.locale, slug: env.sender_profile_slug ?? "" }}
+                className="text-primary hover:underline"
+              >
+                {senderName}
+              </Link>
+            )}
+            {senderName !== null && senderName !== "" && ": "}
             {env.message}
           </span>
           {!hideStatusBadge && (
@@ -206,61 +222,49 @@ function EnvelopeBubble(props: {
         {groupName !== undefined && groupName !== "" && (
           <p className={styles.messageGroup}>{groupName}</p>
         )}
+
+        {/* Row 2: [reactions] [add reaction] ... [date] */}
         <div className={styles.messageFooter}>
+          {allowReactions && (
+            <div className={styles.reactionsRow}>
+              {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
+                env.reactions.map((reaction) => (
+                  <button
+                    key={reaction.id}
+                    type="button"
+                    className={styles.reactionChip}
+                    onClick={() => props.onRemoveReaction(env.id, reaction.emoji)}
+                    title={reaction.profile_title ?? reaction.profile_slug ?? ""}
+                  >
+                    {reaction.emoji}
+                  </button>
+                ))
+              )}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="ghost" className={styles.reactionButton}>
+                    <SmilePlus className="size-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className={styles.reactionPicker} align="start">
+                  {ALLOWED_REACTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      className={styles.reactionPickerItem}
+                      onClick={() => props.onReaction(env.id, emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
           <span className={styles.messageTime}>
             {formatDateString(env.created_at, props.locale)}
           </span>
-          {env.sender_profile_slug !== null && env.sender_profile_slug !== "" && (
-            <>
-              <span className="mx-1">&middot;</span>
-              <Link
-                to="/$locale/$slug"
-                params={{ locale: props.locale, slug: env.sender_profile_slug }}
-                className="text-xs text-primary hover:underline"
-              >
-                {env.sender_profile_title ?? env.sender_profile_slug}
-              </Link>
-            </>
-          )}
         </div>
-
-        {/* Reactions + Picker (inline) */}
-        {allowReactions && (
-          <div className={styles.reactionsRow}>
-            {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
-              env.reactions.map((reaction) => (
-                <button
-                  key={reaction.id}
-                  type="button"
-                  className={styles.reactionChip}
-                  onClick={() => props.onRemoveReaction(env.id, reaction.emoji)}
-                  title={reaction.profile_title ?? reaction.profile_slug ?? ""}
-                >
-                  {reaction.emoji}
-                </button>
-              ))
-            )}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button size="sm" variant="ghost" className={styles.reactionButton}>
-                  <SmilePlus className="size-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className={styles.reactionPicker} align="start">
-                {ALLOWED_REACTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    className={styles.reactionPickerItem}
-                    onClick={() => props.onReaction(env.id, emoji)}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
 
         {/* Accept/Reject Actions */}
         {showActions && (
@@ -643,6 +647,9 @@ function MailboxPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = React.useState(false);
   const [rejectTargetId, setRejectTargetId] = React.useState<string | null>(null);
 
+  // Remove conversation dialog (admin only)
+  const [removeDialogOpen, setRemoveDialogOpen] = React.useState(false);
+
   // Maintainer+ profiles
   const maintainerProfiles = React.useMemo(() => {
     if (user === null) {
@@ -786,6 +793,17 @@ function MailboxPage() {
     await loadConversations();
   };
 
+  const handleRemoveConversation = async () => {
+    if (selectedConvId === null) {
+      return;
+    }
+    await backend.removeConversation(locale, selectedConvId);
+    setSelectedConvId(null);
+    setConvDetail(null);
+    setRemoveDialogOpen(false);
+    await loadConversations();
+  };
+
   const handleMessageSent = async () => {
     if (selectedConvId !== null) {
       await loadConversationDetail(selectedConvId);
@@ -886,16 +904,15 @@ function MailboxPage() {
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
-                <div className={styles.sidebarActions}>
-                  <Button
-                    size="sm"
-                    variant={showArchived ? "secondary" : "ghost"}
-                    onClick={() => setShowArchived(!showArchived)}
-                    title={t("Mailbox.Show archived")}
-                  >
-                    <Archive className="size-4" />
-                  </Button>
-                </div>
+                <Button
+                  size="icon"
+                  variant={showArchived ? "secondary" : "ghost"}
+                  onClick={() => setShowArchived(!showArchived)}
+                  title={t("Mailbox.Show archived")}
+                  className="size-8 shrink-0"
+                >
+                  <Archive className="size-4" />
+                </Button>
               </div>
 
               <div className={styles.conversationList}>
@@ -1019,12 +1036,21 @@ function MailboxPage() {
                           {showArchived ? (
                             <DropdownMenuItem onClick={handleUnarchive}>
                               <ArchiveRestore className="size-4 mr-2" />
-                              {t("Mailbox.Unarchive")}
+                              {t("Mailbox.Unarchive conversation")}
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={handleArchive}>
                               <Archive className="size-4 mr-2" />
-                              {t("Mailbox.Archive")}
+                              {t("Mailbox.Archive conversation")}
+                            </DropdownMenuItem>
+                          )}
+                          {user !== null && user.kind === "admin" && (
+                            <DropdownMenuItem
+                              onClick={() => setRemoveDialogOpen(true)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="size-4 mr-2" />
+                              {t("Mailbox.Remove conversation")}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -1041,6 +1067,7 @@ function MailboxPage() {
                         key={envelope.id}
                         envelope={envelope}
                         locale={locale}
+                        conversationKind={convDetail.conversation.kind}
                         isFirstEnvelope={index === 0}
                         firstEnvelopeAccepted={convDetail.envelopes.length > 0 && convDetail.envelopes[0].status === "accepted"}
                         onAccept={handleAccept}
@@ -1085,6 +1112,26 @@ function MailboxPage() {
                 onClick={handleRejectConfirm}
               >
                 {t("Profile.Reject")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("Mailbox.Remove conversation")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("Mailbox.This will permanently delete this conversation and all its messages. This action cannot be undone.")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={handleRemoveConversation}
+              >
+                {t("Mailbox.Remove conversation")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

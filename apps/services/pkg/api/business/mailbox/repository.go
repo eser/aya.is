@@ -22,6 +22,7 @@ type Repository interface {
 		limit int,
 	) ([]*Conversation, error)
 	UpdateConversationTimestamp(ctx context.Context, id string) error
+	RemoveConversation(ctx context.Context, conversationID string) error
 
 	// Participants
 	AddParticipant(ctx context.Context, participant *Participant) error

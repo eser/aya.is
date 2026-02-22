@@ -126,6 +126,34 @@ func (a *mailboxAdapter) UpdateConversationTimestamp(ctx context.Context, id str
 	)
 }
 
+func (a *mailboxAdapter) RemoveConversation(ctx context.Context, conversationID string) error {
+	// Delete in dependency order: reactions → envelopes → participants → conversation.
+	err := a.repo.queries.DeleteReactionsByConversation(
+		ctx, DeleteReactionsByConversationParams{ConversationID: conversationID},
+	)
+	if err != nil {
+		return err
+	}
+
+	err = a.repo.queries.DeleteEnvelopesByConversation(
+		ctx, DeleteEnvelopesByConversationParams{ConversationID: conversationID},
+	)
+	if err != nil {
+		return err
+	}
+
+	err = a.repo.queries.DeleteParticipantsByConversation(
+		ctx, DeleteParticipantsByConversationParams{ConversationID: conversationID},
+	)
+	if err != nil {
+		return err
+	}
+
+	return a.repo.queries.DeleteConversation(
+		ctx, DeleteConversationParams{ID: conversationID},
+	)
+}
+
 // ── Participants ───────────────────────────────────────────────────────
 
 func (a *mailboxAdapter) AddParticipant(

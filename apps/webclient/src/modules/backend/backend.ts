@@ -66,6 +66,7 @@ import { acceptMailboxMessage } from "./mailbox/accept-mailbox-message";
 import { rejectMailboxMessage } from "./mailbox/reject-mailbox-message";
 import { addReaction } from "./mailbox/add-reaction";
 import { removeReaction } from "./mailbox/remove-reaction";
+import { removeConversation } from "./mailbox/remove-conversation";
 import { getUnreadCount } from "./mailbox/get-unread-count";
 import { getProfileQuestions } from "./questions/get-profile-questions";
 import { createQuestion } from "./questions/create-question";
@@ -226,6 +227,7 @@ export const backend = {
   markConversationRead,
   archiveConversation,
   unarchiveConversation,
+  removeConversation,
   sendMailboxMessage,
   acceptMailboxMessage,
   rejectMailboxMessage,
@@ -426,6 +428,7 @@ export {
   markConversationRead,
   archiveConversation,
   unarchiveConversation,
+  removeConversation,
   sendMailboxMessage,
   acceptMailboxMessage,
   rejectMailboxMessage,

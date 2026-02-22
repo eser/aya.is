@@ -260,6 +260,87 @@ func (q *Queries) CreateMailboxEnvelope(ctx context.Context, arg CreateMailboxEn
 	return err
 }
 
+const deleteConversation = `-- name: DeleteConversation :exec
+DELETE FROM "mailbox_conversation"
+WHERE id = $1
+`
+
+type DeleteConversationParams struct {
+	ID string `db:"id" json:"id"`
+}
+
+// DeleteConversation
+//
+//	DELETE FROM "mailbox_conversation"
+//	WHERE id = $1
+func (q *Queries) DeleteConversation(ctx context.Context, arg DeleteConversationParams) error {
+	_, err := q.db.ExecContext(ctx, deleteConversation, arg.ID)
+	return err
+}
+
+const deleteEnvelopesByConversation = `-- name: DeleteEnvelopesByConversation :exec
+DELETE FROM "mailbox_envelope"
+WHERE conversation_id = $1
+`
+
+type DeleteEnvelopesByConversationParams struct {
+	ConversationID string `db:"conversation_id" json:"conversation_id"`
+}
+
+// DeleteEnvelopesByConversation
+//
+//	DELETE FROM "mailbox_envelope"
+//	WHERE conversation_id = $1
+func (q *Queries) DeleteEnvelopesByConversation(ctx context.Context, arg DeleteEnvelopesByConversationParams) error {
+	_, err := q.db.ExecContext(ctx, deleteEnvelopesByConversation, arg.ConversationID)
+	return err
+}
+
+const deleteParticipantsByConversation = `-- name: DeleteParticipantsByConversation :exec
+DELETE FROM "mailbox_participant"
+WHERE conversation_id = $1
+`
+
+type DeleteParticipantsByConversationParams struct {
+	ConversationID string `db:"conversation_id" json:"conversation_id"`
+}
+
+// DeleteParticipantsByConversation
+//
+//	DELETE FROM "mailbox_participant"
+//	WHERE conversation_id = $1
+func (q *Queries) DeleteParticipantsByConversation(ctx context.Context, arg DeleteParticipantsByConversationParams) error {
+	_, err := q.db.ExecContext(ctx, deleteParticipantsByConversation, arg.ConversationID)
+	return err
+}
+
+const deleteReactionsByConversation = `-- name: DeleteReactionsByConversation :exec
+
+DELETE FROM "mailbox_reaction"
+WHERE envelope_id IN (
+  SELECT id FROM "mailbox_envelope"
+  WHERE conversation_id = $1
+)
+`
+
+type DeleteReactionsByConversationParams struct {
+	ConversationID string `db:"conversation_id" json:"conversation_id"`
+}
+
+// ============================================================
+// Hard delete (admin only)
+// ============================================================
+//
+//	DELETE FROM "mailbox_reaction"
+//	WHERE envelope_id IN (
+//	  SELECT id FROM "mailbox_envelope"
+//	  WHERE conversation_id = $1
+//	)
+func (q *Queries) DeleteReactionsByConversation(ctx context.Context, arg DeleteReactionsByConversationParams) error {
+	_, err := q.db.ExecContext(ctx, deleteReactionsByConversation, arg.ConversationID)
+	return err
+}
+
 const findDirectConversation = `-- name: FindDirectConversation :one
 SELECT mc.id, mc.kind, mc.title, mc.created_by_profile_id, mc.created_at, mc.updated_at
 FROM "mailbox_conversation" mc

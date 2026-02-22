@@ -22,7 +22,7 @@
 
 /* Main Card */
 .mailboxCard {
-  @apply overflow-hidden;
+  @apply overflow-hidden p-0;
 }
 
 .mailboxLayout {
@@ -46,7 +46,7 @@
 }
 
 .sidebarActions {
-  @apply flex items-center gap-2 shrink-0;
+  @apply flex items-center shrink-0;
 }
 
 .conversationList {
@@ -189,7 +189,7 @@
 }
 
 .messageFooter {
-  @apply flex items-center gap-1 text-xs text-muted-foreground;
+  @apply flex items-center justify-between gap-2 text-xs text-muted-foreground;
 }
 
 .messageTime {

@@ -239,6 +239,46 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 		HasSummary("Unarchive conversation").
 		HasResponse(http.StatusOK)
 
+	// DELETE /{locale}/mailbox/conversations/{id} — hard-delete (admin only)
+	routes.
+		Route(
+			"DELETE /{locale}/mailbox/conversations/{id}",
+			AuthMiddleware(authService, userService),
+			func(ctx *httpfx.Context) httpfx.Result {
+				_, localeOk := validateLocale(ctx)
+				if !localeOk {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+				}
+
+				user, userErr := getUserFromContext(ctx, userService)
+				if userErr != nil {
+					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(userErr))
+				}
+
+				if user.Kind != "admin" {
+					return ctx.Results.Error(
+						http.StatusForbidden,
+						httpfx.WithErrorMessage("admin access required"),
+					)
+				}
+
+				conversationID := ctx.Request.PathValue("id")
+
+				err := mailboxService.RemoveConversation(ctx.Request.Context(), conversationID)
+				if err != nil {
+					logger.Error("failed to remove conversation", "error", err)
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError, httpfx.WithSanitizedError(err),
+					)
+				}
+
+				return ctx.Results.JSON(map[string]any{"data": "ok"})
+			},
+		).
+		HasSummary("Remove conversation (admin)").
+		HasResponse(http.StatusOK)
+
 	// POST /{locale}/mailbox/messages — send a message
 	routes.
 		Route(

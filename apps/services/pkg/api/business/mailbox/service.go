@@ -358,6 +358,14 @@ func (s *Service) UnarchiveConversation(
 	return s.repo.SetParticipantArchived(ctx, conversationID, profileID, false)
 }
 
+// RemoveConversation hard-deletes a conversation and all related data (admin only).
+func (s *Service) RemoveConversation(
+	ctx context.Context,
+	conversationID string,
+) error {
+	return s.repo.RemoveConversation(ctx, conversationID)
+}
+
 // AcceptEnvelope transitions an envelope from pending to accepted.
 func (s *Service) AcceptEnvelope(
 	ctx context.Context,
