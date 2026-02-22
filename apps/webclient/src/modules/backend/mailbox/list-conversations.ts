@@ -2,10 +2,15 @@ import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 import type { Conversation } from "../types";
 
+export interface ListConversationsResult {
+  conversations: Conversation[];
+  viewerHasTelegram: boolean;
+}
+
 export async function listConversations(
   locale: string,
   options?: { archived?: boolean },
-): Promise<Conversation[] | null> {
+): Promise<ListConversationsResult | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -32,5 +37,8 @@ export async function listConversations(
   }
 
   const result = await response.json();
-  return result.data;
+  return {
+    conversations: result.data ?? [],
+    viewerHasTelegram: result.viewer_has_telegram === true,
+  };
 }

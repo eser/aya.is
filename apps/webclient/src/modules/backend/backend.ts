@@ -56,7 +56,7 @@ import { acceptProfileEnvelope } from "./profile-envelopes/accept-profile-envelo
 import { rejectProfileEnvelope } from "./profile-envelopes/reject-profile-envelope";
 import { sendProfileEnvelope } from "./profile-envelopes/send-profile-envelope";
 import { listMailboxEnvelopes } from "./mailbox/list-mailbox-envelopes";
-import { listConversations } from "./mailbox/list-conversations";
+import { listConversations, type ListConversationsResult } from "./mailbox/list-conversations";
 import { getConversation } from "./mailbox/get-conversation";
 import { markConversationRead } from "./mailbox/mark-conversation-read";
 import { archiveConversation } from "./mailbox/archive-conversation";
@@ -136,6 +136,7 @@ export type { VerifyTelegramCodeResponse } from "./profiles/verify-telegram-code
 export type { SendProfileEnvelopeParams } from "./profile-envelopes/send-profile-envelope";
 export type { MailboxEnvelope } from "./mailbox/list-mailbox-envelopes";
 export type { SendMailboxMessageParams } from "./mailbox/send-mailbox-message";
+export type { ListConversationsResult } from "./mailbox/list-conversations";
 export type { CreateProfileResourceInput } from "./profiles/create-profile-resource";
 export type { CreateQuestionInput } from "./questions/create-question";
 export type { VoteQuestionResult } from "./questions/vote-question";

@@ -720,7 +720,8 @@ function MailboxPage() {
     setIsLoading(true);
     const result = await backend.listConversations(locale, { archived: showArchived });
     if (result !== null) {
-      setConversations(result);
+      setConversations(result.conversations);
+      setUserTelegramLinked(result.viewerHasTelegram);
     } else {
       setConversations([]);
     }
@@ -742,22 +743,12 @@ function MailboxPage() {
     }
   }, [authLoading, isAuthenticated, navigate, locale]);
 
-  // Load conversations and check telegram link when authenticated
+  // Load conversations when authenticated
   React.useEffect(() => {
     if (!authLoading && isAuthenticated) {
       loadConversations();
-
-      // Check if the user has a managed telegram link
-      if (user !== null && user.individual_profile_slug !== undefined && user.individual_profile_slug !== "") {
-        backend.getProfileLinks(locale, user.individual_profile_slug).then((links) => {
-          if (links !== null) {
-            const hasTelegram = links.some((l) => l.kind === "telegram" && l.is_managed === true);
-            setUserTelegramLinked(hasTelegram);
-          }
-        });
-      }
     }
-  }, [authLoading, isAuthenticated, loadConversations, user, locale]);
+  }, [authLoading, isAuthenticated, loadConversations]);
 
   // Load detail when selecting a conversation
   React.useEffect(() => {

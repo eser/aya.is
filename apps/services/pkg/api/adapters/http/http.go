@@ -207,6 +207,7 @@ func Run(
 		userService,
 		profileService,
 		mailboxService,
+		telegramServiceForEnvelopes,
 	)
 	RegisterHTTPRoutesForActivities( //nolint:contextcheck
 		routes,

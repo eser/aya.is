@@ -11,6 +11,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
+	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
@@ -27,6 +28,7 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 	userService *users.Service,
 	profileService *profiles.Service,
 	mailboxService *mailbox.Service,
+	telegramService *telegrambiz.Service,
 ) {
 	// GET /{locale}/mailbox/conversations — list conversations
 	routes.
@@ -83,7 +85,21 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 					}
 				}
 
-				return ctx.Results.JSON(map[string]any{"data": allConversations})
+				// Check if the viewer's individual profile has a managed telegram link.
+				viewerHasTelegram := false
+				if telegramService != nil && user.IndividualProfileID != nil {
+					_, linkErr := telegramService.GetProfileTelegramLink(
+						ctx.Request.Context(), *user.IndividualProfileID,
+					)
+					if linkErr == nil {
+						viewerHasTelegram = true
+					}
+				}
+
+				return ctx.Results.JSON(map[string]any{
+					"data":                allConversations,
+					"viewer_has_telegram": viewerHasTelegram,
+				})
 			},
 		).
 		HasSummary("List mailbox conversations").
