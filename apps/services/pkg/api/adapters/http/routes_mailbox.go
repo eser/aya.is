@@ -333,6 +333,13 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 				if createErr != nil {
 					logger.Error("failed to send message", "error", createErr)
 
+					if errors.Is(createErr, mailbox.ErrInvalidEnvelopeKind) ||
+						errors.Is(createErr, mailbox.ErrConversationPending) {
+						return ctx.Results.BadRequest(
+							httpfx.WithErrorMessage(createErr.Error()),
+						)
+					}
+
 					return ctx.Results.Error(
 						http.StatusInternalServerError, httpfx.WithSanitizedError(createErr),
 					)

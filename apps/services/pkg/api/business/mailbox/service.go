@@ -48,10 +48,6 @@ func (s *Service) GetOrCreateDirectConversation(
 	senderProfileID string,
 	targetProfileID string,
 ) (*Conversation, error) {
-	if senderProfileID == targetProfileID {
-		return nil, ErrSelfConversation
-	}
-
 	// Try to find existing.
 	conv, err := s.repo.FindDirectConversation(ctx, senderProfileID, targetProfileID)
 	if err == nil && conv != nil {
@@ -72,7 +68,7 @@ func (s *Service) GetOrCreateDirectConversation(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
 	}
 
-	// Add both participants.
+	// Add sender as participant.
 	err = s.repo.AddParticipant(ctx, &Participant{
 		ID:             s.idGenerator(),
 		ConversationID: conv.ID,
@@ -83,14 +79,17 @@ func (s *Service) GetOrCreateDirectConversation(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
 	}
 
-	err = s.repo.AddParticipant(ctx, &Participant{
-		ID:             s.idGenerator(),
-		ConversationID: conv.ID,
-		ProfileID:      targetProfileID,
-		JoinedAt:       conv.CreatedAt,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
+	// Add target as participant (skip if same as sender — self-conversation).
+	if targetProfileID != senderProfileID {
+		err = s.repo.AddParticipant(ctx, &Participant{
+			ID:             s.idGenerator(),
+			ConversationID: conv.ID,
+			ProfileID:      targetProfileID,
+			JoinedAt:       conv.CreatedAt,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
+		}
 	}
 
 	s.logger.InfoContext(ctx, "Direct conversation created",
@@ -121,6 +120,15 @@ func (s *Service) SendMessage(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	// If the conversation already has messages, check that the first envelope has been accepted.
+	// The first message acts as a conversation request; replies are blocked until accepted.
+	existingEnvelopes, listErr := s.repo.ListEnvelopesByConversation(ctx, conv.ID, 1)
+	if listErr == nil && len(existingEnvelopes) > 0 {
+		if existingEnvelopes[0].Status != StatusAccepted {
+			return nil, ErrConversationPending
+		}
 	}
 
 	return s.createEnvelopeInConversation(ctx, conv.ID, params)

@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   Select,
@@ -156,6 +157,7 @@ function ConversationRow(props: {
 function EnvelopeBubble(props: {
   envelope: MailboxEnvelope;
   locale: string;
+  isFirstEnvelope: boolean;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onReaction: (envelopeId: string, emoji: string) => void;
@@ -165,7 +167,9 @@ function EnvelopeBubble(props: {
   const env = props.envelope;
   const isPending = env.status === "pending";
   const isProcessing = props.actionInProgress === env.id;
-  const isActionable = env.kind === "invitation" || env.kind === "badge" || env.kind === "pass";
+  const isInvitationLike = env.kind === "invitation" || env.kind === "badge" || env.kind === "pass";
+  // Show accept/reject: always for invitation-like kinds, or for the first envelope in a conversation
+  const showActions = isPending && (isInvitationLike || props.isFirstEnvelope);
 
   const groupName = env.properties !== null && env.properties !== undefined
     ? (env.properties as Record<string, unknown>).group_name as string | undefined
@@ -217,7 +221,7 @@ function EnvelopeBubble(props: {
 
         {/* Actions */}
         <div className={styles.messageActions}>
-          {isPending && isActionable && (
+          {showActions && (
             <>
               <Button
                 size="sm"
@@ -300,23 +304,25 @@ function ComposeArea(props: {
     setIsSending(true);
     setError(null);
 
-    const result = await backend.sendMailboxMessage({
-      locale: props.locale,
-      senderProfileSlug: senderSlug,
-      targetProfileSlug: targetSlug,
-      title: title.trim(),
-      description: description.trim() !== "" ? description.trim() : undefined,
-    });
+    try {
+      const result = await backend.sendMailboxMessage({
+        locale: props.locale,
+        senderProfileSlug: senderSlug,
+        targetProfileSlug: targetSlug,
+        title: title.trim(),
+        description: description.trim() !== "" ? description.trim() : undefined,
+      });
 
-    if (result !== null) {
-      setTitle("");
-      setDescription("");
-      props.onSent();
-    } else {
-      setError(t("ProfileSettings.Failed to send invitation"));
+      if (result !== null) {
+        setTitle("");
+        setDescription("");
+        props.onSent();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("Mailbox.Failed to send"));
+    } finally {
+      setIsSending(false);
     }
-
-    setIsSending(false);
   };
 
   return (
@@ -342,7 +348,11 @@ function ComposeArea(props: {
           rows={1}
           className={styles.composeTextarea}
         />
-        {error !== null && <p className="text-xs text-destructive">{error}</p>}
+        {error !== null && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <div className={styles.composeActions}>
           <Button
             size="sm"
@@ -425,7 +435,7 @@ function NewConversationForm(props: {
             props.onConversationCreated();
           }, 1500);
         } else {
-          setError(t("ProfileSettings.Failed to send invitation"));
+          setError(t("Mailbox.Failed to send"));
         }
       } else {
         // For invitation kinds, resolve target profile then use profile envelope API.
@@ -457,12 +467,12 @@ function NewConversationForm(props: {
             props.onConversationCreated();
           }, 1500);
         } else {
-          setError(t("ProfileSettings.Failed to send invitation"));
+          setError(t("Mailbox.Failed to send"));
         }
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : t("ProfileSettings.Failed to send invitation"),
+        err instanceof Error ? err.message : t("Mailbox.Failed to send"),
       );
     } finally {
       setIsSending(false);
@@ -576,12 +586,16 @@ function NewConversationForm(props: {
             rows={3}
           />
         </Field>
-        {error !== null && <p className="text-sm text-destructive">{error}</p>}
+        {error !== null && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         {sendSuccess && (
-          <p className="text-sm text-green-600 flex items-center gap-2">
+          <Alert>
             <CheckCircle className="size-4" />
-            {t("ProfileSettings.Invitation sent successfully")}
-          </p>
+            <AlertDescription>{t("Mailbox.Sent successfully")}</AlertDescription>
+          </Alert>
         )}
         <div className="flex justify-end">
           <Button onClick={handleSend} disabled={isSending}>
@@ -999,11 +1013,12 @@ function MailboxPage() {
 
                   {/* Message Thread */}
                   <div className={styles.messageThread}>
-                    {convDetail.envelopes.map((envelope) => (
+                    {convDetail.envelopes.map((envelope, index) => (
                       <EnvelopeBubble
                         key={envelope.id}
                         envelope={envelope}
                         locale={locale}
+                        isFirstEnvelope={index === 0}
                         onAccept={handleAccept}
                         onReject={promptReject}
                         onReaction={handleReaction}
@@ -1012,8 +1027,10 @@ function MailboxPage() {
                     ))}
                   </div>
 
-                  {/* Compose Area (only for direct conversations) */}
-                  {convDetail.conversation.kind === "direct" && (
+                  {/* Compose Area — only for direct conversations where the first message is accepted */}
+                  {convDetail.conversation.kind === "direct" &&
+                    convDetail.envelopes.length > 0 &&
+                    convDetail.envelopes[0].status === "accepted" && (
                     <ComposeArea
                       locale={locale}
                       participants={conversationParticipants}

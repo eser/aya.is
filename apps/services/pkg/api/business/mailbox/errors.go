@@ -15,4 +15,5 @@ var (
 	ErrFailedToUpdate       = errors.New("failed to update resource")
 	ErrInvalidReaction      = errors.New("invalid reaction emoji")
 	ErrSelfConversation     = errors.New("cannot create conversation with yourself")
+	ErrConversationPending  = errors.New("conversation has not been accepted yet")
 )

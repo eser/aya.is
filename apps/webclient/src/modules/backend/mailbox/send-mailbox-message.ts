@@ -51,7 +51,12 @@ export async function sendMailboxMessage(
   );
 
   if (!response.ok) {
-    return null;
+    const errorBody = await response.json().catch(() => null);
+    const message = errorBody !== null && typeof errorBody === "object" && "error" in errorBody
+      ? String(errorBody.error)
+      : "Failed to send message";
+
+    throw new Error(message);
   }
 
   const result = await response.json();

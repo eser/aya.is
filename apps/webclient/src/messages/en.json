@@ -916,6 +916,8 @@
     "Add details (optional)": "Add details (optional)",
     "Target profile slug placeholder": "target-profile-slug",
     "Target profile slug description": "The unique identifier (slug) of the recipient profile, visible in their profile URL.",
-    "Message title": "Message title"
+    "Message title": "Message title",
+    "Sent successfully": "Sent successfully",
+    "Failed to send": "Failed to send"
   }
 }

@@ -909,6 +909,8 @@
     "Add details (optional)": "Detay ekleyin (isteğe bağlı)",
     "Target profile slug placeholder": "hedef-profil-slug",
     "Target profile slug description": "Alıcı profilin, profil URL'sinde görünen benzersiz tanımlayıcısı (slug).",
-    "Message title": "İleti başlığı"
+    "Message title": "İleti başlığı",
+    "Sent successfully": "Başarıyla gönderildi",
+    "Failed to send": "Gönderilemedi"
   }
 }

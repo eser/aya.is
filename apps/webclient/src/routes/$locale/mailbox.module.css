@@ -214,7 +214,7 @@
 }
 
 .reactionPicker {
-  @apply flex items-center gap-1 p-2 w-auto;
+  @apply flex flex-row items-center gap-1 p-2 w-auto;
 }
 
 .reactionPickerItem {
