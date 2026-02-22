@@ -245,32 +245,34 @@ function EnvelopeBubble(props: {
               </Button>
             </>
           )}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button size="sm" variant="ghost" className={styles.reactionButton}>
-                <SmilePlus className="size-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className={styles.reactionPicker} align="start">
-              {ALLOWED_REACTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  className={styles.reactionPickerItem}
-                  onClick={() => props.onReaction(env.id, emoji)}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </PopoverContent>
-          </Popover>
+          {!isPending && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="ghost" className={styles.reactionButton}>
+                  <SmilePlus className="size-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className={styles.reactionPicker} align="start">
+                {ALLOWED_REACTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    className={styles.reactionPickerItem}
+                    onClick={() => props.onReaction(env.id, emoji)}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// --- Compose Area ---
+// --- Compose Area (reply within an existing conversation) ---
 function ComposeArea(props: {
   locale: string;
   participants: Array<{ profile_slug: string; profile_title: string }>;
@@ -278,8 +280,7 @@ function ComposeArea(props: {
   onSent: () => void;
 }) {
   const { t } = useTranslation();
-  const [title, setTitle] = React.useState("");
-  const [description, setDescription] = React.useState("");
+  const [message, setMessage] = React.useState("");
   const [senderSlug, setSenderSlug] = React.useState(() => {
     const individual = props.senderProfiles.find((p) => p.kind === "individual");
     return individual !== undefined ? individual.slug : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
@@ -297,7 +298,7 @@ function ComposeArea(props: {
   }, [props.participants, senderSlug]);
 
   const handleSend = async () => {
-    if (title.trim() === "" || targetSlug === null || senderSlug === "") {
+    if (message.trim() === "" || targetSlug === null || senderSlug === "") {
       return;
     }
 
@@ -309,13 +310,11 @@ function ComposeArea(props: {
         locale: props.locale,
         senderProfileSlug: senderSlug,
         targetProfileSlug: targetSlug,
-        title: title.trim(),
-        description: description.trim() !== "" ? description.trim() : undefined,
+        title: message.trim(),
       });
 
       if (result !== null) {
-        setTitle("");
-        setDescription("");
+        setMessage("");
         props.onSent();
       }
     } catch (err) {
@@ -329,24 +328,18 @@ function ComposeArea(props: {
     <div className={styles.composeArea}>
       <Separator />
       <div className={styles.composeForm}>
-        <Input
-          placeholder={t("Mailbox.Type a message title...")}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className={styles.composeInput}
+        <Textarea
+          placeholder={t("Mailbox.Type your reply...")}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={2}
+          className={styles.composeTextarea}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               handleSend();
             }
           }}
-        />
-        <Textarea
-          placeholder={t("Mailbox.Add details (optional)")}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={1}
-          className={styles.composeTextarea}
         />
         {error !== null && (
           <Alert variant="destructive">
@@ -357,7 +350,7 @@ function ComposeArea(props: {
           <Button
             size="sm"
             onClick={handleSend}
-            disabled={isSending || title.trim() === "" || targetSlug === null}
+            disabled={isSending || message.trim() === "" || targetSlug === null}
           >
             {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
             {t("Mailbox.Send")}

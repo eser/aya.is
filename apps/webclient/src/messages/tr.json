@@ -910,6 +910,7 @@
     "Target profile slug placeholder": "hedef-profil-slug",
     "Target profile slug description": "Alıcı profilin, profil URL'sinde görünen benzersiz tanımlayıcısı (slug).",
     "Message title": "İleti başlığı",
+    "Type your reply...": "Yanıtınızı yazın...",
     "Sent successfully": "Başarıyla gönderildi",
     "Failed to send": "Gönderilemedi"
   }
