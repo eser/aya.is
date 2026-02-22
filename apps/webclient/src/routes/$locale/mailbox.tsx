@@ -171,7 +171,7 @@ function EnvelopeBubble(props: {
   locale: string;
   conversationKind: string;
   isFirstEnvelope: boolean;
-  firstEnvelopeAccepted: boolean;
+  firstEnvelopeStatus: EnvelopeStatus;
   userTelegramLinked: boolean;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
@@ -184,11 +184,12 @@ function EnvelopeBubble(props: {
   const isPending = env.status === "pending";
   const isProcessing = props.actionInProgress === env.id;
   const isInvitationLike = env.kind === "invitation" || env.kind === "badge" || env.kind === "pass";
+  const firstEnvelopeResolved = props.firstEnvelopeStatus === "accepted" || props.firstEnvelopeStatus === "redeemed";
   // Show accept/reject: always for invitation-like kinds, or for the first envelope in a conversation
   const showActions = isPending && (isInvitationLike || props.isFirstEnvelope);
-  // Follow-up messages in an accepted conversation are implicitly accepted — hide the badge
-  const hideStatusBadge = !props.isFirstEnvelope && !isInvitationLike && props.firstEnvelopeAccepted;
-  // Reactions allowed on accepted/redeemed envelopes in direct conversations only (not system)
+  // Follow-up messages in a resolved conversation are implicitly accepted — hide the badge
+  const hideStatusBadge = !props.isFirstEnvelope && !isInvitationLike && firstEnvelopeResolved;
+  // Reactions allowed on accepted/redeemed envelopes (not system conversations)
   const allowReactions = props.conversationKind !== "system"
     && (env.status === "accepted" || env.status === "redeemed" || hideStatusBadge);
 
@@ -1069,7 +1070,7 @@ function MailboxPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="min-w-[200px]">
-                          {showArchived ? (
+                          {convDetail.conversation.is_archived ? (
                             <DropdownMenuItem onClick={handleUnarchive}>
                               <ArchiveRestore className="size-4 mr-2" />
                               {t("Mailbox.Unarchive conversation")}
@@ -1105,7 +1106,7 @@ function MailboxPage() {
                         locale={locale}
                         conversationKind={convDetail.conversation.kind}
                         isFirstEnvelope={index === 0}
-                        firstEnvelopeAccepted={convDetail.envelopes.length > 0 && convDetail.envelopes[0].status === "accepted"}
+                        firstEnvelopeStatus={convDetail.envelopes.length > 0 ? convDetail.envelopes[0].status : "pending"}
                         userTelegramLinked={userTelegramLinked}
                         onAccept={handleAccept}
                         onReject={promptReject}
@@ -1116,10 +1117,9 @@ function MailboxPage() {
                     ))}
                   </div>
 
-                  {/* Compose Area — only for direct conversations where the first message is accepted */}
-                  {convDetail.conversation.kind === "direct" &&
-                    convDetail.envelopes.length > 0 &&
-                    convDetail.envelopes[0].status === "accepted" && (
+                  {/* Compose Area — for conversations where the first envelope is accepted or redeemed */}
+                  {convDetail.envelopes.length > 0 &&
+                    (convDetail.envelopes[0].status === "accepted" || convDetail.envelopes[0].status === "redeemed") && (
                     <ComposeArea
                       locale={locale}
                       participants={conversationParticipants}

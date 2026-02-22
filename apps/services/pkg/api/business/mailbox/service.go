@@ -136,11 +136,12 @@ func (s *Service) SendMessage(
 		return nil, err
 	}
 
-	// If the conversation already has messages, check that the first envelope has been accepted.
-	// The first message acts as a conversation request; replies are blocked until accepted.
+	// If the conversation already has messages, check that the first envelope has been accepted or redeemed.
+	// The first message acts as a conversation request; replies are blocked until accepted/redeemed.
 	existingEnvelopes, listErr := s.repo.ListEnvelopesByConversation(ctx, conv.ID, 1)
 	if listErr == nil && len(existingEnvelopes) > 0 {
-		if existingEnvelopes[0].Status != StatusAccepted {
+		if existingEnvelopes[0].Status != StatusAccepted &&
+			existingEnvelopes[0].Status != StatusRedeemed {
 			return nil, ErrConversationPending
 		}
 	}
@@ -213,14 +214,18 @@ func (s *Service) createEnvelopeInConversation(
 ) (*Envelope, error) {
 	now := time.Now()
 
-	// Determine initial status: auto-accept follow-up "message" envelopes
-	// in conversations where the first message is already accepted.
+	// Determine initial status: auto-accept follow-up envelopes
+	// in conversations where the first envelope is already accepted or redeemed,
+	// unless the new envelope is an invitation (invitations always require explicit accept/reject).
 	status := StatusPending
 
-	if params.Kind == KindMessage {
+	if params.Kind != KindInvitation {
 		firstEnvelopes, listErr := s.repo.ListEnvelopesByConversation(ctx, conversationID, 1)
-		if listErr == nil && len(firstEnvelopes) > 0 && firstEnvelopes[0].Status == StatusAccepted {
-			status = StatusAccepted
+		if listErr == nil && len(firstEnvelopes) > 0 {
+			if firstEnvelopes[0].Status == StatusAccepted ||
+				firstEnvelopes[0].Status == StatusRedeemed {
+				status = StatusAccepted
+			}
 		}
 	}
 
