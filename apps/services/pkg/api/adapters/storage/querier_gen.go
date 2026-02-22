@@ -309,7 +309,7 @@ type Querier interface {
 	//
 	//  INSERT INTO "mailbox_envelope" (
 	//    id, conversation_id, target_profile_id, sender_profile_id, sender_user_id,
-	//    kind, status, title, description, properties, reply_to_id, created_at
+	//    kind, status, message, properties, reply_to_id, created_at
 	//  ) VALUES (
 	//    $1,
 	//    $2,
@@ -321,7 +321,6 @@ type Querier interface {
 	//    $7,
 	//    $8,
 	//    $9,
-	//    $10,
 	//    NOW()
 	//  )
 	CreateMailboxEnvelope(ctx context.Context, arg CreateMailboxEnvelopeParams) error
@@ -838,7 +837,7 @@ type Querier interface {
 	GetMailboxConversationByID(ctx context.Context, arg GetMailboxConversationByIDParams) (*MailboxConversation, error)
 	//GetMailboxEnvelopeByID
 	//
-	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at, conversation_id, reply_to_id
+	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, message, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at, conversation_id, reply_to_id
 	//  FROM "mailbox_envelope"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
@@ -1763,7 +1762,7 @@ type Querier interface {
 	//ListAcceptedMailboxInvitations
 	//
 	//  SELECT
-	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
 	//    sp.slug AS sender_profile_slug,
 	//    COALESCE(spt.title, '') AS sender_profile_title,
 	//    sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -1899,10 +1898,10 @@ type Querier interface {
 	//    mp.last_read_at,
 	//    mp.is_archived,
 	//    (
-	//      SELECT me.title FROM "mailbox_envelope" me
+	//      SELECT me.message FROM "mailbox_envelope" me
 	//      WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
 	//      ORDER BY me.created_at DESC LIMIT 1
-	//    ) AS last_envelope_title,
+	//    ) AS last_envelope_message,
 	//    (
 	//      SELECT me.kind FROM "mailbox_envelope" me
 	//      WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
@@ -1943,7 +1942,7 @@ type Querier interface {
 	//ListEnvelopesByConversation
 	//
 	//  SELECT
-	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
 	//    sp.slug AS sender_profile_slug,
 	//    COALESCE(spt.title, '') AS sender_profile_title,
 	//    sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -2074,7 +2073,7 @@ type Querier interface {
 	//ListMailboxEnvelopesByTargetProfileID
 	//
 	//  SELECT
-	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
 	//    sp.slug AS sender_profile_slug,
 	//    COALESCE(spt.title, '') AS sender_profile_title,
 	//    sp.profile_picture_uri AS sender_profile_picture_uri,

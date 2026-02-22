@@ -259,8 +259,8 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 					SenderProfileSlug string  `json:"sender_profile_slug"`
 					TargetProfileSlug string  `json:"target_profile_slug"`
 					Kind              string  `json:"kind"`
-					Title             string  `json:"title"`
-					Description       *string `json:"description"`
+					ConversationTitle string  `json:"conversation_title"`
+					Message           *string `json:"message"`
 					ReplyToID         *string `json:"reply_to_id"`
 				}
 
@@ -277,9 +277,9 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 					)
 				}
 
-				if body.Description == nil || *body.Description == "" {
+				if body.Message == nil || *body.Message == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithErrorMessage("description (message body) is required"),
+						httpfx.WithErrorMessage("message is required"),
 					)
 				}
 
@@ -328,8 +328,8 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 						TargetProfileID:    targetProfile.ID,
 						SenderUserID:       &user.ID,
 						Kind:               body.Kind,
-						Title:              body.Title,
-						Description:        body.Description,
+						ConversationTitle:  body.ConversationTitle,
+						Message:            body.Message,
 						ReplyToID:          body.ReplyToID,
 						SenderProfileTitle: senderProfile.Title,
 						Locale:             localeParam,

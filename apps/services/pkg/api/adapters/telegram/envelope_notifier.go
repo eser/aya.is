@@ -55,11 +55,16 @@ func NewEnvelopeNotifier(
 			locale = "en"
 		}
 
+		messagePreview := ""
+		if envelope.Message != nil {
+			messagePreview = *envelope.Message
+		}
+
 		text := fmt.Sprintf(
 			"\U0001F4EC <b>New message in your Mailbox</b>\n\n"+
-				"<b>%s</b>\nFrom: <i>%s</i>\n\n"+
+				"%s\nFrom: <i>%s</i>\n\n"+
 				"<a href=\"https://aya.is/%s/mailbox\">Open Mailbox</a>",
-			envelope.Title,
+			messagePreview,
 			fromLabel,
 			locale,
 		)

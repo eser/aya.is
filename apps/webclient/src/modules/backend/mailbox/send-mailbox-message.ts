@@ -7,8 +7,8 @@ export interface SendMailboxMessageParams {
   senderProfileSlug: string;
   targetProfileSlug: string;
   kind?: string;
-  title?: string;
-  description: string;
+  conversationTitle?: string;
+  message: string;
   replyToId?: string;
 }
 
@@ -29,11 +29,11 @@ export async function sendMailboxMessage(
     sender_profile_slug: params.senderProfileSlug,
     target_profile_slug: params.targetProfileSlug,
     kind: params.kind ?? "message",
-    description: params.description,
+    message: params.message,
   };
 
-  if (params.title !== undefined && params.title !== "") {
-    body.title = params.title;
+  if (params.conversationTitle !== undefined && params.conversationTitle !== "") {
+    body.conversation_title = params.conversationTitle;
   }
 
   if (params.replyToId !== undefined) {

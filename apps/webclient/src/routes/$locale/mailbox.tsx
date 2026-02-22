@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Inbox,
   SmilePlus,
+  Ellipsis,
 } from "lucide-react";
 import {
   backend,
@@ -57,6 +58,12 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatDateString } from "@/lib/date";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
@@ -86,24 +93,26 @@ function ConversationRow(props: {
 }) {
   const { t } = useTranslation();
   const conv = props.conversation;
-  const otherParticipants = conv.participants !== null ? conv.participants : [];
+  const otherParticipants = conv.participants !== null && conv.participants !== undefined ? conv.participants : [];
   const firstOther = otherParticipants.length > 0 ? otherParticipants[0] : null;
 
   const avatarFallback = firstOther !== null
     ? firstOther.profile_title.charAt(0).toUpperCase()
     : "?";
 
+  const hasLastEnvelope = conv.last_envelope !== null && conv.last_envelope !== undefined;
+
   const title = conv.kind === "system"
-    ? (conv.last_envelope !== null ? conv.last_envelope.title : t("Mailbox.System message"))
+    ? (conv.title !== null && conv.title !== undefined && conv.title !== "" ? conv.title : t("Mailbox.System message"))
     : (otherParticipants.length > 0
         ? otherParticipants.map((p) => p.profile_title).join(", ")
         : t("Mailbox.Conversation"));
 
-  const preview = conv.last_envelope !== null
-    ? conv.last_envelope.title
+  const preview = hasLastEnvelope && conv.last_envelope.message !== null && conv.last_envelope.message !== undefined
+    ? conv.last_envelope.message
     : "";
 
-  const timestamp = conv.last_envelope !== null
+  const timestamp = hasLastEnvelope
     ? formatDateString(conv.last_envelope.created_at, props.locale)
     : formatDateString(conv.created_at, props.locale);
 
@@ -181,16 +190,15 @@ function EnvelopeBubble(props: {
     <div className={styles.messageBubble}>
       <div className={styles.messageContent}>
         <div className={styles.messageHeader}>
-          <span className={styles.messageTitle}>{env.title}</span>
+          <span className={styles.messageTitle}>
+            {env.message}
+          </span>
           <Badge variant="outline" className={statusColors[env.status]}>
             {t(`Profile.EnvelopeStatus.${env.status}`)}
           </Badge>
         </div>
         {groupName !== undefined && groupName !== "" && (
           <p className={styles.messageGroup}>{groupName}</p>
-        )}
-        {env.description !== null && (
-          <p className={styles.messageDescription}>{env.description}</p>
         )}
         <div className={styles.messageFooter}>
           <span className={styles.messageTime}>
@@ -210,44 +218,16 @@ function EnvelopeBubble(props: {
           )}
         </div>
 
-        {/* Reactions */}
-        {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
+        {/* Reactions + Picker (inline) */}
+        {allowReactions && (
           <div className={styles.reactionsRow}>
-            {env.reactions.map((reaction) => (
-              <span key={reaction.id} className={styles.reactionChip}>
-                {reaction.emoji}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className={styles.messageActions}>
-          {showActions && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-green-700 border-green-300 hover:bg-green-50"
-                disabled={isProcessing}
-                onClick={() => props.onAccept(env.id)}
-              >
-                {isProcessing ? <Loader2 className="size-4 animate-spin mr-1" /> : <Check className="size-4 mr-1" />}
-                {t("Profile.Accept")}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-red-700 border-red-300 hover:bg-red-50"
-                disabled={isProcessing}
-                onClick={() => props.onReject(env.id)}
-              >
-                <X className="size-4 mr-1" />
-                {t("Profile.Reject")}
-              </Button>
-            </>
-          )}
-          {allowReactions && (
+            {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
+              env.reactions.map((reaction) => (
+                <span key={reaction.id} className={styles.reactionChip}>
+                  {reaction.emoji}
+                </span>
+              ))
+            )}
             <Popover>
               <PopoverTrigger asChild>
                 <Button size="sm" variant="ghost" className={styles.reactionButton}>
@@ -267,8 +247,34 @@ function EnvelopeBubble(props: {
                 ))}
               </PopoverContent>
             </Popover>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Accept/Reject Actions */}
+        {showActions && (
+          <div className={styles.messageActions}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-green-700 border-green-300 hover:bg-green-50"
+              disabled={isProcessing}
+              onClick={() => props.onAccept(env.id)}
+            >
+              {isProcessing ? <Loader2 className="size-4 animate-spin mr-1" /> : <Check className="size-4 mr-1" />}
+              {t("Profile.Accept")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-red-700 border-red-300 hover:bg-red-50"
+              disabled={isProcessing}
+              onClick={() => props.onReject(env.id)}
+            >
+              <X className="size-4 mr-1" />
+              {t("Profile.Reject")}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -312,7 +318,7 @@ function ComposeArea(props: {
         locale: props.locale,
         senderProfileSlug: senderSlug,
         targetProfileSlug: targetSlug,
-        title: message.trim(),
+        message: message.trim(),
       });
 
       if (result !== null) {
@@ -416,8 +422,8 @@ function NewConversationForm(props: {
           locale: props.locale,
           senderProfileSlug: senderSlug,
           targetProfileSlug: targetSlug.trim(),
-          title: title.trim() !== "" ? title.trim() : undefined,
-          description: message.trim(),
+          conversationTitle: title.trim() !== "" ? title.trim() : undefined,
+          message: message.trim(),
         });
 
         if (result !== null) {
@@ -446,8 +452,8 @@ function NewConversationForm(props: {
           senderSlug,
           targetProfileId: targetProfile.id,
           kind: "invitation",
-          title: title.trim() !== "" ? title.trim() : undefined,
-          description: message.trim(),
+          conversationTitle: title.trim() !== "" ? title.trim() : undefined,
+          message: message.trim(),
           inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
         });
 
@@ -477,10 +483,6 @@ function NewConversationForm(props: {
   return (
     <div className={styles.newConversationForm}>
       <div className={styles.newConversationHeader}>
-        <Button variant="ghost" size="sm" onClick={props.onCancel}>
-          <ChevronLeft className="size-4 mr-1" />
-          {t("Common.Back")}
-        </Button>
         <h3 className={styles.newConversationTitle}>{t("Mailbox.New Message")}</h3>
       </div>
       <div className={styles.newConversationFields}>
@@ -592,7 +594,11 @@ function NewConversationForm(props: {
             <AlertDescription>{t("Mailbox.Sent successfully")}</AlertDescription>
           </Alert>
         )}
-        <div className="flex justify-end">
+        <div className="flex justify-between">
+          <Button variant="ghost" onClick={props.onCancel}>
+            <ChevronLeft className="size-4 mr-1" />
+            {t("Common.Back")}
+          </Button>
           <Button onClick={handleSend} disabled={isSending}>
             {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
             {t("Mailbox.Send")}
@@ -970,37 +976,40 @@ function MailboxPage() {
                     <div className={styles.detailHeaderInfo}>
                       <h3 className={styles.detailTitle}>
                         {convDetail.conversation.kind === "system"
-                          ? (convDetail.envelopes.length > 0 ? convDetail.envelopes[0].title : t("Mailbox.System message"))
-                          : (convDetail.conversation.participants !== null && convDetail.conversation.participants.length > 0
+                          ? (convDetail.conversation.title !== null && convDetail.conversation.title !== undefined && convDetail.conversation.title !== ""
+                              ? convDetail.conversation.title
+                              : t("Mailbox.System message"))
+                          : (convDetail.conversation.participants !== null && convDetail.conversation.participants !== undefined && convDetail.conversation.participants.length > 0
                               ? convDetail.conversation.participants.map((p) => p.profile_title).join(", ")
                               : t("Mailbox.Conversation"))}
                       </h3>
-                      {convDetail.conversation.kind === "direct" && convDetail.envelopes.length > 0 && (
+                      {convDetail.conversation.title !== null && convDetail.conversation.title !== undefined && convDetail.conversation.title !== "" && (
                         <p className={styles.detailSubtitle}>
-                          {convDetail.envelopes[0].title}
+                          {convDetail.conversation.title}
                         </p>
                       )}
                     </div>
                     <div className={styles.detailActions}>
-                      {showArchived ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleUnarchive}
-                          title={t("Mailbox.Unarchive")}
-                        >
-                          <ArchiveRestore className="size-4" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleArchive}
-                          title={t("Mailbox.Archive")}
-                        >
-                          <Archive className="size-4" />
-                        </Button>
-                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Ellipsis className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {showArchived ? (
+                            <DropdownMenuItem onClick={handleUnarchive}>
+                              <ArchiveRestore className="size-4 mr-2" />
+                              {t("Mailbox.Unarchive")}
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={handleArchive}>
+                              <Archive className="size-4 mr-2" />
+                              {t("Mailbox.Archive")}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
 

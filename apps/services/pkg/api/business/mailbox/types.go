@@ -62,7 +62,7 @@ type Conversation struct {
 
 // EnvelopePreview is a summary of the latest envelope in a conversation.
 type EnvelopePreview struct {
-	Title           string  `json:"title"`
+	Message         *string `json:"message"`
 	Kind            string  `json:"kind"`
 	CreatedAt       string  `json:"created_at"`
 	SenderProfileID *string `json:"sender_profile_id"`
@@ -94,8 +94,7 @@ type Envelope struct {
 	SenderUserID    *string    `json:"sender_user_id"`
 	Kind            string     `json:"kind"`
 	Status          string     `json:"status"`
-	Title           string     `json:"title"`
-	Description     *string    `json:"description"`
+	Message         *string    `json:"message"`
 	Properties      any        `json:"properties"`
 	ReplyToID       *string    `json:"reply_to_id"`
 	AcceptedAt      *time.Time `json:"accepted_at"`
@@ -137,14 +136,14 @@ type InvitationProperties struct {
 
 // SendMessageParams contains parameters for sending a message or system envelope.
 type SendMessageParams struct {
-	SenderProfileID string
-	TargetProfileID string
-	SenderUserID    *string
-	Kind            string
-	Title           string
-	Description     *string
-	Properties      any
-	ReplyToID       *string
+	SenderProfileID   string
+	TargetProfileID   string
+	SenderUserID      *string
+	Kind              string
+	ConversationTitle string
+	Message           *string
+	Properties        any
+	ReplyToID         *string
 
 	// Notification context (optional, used for notifying the recipient).
 	SenderProfileTitle string

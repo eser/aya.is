@@ -51,10 +51,10 @@ SELECT
   mp.last_read_at,
   mp.is_archived,
   (
-    SELECT me.title FROM "mailbox_envelope" me
+    SELECT me.message FROM "mailbox_envelope" me
     WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
     ORDER BY me.created_at DESC LIMIT 1
-  ) AS last_envelope_title,
+  ) AS last_envelope_message,
   (
     SELECT me.kind FROM "mailbox_envelope" me
     WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
@@ -153,7 +153,7 @@ WHERE conversation_id = sqlc.arg(conversation_id)
 -- name: CreateMailboxEnvelope :exec
 INSERT INTO "mailbox_envelope" (
   id, conversation_id, target_profile_id, sender_profile_id, sender_user_id,
-  kind, status, title, description, properties, reply_to_id, created_at
+  kind, status, message, properties, reply_to_id, created_at
 ) VALUES (
   sqlc.arg(id),
   sqlc.arg(conversation_id),
@@ -162,8 +162,7 @@ INSERT INTO "mailbox_envelope" (
   sqlc.narg(sender_user_id),
   sqlc.arg(kind),
   'pending',
-  sqlc.arg(title),
-  sqlc.narg(description),
+  sqlc.narg(message),
   sqlc.narg(properties),
   sqlc.narg(reply_to_id),
   NOW()

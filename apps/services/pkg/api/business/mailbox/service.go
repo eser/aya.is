@@ -47,6 +47,7 @@ func (s *Service) GetOrCreateDirectConversation(
 	ctx context.Context,
 	senderProfileID string,
 	targetProfileID string,
+	title string,
 ) (*Conversation, error) {
 	// Try to find existing.
 	conv, err := s.repo.FindDirectConversation(ctx, senderProfileID, targetProfileID)
@@ -55,10 +56,15 @@ func (s *Service) GetOrCreateDirectConversation(
 	}
 
 	// Create new direct conversation.
+	var titlePtr *string
+	if title != "" {
+		titlePtr = &title
+	}
+
 	conv = &Conversation{
 		ID:                 s.idGenerator(),
 		Kind:               ConversationKindDirect,
-		Title:              nil,
+		Title:              titlePtr,
 		CreatedByProfileID: &senderProfileID,
 		CreatedAt:          time.Now(),
 	}
@@ -117,6 +123,7 @@ func (s *Service) SendMessage(
 		ctx,
 		params.SenderProfileID,
 		params.TargetProfileID,
+		params.ConversationTitle,
 	)
 	if err != nil {
 		return nil, err
@@ -151,17 +158,28 @@ func (s *Service) SendSystemEnvelope(
 		return nil, ErrInvalidEnvelopeKind
 	}
 
-	now := time.Now()
-
-	kind := ConversationKindSystem
+	// When a sender is present, reuse an existing direct conversation if one exists.
 	if params.SenderProfileID != "" {
-		kind = ConversationKindDirect
+		conv, err := s.GetOrCreateDirectConversation(
+			ctx,
+			params.SenderProfileID,
+			params.TargetProfileID,
+			params.ConversationTitle,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		return s.createEnvelopeInConversation(ctx, conv.ID, params)
 	}
+
+	// System envelope (no sender) — always create a new conversation.
+	now := time.Now()
 
 	conv := &Conversation{
 		ID:                 s.idGenerator(),
-		Kind:               kind,
-		CreatedByProfileID: &params.SenderProfileID,
+		Kind:               ConversationKindSystem,
+		CreatedByProfileID: nil,
 		CreatedAt:          now,
 	}
 
@@ -170,20 +188,7 @@ func (s *Service) SendSystemEnvelope(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
 	}
 
-	// Add sender as participant first (creator appears first in ordering).
-	if params.SenderProfileID != "" {
-		err = s.repo.AddParticipant(ctx, &Participant{
-			ID:             s.idGenerator(),
-			ConversationID: conv.ID,
-			ProfileID:      params.SenderProfileID,
-			JoinedAt:       now,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
-		}
-	}
-
-	// Add target as participant.
+	// Add target as the sole participant.
 	err = s.repo.AddParticipant(ctx, &Participant{
 		ID:             s.idGenerator(),
 		ConversationID: conv.ID,
@@ -213,8 +218,7 @@ func (s *Service) createEnvelopeInConversation(
 		SenderUserID:    params.SenderUserID,
 		Kind:            params.Kind,
 		Status:          StatusPending,
-		Title:           params.Title,
-		Description:     params.Description,
+		Message:         params.Message,
 		Properties:      params.Properties,
 		ReplyToID:       params.ReplyToID,
 		CreatedAt:       now,

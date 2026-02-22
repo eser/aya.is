@@ -413,8 +413,7 @@ export interface ProfileEnvelope {
   sender_user_id: string | null;
   kind: EnvelopeKind;
   status: EnvelopeStatus;
-  title: string;
-  description: string | null;
+  message: string | null;
   properties: Record<string, unknown> | null;
   created_at: string;
   accepted_at: string | null;
@@ -441,7 +440,8 @@ export interface ConversationParticipant {
 }
 
 export interface EnvelopePreview {
-  title: string;
+  message: string | null;
+  kind: string;
   created_at: string;
   sender_profile_slug: string | null;
 }

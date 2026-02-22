@@ -38,8 +38,8 @@ function AdminProfileEnvelopes() {
   const [envelopeKind, setEnvelopeKind] = useState("telegram_group");
   const [targetSlug, setTargetSlug] = useState("");
   const [inviteCode, setInviteCode] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [conversationTitle, setConversationTitle] = useState("");
+  const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
@@ -57,8 +57,11 @@ function AdminProfileEnvelopes() {
     if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
       errors.inviteCode = t("Common.This field is required");
     }
-    if (title.trim() === "") {
-      errors.title = t("Common.This field is required");
+    if (conversationTitle.trim() === "") {
+      errors.conversationTitle = t("Common.This field is required");
+    }
+    if (message.trim() === "") {
+      errors.message = t("Common.This field is required");
     }
     setFieldErrors(errors);
 
@@ -83,16 +86,16 @@ function AdminProfileEnvelopes() {
         senderSlug: params.slug,
         targetProfileId: targetProfile.id,
         kind: "invitation",
-        title: title.trim(),
-        description: description.trim() !== "" ? description.trim() : undefined,
+        conversationTitle: conversationTitle.trim(),
+        message: message.trim(),
         inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
       });
 
       if (result !== null) {
         setTargetSlug("");
         setInviteCode("");
-        setTitle("");
-        setDescription("");
+        setConversationTitle("");
+        setMessage("");
         setSendSuccess(true);
         setTimeout(() => setSendSuccess(false), 3000);
       } else {
@@ -176,31 +179,37 @@ function AdminProfileEnvelopes() {
               )}
             </Field>
           )}
-          <Field data-invalid={fieldErrors.title !== undefined && fieldErrors.title !== null}>
-            <FieldLabel htmlFor="title">{t("Common.Title")}</FieldLabel>
+          <Field data-invalid={fieldErrors.conversationTitle !== undefined && fieldErrors.conversationTitle !== null}>
+            <FieldLabel htmlFor="conversationTitle">{t("Common.Title")}</FieldLabel>
             <Input
-              id="title"
+              id="conversationTitle"
               type="text"
               placeholder={t("ProfileSettings.Title for the message")}
-              value={title}
+              value={conversationTitle}
               onChange={(e) => {
-                setTitle(e.target.value);
-                setFieldErrors((prev) => ({ ...prev, title: null }));
+                setConversationTitle(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, conversationTitle: null }));
               }}
             />
-            {fieldErrors.title !== null && fieldErrors.title !== undefined && (
-              <FieldError>{fieldErrors.title}</FieldError>
+            {fieldErrors.conversationTitle !== null && fieldErrors.conversationTitle !== undefined && (
+              <FieldError>{fieldErrors.conversationTitle}</FieldError>
             )}
           </Field>
-          <Field>
-            <FieldLabel htmlFor="description">{t("Common.Description")}</FieldLabel>
+          <Field data-invalid={fieldErrors.message !== undefined && fieldErrors.message !== null}>
+            <FieldLabel htmlFor="message">{t("Mailbox.Message")}</FieldLabel>
             <Textarea
-              id="description"
-              placeholder={t("ProfileSettings.Optional message text")}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              id="message"
+              placeholder={t("Mailbox.Write your message...")}
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, message: null }));
+              }}
               rows={2}
             />
+            {fieldErrors.message !== null && fieldErrors.message !== undefined && (
+              <FieldError>{fieldErrors.message}</FieldError>
+            )}
           </Field>
           {sendError !== null && (
             <FieldError>{sendError}</FieldError>

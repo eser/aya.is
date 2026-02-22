@@ -316,23 +316,31 @@ func (b *Bot) handleInvitations(ctx context.Context, msg *Message) {
 
 	for i, inv := range invitations {
 		// Extract group name from properties for display
-		buttonText := inv.Title
+		invLabel := "Invitation"
+		if inv.Message != nil && *inv.Message != "" {
+			invLabel = *inv.Message
+		}
+
 		groupName := ""
 
 		if inv.Properties != nil {
 			if propsMap, ok := inv.Properties.(map[string]any); ok {
 				if gn, gnOk := propsMap["group_name"].(string); gnOk && gn != "" {
 					groupName = gn
-					buttonText = fmt.Sprintf("%s → %s", inv.Title, gn)
 				}
 			}
+		}
+
+		buttonText := invLabel
+		if groupName != "" {
+			buttonText = fmt.Sprintf("%s → %s", invLabel, groupName)
 		}
 
 		rows = append(rows, []InlineKeyboardButton{
 			{Text: buttonText, CallbackData: "invite:" + inv.ID},
 		})
 
-		detail := fmt.Sprintf("%d. <b>%s</b>", i+1, inv.Title)
+		detail := fmt.Sprintf("%d. <b>%s</b>", i+1, invLabel)
 		if groupName != "" {
 			detail += fmt.Sprintf("\n    Group: <i>%s</i>", groupName)
 		}
@@ -518,8 +526,8 @@ func (b *Bot) handleCallbackQuery(ctx context.Context, cq *CallbackQuery) { //no
 	}
 
 	groupName := props.GroupName
-	if groupName == "" {
-		groupName = envelope.Title
+	if groupName == "" && envelope.Message != nil {
+		groupName = *envelope.Message
 	}
 
 	text := fmt.Sprintf(

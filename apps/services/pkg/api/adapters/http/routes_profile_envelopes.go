@@ -134,12 +134,12 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 				}
 
 				var body struct {
-					Kind            string `json:"kind"`
-					TargetProfileID string `json:"target_profile_id"`
-					Title           string `json:"title"`
-					Description     string `json:"description"`
-					InviteCode      string `json:"invite_code"`
-					Properties      any    `json:"properties"`
+					Kind              string `json:"kind"`
+					TargetProfileID   string `json:"target_profile_id"`
+					ConversationTitle string `json:"conversation_title"`
+					Message           string `json:"message"`
+					InviteCode        string `json:"invite_code"`
+					Properties        any    `json:"properties"`
 				}
 
 				err := json.NewDecoder(ctx.Request.Body).Decode(&body)
@@ -153,9 +153,9 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					)
 				}
 
-				if body.Description == "" {
+				if body.Message == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithErrorMessage("description (message body) is required"),
+						httpfx.WithErrorMessage("message is required"),
 					)
 				}
 
@@ -200,10 +200,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					return ctx.Results.NotFound(httpfx.WithErrorMessage("sender profile not found"))
 				}
 
-				var descPtr *string
-				if body.Description != "" {
-					descPtr = &body.Description
-				}
+				msgPtr := &body.Message
 
 				envelope, createErr := mailboxService.SendSystemEnvelope(
 					ctx.Request.Context(),
@@ -212,8 +209,8 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 						SenderProfileID:    senderProfile.ID,
 						SenderUserID:       &user.ID,
 						Kind:               body.Kind,
-						Title:              body.Title,
-						Description:        descPtr,
+						ConversationTitle:  body.ConversationTitle,
+						Message:            msgPtr,
 						Properties:         body.Properties,
 						SenderProfileTitle: senderProfile.Title,
 						Locale:             localeParam,

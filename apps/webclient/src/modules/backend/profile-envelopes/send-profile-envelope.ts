@@ -9,8 +9,8 @@ export interface SendProfileEnvelopeParams {
   senderSlug: string;
   targetProfileId: string;
   kind: string;
-  title?: string;
-  description: string;
+  conversationTitle?: string;
+  message: string;
   inviteCode?: string;
   properties?: Record<string, unknown>;
 }
@@ -34,11 +34,11 @@ export async function sendProfileEnvelope(
   const body: Record<string, unknown> = {
     kind: params.kind,
     target_profile_id: params.targetProfileId,
-    description: params.description,
+    message: params.message,
   };
 
-  if (params.title !== undefined && params.title !== "") {
-    body.title = params.title;
+  if (params.conversationTitle !== undefined && params.conversationTitle !== "") {
+    body.conversation_title = params.conversationTitle;
   }
 
   if (params.inviteCode !== undefined && params.inviteCode !== "") {
@@ -57,8 +57,12 @@ export async function sendProfileEnvelope(
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || "Failed to send envelope");
+    const errorBody = await response.json().catch(() => null);
+    const message = errorBody !== null && typeof errorBody === "object" && "error" in errorBody
+      ? String(errorBody.error)
+      : "Failed to send envelope";
+
+    throw new Error(message);
   }
 
   const result = await response.json();

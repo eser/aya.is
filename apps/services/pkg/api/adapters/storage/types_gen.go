@@ -112,8 +112,7 @@ type MailboxEnvelope struct {
 	SenderUserID    sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
 	Kind            string                `db:"kind" json:"kind"`
 	Status          string                `db:"status" json:"status"`
-	Title           string                `db:"title" json:"title"`
-	Description     sql.NullString        `db:"description" json:"description"`
+	Message         sql.NullString        `db:"message" json:"message"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	AcceptedAt      sql.NullTime          `db:"accepted_at" json:"accepted_at"`
 	RejectedAt      sql.NullTime          `db:"rejected_at" json:"rejected_at"`

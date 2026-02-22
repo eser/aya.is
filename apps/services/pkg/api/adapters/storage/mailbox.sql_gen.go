@@ -197,7 +197,7 @@ const createMailboxEnvelope = `-- name: CreateMailboxEnvelope :exec
 
 INSERT INTO "mailbox_envelope" (
   id, conversation_id, target_profile_id, sender_profile_id, sender_user_id,
-  kind, status, title, description, properties, reply_to_id, created_at
+  kind, status, message, properties, reply_to_id, created_at
 ) VALUES (
   $1,
   $2,
@@ -209,7 +209,6 @@ INSERT INTO "mailbox_envelope" (
   $7,
   $8,
   $9,
-  $10,
   NOW()
 )
 `
@@ -221,8 +220,7 @@ type CreateMailboxEnvelopeParams struct {
 	SenderProfileID sql.NullString        `db:"sender_profile_id" json:"sender_profile_id"`
 	SenderUserID    sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
 	Kind            string                `db:"kind" json:"kind"`
-	Title           string                `db:"title" json:"title"`
-	Description     sql.NullString        `db:"description" json:"description"`
+	Message         sql.NullString        `db:"message" json:"message"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	ReplyToID       sql.NullString        `db:"reply_to_id" json:"reply_to_id"`
 }
@@ -233,7 +231,7 @@ type CreateMailboxEnvelopeParams struct {
 //
 //	INSERT INTO "mailbox_envelope" (
 //	  id, conversation_id, target_profile_id, sender_profile_id, sender_user_id,
-//	  kind, status, title, description, properties, reply_to_id, created_at
+//	  kind, status, message, properties, reply_to_id, created_at
 //	) VALUES (
 //	  $1,
 //	  $2,
@@ -245,7 +243,6 @@ type CreateMailboxEnvelopeParams struct {
 //	  $7,
 //	  $8,
 //	  $9,
-//	  $10,
 //	  NOW()
 //	)
 func (q *Queries) CreateMailboxEnvelope(ctx context.Context, arg CreateMailboxEnvelopeParams) error {
@@ -256,8 +253,7 @@ func (q *Queries) CreateMailboxEnvelope(ctx context.Context, arg CreateMailboxEn
 		arg.SenderProfileID,
 		arg.SenderUserID,
 		arg.Kind,
-		arg.Title,
-		arg.Description,
+		arg.Message,
 		arg.Properties,
 		arg.ReplyToID,
 	)
@@ -358,7 +354,7 @@ func (q *Queries) GetMailboxConversationByID(ctx context.Context, arg GetMailbox
 }
 
 const getMailboxEnvelopeByID = `-- name: GetMailboxEnvelopeByID :one
-SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at, conversation_id, reply_to_id
+SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, message, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at, conversation_id, reply_to_id
 FROM "mailbox_envelope"
 WHERE id = $1
   AND deleted_at IS NULL
@@ -370,7 +366,7 @@ type GetMailboxEnvelopeByIDParams struct {
 
 // GetMailboxEnvelopeByID
 //
-//	SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at, conversation_id, reply_to_id
+//	SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, message, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at, conversation_id, reply_to_id
 //	FROM "mailbox_envelope"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
@@ -384,8 +380,7 @@ func (q *Queries) GetMailboxEnvelopeByID(ctx context.Context, arg GetMailboxEnve
 		&i.SenderUserID,
 		&i.Kind,
 		&i.Status,
-		&i.Title,
-		&i.Description,
+		&i.Message,
 		&i.Properties,
 		&i.AcceptedAt,
 		&i.RejectedAt,
@@ -469,7 +464,7 @@ func (q *Queries) GetMailboxParticipant(ctx context.Context, arg GetMailboxParti
 
 const listAcceptedMailboxInvitations = `-- name: ListAcceptedMailboxInvitations :many
 SELECT
-  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
   sp.slug AS sender_profile_slug,
   COALESCE(spt.title, '') AS sender_profile_title,
   sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -498,8 +493,7 @@ type ListAcceptedMailboxInvitationsRow struct {
 	SenderUserID            sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
 	Kind                    string                `db:"kind" json:"kind"`
 	Status                  string                `db:"status" json:"status"`
-	Title                   string                `db:"title" json:"title"`
-	Description             sql.NullString        `db:"description" json:"description"`
+	Message                 sql.NullString        `db:"message" json:"message"`
 	Properties              pqtype.NullRawMessage `db:"properties" json:"properties"`
 	AcceptedAt              sql.NullTime          `db:"accepted_at" json:"accepted_at"`
 	RejectedAt              sql.NullTime          `db:"rejected_at" json:"rejected_at"`
@@ -519,7 +513,7 @@ type ListAcceptedMailboxInvitationsRow struct {
 // ListAcceptedMailboxInvitations
 //
 //	SELECT
-//	  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+//	  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
 //	  sp.slug AS sender_profile_slug,
 //	  COALESCE(spt.title, '') AS sender_profile_title,
 //	  sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -550,8 +544,7 @@ func (q *Queries) ListAcceptedMailboxInvitations(ctx context.Context, arg ListAc
 			&i.SenderUserID,
 			&i.Kind,
 			&i.Status,
-			&i.Title,
-			&i.Description,
+			&i.Message,
 			&i.Properties,
 			&i.AcceptedAt,
 			&i.RejectedAt,
@@ -591,10 +584,10 @@ SELECT
   mp.last_read_at,
   mp.is_archived,
   (
-    SELECT me.title FROM "mailbox_envelope" me
+    SELECT me.message FROM "mailbox_envelope" me
     WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
     ORDER BY me.created_at DESC LIMIT 1
-  ) AS last_envelope_title,
+  ) AS last_envelope_message,
   (
     SELECT me.kind FROM "mailbox_envelope" me
     WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
@@ -641,7 +634,7 @@ type ListConversationsForProfileRow struct {
 	UpdatedAt                   sql.NullTime   `db:"updated_at" json:"updated_at"`
 	LastReadAt                  sql.NullTime   `db:"last_read_at" json:"last_read_at"`
 	IsArchived                  bool           `db:"is_archived" json:"is_archived"`
-	LastEnvelopeTitle           string         `db:"last_envelope_title" json:"last_envelope_title"`
+	LastEnvelopeMessage         sql.NullString `db:"last_envelope_message" json:"last_envelope_message"`
 	LastEnvelopeKind            string         `db:"last_envelope_kind" json:"last_envelope_kind"`
 	LastEnvelopeAt              time.Time      `db:"last_envelope_at" json:"last_envelope_at"`
 	LastEnvelopeSenderProfileID sql.NullString `db:"last_envelope_sender_profile_id" json:"last_envelope_sender_profile_id"`
@@ -660,10 +653,10 @@ type ListConversationsForProfileRow struct {
 //	  mp.last_read_at,
 //	  mp.is_archived,
 //	  (
-//	    SELECT me.title FROM "mailbox_envelope" me
+//	    SELECT me.message FROM "mailbox_envelope" me
 //	    WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
 //	    ORDER BY me.created_at DESC LIMIT 1
-//	  ) AS last_envelope_title,
+//	  ) AS last_envelope_message,
 //	  (
 //	    SELECT me.kind FROM "mailbox_envelope" me
 //	    WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
@@ -711,7 +704,7 @@ func (q *Queries) ListConversationsForProfile(ctx context.Context, arg ListConve
 			&i.UpdatedAt,
 			&i.LastReadAt,
 			&i.IsArchived,
-			&i.LastEnvelopeTitle,
+			&i.LastEnvelopeMessage,
 			&i.LastEnvelopeKind,
 			&i.LastEnvelopeAt,
 			&i.LastEnvelopeSenderProfileID,
@@ -732,7 +725,7 @@ func (q *Queries) ListConversationsForProfile(ctx context.Context, arg ListConve
 
 const listEnvelopesByConversation = `-- name: ListEnvelopesByConversation :many
 SELECT
-  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
   sp.slug AS sender_profile_slug,
   COALESCE(spt.title, '') AS sender_profile_title,
   sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -758,8 +751,7 @@ type ListEnvelopesByConversationRow struct {
 	SenderUserID            sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
 	Kind                    string                `db:"kind" json:"kind"`
 	Status                  string                `db:"status" json:"status"`
-	Title                   string                `db:"title" json:"title"`
-	Description             sql.NullString        `db:"description" json:"description"`
+	Message                 sql.NullString        `db:"message" json:"message"`
 	Properties              pqtype.NullRawMessage `db:"properties" json:"properties"`
 	AcceptedAt              sql.NullTime          `db:"accepted_at" json:"accepted_at"`
 	RejectedAt              sql.NullTime          `db:"rejected_at" json:"rejected_at"`
@@ -779,7 +771,7 @@ type ListEnvelopesByConversationRow struct {
 // ListEnvelopesByConversation
 //
 //	SELECT
-//	  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+//	  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
 //	  sp.slug AS sender_profile_slug,
 //	  COALESCE(spt.title, '') AS sender_profile_title,
 //	  sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -807,8 +799,7 @@ func (q *Queries) ListEnvelopesByConversation(ctx context.Context, arg ListEnvel
 			&i.SenderUserID,
 			&i.Kind,
 			&i.Status,
-			&i.Title,
-			&i.Description,
+			&i.Message,
 			&i.Properties,
 			&i.AcceptedAt,
 			&i.RejectedAt,
@@ -839,7 +830,7 @@ func (q *Queries) ListEnvelopesByConversation(ctx context.Context, arg ListEnvel
 
 const listMailboxEnvelopesByTargetProfileID = `-- name: ListMailboxEnvelopesByTargetProfileID :many
 SELECT
-  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
   sp.slug AS sender_profile_slug,
   COALESCE(spt.title, '') AS sender_profile_title,
   sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -867,8 +858,7 @@ type ListMailboxEnvelopesByTargetProfileIDRow struct {
 	SenderUserID            sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
 	Kind                    string                `db:"kind" json:"kind"`
 	Status                  string                `db:"status" json:"status"`
-	Title                   string                `db:"title" json:"title"`
-	Description             sql.NullString        `db:"description" json:"description"`
+	Message                 sql.NullString        `db:"message" json:"message"`
 	Properties              pqtype.NullRawMessage `db:"properties" json:"properties"`
 	AcceptedAt              sql.NullTime          `db:"accepted_at" json:"accepted_at"`
 	RejectedAt              sql.NullTime          `db:"rejected_at" json:"rejected_at"`
@@ -888,7 +878,7 @@ type ListMailboxEnvelopesByTargetProfileIDRow struct {
 // ListMailboxEnvelopesByTargetProfileID
 //
 //	SELECT
-//	  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+//	  me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.message, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
 //	  sp.slug AS sender_profile_slug,
 //	  COALESCE(spt.title, '') AS sender_profile_title,
 //	  sp.profile_picture_uri AS sender_profile_picture_uri,
@@ -917,8 +907,7 @@ func (q *Queries) ListMailboxEnvelopesByTargetProfileID(ctx context.Context, arg
 			&i.SenderUserID,
 			&i.Kind,
 			&i.Status,
-			&i.Title,
-			&i.Description,
+			&i.Message,
 			&i.Properties,
 			&i.AcceptedAt,
 			&i.RejectedAt,

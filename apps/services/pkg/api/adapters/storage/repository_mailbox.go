@@ -103,10 +103,10 @@ func (a *mailboxAdapter) ListConversationsForProfile(
 			conv.UpdatedAt = &row.UpdatedAt.Time
 		}
 
-		if row.LastEnvelopeTitle != "" {
+		if row.LastEnvelopeKind != "" {
 			senderID := vars.ToStringPtr(row.LastEnvelopeSenderProfileID)
 			conv.LastEnvelope = &mailbox.EnvelopePreview{
-				Title:           row.LastEnvelopeTitle,
+				Message:         vars.ToStringPtr(row.LastEnvelopeMessage),
 				Kind:            row.LastEnvelopeKind,
 				CreatedAt:       row.LastEnvelopeAt.Format(time.RFC3339),
 				SenderProfileID: senderID,
@@ -224,8 +224,7 @@ func (a *mailboxAdapter) CreateEnvelope(ctx context.Context, envelope *mailbox.E
 		SenderProfileID: vars.ToSQLNullString(envelope.SenderProfileID),
 		SenderUserID:    vars.ToSQLNullString(envelope.SenderUserID),
 		Kind:            envelope.Kind,
-		Title:           envelope.Title,
-		Description:     vars.ToSQLNullString(envelope.Description),
+		Message:         vars.ToSQLNullString(envelope.Message),
 		Properties:      propsJSON,
 		ReplyToID:       vars.ToSQLNullString(envelope.ReplyToID),
 	})
@@ -567,8 +566,7 @@ func envelopeFromRawRow(row *MailboxEnvelope) *mailbox.Envelope {
 		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
 		Kind:            row.Kind,
 		Status:          row.Status,
-		Title:           row.Title,
-		Description:     vars.ToStringPtr(row.Description),
+		Message:         vars.ToStringPtr(row.Message),
 		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
 		CreatedAt:       row.CreatedAt,
 	}
@@ -603,8 +601,7 @@ func envelopeFromConversationRow(row *ListEnvelopesByConversationRow) *mailbox.E
 		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
 		Kind:            row.Kind,
 		Status:          row.Status,
-		Title:           row.Title,
-		Description:     vars.ToStringPtr(row.Description),
+		Message:         vars.ToStringPtr(row.Message),
 		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
 		CreatedAt:       row.CreatedAt,
 	}
@@ -648,8 +645,7 @@ func envelopeFromListRow(row *ListMailboxEnvelopesByTargetProfileIDRow) *mailbox
 		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
 		Kind:            row.Kind,
 		Status:          row.Status,
-		Title:           row.Title,
-		Description:     vars.ToStringPtr(row.Description),
+		Message:         vars.ToStringPtr(row.Message),
 		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
 		CreatedAt:       row.CreatedAt,
 	}
@@ -693,8 +689,7 @@ func envelopeFromInvitationRow(row *ListAcceptedMailboxInvitationsRow) *mailbox.
 		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
 		Kind:            row.Kind,
 		Status:          row.Status,
-		Title:           row.Title,
-		Description:     vars.ToStringPtr(row.Description),
+		Message:         vars.ToStringPtr(row.Message),
 		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
 		CreatedAt:       row.CreatedAt,
 	}
