@@ -59,6 +59,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -173,6 +178,7 @@ function EnvelopeBubble(props: {
   isFirstEnvelope: boolean;
   firstEnvelopeStatus: EnvelopeStatus;
   userTelegramLinked: boolean;
+  userProfileSlugs: Set<string>;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onReaction: (envelopeId: string, emoji: string) => void;
@@ -259,17 +265,37 @@ function EnvelopeBubble(props: {
           {allowReactions && (
             <div className={styles.reactionsRow}>
               {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
-                env.reactions.map((reaction) => (
-                  <button
-                    key={reaction.id}
-                    type="button"
-                    className={styles.reactionChip}
-                    onClick={() => props.onRemoveReaction(env.id, reaction.emoji)}
-                    title={reaction.profile_title ?? reaction.profile_slug ?? ""}
-                  >
-                    {reaction.emoji}
-                  </button>
-                ))
+                env.reactions.map((reaction) => {
+                  const isOwn = reaction.profile_slug !== null && reaction.profile_slug !== undefined
+                    && props.userProfileSlugs.has(reaction.profile_slug);
+                  const ownerName = reaction.profile_title ?? reaction.profile_slug ?? "";
+
+                  if (isOwn) {
+                    return (
+                      <button
+                        key={reaction.id}
+                        type="button"
+                        className={styles.reactionChip}
+                        onClick={() => props.onRemoveReaction(env.id, reaction.emoji)}
+                      >
+                        {reaction.emoji}
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <Tooltip key={reaction.id}>
+                      <TooltipTrigger asChild>
+                        <span className={styles.reactionChipStatic}>
+                          {reaction.emoji}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {ownerName}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })
               )}
               <Popover>
                 <PopoverTrigger asChild>
@@ -706,6 +732,10 @@ function MailboxPage() {
     return profiles;
   }, [user]);
 
+  const userProfileSlugs = React.useMemo(() => {
+    return new Set(maintainerProfiles.map((p) => p.slug));
+  }, [maintainerProfiles]);
+
   // Load conversations
   const loadConversations = React.useCallback(async () => {
     setIsLoading(true);
@@ -755,6 +785,19 @@ function MailboxPage() {
       loadConversations();
     }
   }, [authLoading, isAuthenticated, loadConversations]);
+
+  // Poll conversations silently every 15 seconds
+  React.useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      refreshConversations();
+    }, 15_000);
+
+    return () => clearInterval(interval);
+  }, [authLoading, isAuthenticated, refreshConversations]);
 
   // Load detail when selecting a conversation
   React.useEffect(() => {
@@ -1124,6 +1167,7 @@ function MailboxPage() {
                         isFirstEnvelope={index === 0}
                         firstEnvelopeStatus={convDetail.envelopes.length > 0 ? convDetail.envelopes[0].status : "pending"}
                         userTelegramLinked={userTelegramLinked}
+                        userProfileSlugs={userProfileSlugs}
                         onAccept={handleAccept}
                         onReject={promptReject}
                         onReaction={handleReaction}

@@ -213,6 +213,10 @@
   }
 }
 
+.reactionChipStatic {
+  @apply text-sm px-1.5 py-0.5 rounded-full bg-muted cursor-default;
+}
+
 .reactionButton {
   @apply size-7 p-0;
 }
