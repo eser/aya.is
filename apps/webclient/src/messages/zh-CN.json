@@ -896,8 +896,12 @@
     "No conversations yet": "No conversations yet",
     "No archived conversations": "No archived conversations",
     "Show archived": "Show archived",
-    "Archive": "Archive",
-    "Unarchive": "Unarchive",
+    "Archive": "归档",
+    "Archive conversation": "归档对话",
+    "Unarchive": "取消归档",
+    "Unarchive conversation": "取消归档对话",
+    "Remove conversation": "删除对话",
+    "This will permanently delete this conversation and all its messages. This action cannot be undone.": "此对话及其所有消息将被永久删除。此操作无法撤销。",
     "New": "New",
     "New Message": "New Message",
     "Send": "Send",
@@ -911,6 +915,8 @@
     "Write your message...": "输入您的消息...",
     "Type your reply...": "输入您的回复...",
     "Sent successfully": "发送成功",
-    "Failed to send": "发送失败"
+    "Failed to send": "发送失败",
+    "TelegramInvitationInfo": "这是加入\"{{groupName}}\"的 Telegram 群组邀请。一旦您接受此邀请，我们的 Telegram 机器人将通过私信向您发送邀请链接。",
+    "TelegramLinkRequired": "要接受此 Telegram 群组邀请，您需要先关联您的 Telegram 账户。请前往您的个人资料设置并连接 Telegram。"
   }
 }

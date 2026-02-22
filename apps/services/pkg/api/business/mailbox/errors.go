@@ -16,4 +16,5 @@ var (
 	ErrInvalidReaction      = errors.New("invalid reaction emoji")
 	ErrSelfConversation     = errors.New("cannot create conversation with yourself")
 	ErrConversationPending  = errors.New("conversation has not been accepted yet")
+	ErrMissingSenderProfile = errors.New("sender profile is required")
 )

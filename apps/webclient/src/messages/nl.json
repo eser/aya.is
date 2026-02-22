@@ -896,8 +896,12 @@
     "No conversations yet": "No conversations yet",
     "No archived conversations": "No archived conversations",
     "Show archived": "Show archived",
-    "Archive": "Archive",
-    "Unarchive": "Unarchive",
+    "Archive": "Archiveren",
+    "Archive conversation": "Gesprek archiveren",
+    "Unarchive": "Dearchiveren",
+    "Unarchive conversation": "Gesprek dearchiveren",
+    "Remove conversation": "Gesprek verwijderen",
+    "This will permanently delete this conversation and all its messages. This action cannot be undone.": "Dit gesprek en alle berichten worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.",
     "New": "New",
     "New Message": "New Message",
     "Send": "Send",
@@ -911,6 +915,8 @@
     "Write your message...": "Schrijf uw bericht...",
     "Type your reply...": "Typ uw antwoord...",
     "Sent successfully": "Succesvol verzonden",
-    "Failed to send": "Verzenden mislukt"
+    "Failed to send": "Verzenden mislukt",
+    "TelegramInvitationInfo": "Dit is een Telegram-groepsuitnodiging om lid te worden van \"{{groupName}}\". Zodra je deze uitnodiging hebt geaccepteerd, stuurt onze Telegram-bot je een uitnodigingslink via een privébericht.",
+    "TelegramLinkRequired": "Om deze Telegram-groepsuitnodiging te accepteren, moet je eerst je Telegram-account koppelen. Ga naar je profielinstellingen en verbind Telegram."
   }
 }

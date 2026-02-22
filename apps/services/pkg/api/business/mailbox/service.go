@@ -21,6 +21,7 @@ type Service struct {
 	repo        Repository
 	idGenerator func() string
 	onCreated   OnEnvelopeCreatedFunc
+	onAccepted  OnEnvelopeAcceptedFunc
 }
 
 // NewService creates a new mailbox service.
@@ -34,12 +35,18 @@ func NewService(
 		repo:        repo,
 		idGenerator: idGenerator,
 		onCreated:   nil,
+		onAccepted:  nil,
 	}
 }
 
 // SetOnCreated sets a callback that fires after each new envelope is persisted.
 func (s *Service) SetOnCreated(fn OnEnvelopeCreatedFunc) {
 	s.onCreated = fn
+}
+
+// SetOnAccepted sets a callback that fires after an envelope is accepted.
+func (s *Service) SetOnAccepted(fn OnEnvelopeAcceptedFunc) {
+	s.onAccepted = fn
 }
 
 // GetOrCreateDirectConversation finds or creates a direct conversation between two profiles.
@@ -158,6 +165,10 @@ func (s *Service) SendSystemEnvelope(
 		return nil, ErrInvalidEnvelopeKind
 	}
 
+	if params.SenderProfileID == "" {
+		return nil, ErrMissingSenderProfile
+	}
+
 	now := time.Now()
 
 	var titlePtr *string
@@ -165,16 +176,11 @@ func (s *Service) SendSystemEnvelope(
 		titlePtr = &params.ConversationTitle
 	}
 
-	var createdBy *string
-	if params.SenderProfileID != "" {
-		createdBy = &params.SenderProfileID
-	}
-
 	conv := &Conversation{
 		ID:                 s.idGenerator(),
-		Kind:               ConversationKindSystem,
+		Kind:               ConversationKindDirect,
 		Title:              titlePtr,
-		CreatedByProfileID: createdBy,
+		CreatedByProfileID: &params.SenderProfileID,
 		CreatedAt:          now,
 	}
 
@@ -183,15 +189,17 @@ func (s *Service) SendSystemEnvelope(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
 	}
 
-	// Add target as the sole participant.
-	err = s.repo.AddParticipant(ctx, &Participant{
-		ID:             s.idGenerator(),
-		ConversationID: conv.ID,
-		ProfileID:      params.TargetProfileID,
-		JoinedAt:       now,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
+	// Add both target and sender as participants.
+	for _, profileID := range []string{params.TargetProfileID, params.SenderProfileID} {
+		err = s.repo.AddParticipant(ctx, &Participant{
+			ID:             s.idGenerator(),
+			ConversationID: conv.ID,
+			ProfileID:      profileID,
+			JoinedAt:       now,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
+		}
 	}
 
 	return s.createEnvelopeInConversation(ctx, conv.ID, params)
@@ -392,6 +400,10 @@ func (s *Service) AcceptEnvelope(
 
 	s.logger.InfoContext(ctx, "Envelope accepted",
 		slog.String("envelope_id", envelopeID))
+
+	if s.onAccepted != nil {
+		s.onAccepted(ctx, envelope)
+	}
 
 	return nil
 }

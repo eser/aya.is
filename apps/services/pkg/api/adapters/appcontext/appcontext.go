@@ -471,6 +471,16 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			telegramadapter.NewEnvelopeNotifier(a.TelegramClient, a.TelegramService, a.Logger),
 		)
 
+		// Auto-redeem telegram group invitations when accepted.
+		a.MailboxService.SetOnAccepted(
+			telegramadapter.NewEnvelopeAutoRedeemer(
+				a.TelegramClient,
+				a.TelegramService,
+				a.MailboxService,
+				a.Logger,
+			),
+		)
+
 		// Set up webhook or clear it for polling mode
 		if !a.Config.Telegram.UsePolling && a.Config.Telegram.WebhookURL != "" {
 			webhookErr := a.TelegramClient.SetWebhook(

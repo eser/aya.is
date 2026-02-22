@@ -896,8 +896,12 @@
     "No conversations yet": "No conversations yet",
     "No archived conversations": "No archived conversations",
     "Show archived": "Show archived",
-    "Archive": "Archive",
-    "Unarchive": "Unarchive",
+    "Archive": "Archivieren",
+    "Archive conversation": "Konversation archivieren",
+    "Unarchive": "Dearchivieren",
+    "Unarchive conversation": "Konversation dearchivieren",
+    "Remove conversation": "Konversation löschen",
+    "This will permanently delete this conversation and all its messages. This action cannot be undone.": "Diese Konversation und alle Nachrichten werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     "New": "New",
     "New Message": "New Message",
     "Send": "Send",
@@ -911,6 +915,8 @@
     "Write your message...": "Schreiben Sie Ihre Nachricht...",
     "Type your reply...": "Antwort eingeben...",
     "Sent successfully": "Erfolgreich gesendet",
-    "Failed to send": "Senden fehlgeschlagen"
+    "Failed to send": "Senden fehlgeschlagen",
+    "TelegramInvitationInfo": "Dies ist eine Telegram-Gruppeneinladung zum Beitritt zu \"{{groupName}}\". Sobald Sie diese Einladung angenommen haben, wird Ihnen unser Telegram-Bot einen Einladungslink per Direktnachricht senden.",
+    "TelegramLinkRequired": "Um diese Telegram-Gruppeneinladung anzunehmen, müssen Sie zuerst Ihr Telegram-Konto verknüpfen. Gehen Sie zu Ihren Profileinstellungen und verbinden Sie Telegram."
   }
 }

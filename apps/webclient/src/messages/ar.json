@@ -896,8 +896,12 @@
     "No conversations yet": "No conversations yet",
     "No archived conversations": "No archived conversations",
     "Show archived": "Show archived",
-    "Archive": "Archive",
-    "Unarchive": "Unarchive",
+    "Archive": "أرشفة",
+    "Archive conversation": "أرشفة المحادثة",
+    "Unarchive": "إلغاء الأرشفة",
+    "Unarchive conversation": "إلغاء أرشفة المحادثة",
+    "Remove conversation": "حذف المحادثة",
+    "This will permanently delete this conversation and all its messages. This action cannot be undone.": "سيتم حذف هذه المحادثة وجميع رسائلها نهائياً. لا يمكن التراجع عن هذا الإجراء.",
     "New": "New",
     "New Message": "New Message",
     "Send": "Send",
@@ -911,6 +915,8 @@
     "Write your message...": "اكتب رسالتك...",
     "Type your reply...": "اكتب ردك...",
     "Sent successfully": "تم الإرسال بنجاح",
-    "Failed to send": "فشل في الإرسال"
+    "Failed to send": "فشل في الإرسال",
+    "TelegramInvitationInfo": "هذه دعوة مجموعة Telegram للانضمام إلى \"{{groupName}}\". بمجرد قبولك لهذه الدعوة، سيقوم بوت Telegram الخاص بنا بإرسال رابط الدعوة إليك عبر رسالة خاصة.",
+    "TelegramLinkRequired": "لقبول دعوة مجموعة Telegram هذه، تحتاج إلى ربط حساب Telegram الخاص بك أولاً. انتقل إلى إعدادات ملفك الشخصي وقم بتوصيل Telegram."
   }
 }

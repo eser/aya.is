@@ -38,7 +38,7 @@
 }
 
 .sidebarHeader {
-  @apply p-3 border-b border-border flex items-center gap-1;
+  @apply p-3 border-b border-border flex items-center justify-between gap-1;
 }
 
 .filterTabs {

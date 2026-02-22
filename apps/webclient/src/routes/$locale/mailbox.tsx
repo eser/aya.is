@@ -17,6 +17,8 @@ import {
   SmilePlus,
   Ellipsis,
   Trash2,
+  Info,
+  AlertTriangle,
 } from "lucide-react";
 import {
   backend,
@@ -170,6 +172,7 @@ function EnvelopeBubble(props: {
   conversationKind: string;
   isFirstEnvelope: boolean;
   firstEnvelopeAccepted: boolean;
+  userTelegramLinked: boolean;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onReaction: (envelopeId: string, emoji: string) => void;
@@ -189,9 +192,17 @@ function EnvelopeBubble(props: {
   const allowReactions = props.conversationKind !== "system"
     && (env.status === "accepted" || env.status === "redeemed" || hideStatusBadge);
 
-  const groupName = env.properties !== null && env.properties !== undefined
-    ? (env.properties as Record<string, unknown>).group_name as string | undefined
+  const envProperties = env.properties !== null && env.properties !== undefined
+    ? env.properties as Record<string, unknown>
     : undefined;
+  const groupName = envProperties !== undefined
+    ? envProperties.group_name as string | undefined
+    : undefined;
+  const invitationKind = envProperties !== undefined
+    ? envProperties.invitation_kind as string | undefined
+    : undefined;
+  const isTelegramGroupInvitation = env.kind === "invitation"
+    && invitationKind === "telegram_group";
 
   const senderName = env.sender_profile_title ?? env.sender_profile_slug ?? null;
 
@@ -221,6 +232,25 @@ function EnvelopeBubble(props: {
         </div>
         {groupName !== undefined && groupName !== "" && (
           <p className={styles.messageGroup}>{groupName}</p>
+        )}
+
+        {/* Telegram group invitation contextual messaging */}
+        {isTelegramGroupInvitation && isPending && (
+          props.userTelegramLinked ? (
+            <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
+              <Info className="size-4 mt-0.5 shrink-0" />
+              <span>
+                {t("Mailbox.TelegramInvitationInfo", { groupName: groupName ?? "" })}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+              <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+              <span>
+                {t("Mailbox.TelegramLinkRequired")}
+              </span>
+            </div>
+          )
         )}
 
         {/* Row 2: [reactions] [add reaction] ... [date] */}
@@ -273,7 +303,7 @@ function EnvelopeBubble(props: {
               size="sm"
               variant="outline"
               className="text-green-700 border-green-300 hover:bg-green-50"
-              disabled={isProcessing}
+              disabled={isProcessing || (isTelegramGroupInvitation && !props.userTelegramLinked)}
               onClick={() => props.onAccept(env.id)}
             >
               {isProcessing ? <Loader2 className="size-4 animate-spin mr-1" /> : <Check className="size-4 mr-1" />}
@@ -650,6 +680,9 @@ function MailboxPage() {
   // Remove conversation dialog (admin only)
   const [removeDialogOpen, setRemoveDialogOpen] = React.useState(false);
 
+  // Telegram link status for the current user
+  const [userTelegramLinked, setUserTelegramLinked] = React.useState(false);
+
   // Maintainer+ profiles
   const maintainerProfiles = React.useMemo(() => {
     if (user === null) {
@@ -709,12 +742,22 @@ function MailboxPage() {
     }
   }, [authLoading, isAuthenticated, navigate, locale]);
 
-  // Load conversations when authenticated
+  // Load conversations and check telegram link when authenticated
   React.useEffect(() => {
     if (!authLoading && isAuthenticated) {
       loadConversations();
+
+      // Check if the user has a managed telegram link
+      if (user !== null && user.individual_profile_slug !== undefined && user.individual_profile_slug !== "") {
+        backend.getProfileLinks(locale, user.individual_profile_slug).then((links) => {
+          if (links !== null) {
+            const hasTelegram = links.some((l) => l.kind === "telegram" && l.is_managed === true);
+            setUserTelegramLinked(hasTelegram);
+          }
+        });
+      }
     }
-  }, [authLoading, isAuthenticated, loadConversations]);
+  }, [authLoading, isAuthenticated, loadConversations, user, locale]);
 
   // Load detail when selecting a conversation
   React.useEffect(() => {
@@ -1032,7 +1075,7 @@ function MailboxPage() {
                             <Ellipsis className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="min-w-[200px]">
                           {showArchived ? (
                             <DropdownMenuItem onClick={handleUnarchive}>
                               <ArchiveRestore className="size-4 mr-2" />
@@ -1070,6 +1113,7 @@ function MailboxPage() {
                         conversationKind={convDetail.conversation.kind}
                         isFirstEnvelope={index === 0}
                         firstEnvelopeAccepted={convDetail.envelopes.length > 0 && convDetail.envelopes[0].status === "accepted"}
+                        userTelegramLinked={userTelegramLinked}
                         onAccept={handleAccept}
                         onReject={promptReject}
                         onReaction={handleReaction}

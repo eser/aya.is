@@ -901,7 +901,11 @@
     "No archived conversations": "Arşivlenmiş konuşma yok",
     "Show archived": "Arşivlenenleri göster",
     "Archive": "Arşivle",
+    "Archive conversation": "Konuşmayı arşivle",
     "Unarchive": "Arşivden çıkar",
+    "Unarchive conversation": "Konuşmayı arşivden çıkar",
+    "Remove conversation": "Konuşmayı sil",
+    "This will permanently delete this conversation and all its messages. This action cannot be undone.": "Bu konuşma ve tüm iletileri kalıcı olarak silinecektir. Bu işlem geri alınamaz.",
     "New": "Yeni",
     "New Message": "Yeni İleti",
     "Send": "Gönder",
@@ -915,6 +919,8 @@
     "Write your message...": "İletinizi yazın...",
     "Type your reply...": "Yanıtınızı yazın...",
     "Sent successfully": "Başarıyla gönderildi",
-    "Failed to send": "Gönderilemedi"
+    "Failed to send": "Gönderilemedi",
+    "TelegramInvitationInfo": "Bu, \"{{groupName}}\" grubuna katılmak için bir Telegram grup davetiyesidir. Bu daveti kabul ettiğinizde, Telegram botumuz size doğrudan mesaj yoluyla bir davet bağlantısı gönderecektir.",
+    "TelegramLinkRequired": "Bu Telegram grup davetini kabul etmek için önce Telegram hesabınızı bağlamanız gerekiyor. Profil ayarlarınıza gidin ve Telegram'ı bağlayın."
   }
 }

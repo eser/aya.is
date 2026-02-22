@@ -153,3 +153,7 @@ type SendMessageParams struct {
 // OnEnvelopeCreatedFunc is a callback invoked after a new envelope is persisted.
 // Implementations must be best-effort — failures should be logged, never propagated.
 type OnEnvelopeCreatedFunc func(ctx context.Context, envelope *Envelope, params *SendMessageParams)
+
+// OnEnvelopeAcceptedFunc is a callback invoked after an envelope is accepted.
+// Implementations must be best-effort — failures should be logged, never propagated.
+type OnEnvelopeAcceptedFunc func(ctx context.Context, envelope *Envelope)

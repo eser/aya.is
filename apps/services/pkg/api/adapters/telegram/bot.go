@@ -2,7 +2,6 @@ package telegram
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -43,13 +42,6 @@ func (b *Bot) Client() *Client {
 
 // HandleUpdate processes a single Telegram update.
 func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclop
-	// Handle callback queries from inline keyboard buttons
-	if update.CallbackQuery != nil {
-		b.handleCallbackQuery(ctx, update.CallbackQuery)
-
-		return
-	}
-
 	if update.Message == nil {
 		return
 	}
@@ -85,8 +77,6 @@ func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclo
 		b.handleStatus(ctx, msg)
 	case "/groups":
 		b.handleGroups(ctx, msg)
-	case "/invitations":
-		b.handleInvitations(ctx, msg)
 	case "/unlink":
 		b.handleUnlink(ctx, msg)
 	default:
@@ -150,7 +140,6 @@ func (b *Bot) handleHelp(ctx context.Context, msg *Message) {
 		"/start — Get a verification code to link your account\n" +
 		"/status — Check your linked AYA profile\n" +
 		"/groups — List Telegram groups from your profiles\n" +
-		"/invitations — View and redeem your accepted invitations\n" +
 		"/invite — Generate an invite code (use in a group chat)\n" +
 		"/unlink — Disconnect your Telegram account from AYA\n" +
 		"/help — Show this help message"
@@ -265,107 +254,6 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 	})
 }
 
-func (b *Bot) handleInvitations(ctx context.Context, msg *Message) {
-	info, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
-	if err != nil {
-		_ = b.client.SendMessage(ctx, msg.Chat.ID,
-			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
-				"Send /start to get a verification code.")
-
-		return
-	}
-
-	invitations, invErr := b.envelopeService.GetAcceptedInvitations(
-		ctx, info.ProfileID, mailbox.InvitationKindTelegramGroup,
-	)
-	if invErr != nil {
-		b.logger.WarnContext(ctx, "Failed to get invitations",
-			slog.String("profile_id", info.ProfileID),
-			slog.String("error", invErr.Error()))
-
-		_ = b.client.SendMessage(ctx, msg.Chat.ID,
-			"Something went wrong. Please try again later.")
-
-		return
-	}
-
-	if len(invitations) == 0 {
-		noInvMsg := "You have no pending invitations to redeem.\n\n" +
-			"Check your Inbox on <b>aya.is</b> for new invitations."
-
-		pendingCount, countErr := b.envelopeService.CountPendingEnvelopes(ctx, info.ProfileID)
-		if countErr == nil && pendingCount > 0 {
-			noInvMsg = fmt.Sprintf(
-				"You have no pending invitations to redeem.\n\n"+
-					"Check your Inbox on <b>aya.is</b> for new invitations, "+
-					"there are still <b>%d</b> messages not yet responded.",
-				pendingCount,
-			)
-		}
-
-		_ = b.client.SendMessage(ctx, msg.Chat.ID, noInvMsg)
-
-		return
-	}
-
-	// Build inline keyboard with one button per invitation
-	var (
-		rows    [][]InlineKeyboardButton
-		details []string
-	)
-
-	for i, inv := range invitations {
-		// Extract group name from properties for display
-		invLabel := "Invitation"
-		if inv.Message != nil && *inv.Message != "" {
-			invLabel = *inv.Message
-		}
-
-		groupName := ""
-
-		if inv.Properties != nil {
-			if propsMap, ok := inv.Properties.(map[string]any); ok {
-				if gn, gnOk := propsMap["group_name"].(string); gnOk && gn != "" {
-					groupName = gn
-				}
-			}
-		}
-
-		buttonText := invLabel
-		if groupName != "" {
-			buttonText = fmt.Sprintf("%s → %s", invLabel, groupName)
-		}
-
-		rows = append(rows, []InlineKeyboardButton{
-			{Text: buttonText, CallbackData: "invite:" + inv.ID},
-		})
-
-		detail := fmt.Sprintf("%d. <b>%s</b>", i+1, invLabel)
-		if groupName != "" {
-			detail += fmt.Sprintf("\n    Group: <i>%s</i>", groupName)
-		}
-
-		if inv.SenderProfileTitle != nil && *inv.SenderProfileTitle != "" {
-			detail += fmt.Sprintf("\n    From: <i>%s</i>", *inv.SenderProfileTitle)
-		} else if inv.SenderProfileID == nil {
-			detail += "\n    From: <i>System</i>"
-		}
-
-		details = append(details, detail)
-	}
-
-	keyboard := &InlineKeyboardMarkup{InlineKeyboard: rows}
-
-	msgText := "<b>Your Invitations</b>\n\n" +
-		strings.Join(details, "\n") +
-		"\n\nTap an invitation to get your invite link:"
-
-	_ = b.client.SendMessageWithKeyboard(ctx, msg.Chat.ID,
-		msgText,
-		keyboard,
-	)
-}
-
 func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
 	if msg.From == nil || msg.From.IsBot {
 		return
@@ -419,126 +307,6 @@ func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
 	}
 
 	_ = b.client.SendMessage(ctx, msg.Chat.ID, "Invite code sent to your DM.")
-}
-
-func (b *Bot) handleCallbackQuery(ctx context.Context, cq *CallbackQuery) { //nolint:funlen,cyclop
-	if cq.From == nil || cq.From.IsBot {
-		return
-	}
-
-	if !strings.HasPrefix(cq.Data, "invite:") {
-		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Unknown action.")
-
-		return
-	}
-
-	envelopeID := strings.TrimPrefix(cq.Data, "invite:")
-
-	// Verify the user has a linked profile
-	info, err := b.service.GetLinkedProfile(ctx, cq.From.ID)
-	if err != nil {
-		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Your account is not linked.")
-
-		return
-	}
-
-	// Get the envelope
-	envelope, envErr := b.envelopeService.GetEnvelopeByID(ctx, envelopeID)
-	if envErr != nil {
-		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Invitation not found.")
-
-		return
-	}
-
-	// Verify it belongs to this user's profile and is accepted
-	if envelope.TargetProfileID != info.ProfileID {
-		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "This invitation is not for you.")
-
-		return
-	}
-
-	if envelope.Status != mailbox.StatusAccepted {
-		_ = b.client.AnswerCallbackQuery(
-			ctx,
-			cq.ID,
-			"This invitation has already been used or is no longer valid.",
-		)
-
-		return
-	}
-
-	// Parse invitation properties to get the Telegram chat ID
-	propsJSON, marshalErr := json.Marshal(envelope.Properties)
-	if marshalErr != nil {
-		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Invalid invitation data.")
-
-		return
-	}
-
-	var props mailbox.InvitationProperties
-
-	unmarshalErr := json.Unmarshal(propsJSON, &props)
-	if unmarshalErr != nil {
-		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Invalid invitation data.")
-
-		return
-	}
-
-	if props.TelegramChatID == 0 {
-		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Invalid invitation: missing chat ID.")
-
-		return
-	}
-
-	// Create a single-use invite link
-	inviteLink, linkErr := b.client.CreateChatInviteLink(
-		ctx, props.TelegramChatID, "AYA Invitation", 1,
-	)
-	if linkErr != nil {
-		b.logger.ErrorContext(ctx, "Failed to create chat invite link",
-			slog.String("envelope_id", envelopeID),
-			slog.Int64("chat_id", props.TelegramChatID),
-			slog.String("error", linkErr.Error()))
-
-		_ = b.client.AnswerCallbackQuery(
-			ctx,
-			cq.ID,
-			"Failed to create invite link. Please try again later.",
-		)
-
-		return
-	}
-
-	// Update properties with the generated invite link and redeem the envelope
-	props.InviteLink = &inviteLink.InviteLink
-
-	redeemErr := b.envelopeService.RedeemEnvelope(ctx, envelopeID, props)
-	if redeemErr != nil {
-		b.logger.ErrorContext(ctx, "Failed to redeem envelope",
-			slog.String("envelope_id", envelopeID),
-			slog.String("error", redeemErr.Error()))
-	}
-
-	// Send the invite link to the user
-	chatID := cq.From.ID
-	if cq.Message != nil && cq.Message.Chat != nil {
-		chatID = cq.Message.Chat.ID
-	}
-
-	groupName := props.GroupName
-	if groupName == "" && envelope.Message != nil {
-		groupName = *envelope.Message
-	}
-
-	text := fmt.Sprintf(
-		"Here is your single-use invite link for <b>%s</b>:\n\n%s\n\n"+
-			"This link can only be used once.",
-		groupName,
-		inviteLink.InviteLink,
-	)
-
-	_ = b.client.SendMessage(ctx, chatID, text)
-	_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "Invite link sent!")
 }
 
 func (b *Bot) handleUnknown(ctx context.Context, msg *Message) {

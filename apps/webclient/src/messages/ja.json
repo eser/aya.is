@@ -896,8 +896,12 @@
     "No conversations yet": "No conversations yet",
     "No archived conversations": "No archived conversations",
     "Show archived": "Show archived",
-    "Archive": "Archive",
-    "Unarchive": "Unarchive",
+    "Archive": "アーカイブ",
+    "Archive conversation": "会話をアーカイブ",
+    "Unarchive": "アーカイブ解除",
+    "Unarchive conversation": "会話のアーカイブ解除",
+    "Remove conversation": "会話を削除",
+    "This will permanently delete this conversation and all its messages. This action cannot be undone.": "この会話とすべてのメッセージが完全に削除されます。この操作は元に戻せません。",
     "New": "New",
     "New Message": "New Message",
     "Send": "Send",
@@ -911,6 +915,8 @@
     "Write your message...": "メッセージを入力...",
     "Type your reply...": "返信を入力...",
     "Sent successfully": "送信しました",
-    "Failed to send": "送信に失敗しました"
+    "Failed to send": "送信に失敗しました",
+    "TelegramInvitationInfo": "これは「{{groupName}}」に参加するためのTelegramグループ招待です。この招待を承認すると、Telegramボットがダイレクトメッセージで招待リンクをお届けします。",
+    "TelegramLinkRequired": "このTelegramグループ招待を受け入れるには、まずTelegramアカウントをリンクする必要があります。プロフィール設定に移動してTelegramを接続してください。"
   }
 }
