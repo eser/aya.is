@@ -959,7 +959,7 @@ FROM "mailbox_participant" mp
   LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = p.default_locale
 WHERE mp.conversation_id = $1
   AND mp.left_at IS NULL
-ORDER BY mp.joined_at
+ORDER BY mp.joined_at, mp.id
 `
 
 type ListMailboxParticipantsParams struct {
@@ -993,7 +993,7 @@ type ListMailboxParticipantsRow struct {
 //	  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = p.default_locale
 //	WHERE mp.conversation_id = $1
 //	  AND mp.left_at IS NULL
-//	ORDER BY mp.joined_at
+//	ORDER BY mp.joined_at, mp.id
 func (q *Queries) ListMailboxParticipants(ctx context.Context, arg ListMailboxParticipantsParams) ([]*ListMailboxParticipantsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listMailboxParticipants, arg.ConversationID)
 	if err != nil {

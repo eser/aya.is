@@ -8,7 +8,6 @@ import {
   X,
   Send,
   Loader2,
-  CheckCircle,
   ChevronLeft,
   Archive,
   ArchiveRestore,
@@ -31,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,17 +77,18 @@ function ConversationRow(props: {
 }) {
   const { t } = useTranslation();
   const conv = props.conversation;
-  const otherParticipant = conv.participants !== null
-    ? conv.participants.find((p) => p.profile_kind !== "individual" || conv.kind === "system") ?? conv.participants[0]
-    : null;
+  const otherParticipants = conv.participants !== null ? conv.participants : [];
+  const firstOther = otherParticipants.length > 0 ? otherParticipants[0] : null;
 
-  const avatarFallback = otherParticipant !== null && otherParticipant !== undefined
-    ? otherParticipant.profile_title.charAt(0).toUpperCase()
+  const avatarFallback = firstOther !== null
+    ? firstOther.profile_title.charAt(0).toUpperCase()
     : "?";
 
   const title = conv.kind === "system"
     ? (conv.last_envelope !== null ? conv.last_envelope.title : t("Mailbox.System message"))
-    : (otherParticipant !== null && otherParticipant !== undefined ? otherParticipant.profile_title : t("Mailbox.Conversation"));
+    : (otherParticipants.length > 0
+        ? otherParticipants.map((p) => p.profile_title).join(", ")
+        : t("Mailbox.Conversation"));
 
   const preview = conv.last_envelope !== null
     ? conv.last_envelope.title
@@ -104,12 +104,25 @@ function ConversationRow(props: {
       className={`${styles.conversationRow} ${props.isSelected ? styles.conversationRowActive : ""}`}
       onClick={() => props.onSelect(conv.id)}
     >
-      <Avatar className={styles.conversationAvatar}>
-        {otherParticipant !== null && otherParticipant !== undefined && otherParticipant.profile_picture_uri !== null ? (
-          <AvatarImage src={otherParticipant.profile_picture_uri} alt={otherParticipant.profile_title} />
-        ) : null}
-        <AvatarFallback>{avatarFallback}</AvatarFallback>
-      </Avatar>
+      {otherParticipants.length <= 1 ? (
+        <Avatar className={styles.conversationAvatar}>
+          {firstOther !== null && firstOther.profile_picture_uri !== null ? (
+            <AvatarImage src={firstOther.profile_picture_uri} alt={firstOther.profile_title} />
+          ) : null}
+          <AvatarFallback>{avatarFallback}</AvatarFallback>
+        </Avatar>
+      ) : (
+        <AvatarGroup className={styles.conversationAvatarGroup}>
+          {otherParticipants.slice(0, 3).map((p) => (
+            <Avatar key={p.profile_id} size="sm">
+              {p.profile_picture_uri !== null ? (
+                <AvatarImage src={p.profile_picture_uri} alt={p.profile_title} />
+              ) : null}
+              <AvatarFallback>{p.profile_title.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          ))}
+        </AvatarGroup>
+      )}
       <div className={styles.conversationInfo}>
         <div className={styles.conversationHeader}>
           <span className={styles.conversationTitle}>{title}</span>
@@ -248,7 +261,7 @@ function EnvelopeBubble(props: {
 // --- Compose Area ---
 function ComposeArea(props: {
   locale: string;
-  targetProfileSlug: string | null;
+  participants: Array<{ profile_slug: string; profile_title: string }>;
   senderProfiles: Array<{ slug: string; title: string; kind: string }>;
   onSent: () => void;
 }) {
@@ -262,8 +275,17 @@ function ComposeArea(props: {
   const [isSending, setIsSending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Determine the target: the first participant whose slug differs from the selected sender.
+  const targetSlug = React.useMemo(() => {
+    const target = props.participants.find((p) => p.profile_slug !== senderSlug);
+    if (target !== undefined) {
+      return target.profile_slug;
+    }
+    return props.participants.length > 0 ? props.participants[0].profile_slug : null;
+  }, [props.participants, senderSlug]);
+
   const handleSend = async () => {
-    if (title.trim() === "" || props.targetProfileSlug === null || senderSlug === "") {
+    if (title.trim() === "" || targetSlug === null || senderSlug === "") {
       return;
     }
 
@@ -273,7 +295,7 @@ function ComposeArea(props: {
     const result = await backend.sendMailboxMessage({
       locale: props.locale,
       senderProfileSlug: senderSlug,
-      targetProfileSlug: props.targetProfileSlug,
+      targetProfileSlug: targetSlug,
       title: title.trim(),
       description: description.trim() !== "" ? description.trim() : undefined,
     });
@@ -317,7 +339,7 @@ function ComposeArea(props: {
           <Button
             size="sm"
             onClick={handleSend}
-            disabled={isSending || title.trim() === ""}
+            disabled={isSending || title.trim() === "" || targetSlug === null}
           >
             {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
             {t("Mailbox.Send")}
@@ -638,15 +660,12 @@ function MailboxPage() {
     return conversations.filter((c) => c.kind === "system");
   }, [conversations, filterTab]);
 
-  // Get other participant's slug for compose area
-  const otherParticipantSlug = React.useMemo(() => {
+  // All participants for the current conversation detail
+  const conversationParticipants = React.useMemo(() => {
     if (convDetail === null || convDetail.conversation.participants === null) {
-      return null;
+      return [];
     }
-    const other = convDetail.conversation.participants.find(
-      (p) => p.profile_kind !== "individual" || convDetail.conversation.kind === "system",
-    ) ?? convDetail.conversation.participants[1] ?? null;
-    return other !== null ? other.profile_slug : null;
+    return convDetail.conversation.participants;
   }, [convDetail]);
 
   if (authLoading) {
@@ -680,10 +699,23 @@ function MailboxPage() {
       <div className={styles.container}>
         {/* Header */}
         <div className={styles.header}>
-          <h2 className={styles.title}>{t("Layout.Mailbox")}</h2>
-          <p className={styles.subtitle}>
-            {t("Mailbox.Your conversations and messages")}
-          </p>
+          <div className={styles.headerLeft}>
+            <h2 className={styles.title}>{t("Layout.Mailbox")}</h2>
+            <p className={styles.subtitle}>
+              {t("Mailbox.Your conversations and messages")}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              setShowNewMessage(true);
+              setSelectedConvId(null);
+              setConvDetail(null);
+            }}
+          >
+            <Send className="size-4 mr-1" />
+            {t("Mailbox.New Message")}
+          </Button>
         </div>
 
         {/* Layout: sidebar + detail */}
@@ -713,17 +745,6 @@ function MailboxPage() {
                     title={t("Mailbox.Show archived")}
                   >
                     <Archive className="size-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setShowNewMessage(true);
-                      setSelectedConvId(null);
-                      setConvDetail(null);
-                    }}
-                  >
-                    <Send className="size-4 mr-1" />
-                    {t("Mailbox.New")}
                   </Button>
                 </div>
               </div>
@@ -803,15 +824,36 @@ function MailboxPage() {
                     >
                       <ChevronLeft className="size-4" />
                     </Button>
+                    {convDetail.conversation.participants !== null && convDetail.conversation.participants.length > 1 ? (
+                      <AvatarGroup className={styles.conversationAvatarGroup}>
+                        {convDetail.conversation.participants.slice(0, 3).map((p) => (
+                          <Avatar key={p.profile_id} size="sm">
+                            {p.profile_picture_uri !== null ? (
+                              <AvatarImage src={p.profile_picture_uri} alt={p.profile_title} />
+                            ) : null}
+                            <AvatarFallback>{p.profile_title.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                        ))}
+                      </AvatarGroup>
+                    ) : convDetail.conversation.participants !== null && convDetail.conversation.participants.length === 1 ? (
+                      <Avatar className={styles.conversationAvatar}>
+                        {convDetail.conversation.participants[0].profile_picture_uri !== null ? (
+                          <AvatarImage src={convDetail.conversation.participants[0].profile_picture_uri} alt={convDetail.conversation.participants[0].profile_title} />
+                        ) : null}
+                        <AvatarFallback>{convDetail.conversation.participants[0].profile_title.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    ) : null}
                     <div className={styles.detailHeaderInfo}>
                       <h3 className={styles.detailTitle}>
                         {convDetail.conversation.kind === "system"
                           ? (convDetail.envelopes.length > 0 ? convDetail.envelopes[0].title : t("Mailbox.System message"))
-                          : (otherParticipantSlug ?? t("Mailbox.Conversation"))}
+                          : (convDetail.conversation.participants !== null && convDetail.conversation.participants.length > 0
+                              ? convDetail.conversation.participants.map((p) => p.profile_title).join(", ")
+                              : t("Mailbox.Conversation"))}
                       </h3>
-                      {convDetail.conversation.participants !== null && (
+                      {convDetail.conversation.kind === "direct" && convDetail.envelopes.length > 0 && (
                         <p className={styles.detailSubtitle}>
-                          {convDetail.conversation.participants.map((p) => p.profile_title).join(", ")}
+                          {convDetail.envelopes[0].title}
                         </p>
                       )}
                     </div>
@@ -859,7 +901,7 @@ function MailboxPage() {
                   {convDetail.conversation.kind === "direct" && (
                     <ComposeArea
                       locale={locale}
-                      targetProfileSlug={otherParticipantSlug}
+                      participants={conversationParticipants}
                       senderProfiles={maintainerProfiles}
                       onSent={handleMessageSent}
                     />

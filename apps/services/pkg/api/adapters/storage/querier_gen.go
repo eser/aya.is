@@ -2072,7 +2072,7 @@ type Querier interface {
 	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = p.default_locale
 	//  WHERE mp.conversation_id = $1
 	//    AND mp.left_at IS NULL
-	//  ORDER BY mp.joined_at
+	//  ORDER BY mp.joined_at, mp.id
 	ListMailboxParticipants(ctx context.Context, arg ListMailboxParticipantsParams) ([]*ListMailboxParticipantsRow, error)
 	//ListManagedLinksForKind
 	//

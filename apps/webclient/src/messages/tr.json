@@ -891,23 +891,23 @@
     "Save content first to enable cover designer": "Kapak tasarımcısını etkinleştirmek için önce içeriği kaydedin"
   },
   "Mailbox": {
-    "Your conversations and messages": "Konuşmalarınız ve mesajlarınız",
-    "Messages": "Mesajlar",
+    "Your conversations and messages": "Konuşmalarınız ve iletileriniz",
+    "Messages": "İletiler",
     "System": "Sistem",
-    "System message": "Sistem mesajı",
+    "System message": "Sistem iletisi",
     "Conversation": "Konuşma",
-    "Select a conversation": "Mesajları görüntülemek için bir konuşma seçin",
+    "Select a conversation": "İletileri görüntülemek için bir konuşma seçin",
     "No conversations yet": "Henüz konuşma yok",
     "No archived conversations": "Arşivlenmiş konuşma yok",
     "Show archived": "Arşivlenenleri göster",
     "Archive": "Arşivle",
     "Unarchive": "Arşivden çıkar",
     "New": "Yeni",
-    "New Message": "Yeni Mesaj",
+    "New Message": "Yeni İleti",
     "Send": "Gönder",
-    "Type a message title...": "Mesaj başlığı yazın...",
+    "Type a message title...": "İleti başlığı yazın...",
     "Add details (optional)": "Detay ekleyin (isteğe bağlı)",
     "Profile slug": "Profil slug",
-    "Message title": "Mesaj başlığı"
+    "Message title": "İleti başlığı"
   }
 }

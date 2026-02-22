@@ -62,7 +62,7 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 						continue
 					}
 
-					// Populate participants for each conversation.
+					// Populate all participants for each conversation.
 					for _, conv := range convs {
 						participants, pErr := mailboxService.GetConversationParticipants(
 							ctx.Request.Context(), conv.ID,

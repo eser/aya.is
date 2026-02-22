@@ -126,7 +126,8 @@ func (s *Service) SendMessage(
 	return s.createEnvelopeInConversation(ctx, conv.ID, params)
 }
 
-// SendSystemEnvelope creates a system envelope (invitation, badge, pass) in a new system conversation.
+// SendSystemEnvelope creates an envelope (invitation, badge, pass) in a new conversation.
+// If a sender profile is present, the conversation is "direct"; otherwise it is "system".
 func (s *Service) SendSystemEnvelope(
 	ctx context.Context,
 	params *SendMessageParams,
@@ -144,9 +145,14 @@ func (s *Service) SendSystemEnvelope(
 
 	now := time.Now()
 
+	kind := ConversationKindSystem
+	if params.SenderProfileID != "" {
+		kind = ConversationKindDirect
+	}
+
 	conv := &Conversation{
 		ID:                 s.idGenerator(),
-		Kind:               ConversationKindSystem,
+		Kind:               kind,
 		CreatedByProfileID: &params.SenderProfileID,
 		CreatedAt:          now,
 	}
@@ -154,6 +160,19 @@ func (s *Service) SendSystemEnvelope(
 	err := s.repo.CreateConversation(ctx, conv)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
+	}
+
+	// Add sender as participant first (creator appears first in ordering).
+	if params.SenderProfileID != "" {
+		err = s.repo.AddParticipant(ctx, &Participant{
+			ID:             s.idGenerator(),
+			ConversationID: conv.ID,
+			ProfileID:      params.SenderProfileID,
+			JoinedAt:       now,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
+		}
 	}
 
 	// Add target as participant.
@@ -165,19 +184,6 @@ func (s *Service) SendSystemEnvelope(
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
-	}
-
-	// Add sender as participant (if present).
-	if params.SenderProfileID != "" {
-		err = s.repo.AddParticipant(ctx, &Participant{
-			ID:             s.idGenerator(),
-			ConversationID: conv.ID,
-			ProfileID:      params.SenderProfileID,
-			JoinedAt:       now,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
-		}
 	}
 
 	return s.createEnvelopeInConversation(ctx, conv.ID, params)
