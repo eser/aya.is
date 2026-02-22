@@ -94,11 +94,39 @@ export function createMdxComponents(
 export const mdxComponents = createMdxComponents(1);
 
 /**
+ * Converts HTML-style `style="property: value; ..."` attributes to
+ * JSX-compatible `style={{ property: "value", ... }}` format.
+ *
+ * MDX treats inline HTML as JSX, so React expects `style` to be an object.
+ * Without this, pasting raw HTML (e.g. Spotify/YouTube embeds) with
+ * `style="border-radius:12px"` causes a React crash.
+ */
+function preprocessHtmlStyles(source: string): string {
+  return source.replace(/style="([^"]*)"/g, (_match, styleStr: string) => {
+    const declarations = styleStr.split(";").filter((s: string) => s.trim().length > 0);
+    const entries = declarations.map((decl: string) => {
+      const colonIdx = decl.indexOf(":");
+      if (colonIdx === -1) return null;
+
+      const prop = decl.slice(0, colonIdx).trim();
+      const value = decl.slice(colonIdx + 1).trim();
+      // Convert CSS kebab-case to camelCase (e.g. border-radius → borderRadius)
+      const camelProp = prop.replace(/-([a-z])/g, (_: string, letter: string) => letter.toUpperCase());
+
+      return `${camelProp}: "${value}"`;
+    }).filter((entry: string | null) => entry !== null);
+
+    return `style={{${entries.join(", ")}}}`;
+  });
+}
+
+/**
  * Compiles MDX source to a function body string that can be serialized.
  * This runs on the server (in the loader).
  */
 export async function compileMdx(source: string): Promise<string> {
-  const compiled = await compile(source, {
+  const preprocessed = preprocessHtmlStyles(source);
+  const compiled = await compile(preprocessed, {
     outputFormat: "function-body",
     remarkPlugins: [remarkEmbed, remarkGfm],
     rehypePlugins: [
