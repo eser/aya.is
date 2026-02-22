@@ -38,10 +38,11 @@
 }
 
 .sidebarHeader {
-  @apply p-3 border-b border-border flex items-center gap-2;
+  @apply p-3 border-b border-border flex items-center gap-1;
 }
 
 .filterTabs {
+  @apply flex-1 min-w-0;
 }
 
 .sidebarActions {

@@ -141,8 +141,8 @@ func (s *Service) SendMessage(
 	return s.createEnvelopeInConversation(ctx, conv.ID, params)
 }
 
-// SendSystemEnvelope creates an envelope (invitation, badge, pass) in a new conversation.
-// If a sender profile is present, the conversation is "direct"; otherwise it is "system".
+// SendSystemEnvelope creates an envelope (invitation, badge, pass) in a new system conversation.
+// The sender is recorded on the envelope itself; only the target is a conversation participant.
 func (s *Service) SendSystemEnvelope(
 	ctx context.Context,
 	params *SendMessageParams,
@@ -158,28 +158,23 @@ func (s *Service) SendSystemEnvelope(
 		return nil, ErrInvalidEnvelopeKind
 	}
 
-	// When a sender is present, reuse an existing direct conversation if one exists.
-	if params.SenderProfileID != "" {
-		conv, err := s.GetOrCreateDirectConversation(
-			ctx,
-			params.SenderProfileID,
-			params.TargetProfileID,
-			params.ConversationTitle,
-		)
-		if err != nil {
-			return nil, err
-		}
+	now := time.Now()
 
-		return s.createEnvelopeInConversation(ctx, conv.ID, params)
+	var titlePtr *string
+	if params.ConversationTitle != "" {
+		titlePtr = &params.ConversationTitle
 	}
 
-	// System envelope (no sender) — always create a new conversation.
-	now := time.Now()
+	var createdBy *string
+	if params.SenderProfileID != "" {
+		createdBy = &params.SenderProfileID
+	}
 
 	conv := &Conversation{
 		ID:                 s.idGenerator(),
 		Kind:               ConversationKindSystem,
-		CreatedByProfileID: nil,
+		Title:              titlePtr,
+		CreatedByProfileID: createdBy,
 		CreatedAt:          now,
 	}
 
@@ -210,6 +205,17 @@ func (s *Service) createEnvelopeInConversation(
 ) (*Envelope, error) {
 	now := time.Now()
 
+	// Determine initial status: auto-accept follow-up "message" envelopes
+	// in conversations where the first message is already accepted.
+	status := StatusPending
+
+	if params.Kind == KindMessage {
+		firstEnvelopes, listErr := s.repo.ListEnvelopesByConversation(ctx, conversationID, 1)
+		if listErr == nil && len(firstEnvelopes) > 0 && firstEnvelopes[0].Status == StatusAccepted {
+			status = StatusAccepted
+		}
+	}
+
 	envelope := &Envelope{
 		ID:              s.idGenerator(),
 		ConversationID:  conversationID,
@@ -217,7 +223,7 @@ func (s *Service) createEnvelopeInConversation(
 		SenderProfileID: &params.SenderProfileID,
 		SenderUserID:    params.SenderUserID,
 		Kind:            params.Kind,
-		Status:          StatusPending,
+		Status:          status,
 		Message:         params.Message,
 		Properties:      params.Properties,
 		ReplyToID:       params.ReplyToID,
