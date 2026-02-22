@@ -427,6 +427,96 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 	return result, nil
 }
 
+func (r *Repository) ListProfilePagesByProfileIDForViewer(
+	ctx context.Context,
+	localeCode string,
+	profileID string,
+	viewerUserID *string,
+) ([]*profiles.ProfilePageBrief, error) {
+	params := ListProfilePagesByProfileIDForViewerParams{
+		LocaleCode: localeCode,
+		ProfileID:  profileID,
+		ViewerUserID: sql.NullString{
+			String: "",
+			Valid:  false,
+		},
+	}
+	if viewerUserID != nil {
+		params.ViewerUserID = sql.NullString{
+			String: *viewerUserID,
+			Valid:  true,
+		}
+	}
+
+	rows, err := r.queries.ListProfilePagesByProfileIDForViewer(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	profilePages := make([]*profiles.ProfilePageBrief, len(rows))
+	for i, row := range rows {
+		profilePages[i] = &profiles.ProfilePageBrief{
+			ID:              row.ID,
+			Slug:            row.Slug,
+			CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
+			Title:           row.Title,
+			Summary:         row.Summary,
+			Visibility:      profiles.PageVisibility(row.Visibility),
+		}
+	}
+
+	return profilePages, nil
+}
+
+func (r *Repository) GetProfilePageByProfileIDAndSlugForViewer(
+	ctx context.Context,
+	localeCode string,
+	profileID string,
+	pageSlug string,
+	viewerUserID *string,
+) (*profiles.ProfilePage, error) {
+	params := GetProfilePageByProfileIDAndSlugForViewerParams{
+		LocaleCode: localeCode,
+		ProfileID:  profileID,
+		PageSlug:   pageSlug,
+		ViewerUserID: sql.NullString{
+			String: "",
+			Valid:  false,
+		},
+	}
+	if viewerUserID != nil {
+		params.ViewerUserID = sql.NullString{
+			String: *viewerUserID,
+			Valid:  true,
+		}
+	}
+
+	row, err := r.queries.GetProfilePageByProfileIDAndSlugForViewer(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	result := &profiles.ProfilePage{
+		ID:               row.ID,
+		Slug:             row.Slug,
+		LocaleCode:       row.LocaleCode,
+		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		Title:            row.Title,
+		Summary:          row.Summary,
+		Content:          row.Content,
+		SortOrder:        row.Order,
+		Visibility:       profiles.PageVisibility(row.Visibility),
+		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
+		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+	}
+
+	return result, nil
+}
+
 func (r *Repository) ListProfileLinksByProfileID(
 	ctx context.Context,
 	localeCode string,

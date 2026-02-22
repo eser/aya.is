@@ -345,6 +345,128 @@ WHERE s.author_profile_id = sqlc.arg(author_profile_id)::CHAR(26)
   AND s.deleted_at IS NULL
 ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC;
 
+-- name: ListStoriesOfPublicationForViewer :many
+-- Like ListStoriesOfPublication but includes private/unlisted stories for authorized viewers.
+-- List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+SELECT
+  sqlc.embed(s),
+  sqlc.embed(st),
+  sqlc.embed(p1),
+  sqlc.embed(p1t),
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = sqlc.arg(locale_code)
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.approved_at IS NOT NULL
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+  AND p1t.locale_code = (
+    SELECT ptx.locale_code FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.approved_at IS NOT NULL
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = (
+        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+        LIMIT 1
+      )
+    WHERE sp.story_id = s.id
+      AND (sqlc.narg(filter_publication_profile_id)::CHAR(26) IS NULL OR sp.profile_id = sqlc.narg(filter_publication_profile_id)::CHAR(26))
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+  LEFT JOIN "user" u ON u.id = sqlc.narg(viewer_user_id)::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE
+  pb.publications IS NOT NULL
+  AND (
+    s.visibility = 'public'
+    OR u.kind = 'admin'
+    OR s.author_profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+  AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
+  AND (sqlc.narg(filter_author_profile_id)::CHAR(26) IS NULL OR s.author_profile_id = sqlc.narg(filter_author_profile_id)::CHAR(26))
+  AND s.deleted_at IS NULL
+ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC;
+
+-- name: ListStoriesByAuthorProfileIDForViewer :many
+-- Like ListStoriesByAuthorProfileID but filters by visibility for the viewer.
+-- List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+SELECT
+  sqlc.embed(s),
+  sqlc.embed(st),
+  sqlc.embed(p1),
+  sqlc.embed(p1t),
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.approved_at IS NOT NULL
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+  AND p1t.locale_code = (
+    SELECT ptx.locale_code FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.approved_at IS NOT NULL
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = (
+        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+        LIMIT 1
+      )
+    WHERE sp.story_id = s.id
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+  LEFT JOIN "user" u ON u.id = sqlc.narg(viewer_user_id)::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE s.author_profile_id = sqlc.arg(author_profile_id)::CHAR(26)
+  AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
+  AND s.deleted_at IS NULL
+  AND (
+    s.visibility = 'public'
+    OR u.kind = 'admin'
+    OR s.author_profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC;
+
 -- name: SearchStories :many
 SELECT
   s.id,

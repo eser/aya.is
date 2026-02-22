@@ -4,10 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend, type StoryEditData } from "@/modules/backend/backend";
-import {
-  ContentEditor,
-  type ContentEditorData,
-} from "@/components/content-editor";
+import { ContentEditor, type ContentEditorData } from "@/components/content-editor";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -17,10 +14,14 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/edit")({
   ssr: false,
   component: EditStoryPage,
   notFoundComponent: PageNotFound,
+  validateSearch: (search: Record<string, unknown>) => ({
+    lang: search.lang?.constructor === String ? (search.lang as string) : undefined,
+  }),
 });
 
 function EditStoryPage() {
   const params = Route.useParams();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const auth = useAuth();
@@ -28,13 +29,16 @@ function EditStoryPage() {
   const [storyData, setStoryData] = React.useState<StoryEditData | null>(null);
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
   // Translation locale is independent from the site locale (params.locale)
-  const [translationLocale, setTranslationLocale] = React.useState(params.locale);
+  // If `lang` search param is provided (e.g. after creating content in a different locale), use it
+  const [translationLocale, setTranslationLocale] = React.useState(search.lang ?? params.locale);
   // Translation data tagged with its locale to prevent stale renders.
   // null = loading, data.locale mismatches translationLocale = stale (treat as loading)
-  const [translationState, setTranslationState] = React.useState<{
-    locale: string;
-    data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
-  } | null>(null);
+  const [translationState, setTranslationState] = React.useState<
+    {
+      locale: string;
+      data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
+    } | null
+  >(null);
 
   // Load story data and check permissions (once)
   React.useEffect(() => {
@@ -158,14 +162,10 @@ function EditStoryPage() {
               {/* Toolbar skeleton */}
               <div className="flex items-center justify-between border-b px-4 py-2">
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="size-8" />
-                  ))}
+                  {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="size-8" />)}
                 </div>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="size-8" />
-                  ))}
+                  {[1, 2, 3].map((i) => <Skeleton key={i} className="size-8" />)}
                 </div>
               </div>
               {/* Panels skeleton */}
@@ -198,13 +198,13 @@ function EditStoryPage() {
   const props = storyData.properties as Record<string, unknown> | null | undefined;
   const activityFields = storyData.kind === "activity" && props !== null && props !== undefined
     ? {
-        activityKind: (props.activity_kind as string) ?? "meetup",
-        activityTimeStart: (props.activity_time_start as string) ?? "",
-        activityTimeEnd: (props.activity_time_end as string) ?? "",
-        externalActivityUri: (props.external_activity_uri as string) ?? "",
-        externalAttendanceUri: (props.external_attendance_uri as string) ?? "",
-        rsvpMode: (props.rsvp_mode as string) ?? "enabled",
-      }
+      activityKind: (props.activity_kind as string) ?? "meetup",
+      activityTimeStart: (props.activity_time_start as string) ?? "",
+      activityTimeEnd: (props.activity_time_end as string) ?? "",
+      externalActivityUri: (props.external_activity_uri as string) ?? "",
+      externalAttendanceUri: (props.external_attendance_uri as string) ?? "",
+      rsvpMode: (props.rsvp_mode as string) ?? "enabled",
+    }
     : {};
 
   const initialData: ContentEditorData = {
@@ -226,13 +226,13 @@ function EditStoryPage() {
     // Assemble properties for activity kind
     const properties = data.kind === "activity"
       ? {
-          activity_kind: data.activityKind ?? "meetup",
-          activity_time_start: data.activityTimeStart ?? "",
-          activity_time_end: data.activityTimeEnd ?? "",
-          external_activity_uri: data.externalActivityUri ?? "",
-          external_attendance_uri: data.externalAttendanceUri ?? "",
-          rsvp_mode: data.rsvpMode ?? "enabled",
-        }
+        activity_kind: data.activityKind ?? "meetup",
+        activity_time_start: data.activityTimeStart ?? "",
+        activity_time_end: data.activityTimeEnd ?? "",
+        external_activity_uri: data.externalActivityUri ?? "",
+        external_attendance_uri: data.externalAttendanceUri ?? "",
+        rsvp_mode: data.rsvpMode ?? "enabled",
+      }
       : undefined;
 
     // Update the story main fields

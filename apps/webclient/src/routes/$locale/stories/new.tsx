@@ -1,12 +1,10 @@
 // Create new story page
+import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend } from "@/modules/backend/backend";
-import {
-  ContentEditor,
-  type ContentEditorData,
-} from "@/components/content-editor";
+import { ContentEditor, type ContentEditorData } from "@/components/content-editor";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -21,6 +19,9 @@ function NewStoryPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const auth = useAuth();
+
+  // Content locale — owned by the route, passed to ContentEditor as locale prop
+  const [contentLocale, setContentLocale] = React.useState(params.locale);
 
   // Get user's profile slug directly from auth context
   const userProfileSlug = auth.user?.individual_profile_slug ?? null;
@@ -69,14 +70,10 @@ function NewStoryPage() {
               {/* Toolbar skeleton */}
               <div className="flex items-center justify-between border-b px-4 py-2">
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="size-8" />
-                  ))}
+                  {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="size-8" />)}
                 </div>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="size-8" />
-                  ))}
+                  {[1, 2, 3].map((i) => <Skeleton key={i} className="size-8" />)}
                 </div>
               </div>
               {/* Panels skeleton */}
@@ -112,7 +109,7 @@ function NewStoryPage() {
   };
 
   const handleSave = async (data: ContentEditorData) => {
-    const result = await backend.insertStory(params.locale, userProfileSlug, {
+    const result = await backend.insertStory(contentLocale, userProfileSlug, {
       slug: data.slug,
       kind: data.kind ?? "article",
       title: data.title,
@@ -130,6 +127,7 @@ function NewStoryPage() {
           locale: params.locale,
           storyslug: data.slug,
         },
+        search: { lang: contentLocale },
       });
     } else {
       toast.error(t("ContentEditor.Failed to create story"));
@@ -139,7 +137,8 @@ function NewStoryPage() {
   return (
     <PageLayout fullHeight>
       <ContentEditor
-        locale={params.locale}
+        key={contentLocale}
+        locale={contentLocale}
         profileSlug={userProfileSlug}
         contentType="story"
         initialData={initialData}
@@ -149,6 +148,7 @@ function NewStoryPage() {
         isNew
         accessibleProfiles={auth.user?.accessible_profiles ?? []}
         individualProfile={auth.user?.individual_profile}
+        onLocaleChange={setContentLocale}
       />
     </PageLayout>
   );

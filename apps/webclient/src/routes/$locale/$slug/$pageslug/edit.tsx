@@ -1,19 +1,18 @@
 // Edit profile page
 import * as React from "react";
-import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend } from "@/modules/backend/backend";
-import {
-  ContentEditor,
-  type ContentEditorData,
-} from "@/components/content-editor";
+import { ContentEditor, type ContentEditorData } from "@/components/content-editor";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 
-
 export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>) => ({
+    lang: search.lang?.constructor === String ? (search.lang as string) : undefined,
+  }),
   loader: async ({ params }) => {
     const { locale, slug, pageslug } = params;
 
@@ -36,19 +35,23 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
 
 function EditPagePage() {
   const params = Route.useParams();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const auth = useAuth();
   const { page } = Route.useLoaderData();
   const [canEdit, setCanEdit] = React.useState<boolean | null>(null);
   // Translation locale is independent from the site locale (params.locale)
-  const [translationLocale, setTranslationLocale] = React.useState(params.locale);
+  // If `lang` search param is provided (e.g. after creating content in a different locale), use it
+  const [translationLocale, setTranslationLocale] = React.useState(search.lang ?? params.locale);
   // Translation data tagged with its locale to prevent stale renders.
   // null = loading, data.locale mismatches translationLocale = stale (treat as loading)
-  const [translationState, setTranslationState] = React.useState<{
-    locale: string;
-    data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
-  } | null>(null);
+  const [translationState, setTranslationState] = React.useState<
+    {
+      locale: string;
+      data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
+    } | null
+  >(null);
 
   // Check permissions client-side
   React.useEffect(() => {
@@ -105,7 +108,9 @@ function EditPagePage() {
       }
     });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [translationLocale, params.locale, params.slug, params.pageslug, page]);
 
   // Translation locales state
@@ -162,14 +167,10 @@ function EditPagePage() {
               {/* Toolbar skeleton */}
               <div className="flex items-center justify-between border-b px-4 py-2">
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="size-8" />
-                  ))}
+                  {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="size-8" />)}
                 </div>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="size-8" />
-                  ))}
+                  {[1, 2, 3].map((i) => <Skeleton key={i} className="size-8" />)}
                 </div>
               </div>
               {/* Panels skeleton */}

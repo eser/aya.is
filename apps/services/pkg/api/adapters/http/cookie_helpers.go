@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
 var ErrGetSessionCookie = errors.New("failed to get session cookie")
@@ -81,6 +82,26 @@ func GetSessionIDFromRequest(r *http.Request, authService *auth.Service) string 
 	}
 
 	return claims.SessionID
+}
+
+// GetViewerUserID extracts the logged-in user's ID from the request session.
+// Returns nil for anonymous/unauthenticated requests.
+func GetViewerUserID(
+	r *http.Request,
+	authService *auth.Service,
+	userService *users.Service,
+) *string {
+	sessionID := GetSessionIDFromRequest(r, authService)
+	if sessionID == "" {
+		return nil
+	}
+
+	session, err := userService.GetSessionByID(r.Context(), sessionID)
+	if err != nil || session == nil || session.LoggedInUserID == nil {
+		return nil
+	}
+
+	return session.LoggedInUserID
 }
 
 // SetThemeCookie sets a non-HttpOnly cookie for the theme preference.

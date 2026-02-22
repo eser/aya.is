@@ -1196,6 +1196,215 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 	return items, nil
 }
 
+const listStoriesByAuthorProfileIDForViewer = `-- name: ListStoriesByAuthorProfileIDForViewer :many
+SELECT
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.approved_at IS NOT NULL
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+  AND p1t.locale_code = (
+    SELECT ptx.locale_code FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.approved_at IS NOT NULL
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = (
+        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+        LIMIT 1
+      )
+    WHERE sp.story_id = s.id
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+  LEFT JOIN "user" u ON u.id = $2::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE s.author_profile_id = $3::CHAR(26)
+  AND ($4::TEXT IS NULL OR s.kind = ANY(string_to_array($4::TEXT, ',')))
+  AND s.deleted_at IS NULL
+  AND (
+    s.visibility = 'public'
+    OR u.kind = 'admin'
+    OR s.author_profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
+`
+
+type ListStoriesByAuthorProfileIDForViewerParams struct {
+	LocaleCode      string         `db:"locale_code" json:"locale_code"`
+	ViewerUserID    sql.NullString `db:"viewer_user_id" json:"viewer_user_id"`
+	AuthorProfileID string         `db:"author_profile_id" json:"author_profile_id"`
+	FilterKind      sql.NullString `db:"filter_kind" json:"filter_kind"`
+}
+
+type ListStoriesByAuthorProfileIDForViewerRow struct {
+	Story        Story                 `db:"story" json:"story"`
+	StoryTx      StoryTx               `db:"story_tx" json:"story_tx"`
+	Profile      Profile               `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
+	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
+}
+
+// Like ListStoriesByAuthorProfileID but filters by visibility for the viewer.
+// List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+//
+//	SELECT
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+//	  pb.publications,
+//	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+//	FROM "story" s
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
+//	  AND st.locale_code = (
+//	    SELECT stx.locale_code FROM "story_tx" stx
+//	    WHERE stx.story_id = s.id
+//	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+//	  AND p1.approved_at IS NOT NULL
+//	  AND p1.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+//	  AND p1t.locale_code = (
+//	    SELECT ptx.locale_code FROM "profile_tx" ptx
+//	    WHERE ptx.profile_id = p1.id
+//	    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN LATERAL (
+//	    SELECT JSONB_AGG(
+//	      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+//	    ) AS "publications"
+//	    FROM story_publication sp
+//	      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+//	      AND p2.approved_at IS NOT NULL
+//	      AND p2.deleted_at IS NULL
+//	      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+//	      AND p2t.locale_code = (
+//	        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+//	        WHERE ptx2.profile_id = p2.id
+//	        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+//	        LIMIT 1
+//	      )
+//	    WHERE sp.story_id = s.id
+//	      AND sp.deleted_at IS NULL
+//	  ) pb ON TRUE
+//	  LEFT JOIN "user" u ON u.id = $2::CHAR(26)
+//	  LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+//	    AND pm.member_profile_id = u.individual_profile_id
+//	    AND pm.deleted_at IS NULL
+//	    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	WHERE s.author_profile_id = $3::CHAR(26)
+//	  AND ($4::TEXT IS NULL OR s.kind = ANY(string_to_array($4::TEXT, ',')))
+//	  AND s.deleted_at IS NULL
+//	  AND (
+//	    s.visibility = 'public'
+//	    OR u.kind = 'admin'
+//	    OR s.author_profile_id = u.individual_profile_id
+//	    OR pm.kind IN ('owner', 'lead', 'maintainer')
+//	  )
+//	ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
+func (q *Queries) ListStoriesByAuthorProfileIDForViewer(ctx context.Context, arg ListStoriesByAuthorProfileIDForViewerParams) ([]*ListStoriesByAuthorProfileIDForViewerRow, error) {
+	rows, err := q.db.QueryContext(ctx, listStoriesByAuthorProfileIDForViewer,
+		arg.LocaleCode,
+		arg.ViewerUserID,
+		arg.AuthorProfileID,
+		arg.FilterKind,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStoriesByAuthorProfileIDForViewerRow{}
+	for rows.Next() {
+		var i ListStoriesByAuthorProfileIDForViewerRow
+		if err := rows.Scan(
+			&i.Story.ID,
+			&i.Story.AuthorProfileID,
+			&i.Story.Slug,
+			&i.Story.Kind,
+			&i.Story.StoryPictureURI,
+			&i.Story.Properties,
+			&i.Story.CreatedAt,
+			&i.Story.UpdatedAt,
+			&i.Story.DeletedAt,
+			&i.Story.IsManaged,
+			&i.Story.RemoteID,
+			&i.Story.SeriesID,
+			&i.Story.Visibility,
+			&i.StoryTx.StoryID,
+			&i.StoryTx.LocaleCode,
+			&i.StoryTx.Title,
+			&i.StoryTx.Summary,
+			&i.StoryTx.Content,
+			&i.StoryTx.SearchVector,
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
+			&i.Profile.FeatureRelations,
+			&i.Profile.FeatureLinks,
+			&i.Profile.DefaultLocale,
+			&i.Profile.FeatureQa,
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
+			&i.Publications,
+			&i.PublishedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
@@ -1323,6 +1532,213 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 	items := []*ListStoriesOfPublicationRow{}
 	for rows.Next() {
 		var i ListStoriesOfPublicationRow
+		if err := rows.Scan(
+			&i.Story.ID,
+			&i.Story.AuthorProfileID,
+			&i.Story.Slug,
+			&i.Story.Kind,
+			&i.Story.StoryPictureURI,
+			&i.Story.Properties,
+			&i.Story.CreatedAt,
+			&i.Story.UpdatedAt,
+			&i.Story.DeletedAt,
+			&i.Story.IsManaged,
+			&i.Story.RemoteID,
+			&i.Story.SeriesID,
+			&i.Story.Visibility,
+			&i.StoryTx.StoryID,
+			&i.StoryTx.LocaleCode,
+			&i.StoryTx.Title,
+			&i.StoryTx.Summary,
+			&i.StoryTx.Content,
+			&i.StoryTx.SearchVector,
+			&i.Profile.ID,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.ProfilePictureURI,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.Profile.ApprovedAt,
+			&i.Profile.Points,
+			&i.Profile.FeatureRelations,
+			&i.Profile.FeatureLinks,
+			&i.Profile.DefaultLocale,
+			&i.Profile.FeatureQa,
+			&i.ProfileTx.ProfileID,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+			&i.ProfileTx.SearchVector,
+			&i.Publications,
+			&i.PublishedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStoriesOfPublicationForViewer = `-- name: ListStoriesOfPublicationForViewer :many
+SELECT
+  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = $1
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.approved_at IS NOT NULL
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+  AND p1t.locale_code = (
+    SELECT ptx.locale_code FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.approved_at IS NOT NULL
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = (
+        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+        LIMIT 1
+      )
+    WHERE sp.story_id = s.id
+      AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+  LEFT JOIN "user" u ON u.id = $3::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE
+  pb.publications IS NOT NULL
+  AND (
+    s.visibility = 'public'
+    OR u.kind = 'admin'
+    OR s.author_profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+  AND ($4::TEXT IS NULL OR s.kind = ANY(string_to_array($4::TEXT, ',')))
+  AND ($5::CHAR(26) IS NULL OR s.author_profile_id = $5::CHAR(26))
+  AND s.deleted_at IS NULL
+ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
+`
+
+type ListStoriesOfPublicationForViewerParams struct {
+	LocaleCode                 string         `db:"locale_code" json:"locale_code"`
+	FilterPublicationProfileID sql.NullString `db:"filter_publication_profile_id" json:"filter_publication_profile_id"`
+	ViewerUserID               sql.NullString `db:"viewer_user_id" json:"viewer_user_id"`
+	FilterKind                 sql.NullString `db:"filter_kind" json:"filter_kind"`
+	FilterAuthorProfileID      sql.NullString `db:"filter_author_profile_id" json:"filter_author_profile_id"`
+}
+
+type ListStoriesOfPublicationForViewerRow struct {
+	Story        Story                 `db:"story" json:"story"`
+	StoryTx      StoryTx               `db:"story_tx" json:"story_tx"`
+	Profile      Profile               `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
+	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
+}
+
+// Like ListStoriesOfPublication but includes private/unlisted stories for authorized viewers.
+// List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+//
+//	SELECT
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+//	  pb.publications,
+//	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+//	FROM "story" s
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
+//	  AND st.locale_code = $1
+//	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+//	  AND p1.approved_at IS NOT NULL
+//	  AND p1.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+//	  AND p1t.locale_code = (
+//	    SELECT ptx.locale_code FROM "profile_tx" ptx
+//	    WHERE ptx.profile_id = p1.id
+//	    ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN LATERAL (
+//	    SELECT JSONB_AGG(
+//	      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+//	    ) AS "publications"
+//	    FROM story_publication sp
+//	      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+//	      AND p2.approved_at IS NOT NULL
+//	      AND p2.deleted_at IS NULL
+//	      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+//	      AND p2t.locale_code = (
+//	        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+//	        WHERE ptx2.profile_id = p2.id
+//	        ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+//	        LIMIT 1
+//	      )
+//	    WHERE sp.story_id = s.id
+//	      AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
+//	      AND sp.deleted_at IS NULL
+//	  ) pb ON TRUE
+//	  LEFT JOIN "user" u ON u.id = $3::CHAR(26)
+//	  LEFT JOIN "profile_membership" pm ON s.author_profile_id = pm.profile_id
+//	    AND pm.member_profile_id = u.individual_profile_id
+//	    AND pm.deleted_at IS NULL
+//	    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	WHERE
+//	  pb.publications IS NOT NULL
+//	  AND (
+//	    s.visibility = 'public'
+//	    OR u.kind = 'admin'
+//	    OR s.author_profile_id = u.individual_profile_id
+//	    OR pm.kind IN ('owner', 'lead', 'maintainer')
+//	  )
+//	  AND ($4::TEXT IS NULL OR s.kind = ANY(string_to_array($4::TEXT, ',')))
+//	  AND ($5::CHAR(26) IS NULL OR s.author_profile_id = $5::CHAR(26))
+//	  AND s.deleted_at IS NULL
+//	ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
+func (q *Queries) ListStoriesOfPublicationForViewer(ctx context.Context, arg ListStoriesOfPublicationForViewerParams) ([]*ListStoriesOfPublicationForViewerRow, error) {
+	rows, err := q.db.QueryContext(ctx, listStoriesOfPublicationForViewer,
+		arg.LocaleCode,
+		arg.FilterPublicationProfileID,
+		arg.ViewerUserID,
+		arg.FilterKind,
+		arg.FilterAuthorProfileID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStoriesOfPublicationForViewerRow{}
+	for rows.Next() {
+		var i ListStoriesOfPublicationForViewerRow
 		if err := rows.Scan(
 			&i.Story.ID,
 			&i.Story.AuthorProfileID,

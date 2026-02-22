@@ -266,6 +266,72 @@ FROM "profile_page" pp
 WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL
 ORDER BY pp."order";
 
+-- name: ListProfilePagesByProfileIDForViewer :many
+-- Returns pages filtered by visibility based on the viewer's access level:
+--   public: shown to everyone in lists
+--   unlisted/private: only shown to admin, profile owner, or maintainer+
+SELECT pp.*, ppt.*,
+  p_added.slug as added_by_slug,
+  p_added.kind as added_by_kind,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
+  p_added.profile_picture_uri as added_by_profile_picture_uri
+FROM "profile_page" pp
+  INNER JOIN "profile" p ON p.id = pp.profile_id
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = p.default_locale)
+    ORDER BY CASE WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
+  LEFT JOIN "user" u ON u.id = sqlc.narg(viewer_user_id)::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON pp.profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE pp.profile_id = sqlc.arg(profile_id)
+  AND pp.deleted_at IS NULL
+  AND (
+    pp.visibility = 'public'
+    OR u.kind = 'admin'
+    OR pp.profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+ORDER BY pp."order";
+
+-- name: GetProfilePageByProfileIDAndSlugForViewer :one
+-- Returns a page by slug filtered by visibility:
+--   public/unlisted: accessible via direct link
+--   private: only admin, profile owner, or maintainer+
+SELECT pp.*, ppt.*
+FROM "profile_page" pp
+  INNER JOIN "profile" p ON p.id = pp.profile_id
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = sqlc.arg(locale_code) OR pptf.locale_code = p.default_locale)
+    ORDER BY CASE WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "user" u ON u.id = sqlc.narg(viewer_user_id)::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON pp.profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL
+  AND (
+    pp.visibility IN ('public', 'unlisted')
+    OR u.kind = 'admin'
+    OR pp.profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+ORDER BY pp."order";
+
 -- name: CheckPageSlugExistsIncludingDeleted :one
 SELECT EXISTS(
   SELECT 1 FROM "profile_page"

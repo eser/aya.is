@@ -196,11 +196,24 @@ type Repository interface {
 		localeCode string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*StoryWithChildren], error)
+	ListStoriesOfPublicationForViewer(
+		ctx context.Context,
+		localeCode string,
+		cursor *cursors.Cursor,
+		viewerUserID *string,
+	) (cursors.Cursored[[]*StoryWithChildren], error)
 	ListStoriesByAuthorProfileID(
 		ctx context.Context,
 		localeCode string,
 		authorProfileID string,
 		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*StoryWithChildren], error)
+	ListStoriesByAuthorProfileIDForViewer(
+		ctx context.Context,
+		localeCode string,
+		authorProfileID string,
+		cursor *cursors.Cursor,
+		viewerUserID *string,
 	) (cursors.Cursored[[]*StoryWithChildren], error)
 	// Story CRUD methods
 	InsertStory(
@@ -582,6 +595,77 @@ func (s *Service) ListByAuthorProfileSlug(
 		localeCode,
 		authorProfileID,
 		cursor,
+	)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToListRecords,
+			err,
+		)
+	}
+
+	return records, nil
+}
+
+func (s *Service) ListByPublicationProfileSlugForViewer(
+	ctx context.Context,
+	localeCode string,
+	publicationProfileSlug string,
+	cursor *cursors.Cursor,
+	viewerUserID *string,
+) (cursors.Cursored[[]*StoryWithChildren], error) {
+	publicationProfileID, err := s.repo.GetProfileIDBySlug(ctx, publicationProfileSlug)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			publicationProfileSlug,
+			err,
+		)
+	}
+
+	cursor.Filters["publication_profile_id"] = publicationProfileID
+
+	records, err := s.repo.ListStoriesOfPublicationForViewer(
+		ctx,
+		localeCode,
+		cursor,
+		viewerUserID,
+	)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToListRecords,
+			err,
+		)
+	}
+
+	return records, nil
+}
+
+func (s *Service) ListByAuthorProfileSlugForViewer(
+	ctx context.Context,
+	localeCode string,
+	authorProfileSlug string,
+	cursor *cursors.Cursor,
+	viewerUserID *string,
+) (cursors.Cursored[[]*StoryWithChildren], error) {
+	authorProfileID, err := s.repo.GetProfileIDBySlug(ctx, authorProfileSlug)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			authorProfileSlug,
+			err,
+		)
+	}
+
+	records, err := s.repo.ListStoriesByAuthorProfileIDForViewer(
+		ctx,
+		localeCode,
+		authorProfileID,
+		cursor,
+		viewerUserID,
 	)
 	if err != nil {
 		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(

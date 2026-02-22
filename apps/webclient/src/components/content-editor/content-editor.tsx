@@ -7,11 +7,11 @@ import {
   ArrowLeft,
   Calendar,
   Check,
+  Eye,
+  EyeOff,
   ImagePlus,
   Images,
   Info,
-  Eye,
-  EyeOff,
   Loader2,
   Lock,
   Megaphone,
@@ -312,7 +312,18 @@ export function ContentEditor(props: ContentEditorProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [slug, locale, profileSlug, contentType, excludeId, storyId, isNew, initialData.slug, showSlugValidation, earliestPublishedAt]);
+  }, [
+    slug,
+    locale,
+    profileSlug,
+    contentType,
+    excludeId,
+    storyId,
+    isNew,
+    initialData.slug,
+    showSlugValidation,
+    earliestPublishedAt,
+  ]);
 
   // Validate title on change
   React.useEffect(() => {
@@ -355,8 +366,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
-    const baseChanged =
-      title !== savedData.title ||
+    const baseChanged = title !== savedData.title ||
       slug !== savedData.slug ||
       summary !== savedData.summary ||
       content !== savedData.content ||
@@ -374,7 +384,22 @@ export function ContentEditor(props: ContentEditorProps) {
         rsvpMode !== (savedData.rsvpMode ?? "enabled");
     }
     return baseChanged;
-  }, [title, slug, summary, content, storyPictureUri, kind, visibility, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, savedData]);
+  }, [
+    title,
+    slug,
+    summary,
+    content,
+    storyPictureUri,
+    kind,
+    visibility,
+    activityKind,
+    activityTimeStart,
+    activityTimeEnd,
+    externalActivityUri,
+    externalAttendanceUri,
+    rsvpMode,
+    savedData,
+  ]);
 
   // Auto-generate slug from title for new content (called on title blur)
   const generateSlugFromTitle = React.useCallback(() => {
@@ -402,14 +427,16 @@ export function ContentEditor(props: ContentEditorProps) {
     storyPictureUri,
     kind,
     visibility,
-    ...(kind === "activity" ? {
-      activityKind,
-      activityTimeStart,
-      activityTimeEnd,
-      externalActivityUri,
-      externalAttendanceUri,
-      rsvpMode,
-    } : {}),
+    ...(kind === "activity"
+      ? {
+        activityKind,
+        activityTimeStart,
+        activityTimeEnd,
+        externalActivityUri,
+        externalAttendanceUri,
+        rsvpMode,
+      }
+      : {}),
   });
 
   const handleSave = React.useCallback(async () => {
@@ -454,7 +481,28 @@ export function ContentEditor(props: ContentEditorProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [slug, title, summary, content, kind, visibility, activityKind, activityTimeStart, activityTimeEnd, externalActivityUri, externalAttendanceUri, rsvpMode, slugError, slugAvailability, titleError, isAdmin, storyPictureUri, imageFieldConfig.allowedPrefixes, t, onSave]);
+  }, [
+    slug,
+    title,
+    summary,
+    content,
+    kind,
+    visibility,
+    activityKind,
+    activityTimeStart,
+    activityTimeEnd,
+    externalActivityUri,
+    externalAttendanceUri,
+    rsvpMode,
+    slugError,
+    slugAvailability,
+    titleError,
+    isAdmin,
+    storyPictureUri,
+    imageFieldConfig.allowedPrefixes,
+    t,
+    onSave,
+  ]);
 
   const handleDelete = async () => {
     if (onDelete === undefined) return;
@@ -604,7 +652,10 @@ export function ContentEditor(props: ContentEditorProps) {
           onDelete={handleDelete}
           canDelete={!isNew && onDelete !== undefined && isAdmin}
           locale={locale}
-          onOpenLocalizationsDialog={onLocaleChange !== undefined ? () => setIsLocalizationsDialogOpen(true) : undefined}
+          onOpenLocalizationsDialog={!isNew && onLocaleChange !== undefined
+            ? () => setIsLocalizationsDialogOpen(true)
+            : undefined}
+          onLocaleChange={isNew ? onLocaleChange : undefined}
         />
       </div>
 
@@ -793,7 +844,15 @@ export function ContentEditor(props: ContentEditorProps) {
                     </FieldLabel>
                     <Select value={rsvpMode} onValueChange={setRsvpMode} disabled={isManaged}>
                       <SelectTrigger id="rsvp-mode">
-                        <span>{t(`Activities.RSVP ${rsvpMode === "enabled" ? "Enabled" : rsvpMode === "managed_externally" ? "Managed Externally" : "Disabled"}`)}</span>
+                        <span>
+                          {t(`Activities.RSVP ${
+                            rsvpMode === "enabled"
+                              ? "Enabled"
+                              : rsvpMode === "managed_externally"
+                              ? "Managed Externally"
+                              : "Disabled"
+                          }`)}
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="enabled">{t("Activities.RSVP Enabled")}</SelectItem>
@@ -918,35 +977,37 @@ export function ContentEditor(props: ContentEditorProps) {
                   >
                     <Upload className="size-4" />
                   </Button>
-                  {!isNew && initialData.slug !== "" ? (
-                    <Link
-                      to={contentType === "story"
-                        ? "/$locale/stories/$storyslug/cover"
-                        : "/$locale/$slug/$pageslug/cover"}
-                      params={contentType === "story"
-                        ? { locale, storyslug: initialData.slug }
-                        : { locale, slug: profileSlug, pageslug: initialData.slug }}
-                    >
+                  {!isNew && initialData.slug !== ""
+                    ? (
+                      <Link
+                        to={contentType === "story"
+                          ? "/$locale/stories/$storyslug/cover"
+                          : "/$locale/$slug/$pageslug/cover"}
+                        params={contentType === "story"
+                          ? { locale, storyslug: initialData.slug }
+                          : { locale, slug: profileSlug, pageslug: initialData.slug }}
+                      >
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          title={t("CoverDesigner.Design Cover")}
+                        >
+                          <ImagePlus className="size-4" />
+                        </Button>
+                      </Link>
+                    )
+                    : (
                       <Button
                         type="button"
                         variant="outline"
                         size="icon"
-                        title={t("CoverDesigner.Design Cover")}
+                        disabled
+                        title={t("CoverDesigner.Save content first to enable cover designer")}
                       >
                         <ImagePlus className="size-4" />
                       </Button>
-                    </Link>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      disabled
-                      title={t("CoverDesigner.Save content first to enable cover designer")}
-                    >
-                      <ImagePlus className="size-4" />
-                    </Button>
-                  )}
+                    )}
                 </div>
                 {isNew && (
                   <FieldDescription>

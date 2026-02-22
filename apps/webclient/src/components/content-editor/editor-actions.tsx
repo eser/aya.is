@@ -19,7 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { type SupportedLocaleCode, supportedLocales } from "@/config";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SUPPORTED_LOCALES, type SupportedLocaleCode, supportedLocales } from "@/config";
 
 type EditorActionsProps = {
   publicationCount: number;
@@ -33,6 +34,7 @@ type EditorActionsProps = {
   canDelete?: boolean;
   locale?: string;
   onOpenLocalizationsDialog?: () => void;
+  onLocaleChange?: (locale: string) => void;
 };
 
 export function EditorActions(props: EditorActionsProps) {
@@ -49,11 +51,27 @@ export function EditorActions(props: EditorActionsProps) {
     canDelete = true,
     locale,
     onOpenLocalizationsDialog,
+    onLocaleChange,
   } = props;
 
   const isPublished = publicationCount > 0;
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const canActuallyDelete = canDelete && !isPublished;
+
+  const localeOptions = React.useMemo(() => {
+    return SUPPORTED_LOCALES.map((code) => ({
+      value: code,
+      label: `${supportedLocales[code].flag} ${supportedLocales[code].name}`,
+    }));
+  }, []);
+
+  const localeLabelMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const option of localeOptions) {
+      map.set(option.value, option.label);
+    }
+    return map;
+  }, [localeOptions]);
 
   return (
     <div className="flex items-center gap-3">
@@ -89,15 +107,35 @@ export function EditorActions(props: EditorActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {onOpenLocalizationsDialog !== undefined && locale !== undefined && (
+      {locale !== undefined && isNew && onLocaleChange !== undefined && (
+        <Select value={locale} onValueChange={onLocaleChange}>
+          <SelectTrigger size="sm" className="w-auto">
+            <SelectValue>
+              {(value: string) =>
+                localeLabelMap.get(value) ?? value}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {localeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {locale !== undefined && !isNew && onOpenLocalizationsDialog !== undefined && (
         <Button
           variant="outline"
           size="sm"
           onClick={onOpenLocalizationsDialog}
-          disabled={isSaving || isNew}
+          disabled={isSaving}
         >
           {locale in supportedLocales
-            ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${supportedLocales[locale as SupportedLocaleCode].name}`
+            ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${
+              supportedLocales[locale as SupportedLocaleCode].name
+            }`
             : locale.toUpperCase()}
         </Button>
       )}
@@ -110,9 +148,7 @@ export function EditorActions(props: EditorActionsProps) {
           disabled={isSaving || isNew}
         >
           <Globe className="mr-1.5 size-4" />
-          {isPublished
-            ? `${t("ContentEditor.Edit Publications")} (${publicationCount})`
-            : t("ContentEditor.Publish")}
+          {isPublished ? `${t("ContentEditor.Edit Publications")} (${publicationCount})` : t("ContentEditor.Publish")}
         </Button>
       )}
 

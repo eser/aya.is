@@ -81,15 +81,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("slug parameter is required"))
 			}
 
-			// NOTE: GetBySlugEx returns only featured links (is_featured=true) and filters
-			// by visibility. Since we don't pass a viewerProfileID, only public links are
-			// returned. To enable visibility-based filtering for logged-in users (e.g.,
-			// showing "followers-only" links to followers), we would need to optionally
-			// detect the session and pass the viewer's profile ID.
-			record, err := profileService.GetBySlugEx(
+			viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
+
+			record, err := profileService.GetBySlugExWithViewerUser(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
+				viewerUserID,
 			)
 			if err != nil {
 				return ctx.Results.Error(
@@ -154,10 +152,13 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 			slugParam := ctx.Request.PathValue("slug")
 
-			records, err := profileService.ListPagesBySlug(
+			viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
+
+			records, err := profileService.ListPagesBySlugForViewer(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
+				viewerUserID,
 			)
 			if err != nil {
 				return ctx.Results.Error(
@@ -186,11 +187,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				slugParam := ctx.Request.PathValue("slug")
 				pageSlugParam := ctx.Request.PathValue("pageSlug")
 
-				records, err := profileService.GetPageBySlug(
+				viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
+
+				records, err := profileService.GetPageBySlugForViewer(
 					ctx.Request.Context(),
 					localeParam,
 					slugParam,
 					pageSlugParam,
+					viewerUserID,
 				)
 				if err != nil {
 					return ctx.Results.Error(
@@ -313,11 +317,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			slugParam := ctx.Request.PathValue("slug")
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-			records, err := storyService.ListByPublicationProfileSlug(
+			viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
+
+			records, err := storyService.ListByPublicationProfileSlugForViewer(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
 				cursor,
+				viewerUserID,
 			)
 			if err != nil {
 				return ctx.Results.Error(
@@ -344,11 +351,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				slugParam := ctx.Request.PathValue("slug")
 				cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-				records, err := storyService.ListByAuthorProfileSlug(
+				viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
+
+				records, err := storyService.ListByAuthorProfileSlugForViewer(
 					ctx.Request.Context(),
 					localeParam,
 					slugParam,
 					cursor,
+					viewerUserID,
 				)
 				if err != nil {
 					return ctx.Results.Error(

@@ -195,11 +195,24 @@ type Repository interface { //nolint:interfacebloat
 		localeCode string,
 		profileID string,
 	) ([]*ProfilePageBrief, error)
+	ListProfilePagesByProfileIDForViewer(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+		viewerUserID *string,
+	) ([]*ProfilePageBrief, error)
 	GetProfilePageByProfileIDAndSlug(
 		ctx context.Context,
 		localeCode string,
 		profileID string,
 		pageSlug string,
+	) (*ProfilePage, error)
+	GetProfilePageByProfileIDAndSlugForViewer(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+		pageSlug string,
+		viewerUserID *string,
 	) (*ProfilePage, error)
 	ListProfileLinksByProfileID(
 		ctx context.Context,
@@ -898,6 +911,133 @@ func (s *Service) GetPageBySlug(
 	}
 
 	return page, nil
+}
+
+func (s *Service) ListPagesBySlugForViewer(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	viewerUserID *string,
+) ([]*ProfilePageBrief, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	pages, err := s.repo.ListProfilePagesByProfileIDForViewer(
+		ctx,
+		localeCode,
+		profileID,
+		viewerUserID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	return pages, nil
+}
+
+func (s *Service) GetPageBySlugForViewer(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	pageSlug string,
+	viewerUserID *string,
+) (*ProfilePage, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	page, err := s.repo.GetProfilePageByProfileIDAndSlugForViewer(
+		ctx,
+		localeCode,
+		profileID,
+		pageSlug,
+		viewerUserID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"%w(profile_id: %s, page_slug: %s): %w",
+			ErrFailedToGetRecord,
+			profileID,
+			pageSlug,
+			err,
+		)
+	}
+
+	return page, nil
+}
+
+// GetBySlugExWithViewerUser returns a profile with children, filtering pages by viewer's access
+// and links based on viewer's membership. Takes viewerUserID instead of viewerProfileID.
+func (s *Service) GetBySlugExWithViewerUser( //nolint:cyclop
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	viewerUserID *string,
+) (*ProfileWithChildren, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	record, err := s.repo.GetProfileByID(ctx, localeCode, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Try fallback locale if primary locale has no translation
+	if record == nil && localeCode != "en" {
+		record, err = s.repo.GetProfileByID(ctx, "en", profileID)
+		if err != nil {
+			return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+		}
+	}
+
+	if record == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	pages, err := s.repo.ListProfilePagesByProfileIDForViewer(
+		ctx,
+		localeCode,
+		record.ID,
+		viewerUserID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Try fallback locale for pages if none found
+	if len(pages) == 0 && localeCode != "en" {
+		pages, err = s.repo.ListProfilePagesByProfileIDForViewer(
+			ctx,
+			"en",
+			record.ID,
+			viewerUserID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+		}
+	}
+
+	// Only include featured links for the profile sidebar
+	links, err := s.repo.ListFeaturedProfileLinksByProfileID(ctx, localeCode, record.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileID, err)
+	}
+
+	// Filter links based on viewer's membership (uses empty viewerProfileID for anonymous)
+	filteredLinks := s.FilterVisibleLinks(ctx, links, profileID, "")
+
+	result := &ProfileWithChildren{
+		Profile: record,
+		Pages:   pages,
+		Links:   filteredLinks,
+	}
+
+	return result, nil
 }
 
 // CheckPageSlugAvailability checks if a page slug is available within a profile.

@@ -2056,6 +2056,119 @@ func (q *Queries) GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetP
 	return &i, err
 }
 
+const getProfilePageByProfileIDAndSlugForViewer = `-- name: GetProfilePageByProfileIDAndSlugForViewer :one
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+FROM "profile_page" pp
+  INNER JOIN "profile" p ON p.id = pp.profile_id
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
+    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "user" u ON u.id = $2::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON pp.profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE pp.profile_id = $3 AND pp.slug = $4 AND pp.deleted_at IS NULL
+  AND (
+    pp.visibility IN ('public', 'unlisted')
+    OR u.kind = 'admin'
+    OR pp.profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+ORDER BY pp."order"
+`
+
+type GetProfilePageByProfileIDAndSlugForViewerParams struct {
+	LocaleCode   string         `db:"locale_code" json:"locale_code"`
+	ViewerUserID sql.NullString `db:"viewer_user_id" json:"viewer_user_id"`
+	ProfileID    string         `db:"profile_id" json:"profile_id"`
+	PageSlug     string         `db:"page_slug" json:"page_slug"`
+}
+
+type GetProfilePageByProfileIDAndSlugForViewerRow struct {
+	ID               string         `db:"id" json:"id"`
+	ProfileID        string         `db:"profile_id" json:"profile_id"`
+	Slug             string         `db:"slug" json:"slug"`
+	Order            int32          `db:"order" json:"order"`
+	CoverPictureURI  sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt      sql.NullTime   `db:"published_at" json:"published_at"`
+	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt        sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	AddedByProfileID sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	Visibility       string         `db:"visibility" json:"visibility"`
+	ProfilePageID    string         `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode       string         `db:"locale_code" json:"locale_code"`
+	Title            string         `db:"title" json:"title"`
+	Summary          string         `db:"summary" json:"summary"`
+	Content          string         `db:"content" json:"content"`
+	SearchVector     interface{}    `db:"search_vector" json:"search_vector"`
+}
+
+// Returns a page by slug filtered by visibility:
+//
+//	 public/unlisted: accessible via direct link
+//	 private: only admin, profile owner, or maintainer+
+//
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector
+//	FROM "profile_page" pp
+//	  INNER JOIN "profile" p ON p.id = pp.profile_id
+//	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+//	  AND ppt.locale_code = (
+//	    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+//	    WHERE pptf.profile_page_id = pp.id
+//	    AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
+//	    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN "user" u ON u.id = $2::CHAR(26)
+//	  LEFT JOIN "profile_membership" pm ON pp.profile_id = pm.profile_id
+//	    AND pm.member_profile_id = u.individual_profile_id
+//	    AND pm.deleted_at IS NULL
+//	    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	WHERE pp.profile_id = $3 AND pp.slug = $4 AND pp.deleted_at IS NULL
+//	  AND (
+//	    pp.visibility IN ('public', 'unlisted')
+//	    OR u.kind = 'admin'
+//	    OR pp.profile_id = u.individual_profile_id
+//	    OR pm.kind IN ('owner', 'lead', 'maintainer')
+//	  )
+//	ORDER BY pp."order"
+func (q *Queries) GetProfilePageByProfileIDAndSlugForViewer(ctx context.Context, arg GetProfilePageByProfileIDAndSlugForViewerParams) (*GetProfilePageByProfileIDAndSlugForViewerRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfilePageByProfileIDAndSlugForViewer,
+		arg.LocaleCode,
+		arg.ViewerUserID,
+		arg.ProfileID,
+		arg.PageSlug,
+	)
+	var i GetProfilePageByProfileIDAndSlugForViewerRow
+	err := row.Scan(
+		&i.ID,
+		&i.ProfileID,
+		&i.Slug,
+		&i.Order,
+		&i.CoverPictureURI,
+		&i.PublishedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.AddedByProfileID,
+		&i.Visibility,
+		&i.ProfilePageID,
+		&i.LocaleCode,
+		&i.Title,
+		&i.Summary,
+		&i.Content,
+		&i.SearchVector,
+	)
+	return &i, err
+}
+
 const getProfileResourceByID = `-- name: GetProfileResourceByID :one
 SELECT id, profile_id, kind, is_managed, remote_id, public_id, url, title, description, properties, added_by_profile_id, created_at, updated_at, deleted_at FROM "profile_resource"
 WHERE id = $1
@@ -3568,6 +3681,155 @@ func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfi
 	items := []*ListProfilePagesByProfileIDRow{}
 	for rows.Next() {
 		var i ListProfilePagesByProfileIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProfileID,
+			&i.Slug,
+			&i.Order,
+			&i.CoverPictureURI,
+			&i.PublishedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.AddedByProfileID,
+			&i.Visibility,
+			&i.ProfilePageID,
+			&i.LocaleCode,
+			&i.Title,
+			&i.Summary,
+			&i.Content,
+			&i.SearchVector,
+			&i.AddedBySlug,
+			&i.AddedByKind,
+			&i.AddedByTitle,
+			&i.AddedByDescription,
+			&i.AddedByProfilePictureURI,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProfilePagesByProfileIDForViewer = `-- name: ListProfilePagesByProfileIDForViewer :many
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+  p_added.slug as added_by_slug,
+  p_added.kind as added_by_kind,
+  COALESCE(pt_added.title, '') as added_by_title,
+  COALESCE(pt_added.description, '') as added_by_description,
+  p_added.profile_picture_uri as added_by_profile_picture_uri
+FROM "profile_page" pp
+  INNER JOIN "profile" p ON p.id = pp.profile_id
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+  AND ppt.locale_code = (
+    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+    WHERE pptf.profile_page_id = pp.id
+    AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
+    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
+  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
+  LEFT JOIN "user" u ON u.id = $2::CHAR(26)
+  LEFT JOIN "profile_membership" pm ON pp.profile_id = pm.profile_id
+    AND pm.member_profile_id = u.individual_profile_id
+    AND pm.deleted_at IS NULL
+    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+WHERE pp.profile_id = $3
+  AND pp.deleted_at IS NULL
+  AND (
+    pp.visibility = 'public'
+    OR u.kind = 'admin'
+    OR pp.profile_id = u.individual_profile_id
+    OR pm.kind IN ('owner', 'lead', 'maintainer')
+  )
+ORDER BY pp."order"
+`
+
+type ListProfilePagesByProfileIDForViewerParams struct {
+	LocaleCode   string         `db:"locale_code" json:"locale_code"`
+	ViewerUserID sql.NullString `db:"viewer_user_id" json:"viewer_user_id"`
+	ProfileID    string         `db:"profile_id" json:"profile_id"`
+}
+
+type ListProfilePagesByProfileIDForViewerRow struct {
+	ID                       string         `db:"id" json:"id"`
+	ProfileID                string         `db:"profile_id" json:"profile_id"`
+	Slug                     string         `db:"slug" json:"slug"`
+	Order                    int32          `db:"order" json:"order"`
+	CoverPictureURI          sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt              sql.NullTime   `db:"published_at" json:"published_at"`
+	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt                sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	AddedByProfileID         sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	Visibility               string         `db:"visibility" json:"visibility"`
+	ProfilePageID            string         `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode               string         `db:"locale_code" json:"locale_code"`
+	Title                    string         `db:"title" json:"title"`
+	Summary                  string         `db:"summary" json:"summary"`
+	Content                  string         `db:"content" json:"content"`
+	SearchVector             interface{}    `db:"search_vector" json:"search_vector"`
+	AddedBySlug              sql.NullString `db:"added_by_slug" json:"added_by_slug"`
+	AddedByKind              sql.NullString `db:"added_by_kind" json:"added_by_kind"`
+	AddedByTitle             string         `db:"added_by_title" json:"added_by_title"`
+	AddedByDescription       string         `db:"added_by_description" json:"added_by_description"`
+	AddedByProfilePictureURI sql.NullString `db:"added_by_profile_picture_uri" json:"added_by_profile_picture_uri"`
+}
+
+// Returns pages filtered by visibility based on the viewer's access level:
+//
+//	 public: shown to everyone in lists
+//	 unlisted/private: only shown to admin, profile owner, or maintainer+
+//
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, pp.added_by_profile_id, pp.visibility, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content, ppt.search_vector,
+//	  p_added.slug as added_by_slug,
+//	  p_added.kind as added_by_kind,
+//	  COALESCE(pt_added.title, '') as added_by_title,
+//	  COALESCE(pt_added.description, '') as added_by_description,
+//	  p_added.profile_picture_uri as added_by_profile_picture_uri
+//	FROM "profile_page" pp
+//	  INNER JOIN "profile" p ON p.id = pp.profile_id
+//	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+//	  AND ppt.locale_code = (
+//	    SELECT pptf.locale_code FROM "profile_page_tx" pptf
+//	    WHERE pptf.profile_page_id = pp.id
+//	    AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
+//	    ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
+//	  LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
+//	  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
+//	  LEFT JOIN "user" u ON u.id = $2::CHAR(26)
+//	  LEFT JOIN "profile_membership" pm ON pp.profile_id = pm.profile_id
+//	    AND pm.member_profile_id = u.individual_profile_id
+//	    AND pm.deleted_at IS NULL
+//	    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	WHERE pp.profile_id = $3
+//	  AND pp.deleted_at IS NULL
+//	  AND (
+//	    pp.visibility = 'public'
+//	    OR u.kind = 'admin'
+//	    OR pp.profile_id = u.individual_profile_id
+//	    OR pm.kind IN ('owner', 'lead', 'maintainer')
+//	  )
+//	ORDER BY pp."order"
+func (q *Queries) ListProfilePagesByProfileIDForViewer(ctx context.Context, arg ListProfilePagesByProfileIDForViewerParams) ([]*ListProfilePagesByProfileIDForViewerRow, error) {
+	rows, err := q.db.QueryContext(ctx, listProfilePagesByProfileIDForViewer, arg.LocaleCode, arg.ViewerUserID, arg.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListProfilePagesByProfileIDForViewerRow{}
+	for rows.Next() {
+		var i ListProfilePagesByProfileIDForViewerRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ProfileID,

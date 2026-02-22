@@ -249,6 +249,132 @@ func (r *Repository) ListStoriesByAuthorProfileID(
 	return wrappedResponse, nil
 }
 
+func (r *Repository) ListStoriesOfPublicationForViewer( //nolint:funlen
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+	viewerUserID *string,
+) (cursors.Cursored[[]*stories.StoryWithChildren], error) {
+	var wrappedResponse cursors.Cursored[[]*stories.StoryWithChildren]
+
+	params := ListStoriesOfPublicationForViewerParams{
+		LocaleCode: localeCode,
+		FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
+		FilterAuthorProfileID: vars.MapValueToNullString(
+			cursor.Filters,
+			"author_profile_id",
+		),
+		FilterPublicationProfileID: vars.MapValueToNullString(
+			cursor.Filters,
+			"publication_profile_id",
+		),
+		ViewerUserID: sql.NullString{
+			String: "",
+			Valid:  false,
+		},
+	}
+	if viewerUserID != nil {
+		params.ViewerUserID = sql.NullString{
+			String: *viewerUserID,
+			Valid:  true,
+		}
+	}
+
+	rows, err := r.queries.ListStoriesOfPublicationForViewer(ctx, params)
+	if err != nil {
+		return wrappedResponse, err
+	}
+
+	result := make([]*stories.StoryWithChildren, len(rows))
+
+	for i, row := range rows {
+		storyWithChildren, err := r.parseStoryWithChildren(
+			row.Profile,
+			row.ProfileTx,
+			row.Story,
+			row.StoryTx,
+			row.Publications,
+		)
+		if err != nil {
+			return wrappedResponse, err
+		}
+
+		if t, ok := row.PublishedAt.(time.Time); ok {
+			storyWithChildren.PublishedAt = &t
+		}
+
+		result[i] = storyWithChildren
+	}
+
+	wrappedResponse.Data = result
+
+	if len(result) == cursor.Limit {
+		wrappedResponse.CursorPtr = &result[len(result)-1].ID
+	}
+
+	return wrappedResponse, nil
+}
+
+func (r *Repository) ListStoriesByAuthorProfileIDForViewer(
+	ctx context.Context,
+	localeCode string,
+	authorProfileID string,
+	cursor *cursors.Cursor,
+	viewerUserID *string,
+) (cursors.Cursored[[]*stories.StoryWithChildren], error) {
+	var wrappedResponse cursors.Cursored[[]*stories.StoryWithChildren]
+
+	params := ListStoriesByAuthorProfileIDForViewerParams{
+		LocaleCode:      localeCode,
+		AuthorProfileID: authorProfileID,
+		FilterKind:      vars.MapValueToNullString(cursor.Filters, "kind"),
+		ViewerUserID: sql.NullString{
+			String: "",
+			Valid:  false,
+		},
+	}
+	if viewerUserID != nil {
+		params.ViewerUserID = sql.NullString{
+			String: *viewerUserID,
+			Valid:  true,
+		}
+	}
+
+	rows, err := r.queries.ListStoriesByAuthorProfileIDForViewer(ctx, params)
+	if err != nil {
+		return wrappedResponse, err
+	}
+
+	result := make([]*stories.StoryWithChildren, len(rows))
+
+	for i, row := range rows {
+		storyWithChildren, err := r.parseStoryWithChildrenOptionalPublications(
+			row.Profile,
+			row.ProfileTx,
+			row.Story,
+			row.StoryTx,
+			row.Publications,
+		)
+		if err != nil {
+			return wrappedResponse, err
+		}
+
+		if t, ok := row.PublishedAt.(time.Time); ok {
+			storyWithChildren.PublishedAt = &t
+		}
+
+		result[i] = storyWithChildren
+	}
+
+	wrappedResponse.Data = result
+
+	if len(result) == cursor.Limit {
+		wrappedResponse.CursorPtr = &result[len(result)-1].ID
+	}
+
+	return wrappedResponse, nil
+}
+
 func (r *Repository) ListActivityStories(
 	ctx context.Context,
 	localeCode string,

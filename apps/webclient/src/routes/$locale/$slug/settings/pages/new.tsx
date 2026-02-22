@@ -1,12 +1,10 @@
 // Create new profile page
-import { createFileRoute, useNavigate, getRouteApi } from "@tanstack/react-router";
+import * as React from "react";
+import { createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend } from "@/modules/backend/backend";
-import {
-  ContentEditor,
-  type ContentEditorData,
-} from "@/components/content-editor";
+import { ContentEditor, type ContentEditorData } from "@/components/content-editor";
 import { useAuth } from "@/lib/auth/auth-context";
 
 const settingsRoute = getRouteApi("/$locale/$slug/settings");
@@ -21,6 +19,9 @@ function NewPagePage() {
   const auth = useAuth();
   const { t } = useTranslation();
   const { profile } = settingsRoute.useLoaderData();
+
+  // Content locale — owned by the route, passed to ContentEditor as locale prop
+  const [contentLocale, setContentLocale] = React.useState(params.locale);
 
   // No permission - settings route already handles redirect, but just in case
   if (profile === null) {
@@ -43,7 +44,7 @@ function NewPagePage() {
 
   const handleSave = async (data: ContentEditorData) => {
     const result = await backend.createProfilePage(
-      params.locale,
+      contentLocale,
       params.slug,
       {
         slug: data.slug,
@@ -59,12 +60,13 @@ function NewPagePage() {
     if (result !== null) {
       toast.success(t("Profile.Page created successfully"));
       navigate({
-        to: "/$locale/$slug/$pageslug",
+        to: "/$locale/$slug/$pageslug/edit",
         params: {
           locale: params.locale,
           slug: params.slug,
           pageslug: data.slug,
         },
+        search: { lang: contentLocale },
       });
     } else {
       toast.error(t("Profile.Failed to create page"));
@@ -73,7 +75,8 @@ function NewPagePage() {
 
   return (
     <ContentEditor
-      locale={params.locale}
+      key={contentLocale}
+      locale={contentLocale}
       profileSlug={params.slug}
       contentType="page"
       initialData={initialData}
@@ -81,6 +84,7 @@ function NewPagePage() {
       userKind={auth.user?.kind}
       onSave={handleSave}
       isNew
+      onLocaleChange={setContentLocale}
     />
   );
 }
