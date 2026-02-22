@@ -26,37 +26,32 @@ export function ShareOptions(props: ShareOptionsProps) {
     }
   };
 
-  const shareText = summary !== null && summary !== undefined
-    ? `${title} - ${summary}`
-    : title;
+  const shareText = summary !== null && summary !== undefined ? `${title} - ${summary}` : title;
 
   const handleWhatsAppShare = () => {
-    const url =
-      `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleTelegramShare = () => {
-    const url =
-      `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleLinkedInShare = () => {
-    const url =
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleRedditShare = () => {
-    const url =
-      `https://reddit.com/submit?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}`;
+    const url = `https://reddit.com/submit?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleXShare = () => {
-    const url =
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${
+      encodeURIComponent(currentUrl)
+    }`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -149,8 +144,8 @@ export function ShareOptions(props: ShareOptionsProps) {
             className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label={t("Stories.Share on Reddit")}
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 512 512">
-              <path d="M373 138.6c-25.2 0-46.3-17.5-51.9-41l0 0c-30.6 4.3-54.2 30.7-54.2 62.4l0 .2c47.4 1.8 90.6 15.1 124.9 36.3c12.6-9.7 28.4-15.5 45.5-15.5c41.3 0 74.7 33.4 74.7 74.7c0 29.8-17.4 55.5-42.7 67.5c-2.4 86.8-97 156.6-213.2 156.6S45.5 410.1 43 323.4C17.6 311.5 0 285.7 0 255.7c0-41.3 33.4-74.7 74.7-74.7c17.2 0 33 5.8 45.7 15.6c34-21.1 76.8-34.4 123.7-36.4l0-.3c0-44.3 33-81.1 75.7-86.9c8.1 33.6 38.8 58.6 75.5 58.6c42.6 0 77.1-34.5 77.1-77.1S437.3 0 394.7 0C358.8 0 328.1 23.4 318.5 55.8l0 0c-49.8 6.2-89 43.2-95.4 90.6c-47.2 2.1-90.6 15.5-124.8 36.6c-12.6-9.7-28.5-15.5-45.6-15.5C11.2 167.5-22.2 200.9-22.2 242.2c0 30 17.6 55.7 43 67.7c2.4 86.7 97.1 156.5 213.2 156.5s210.8-69.7 213.2-156.5c25.4-12 43-37.7 43-67.7c0-41.3-33.4-74.7-74.7-74.7c-17.1 0-32.8 5.7-45.4 15.4c-34.3-21.1-77.5-34.4-125-36.3l0-.2c0-23.2 17.1-42.5 39.4-45.9c7.1 21.2 27 36.4 50.4 36.4c29.4 0 53.3-23.8 53.3-53.3S423.4 85.4 394 85.4c-20.5 0-38.3 11.6-47.1 28.6l0 0c-37.6 5.7-67.5 36.1-73.4 74.1zM176.5 272.2c-21.3 0-38.5 17.2-38.5 38.5s17.2 38.5 38.5 38.5s38.5-17.2 38.5-38.5s-17.2-38.5-38.5-38.5zm159 0c-21.3 0-38.5 17.2-38.5 38.5s17.2 38.5 38.5 38.5s38.5-17.2 38.5-38.5s-17.2-38.5-38.5-38.5zM256 422.3c47.7 0 86.4-32.9 86.4-73.6H169.6c0 40.7 38.7 73.6 86.4 73.6z" />
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 640 640">
+              <path d="M437 202.6C411.8 202.6 390.7 185.1 385.1 161.6C354.5 165.9 330.9 192.3 330.9 224L330.9 224.2C378.3 226 421.5 239.3 455.8 260.5C468.4 250.8 484.2 245 501.3 245C542.6 245 576 278.4 576 319.7C576 349.5 558.6 375.2 533.3 387.2C530.9 474 436.3 543.8 320.1 543.8C203.9 543.8 109.5 474.1 107 387.4C81.6 375.5 64 349.7 64 319.7C64 278.4 97.4 245 138.7 245C155.9 245 171.7 250.8 184.4 260.6C218.4 239.5 261.2 226.2 308.1 224.2L308.1 223.9C308.1 179.6 341.8 143 384.9 138.4C389.8 114.2 411.2 96 437 96C466.4 96 490.3 119.9 490.3 149.3C490.3 178.7 466.4 202.6 437 202.6zM221.5 319.3C200.6 319.3 182.6 340.1 181.3 367.2C180 394.3 198.4 405.3 219.3 405.3C240.2 405.3 255.9 395.5 257.1 368.4C258.3 341.3 242.4 319.3 221.4 319.3L221.5 319.3zM459 367.1C457.8 340 439.8 319.2 418.8 319.2C397.8 319.2 381.9 341.2 383.1 368.3C384.3 395.4 400 405.2 420.9 405.2C441.8 405.2 460.2 394.2 458.9 367.1L459 367.1zM398.9 437.9C400.4 434.3 397.9 430.2 394 429.8C371 427.5 346.1 426.2 320.2 426.2C294.3 426.2 269.4 427.5 246.4 429.8C242.5 430.2 240 434.3 241.5 437.9C254.4 468.7 284.8 490.3 320.2 490.3C355.6 490.3 386 468.7 398.9 437.9z" />
             </svg>
           </button>
 
