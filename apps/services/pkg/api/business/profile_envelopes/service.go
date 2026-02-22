@@ -45,7 +45,7 @@ type Service struct {
 	logger      *logfx.Logger
 	repo        Repository
 	idGenerator func() string
-	notifiers   []EnvelopeNotifier
+	onCreated   OnEnvelopeCreatedFunc
 }
 
 // NewService creates a new envelope service.
@@ -58,13 +58,13 @@ func NewService(
 		logger:      logger,
 		repo:        repo,
 		idGenerator: idGenerator,
-		notifiers:   nil,
+		onCreated:   nil,
 	}
 }
 
-// RegisterNotifier adds a notifier that will be called when new envelopes are created.
-func (s *Service) RegisterNotifier(notifier EnvelopeNotifier) {
-	s.notifiers = append(s.notifiers, notifier)
+// SetOnCreated sets a callback that fires after each new envelope is persisted.
+func (s *Service) SetOnCreated(fn OnEnvelopeCreatedFunc) {
+	s.onCreated = fn
 }
 
 // CreateEnvelope creates a new envelope in pending status.
@@ -114,29 +114,11 @@ func (s *Service) CreateEnvelope(
 		slog.String("kind", params.Kind),
 		slog.String("target_profile_id", params.TargetProfileID))
 
-	// Notify registered notifiers (best-effort, fire-and-forget).
-	s.notifyNewEnvelope(ctx, params)
+	if s.onCreated != nil {
+		s.onCreated(ctx, envelope, params)
+	}
 
 	return envelope, nil
-}
-
-// notifyNewEnvelope fires all registered notifiers for a newly created envelope.
-// Notifications are best-effort — failures are logged but do not affect the caller.
-func (s *Service) notifyNewEnvelope(ctx context.Context, params *CreateEnvelopeParams) {
-	if len(s.notifiers) == 0 {
-		return
-	}
-
-	notification := &EnvelopeNotification{
-		TargetProfileID:    params.TargetProfileID,
-		EnvelopeTitle:      params.Title,
-		SenderProfileTitle: params.SenderProfileTitle,
-		Locale:             params.Locale,
-	}
-
-	for _, notifier := range s.notifiers {
-		notifier.NotifyNewEnvelope(ctx, notification)
-	}
 }
 
 // ListEnvelopes returns envelopes for a target profile, optionally filtered by status.

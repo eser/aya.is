@@ -77,16 +77,6 @@ type CreateEnvelopeParams struct {
 	Locale             string
 }
 
-// EnvelopeNotifier is a port for sending notifications when envelopes are created.
-// Implementations are best-effort — notification failures must not affect envelope creation.
-type EnvelopeNotifier interface {
-	NotifyNewEnvelope(ctx context.Context, params *EnvelopeNotification)
-}
-
-// EnvelopeNotification contains the data needed to notify a recipient about a new envelope.
-type EnvelopeNotification struct {
-	TargetProfileID    string
-	EnvelopeTitle      string
-	SenderProfileTitle string
-	Locale             string
-}
+// OnEnvelopeCreatedFunc is a callback invoked after a new envelope is persisted.
+// Implementations must be best-effort — failures should be logged, never propagated.
+type OnEnvelopeCreatedFunc func(ctx context.Context, envelope *Envelope, params *CreateEnvelopeParams)
