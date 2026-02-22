@@ -285,10 +285,8 @@ function EnvelopeBubble(props: {
 
                   return (
                     <Tooltip key={reaction.id}>
-                      <TooltipTrigger asChild>
-                        <button type="button" className={styles.reactionChipStatic}>
-                          {reaction.emoji}
-                        </button>
+                      <TooltipTrigger render={<button type="button" className={styles.reactionChipStatic} />}>
+                        {reaction.emoji}
                       </TooltipTrigger>
                       <TooltipContent>
                         {ownerName}
@@ -818,7 +816,11 @@ function MailboxPage() {
   // Handlers
   const handleSelectConversation = (convId: string) => {
     shouldScrollToBottom.current = true;
-    setSelectedConvId(convId);
+    if (convId === selectedConvId) {
+      refreshConversationDetail(convId);
+    } else {
+      setSelectedConvId(convId);
+    }
     setShowNewMessage(false);
   };
 
