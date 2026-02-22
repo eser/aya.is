@@ -35,13 +35,19 @@ const (
 
 // AllowedReactions is the curated set of emoji reactions.
 var AllowedReactions = map[string]bool{
-	"👍":  true,
 	"❤️": true,
+	"🔥":  true,
+	"🎉":  true,
+	"👍🏻": true,
+	"👋🏻": true,
+	"🙌🏻": true,
+	"🖖🏻": true,
 	"😂":  true,
 	"😮":  true,
 	"😢":  true,
-	"🔥":  true,
-	"🎉":  true,
+	"😱":  true,
+	"🙈":  true,
+	"👀":  true,
 }
 
 // Conversation represents a messaging thread between participants.

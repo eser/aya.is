@@ -161,7 +161,7 @@
 }
 
 .messageBubble {
-  @apply rounded-lg border border-border p-4 transition-colors;
+  @apply rounded-lg border border-border px-3 py-2 transition-colors;
 }
 
 .messageBubble:hover {

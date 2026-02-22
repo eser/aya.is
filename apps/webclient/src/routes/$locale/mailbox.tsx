@@ -72,7 +72,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import styles from "./mailbox.module.css";
 
-const ALLOWED_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "🎉"] as const;
+const ALLOWED_REACTIONS = ["❤️", "🔥", "🎉", "👍🏻", "👋🏻", "🙌🏻", "🖖🏻", "😂", "😮", "😢", "😱", "🙈", "👀"] as const;
 
 const statusColors: Record<EnvelopeStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
@@ -334,13 +334,11 @@ function ComposeArea(props: {
   onSent: () => void;
 }) {
   const { t } = useTranslation();
-  const [message, setMessage] = React.useState("");
+  const formRef = React.useRef<HTMLFormElement>(null);
   const [senderSlug, setSenderSlug] = React.useState(() => {
     const individual = props.senderProfiles.find((p) => p.kind === "individual");
     return individual !== undefined ? individual.slug : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
   });
-  const [isSending, setIsSending] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
   // Determine the target: the first participant whose slug differs from the selected sender.
   const targetSlug = React.useMemo(() => {
@@ -351,66 +349,66 @@ function ComposeArea(props: {
     return props.participants.length > 0 ? props.participants[0].profile_slug : null;
   }, [props.participants, senderSlug]);
 
-  const handleSend = async () => {
-    if (message.trim() === "" || targetSlug === null || senderSlug === "") {
-      return;
-    }
-
-    setIsSending(true);
-    setError(null);
-
-    try {
-      const result = await backend.sendMailboxMessage({
-        locale: props.locale,
-        senderProfileSlug: senderSlug,
-        targetProfileSlug: targetSlug,
-        message: message.trim(),
-      });
-
-      if (result !== null) {
-        setMessage("");
-        props.onSent();
+  const [state, submitAction, isPending] = React.useActionState(
+    async (_prev: { error: string | null }, formData: FormData) => {
+      const msg = (formData.get("message") as string ?? "").trim();
+      if (msg === "" || targetSlug === null || senderSlug === "") {
+        return { error: t("Common.This field is required") };
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("Mailbox.Failed to send"));
-    } finally {
-      setIsSending(false);
-    }
-  };
+
+      try {
+        const result = await backend.sendMailboxMessage({
+          locale: props.locale,
+          senderProfileSlug: senderSlug,
+          targetProfileSlug: targetSlug,
+          message: msg,
+        });
+
+        if (result !== null) {
+          formRef.current?.reset();
+          props.onSent();
+          return { error: null };
+        }
+        return { error: t("Mailbox.Failed to send") };
+      } catch (err) {
+        return { error: err instanceof Error ? err.message : t("Mailbox.Failed to send") };
+      }
+    },
+    { error: null },
+  );
 
   return (
     <div className={styles.composeArea}>
       <Separator />
-      <div className={styles.composeForm}>
+      <form ref={formRef} action={submitAction} className={styles.composeForm}>
         <Textarea
+          name="message"
           placeholder={t("Mailbox.Type your reply...")}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
           rows={2}
           className={styles.composeTextarea}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              handleSend();
+              formRef.current?.requestSubmit();
             }
           }}
         />
-        {error !== null && (
+        {state.error !== null && (
           <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{state.error}</AlertDescription>
           </Alert>
         )}
         <div className={styles.composeActions}>
           <Button
+            type="submit"
             size="sm"
-            onClick={handleSend}
-            disabled={isSending || message.trim() === "" || targetSlug === null}
+            disabled={isPending || targetSlug === null}
           >
-            {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
+            {isPending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
             {t("Mailbox.Send")}
           </Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
@@ -437,60 +435,51 @@ function NewConversationForm(props: {
     const individual = props.senderProfiles.find((p) => p.kind === "individual");
     return individual !== undefined ? individual.slug : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
   });
-  const [isSending, setIsSending] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string | null>>({});
-  const [sendSuccess, setSendSuccess] = React.useState(false);
 
-  const handleSend = async () => {
-    const errors: Record<string, string | null> = {};
-    if (targetSlug.trim() === "") {
-      errors.targetSlug = t("Common.This field is required");
-    }
-    if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
-      errors.inviteCode = t("Common.This field is required");
-    }
-    if (message.trim() === "") {
-      errors.message = t("Common.This field is required");
-    }
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
+  const [state, submitAction, isPending] = React.useActionState(
+    async (_prev: { error: string | null; success: boolean }) => {
+      const errors: Record<string, string | null> = {};
+      if (targetSlug.trim() === "") {
+        errors.targetSlug = t("Common.This field is required");
+      }
+      if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
+        errors.inviteCode = t("Common.This field is required");
+      }
+      if (message.trim() === "") {
+        errors.message = t("Common.This field is required");
+      }
+      setFieldErrors(errors);
+      if (Object.keys(errors).length > 0) {
+        return { error: null, success: false };
+      }
 
-    setIsSending(true);
-    setError(null);
-    setSendSuccess(false);
+      try {
+        if (envelopeKind === "message") {
+          const result = await backend.sendMailboxMessage({
+            locale: props.locale,
+            senderProfileSlug: senderSlug,
+            targetProfileSlug: targetSlug.trim(),
+            conversationTitle: title.trim() !== "" ? title.trim() : undefined,
+            message: message.trim(),
+          });
 
-    try {
-      if (envelopeKind === "message") {
-        const result = await backend.sendMailboxMessage({
-          locale: props.locale,
-          senderProfileSlug: senderSlug,
-          targetProfileSlug: targetSlug.trim(),
-          conversationTitle: title.trim() !== "" ? title.trim() : undefined,
-          message: message.trim(),
-        });
-
-        if (result !== null) {
-          setTargetSlug("");
-          setTitle("");
-          setMessage("");
-          setSendSuccess(true);
-          setTimeout(() => {
-            setSendSuccess(false);
-            props.onConversationCreated();
-          }, 1500);
-        } else {
-          setError(t("Mailbox.Failed to send"));
+          if (result !== null) {
+            setTargetSlug("");
+            setTitle("");
+            setMessage("");
+            setTimeout(() => {
+              props.onConversationCreated();
+            }, 1500);
+            return { error: null, success: true };
+          }
+          return { error: t("Mailbox.Failed to send"), success: false };
         }
-      } else {
+
         // For invitation kinds, resolve target profile then use profile envelope API.
         const targetProfile = await backend.getProfile(props.locale, targetSlug.trim());
         if (targetProfile === null) {
-          setError(t("ProfileSettings.Profile not found"));
-          setIsSending(false);
-          return;
+          return { error: t("ProfileSettings.Profile not found"), success: false };
         }
 
         const result = await backend.sendProfileEnvelope({
@@ -508,26 +497,24 @@ function NewConversationForm(props: {
           setInviteCode("");
           setTitle("");
           setMessage("");
-          setSendSuccess(true);
           setTimeout(() => {
-            setSendSuccess(false);
             props.onConversationCreated();
           }, 1500);
-        } else {
-          setError(t("Mailbox.Failed to send"));
+          return { error: null, success: true };
         }
+        return { error: t("Mailbox.Failed to send"), success: false };
+      } catch (err) {
+        return {
+          error: err instanceof Error ? err.message : t("Mailbox.Failed to send"),
+          success: false,
+        };
       }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t("Mailbox.Failed to send"),
-      );
-    } finally {
-      setIsSending(false);
-    }
-  };
+    },
+    { error: null, success: false },
+  );
 
   return (
-    <div className={styles.newConversationForm}>
+    <form action={submitAction} className={styles.newConversationForm}>
       <div className={styles.newConversationHeader}>
         <h3 className={styles.newConversationTitle}>{t("Mailbox.New Message")}</h3>
       </div>
@@ -629,29 +616,29 @@ function NewConversationForm(props: {
             <FieldError>{fieldErrors.message}</FieldError>
           )}
         </Field>
-        {error !== null && (
+        {state.error !== null && (
           <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{state.error}</AlertDescription>
           </Alert>
         )}
-        {sendSuccess && (
+        {state.success && (
           <Alert>
             <CheckCircle className="size-4" />
             <AlertDescription>{t("Mailbox.Sent successfully")}</AlertDescription>
           </Alert>
         )}
         <div className="flex justify-between">
-          <Button variant="ghost" onClick={props.onCancel}>
+          <Button type="button" variant="ghost" onClick={props.onCancel}>
             <ChevronLeft className="size-4 mr-1" />
             {t("Common.Back")}
           </Button>
-          <Button onClick={handleSend} disabled={isSending}>
-            {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
+          <Button type="submit" disabled={isPending}>
+            {isPending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
             {t("Mailbox.Send")}
           </Button>
         </div>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -736,6 +723,21 @@ function MailboxPage() {
     setIsDetailLoading(false);
   }, [locale]);
 
+  // Silent refresh variants — update data in the background without skeleton flashing.
+  // Used after actions (send, react, accept) where the UI should remain stable.
+  const refreshConversations = React.useCallback(async () => {
+    const result = await backend.listConversations(locale, { archived: showArchived });
+    if (result !== null) {
+      setConversations(result.conversations);
+      setUserTelegramLinked(result.viewerHasTelegram);
+    }
+  }, [locale, showArchived]);
+
+  const refreshConversationDetail = React.useCallback(async (conversationId: string) => {
+    const result = await backend.getConversation(locale, conversationId);
+    setConvDetail(result);
+  }, [locale]);
+
   // Redirect if not authenticated
   React.useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -767,7 +769,7 @@ function MailboxPage() {
     setActionInProgress(envelopeId);
     const success = await backend.acceptMailboxMessage(locale, envelopeId);
     if (success && selectedConvId !== null) {
-      await loadConversationDetail(selectedConvId);
+      await refreshConversationDetail(selectedConvId);
       await refreshAuth();
     }
     setActionInProgress(null);
@@ -786,7 +788,7 @@ function MailboxPage() {
     setActionInProgress(rejectTargetId);
     const success = await backend.rejectMailboxMessage(locale, rejectTargetId);
     if (success && selectedConvId !== null) {
-      await loadConversationDetail(selectedConvId);
+      await refreshConversationDetail(selectedConvId);
       await refreshAuth();
     }
     setActionInProgress(null);
@@ -796,14 +798,14 @@ function MailboxPage() {
   const handleReaction = async (envelopeId: string, emoji: string) => {
     await backend.addReaction(locale, envelopeId, emoji);
     if (selectedConvId !== null) {
-      await loadConversationDetail(selectedConvId);
+      await refreshConversationDetail(selectedConvId);
     }
   };
 
   const handleRemoveReaction = async (envelopeId: string, emoji: string) => {
     await backend.removeReaction(locale, envelopeId, emoji);
     if (selectedConvId !== null) {
-      await loadConversationDetail(selectedConvId);
+      await refreshConversationDetail(selectedConvId);
     }
   };
 
@@ -814,7 +816,7 @@ function MailboxPage() {
     await backend.archiveConversation(locale, selectedConvId);
     setSelectedConvId(null);
     setConvDetail(null);
-    await loadConversations();
+    await refreshConversations();
   };
 
   const handleUnarchive = async () => {
@@ -824,7 +826,7 @@ function MailboxPage() {
     await backend.unarchiveConversation(locale, selectedConvId);
     setSelectedConvId(null);
     setConvDetail(null);
-    await loadConversations();
+    await refreshConversations();
   };
 
   const handleRemoveConversation = async () => {
@@ -835,19 +837,19 @@ function MailboxPage() {
     setSelectedConvId(null);
     setConvDetail(null);
     setRemoveDialogOpen(false);
-    await loadConversations();
+    await refreshConversations();
   };
 
   const handleMessageSent = async () => {
     if (selectedConvId !== null) {
-      await loadConversationDetail(selectedConvId);
+      await refreshConversationDetail(selectedConvId);
     }
-    await loadConversations();
+    await refreshConversations();
   };
 
   const handleNewConversationCreated = async () => {
     setShowNewMessage(false);
-    await loadConversations();
+    await refreshConversations();
   };
 
   // Filter conversations
