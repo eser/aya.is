@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS "mailbox_reaction" (
 );
 
 -- 6. Backfill: wrap each existing envelope in a system conversation.
+-- +goose StatementBegin
 DO $$
 DECLARE
   rec RECORD;
@@ -77,6 +78,7 @@ BEGIN
     UPDATE "mailbox_envelope" SET conversation_id = conv_id WHERE id = rec.id;
   END LOOP;
 END $$;
+-- +goose StatementEnd
 
 -- 7. Make conversation_id NOT NULL after backfill.
 ALTER TABLE "mailbox_envelope" ALTER COLUMN "conversation_id" SET NOT NULL;
