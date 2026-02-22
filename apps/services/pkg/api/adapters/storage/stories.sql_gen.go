@@ -1248,6 +1248,7 @@ FROM "story" s
 WHERE s.author_profile_id = $3::CHAR(26)
   AND ($4::TEXT IS NULL OR s.kind = ANY(string_to_array($4::TEXT, ',')))
   AND s.deleted_at IS NULL
+  AND s.visibility != 'unlisted'
   AND (
     s.visibility = 'public'
     OR u.kind = 'admin'
@@ -1274,7 +1275,8 @@ type ListStoriesByAuthorProfileIDForViewerRow struct {
 }
 
 // Like ListStoriesByAuthorProfileID but filters by visibility for the viewer.
-// List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+// List semantics: public shown to all, private only to admin/author/maintainer+.
+// Unlisted stories are always excluded from listings (accessible only via direct link).
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
@@ -1327,6 +1329,7 @@ type ListStoriesByAuthorProfileIDForViewerRow struct {
 //	WHERE s.author_profile_id = $3::CHAR(26)
 //	  AND ($4::TEXT IS NULL OR s.kind = ANY(string_to_array($4::TEXT, ',')))
 //	  AND s.deleted_at IS NULL
+//	  AND s.visibility != 'unlisted'
 //	  AND (
 //	    s.visibility = 'public'
 //	    OR u.kind = 'admin'
@@ -1636,6 +1639,7 @@ FROM "story" s
     AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 WHERE
   pb.publications IS NOT NULL
+  AND s.visibility != 'unlisted'
   AND (
     s.visibility = 'public'
     OR u.kind = 'admin'
@@ -1665,8 +1669,9 @@ type ListStoriesOfPublicationForViewerRow struct {
 	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
-// Like ListStoriesOfPublication but includes private/unlisted stories for authorized viewers.
-// List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+// Like ListStoriesOfPublication but includes private stories for authorized viewers.
+// List semantics: public shown to all, private only to admin/author/maintainer+.
+// Unlisted stories are always excluded from listings (accessible only via direct link).
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
@@ -1714,6 +1719,7 @@ type ListStoriesOfPublicationForViewerRow struct {
 //	    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 //	WHERE
 //	  pb.publications IS NOT NULL
+//	  AND s.visibility != 'unlisted'
 //	  AND (
 //	    s.visibility = 'public'
 //	    OR u.kind = 'admin'

@@ -346,8 +346,9 @@ WHERE s.author_profile_id = sqlc.arg(author_profile_id)::CHAR(26)
 ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC;
 
 -- name: ListStoriesOfPublicationForViewer :many
--- Like ListStoriesOfPublication but includes private/unlisted stories for authorized viewers.
--- List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+-- Like ListStoriesOfPublication but includes private stories for authorized viewers.
+-- List semantics: public shown to all, private only to admin/author/maintainer+.
+-- Unlisted stories are always excluded from listings (accessible only via direct link).
 SELECT
   sqlc.embed(s),
   sqlc.embed(st),
@@ -394,6 +395,7 @@ FROM "story" s
     AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 WHERE
   pb.publications IS NOT NULL
+  AND s.visibility != 'unlisted'
   AND (
     s.visibility = 'public'
     OR u.kind = 'admin'
@@ -407,7 +409,8 @@ ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE
 
 -- name: ListStoriesByAuthorProfileIDForViewer :many
 -- Like ListStoriesByAuthorProfileID but filters by visibility for the viewer.
--- List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+-- List semantics: public shown to all, private only to admin/author/maintainer+.
+-- Unlisted stories are always excluded from listings (accessible only via direct link).
 SELECT
   sqlc.embed(s),
   sqlc.embed(st),
@@ -459,6 +462,7 @@ FROM "story" s
 WHERE s.author_profile_id = sqlc.arg(author_profile_id)::CHAR(26)
   AND (sqlc.narg(filter_kind)::TEXT IS NULL OR s.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
   AND s.deleted_at IS NULL
+  AND s.visibility != 'unlisted'
   AND (
     s.visibility = 'public'
     OR u.kind = 'admin'

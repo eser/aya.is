@@ -2577,7 +2577,8 @@ type Querier interface {
 	//  ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 	ListStoriesByAuthorProfileID(ctx context.Context, arg ListStoriesByAuthorProfileIDParams) ([]*ListStoriesByAuthorProfileIDRow, error)
 	// Like ListStoriesByAuthorProfileID but filters by visibility for the viewer.
-	// List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+	// List semantics: public shown to all, private only to admin/author/maintainer+.
+	// Unlisted stories are always excluded from listings (accessible only via direct link).
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
@@ -2630,6 +2631,7 @@ type Querier interface {
 	//  WHERE s.author_profile_id = $3::CHAR(26)
 	//    AND ($4::TEXT IS NULL OR s.kind = ANY(string_to_array($4::TEXT, ',')))
 	//    AND s.deleted_at IS NULL
+	//    AND s.visibility != 'unlisted'
 	//    AND (
 	//      s.visibility = 'public'
 	//      OR u.kind = 'admin'
@@ -2687,8 +2689,9 @@ type Querier interface {
 	//    AND s.deleted_at IS NULL
 	//  ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 	ListStoriesOfPublication(ctx context.Context, arg ListStoriesOfPublicationParams) ([]*ListStoriesOfPublicationRow, error)
-	// Like ListStoriesOfPublication but includes private/unlisted stories for authorized viewers.
-	// List semantics: public shown to all, unlisted/private only to admin/author/maintainer+.
+	// Like ListStoriesOfPublication but includes private stories for authorized viewers.
+	// List semantics: public shown to all, private only to admin/author/maintainer+.
+	// Unlisted stories are always excluded from listings (accessible only via direct link).
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility,
@@ -2736,6 +2739,7 @@ type Querier interface {
 	//      AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	//  WHERE
 	//    pb.publications IS NOT NULL
+	//    AND s.visibility != 'unlisted'
 	//    AND (
 	//      s.visibility = 'public'
 	//      OR u.kind = 'admin'

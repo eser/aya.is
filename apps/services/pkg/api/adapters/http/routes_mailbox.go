@@ -282,7 +282,8 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				err := mailboxService.RemoveConversation(ctx.Request.Context(), conversationID)
 				if err != nil {
-					logger.Error("failed to remove conversation", "error", err)
+					logger.ErrorContext(ctx.Request.Context(), "failed to remove conversation",
+						slog.String("error", err.Error()))
 
 					return ctx.Results.Error(
 						http.StatusInternalServerError, httpfx.WithSanitizedError(err),
@@ -392,7 +393,8 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 					},
 				)
 				if createErr != nil {
-					logger.Error("failed to send message", "error", createErr)
+					logger.ErrorContext(ctx.Request.Context(), "failed to send message",
+						slog.String("error", createErr.Error()))
 
 					if errors.Is(createErr, mailbox.ErrInvalidEnvelopeKind) ||
 						errors.Is(createErr, mailbox.ErrConversationPending) {
@@ -689,7 +691,9 @@ func mailboxMessageActionHandler(
 		}
 
 		if !actionDone {
-			logger.Error("mailbox message action failed", "action", action, "error", actionErr)
+			logger.ErrorContext(ctx.Request.Context(), "mailbox message action failed",
+				slog.String("action", action),
+				slog.String("error", actionErr.Error()))
 
 			return ctx.Results.Error(
 				http.StatusBadRequest,

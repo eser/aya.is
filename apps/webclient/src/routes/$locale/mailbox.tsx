@@ -192,13 +192,13 @@ function EnvelopeBubble(props: {
   const allowReactions = props.conversationKind !== "system"
     && (env.status === "accepted" || env.status === "redeemed" || hideStatusBadge);
 
-  const envProperties = env.properties !== null && env.properties !== undefined
+  const envProperties = env.properties != null
     ? env.properties as Record<string, unknown>
-    : undefined;
-  const groupName = envProperties !== undefined
+    : null;
+  const groupName = envProperties !== null
     ? envProperties.group_name as string | undefined
     : undefined;
-  const invitationKind = envProperties !== undefined
+  const invitationKind = envProperties !== null
     ? envProperties.invitation_kind as string | undefined
     : undefined;
   const isTelegramGroupInvitation = env.kind === "invitation"
