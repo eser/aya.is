@@ -671,6 +671,9 @@ function MailboxPage() {
   // Telegram link status for the current user
   const [userTelegramLinked, setUserTelegramLinked] = React.useState(false);
 
+  // Ref for auto-scrolling message thread to bottom
+  const messageThreadRef = React.useRef<HTMLDivElement>(null);
+
   // Maintainer+ profiles
   const maintainerProfiles = React.useMemo(() => {
     if (user === null) {
@@ -760,6 +763,13 @@ function MailboxPage() {
     }
   }, [selectedConvId, loadConversationDetail]);
 
+  // Auto-scroll message thread to bottom when detail loads or messages change
+  React.useEffect(() => {
+    if (convDetail !== null && messageThreadRef.current !== null) {
+      messageThreadRef.current.scrollTop = messageThreadRef.current.scrollHeight;
+    }
+  }, [convDetail]);
+
   // Handlers
   const handleSelectConversation = (convId: string) => {
     setSelectedConvId(convId);
@@ -797,14 +807,20 @@ function MailboxPage() {
   };
 
   const handleReaction = async (envelopeId: string, emoji: string) => {
-    await backend.addReaction(locale, envelopeId, emoji);
+    const success = await backend.addReaction(locale, envelopeId, emoji);
+    if (!success) {
+      console.error("Failed to add reaction", { envelopeId, emoji });
+    }
     if (selectedConvId !== null) {
       await refreshConversationDetail(selectedConvId);
     }
   };
 
   const handleRemoveReaction = async (envelopeId: string, emoji: string) => {
-    await backend.removeReaction(locale, envelopeId, emoji);
+    const success = await backend.removeReaction(locale, envelopeId, emoji);
+    if (!success) {
+      console.error("Failed to remove reaction", { envelopeId, emoji });
+    }
     if (selectedConvId !== null) {
       await refreshConversationDetail(selectedConvId);
     }
@@ -1098,7 +1114,7 @@ function MailboxPage() {
                   <Separator />
 
                   {/* Message Thread */}
-                  <div className={styles.messageThread}>
+                  <div ref={messageThreadRef} className={styles.messageThread}>
                     {convDetail.envelopes.map((envelope, index) => (
                       <EnvelopeBubble
                         key={envelope.id}
