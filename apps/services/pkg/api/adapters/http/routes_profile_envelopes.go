@@ -147,9 +147,15 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 				}
 
-				if body.Kind == "" || body.TargetProfileID == "" || body.Title == "" {
+				if body.Kind == "" || body.TargetProfileID == "" {
 					return ctx.Results.BadRequest(
-						httpfx.WithErrorMessage("kind, target_profile_id, and title are required"),
+						httpfx.WithErrorMessage("kind and target_profile_id are required"),
+					)
+				}
+
+				if body.Description == "" {
+					return ctx.Results.BadRequest(
+						httpfx.WithErrorMessage("description (message body) is required"),
 					)
 				}
 

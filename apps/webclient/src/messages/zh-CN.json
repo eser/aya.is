@@ -906,6 +906,9 @@
     "Target profile slug placeholder": "target-profile-slug",
     "Target profile slug description": "The unique identifier (slug) of the recipient profile, visible in their profile URL.",
     "Message title": "Message title",
+    "Title (optional)": "标题（可选）",
+    "Message": "消息",
+    "Write your message...": "输入您的消息...",
     "Type your reply...": "输入您的回复...",
     "Sent successfully": "发送成功",
     "Failed to send": "发送失败"

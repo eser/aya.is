@@ -906,6 +906,9 @@
     "Target profile slug placeholder": "target-profile-slug",
     "Target profile slug description": "The unique identifier (slug) of the recipient profile, visible in their profile URL.",
     "Message title": "Message title",
+    "Title (optional)": "Título (opcional)",
+    "Message": "Mensaje",
+    "Write your message...": "Escribe tu mensaje...",
     "Type your reply...": "Escribe tu respuesta...",
     "Sent successfully": "Enviado con éxito",
     "Failed to send": "Error al enviar"

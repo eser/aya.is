@@ -170,6 +170,8 @@ function EnvelopeBubble(props: {
   const isInvitationLike = env.kind === "invitation" || env.kind === "badge" || env.kind === "pass";
   // Show accept/reject: always for invitation-like kinds, or for the first envelope in a conversation
   const showActions = isPending && (isInvitationLike || props.isFirstEnvelope);
+  // Reactions only on accepted or redeemed envelopes
+  const allowReactions = env.status === "accepted" || env.status === "redeemed";
 
   const groupName = env.properties !== null && env.properties !== undefined
     ? (env.properties as Record<string, unknown>).group_name as string | undefined
@@ -245,7 +247,7 @@ function EnvelopeBubble(props: {
               </Button>
             </>
           )}
-          {!isPending && (
+          {allowReactions && (
             <Popover>
               <PopoverTrigger asChild>
                 <Button size="sm" variant="ghost" className={styles.reactionButton}>
@@ -378,7 +380,7 @@ function NewConversationForm(props: {
   const [targetSlug, setTargetSlug] = React.useState("");
   const [inviteCode, setInviteCode] = React.useState("");
   const [title, setTitle] = React.useState("");
-  const [description, setDescription] = React.useState("");
+  const [message, setMessage] = React.useState("");
   const [senderSlug, setSenderSlug] = React.useState(() => {
     const individual = props.senderProfiles.find((p) => p.kind === "individual");
     return individual !== undefined ? individual.slug : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
@@ -396,8 +398,8 @@ function NewConversationForm(props: {
     if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
       errors.inviteCode = t("Common.This field is required");
     }
-    if (title.trim() === "") {
-      errors.title = t("Common.This field is required");
+    if (message.trim() === "") {
+      errors.message = t("Common.This field is required");
     }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -414,14 +416,14 @@ function NewConversationForm(props: {
           locale: props.locale,
           senderProfileSlug: senderSlug,
           targetProfileSlug: targetSlug.trim(),
-          title: title.trim(),
-          description: description.trim() !== "" ? description.trim() : undefined,
+          title: title.trim() !== "" ? title.trim() : undefined,
+          description: message.trim(),
         });
 
         if (result !== null) {
           setTargetSlug("");
           setTitle("");
-          setDescription("");
+          setMessage("");
           setSendSuccess(true);
           setTimeout(() => {
             setSendSuccess(false);
@@ -444,8 +446,8 @@ function NewConversationForm(props: {
           senderSlug,
           targetProfileId: targetProfile.id,
           kind: "invitation",
-          title: title.trim(),
-          description: description.trim() !== "" ? description.trim() : undefined,
+          title: title.trim() !== "" ? title.trim() : undefined,
+          description: message.trim(),
           inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
         });
 
@@ -453,7 +455,7 @@ function NewConversationForm(props: {
           setTargetSlug("");
           setInviteCode("");
           setTitle("");
-          setDescription("");
+          setMessage("");
           setSendSuccess(true);
           setTimeout(() => {
             setSendSuccess(false);
@@ -554,30 +556,30 @@ function NewConversationForm(props: {
             )}
           </Field>
         )}
-        <Field data-invalid={fieldErrors.title !== undefined && fieldErrors.title !== null}>
+        <Field>
           <FieldLabel htmlFor="compose-title">{t("Common.Title")}</FieldLabel>
           <Input
             id="compose-title"
-            placeholder={t("Mailbox.Message title")}
+            placeholder={t("Mailbox.Title (optional)")}
             value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setFieldErrors((prev) => ({ ...prev, title: null }));
-            }}
+            onChange={(e) => setTitle(e.target.value)}
           />
-          {fieldErrors.title !== null && fieldErrors.title !== undefined && (
-            <FieldError>{fieldErrors.title}</FieldError>
-          )}
         </Field>
-        <Field>
-          <FieldLabel htmlFor="compose-desc">{t("Common.Description")}</FieldLabel>
+        <Field data-invalid={fieldErrors.message !== undefined && fieldErrors.message !== null}>
+          <FieldLabel htmlFor="compose-message">{t("Mailbox.Message")}</FieldLabel>
           <Textarea
-            id="compose-desc"
-            placeholder={t("Mailbox.Add details (optional)")}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            id="compose-message"
+            placeholder={t("Mailbox.Write your message...")}
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              setFieldErrors((prev) => ({ ...prev, message: null }));
+            }}
             rows={3}
           />
+          {fieldErrors.message !== null && fieldErrors.message !== undefined && (
+            <FieldError>{fieldErrors.message}</FieldError>
+          )}
         </Field>
         {error !== null && (
           <Alert variant="destructive">

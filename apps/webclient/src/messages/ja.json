@@ -906,6 +906,9 @@
     "Target profile slug placeholder": "target-profile-slug",
     "Target profile slug description": "The unique identifier (slug) of the recipient profile, visible in their profile URL.",
     "Message title": "Message title",
+    "Title (optional)": "タイトル（任意）",
+    "Message": "メッセージ",
+    "Write your message...": "メッセージを入力...",
     "Type your reply...": "返信を入力...",
     "Sent successfully": "送信しました",
     "Failed to send": "送信に失敗しました"

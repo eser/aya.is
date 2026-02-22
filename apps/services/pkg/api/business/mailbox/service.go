@@ -297,6 +297,14 @@ func (s *Service) GetConversation(
 		return nil, nil, fmt.Errorf("list envelopes: %w", err)
 	}
 
+	// Populate reactions for each envelope.
+	for _, env := range envelopeList {
+		reactions, reactErr := s.repo.ListReactionsByEnvelope(ctx, env.ID)
+		if reactErr == nil {
+			env.Reactions = reactions
+		}
+	}
+
 	return conv, envelopeList, nil
 }
 
@@ -466,9 +474,13 @@ func (s *Service) AddReaction(
 		return ErrInvalidReaction
 	}
 
-	_, err := s.repo.GetEnvelopeByID(ctx, envelopeID)
+	envelope, err := s.repo.GetEnvelopeByID(ctx, envelopeID)
 	if err != nil {
 		return ErrEnvelopeNotFound
+	}
+
+	if envelope.Status != StatusAccepted && envelope.Status != StatusRedeemed {
+		return ErrInvalidStatus
 	}
 
 	reaction := &Reaction{

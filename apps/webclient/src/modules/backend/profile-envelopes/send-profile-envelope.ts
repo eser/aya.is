@@ -9,8 +9,8 @@ export interface SendProfileEnvelopeParams {
   senderSlug: string;
   targetProfileId: string;
   kind: string;
-  title: string;
-  description?: string;
+  title?: string;
+  description: string;
   inviteCode?: string;
   properties?: Record<string, unknown>;
 }
@@ -34,11 +34,11 @@ export async function sendProfileEnvelope(
   const body: Record<string, unknown> = {
     kind: params.kind,
     target_profile_id: params.targetProfileId,
-    title: params.title,
+    description: params.description,
   };
 
-  if (params.description !== undefined && params.description !== "") {
-    body.description = params.description;
+  if (params.title !== undefined && params.title !== "") {
+    body.title = params.title;
   }
 
   if (params.inviteCode !== undefined && params.inviteCode !== "") {

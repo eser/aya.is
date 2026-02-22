@@ -269,12 +269,17 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 					return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 				}
 
-				if body.SenderProfileSlug == "" || body.TargetProfileSlug == "" ||
-					body.Title == "" {
+				if body.SenderProfileSlug == "" || body.TargetProfileSlug == "" {
 					return ctx.Results.BadRequest(
 						httpfx.WithErrorMessage(
-							"sender_profile_slug, target_profile_slug, and title are required",
+							"sender_profile_slug and target_profile_slug are required",
 						),
+					)
+				}
+
+				if body.Description == nil || *body.Description == "" {
+					return ctx.Results.BadRequest(
+						httpfx.WithErrorMessage("description (message body) is required"),
 					)
 				}
 
