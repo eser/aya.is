@@ -53,7 +53,8 @@
     "Private": "Private",
     "Connecting...": "Connecting...",
     "Done": "Done",
-    "This field is required": "This field is required"
+    "This field is required": "This field is required",
+    "All": "All"
   },
   "Layout": {
     "Homepage": "Homepage",
@@ -88,7 +89,8 @@
     "Dismiss": "Dismiss",
     "Development": "Development",
     "Use default data source": "Use default data source",
-    "Use production data source": "Use production data source"
+    "Use production data source": "Use production data source",
+    "Mailbox": "Mailbox"
   },
   "Loading": {
     "Loading...": "Loading...",

@@ -53,7 +53,8 @@
     "Private": "Privat",
     "Connecting...": "Connecting...",
     "Done": "Fertig",
-    "This field is required": "Dieses Feld ist erforderlich"
+    "This field is required": "Dieses Feld ist erforderlich",
+    "All": "Alle"
   },
   "Layout": {
     "Homepage": "Startseite",
@@ -88,7 +89,8 @@
     "Dismiss": "Verwerfen",
     "Development": "Entwicklung",
     "Use default data source": "Standarddatenquelle verwenden",
-    "Use production data source": "Produktionsdatenquelle verwenden"
+    "Use production data source": "Produktionsdatenquelle verwenden",
+    "Mailbox": "Postfach"
   },
   "Loading": {
     "Loading...": "Wird geladen...",

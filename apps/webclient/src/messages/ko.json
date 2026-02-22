@@ -53,7 +53,8 @@
     "Private": "비공개",
     "Connecting...": "Connecting...",
     "Done": "완료",
-    "This field is required": "이 항목은 필수입니다"
+    "This field is required": "이 항목은 필수입니다",
+    "All": "전체"
   },
   "Layout": {
     "Homepage": "홈페이지",
@@ -88,7 +89,8 @@
     "Dismiss": "닫기",
     "Development": "개발",
     "Use default data source": "기본 데이터 소스 사용",
-    "Use production data source": "생산 데이터 소스 사용"
+    "Use production data source": "생산 데이터 소스 사용",
+    "Mailbox": "메일함"
   },
   "Loading": {
     "Loading...": "로드 중...",

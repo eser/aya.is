@@ -53,7 +53,8 @@
     "Private": "Приватный",
     "Connecting...": "Connecting...",
     "Done": "Готово",
-    "This field is required": "Это поле обязательно"
+    "This field is required": "Это поле обязательно",
+    "All": "Все"
   },
   "Layout": {
     "Homepage": "Главная страница",
@@ -88,7 +89,8 @@
     "Dismiss": "Отклонить",
     "Development": "Разработка",
     "Use default data source": "Использовать данные по умолчанию",
-    "Use production data source": "Использовать данные производства"
+    "Use production data source": "Использовать данные производства",
+    "Mailbox": "Почтовый ящик"
   },
   "Loading": {
     "Loading...": "Загрузка...",

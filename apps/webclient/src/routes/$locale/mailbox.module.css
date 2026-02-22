@@ -1,0 +1,114 @@
+@reference "@/theme.css";
+
+.container {
+  @apply max-w-4xl mx-auto py-6 space-y-6;
+}
+
+.header {
+  @apply space-y-1;
+}
+
+.title {
+  @apply font-serif text-2xl font-bold text-foreground;
+}
+
+.subtitle {
+  @apply text-muted-foreground text-sm;
+}
+
+.filterBar {
+  @apply flex flex-wrap gap-2;
+}
+
+.filterBadge {
+  @apply px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-colors;
+  @apply border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30;
+}
+
+.filterBadgeActive {
+  @apply bg-foreground text-background border-foreground;
+}
+
+.envelopeCard {
+  @apply flex items-center gap-3 p-4 border rounded-lg transition-colors;
+}
+
+.envelopeCard:hover {
+  @apply bg-muted/50;
+}
+
+.envelopeIcon {
+  @apply flex items-center justify-center size-10 rounded;
+}
+
+.envelopeBody {
+  @apply flex-1 min-w-0;
+}
+
+.envelopeTitle {
+  @apply font-medium truncate;
+}
+
+.envelopeGroup {
+  @apply text-sm text-foreground/70 truncate;
+}
+
+.envelopeDescription {
+  @apply text-sm text-muted-foreground truncate;
+}
+
+.envelopeMeta {
+  @apply flex items-center gap-1 text-xs text-muted-foreground;
+}
+
+.envelopeActions {
+  @apply flex items-center gap-2;
+}
+
+.profileBadge {
+  @apply text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground;
+}
+
+.emptyState {
+  @apply text-center py-12 border-2 border-dashed rounded-lg;
+}
+
+.emptyIcon {
+  @apply size-12 mx-auto text-muted-foreground mb-4;
+}
+
+.emptyText {
+  @apply text-muted-foreground;
+}
+
+.sendSection {
+  @apply p-6;
+}
+
+.sendToggle {
+  @apply flex items-center justify-between w-full text-left;
+}
+
+.sendToggleLabel {
+  @apply flex items-center gap-2;
+}
+
+.sendToggleTitle {
+  @apply font-serif text-lg font-semibold text-foreground;
+}
+
+.sendToggleIcon {
+  @apply size-5 text-muted-foreground;
+}
+
+.sendForm {
+  @apply mt-4 space-y-4;
+}
+
+.sendFormGrid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.successMessage {
+  @apply text-sm text-green-600 flex items-center gap-2;
+}

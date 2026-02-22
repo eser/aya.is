@@ -58,5 +58,6 @@ export interface SessionCurrentResponse {
     points?: number;
   };
   accessible_profiles?: AccessibleProfile[];
+  total_pending_envelopes?: number;
   preferences?: SessionPreferences;
 }

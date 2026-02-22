@@ -13,6 +13,7 @@ import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocaleIndexRouteImport } from './routes/$locale/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as LocaleMailboxRouteImport } from './routes/$locale/mailbox'
 import { Route as LocaleStoriesRouteRouteImport } from './routes/$locale/stories/route'
 import { Route as LocaleElementsRouteRouteImport } from './routes/$locale/elements/route'
 import { Route as LocaleAdminRouteRouteImport } from './routes/$locale/admin/route'
@@ -60,7 +61,6 @@ import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/
 import { Route as LocaleSlugSettingsResourcesRouteImport } from './routes/$locale/$slug/settings/resources'
 import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$slug/settings/points'
 import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
-import { Route as LocaleSlugSettingsInboxRouteImport } from './routes/$locale/$slug/settings/inbox'
 import { Route as LocaleSlugSettingsAccessRouteImport } from './routes/$locale/$slug/settings/access'
 import { Route as LocaleSlugPageslugEditRouteImport } from './routes/$locale/$slug/$pageslug/edit'
 import { Route as LocaleAdminProfilesSlugRouteRouteImport } from './routes/$locale/admin/profiles/$slug/route'
@@ -91,6 +91,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleMailboxRoute = LocaleMailboxRouteImport.update({
+  id: '/mailbox',
+  path: '/mailbox',
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleStoriesRouteRoute = LocaleStoriesRouteRouteImport.update({
   id: '/stories',
@@ -337,11 +342,6 @@ const LocaleSlugSettingsLinksRoute = LocaleSlugSettingsLinksRouteImport.update({
   path: '/links',
   getParentRoute: () => LocaleSlugSettingsRouteRoute,
 } as any)
-const LocaleSlugSettingsInboxRoute = LocaleSlugSettingsInboxRouteImport.update({
-  id: '/inbox',
-  path: '/inbox',
-  getParentRoute: () => LocaleSlugSettingsRouteRoute,
-} as any)
 const LocaleSlugSettingsAccessRoute =
   LocaleSlugSettingsAccessRouteImport.update({
     id: '/access',
@@ -410,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteRouteWithChildren
   '/$locale/elements': typeof LocaleElementsRouteRouteWithChildren
   '/$locale/stories': typeof LocaleStoriesRouteRouteWithChildren
+  '/$locale/mailbox': typeof LocaleMailboxRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugRouteRouteWithChildren
@@ -443,7 +444,6 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/profiles/$slug': typeof LocaleAdminProfilesSlugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
-  '/$locale/$slug/settings/inbox': typeof LocaleSlugSettingsInboxRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
@@ -469,6 +469,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$locale/admin': typeof LocaleAdminRouteRouteWithChildren
+  '/$locale/mailbox': typeof LocaleMailboxRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/$slug/$': typeof LocaleSlugSplatRoute
@@ -492,7 +493,6 @@ export interface FileRoutesByTo {
   '/$locale/stories': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
-  '/$locale/$slug/settings/inbox': typeof LocaleSlugSettingsInboxRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
@@ -524,6 +524,7 @@ export interface FileRoutesById {
   '/$locale/admin': typeof LocaleAdminRouteRouteWithChildren
   '/$locale/elements': typeof LocaleElementsRouteRouteWithChildren
   '/$locale/stories': typeof LocaleStoriesRouteRouteWithChildren
+  '/$locale/mailbox': typeof LocaleMailboxRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugRouteRouteWithChildren
@@ -557,7 +558,6 @@ export interface FileRoutesById {
   '/$locale/admin/profiles/$slug': typeof LocaleAdminProfilesSlugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
-  '/$locale/$slug/settings/inbox': typeof LocaleSlugSettingsInboxRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
@@ -590,6 +590,7 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale/elements'
     | '/$locale/stories'
+    | '/$locale/mailbox'
     | '/auth/callback'
     | '/$locale/'
     | '/$locale/$slug/$pageslug'
@@ -623,7 +624,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/profiles/$slug'
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/settings/access'
-    | '/$locale/$slug/settings/inbox'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/resources'
@@ -649,6 +649,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$locale/admin'
+    | '/$locale/mailbox'
     | '/auth/callback'
     | '/$locale'
     | '/$locale/$slug/$'
@@ -672,7 +673,6 @@ export interface FileRouteTypes {
     | '/$locale/stories'
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/settings/access'
-    | '/$locale/$slug/settings/inbox'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/resources'
@@ -703,6 +703,7 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale/elements'
     | '/$locale/stories'
+    | '/$locale/mailbox'
     | '/auth/callback'
     | '/$locale/'
     | '/$locale/$slug/$pageslug'
@@ -736,7 +737,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/profiles/$slug'
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/settings/access'
-    | '/$locale/$slug/settings/inbox'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/resources'
@@ -796,6 +796,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/$locale/mailbox': {
+      id: '/$locale/mailbox'
+      path: '/mailbox'
+      fullPath: '/$locale/mailbox'
+      preLoaderRoute: typeof LocaleMailboxRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/stories': {
       id: '/$locale/stories'
@@ -1126,13 +1133,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsLinksRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
-    '/$locale/$slug/settings/inbox': {
-      id: '/$locale/$slug/settings/inbox'
-      path: '/inbox'
-      fullPath: '/$locale/$slug/settings/inbox'
-      preLoaderRoute: typeof LocaleSlugSettingsInboxRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
     '/$locale/$slug/settings/access': {
       id: '/$locale/$slug/settings/access'
       path: '/access'
@@ -1235,7 +1235,6 @@ const LocaleSlugQaRouteRouteWithChildren =
 
 interface LocaleSlugSettingsRouteRouteChildren {
   LocaleSlugSettingsAccessRoute: typeof LocaleSlugSettingsAccessRoute
-  LocaleSlugSettingsInboxRoute: typeof LocaleSlugSettingsInboxRoute
   LocaleSlugSettingsLinksRoute: typeof LocaleSlugSettingsLinksRoute
   LocaleSlugSettingsPointsRoute: typeof LocaleSlugSettingsPointsRoute
   LocaleSlugSettingsResourcesRoute: typeof LocaleSlugSettingsResourcesRoute
@@ -1248,7 +1247,6 @@ interface LocaleSlugSettingsRouteRouteChildren {
 const LocaleSlugSettingsRouteRouteChildren: LocaleSlugSettingsRouteRouteChildren =
   {
     LocaleSlugSettingsAccessRoute: LocaleSlugSettingsAccessRoute,
-    LocaleSlugSettingsInboxRoute: LocaleSlugSettingsInboxRoute,
     LocaleSlugSettingsLinksRoute: LocaleSlugSettingsLinksRoute,
     LocaleSlugSettingsPointsRoute: LocaleSlugSettingsPointsRoute,
     LocaleSlugSettingsResourcesRoute: LocaleSlugSettingsResourcesRoute,
@@ -1473,6 +1471,7 @@ interface LocaleRouteRouteChildren {
   LocaleAdminRouteRoute: typeof LocaleAdminRouteRouteWithChildren
   LocaleElementsRouteRoute: typeof LocaleElementsRouteRouteWithChildren
   LocaleStoriesRouteRoute: typeof LocaleStoriesRouteRouteWithChildren
+  LocaleMailboxRoute: typeof LocaleMailboxRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
   LocaleContentsNewRoute: typeof LocaleContentsNewRoute
   LocaleNewsNewRoute: typeof LocaleNewsNewRoute
@@ -1489,6 +1488,7 @@ const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
   LocaleAdminRouteRoute: LocaleAdminRouteRouteWithChildren,
   LocaleElementsRouteRoute: LocaleElementsRouteRouteWithChildren,
   LocaleStoriesRouteRoute: LocaleStoriesRouteRouteWithChildren,
+  LocaleMailboxRoute: LocaleMailboxRoute,
   LocaleIndexRoute: LocaleIndexRoute,
   LocaleContentsNewRoute: LocaleContentsNewRoute,
   LocaleNewsNewRoute: LocaleNewsNewRoute,

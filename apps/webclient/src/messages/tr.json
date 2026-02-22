@@ -53,7 +53,8 @@
     "Private": "Gizli",
     "Connecting...": "Bağlanıyor...",
     "Done": "Tamam",
-    "This field is required": "Bu alan zorunludur"
+    "This field is required": "Bu alan zorunludur",
+    "All": "Tümü"
   },
   "Layout": {
     "Homepage": "Ana Sayfa",
@@ -88,7 +89,8 @@
     "Dismiss": "Kapat",
     "Development": "Geliştirme",
     "Use default data source": "Varsayılan veri kaynağını kullan",
-    "Use production data source": "Production veri kaynağını kullan"
+    "Use production data source": "Production veri kaynağını kullan",
+    "Mailbox": "Posta Kutusu"
   },
   "Loading": {
     "Loading...": "Yükleniyor...",

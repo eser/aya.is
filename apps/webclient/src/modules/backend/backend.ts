@@ -55,6 +55,7 @@ import { listProfileEnvelopes } from "./profile-envelopes/list-profile-envelopes
 import { acceptProfileEnvelope } from "./profile-envelopes/accept-profile-envelope";
 import { rejectProfileEnvelope } from "./profile-envelopes/reject-profile-envelope";
 import { sendProfileEnvelope } from "./profile-envelopes/send-profile-envelope";
+import { listMailboxEnvelopes } from "./mailbox/list-mailbox-envelopes";
 import { getProfileQuestions } from "./questions/get-profile-questions";
 import { createQuestion } from "./questions/create-question";
 import { voteQuestion } from "./questions/vote-question";
@@ -121,6 +122,7 @@ export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
 export type { VerifyTelegramCodeResponse } from "./profiles/verify-telegram-code";
 export type { SendProfileEnvelopeParams } from "./profile-envelopes/send-profile-envelope";
+export type { MailboxEnvelope } from "./mailbox/list-mailbox-envelopes";
 export type { CreateProfileResourceInput } from "./profiles/create-profile-resource";
 export type { CreateQuestionInput } from "./questions/create-question";
 export type { VoteQuestionResult } from "./questions/vote-question";
@@ -204,6 +206,9 @@ export const backend = {
   acceptProfileEnvelope,
   rejectProfileEnvelope,
   sendProfileEnvelope,
+
+  // Mailbox (aggregated inbox)
+  listMailboxEnvelopes,
 
   // Profile Questions (Q&A)
   getProfileQuestions,

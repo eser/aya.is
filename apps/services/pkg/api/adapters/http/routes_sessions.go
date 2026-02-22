@@ -11,6 +11,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/middlewares"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
@@ -39,6 +40,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 	profileService *profiles.Service,
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
+	envelopeService *profile_envelopes.Service,
 ) {
 	// GET /{locale}/sessions/_current - Consolidated session endpoint (cookie-based, no auth middleware)
 	// Returns auth state, fresh JWT token, and preferences in a single response.
@@ -152,6 +154,43 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 					}
 
 					response["accessible_profiles"] = accessibleProfiles
+				}
+
+				// Count pending envelopes across individual + maintainer+ profiles
+				if envelopeService != nil {
+					totalPending := 0
+
+					// Count for user's own individual profile
+					count, countErr := envelopeService.CountPendingEnvelopes(
+						ctx.Request.Context(),
+						*user.IndividualProfileID,
+					)
+					if countErr == nil {
+						totalPending += count
+					}
+
+					// Count for each accessible profile with maintainer+ membership
+					if membershipErr == nil {
+						for _, m := range memberships {
+							if m.Profile == nil {
+								continue
+							}
+
+							if m.Kind != "maintainer" && m.Kind != "lead" && m.Kind != "owner" {
+								continue
+							}
+
+							mCount, mCountErr := envelopeService.CountPendingEnvelopes(
+								ctx.Request.Context(),
+								m.Profile.ID,
+							)
+							if mCountErr == nil {
+								totalPending += mCount
+							}
+						}
+					}
+
+					response["total_pending_envelopes"] = totalPending
 				}
 			}
 

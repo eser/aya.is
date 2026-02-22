@@ -53,7 +53,8 @@
     "Private": "Privé",
     "Connecting...": "Connecting...",
     "Done": "Klaar",
-    "This field is required": "Dit veld is verplicht"
+    "This field is required": "Dit veld is verplicht",
+    "All": "Alle"
   },
   "Layout": {
     "Homepage": "Startpagina",
@@ -88,7 +89,8 @@
     "Dismiss": "Afwijzen",
     "Development": "Ontwikkeling",
     "Use default data source": "Gebruik standaard databron",
-    "Use production data source": "Gebruik productiedatabron"
+    "Use production data source": "Gebruik productiedatabron",
+    "Mailbox": "Postvak"
   },
   "Loading": {
     "Loading...": "Laden...",

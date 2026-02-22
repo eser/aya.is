@@ -218,7 +218,8 @@ export function getLocaleData(locale: string): Locale | undefined {
 }
 
 export const predefinedSlugs: readonly string[] = [
-  "auth"
+  "auth",
+  "mailbox",
 ];
 
 // Allowed URI prefixes for uploads (must match server-side config)

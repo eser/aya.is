@@ -106,6 +106,14 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <DropdownMenuItem onClick={handleProfileClick}>
           {t("Auth.My Profile")}
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigateToMain(`/${locale}/mailbox`)}>
+          {t("Layout.Mailbox")}
+          {user.total_pending_envelopes !== undefined && (
+            <span className="ml-auto text-xs text-muted-foreground">
+              ({user.total_pending_envelopes})
+            </span>
+          )}
+        </DropdownMenuItem>
         {accessibleProfiles.length > 0 && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>

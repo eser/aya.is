@@ -53,7 +53,8 @@
     "Private": "خاص",
     "Connecting...": "Connecting...",
     "Done": "تم",
-    "This field is required": "هذا الحقل مطلوب"
+    "This field is required": "هذا الحقل مطلوب",
+    "All": "الكل"
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
@@ -88,7 +89,8 @@
     "Dismiss": "إخفاء",
     "Development": "التطوير",
     "Use default data source": "استخدام البيانات الافتراضية",
-    "Use production data source": "استخدام البيانات المنتجة"
+    "Use production data source": "استخدام البيانات المنتجة",
+    "Mailbox": "صندوق البريد"
   },
   "Loading": {
     "Loading...": "جاري التحميل...",

@@ -53,7 +53,8 @@
     "Private": "プライベート",
     "Connecting...": "Connecting...",
     "Done": "完了",
-    "This field is required": "この項目は必須です"
+    "This field is required": "この項目は必須です",
+    "All": "すべて"
   },
   "Layout": {
     "Homepage": "ホームページ",
@@ -88,7 +89,8 @@
     "Dismiss": "閉じる",
     "Development": "開発",
     "Use default data source": "デフォルトのデータソースを使用",
-    "Use production data source": "本番のデータソースを使用"
+    "Use production data source": "本番のデータソースを使用",
+    "Mailbox": "メールボックス"
   },
   "Loading": {
     "Loading...": "読み込み中...",

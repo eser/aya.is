@@ -30,6 +30,7 @@ export type User = {
   individual_profile_slug?: string;
   individual_profile?: IndividualProfile;
   accessible_profiles?: AccessibleProfile[];
+  total_pending_envelopes?: number;
 };
 
 type AuthContextValue = {
@@ -103,6 +104,7 @@ export function AuthProvider(props: AuthProviderProps) {
             individual_profile_slug: result.selected_profile?.slug,
             individual_profile: individualProfile,
             accessible_profiles: result.accessible_profiles,
+            total_pending_envelopes: result.total_pending_envelopes,
           }
           : null;
 

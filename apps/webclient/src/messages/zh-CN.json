@@ -53,7 +53,8 @@
     "Private": "私有",
     "Connecting...": "Connecting...",
     "Done": "完成",
-    "This field is required": "此字段为必填项"
+    "This field is required": "此字段为必填项",
+    "All": "全部"
   },
   "Layout": {
     "Homepage": "首页",
@@ -88,7 +89,8 @@
     "Dismiss": "关闭",
     "Development": "开发",
     "Use default data source": "使用默认数据源",
-    "Use production data source": "使用生产数据源"
+    "Use production data source": "使用生产数据源",
+    "Mailbox": "邮箱"
   },
   "Loading": {
     "Loading...": "加载中...",

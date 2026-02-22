@@ -106,6 +106,7 @@ func Run(
 		profileService,
 		sessionService,
 		protectionService,
+		profileEnvelopesService,
 	)
 	RegisterHTTPRoutesForProtection( //nolint:contextcheck
 		routes,
@@ -198,6 +199,14 @@ func Run(
 		profileService,
 		profileEnvelopesService,
 		telegramServiceForEnvelopes,
+	)
+	RegisterHTTPRoutesForMailbox( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		profileService,
+		profileEnvelopesService,
 	)
 	RegisterHTTPRoutesForActivities( //nolint:contextcheck
 		routes,
