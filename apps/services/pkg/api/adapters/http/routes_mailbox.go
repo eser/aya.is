@@ -52,18 +52,11 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				var allConversations []*mailbox.Conversation
 
-				individualProfileID := ""
-				if user.IndividualProfileID != nil {
-					individualProfileID = *user.IndividualProfileID
-				}
-
 				seen := make(map[string]bool)
 
 				for _, profileID := range profileIDs {
-					// Fetch all conversations (both archived and non-archived) for each profile,
-					// then filter by the individual profile's archive status below.
 					convs, listErr := mailboxService.ListConversations(
-						ctx.Request.Context(), profileID, true, 50,
+						ctx.Request.Context(), profileID, includeArchived, 50,
 					)
 					if listErr != nil {
 						logger.ErrorContext(ctx.Request.Context(), "failed to list conversations",
@@ -86,20 +79,6 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 						)
 						if pErr == nil {
 							conv.Participants = participants
-						}
-
-						// Filter by the individual profile's archive status.
-						individualArchived := false
-						for _, p := range conv.Participants {
-							if p.ProfileID == individualProfileID {
-								individualArchived = p.IsArchived
-
-								break
-							}
-						}
-
-						if includeArchived != individualArchived {
-							continue
 						}
 
 						allConversations = append(allConversations, conv)
