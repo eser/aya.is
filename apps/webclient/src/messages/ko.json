@@ -885,5 +885,25 @@
     "You don't have permission to generate covers for this story.": "이 스토리의 커버를 생성할 권한이 없습니다.",
     "Back to Story": "스토리로 돌아가기",
     "Save content first to enable cover designer": "커버 디자이너를 활성화하려면 먼저 콘텐츠를 저장하세요"
+  },
+  "Mailbox": {
+    "Your conversations and messages": "Your conversations and messages",
+    "Messages": "Messages",
+    "System": "System",
+    "System message": "System message",
+    "Conversation": "Conversation",
+    "Select a conversation": "Select a conversation to view messages",
+    "No conversations yet": "No conversations yet",
+    "No archived conversations": "No archived conversations",
+    "Show archived": "Show archived",
+    "Archive": "Archive",
+    "Unarchive": "Unarchive",
+    "New": "New",
+    "New Message": "New Message",
+    "Send": "Send",
+    "Type a message title...": "Type a message title...",
+    "Add details (optional)": "Add details (optional)",
+    "Profile slug": "Profile slug",
+    "Message title": "Message title"
   }
 }

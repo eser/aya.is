@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
-	envelopes "github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
+	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 )
 
@@ -17,8 +17,8 @@ func NewEnvelopeNotifier(
 	client *Client,
 	telegramService *telegrambiz.Service,
 	logger *logfx.Logger,
-) envelopes.OnEnvelopeCreatedFunc {
-	return func(ctx context.Context, envelope *envelopes.Envelope, params *envelopes.CreateEnvelopeParams) {
+) mailbox.OnEnvelopeCreatedFunc {
+	return func(ctx context.Context, envelope *mailbox.Envelope, params *mailbox.SendMessageParams) {
 		link, err := telegramService.GetProfileTelegramLink(ctx, envelope.TargetProfileID)
 		if err != nil {
 			logger.DebugContext(
@@ -56,7 +56,7 @@ func NewEnvelopeNotifier(
 		}
 
 		text := fmt.Sprintf(
-			"📬 <b>New message in your Mailbox</b>\n\n"+
+			"\U0001F4EC <b>New message in your Mailbox</b>\n\n"+
 				"<b>%s</b>\nFrom: <i>%s</i>\n\n"+
 				"<a href=\"https://aya.is/%s/mailbox\">Open Mailbox</a>",
 			envelope.Title,

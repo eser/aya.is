@@ -427,6 +427,58 @@ export interface ProfileEnvelope {
   sender_profile_kind: string | null;
 }
 
+// Mailbox Conversation Types
+export type ConversationKind = "direct" | "system";
+
+export interface ConversationParticipant {
+  profile_id: string;
+  profile_slug: string;
+  profile_title: string;
+  profile_picture_uri: string | null;
+  profile_kind: string;
+  is_archived: boolean;
+  last_read_at: string | null;
+}
+
+export interface EnvelopePreview {
+  title: string;
+  created_at: string;
+  sender_profile_slug: string | null;
+}
+
+export interface Conversation {
+  id: string;
+  kind: ConversationKind;
+  title: string | null;
+  created_by_profile_id: string | null;
+  participants: ConversationParticipant[] | null;
+  last_envelope: EnvelopePreview | null;
+  unread_count: number;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface ConversationDetail {
+  conversation: Conversation;
+  envelopes: MailboxEnvelope[];
+}
+
+export interface MailboxEnvelope extends ProfileEnvelope {
+  conversation_id: string;
+  reply_to_id: string | null;
+  reactions: MailboxReaction[] | null;
+}
+
+export interface MailboxReaction {
+  id: string;
+  envelope_id: string;
+  profile_id: string;
+  emoji: string;
+  created_at: string;
+  profile_slug: string | null;
+  profile_title: string | null;
+}
+
 // Pending Award Types
 export type PendingAwardStatus = "pending" | "approved" | "rejected";
 

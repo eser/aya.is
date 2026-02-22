@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
-	envelopes "github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
+	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 )
 
@@ -17,7 +17,7 @@ import (
 type Bot struct {
 	client          *Client
 	service         *telegrambiz.Service
-	envelopeService *envelopes.Service
+	envelopeService *mailbox.Service
 	logger          *logfx.Logger
 }
 
@@ -25,7 +25,7 @@ type Bot struct {
 func NewBot(
 	client *Client,
 	service *telegrambiz.Service,
-	envelopeService *envelopes.Service,
+	envelopeService *mailbox.Service,
 	logger *logfx.Logger,
 ) *Bot {
 	return &Bot{
@@ -276,7 +276,7 @@ func (b *Bot) handleInvitations(ctx context.Context, msg *Message) {
 	}
 
 	invitations, invErr := b.envelopeService.GetAcceptedInvitations(
-		ctx, info.ProfileID, envelopes.InvitationKindTelegramGroup,
+		ctx, info.ProfileID, mailbox.InvitationKindTelegramGroup,
 	)
 	if invErr != nil {
 		b.logger.WarnContext(ctx, "Failed to get invitations",
@@ -449,7 +449,7 @@ func (b *Bot) handleCallbackQuery(ctx context.Context, cq *CallbackQuery) { //no
 		return
 	}
 
-	if envelope.Status != envelopes.StatusAccepted {
+	if envelope.Status != mailbox.StatusAccepted {
 		_ = b.client.AnswerCallbackQuery(
 			ctx,
 			cq.ID,
@@ -467,7 +467,7 @@ func (b *Bot) handleCallbackQuery(ctx context.Context, cq *CallbackQuery) { //no
 		return
 	}
 
-	var props envelopes.InvitationProperties
+	var props mailbox.InvitationProperties
 
 	unmarshalErr := json.Unmarshal(propsJSON, &props)
 	if unmarshalErr != nil {

@@ -885,5 +885,25 @@
     "You don't have permission to generate covers for this story.": "Je hebt geen toestemming om covers te genereren voor dit verhaal.",
     "Back to Story": "Terug naar verhaal",
     "Save content first to enable cover designer": "Sla de inhoud eerst op om de coverontwerper in te schakelen"
+  },
+  "Mailbox": {
+    "Your conversations and messages": "Your conversations and messages",
+    "Messages": "Messages",
+    "System": "System",
+    "System message": "System message",
+    "Conversation": "Conversation",
+    "Select a conversation": "Select a conversation to view messages",
+    "No conversations yet": "No conversations yet",
+    "No archived conversations": "No archived conversations",
+    "Show archived": "Show archived",
+    "Archive": "Archive",
+    "Unarchive": "Unarchive",
+    "New": "New",
+    "New Message": "New Message",
+    "Send": "Send",
+    "Type a message title...": "Type a message title...",
+    "Add details (optional)": "Add details (optional)",
+    "Profile slug": "Profile slug",
+    "Message title": "Message title"
   }
 }

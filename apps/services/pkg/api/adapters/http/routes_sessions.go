@@ -11,7 +11,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx/middlewares"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
-	"github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
+	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/protection"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
@@ -40,7 +40,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 	profileService *profiles.Service,
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
-	envelopeService *profile_envelopes.Service,
+	envelopeService *mailbox.Service,
 ) {
 	// GET /{locale}/sessions/_current - Consolidated session endpoint (cookie-based, no auth middleware)
 	// Returns auth state, fresh JWT token, and preferences in a single response.

@@ -9,6 +9,29 @@ import (
 )
 
 type Querier interface {
+	// ============================================================
+	// Participants
+	// ============================================================
+	//
+	//
+	//  INSERT INTO "mailbox_participant" (
+	//    id, conversation_id, profile_id, joined_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    NOW()
+	//  )
+	AddMailboxParticipant(ctx context.Context, arg AddMailboxParticipantParams) error
+	// ============================================================
+	// Reactions
+	// ============================================================
+	//
+	//
+	//  INSERT INTO "mailbox_reaction" (id, envelope_id, profile_id, emoji, created_at)
+	//  VALUES ($1, $2, $3, $4, NOW())
+	//  ON CONFLICT (envelope_id, profile_id, emoji) DO NOTHING
+	AddMailboxReaction(ctx context.Context, arg AddMailboxReactionParams) error
 	//AddPointsToProfile
 	//
 	//  UPDATE "profile"
@@ -191,14 +214,14 @@ type Querier interface {
 	//    AND created_at > NOW() - INTERVAL '1 hour'
 	//    AND used = FALSE
 	CountPOWChallengesByIPHash(ctx context.Context, arg CountPOWChallengesByIPHashParams) (int64, error)
-	//CountPendingProfileEnvelopes
+	//CountPendingMailboxEnvelopes
 	//
-	//  SELECT COUNT(*)::INT as count
-	//  FROM "profile_envelope"
+	//  SELECT COUNT(*)::INT AS count
+	//  FROM "mailbox_envelope"
 	//  WHERE target_profile_id = $1
 	//    AND status = 'pending'
 	//    AND deleted_at IS NULL
-	CountPendingProfileEnvelopes(ctx context.Context, arg CountPendingProfileEnvelopesParams) (int32, error)
+	CountPendingMailboxEnvelopes(ctx context.Context, arg CountPendingMailboxEnvelopesParams) (int32, error)
 	//CountProfileOwners
 	//
 	//  SELECT COUNT(*) as owner_count
@@ -230,6 +253,25 @@ type Querier interface {
 	//  WHERE story_id = $1
 	//    AND deleted_at IS NULL
 	CountStoryPublications(ctx context.Context, arg CountStoryPublicationsParams) (int64, error)
+	// ============================================================
+	// Aggregate counts
+	// ============================================================
+	//
+	//
+	//  SELECT COUNT(DISTINCT mc.id)::INT AS count
+	//  FROM "mailbox_conversation" mc
+	//    INNER JOIN "mailbox_participant" mp
+	//      ON mp.conversation_id = mc.id
+	//      AND mp.profile_id = $1
+	//      AND mp.left_at IS NULL
+	//      AND mp.is_archived = FALSE
+	//  WHERE EXISTS (
+	//    SELECT 1 FROM "mailbox_envelope" me
+	//    WHERE me.conversation_id = mc.id
+	//      AND me.deleted_at IS NULL
+	//      AND (mp.last_read_at IS NULL OR me.created_at > mp.last_read_at)
+	//  )
+	CountUnreadConversations(ctx context.Context, arg CountUnreadConversationsParams) (int32, error)
 	//CreateCustomDomain
 	//
 	//  INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
@@ -245,6 +287,44 @@ type Querier interface {
 	//  INSERT INTO "profile_link_import" (id, profile_link_id, remote_id, properties, created_at)
 	//  VALUES ($1, $2, $3, $4, NOW())
 	CreateLinkImport(ctx context.Context, arg CreateLinkImportParams) error
+	// ============================================================
+	// Conversations
+	// ============================================================
+	//
+	//
+	//  INSERT INTO "mailbox_conversation" (
+	//    id, kind, title, created_by_profile_id, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    NOW()
+	//  )
+	CreateMailboxConversation(ctx context.Context, arg CreateMailboxConversationParams) error
+	// ============================================================
+	// Envelopes (messages)
+	// ============================================================
+	//
+	//
+	//  INSERT INTO "mailbox_envelope" (
+	//    id, conversation_id, target_profile_id, sender_profile_id, sender_user_id,
+	//    kind, status, title, description, properties, reply_to_id, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    $6,
+	//    'pending',
+	//    $7,
+	//    $8,
+	//    $9,
+	//    $10,
+	//    NOW()
+	//  )
+	CreateMailboxEnvelope(ctx context.Context, arg CreateMailboxEnvelopeParams) error
 	// PoW Challenges
 	//
 	//
@@ -297,24 +377,6 @@ type Querier interface {
 	//  INSERT INTO "profile" (id, slug, kind, default_locale, profile_picture_uri, pronouns, properties, approved_at)
 	//  VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
 	CreateProfile(ctx context.Context, arg CreateProfileParams) error
-	//CreateProfileEnvelope
-	//
-	//  INSERT INTO "profile_envelope" (
-	//    id, target_profile_id, sender_profile_id, sender_user_id,
-	//    kind, status, title, description, properties, created_at
-	//  ) VALUES (
-	//    $1,
-	//    $2,
-	//    $3,
-	//    $4,
-	//    $5,
-	//    'pending',
-	//    $6,
-	//    $7,
-	//    $8,
-	//    NOW()
-	//  )
-	CreateProfileEnvelope(ctx context.Context, arg CreateProfileEnvelopeParams) error
 	//CreateProfileLink
 	//
 	//  INSERT INTO "profile_link" (
@@ -660,6 +722,29 @@ type Querier interface {
 	//    AND status = 'processing'
 	//    AND worker_id = $4
 	FailQueueItem(ctx context.Context, arg FailQueueItemParams) (int64, error)
+	//FindDirectConversation
+	//
+	//  SELECT mc.id, mc.kind, mc.title, mc.created_by_profile_id, mc.created_at, mc.updated_at
+	//  FROM "mailbox_conversation" mc
+	//  WHERE mc.kind = 'direct'
+	//    AND EXISTS (
+	//      SELECT 1 FROM "mailbox_participant" mp
+	//      WHERE mp.conversation_id = mc.id
+	//        AND mp.profile_id = $1
+	//        AND mp.left_at IS NULL
+	//    )
+	//    AND EXISTS (
+	//      SELECT 1 FROM "mailbox_participant" mp
+	//      WHERE mp.conversation_id = mc.id
+	//        AND mp.profile_id = $2
+	//        AND mp.left_at IS NULL
+	//    )
+	//    AND (
+	//      SELECT COUNT(*) FROM "mailbox_participant" mp
+	//      WHERE mp.conversation_id = mc.id AND mp.left_at IS NULL
+	//    ) = 2
+	//  LIMIT 1
+	FindDirectConversation(ctx context.Context, arg FindDirectConversationParams) (*MailboxConversation, error)
 	//FindProfileLinkProfileByKindAndRemoteID
 	//
 	//  SELECT pl.profile_id
@@ -745,6 +830,34 @@ type Querier interface {
 	//    AND remote_id = $2
 	//  LIMIT 1
 	GetLinkImportByRemoteID(ctx context.Context, arg GetLinkImportByRemoteIDParams) (*ProfileLinkImport, error)
+	//GetMailboxConversationByID
+	//
+	//  SELECT id, kind, title, created_by_profile_id, created_at, updated_at
+	//  FROM "mailbox_conversation"
+	//  WHERE id = $1
+	GetMailboxConversationByID(ctx context.Context, arg GetMailboxConversationByIDParams) (*MailboxConversation, error)
+	//GetMailboxEnvelopeByID
+	//
+	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at, conversation_id, reply_to_id
+	//  FROM "mailbox_envelope"
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	GetMailboxEnvelopeByID(ctx context.Context, arg GetMailboxEnvelopeByIDParams) (*MailboxEnvelope, error)
+	//GetMailboxParticipant
+	//
+	//  SELECT
+	//    mp.id, mp.conversation_id, mp.profile_id, mp.last_read_at, mp.is_archived, mp.joined_at, mp.left_at,
+	//    p.slug AS profile_slug,
+	//    COALESCE(pt.title, '') AS profile_title,
+	//    p.profile_picture_uri AS profile_picture_uri,
+	//    p.kind AS profile_kind
+	//  FROM "mailbox_participant" mp
+	//    INNER JOIN "profile" p ON p.id = mp.profile_id AND p.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = p.default_locale
+	//  WHERE mp.conversation_id = $1
+	//    AND mp.profile_id = $2
+	//    AND mp.left_at IS NULL
+	GetMailboxParticipant(ctx context.Context, arg GetMailboxParticipantParams) (*GetMailboxParticipantRow, error)
 	//GetManagedGitHubLinkByProfileID
 	//
 	//  SELECT id, profile_id, auth_access_token
@@ -889,13 +1002,6 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error)
-	//GetProfileEnvelopeByID
-	//
-	//  SELECT id, target_profile_id, sender_profile_id, sender_user_id, kind, status, title, description, properties, accepted_at, rejected_at, revoked_at, redeemed_at, created_at, updated_at, deleted_at
-	//  FROM "profile_envelope"
-	//  WHERE id = $1
-	//    AND deleted_at IS NULL
-	GetProfileEnvelopeByID(ctx context.Context, arg GetProfileEnvelopeByIDParams) (*ProfileEnvelope, error)
 	//GetProfileFeatureLinksVisibility
 	//
 	//  SELECT feature_links
@@ -1625,25 +1731,25 @@ type Querier interface {
 	//    $5
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
-	//ListAcceptedInvitations
+	//ListAcceptedMailboxInvitations
 	//
 	//  SELECT
-	//    pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
-	//    sp.slug as sender_profile_slug,
-	//    COALESCE(spt.title, '') as sender_profile_title,
-	//    sp.profile_picture_uri as sender_profile_picture_uri,
-	//    sp.kind as sender_profile_kind
-	//  FROM "profile_envelope" pe
-	//    LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
+	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+	//    sp.slug AS sender_profile_slug,
+	//    COALESCE(spt.title, '') AS sender_profile_title,
+	//    sp.profile_picture_uri AS sender_profile_picture_uri,
+	//    sp.kind AS sender_profile_kind
+	//  FROM "mailbox_envelope" me
+	//    LEFT JOIN "profile" sp ON sp.id = me.sender_profile_id AND sp.deleted_at IS NULL
 	//    LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
-	//  WHERE pe.target_profile_id = $1
-	//    AND pe.kind = 'invitation'
-	//    AND pe.status = 'accepted'
-	//    AND pe.deleted_at IS NULL
+	//  WHERE me.target_profile_id = $1
+	//    AND me.kind = 'invitation'
+	//    AND me.status = 'accepted'
+	//    AND me.deleted_at IS NULL
 	//    AND ($2::TEXT IS NULL
-	//         OR pe.properties->>'invitation_kind' = $2)
-	//  ORDER BY pe.created_at DESC
-	ListAcceptedInvitations(ctx context.Context, arg ListAcceptedInvitationsParams) ([]*ListAcceptedInvitationsRow, error)
+	//         OR me.properties->>'invitation_kind' = $2)
+	//  ORDER BY me.created_at DESC
+	ListAcceptedMailboxInvitations(ctx context.Context, arg ListAcceptedMailboxInvitationsParams) ([]*ListAcceptedMailboxInvitationsRow, error)
 	// Lists published activity stories sorted by activity_time_start.
 	// Activity-specific fields are in the properties JSONB column.
 	//
@@ -1752,6 +1858,52 @@ type Querier interface {
 	//  LIMIT $4
 	//  OFFSET $3
 	ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfilesForAdminParams) ([]*ListAllProfilesForAdminRow, error)
+	//ListConversationsForProfile
+	//
+	//  SELECT
+	//    mc.id,
+	//    mc.kind,
+	//    mc.title,
+	//    mc.created_by_profile_id,
+	//    mc.created_at,
+	//    mc.updated_at,
+	//    mp.last_read_at,
+	//    mp.is_archived,
+	//    (
+	//      SELECT me.title FROM "mailbox_envelope" me
+	//      WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
+	//      ORDER BY me.created_at DESC LIMIT 1
+	//    ) AS last_envelope_title,
+	//    (
+	//      SELECT me.kind FROM "mailbox_envelope" me
+	//      WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
+	//      ORDER BY me.created_at DESC LIMIT 1
+	//    ) AS last_envelope_kind,
+	//    (
+	//      SELECT me.created_at FROM "mailbox_envelope" me
+	//      WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
+	//      ORDER BY me.created_at DESC LIMIT 1
+	//    ) AS last_envelope_at,
+	//    (
+	//      SELECT me.sender_profile_id FROM "mailbox_envelope" me
+	//      WHERE me.conversation_id = mc.id AND me.deleted_at IS NULL
+	//      ORDER BY me.created_at DESC LIMIT 1
+	//    ) AS last_envelope_sender_profile_id,
+	//    (
+	//      SELECT COUNT(*)::INT FROM "mailbox_envelope" me
+	//      WHERE me.conversation_id = mc.id
+	//        AND me.deleted_at IS NULL
+	//        AND (mp.last_read_at IS NULL OR me.created_at > mp.last_read_at)
+	//    ) AS unread_count
+	//  FROM "mailbox_conversation" mc
+	//    INNER JOIN "mailbox_participant" mp
+	//      ON mp.conversation_id = mc.id
+	//      AND mp.profile_id = $1
+	//      AND mp.left_at IS NULL
+	//  WHERE ($2::BOOLEAN = TRUE OR mp.is_archived = FALSE)
+	//  ORDER BY last_envelope_at DESC NULLS LAST
+	//  LIMIT $3
+	ListConversationsForProfile(ctx context.Context, arg ListConversationsForProfileParams) ([]*ListConversationsForProfileRow, error)
 	//ListCustomDomainsByProfileID
 	//
 	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
@@ -1759,6 +1911,22 @@ type Querier interface {
 	//  WHERE pcd.profile_id = $1
 	//  ORDER BY pcd.created_at
 	ListCustomDomainsByProfileID(ctx context.Context, arg ListCustomDomainsByProfileIDParams) ([]*ProfileCustomDomain, error)
+	//ListEnvelopesByConversation
+	//
+	//  SELECT
+	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+	//    sp.slug AS sender_profile_slug,
+	//    COALESCE(spt.title, '') AS sender_profile_title,
+	//    sp.profile_picture_uri AS sender_profile_picture_uri,
+	//    sp.kind AS sender_profile_kind
+	//  FROM "mailbox_envelope" me
+	//    LEFT JOIN "profile" sp ON sp.id = me.sender_profile_id AND sp.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+	//  WHERE me.conversation_id = $1
+	//    AND me.deleted_at IS NULL
+	//  ORDER BY me.created_at ASC
+	//  LIMIT $2
+	ListEnvelopesByConversation(ctx context.Context, arg ListEnvelopesByConversationParams) ([]*ListEnvelopesByConversationRow, error)
 	//ListEventAuditByEntity
 	//
 	//  SELECT id, event_type, entity_type, entity_id, actor_id, actor_kind, session_id, payload, created_at
@@ -1874,6 +2042,38 @@ type Querier interface {
 	//  ORDER BY pli.created_at ASC
 	//  LIMIT $2
 	ListLinkImportsForStoryCreation(ctx context.Context, arg ListLinkImportsForStoryCreationParams) ([]*ListLinkImportsForStoryCreationRow, error)
+	//ListMailboxEnvelopesByTargetProfileID
+	//
+	//  SELECT
+	//    me.id, me.target_profile_id, me.sender_profile_id, me.sender_user_id, me.kind, me.status, me.title, me.description, me.properties, me.accepted_at, me.rejected_at, me.revoked_at, me.redeemed_at, me.created_at, me.updated_at, me.deleted_at, me.conversation_id, me.reply_to_id,
+	//    sp.slug AS sender_profile_slug,
+	//    COALESCE(spt.title, '') AS sender_profile_title,
+	//    sp.profile_picture_uri AS sender_profile_picture_uri,
+	//    sp.kind AS sender_profile_kind
+	//  FROM "mailbox_envelope" me
+	//    LEFT JOIN "profile" sp ON sp.id = me.sender_profile_id AND sp.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
+	//  WHERE me.target_profile_id = $1
+	//    AND me.deleted_at IS NULL
+	//    AND ($2::TEXT IS NULL OR me.status = $2)
+	//  ORDER BY me.created_at DESC
+	//  LIMIT $3
+	ListMailboxEnvelopesByTargetProfileID(ctx context.Context, arg ListMailboxEnvelopesByTargetProfileIDParams) ([]*ListMailboxEnvelopesByTargetProfileIDRow, error)
+	//ListMailboxParticipants
+	//
+	//  SELECT
+	//    mp.id, mp.conversation_id, mp.profile_id, mp.last_read_at, mp.is_archived, mp.joined_at, mp.left_at,
+	//    p.slug AS profile_slug,
+	//    COALESCE(pt.title, '') AS profile_title,
+	//    p.profile_picture_uri AS profile_picture_uri,
+	//    p.kind AS profile_kind
+	//  FROM "mailbox_participant" mp
+	//    INNER JOIN "profile" p ON p.id = mp.profile_id AND p.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = p.default_locale
+	//  WHERE mp.conversation_id = $1
+	//    AND mp.left_at IS NULL
+	//  ORDER BY mp.joined_at
+	ListMailboxParticipants(ctx context.Context, arg ListMailboxParticipantsParams) ([]*ListMailboxParticipantsRow, error)
 	//ListManagedLinksForKind
 	//
 	//  SELECT
@@ -1942,23 +2142,6 @@ type Querier interface {
 	//  ORDER BY created_at DESC
 	//  LIMIT $2
 	ListPendingAwardsByStatus(ctx context.Context, arg ListPendingAwardsByStatusParams) ([]*ProfilePointPendingAward, error)
-	//ListProfileEnvelopesByTargetProfileID
-	//
-	//  SELECT
-	//    pe.id, pe.target_profile_id, pe.sender_profile_id, pe.sender_user_id, pe.kind, pe.status, pe.title, pe.description, pe.properties, pe.accepted_at, pe.rejected_at, pe.revoked_at, pe.redeemed_at, pe.created_at, pe.updated_at, pe.deleted_at,
-	//    sp.slug as sender_profile_slug,
-	//    COALESCE(spt.title, '') as sender_profile_title,
-	//    sp.profile_picture_uri as sender_profile_picture_uri,
-	//    sp.kind as sender_profile_kind
-	//  FROM "profile_envelope" pe
-	//    LEFT JOIN "profile" sp ON sp.id = pe.sender_profile_id AND sp.deleted_at IS NULL
-	//    LEFT JOIN "profile_tx" spt ON spt.profile_id = sp.id AND spt.locale_code = sp.default_locale
-	//  WHERE pe.target_profile_id = $1
-	//    AND pe.deleted_at IS NULL
-	//    AND ($2::TEXT IS NULL OR pe.status = $2)
-	//  ORDER BY pe.created_at DESC
-	//  LIMIT $3
-	ListProfileEnvelopesByTargetProfileID(ctx context.Context, arg ListProfileEnvelopesByTargetProfileIDParams) ([]*ListProfileEnvelopesByTargetProfileIDRow, error)
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT
@@ -2205,6 +2388,18 @@ type Querier interface {
 	//  ORDER BY created_at DESC
 	//  LIMIT $2
 	ListQueueItemsByType(ctx context.Context, arg ListQueueItemsByTypeParams) ([]*EventQueue, error)
+	//ListReactionsByEnvelope
+	//
+	//  SELECT
+	//    mr.id, mr.envelope_id, mr.profile_id, mr.emoji, mr.created_at,
+	//    p.slug AS profile_slug,
+	//    COALESCE(pt.title, '') AS profile_title
+	//  FROM "mailbox_reaction" mr
+	//    INNER JOIN "profile" p ON p.id = mr.profile_id AND p.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = p.default_locale
+	//  WHERE mr.envelope_id = $1
+	//  ORDER BY mr.created_at
+	ListReactionsByEnvelope(ctx context.Context, arg ListReactionsByEnvelopeParams) ([]*ListReactionsByEnvelopeRow, error)
 	//ListRuntimeStatesByPrefix
 	//
 	//  SELECT key, value, updated_at
@@ -2498,6 +2693,13 @@ type Querier interface {
 	//  DELETE FROM "cache"
 	//  WHERE key = $1
 	RemoveFromCache(ctx context.Context, arg RemoveFromCacheParams) (int64, error)
+	//RemoveMailboxReaction
+	//
+	//  DELETE FROM "mailbox_reaction"
+	//  WHERE envelope_id = $1
+	//    AND profile_id = $2
+	//    AND emoji = $3
+	RemoveMailboxReaction(ctx context.Context, arg RemoveMailboxReactionParams) (int64, error)
 	//RemoveProfile
 	//
 	//  UPDATE "profile"
@@ -2691,6 +2893,14 @@ type Querier interface {
 	//  VALUES ($1, $2, NOW())
 	//  ON CONFLICT ("key") DO UPDATE SET value = $2, updated_at = NOW()
 	SetInCache(ctx context.Context, arg SetInCacheParams) (int64, error)
+	//SetParticipantArchived
+	//
+	//  UPDATE "mailbox_participant"
+	//  SET is_archived = $1
+	//  WHERE conversation_id = $2
+	//    AND profile_id = $3
+	//    AND left_at IS NULL
+	SetParticipantArchived(ctx context.Context, arg SetParticipantArchivedParams) error
 	//SetRuntimeState
 	//
 	//  INSERT INTO "runtime_state" (key, value, updated_at)
@@ -2750,6 +2960,12 @@ type Querier interface {
 	//
 	//  SELECT pg_try_advisory_lock($1::BIGINT) AS acquired
 	TryAdvisoryLock(ctx context.Context, arg TryAdvisoryLockParams) (bool, error)
+	//UpdateConversationTimestamp
+	//
+	//  UPDATE "mailbox_conversation"
+	//  SET updated_at = NOW()
+	//  WHERE id = $1
+	UpdateConversationTimestamp(ctx context.Context, arg UpdateConversationTimestampParams) error
 	//UpdateCustomDomain
 	//
 	//  UPDATE "profile_custom_domain"
@@ -2768,6 +2984,62 @@ type Querier interface {
 	//    deleted_at = NULL
 	//  WHERE id = $2
 	UpdateLinkImport(ctx context.Context, arg UpdateLinkImportParams) (int64, error)
+	//UpdateMailboxEnvelopeProperties
+	//
+	//  UPDATE "mailbox_envelope"
+	//  SET properties = $1,
+	//      updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateMailboxEnvelopeProperties(ctx context.Context, arg UpdateMailboxEnvelopePropertiesParams) error
+	//UpdateMailboxEnvelopeStatusToAccepted
+	//
+	//  UPDATE "mailbox_envelope"
+	//  SET status = 'accepted',
+	//      accepted_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'pending'
+	//    AND deleted_at IS NULL
+	UpdateMailboxEnvelopeStatusToAccepted(ctx context.Context, arg UpdateMailboxEnvelopeStatusToAcceptedParams) (int64, error)
+	//UpdateMailboxEnvelopeStatusToRedeemed
+	//
+	//  UPDATE "mailbox_envelope"
+	//  SET status = 'redeemed',
+	//      redeemed_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'accepted'
+	//    AND deleted_at IS NULL
+	UpdateMailboxEnvelopeStatusToRedeemed(ctx context.Context, arg UpdateMailboxEnvelopeStatusToRedeemedParams) (int64, error)
+	//UpdateMailboxEnvelopeStatusToRejected
+	//
+	//  UPDATE "mailbox_envelope"
+	//  SET status = 'rejected',
+	//      rejected_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'pending'
+	//    AND deleted_at IS NULL
+	UpdateMailboxEnvelopeStatusToRejected(ctx context.Context, arg UpdateMailboxEnvelopeStatusToRejectedParams) (int64, error)
+	//UpdateMailboxEnvelopeStatusToRevoked
+	//
+	//  UPDATE "mailbox_envelope"
+	//  SET status = 'revoked',
+	//      revoked_at = $1,
+	//      updated_at = $1
+	//  WHERE id = $2
+	//    AND status = 'pending'
+	//    AND deleted_at IS NULL
+	UpdateMailboxEnvelopeStatusToRevoked(ctx context.Context, arg UpdateMailboxEnvelopeStatusToRevokedParams) (int64, error)
+	//UpdateParticipantReadCursor
+	//
+	//  UPDATE "mailbox_participant"
+	//  SET last_read_at = NOW()
+	//  WHERE conversation_id = $1
+	//    AND profile_id = $2
+	//    AND left_at IS NULL
+	UpdateParticipantReadCursor(ctx context.Context, arg UpdateParticipantReadCursorParams) error
 	//UpdateProfile
 	//
 	//  UPDATE "profile"
@@ -2786,54 +3058,6 @@ type Querier interface {
 	//  WHERE id = $7
 	//    AND deleted_at IS NULL
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
-	//UpdateProfileEnvelopeProperties
-	//
-	//  UPDATE "profile_envelope"
-	//  SET properties = $1,
-	//      updated_at = NOW()
-	//  WHERE id = $2
-	//    AND deleted_at IS NULL
-	UpdateProfileEnvelopeProperties(ctx context.Context, arg UpdateProfileEnvelopePropertiesParams) error
-	//UpdateProfileEnvelopeStatusToAccepted
-	//
-	//  UPDATE "profile_envelope"
-	//  SET status = 'accepted',
-	//      accepted_at = $1,
-	//      updated_at = $1
-	//  WHERE id = $2
-	//    AND status = 'pending'
-	//    AND deleted_at IS NULL
-	UpdateProfileEnvelopeStatusToAccepted(ctx context.Context, arg UpdateProfileEnvelopeStatusToAcceptedParams) (int64, error)
-	//UpdateProfileEnvelopeStatusToRedeemed
-	//
-	//  UPDATE "profile_envelope"
-	//  SET status = 'redeemed',
-	//      redeemed_at = $1,
-	//      updated_at = $1
-	//  WHERE id = $2
-	//    AND status = 'accepted'
-	//    AND deleted_at IS NULL
-	UpdateProfileEnvelopeStatusToRedeemed(ctx context.Context, arg UpdateProfileEnvelopeStatusToRedeemedParams) (int64, error)
-	//UpdateProfileEnvelopeStatusToRejected
-	//
-	//  UPDATE "profile_envelope"
-	//  SET status = 'rejected',
-	//      rejected_at = $1,
-	//      updated_at = $1
-	//  WHERE id = $2
-	//    AND status = 'pending'
-	//    AND deleted_at IS NULL
-	UpdateProfileEnvelopeStatusToRejected(ctx context.Context, arg UpdateProfileEnvelopeStatusToRejectedParams) (int64, error)
-	//UpdateProfileEnvelopeStatusToRevoked
-	//
-	//  UPDATE "profile_envelope"
-	//  SET status = 'revoked',
-	//      revoked_at = $1,
-	//      updated_at = $1
-	//  WHERE id = $2
-	//    AND status = 'pending'
-	//    AND deleted_at IS NULL
-	UpdateProfileEnvelopeStatusToRevoked(ctx context.Context, arg UpdateProfileEnvelopeStatusToRevokedParams) (int64, error)
 	//UpdateProfileLink
 	//
 	//  UPDATE "profile_link"

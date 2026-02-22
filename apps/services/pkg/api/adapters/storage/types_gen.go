@@ -96,6 +96,54 @@ type ExternalCode struct {
 	ConsumedAt     sql.NullTime          `db:"consumed_at" json:"consumed_at"`
 }
 
+type MailboxConversation struct {
+	ID                 string         `db:"id" json:"id"`
+	Kind               string         `db:"kind" json:"kind"`
+	Title              sql.NullString `db:"title" json:"title"`
+	CreatedByProfileID sql.NullString `db:"created_by_profile_id" json:"created_by_profile_id"`
+	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
+}
+
+type MailboxEnvelope struct {
+	ID              string                `db:"id" json:"id"`
+	TargetProfileID string                `db:"target_profile_id" json:"target_profile_id"`
+	SenderProfileID sql.NullString        `db:"sender_profile_id" json:"sender_profile_id"`
+	SenderUserID    sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
+	Kind            string                `db:"kind" json:"kind"`
+	Status          string                `db:"status" json:"status"`
+	Title           string                `db:"title" json:"title"`
+	Description     sql.NullString        `db:"description" json:"description"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	AcceptedAt      sql.NullTime          `db:"accepted_at" json:"accepted_at"`
+	RejectedAt      sql.NullTime          `db:"rejected_at" json:"rejected_at"`
+	RevokedAt       sql.NullTime          `db:"revoked_at" json:"revoked_at"`
+	RedeemedAt      sql.NullTime          `db:"redeemed_at" json:"redeemed_at"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	ConversationID  string                `db:"conversation_id" json:"conversation_id"`
+	ReplyToID       sql.NullString        `db:"reply_to_id" json:"reply_to_id"`
+}
+
+type MailboxParticipant struct {
+	ID             string       `db:"id" json:"id"`
+	ConversationID string       `db:"conversation_id" json:"conversation_id"`
+	ProfileID      string       `db:"profile_id" json:"profile_id"`
+	LastReadAt     sql.NullTime `db:"last_read_at" json:"last_read_at"`
+	IsArchived     bool         `db:"is_archived" json:"is_archived"`
+	JoinedAt       time.Time    `db:"joined_at" json:"joined_at"`
+	LeftAt         sql.NullTime `db:"left_at" json:"left_at"`
+}
+
+type MailboxReaction struct {
+	ID         string    `db:"id" json:"id"`
+	EnvelopeID string    `db:"envelope_id" json:"envelope_id"`
+	ProfileID  string    `db:"profile_id" json:"profile_id"`
+	Emoji      string    `db:"emoji" json:"emoji"`
+	CreatedAt  time.Time `db:"created_at" json:"created_at"`
+}
+
 type Profile struct {
 	ID                string                `db:"id" json:"id"`
 	Slug              string                `db:"slug" json:"slug"`
@@ -121,25 +169,6 @@ type ProfileCustomDomain struct {
 	DefaultLocale sql.NullString `db:"default_locale" json:"default_locale"`
 	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt     sql.NullTime   `db:"updated_at" json:"updated_at"`
-}
-
-type ProfileEnvelope struct {
-	ID              string                `db:"id" json:"id"`
-	TargetProfileID string                `db:"target_profile_id" json:"target_profile_id"`
-	SenderProfileID sql.NullString        `db:"sender_profile_id" json:"sender_profile_id"`
-	SenderUserID    sql.NullString        `db:"sender_user_id" json:"sender_user_id"`
-	Kind            string                `db:"kind" json:"kind"`
-	Status          string                `db:"status" json:"status"`
-	Title           string                `db:"title" json:"title"`
-	Description     sql.NullString        `db:"description" json:"description"`
-	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
-	AcceptedAt      sql.NullTime          `db:"accepted_at" json:"accepted_at"`
-	RejectedAt      sql.NullTime          `db:"rejected_at" json:"rejected_at"`
-	RevokedAt       sql.NullTime          `db:"revoked_at" json:"revoked_at"`
-	RedeemedAt      sql.NullTime          `db:"redeemed_at" json:"redeemed_at"`
-	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
-	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
 type ProfileLink struct {

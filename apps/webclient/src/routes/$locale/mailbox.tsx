@@ -1,4 +1,4 @@
-// Unified Mailbox — aggregates envelopes from all profiles where user is maintainer+
+// Conversation-based Mailbox — lists conversations, shows detail + messages
 import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -9,10 +9,20 @@ import {
   Send,
   Loader2,
   CheckCircle,
-  ChevronDown,
-  ChevronUp,
+  ChevronLeft,
+  Archive,
+  ArchiveRestore,
+  MessageSquare,
+  Inbox,
+  SmilePlus,
 } from "lucide-react";
-import { backend, type ProfileEnvelope, type EnvelopeStatus, type MailboxEnvelope } from "@/modules/backend/backend";
+import {
+  backend,
+  type Conversation,
+  type ConversationDetail,
+  type MailboxEnvelope,
+  type EnvelopeStatus,
+} from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,14 +30,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,16 +42,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { formatDateString } from "@/lib/date";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import styles from "./mailbox.module.css";
 
-const ENVELOPE_KINDS = [
-  { value: "standard", labelKey: "ProfileSettings.Standard Message" },
-  { value: "telegram_group", labelKey: "ProfileSettings.Telegram Group Invite" },
-] as const;
+const ALLOWED_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "🎉"] as const;
 
 const statusColors: Record<EnvelopeStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
@@ -62,58 +69,417 @@ export const Route = createFileRoute("/$locale/mailbox")({
   component: MailboxPage,
 });
 
-function SenderInfo(props: { envelope: ProfileEnvelope; locale: string }) {
+// --- Conversation List Item ---
+function ConversationRow(props: {
+  conversation: Conversation;
+  locale: string;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+}) {
   const { t } = useTranslation();
+  const conv = props.conversation;
+  const otherParticipant = conv.participants !== null
+    ? conv.participants.find((p) => p.profile_kind !== "individual" || conv.kind === "system") ?? conv.participants[0]
+    : null;
 
-  if (props.envelope.sender_profile_slug !== null && props.envelope.sender_profile_slug !== "") {
-    return (
-      <Link
-        to="/$locale/$slug"
-        params={{ locale: props.locale, slug: props.envelope.sender_profile_slug }}
-        className="text-sm text-primary hover:underline"
-      >
-        {props.envelope.sender_profile_title ?? props.envelope.sender_profile_slug}
-      </Link>
-    );
-  }
+  const avatarFallback = otherParticipant !== null && otherParticipant !== undefined
+    ? otherParticipant.profile_title.charAt(0).toUpperCase()
+    : "?";
 
-  if (props.envelope.sender_profile_id !== null) {
-    return <span className="text-sm text-muted-foreground">{t("Common.Unknown")}</span>;
-  }
+  const title = conv.kind === "system"
+    ? (conv.last_envelope !== null ? conv.last_envelope.title : t("Mailbox.System message"))
+    : (otherParticipant !== null && otherParticipant !== undefined ? otherParticipant.profile_title : t("Mailbox.Conversation"));
 
-  return <span className="text-sm text-muted-foreground italic">{t("Common.System")}</span>;
+  const preview = conv.last_envelope !== null
+    ? conv.last_envelope.title
+    : "";
+
+  const timestamp = conv.last_envelope !== null
+    ? formatDateString(conv.last_envelope.created_at, props.locale)
+    : formatDateString(conv.created_at, props.locale);
+
+  return (
+    <button
+      type="button"
+      className={`${styles.conversationRow} ${props.isSelected ? styles.conversationRowActive : ""}`}
+      onClick={() => props.onSelect(conv.id)}
+    >
+      <Avatar className={styles.conversationAvatar}>
+        {otherParticipant !== null && otherParticipant !== undefined && otherParticipant.profile_picture_uri !== null ? (
+          <AvatarImage src={otherParticipant.profile_picture_uri} alt={otherParticipant.profile_title} />
+        ) : null}
+        <AvatarFallback>{avatarFallback}</AvatarFallback>
+      </Avatar>
+      <div className={styles.conversationInfo}>
+        <div className={styles.conversationHeader}>
+          <span className={styles.conversationTitle}>{title}</span>
+          <span className={styles.conversationTime}>{timestamp}</span>
+        </div>
+        <div className={styles.conversationPreview}>
+          {conv.kind === "system" && (
+            <Badge variant="outline" className={styles.systemBadge}>
+              {t("Mailbox.System")}
+            </Badge>
+          )}
+          <span className={styles.previewText}>{preview}</span>
+        </div>
+      </div>
+      {conv.unread_count > 0 && (
+        <span className={styles.unreadBadge}>{conv.unread_count}</span>
+      )}
+    </button>
+  );
 }
 
+// --- Envelope/Message Bubble ---
+function EnvelopeBubble(props: {
+  envelope: MailboxEnvelope;
+  locale: string;
+  onAccept: (id: string) => void;
+  onReject: (id: string) => void;
+  onReaction: (envelopeId: string, emoji: string) => void;
+  actionInProgress: string | null;
+}) {
+  const { t } = useTranslation();
+  const env = props.envelope;
+  const isPending = env.status === "pending";
+  const isProcessing = props.actionInProgress === env.id;
+  const isActionable = env.kind === "invitation" || env.kind === "badge" || env.kind === "pass";
+
+  const groupName = env.properties !== null && env.properties !== undefined
+    ? (env.properties as Record<string, unknown>).group_name as string | undefined
+    : undefined;
+
+  return (
+    <div className={styles.messageBubble}>
+      <div className={styles.messageContent}>
+        <div className={styles.messageHeader}>
+          <span className={styles.messageTitle}>{env.title}</span>
+          <Badge variant="outline" className={statusColors[env.status]}>
+            {t(`Profile.EnvelopeStatus.${env.status}`)}
+          </Badge>
+        </div>
+        {groupName !== undefined && groupName !== "" && (
+          <p className={styles.messageGroup}>{groupName}</p>
+        )}
+        {env.description !== null && (
+          <p className={styles.messageDescription}>{env.description}</p>
+        )}
+        <div className={styles.messageFooter}>
+          <span className={styles.messageTime}>
+            {formatDateString(env.created_at, props.locale)}
+          </span>
+          {env.sender_profile_slug !== null && env.sender_profile_slug !== "" && (
+            <>
+              <span className="mx-1">&middot;</span>
+              <Link
+                to="/$locale/$slug"
+                params={{ locale: props.locale, slug: env.sender_profile_slug }}
+                className="text-xs text-primary hover:underline"
+              >
+                {env.sender_profile_title ?? env.sender_profile_slug}
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Reactions */}
+        {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
+          <div className={styles.reactionsRow}>
+            {env.reactions.map((reaction) => (
+              <span key={reaction.id} className={styles.reactionChip}>
+                {reaction.emoji}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className={styles.messageActions}>
+          {isPending && isActionable && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-green-700 border-green-300 hover:bg-green-50"
+                disabled={isProcessing}
+                onClick={() => props.onAccept(env.id)}
+              >
+                {isProcessing ? <Loader2 className="size-4 animate-spin mr-1" /> : <Check className="size-4 mr-1" />}
+                {t("Profile.Accept")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-red-700 border-red-300 hover:bg-red-50"
+                disabled={isProcessing}
+                onClick={() => props.onReject(env.id)}
+              >
+                <X className="size-4 mr-1" />
+                {t("Profile.Reject")}
+              </Button>
+            </>
+          )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button size="sm" variant="ghost" className={styles.reactionButton}>
+                <SmilePlus className="size-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className={styles.reactionPicker} align="start">
+              {ALLOWED_REACTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className={styles.reactionPickerItem}
+                  onClick={() => props.onReaction(env.id, emoji)}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Compose Area ---
+function ComposeArea(props: {
+  locale: string;
+  targetProfileSlug: string | null;
+  senderProfiles: Array<{ slug: string; title: string; kind: string }>;
+  onSent: () => void;
+}) {
+  const { t } = useTranslation();
+  const [title, setTitle] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [senderSlug, setSenderSlug] = React.useState(() => {
+    const individual = props.senderProfiles.find((p) => p.kind === "individual");
+    return individual !== undefined ? individual.slug : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
+  });
+  const [isSending, setIsSending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleSend = async () => {
+    if (title.trim() === "" || props.targetProfileSlug === null || senderSlug === "") {
+      return;
+    }
+
+    setIsSending(true);
+    setError(null);
+
+    const result = await backend.sendMailboxMessage({
+      locale: props.locale,
+      senderProfileSlug: senderSlug,
+      targetProfileSlug: props.targetProfileSlug,
+      title: title.trim(),
+      description: description.trim() !== "" ? description.trim() : undefined,
+    });
+
+    if (result !== null) {
+      setTitle("");
+      setDescription("");
+      props.onSent();
+    } else {
+      setError(t("ProfileSettings.Failed to send invitation"));
+    }
+
+    setIsSending(false);
+  };
+
+  return (
+    <div className={styles.composeArea}>
+      <Separator />
+      <div className={styles.composeForm}>
+        <Input
+          placeholder={t("Mailbox.Type a message title...")}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className={styles.composeInput}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
+        <Textarea
+          placeholder={t("Mailbox.Add details (optional)")}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={1}
+          className={styles.composeTextarea}
+        />
+        {error !== null && <p className="text-xs text-destructive">{error}</p>}
+        <div className={styles.composeActions}>
+          <Button
+            size="sm"
+            onClick={handleSend}
+            disabled={isSending || title.trim() === ""}
+          >
+            {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
+            {t("Mailbox.Send")}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- New Conversation Form ---
+function NewConversationForm(props: {
+  locale: string;
+  senderProfiles: Array<{ slug: string; title: string; kind: string }>;
+  onConversationCreated: () => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const [targetSlug, setTargetSlug] = React.useState("");
+  const [title, setTitle] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [senderSlug, setSenderSlug] = React.useState(() => {
+    const individual = props.senderProfiles.find((p) => p.kind === "individual");
+    return individual !== undefined ? individual.slug : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
+  });
+  const [isSending, setIsSending] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string | null>>({});
+
+  const handleSend = async () => {
+    const errors: Record<string, string | null> = {};
+    if (targetSlug.trim() === "") {
+      errors.targetSlug = t("Common.This field is required");
+    }
+    if (title.trim() === "") {
+      errors.title = t("Common.This field is required");
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    setIsSending(true);
+    setError(null);
+
+    const result = await backend.sendMailboxMessage({
+      locale: props.locale,
+      senderProfileSlug: senderSlug,
+      targetProfileSlug: targetSlug.trim(),
+      title: title.trim(),
+      description: description.trim() !== "" ? description.trim() : undefined,
+    });
+
+    if (result !== null) {
+      props.onConversationCreated();
+    } else {
+      setError(t("ProfileSettings.Failed to send invitation"));
+    }
+
+    setIsSending(false);
+  };
+
+  return (
+    <div className={styles.newConversationForm}>
+      <div className={styles.newConversationHeader}>
+        <Button variant="ghost" size="sm" onClick={props.onCancel}>
+          <ChevronLeft className="size-4 mr-1" />
+          {t("Common.Back")}
+        </Button>
+        <h3 className={styles.newConversationTitle}>{t("Mailbox.New Message")}</h3>
+      </div>
+      <div className={styles.newConversationFields}>
+        {props.senderProfiles.length > 1 && (
+          <Field>
+            <FieldLabel htmlFor="compose-from">{t("Profile.From")}</FieldLabel>
+            <select
+              id="compose-from"
+              className={styles.nativeSelect}
+              value={senderSlug}
+              onChange={(e) => setSenderSlug(e.target.value)}
+            >
+              {props.senderProfiles.map((p) => (
+                <option key={p.slug} value={p.slug}>{p.title}</option>
+              ))}
+            </select>
+          </Field>
+        )}
+        <Field data-invalid={fieldErrors.targetSlug !== undefined && fieldErrors.targetSlug !== null}>
+          <FieldLabel htmlFor="compose-to">{t("Profile.To")}</FieldLabel>
+          <Input
+            id="compose-to"
+            placeholder={t("Mailbox.Profile slug")}
+            value={targetSlug}
+            onChange={(e) => {
+              setTargetSlug(e.target.value);
+              setFieldErrors((prev) => ({ ...prev, targetSlug: null }));
+            }}
+          />
+          {fieldErrors.targetSlug !== null && fieldErrors.targetSlug !== undefined && (
+            <FieldError>{fieldErrors.targetSlug}</FieldError>
+          )}
+        </Field>
+        <Field data-invalid={fieldErrors.title !== undefined && fieldErrors.title !== null}>
+          <FieldLabel htmlFor="compose-title">{t("Common.Title")}</FieldLabel>
+          <Input
+            id="compose-title"
+            placeholder={t("Mailbox.Message title")}
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setFieldErrors((prev) => ({ ...prev, title: null }));
+            }}
+          />
+          {fieldErrors.title !== null && fieldErrors.title !== undefined && (
+            <FieldError>{fieldErrors.title}</FieldError>
+          )}
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="compose-desc">{t("Common.Description")}</FieldLabel>
+          <Textarea
+            id="compose-desc"
+            placeholder={t("Mailbox.Add details (optional)")}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+          />
+        </Field>
+        {error !== null && <p className="text-sm text-destructive">{error}</p>}
+        <div className="flex justify-end">
+          <Button onClick={handleSend} disabled={isSending}>
+            {isSending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
+            {t("Mailbox.Send")}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Main Page ---
 function MailboxPage() {
   const { t } = useTranslation();
   const locale = getCurrentLanguage();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, user, refreshAuth } = useAuth();
 
-  const [envelopes, setEnvelopes] = React.useState<MailboxEnvelope[]>([]);
+  // State
+  const [conversations, setConversations] = React.useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [selectedConvId, setSelectedConvId] = React.useState<string | null>(null);
+  const [convDetail, setConvDetail] = React.useState<ConversationDetail | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = React.useState(false);
   const [actionInProgress, setActionInProgress] = React.useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = React.useState<string>("all");
+  const [showNewMessage, setShowNewMessage] = React.useState(false);
+  const [filterTab, setFilterTab] = React.useState("all");
+  const [showArchived, setShowArchived] = React.useState(false);
 
-  // Reject confirmation dialog state
+  // Reject dialog
   const [rejectDialogOpen, setRejectDialogOpen] = React.useState(false);
   const [rejectTargetId, setRejectTargetId] = React.useState<string | null>(null);
-  const [rejectTargetSlug, setRejectTargetSlug] = React.useState<string | null>(null);
 
-  // Send form state
-  const [sendFormOpen, setSendFormOpen] = React.useState(false);
-  const [sendFromSlug, setSendFromSlug] = React.useState("");
-  const [envelopeKind, setEnvelopeKind] = React.useState("standard");
-  const [targetSlug, setTargetSlug] = React.useState("");
-  const [inviteCode, setInviteCode] = React.useState("");
-  const [sendTitle, setSendTitle] = React.useState("");
-  const [sendDescription, setSendDescription] = React.useState("");
-  const [isSending, setIsSending] = React.useState(false);
-  const [sendError, setSendError] = React.useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string | null>>({});
-  const [sendSuccess, setSendSuccess] = React.useState(false);
-
-  // Compute maintainer+ profiles from the user's accessible profiles (for filter bar & send form)
+  // Maintainer+ profiles
   const maintainerProfiles = React.useMemo(() => {
     if (user === null) {
       return [];
@@ -121,7 +487,6 @@ function MailboxPage() {
 
     const profiles: Array<{ slug: string; title: string; kind: string }> = [];
 
-    // Add user's own individual profile
     if (user.individual_profile !== undefined && user.individual_profile !== null) {
       profiles.push({
         slug: user.individual_profile.slug,
@@ -130,7 +495,6 @@ function MailboxPage() {
       });
     }
 
-    // Add accessible profiles with maintainer+ membership
     const maintainerPlusKinds = new Set(["maintainer", "lead", "owner"]);
     if (user.accessible_profiles !== undefined) {
       for (const profile of user.accessible_profiles) {
@@ -147,148 +511,143 @@ function MailboxPage() {
     return profiles;
   }, [user]);
 
-  // Non-individual profiles that can send in-mail
-  const sendableProfiles = React.useMemo(() => {
-    return maintainerProfiles.filter((p) => p.kind !== "individual");
-  }, [maintainerProfiles]);
-
-  // Set default sendFromSlug when sendable profiles load
-  React.useEffect(() => {
-    if (sendFromSlug === "" && sendableProfiles.length > 0) {
-      setSendFromSlug(sendableProfiles[0].slug);
-    }
-  }, [sendableProfiles, sendFromSlug]);
-
-  const loadEnvelopes = React.useCallback(async () => {
+  // Load conversations
+  const loadConversations = React.useCallback(async () => {
     setIsLoading(true);
-
-    const result = await backend.listMailboxEnvelopes(locale);
-
+    const result = await backend.listConversations(locale, { archived: showArchived });
     if (result !== null) {
-      // Sort by created_at descending (newest first)
-      result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      setEnvelopes(result);
+      setConversations(result);
     } else {
-      setEnvelopes([]);
+      setConversations([]);
     }
-
     setIsLoading(false);
+  }, [locale, showArchived]);
+
+  // Load conversation detail
+  const loadConversationDetail = React.useCallback(async (conversationId: string) => {
+    setIsDetailLoading(true);
+    const result = await backend.getConversation(locale, conversationId);
+    setConvDetail(result);
+    setIsDetailLoading(false);
   }, [locale]);
 
-  // Redirect if not authenticated once auth is loaded
+  // Redirect if not authenticated
   React.useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate({ to: `/${locale}` });
     }
   }, [authLoading, isAuthenticated, navigate, locale]);
 
-  // Load envelopes when authenticated
+  // Load conversations when authenticated
   React.useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      loadEnvelopes();
+      loadConversations();
     }
-  }, [authLoading, isAuthenticated, loadEnvelopes]);
+  }, [authLoading, isAuthenticated, loadConversations]);
 
-  const handleAccept = async (envelopeId: string, profileSlug: string) => {
+  // Load detail when selecting a conversation
+  React.useEffect(() => {
+    if (selectedConvId !== null) {
+      loadConversationDetail(selectedConvId);
+    }
+  }, [selectedConvId, loadConversationDetail]);
+
+  // Handlers
+  const handleSelectConversation = (convId: string) => {
+    setSelectedConvId(convId);
+    setShowNewMessage(false);
+  };
+
+  const handleAccept = async (envelopeId: string) => {
     setActionInProgress(envelopeId);
-    const success = await backend.acceptProfileEnvelope(locale, profileSlug, envelopeId);
-    if (success) {
-      await loadEnvelopes();
+    const success = await backend.acceptMailboxMessage(locale, envelopeId);
+    if (success && selectedConvId !== null) {
+      await loadConversationDetail(selectedConvId);
       await refreshAuth();
     }
     setActionInProgress(null);
   };
 
-  const promptReject = (envelopeId: string, profileSlug: string) => {
+  const promptReject = (envelopeId: string) => {
     setRejectTargetId(envelopeId);
-    setRejectTargetSlug(profileSlug);
     setRejectDialogOpen(true);
   };
 
   const handleRejectConfirm = async () => {
-    if (rejectTargetId === null || rejectTargetSlug === null) {
+    if (rejectTargetId === null) {
       return;
     }
-
     setRejectDialogOpen(false);
     setActionInProgress(rejectTargetId);
-
-    const success = await backend.rejectProfileEnvelope(locale, rejectTargetSlug, rejectTargetId);
-    if (success) {
-      await loadEnvelopes();
+    const success = await backend.rejectMailboxMessage(locale, rejectTargetId);
+    if (success && selectedConvId !== null) {
+      await loadConversationDetail(selectedConvId);
       await refreshAuth();
     }
-
     setActionInProgress(null);
     setRejectTargetId(null);
-    setRejectTargetSlug(null);
   };
 
-  const handleSend = async () => {
-    const errors: Record<string, string | null> = {};
-    if (sendFromSlug === "") {
-      errors.sendFromSlug = t("Common.This field is required");
+  const handleReaction = async (envelopeId: string, emoji: string) => {
+    await backend.addReaction(locale, envelopeId, emoji);
+    if (selectedConvId !== null) {
+      await loadConversationDetail(selectedConvId);
     }
-    if (targetSlug.trim() === "") {
-      errors.targetSlug = t("Common.This field is required");
-    }
-    if (envelopeKind === "telegram_group" && inviteCode.trim() === "") {
-      errors.inviteCode = t("Common.This field is required");
-    }
-    if (sendTitle.trim() === "") {
-      errors.title = t("Common.This field is required");
-    }
-    setFieldErrors(errors);
+  };
 
-    if (Object.keys(errors).length > 0) {
+  const handleArchive = async () => {
+    if (selectedConvId === null) {
       return;
     }
-
-    setIsSending(true);
-    setSendError(null);
-    setSendSuccess(false);
-
-    try {
-      const targetProfile = await backend.getProfile(locale, targetSlug.trim());
-      if (targetProfile === null) {
-        setSendError(t("ProfileSettings.Profile not found"));
-        setIsSending(false);
-        return;
-      }
-
-      const result = await backend.sendProfileEnvelope({
-        locale,
-        senderSlug: sendFromSlug,
-        targetProfileId: targetProfile.id,
-        kind: "invitation",
-        title: sendTitle.trim(),
-        description: sendDescription.trim() !== "" ? sendDescription.trim() : undefined,
-        inviteCode: envelopeKind === "telegram_group" ? inviteCode.trim() : undefined,
-      });
-
-      if (result !== null) {
-        setTargetSlug("");
-        setInviteCode("");
-        setSendTitle("");
-        setSendDescription("");
-        setSendSuccess(true);
-        setTimeout(() => setSendSuccess(false), 3000);
-      } else {
-        setSendError(t("ProfileSettings.Failed to send invitation"));
-      }
-    } catch (error) {
-      setSendError(
-        error instanceof Error ? error.message : t("ProfileSettings.Failed to send invitation"),
-      );
-    } finally {
-      setIsSending(false);
-    }
+    await backend.archiveConversation(locale, selectedConvId);
+    setSelectedConvId(null);
+    setConvDetail(null);
+    await loadConversations();
   };
 
-  // Filtered envelopes
-  const filteredEnvelopes = activeFilter === "all"
-    ? envelopes
-    : envelopes.filter((e) => e.owning_profile_slug === activeFilter);
+  const handleUnarchive = async () => {
+    if (selectedConvId === null) {
+      return;
+    }
+    await backend.unarchiveConversation(locale, selectedConvId);
+    setSelectedConvId(null);
+    setConvDetail(null);
+    await loadConversations();
+  };
+
+  const handleMessageSent = async () => {
+    if (selectedConvId !== null) {
+      await loadConversationDetail(selectedConvId);
+    }
+    await loadConversations();
+  };
+
+  const handleNewConversationCreated = async () => {
+    setShowNewMessage(false);
+    await loadConversations();
+  };
+
+  // Filter conversations
+  const filteredConversations = React.useMemo(() => {
+    if (filterTab === "all") {
+      return conversations;
+    }
+    if (filterTab === "messages") {
+      return conversations.filter((c) => c.kind === "direct");
+    }
+    return conversations.filter((c) => c.kind === "system");
+  }, [conversations, filterTab]);
+
+  // Get other participant's slug for compose area
+  const otherParticipantSlug = React.useMemo(() => {
+    if (convDetail === null || convDetail.conversation.participants === null) {
+      return null;
+    }
+    const other = convDetail.conversation.participants.find(
+      (p) => p.profile_kind !== "individual" || convDetail.conversation.kind === "system",
+    ) ?? convDetail.conversation.participants[1] ?? null;
+    return other !== null ? other.profile_slug : null;
+  }, [convDetail]);
 
   if (authLoading) {
     return (
@@ -299,12 +658,11 @@ function MailboxPage() {
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-3 p-4 border rounded-lg">
-                <Skeleton className="size-10 rounded" />
+                <Skeleton className="size-10 rounded-full" />
                 <div className="flex-1">
                   <Skeleton className="h-5 w-48 mb-2" />
                   <Skeleton className="h-4 w-24" />
                 </div>
-                <Skeleton className="h-5 w-20" />
               </div>
             ))}
           </div>
@@ -324,281 +682,192 @@ function MailboxPage() {
         <div className={styles.header}>
           <h2 className={styles.title}>{t("Layout.Mailbox")}</h2>
           <p className={styles.subtitle}>
-            {t("Profile.Your inbox items and invitations.")}
+            {t("Mailbox.Your conversations and messages")}
           </p>
         </div>
 
-        {/* Profile Filter Bar */}
-        {maintainerProfiles.length > 1 && (
-          <div className={styles.filterBar}>
-            <button
-              type="button"
-              className={`${styles.filterBadge} ${activeFilter === "all" ? styles.filterBadgeActive : ""}`}
-              onClick={() => setActiveFilter("all")}
-            >
-              {t("Common.All")}
-            </button>
-            {maintainerProfiles.map((profile) => (
-              <button
-                key={profile.slug}
-                type="button"
-                className={`${styles.filterBadge} ${activeFilter === profile.slug ? styles.filterBadgeActive : ""}`}
-                onClick={() => setActiveFilter(profile.slug)}
-              >
-                {profile.title}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Send In-mail Section — only when user has org/product profiles */}
-        {sendableProfiles.length > 0 && (
-          <Card className={styles.sendSection}>
-            <Collapsible open={sendFormOpen} onOpenChange={setSendFormOpen}>
-              <CollapsibleTrigger className={styles.sendToggle}>
-                <div className={styles.sendToggleLabel}>
-                  <Send className={styles.sendToggleIcon} />
-                  <h3 className={styles.sendToggleTitle}>
-                    {t("ProfileSettings.Send In-mail")}
-                  </h3>
-                </div>
-                {sendFormOpen ? (
-                  <ChevronUp className={styles.sendToggleIcon} />
-                ) : (
-                  <ChevronDown className={styles.sendToggleIcon} />
-                )}
-              </CollapsibleTrigger>
-
-              <CollapsibleContent>
-                <div className={styles.sendForm}>
-                <div className={styles.sendFormGrid}>
-                  <Field>
-                    <FieldLabel htmlFor="sendFromSlug">{t("Profile.From")}</FieldLabel>
-                    <Select value={sendFromSlug} onValueChange={setSendFromSlug}>
-                      <SelectTrigger id="sendFromSlug" className="w-full">
-                        <SelectValue>
-                          {sendableProfiles.find((p) => p.slug === sendFromSlug)?.title ?? sendFromSlug}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sendableProfiles.map((profile) => (
-                          <SelectItem key={profile.slug} value={profile.slug}>
-                            {profile.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field data-invalid={fieldErrors.targetSlug !== undefined && fieldErrors.targetSlug !== null}>
-                    <FieldLabel htmlFor="targetSlug">{t("ProfileSettings.Target Profile Slug")}</FieldLabel>
-                    <Input
-                      id="targetSlug"
-                      type="text"
-                      placeholder="someone"
-                      value={targetSlug}
-                      onChange={(e) => {
-                        setTargetSlug(e.target.value);
-                        setFieldErrors((prev) => ({ ...prev, targetSlug: null }));
-                      }}
-                    />
-                    {fieldErrors.targetSlug !== null && fieldErrors.targetSlug !== undefined && (
-                      <FieldError>{fieldErrors.targetSlug}</FieldError>
-                    )}
-                  </Field>
-                </div>
-                <Field>
-                  <FieldLabel htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
-                  <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
-                    <SelectTrigger id="envelopeKind" className="w-full">
-                      <SelectValue>
-                        {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ENVELOPE_KINDS.map((kind) => (
-                        <SelectItem key={kind.value} value={kind.value}>
-                          {t(kind.labelKey)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                {envelopeKind === "telegram_group" && (
-                  <Field data-invalid={fieldErrors.inviteCode !== undefined && fieldErrors.inviteCode !== null}>
-                    <FieldLabel htmlFor="inviteCode">{t("ProfileSettings.Invite Code")}</FieldLabel>
-                    <Input
-                      id="inviteCode"
-                      type="text"
-                      placeholder="ABC123"
-                      value={inviteCode}
-                      onChange={(e) => {
-                        setInviteCode(e.target.value.toUpperCase());
-                        setFieldErrors((prev) => ({ ...prev, inviteCode: null }));
-                      }}
-                    />
-                    <FieldDescription>
-                      {t("ProfileSettings.Use /invite in a Telegram group to get a code")}
-                    </FieldDescription>
-                    {fieldErrors.inviteCode !== null && fieldErrors.inviteCode !== undefined && (
-                      <FieldError>{fieldErrors.inviteCode}</FieldError>
-                    )}
-                  </Field>
-                )}
-                <Field data-invalid={fieldErrors.title !== undefined && fieldErrors.title !== null}>
-                  <FieldLabel htmlFor="sendTitle">{t("Common.Title")}</FieldLabel>
-                  <Input
-                    id="sendTitle"
-                    type="text"
-                    placeholder={t("ProfileSettings.Title for the message")}
-                    value={sendTitle}
-                    onChange={(e) => {
-                      setSendTitle(e.target.value);
-                      setFieldErrors((prev) => ({ ...prev, title: null }));
+        {/* Layout: sidebar + detail */}
+        <Card className={styles.mailboxCard}>
+          <div className={styles.mailboxLayout}>
+            {/* Conversation List Sidebar */}
+            <div className={`${styles.sidebar} ${selectedConvId !== null ? styles.sidebarHiddenMobile : ""}`}>
+              <div className={styles.sidebarHeader}>
+                <Tabs value={filterTab} onValueChange={setFilterTab}>
+                  <TabsList className={styles.filterTabs}>
+                    <TabsTrigger value="all">{t("Common.All")}</TabsTrigger>
+                    <TabsTrigger value="messages">
+                      <MessageSquare className="size-3.5 mr-1" />
+                      {t("Mailbox.Messages")}
+                    </TabsTrigger>
+                    <TabsTrigger value="system">
+                      <Inbox className="size-3.5 mr-1" />
+                      {t("Mailbox.System")}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <div className={styles.sidebarActions}>
+                  <Button
+                    size="sm"
+                    variant={showArchived ? "secondary" : "ghost"}
+                    onClick={() => setShowArchived(!showArchived)}
+                    title={t("Mailbox.Show archived")}
+                  >
+                    <Archive className="size-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setShowNewMessage(true);
+                      setSelectedConvId(null);
+                      setConvDetail(null);
                     }}
-                  />
-                  {fieldErrors.title !== null && fieldErrors.title !== undefined && (
-                    <FieldError>{fieldErrors.title}</FieldError>
-                  )}
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="sendDescription">{t("Common.Description")}</FieldLabel>
-                  <Textarea
-                    id="sendDescription"
-                    placeholder={t("ProfileSettings.Optional message text")}
-                    value={sendDescription}
-                    onChange={(e) => setSendDescription(e.target.value)}
-                    rows={2}
-                  />
-                </Field>
-                {sendError !== null && (
-                  <FieldError>{sendError}</FieldError>
-                )}
-                {sendSuccess && (
-                  <p className={styles.successMessage}>
-                    <CheckCircle className="h-4 w-4" />
-                    {t("ProfileSettings.Invitation sent successfully")}
-                  </p>
-                )}
-                <div className="flex justify-end">
-                  <Button onClick={handleSend} disabled={isSending}>
-                    {isSending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Send className="h-4 w-4 mr-2" />
-                    )}
-                    {t("ProfileSettings.Send In-mail")}
+                  >
+                    <Send className="size-4 mr-1" />
+                    {t("Mailbox.New")}
                   </Button>
                 </div>
               </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </Card>
-        )}
 
-        {/* Envelope List */}
-        <Card className="p-6">
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-4 border rounded-lg">
-                  <Skeleton className="size-10 rounded" />
-                  <div className="flex-1">
-                    <Skeleton className="h-5 w-48 mb-2" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                  <Skeleton className="h-5 w-20" />
-                </div>
-              ))}
-            </div>
-          ) : filteredEnvelopes.length === 0 ? (
-            <div className={styles.emptyState}>
-              <Mail className={styles.emptyIcon} />
-              <p className={styles.emptyText}>{t("Profile.No inbox items yet.")}</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredEnvelopes.map((envelope) => {
-                const isPending = envelope.status === "pending";
-                const isAccepted = envelope.status === "accepted";
-                const isProcessing = actionInProgress === envelope.id;
-                const groupName = envelope.properties !== null && envelope.properties !== undefined
-                  ? (envelope.properties as Record<string, unknown>).group_name as string | undefined
-                  : undefined;
-
-                return (
-                  <div key={envelope.id} className={styles.envelopeCard}>
-                    <div className={`${styles.envelopeIcon} ${statusColors[envelope.status]}`}>
-                      <Send className="size-5" />
-                    </div>
-                    <div className={styles.envelopeBody}>
-                      <p className={styles.envelopeTitle}>{envelope.title}</p>
-                      {groupName !== undefined && groupName !== "" && (
-                        <p className={styles.envelopeGroup}>{groupName}</p>
-                      )}
-                      {envelope.description !== null && (
-                        <p className={styles.envelopeDescription}>{envelope.description}</p>
-                      )}
-                      <div className={styles.envelopeMeta}>
-                        <span>{formatDateString(envelope.created_at, locale)}</span>
-                        <span className="mx-1">&middot;</span>
-                        <span className={styles.profileBadge}>
-                          {groupName !== undefined && groupName !== ""
-                            ? t("ProfileSettings.Telegram Group Invite")
-                            : t("ProfileSettings.Standard Message")}
-                        </span>
-                        <span className="mx-1">&middot;</span>
-                        <span>{t("Profile.From")}:</span>
-                        <SenderInfo envelope={envelope} locale={locale} />
-                        {maintainerProfiles.length > 1 && (
-                          <>
-                            <span className="mx-1">&middot;</span>
-                            <span>{t("Profile.To")}:</span>
-                            <span className={styles.profileBadge}>
-                              {envelope.owning_profile_title}
-                            </span>
-                          </>
-                        )}
+              <div className={styles.conversationList}>
+                {isLoading ? (
+                  <div className="space-y-2 p-3">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex items-center gap-3 p-3">
+                        <Skeleton className="size-10 rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton className="h-4 w-32 mb-1" />
+                          <Skeleton className="h-3 w-48" />
+                        </div>
                       </div>
-                    </div>
-                    <div className={styles.envelopeActions}>
-                      <Badge variant="outline" className={statusColors[envelope.status]}>
-                        {t(`Profile.EnvelopeStatus.${envelope.status}`)}
-                      </Badge>
-                      {isPending && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-green-700 border-green-300 hover:bg-green-50"
-                            disabled={isProcessing}
-                            onClick={() => handleAccept(envelope.id, envelope.owning_profile_slug)}
-                          >
-                            <Check className="size-4 mr-1" />
-                            {t("Profile.Accept")}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-700 border-red-300 hover:bg-red-50"
-                            disabled={isProcessing}
-                            onClick={() => promptReject(envelope.id, envelope.owning_profile_slug)}
-                          >
-                            <X className="size-4 mr-1" />
-                            {t("Profile.Reject")}
-                          </Button>
-                        </>
+                    ))}
+                  </div>
+                ) : filteredConversations.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <Mail className={styles.emptyIcon} />
+                    <p className={styles.emptyText}>
+                      {showArchived
+                        ? t("Mailbox.No archived conversations")
+                        : t("Mailbox.No conversations yet")}
+                    </p>
+                  </div>
+                ) : (
+                  filteredConversations.map((conv) => (
+                    <ConversationRow
+                      key={conv.id}
+                      conversation={conv}
+                      locale={locale}
+                      isSelected={selectedConvId === conv.id}
+                      onSelect={handleSelectConversation}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Detail Panel */}
+            <div className={`${styles.detailPanel} ${selectedConvId === null && !showNewMessage ? styles.detailPanelHiddenMobile : ""}`}>
+              {showNewMessage ? (
+                <NewConversationForm
+                  locale={locale}
+                  senderProfiles={maintainerProfiles}
+                  onConversationCreated={handleNewConversationCreated}
+                  onCancel={() => setShowNewMessage(false)}
+                />
+              ) : selectedConvId === null ? (
+                <div className={styles.emptyDetail}>
+                  <MessageSquare className={styles.emptyDetailIcon} />
+                  <p className={styles.emptyDetailText}>{t("Mailbox.Select a conversation")}</p>
+                </div>
+              ) : isDetailLoading ? (
+                <div className="p-6 space-y-4">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-64" />
+                  <div className="space-y-3 mt-6">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-24 w-full rounded-lg" />
+                    ))}
+                  </div>
+                </div>
+              ) : convDetail !== null ? (
+                <div className={styles.detailContent}>
+                  {/* Detail Header */}
+                  <div className={styles.detailHeader}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={styles.backButton}
+                      onClick={() => {
+                        setSelectedConvId(null);
+                        setConvDetail(null);
+                      }}
+                    >
+                      <ChevronLeft className="size-4" />
+                    </Button>
+                    <div className={styles.detailHeaderInfo}>
+                      <h3 className={styles.detailTitle}>
+                        {convDetail.conversation.kind === "system"
+                          ? (convDetail.envelopes.length > 0 ? convDetail.envelopes[0].title : t("Mailbox.System message"))
+                          : (otherParticipantSlug ?? t("Mailbox.Conversation"))}
+                      </h3>
+                      {convDetail.conversation.participants !== null && (
+                        <p className={styles.detailSubtitle}>
+                          {convDetail.conversation.participants.map((p) => p.profile_title).join(", ")}
+                        </p>
                       )}
-                      {isAccepted && groupName !== undefined && groupName !== "" && (
-                        <span className="text-xs text-muted-foreground">
-                          {t("Profile.Use /invitations in bot to redeem")}
-                        </span>
+                    </div>
+                    <div className={styles.detailActions}>
+                      {showArchived ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleUnarchive}
+                          title={t("Mailbox.Unarchive")}
+                        >
+                          <ArchiveRestore className="size-4" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleArchive}
+                          title={t("Mailbox.Archive")}
+                        >
+                          <Archive className="size-4" />
+                        </Button>
                       )}
                     </div>
                   </div>
-                );
-              })}
+
+                  <Separator />
+
+                  {/* Message Thread */}
+                  <div className={styles.messageThread}>
+                    {convDetail.envelopes.map((envelope) => (
+                      <EnvelopeBubble
+                        key={envelope.id}
+                        envelope={envelope}
+                        locale={locale}
+                        onAccept={handleAccept}
+                        onReject={promptReject}
+                        onReaction={handleReaction}
+                        actionInProgress={actionInProgress}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Compose Area (only for direct conversations) */}
+                  {convDetail.conversation.kind === "direct" && (
+                    <ComposeArea
+                      locale={locale}
+                      targetProfileSlug={otherParticipantSlug}
+                      senderProfiles={maintainerProfiles}
+                      onSent={handleMessageSent}
+                    />
+                  )}
+                </div>
+              ) : null}
             </div>
-          )}
+          </div>
         </Card>
 
         {/* Reject Confirmation Dialog */}

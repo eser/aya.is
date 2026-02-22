@@ -1,7 +1,7 @@
 @reference "@/theme.css";
 
 .container {
-  @apply max-w-4xl mx-auto py-6 space-y-6;
+  @apply max-w-5xl mx-auto py-6 space-y-4;
 }
 
 .header {
@@ -16,102 +16,281 @@
   @apply text-muted-foreground text-sm;
 }
 
-.filterBar {
-  @apply flex flex-wrap gap-2;
+/* Main Card */
+.mailboxCard {
+  @apply overflow-hidden;
 }
 
-.filterBadge {
-  @apply px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-colors;
-  @apply border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30;
-
-  &.filterBadgeActive {
-    @apply bg-primary text-primary-foreground border-primary;
-  }
+.mailboxLayout {
+  @apply flex min-h-[600px];
 }
 
-.filterBadgeActive {
+/* Sidebar */
+.sidebar {
+  @apply w-[340px] min-w-[340px] border-r border-border flex flex-col;
 }
 
-.envelopeCard {
-  @apply flex items-center gap-3 p-4 border rounded-lg transition-colors;
+.sidebarHiddenMobile {
 }
 
-.envelopeCard:hover {
+.sidebarHeader {
+  @apply p-3 space-y-2 border-b border-border;
+}
+
+.filterTabs {
+  @apply w-full;
+}
+
+.sidebarActions {
+  @apply flex items-center gap-2 justify-end;
+}
+
+.conversationList {
+  @apply flex-1 overflow-y-auto;
+}
+
+/* Conversation Row */
+.conversationRow {
+  @apply flex items-center gap-3 w-full text-left px-3 py-3 transition-colors cursor-pointer border-b border-border/50;
+}
+
+.conversationRow:hover {
   @apply bg-muted/50;
 }
 
-.envelopeIcon {
-  @apply flex items-center justify-center size-10 rounded;
+.conversationRowActive {
+  @apply bg-accent;
 }
 
-.envelopeBody {
+.conversationAvatar {
+  @apply size-10 shrink-0;
+}
+
+.conversationInfo {
   @apply flex-1 min-w-0;
 }
 
-.envelopeTitle {
-  @apply font-medium truncate;
+.conversationHeader {
+  @apply flex items-center justify-between gap-2;
 }
 
-.envelopeGroup {
-  @apply text-sm text-foreground/70 truncate;
+.conversationTitle {
+  @apply text-sm font-medium truncate;
 }
 
-.envelopeDescription {
-  @apply text-sm text-muted-foreground truncate;
+.conversationTime {
+  @apply text-xs text-muted-foreground shrink-0;
 }
 
-.envelopeMeta {
-  @apply flex items-center gap-1 text-xs text-muted-foreground;
+.conversationPreview {
+  @apply flex items-center gap-1.5 mt-0.5;
 }
 
-.envelopeActions {
-  @apply flex items-center gap-2;
+.previewText {
+  @apply text-xs text-muted-foreground truncate;
 }
 
-.profileBadge {
-  @apply text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground;
+.systemBadge {
+  @apply text-[10px] px-1.5 py-0 shrink-0;
 }
 
-.emptyState {
-  @apply text-center py-12 border-2 border-dashed rounded-lg;
+.unreadBadge {
+  @apply flex items-center justify-center size-5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold shrink-0;
 }
 
-.emptyIcon {
-  @apply size-12 mx-auto text-muted-foreground mb-4;
+/* Detail Panel */
+.detailPanel {
+  @apply flex-1 flex flex-col min-w-0;
 }
 
-.emptyText {
+.detailPanelHiddenMobile {
+}
+
+.emptyDetail {
+  @apply flex-1 flex flex-col items-center justify-center text-center p-8;
+}
+
+.emptyDetailIcon {
+  @apply size-16 text-muted-foreground/30 mb-4;
+}
+
+.emptyDetailText {
   @apply text-muted-foreground;
 }
 
-.sendSection {
-  @apply p-6;
+/* Detail Content */
+.detailContent {
+  @apply flex flex-col h-full;
 }
 
-.sendToggle {
-  @apply flex items-center justify-between w-full text-left;
+.detailHeader {
+  @apply flex items-center gap-3 p-4;
 }
 
-.sendToggleLabel {
+.backButton {
+  @apply md:hidden;
+}
+
+.detailHeaderInfo {
+  @apply flex-1 min-w-0;
+}
+
+.detailTitle {
+  @apply font-serif text-lg font-semibold truncate;
+}
+
+.detailSubtitle {
+  @apply text-xs text-muted-foreground truncate;
+}
+
+.detailActions {
+  @apply flex items-center gap-1;
+}
+
+/* Message Thread */
+.messageThread {
+  @apply flex-1 overflow-y-auto p-4 space-y-3;
+}
+
+.messageBubble {
+  @apply rounded-lg border border-border p-4 transition-colors;
+}
+
+.messageBubble:hover {
+  @apply bg-muted/30;
+}
+
+.messageContent {
+  @apply space-y-2;
+}
+
+.messageHeader {
+  @apply flex items-center justify-between gap-2;
+}
+
+.messageTitle {
+  @apply font-medium text-sm;
+}
+
+.messageGroup {
+  @apply text-sm text-foreground/70;
+}
+
+.messageDescription {
+  @apply text-sm text-muted-foreground;
+}
+
+.messageFooter {
+  @apply flex items-center gap-1 text-xs text-muted-foreground;
+}
+
+.messageTime {
+  @apply text-xs text-muted-foreground;
+}
+
+.messageActions {
+  @apply flex items-center gap-2 pt-1;
+}
+
+/* Reactions */
+.reactionsRow {
+  @apply flex items-center gap-1 flex-wrap;
+}
+
+.reactionChip {
+  @apply text-sm px-1.5 py-0.5 rounded-full bg-muted;
+}
+
+.reactionButton {
+  @apply size-7 p-0;
+}
+
+.reactionPicker {
+  @apply flex items-center gap-1 p-2 w-auto;
+}
+
+.reactionPickerItem {
+  @apply text-lg p-1 rounded hover:bg-muted cursor-pointer transition-colors;
+}
+
+/* Compose Area */
+.composeArea {
+  @apply mt-auto;
+}
+
+.composeForm {
+  @apply p-4 space-y-2;
+}
+
+.composeInput {
+  @apply text-sm;
+}
+
+.composeTextarea {
+  @apply text-sm resize-none;
+}
+
+.composeActions {
+  @apply flex justify-end;
+}
+
+/* New Conversation Form */
+.newConversationForm {
+  @apply p-4 space-y-4;
+}
+
+.newConversationHeader {
   @apply flex items-center gap-2;
 }
 
-.sendToggleTitle {
-  @apply font-serif text-lg font-semibold text-foreground;
+.newConversationTitle {
+  @apply font-serif text-lg font-semibold;
 }
 
-.sendToggleIcon {
-  @apply size-5 text-muted-foreground;
+.newConversationFields {
+  @apply space-y-4;
 }
 
-.sendForm {
-  @apply mt-4 space-y-4;
+.nativeSelect {
+  @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background;
 }
 
-.sendFormGrid {
-  @apply grid grid-cols-2 gap-4;
+/* Empty State */
+.emptyState {
+  @apply text-center py-12;
 }
 
-.successMessage {
-  @apply text-sm text-green-600 flex items-center gap-2;
+.emptyIcon {
+  @apply size-12 mx-auto text-muted-foreground/30 mb-4;
+}
+
+.emptyText {
+  @apply text-muted-foreground text-sm;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    @apply w-full min-w-0;
+  }
+
+  .sidebarHiddenMobile {
+    @apply hidden;
+  }
+
+  .detailPanel {
+    @apply w-full;
+  }
+
+  .detailPanelHiddenMobile {
+    @apply hidden;
+  }
+
+  .backButton {
+    @apply flex;
+  }
+
+  .mailboxLayout {
+    @apply flex-col;
+  }
 }

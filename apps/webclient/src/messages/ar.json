@@ -885,5 +885,25 @@
     "You don't have permission to generate covers for this story.": "ليس لديك صلاحية لإنشاء أغلفة لهذه القصة.",
     "Back to Story": "العودة للقصة",
     "Save content first to enable cover designer": "احفظ المحتوى أولاً لتفعيل مصمم الغلاف"
+  },
+  "Mailbox": {
+    "Your conversations and messages": "Your conversations and messages",
+    "Messages": "Messages",
+    "System": "System",
+    "System message": "System message",
+    "Conversation": "Conversation",
+    "Select a conversation": "Select a conversation to view messages",
+    "No conversations yet": "No conversations yet",
+    "No archived conversations": "No archived conversations",
+    "Show archived": "Show archived",
+    "Archive": "Archive",
+    "Unarchive": "Unarchive",
+    "New": "New",
+    "New Message": "New Message",
+    "Send": "Send",
+    "Type a message title...": "Type a message title...",
+    "Add details (optional)": "Add details (optional)",
+    "Profile slug": "Profile slug",
+    "Message title": "Message title"
   }
 }

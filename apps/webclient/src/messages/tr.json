@@ -889,5 +889,25 @@
     "You don't have permission to generate covers for this story.": "Bu hikaye için kapak oluşturma izniniz yok.",
     "Back to Story": "Hikayeye Dön",
     "Save content first to enable cover designer": "Kapak tasarımcısını etkinleştirmek için önce içeriği kaydedin"
+  },
+  "Mailbox": {
+    "Your conversations and messages": "Konuşmalarınız ve mesajlarınız",
+    "Messages": "Mesajlar",
+    "System": "Sistem",
+    "System message": "Sistem mesajı",
+    "Conversation": "Konuşma",
+    "Select a conversation": "Mesajları görüntülemek için bir konuşma seçin",
+    "No conversations yet": "Henüz konuşma yok",
+    "No archived conversations": "Arşivlenmiş konuşma yok",
+    "Show archived": "Arşivlenenleri göster",
+    "Archive": "Arşivle",
+    "Unarchive": "Arşivden çıkar",
+    "New": "Yeni",
+    "New Message": "Yeni Mesaj",
+    "Send": "Gönder",
+    "Type a message title...": "Mesaj başlığı yazın...",
+    "Add details (optional)": "Detay ekleyin (isteğe bağlı)",
+    "Profile slug": "Profil slug",
+    "Message title": "Mesaj başlığı"
   }
 }

@@ -28,7 +28,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
-	"github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
+	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -88,7 +88,7 @@ type AppContext struct {
 	ProfileService             *profiles.Service
 	ProfilePointsService       *profile_points.Service
 	ProfileQuestionsService    *profile_questions.Service
-	ProfileEnvelopesService    *profile_envelopes.Service
+	MailboxService             *mailbox.Service
 	StoryService               *stories.Service
 	StoryInteractionService    *story_interactions.Service
 	StorySeriesService         *story_series.Service
@@ -316,10 +316,10 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		profile_questions.DefaultIDGenerator,
 	)
 
-	envelopeRepo := storage.NewEnvelopeRepository(a.Repository)
-	a.ProfileEnvelopesService = profile_envelopes.NewService(
+	mailboxRepo := storage.NewMailboxRepository(a.Repository)
+	a.MailboxService = mailbox.NewService(
 		a.Logger,
-		envelopeRepo,
+		mailboxRepo,
 		idGen,
 	)
 
@@ -462,12 +462,12 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.TelegramBot = telegramadapter.NewBot(
 			a.TelegramClient,
 			a.TelegramService,
-			a.ProfileEnvelopesService,
+			a.MailboxService,
 			a.Logger,
 		)
 
 		// Notify envelope recipients via Telegram DM.
-		a.ProfileEnvelopesService.SetOnCreated(
+		a.MailboxService.SetOnCreated(
 			telegramadapter.NewEnvelopeNotifier(a.TelegramClient, a.TelegramService, a.Logger),
 		)
 

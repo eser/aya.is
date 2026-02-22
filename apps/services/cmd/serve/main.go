@@ -46,7 +46,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			appContext.ProfileService,
 			appContext.ProfilePointsService,
 			appContext.ProfileQuestionsService,
-			appContext.ProfileEnvelopesService,
+			appContext.MailboxService,
 			appContext.StoryService,
 			appContext.StoryInteractionService,
 			appContext.SessionService,

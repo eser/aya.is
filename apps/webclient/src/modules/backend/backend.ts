@@ -56,6 +56,17 @@ import { acceptProfileEnvelope } from "./profile-envelopes/accept-profile-envelo
 import { rejectProfileEnvelope } from "./profile-envelopes/reject-profile-envelope";
 import { sendProfileEnvelope } from "./profile-envelopes/send-profile-envelope";
 import { listMailboxEnvelopes } from "./mailbox/list-mailbox-envelopes";
+import { listConversations } from "./mailbox/list-conversations";
+import { getConversation } from "./mailbox/get-conversation";
+import { markConversationRead } from "./mailbox/mark-conversation-read";
+import { archiveConversation } from "./mailbox/archive-conversation";
+import { unarchiveConversation } from "./mailbox/unarchive-conversation";
+import { sendMailboxMessage } from "./mailbox/send-mailbox-message";
+import { acceptMailboxMessage } from "./mailbox/accept-mailbox-message";
+import { rejectMailboxMessage } from "./mailbox/reject-mailbox-message";
+import { addReaction } from "./mailbox/add-reaction";
+import { removeReaction } from "./mailbox/remove-reaction";
+import { getUnreadCount } from "./mailbox/get-unread-count";
 import { getProfileQuestions } from "./questions/get-profile-questions";
 import { createQuestion } from "./questions/create-question";
 import { voteQuestion } from "./questions/vote-question";
@@ -123,6 +134,7 @@ export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-githu
 export type { VerifyTelegramCodeResponse } from "./profiles/verify-telegram-code";
 export type { SendProfileEnvelopeParams } from "./profile-envelopes/send-profile-envelope";
 export type { MailboxEnvelope } from "./mailbox/list-mailbox-envelopes";
+export type { SendMailboxMessageParams } from "./mailbox/send-mailbox-message";
 export type { CreateProfileResourceInput } from "./profiles/create-profile-resource";
 export type { CreateQuestionInput } from "./questions/create-question";
 export type { VoteQuestionResult } from "./questions/vote-question";
@@ -207,8 +219,19 @@ export const backend = {
   rejectProfileEnvelope,
   sendProfileEnvelope,
 
-  // Mailbox (aggregated inbox)
+  // Mailbox (conversations)
   listMailboxEnvelopes,
+  listConversations,
+  getConversation,
+  markConversationRead,
+  archiveConversation,
+  unarchiveConversation,
+  sendMailboxMessage,
+  acceptMailboxMessage,
+  rejectMailboxMessage,
+  addReaction,
+  removeReaction,
+  getUnreadCount,
 
   // Profile Questions (Q&A)
   getProfileQuestions,
@@ -396,6 +419,19 @@ export {
   acceptProfileEnvelope,
   rejectProfileEnvelope,
   sendProfileEnvelope,
+
+  // Mailbox (conversations)
+  listConversations,
+  getConversation,
+  markConversationRead,
+  archiveConversation,
+  unarchiveConversation,
+  sendMailboxMessage,
+  acceptMailboxMessage,
+  rejectMailboxMessage,
+  addReaction,
+  removeReaction,
+  getUnreadCount,
 
   // Admin
   approvePendingAward,

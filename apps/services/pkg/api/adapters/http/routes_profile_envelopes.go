@@ -7,7 +7,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
-	envelopes "github.com/eser/aya.is/services/pkg/api/business/profile_envelopes"
+	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
@@ -19,7 +19,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 	authService *auth.Service,
 	userService *users.Service,
 	profileService *profiles.Service,
-	envelopeService *envelopes.Service,
+	mailboxService *mailbox.Service,
 	telegramService *telegrambiz.Service,
 ) {
 	// GET /{locale}/profiles/{slug}/_envelopes — list envelopes (inbox)
@@ -72,7 +72,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 
 				statusFilter := ctx.Request.URL.Query().Get("status")
 
-				items, listErr := envelopeService.ListEnvelopes(
+				items, listErr := mailboxService.ListEnvelopes(
 					ctx.Request.Context(), profile.ID, statusFilter,
 				)
 				if listErr != nil {
@@ -174,7 +174,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					// The envelope format is the contract consumed by the bot.
 					props := map[string]any{
 						"external_system":  externalCode.ExternalSystem,
-						"invitation_kind":  envelopes.InvitationKindTelegramGroup,
+						"invitation_kind":  mailbox.InvitationKindTelegramGroup,
 						"telegram_chat_id": externalCode.Properties["telegram_chat_id"],
 						"group_name":       externalCode.Properties["telegram_chat_title"],
 					}
@@ -199,11 +199,11 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					descPtr = &body.Description
 				}
 
-				envelope, createErr := envelopeService.CreateEnvelope(
+				envelope, createErr := mailboxService.SendSystemEnvelope(
 					ctx.Request.Context(),
-					&envelopes.CreateEnvelopeParams{
+					&mailbox.SendMessageParams{
 						TargetProfileID:    body.TargetProfileID,
-						SenderProfileID:    &senderProfile.ID,
+						SenderProfileID:    senderProfile.ID,
 						SenderUserID:       &user.ID,
 						Kind:               body.Kind,
 						Title:              body.Title,
@@ -233,7 +233,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 		Route(
 			"POST /{locale}/profiles/{slug}/_envelopes/{id}/accept",
 			AuthMiddleware(authService, userService),
-			envelopeActionHandler(logger, userService, profileService, envelopeService, "accept"),
+			envelopeActionHandler(logger, userService, profileService, mailboxService, "accept"),
 		).
 		HasSummary("Accept envelope").
 		HasDescription("Accept a pending envelope.").
@@ -244,7 +244,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 		Route(
 			"POST /{locale}/profiles/{slug}/_envelopes/{id}/reject",
 			AuthMiddleware(authService, userService),
-			envelopeActionHandler(logger, userService, profileService, envelopeService, "reject"),
+			envelopeActionHandler(logger, userService, profileService, mailboxService, "reject"),
 		).
 		HasSummary("Reject envelope").
 		HasDescription("Reject a pending envelope.").
@@ -293,7 +293,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 					}
 				}
 
-				err := envelopeService.RevokeEnvelope(ctx.Request.Context(), envelopeID)
+				err := mailboxService.RevokeEnvelope(ctx.Request.Context(), envelopeID)
 				if err != nil {
 					return ctx.Results.Error(
 						http.StatusBadRequest, httpfx.WithErrorMessage(err.Error()),
@@ -313,7 +313,7 @@ func envelopeActionHandler(
 	logger *logfx.Logger,
 	userService *users.Service,
 	profileService *profiles.Service,
-	envelopeService *envelopes.Service,
+	mailboxService *mailbox.Service,
 	action string,
 ) func(ctx *httpfx.Context) httpfx.Result {
 	return func(ctx *httpfx.Context) httpfx.Result {
@@ -364,13 +364,13 @@ func envelopeActionHandler(
 
 		switch action {
 		case "accept":
-			actionErr = envelopeService.AcceptEnvelope(
+			actionErr = mailboxService.AcceptEnvelope(
 				ctx.Request.Context(),
 				envelopeID,
 				profile.ID,
 			)
 		case "reject":
-			actionErr = envelopeService.RejectEnvelope(
+			actionErr = mailboxService.RejectEnvelope(
 				ctx.Request.Context(),
 				envelopeID,
 				profile.ID,
