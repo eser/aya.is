@@ -15,6 +15,8 @@ import {
   Loader2,
   Lock,
   Megaphone,
+  MessageSquare,
+  MessageSquareOff,
   Newspaper,
   PanelLeftClose,
   PanelLeftOpen,
@@ -81,6 +83,7 @@ export type ContentEditorData = {
   storyPictureUri?: string | null;
   kind?: StoryKind;
   visibility?: ContentVisibility;
+  featDiscussions?: boolean;
   // Activity-specific fields (only relevant when kind === "activity")
   activityKind?: string;
   activityTimeStart?: string;
@@ -156,6 +159,9 @@ export function ContentEditor(props: ContentEditorProps) {
   );
   const [visibility, setVisibility] = React.useState<ContentVisibility>(
     initialData.visibility ?? "public",
+  );
+  const [featDiscussions, setFeatDiscussions] = React.useState(
+    initialData.featDiscussions ?? false,
   );
 
   // Activity-specific state
@@ -372,7 +378,8 @@ export function ContentEditor(props: ContentEditorProps) {
       content !== savedData.content ||
       storyPictureUri !== (savedData.storyPictureUri ?? null) ||
       kind !== (savedData.kind ?? "article") ||
-      visibility !== (savedData.visibility ?? "public");
+      visibility !== (savedData.visibility ?? "public") ||
+      featDiscussions !== (savedData.featDiscussions ?? false);
 
     if (kind === "activity") {
       return baseChanged ||
@@ -392,6 +399,7 @@ export function ContentEditor(props: ContentEditorProps) {
     storyPictureUri,
     kind,
     visibility,
+    featDiscussions,
     activityKind,
     activityTimeStart,
     activityTimeEnd,
@@ -427,6 +435,7 @@ export function ContentEditor(props: ContentEditorProps) {
     storyPictureUri,
     kind,
     visibility,
+    featDiscussions,
     ...(kind === "activity"
       ? {
         activityKind,
@@ -488,6 +497,7 @@ export function ContentEditor(props: ContentEditorProps) {
     content,
     kind,
     visibility,
+    featDiscussions,
     activityKind,
     activityTimeStart,
     activityTimeEnd,
@@ -1070,6 +1080,49 @@ export function ContentEditor(props: ContentEditorProps) {
                   {visibility === "private" && t("ContentEditor.Private description")}
                 </FieldDescription>
               </Field>
+
+              {/* Discussions */}
+              {contentType === "story" && (
+                <Field className={styles.metadataField}>
+                  <FieldLabel htmlFor="discussions" className={styles.metadataLabel}>
+                    {t("ContentEditor.Discussions")}
+                  </FieldLabel>
+                  <Select
+                    value={featDiscussions ? "enabled" : "disabled"}
+                    onValueChange={(value) => setFeatDiscussions(value === "enabled")}
+                  >
+                    <SelectTrigger id="discussions">
+                      <span className="flex items-center gap-2">
+                        {featDiscussions
+                          ? <MessageSquare className="size-4" />
+                          : <MessageSquareOff className="size-4" />}
+                        {featDiscussions
+                          ? t("ContentEditor.Enabled")
+                          : t("ContentEditor.Disabled")}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="enabled">
+                        <span className="flex items-center gap-2">
+                          <MessageSquare className="size-4" />
+                          {t("ContentEditor.Enabled")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="disabled">
+                        <span className="flex items-center gap-2">
+                          <MessageSquareOff className="size-4" />
+                          {t("ContentEditor.Disabled")}
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>
+                    {featDiscussions
+                      ? t("ContentEditor.Discussions enabled description")
+                      : t("ContentEditor.Discussions disabled description")}
+                  </FieldDescription>
+                </Field>
+              )}
             </div>
           )}
         </div>

@@ -237,7 +237,8 @@ func RegisterHTTPRoutesForProfileTeams(
 					slog.String("teamID", teamID))
 
 				statusCode := http.StatusInternalServerError
-				if errors.Is(err, profiles.ErrCannotDeleteTeamWithMembers) {
+				if errors.Is(err, profiles.ErrCannotDeleteTeamWithMembers) ||
+					errors.Is(err, profiles.ErrCannotDeleteTeamWithResources) {
 					statusCode = http.StatusBadRequest
 				}
 

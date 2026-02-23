@@ -153,6 +153,7 @@ export interface ProfileTeam {
   name: string;
   description: string | null;
   member_count: number;
+  resource_count: number;
 }
 
 // Membership with member profile details for settings
@@ -331,6 +332,7 @@ export interface InsertStoryInput {
   publish_to_profiles?: string[];
   properties?: Record<string, unknown>;
   visibility?: ContentVisibility;
+  feat_discussions?: boolean;
 }
 
 export interface UpdateStoryInput {
@@ -338,6 +340,7 @@ export interface UpdateStoryInput {
   story_picture_uri?: string | null;
   properties?: Record<string, unknown>;
   visibility?: ContentVisibility;
+  feat_discussions?: boolean;
 }
 
 export interface UpdateStoryTranslationInput {
@@ -595,6 +598,7 @@ export interface ProfileResource {
   created_at: string;
   updated_at?: string | null;
   can_remove: boolean;
+  teams?: ProfileTeam[];
 }
 
 export interface GitHubRepo {

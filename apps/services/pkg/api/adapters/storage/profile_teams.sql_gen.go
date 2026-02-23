@@ -31,6 +31,26 @@ func (q *Queries) CountProfileTeamMembers(ctx context.Context, arg CountProfileT
 	return count, err
 }
 
+const countProfileTeamResources = `-- name: CountProfileTeamResources :one
+SELECT COUNT(*) FROM "profile_resource_team"
+WHERE profile_team_id = $1 AND deleted_at IS NULL
+`
+
+type CountProfileTeamResourcesParams struct {
+	ProfileTeamID string `db:"profile_team_id" json:"profile_team_id"`
+}
+
+// CountProfileTeamResources
+//
+//	SELECT COUNT(*) FROM "profile_resource_team"
+//	WHERE profile_team_id = $1 AND deleted_at IS NULL
+func (q *Queries) CountProfileTeamResources(ctx context.Context, arg CountProfileTeamResourcesParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countProfileTeamResources, arg.ProfileTeamID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createProfileTeam = `-- name: CreateProfileTeam :one
 INSERT INTO "profile_team" (id, profile_id, name, description)
 VALUES ($1, $2, $3, $4)
@@ -211,9 +231,12 @@ func (q *Queries) ListProfileTeams(ctx context.Context, arg ListProfileTeamsPara
 }
 
 const listProfileTeamsWithMemberCount = `-- name: ListProfileTeamsWithMemberCount :many
-SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at, COUNT(pmt.id) AS member_count
+SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at,
+  COUNT(DISTINCT pmt.id) AS member_count,
+  COUNT(DISTINCT prt.id) AS resource_count
 FROM "profile_team" pt
 LEFT JOIN "profile_membership_team" pmt ON pmt.profile_team_id = pt.id AND pmt.deleted_at IS NULL
+LEFT JOIN "profile_resource_team" prt ON prt.profile_team_id = pt.id AND prt.deleted_at IS NULL
 WHERE pt.profile_id = $1 AND pt.deleted_at IS NULL
 GROUP BY pt.id
 ORDER BY pt.name ASC
@@ -224,20 +247,24 @@ type ListProfileTeamsWithMemberCountParams struct {
 }
 
 type ListProfileTeamsWithMemberCountRow struct {
-	ID          string         `db:"id" json:"id"`
-	ProfileID   string         `db:"profile_id" json:"profile_id"`
-	Name        string         `db:"name" json:"name"`
-	Description sql.NullString `db:"description" json:"description"`
-	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
-	DeletedAt   sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	MemberCount int64          `db:"member_count" json:"member_count"`
+	ID            string         `db:"id" json:"id"`
+	ProfileID     string         `db:"profile_id" json:"profile_id"`
+	Name          string         `db:"name" json:"name"`
+	Description   sql.NullString `db:"description" json:"description"`
+	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
+	DeletedAt     sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	MemberCount   int64          `db:"member_count" json:"member_count"`
+	ResourceCount int64          `db:"resource_count" json:"resource_count"`
 }
 
 // ListProfileTeamsWithMemberCount
 //
-//	SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at, COUNT(pmt.id) AS member_count
+//	SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at,
+//	  COUNT(DISTINCT pmt.id) AS member_count,
+//	  COUNT(DISTINCT prt.id) AS resource_count
 //	FROM "profile_team" pt
 //	LEFT JOIN "profile_membership_team" pmt ON pmt.profile_team_id = pt.id AND pmt.deleted_at IS NULL
+//	LEFT JOIN "profile_resource_team" prt ON prt.profile_team_id = pt.id AND prt.deleted_at IS NULL
 //	WHERE pt.profile_id = $1 AND pt.deleted_at IS NULL
 //	GROUP BY pt.id
 //	ORDER BY pt.name ASC
@@ -258,6 +285,54 @@ func (q *Queries) ListProfileTeamsWithMemberCount(ctx context.Context, arg ListP
 			&i.CreatedAt,
 			&i.DeletedAt,
 			&i.MemberCount,
+			&i.ResourceCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listResourceTeams = `-- name: ListResourceTeams :many
+SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at FROM "profile_team" pt
+JOIN "profile_resource_team" prt ON prt.profile_team_id = pt.id AND prt.deleted_at IS NULL
+WHERE prt.profile_resource_id = $1 AND pt.deleted_at IS NULL
+ORDER BY pt.name ASC
+`
+
+type ListResourceTeamsParams struct {
+	ProfileResourceID string `db:"profile_resource_id" json:"profile_resource_id"`
+}
+
+// ListResourceTeams
+//
+//	SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at FROM "profile_team" pt
+//	JOIN "profile_resource_team" prt ON prt.profile_team_id = pt.id AND prt.deleted_at IS NULL
+//	WHERE prt.profile_resource_id = $1 AND pt.deleted_at IS NULL
+//	ORDER BY pt.name ASC
+func (q *Queries) ListResourceTeams(ctx context.Context, arg ListResourceTeamsParams) ([]*ProfileTeam, error) {
+	rows, err := q.db.QueryContext(ctx, listResourceTeams, arg.ProfileResourceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ProfileTeam{}
+	for rows.Next() {
+		var i ProfileTeam
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProfileID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -318,6 +393,59 @@ func (q *Queries) SetMembershipTeams_Insert(ctx context.Context, arg SetMembersh
 	err := row.Scan(
 		&i.ID,
 		&i.ProfileMembershipID,
+		&i.ProfileTeamID,
+		&i.CreatedAt,
+		&i.DeletedAt,
+	)
+	return &i, err
+}
+
+const setResourceTeams_Delete = `-- name: SetResourceTeams_Delete :execrows
+UPDATE "profile_resource_team"
+SET deleted_at = NOW()
+WHERE profile_resource_id = $1 AND deleted_at IS NULL
+`
+
+type SetResourceTeams_DeleteParams struct {
+	ProfileResourceID string `db:"profile_resource_id" json:"profile_resource_id"`
+}
+
+// SetResourceTeams_Delete
+//
+//	UPDATE "profile_resource_team"
+//	SET deleted_at = NOW()
+//	WHERE profile_resource_id = $1 AND deleted_at IS NULL
+func (q *Queries) SetResourceTeams_Delete(ctx context.Context, arg SetResourceTeams_DeleteParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setResourceTeams_Delete, arg.ProfileResourceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const setResourceTeams_Insert = `-- name: SetResourceTeams_Insert :one
+INSERT INTO "profile_resource_team" (id, profile_resource_id, profile_team_id)
+VALUES ($1, $2, $3)
+RETURNING id, profile_resource_id, profile_team_id, created_at, deleted_at
+`
+
+type SetResourceTeams_InsertParams struct {
+	ID                string `db:"id" json:"id"`
+	ProfileResourceID string `db:"profile_resource_id" json:"profile_resource_id"`
+	ProfileTeamID     string `db:"profile_team_id" json:"profile_team_id"`
+}
+
+// SetResourceTeams_Insert
+//
+//	INSERT INTO "profile_resource_team" (id, profile_resource_id, profile_team_id)
+//	VALUES ($1, $2, $3)
+//	RETURNING id, profile_resource_id, profile_team_id, created_at, deleted_at
+func (q *Queries) SetResourceTeams_Insert(ctx context.Context, arg SetResourceTeams_InsertParams) (*ProfileResourceTeam, error) {
+	row := q.db.QueryRowContext(ctx, setResourceTeams_Insert, arg.ID, arg.ProfileResourceID, arg.ProfileTeamID)
+	var i ProfileResourceTeam
+	err := row.Scan(
+		&i.ID,
+		&i.ProfileResourceID,
 		&i.ProfileTeamID,
 		&i.CreatedAt,
 		&i.DeletedAt,

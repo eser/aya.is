@@ -41,6 +41,7 @@ import { createProfileTeam } from "./profiles/create-profile-team";
 import { updateProfileTeam } from "./profiles/update-profile-team";
 import { deleteProfileTeam } from "./profiles/delete-profile-team";
 import { setMembershipTeams } from "./profiles/set-membership-teams";
+import { setResourceTeams } from "./profiles/set-resource-teams";
 import { followProfile } from "./profiles/follow-profile";
 import { unfollowProfile } from "./profiles/unfollow-profile";
 import { createProfilePage } from "./profiles/create-profile-page";
@@ -230,6 +231,7 @@ export const backend = {
   updateProfileTeam,
   deleteProfileTeam,
   setMembershipTeams,
+  setResourceTeams,
 
   // Profile Pages
   listProfilePages,
@@ -420,6 +422,7 @@ export {
   updateProfileTeam,
   deleteProfileTeam,
   setMembershipTeams,
+  setResourceTeams,
   removeStory,
   removeUpload,
   search,

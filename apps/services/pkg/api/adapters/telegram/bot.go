@@ -259,6 +259,27 @@ func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
 		return
 	}
 
+	// Verify the user is a group administrator
+	member, memberErr := b.client.GetChatMember(ctx, msg.Chat.ID, msg.From.ID)
+	if memberErr != nil {
+		b.logger.WarnContext(ctx, "Failed to check group membership",
+			slog.Int64("chat_id", msg.Chat.ID),
+			slog.Int64("user_id", msg.From.ID),
+			slog.String("error", memberErr.Error()))
+
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Something went wrong while checking your permissions. Please try again later.")
+
+		return
+	}
+
+	if member.Status != "creator" && member.Status != "administrator" {
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Only group administrators can generate invite codes.")
+
+		return
+	}
+
 	// Verify the user has a linked AYA profile
 	_, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
 	if err != nil {

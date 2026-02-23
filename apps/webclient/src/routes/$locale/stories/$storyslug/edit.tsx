@@ -215,6 +215,7 @@ function EditStoryPage() {
     storyPictureUri: storyData.story_picture_uri,
     kind: (storyData.kind as ContentEditorData["kind"]) ?? "article",
     visibility: storyData.visibility ?? "public",
+    featDiscussions: storyData.feat_discussions,
     ...activityFields,
   };
 
@@ -245,6 +246,7 @@ function EditStoryPage() {
         story_picture_uri: data.storyPictureUri,
         properties,
         visibility: data.visibility ?? "public",
+        feat_discussions: data.featDiscussions,
       },
     );
 

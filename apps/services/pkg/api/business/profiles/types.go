@@ -252,11 +252,12 @@ type ProfileBrief struct {
 
 // ProfileTeam represents a team within a profile for organizing members.
 type ProfileTeam struct {
-	ID          string  `json:"id"`
-	ProfileID   string  `json:"profile_id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description"`
-	MemberCount int64   `json:"member_count"`
+	ID            string  `json:"id"`
+	ProfileID     string  `json:"profile_id"`
+	Name          string  `json:"name"`
+	Description   *string `json:"description"`
+	MemberCount   int64   `json:"member_count"`
+	ResourceCount int64   `json:"resource_count"`
 }
 
 // ProfileMembershipWithMember includes membership data with member profile details.
@@ -350,22 +351,23 @@ type SearchResult struct {
 
 // ProfileResource represents an external resource linked to a profile (e.g. GitHub repo).
 type ProfileResource struct {
-	ID               string        `json:"id"`
-	ProfileID        string        `json:"profile_id"`
-	Kind             string        `json:"kind"`
-	IsManaged        bool          `json:"is_managed"`
-	RemoteID         *string       `json:"remote_id"`
-	PublicID         *string       `json:"public_id"`
-	URL              *string       `json:"url"`
-	Title            string        `json:"title"`
-	Description      *string       `json:"description"`
-	Properties       any           `json:"properties"`
-	AddedByProfileID string        `json:"added_by_profile_id"`
-	AddedByProfile   *ProfileBrief `json:"added_by_profile,omitempty"`
-	CreatedAt        time.Time     `json:"created_at"`
-	UpdatedAt        *time.Time    `json:"updated_at"`
-	DeletedAt        *time.Time    `json:"deleted_at"`
-	CanRemove        bool          `json:"can_remove"`
+	ID               string         `json:"id"`
+	ProfileID        string         `json:"profile_id"`
+	Kind             string         `json:"kind"`
+	IsManaged        bool           `json:"is_managed"`
+	RemoteID         *string        `json:"remote_id"`
+	PublicID         *string        `json:"public_id"`
+	URL              *string        `json:"url"`
+	Title            string         `json:"title"`
+	Description      *string        `json:"description"`
+	Properties       any            `json:"properties"`
+	AddedByProfileID string         `json:"added_by_profile_id"`
+	AddedByProfile   *ProfileBrief  `json:"added_by_profile,omitempty"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        *time.Time     `json:"updated_at"`
+	DeletedAt        *time.Time     `json:"deleted_at"`
+	CanRemove        bool           `json:"can_remove"`
+	Teams            []*ProfileTeam `json:"teams"`
 }
 
 // ManagedGitHubLink holds the access token data for a managed GitHub profile link.

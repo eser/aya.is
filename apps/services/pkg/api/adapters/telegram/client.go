@@ -104,6 +104,12 @@ type BotInfo struct {
 	Username  string `json:"username"`
 }
 
+// ChatMember represents a Telegram chat member with their status.
+type ChatMember struct {
+	User   *User  `json:"user"`
+	Status string `json:"status"` // "creator", "administrator", "member", "restricted", "left", "kicked"
+}
+
 // ChatInviteLink represents a Telegram chat invite link.
 type ChatInviteLink struct {
 	InviteLink  string `json:"invite_link"`
@@ -294,6 +300,30 @@ func (c *Client) AnswerCallbackQuery(
 	}
 
 	return nil
+}
+
+// GetChatMember returns information about a member of a chat.
+func (c *Client) GetChatMember(
+	ctx context.Context,
+	chatID int64,
+	userID int64,
+) (*ChatMember, error) {
+	payload := map[string]any{
+		"chat_id": chatID,
+		"user_id": userID,
+	}
+
+	result, err := c.callAPI(ctx, "getChatMember", payload)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrAPICallFailed, err)
+	}
+
+	var member ChatMember
+	if err := json.Unmarshal(result, &member); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrAPICallFailed, err)
+	}
+
+	return &member, nil
 }
 
 // CreateChatInviteLink creates a single-use invite link for a chat.

@@ -749,6 +749,7 @@ func (s *Service) Create(
 	publishToProfileSlugs []string,
 	properties map[string]any,
 	visibility string,
+	featDiscussionsOverride *bool,
 ) (*Story, error) {
 	// Determine if the story will be published (for slug validation)
 	isPublishing := len(publishToProfileSlugs) > 0
@@ -804,7 +805,9 @@ func (s *Service) Create(
 	}
 
 	featDiscussions := false
-	if authorProfile != nil {
+	if featDiscussionsOverride != nil {
+		featDiscussions = *featDiscussionsOverride
+	} else if authorProfile != nil {
 		featDiscussions = authorProfile.OptionStoryDiscussionsByDefault
 	}
 

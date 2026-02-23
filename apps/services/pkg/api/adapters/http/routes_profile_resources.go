@@ -329,6 +329,70 @@ func RegisterHTTPRoutesForProfileResources(
 		HasDescription("Add a new resource to a profile.").
 		HasResponse(http.StatusOK)
 
+	// Set resource teams
+	routes.Route(
+		"PUT /{locale}/profiles/{slug}/_resources/{id}/teams",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			_, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
+			slugParam := ctx.Request.PathValue("slug")
+			resourceID := ctx.Request.PathValue("id")
+
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			var reqBody struct {
+				TeamIDs []string `json:"team_ids"`
+			}
+
+			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
+			}
+
+			err := profileService.SetResourceTeams(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				slugParam,
+				resourceID,
+				reqBody.TeamIDs,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to set resource teams",
+					slog.String("error", err.Error()),
+					slog.String("slug", slugParam),
+					slog.String("resource_id", resourceID))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithSanitizedError(err),
+				)
+			}
+
+			return ctx.Results.JSON(map[string]any{
+				"data":  map[string]string{"status": "updated"},
+				"error": nil,
+			})
+		}).
+		HasSummary("Set Resource Teams").
+		HasDescription("Assign teams to a resource.").
+		HasResponse(http.StatusOK)
+
 	// Delete profile resource
 	routes.Route(
 		"DELETE /{locale}/profiles/{slug}/_resources/{id}",

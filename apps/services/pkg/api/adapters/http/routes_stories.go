@@ -187,6 +187,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				PublishToProfiles []string       `json:"publish_to_profiles"`
 				Properties        map[string]any `json:"properties"`
 				Visibility        string         `json:"visibility"`
+				FeatDiscussions   *bool          `json:"feat_discussions"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -271,6 +272,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				requestBody.PublishToProfiles,
 				requestBody.Properties,
 				requestBody.Visibility,
+				requestBody.FeatDiscussions,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {

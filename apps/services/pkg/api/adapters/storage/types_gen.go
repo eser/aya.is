@@ -365,6 +365,14 @@ type ProfileResource struct {
 	DeletedAt        sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
+type ProfileResourceTeam struct {
+	ID                string       `db:"id" json:"id"`
+	ProfileResourceID string       `db:"profile_resource_id" json:"profile_resource_id"`
+	ProfileTeamID     string       `db:"profile_team_id" json:"profile_team_id"`
+	CreatedAt         time.Time    `db:"created_at" json:"created_at"`
+	DeletedAt         sql.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
 type ProfileTeam struct {
 	ID          string         `db:"id" json:"id"`
 	ProfileID   string         `db:"profile_id" json:"profile_id"`

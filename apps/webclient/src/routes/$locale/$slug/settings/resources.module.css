@@ -31,3 +31,39 @@
 .emptyState {
   @apply flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground;
 }
+
+.filterTabs {
+  @apply flex items-center gap-1 mb-4;
+}
+
+.filterTab {
+  @apply px-3 py-1.5 text-sm rounded-md transition-colors;
+}
+
+.filterTabActive {
+  @apply bg-primary text-primary-foreground;
+}
+
+.editDialogContent {
+  @apply space-y-4 py-4;
+}
+
+.teamCheckboxList {
+  @apply space-y-2 mt-2;
+}
+
+.teamCheckboxItem {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+.teamBadge {
+  @apply text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground;
+}
+
+.resourceTeams {
+  @apply flex items-center gap-1 mt-1;
+}
+
+.addMenu {
+  @apply flex items-center gap-2;
+}

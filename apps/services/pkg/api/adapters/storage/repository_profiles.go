@@ -2277,11 +2277,12 @@ func (r *Repository) ListProfileTeamsWithMemberCount(
 
 	for _, row := range rows {
 		result = append(result, &profiles.ProfileTeam{
-			ID:          row.ID,
-			ProfileID:   row.ProfileID,
-			Name:        row.Name,
-			Description: vars.ToStringPtr(row.Description),
-			MemberCount: row.MemberCount,
+			ID:            row.ID,
+			ProfileID:     row.ProfileID,
+			Name:          row.Name,
+			Description:   vars.ToStringPtr(row.Description),
+			MemberCount:   row.MemberCount,
+			ResourceCount: row.ResourceCount,
 		})
 	}
 
@@ -2306,11 +2307,12 @@ func (r *Repository) CreateProfileTeam(
 	}
 
 	return &profiles.ProfileTeam{
-		ID:          row.ID,
-		ProfileID:   row.ProfileID,
-		Name:        row.Name,
-		Description: vars.ToStringPtr(row.Description),
-		MemberCount: 0,
+		ID:            row.ID,
+		ProfileID:     row.ProfileID,
+		Name:          row.Name,
+		Description:   vars.ToStringPtr(row.Description),
+		MemberCount:   0,
+		ResourceCount: 0,
 	}, nil
 }
 
@@ -2392,6 +2394,69 @@ func (r *Repository) SetMembershipTeams(
 			ID:                  idGenerator(),
 			ProfileMembershipID: membershipID,
 			ProfileTeamID:       teamID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *Repository) CountProfileTeamResources(
+	ctx context.Context,
+	teamID string,
+) (int64, error) {
+	return r.queries.CountProfileTeamResources(ctx, CountProfileTeamResourcesParams{
+		ProfileTeamID: teamID,
+	})
+}
+
+func (r *Repository) ListResourceTeams(
+	ctx context.Context,
+	resourceID string,
+) ([]*profiles.ProfileTeam, error) {
+	rows, err := r.queries.ListResourceTeams(ctx, ListResourceTeamsParams{
+		ProfileResourceID: resourceID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.ProfileTeam, 0, len(rows))
+
+	for _, row := range rows {
+		result = append(result, &profiles.ProfileTeam{
+			ID:          row.ID,
+			ProfileID:   row.ProfileID,
+			Name:        row.Name,
+			Description: vars.ToStringPtr(row.Description),
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) SetResourceTeams(
+	ctx context.Context,
+	resourceID string,
+	teamIDs []string,
+	idGenerator func() string,
+) error {
+	// Soft-delete all existing team assignments
+	_, err := r.queries.SetResourceTeams_Delete(ctx, SetResourceTeams_DeleteParams{
+		ProfileResourceID: resourceID,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Insert new assignments
+	for _, teamID := range teamIDs {
+		_, err := r.queries.SetResourceTeams_Insert(ctx, SetResourceTeams_InsertParams{
+			ID:                idGenerator(),
+			ProfileResourceID: resourceID,
+			ProfileTeamID:     teamID,
 		})
 		if err != nil {
 			return err

@@ -255,6 +255,11 @@ type Querier interface {
 	//  SELECT COUNT(*) FROM "profile_membership_team"
 	//  WHERE profile_team_id = $1 AND deleted_at IS NULL
 	CountProfileTeamMembers(ctx context.Context, arg CountProfileTeamMembersParams) (int64, error)
+	//CountProfileTeamResources
+	//
+	//  SELECT COUNT(*) FROM "profile_resource_team"
+	//  WHERE profile_team_id = $1 AND deleted_at IS NULL
+	CountProfileTeamResources(ctx context.Context, arg CountProfileTeamResourcesParams) (int64, error)
 	// Returns interaction counts grouped by kind for a story.
 	//
 	//  SELECT kind, COUNT(*) as count
@@ -2704,9 +2709,12 @@ type Querier interface {
 	ListProfileTeams(ctx context.Context, arg ListProfileTeamsParams) ([]*ProfileTeam, error)
 	//ListProfileTeamsWithMemberCount
 	//
-	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at, COUNT(pmt.id) AS member_count
+	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at,
+	//    COUNT(DISTINCT pmt.id) AS member_count,
+	//    COUNT(DISTINCT prt.id) AS resource_count
 	//  FROM "profile_team" pt
 	//  LEFT JOIN "profile_membership_team" pmt ON pmt.profile_team_id = pt.id AND pmt.deleted_at IS NULL
+	//  LEFT JOIN "profile_resource_team" prt ON prt.profile_team_id = pt.id AND prt.deleted_at IS NULL
 	//  WHERE pt.profile_id = $1 AND pt.deleted_at IS NULL
 	//  GROUP BY pt.id
 	//  ORDER BY pt.name ASC
@@ -2747,6 +2755,13 @@ type Querier interface {
 	//  WHERE mr.envelope_id = $1
 	//  ORDER BY mr.created_at
 	ListReactionsByEnvelope(ctx context.Context, arg ListReactionsByEnvelopeParams) ([]*ListReactionsByEnvelopeRow, error)
+	//ListResourceTeams
+	//
+	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at FROM "profile_team" pt
+	//  JOIN "profile_resource_team" prt ON prt.profile_team_id = pt.id AND prt.deleted_at IS NULL
+	//  WHERE prt.profile_resource_id = $1 AND pt.deleted_at IS NULL
+	//  ORDER BY pt.name ASC
+	ListResourceTeams(ctx context.Context, arg ListResourceTeamsParams) ([]*ProfileTeam, error)
 	//ListRuntimeStatesByPrefix
 	//
 	//  SELECT key, value, updated_at
@@ -3426,6 +3441,18 @@ type Querier interface {
 	//    AND profile_id = $3
 	//    AND left_at IS NULL
 	SetParticipantArchived(ctx context.Context, arg SetParticipantArchivedParams) error
+	//SetResourceTeams_Delete
+	//
+	//  UPDATE "profile_resource_team"
+	//  SET deleted_at = NOW()
+	//  WHERE profile_resource_id = $1 AND deleted_at IS NULL
+	SetResourceTeams_Delete(ctx context.Context, arg SetResourceTeams_DeleteParams) (int64, error)
+	//SetResourceTeams_Insert
+	//
+	//  INSERT INTO "profile_resource_team" (id, profile_resource_id, profile_team_id)
+	//  VALUES ($1, $2, $3)
+	//  RETURNING id, profile_resource_id, profile_team_id, created_at, deleted_at
+	SetResourceTeams_Insert(ctx context.Context, arg SetResourceTeams_InsertParams) (*ProfileResourceTeam, error)
 	//SetRuntimeState
 	//
 	//  INSERT INTO "runtime_state" (key, value, updated_at)

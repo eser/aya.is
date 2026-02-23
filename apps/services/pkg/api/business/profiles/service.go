@@ -14,24 +14,27 @@ import (
 )
 
 var (
-	ErrFailedToGetRecord           = errors.New("failed to get record")
-	ErrFailedToListRecords         = errors.New("failed to list records")
-	ErrFailedToCreateRecord        = errors.New("failed to create record")
-	ErrFailedToUpdateRecord        = errors.New("failed to update record")
-	ErrFailedToDeleteRecord        = errors.New("failed to delete record")
-	ErrUnauthorized                = errors.New("unauthorized")
-	ErrInsufficientAccess          = errors.New("insufficient access level")
-	ErrNoMembershipFound           = errors.New("no membership found")
-	ErrNoIndividualProfile         = errors.New("user has no individual profile")
-	ErrProfileNotFound             = errors.New("profile not found")
-	ErrInvalidURI                  = errors.New("invalid URI")
-	ErrInvalidURIPrefix            = errors.New("URI must start with allowed prefix")
-	ErrSearchFailed                = errors.New("search failed")
-	ErrDuplicateRecord             = errors.New("duplicate record")
-	ErrInvalidInput                = errors.New("invalid input")
-	ErrRelationsNotEnabled         = errors.New("relations feature is not enabled for this profile")
-	ErrLinksNotEnabled             = errors.New("links feature is not enabled for this profile")
-	ErrCannotDeleteTeamWithMembers = errors.New("cannot delete team that has members")
+	ErrFailedToGetRecord    = errors.New("failed to get record")
+	ErrFailedToListRecords  = errors.New("failed to list records")
+	ErrFailedToCreateRecord = errors.New("failed to create record")
+	ErrFailedToUpdateRecord = errors.New("failed to update record")
+	ErrFailedToDeleteRecord = errors.New("failed to delete record")
+	ErrUnauthorized         = errors.New("unauthorized")
+	ErrInsufficientAccess   = errors.New("insufficient access level")
+	ErrNoMembershipFound    = errors.New("no membership found")
+	ErrNoIndividualProfile  = errors.New("user has no individual profile")
+	ErrProfileNotFound      = errors.New("profile not found")
+	ErrInvalidURI           = errors.New("invalid URI")
+	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
+	ErrSearchFailed         = errors.New("search failed")
+	ErrDuplicateRecord      = errors.New("duplicate record")
+	ErrInvalidInput         = errors.New("invalid input")
+	ErrRelationsNotEnabled  = errors.New(
+		"relations feature is not enabled for this profile",
+	)
+	ErrLinksNotEnabled               = errors.New("links feature is not enabled for this profile")
+	ErrCannotDeleteTeamWithMembers   = errors.New("cannot delete team that has members")
+	ErrCannotDeleteTeamWithResources = errors.New("cannot delete team that has resources")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -599,6 +602,20 @@ type Repository interface { //nolint:interfacebloat
 	SetMembershipTeams(
 		ctx context.Context,
 		membershipID string,
+		teamIDs []string,
+		idGenerator func() string,
+	) error
+	CountProfileTeamResources(
+		ctx context.Context,
+		teamID string,
+	) (int64, error)
+	ListResourceTeams(
+		ctx context.Context,
+		resourceID string,
+	) ([]*ProfileTeam, error)
+	SetResourceTeams(
+		ctx context.Context,
+		resourceID string,
 		teamIDs []string,
 		idGenerator func() string,
 	) error
@@ -3649,6 +3666,16 @@ func (s *Service) ListProfileResources(
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, err)
 	}
 
+	// Populate teams for each resource
+	for _, r := range resources {
+		teams, teamsErr := s.repo.ListResourceTeams(ctx, r.ID)
+		if teamsErr == nil && teams != nil {
+			r.Teams = teams
+		} else {
+			r.Teams = []*ProfileTeam{}
+		}
+	}
+
 	// Determine if the current user can remove each resource
 	if userID != "" {
 		userInfo, userErr := s.repo.GetUserBriefInfo(ctx, userID)
@@ -3958,6 +3985,15 @@ func (s *Service) DeleteTeam(
 		return ErrCannotDeleteTeamWithMembers
 	}
 
+	resourceCount, err := s.repo.CountProfileTeamResources(ctx, teamID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if resourceCount > 0 {
+		return ErrCannotDeleteTeamWithResources
+	}
+
 	err = s.repo.DeleteProfileTeam(ctx, teamID)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToDeleteRecord, err)
@@ -3990,6 +4026,37 @@ func (s *Service) SetMembershipTeams(
 	idGen := func() string { return string(s.idGenerator()) }
 
 	err = s.repo.SetMembershipTeams(ctx, membershipID, teamIDs, idGen)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	return nil
+}
+
+// SetResourceTeams assigns teams to a resource. Requires maintainer access.
+func (s *Service) SetResourceTeams(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	resourceID string,
+	teamIDs []string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
+	}
+
+	idGen := func() string { return string(s.idGenerator()) }
+
+	err = s.repo.SetResourceTeams(ctx, resourceID, teamIDs, idGen)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}

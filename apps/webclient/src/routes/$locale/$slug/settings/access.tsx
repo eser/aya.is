@@ -730,14 +730,23 @@ function AccessSettingsPage() {
                   <span className="text-sm font-medium">{team.name}</span>
                   <span className={styles.teamMemberCount}>
                     {" "}&middot;{" "}{team.member_count}{" "}{team.member_count === 1 ? t("Profile.member") : t("Profile.members")}
+                    {" "}&middot;{" "}{team.resource_count}{" "}{team.resource_count === 1 ? t("Profile.resource") : t("Profile.resources")}
                   </span>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => handleDeleteTeam(team.id)}
-                  disabled={isTeamSaving || team.member_count > 0}
-                  title={team.member_count > 0 ? t("Profile.Cannot delete team with members") : undefined}
+                  disabled={isTeamSaving || team.member_count > 0 || team.resource_count > 0}
+                  title={
+                    team.member_count > 0 && team.resource_count > 0
+                      ? t("Profile.Cannot delete team with members and resources")
+                      : team.member_count > 0
+                        ? t("Profile.Cannot delete team with members")
+                        : team.resource_count > 0
+                          ? t("Profile.Cannot delete team with resources")
+                          : undefined
+                  }
                 >
                   <Trash2 className="size-4" />
                 </Button>

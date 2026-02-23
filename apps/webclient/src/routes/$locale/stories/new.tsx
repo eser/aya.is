@@ -26,6 +26,17 @@ function NewStoryPage() {
   // Get user's profile slug directly from auth context
   const userProfileSlug = auth.user?.individual_profile_slug ?? null;
 
+  // Fetch profile to get discussion default setting
+  const [discussionsByDefault, setDiscussionsByDefault] = React.useState(false);
+  React.useEffect(() => {
+    if (userProfileSlug === null) return;
+    backend.getProfile(params.locale, userProfileSlug).then((profile) => {
+      if (profile !== null && profile.option_story_discussions_by_default === true) {
+        setDiscussionsByDefault(true);
+      }
+    });
+  }, [params.locale, userProfileSlug]);
+
   if (auth.isLoading) {
     return (
       <PageLayout fullHeight>
@@ -106,6 +117,7 @@ function NewStoryPage() {
     storyPictureUri: null,
     kind: "article",
     visibility: "public",
+    featDiscussions: discussionsByDefault,
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -117,6 +129,7 @@ function NewStoryPage() {
       content: data.content,
       story_picture_uri: data.storyPictureUri,
       visibility: data.visibility ?? "public",
+      feat_discussions: data.featDiscussions,
     });
 
     if (result !== null) {
@@ -137,7 +150,7 @@ function NewStoryPage() {
   return (
     <PageLayout fullHeight>
       <ContentEditor
-        key={contentLocale}
+        key={`${contentLocale}-${discussionsByDefault}`}
         locale={contentLocale}
         profileSlug={userProfileSlug}
         contentType="story"
