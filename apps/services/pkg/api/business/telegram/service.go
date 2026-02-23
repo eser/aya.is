@@ -384,6 +384,81 @@ func (s *Service) ConsumeGroupInviteCode(ctx context.Context, code string) error
 	return nil
 }
 
+// GenerateGroupRegisterCode creates a short code for the Telegram group registration flow.
+// Called by the bot when a group admin types /register in a group chat.
+func (s *Service) GenerateGroupRegisterCode(
+	ctx context.Context,
+	chatID int64,
+	chatTitle string,
+	telegramUserID int64,
+) (string, error) {
+	code, err := generateCode()
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
+	}
+
+	now := time.Now()
+
+	externalCode := &ExternalCode{
+		ID:             s.idGenerator(),
+		Code:           code,
+		ExternalSystem: "telegram",
+		Properties: map[string]any{
+			"kind":                        "group_register",
+			"telegram_chat_id":            chatID,
+			"telegram_chat_title":         chatTitle,
+			"created_by_telegram_user_id": telegramUserID,
+		},
+		CreatedAt:  now,
+		ExpiresAt:  now.Add(CodeExpiryMinutes * time.Minute),
+		ConsumedAt: nil,
+	}
+
+	err = s.repo.CreateExternalCode(ctx, externalCode)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
+	}
+
+	s.logger.DebugContext(ctx, "Group register code generated",
+		slog.Int64("chat_id", chatID),
+		slog.String("chat_title", chatTitle),
+		slog.Int64("telegram_user_id", telegramUserID))
+
+	return code, nil
+}
+
+// ResolveGroupRegisterCode looks up a group register code and returns its data if valid.
+// Validates the code kind is "group_register". Does NOT consume the code.
+func (s *Service) ResolveGroupRegisterCode(
+	ctx context.Context,
+	code string,
+) (*GroupRegisterCodeData, error) {
+	externalCode, err := s.repo.GetExternalCodeByCode(ctx, code)
+	if err != nil {
+		return nil, ErrCodeNotFound
+	}
+
+	kind := getStringProp(externalCode.Properties, "kind")
+	if kind != "group_register" {
+		return nil, ErrCodeNotFound
+	}
+
+	return &GroupRegisterCodeData{
+		ChatID:    getInt64Prop(externalCode.Properties, "telegram_chat_id"),
+		ChatTitle: getStringProp(externalCode.Properties, "telegram_chat_title"),
+	}, nil
+}
+
+// ConsumeGroupRegisterCode marks a register code as consumed after resource creation.
+func (s *Service) ConsumeGroupRegisterCode(ctx context.Context, code string) error {
+	err := s.repo.ConsumeExternalCode(ctx, code)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrCodeConsumed, err)
+	}
+
+	return nil
+}
+
 // generateCode creates a random code using crypto/rand.
 func generateCode() (string, error) {
 	randomBytes := make([]byte, CodeLength)

@@ -56,6 +56,7 @@ import { listProfileResources } from "./profiles/list-profile-resources";
 import { createProfileResource } from "./profiles/create-profile-resource";
 import { deleteProfileResource } from "./profiles/delete-profile-resource";
 import { listGitHubRepos } from "./profiles/list-github-repos";
+import { verifyTelegramRegisterCode } from "./profiles/verify-telegram-register-code";
 import { listProfilePointTransactions } from "./profile-points/list-profile-point-transactions";
 import { listProfileEnvelopes } from "./profile-envelopes/list-profile-envelopes";
 import { acceptProfileEnvelope } from "./profile-envelopes/accept-profile-envelope";
@@ -215,6 +216,7 @@ export const backend = {
   createProfileResource,
   deleteProfileResource,
   listGitHubRepos,
+  verifyTelegramRegisterCode,
 
   // Profile Memberships
   listProfileMemberships,
@@ -413,6 +415,7 @@ export {
   createProfileResource,
   deleteProfileResource,
   listGitHubRepos,
+  verifyTelegramRegisterCode,
   addProfileMembership,
   deleteProfileMembership,
   searchUsersForMembership,

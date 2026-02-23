@@ -33,7 +33,7 @@
 }
 
 .filterTabs {
-  @apply flex items-center gap-1 mb-4;
+  @apply flex items-center gap-1;
 }
 
 .filterTab {

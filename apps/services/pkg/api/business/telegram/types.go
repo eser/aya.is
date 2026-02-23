@@ -51,6 +51,12 @@ type GroupTelegramLink struct {
 	LinkPublicID string
 }
 
+// GroupRegisterCodeData contains the resolved data from a group registration code.
+type GroupRegisterCodeData struct {
+	ChatID    int64
+	ChatTitle string
+}
+
 // CreateProfileLinkParams contains parameters for creating a telegram profile link.
 type CreateProfileLinkParams struct {
 	ID               string

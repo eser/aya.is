@@ -8,6 +8,7 @@ import {
   type ProfileTeam,
   type GitHubRepo,
 } from "@/modules/backend/backend";
+import { GitHub, Telegram } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +38,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronDown, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronDown, CircleCheck, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { siteConfig } from "@/config";
+import { Spinner } from "@/components/ui/spinner";
 import styles from "./resources.module.css";
 
 export const Route = createFileRoute("/$locale/$slug/settings/resources")({
@@ -60,11 +63,13 @@ function ResourcesSettings() {
   const [selectedRepoIds, setSelectedRepoIds] = React.useState<Set<string>>(new Set());
   const [addingRepos, setAddingRepos] = React.useState(false);
 
-  // Telegram Group form state
-  const [telegramTitle, setTelegramTitle] = React.useState("");
-  const [telegramUrl, setTelegramUrl] = React.useState("");
-  const [telegramDescription, setTelegramDescription] = React.useState("");
-  const [addingTelegram, setAddingTelegram] = React.useState(false);
+  // Telegram Group registration state
+  const [telegramRegisterCode, setTelegramRegisterCode] = React.useState("");
+  const [isVerifyingRegisterCode, setIsVerifyingRegisterCode] = React.useState(false);
+  const [telegramRegisterStatus, setTelegramRegisterStatus] = React.useState<
+    "idle" | "registered" | "error"
+  >("idle");
+  const [telegramRegisterError, setTelegramRegisterError] = React.useState("");
 
   // Edit resource teams dialog state
   const [editTarget, setEditTarget] = React.useState<ProfileResource | null>(null);
@@ -161,30 +166,34 @@ function ResourcesSettings() {
   // Telegram dialog handlers
   const handleOpenAddTelegramDialog = () => {
     setIsAddTelegramDialogOpen(true);
-    setTelegramTitle("");
-    setTelegramUrl("");
-    setTelegramDescription("");
+    setTelegramRegisterCode("");
+    setTelegramRegisterStatus("idle");
+    setTelegramRegisterError("");
   };
 
-  const handleAddTelegramGroup = async () => {
-    if (telegramTitle.trim() === "" || telegramUrl.trim() === "") return;
+  const handleVerifyRegisterCode = async () => {
+    const code = telegramRegisterCode.trim().toUpperCase();
+    if (code === "") return;
 
-    setAddingTelegram(true);
-    const result = await backend.createProfileResource(params.locale, params.slug, {
-      kind: "telegram_group",
-      url: telegramUrl.trim(),
-      title: telegramTitle.trim(),
-      description: telegramDescription.trim() === "" ? null : telegramDescription.trim(),
-    });
+    setIsVerifyingRegisterCode(true);
+    setTelegramRegisterError("");
+
+    const result = await backend.verifyTelegramRegisterCode(
+      params.locale,
+      params.slug,
+      code,
+    );
 
     if (result !== null) {
-      toast.success(t("Profile.Telegram group added successfully"));
-      setIsAddTelegramDialogOpen(false);
+      setTelegramRegisterStatus("registered");
       await loadResources();
     } else {
-      toast.error(t("Profile.Failed to add resource"));
+      setTelegramRegisterStatus("error");
+      setTelegramRegisterError(
+        t("Profile.Invalid or expired registration code"),
+      );
     }
-    setAddingTelegram(false);
+    setIsVerifyingRegisterCode(false);
   };
 
   // Delete handler
@@ -320,9 +329,11 @@ function ResourcesSettings() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-auto">
             <DropdownMenuItem onClick={() => handleOpenAddGitHubDialog()}>
+              <GitHub className="size-4 mr-2" />
               {t("Profile.Add GitHub Repository")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleOpenAddTelegramDialog()}>
+              <Telegram className="size-4 mr-2" />
               {t("Profile.Add Telegram Group")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -534,52 +545,126 @@ function ResourcesSettings() {
       </Dialog>
 
       {/* Add Telegram Group Dialog */}
-      <Dialog open={isAddTelegramDialogOpen} onOpenChange={setIsAddTelegramDialogOpen}>
-        <DialogContent>
+      <Dialog open={isAddTelegramDialogOpen} onOpenChange={(open) => {
+        if (!open && !isVerifyingRegisterCode) {
+          setIsAddTelegramDialogOpen(false);
+        }
+      }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Telegram className="size-5" />
               {t("Profile.Add Telegram Group")}
             </DialogTitle>
+            <DialogDescription>
+              {t("Profile.Register your Telegram group as a resource via our bot.")}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t("Common.Title")}</label>
-              <Input
-                value={telegramTitle}
-                onChange={(e) => setTelegramTitle(e.target.value)}
-                placeholder={t("Common.Title")}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t("Profile.Telegram group URL")}</label>
-              <Input
-                value={telegramUrl}
-                onChange={(e) => setTelegramUrl(e.target.value)}
-                placeholder="https://t.me/groupname"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t("Common.Description")}</label>
-              <Input
-                value={telegramDescription}
-                onChange={(e) => setTelegramDescription(e.target.value)}
-                placeholder={t("Common.Description")}
-              />
-            </div>
-          </div>
+          <div className="py-4">
+            {telegramRegisterStatus === "registered" ? (
+              <div className="text-center py-6">
+                <div className="flex items-center justify-center mb-4">
+                  <CircleCheck className="size-12 text-green-600" />
+                </div>
+                <p className="text-lg font-medium text-foreground mb-2">
+                  {t("Profile.Telegram group registered!")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("Profile.Your Telegram group has been registered as a resource.")}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Step 1 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
+                      {t("Profile.Add AYA bot to your group")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.Add our bot to your Telegram group.")}
+                      {" "}
+                      <a
+                        href={`https://t.me/${siteConfig.telegramBotUsername}?startgroup=true`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline"
+                      >
+                        @{siteConfig.telegramBotUsername}
+                      </a>
+                    </p>
+                  </div>
+                </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddTelegramDialogOpen(false)}>
-              {t("Common.Cancel")}
-            </Button>
-            <Button
-              onClick={handleAddTelegramGroup}
-              disabled={addingTelegram || telegramTitle.trim() === "" || telegramUrl.trim() === ""}
-            >
-              {addingTelegram ? t("Common.Loading") : t("Profile.Add Telegram Group")}
-            </Button>
-          </DialogFooter>
+                {/* Step 2 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
+                      {t("Profile.Type /register in the group")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.A group administrator should type /register in the group chat. The bot will send a registration code via DM.")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
+                      {t("Profile.Paste registration code")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.Paste the code below and click Verify.")}
+                    </p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Input
+                        value={telegramRegisterCode}
+                        onChange={(e) => setTelegramRegisterCode(e.target.value)}
+                        placeholder={t("Profile.Enter registration code")}
+                        className="text-sm font-mono uppercase"
+                        maxLength={10}
+                        disabled={isVerifyingRegisterCode}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleVerifyRegisterCode();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={handleVerifyRegisterCode}
+                        disabled={isVerifyingRegisterCode || telegramRegisterCode.trim() === ""}
+                      >
+                        {isVerifyingRegisterCode
+                          ? <Spinner className="size-4" />
+                          : t("Profile.Verify")}
+                      </Button>
+                    </div>
+                    {telegramRegisterError !== "" && (
+                      <p className="text-sm text-destructive mt-2">
+                        {telegramRegisterError}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Expiry notice */}
+                <p className="text-xs text-muted-foreground">
+                  {t("Profile.The code expires in 10 minutes. If it expires, type /register again to get a new one.")}
+                </p>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

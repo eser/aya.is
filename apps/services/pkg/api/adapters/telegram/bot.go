@@ -51,11 +51,15 @@ func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclo
 		return
 	}
 
-	// Handle group commands (only /invite is allowed in groups)
+	// Handle group commands (/invite and /register are allowed in groups)
 	if msg.Chat.Type == "group" || msg.Chat.Type == "supergroup" {
 		text := strings.TrimSpace(msg.Text)
-		if text == "/invite" || strings.HasPrefix(text, "/invite@") {
+
+		switch {
+		case text == "/invite" || strings.HasPrefix(text, "/invite@"):
 			b.handleGroupInvite(ctx, msg)
+		case text == "/register" || strings.HasPrefix(text, "/register@"):
+			b.handleGroupRegister(ctx, msg)
 		}
 
 		return
@@ -141,6 +145,7 @@ func (b *Bot) handleHelp(ctx context.Context, msg *Message) {
 		"/status — Check your linked AYA profile\n" +
 		"/groups — List Telegram groups from your profiles\n" +
 		"/invite — Generate an invite code (use in a group chat)\n" +
+		"/register — Register a group as a resource (use in a group chat)\n" +
 		"/unlink — Disconnect your Telegram account from AYA\n" +
 		"/help — Show this help message"
 
@@ -328,6 +333,82 @@ func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
 	}
 
 	_ = b.client.SendMessage(ctx, msg.Chat.ID, "Invite code sent to your DM.")
+}
+
+func (b *Bot) handleGroupRegister(ctx context.Context, msg *Message) {
+	if msg.From == nil || msg.From.IsBot {
+		return
+	}
+
+	// Verify the user is a group administrator
+	member, memberErr := b.client.GetChatMember(ctx, msg.Chat.ID, msg.From.ID)
+	if memberErr != nil {
+		b.logger.WarnContext(ctx, "Failed to check group membership",
+			slog.Int64("chat_id", msg.Chat.ID),
+			slog.Int64("user_id", msg.From.ID),
+			slog.String("error", memberErr.Error()))
+
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Something went wrong while checking your permissions. Please try again later.")
+
+		return
+	}
+
+	if member.Status != "creator" && member.Status != "administrator" {
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Only group administrators can register this group.")
+
+		return
+	}
+
+	// Verify the user has a linked AYA profile
+	_, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
+	if err != nil {
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Please link your Telegram account first by sending /start to me in a DM.")
+
+		return
+	}
+
+	// Generate a group register code
+	code, codeErr := b.service.GenerateGroupRegisterCode(
+		ctx, msg.Chat.ID, msg.Chat.Title, msg.From.ID,
+	)
+	if codeErr != nil {
+		b.logger.WarnContext(ctx, "Failed to generate group register code",
+			slog.Int64("chat_id", msg.Chat.ID),
+			slog.Int64("telegram_user_id", msg.From.ID),
+			slog.String("error", codeErr.Error()))
+
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Something went wrong. Please try again later.")
+
+		return
+	}
+
+	// DM the code to the user
+	dmText := fmt.Sprintf(
+		"Your group registration code for <b>%s</b> is:\n\n"+
+			"<code>%s</code>\n\n"+
+			"Go to your organization's settings on <b>aya.is</b> → Resources → "+
+			"<b>Add Telegram Group</b>, and paste this code.\n\n"+
+			"This code expires in 10 minutes.",
+		msg.Chat.Title,
+		code,
+	)
+
+	dmErr := b.client.SendMessage(ctx, msg.From.ID, dmText)
+	if dmErr != nil {
+		_ = b.client.SendMessage(
+			ctx,
+			msg.Chat.ID,
+			"I couldn't send you a DM. Please start a chat with me first by sending /start in a DM.",
+		)
+
+		return
+	}
+
+	_ = b.client.SendMessage(ctx, msg.Chat.ID, "Registration code sent to your DM.")
 }
 
 func (b *Bot) handleUnknown(ctx context.Context, msg *Message) {
