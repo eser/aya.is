@@ -3752,7 +3752,7 @@ type Querier interface {
 	//    story_picture_uri = $2,
 	//    properties = $3,
 	//    visibility = $4,
-	//    feat_discussions = $5,
+	//    feat_discussions = COALESCE($5, feat_discussions),
 	//    updated_at = NOW()
 	//  WHERE id = $6
 	//    AND deleted_at IS NULL

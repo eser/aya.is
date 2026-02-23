@@ -22,5 +22,6 @@ export async function listProfileMemberships(
   );
 
   if (!response.ok) return null;
-  return await response.json();
+  const result = await response.json();
+  return result.data ?? null;
 }

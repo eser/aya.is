@@ -254,7 +254,7 @@ type Repository interface {
 		storyPictureURI *string,
 		properties map[string]any,
 		visibility string,
-		featDiscussions bool,
+		featDiscussions *bool,
 	) error
 	UpdateStoryTx(
 		ctx context.Context,
@@ -918,7 +918,7 @@ func (s *Service) Update(
 	storyPictureURI *string,
 	properties map[string]any,
 	visibility string,
-	featDiscussions bool,
+	featDiscussions *bool,
 ) (*StoryForEdit, error) {
 	// Check authorization
 	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)

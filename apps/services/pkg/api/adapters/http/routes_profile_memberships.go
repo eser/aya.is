@@ -79,7 +79,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				memberships = []*profiles.ProfileMembershipWithMember{}
 			}
 
-			return ctx.Results.JSON(memberships)
+			return ctx.Results.JSON(map[string]any{
+				"data":  memberships,
+				"error": nil,
+			})
 		},
 	).HasDescription("List profile memberships for settings page")
 
@@ -104,7 +107,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 			query := ctx.Request.URL.Query().Get("q")
 
 			if query == "" {
-				return ctx.Results.JSON([]any{})
+				return ctx.Results.JSON(map[string]any{
+					"data":  []any{},
+					"error": nil,
+				})
 			}
 
 			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
@@ -143,7 +149,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			return ctx.Results.JSON(results)
+			return ctx.Results.JSON(map[string]any{
+				"data":  results,
+				"error": nil,
+			})
 		},
 	).HasDescription("Search users for adding as profile members")
 
@@ -215,7 +224,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
 			}
 
-			return ctx.Results.JSON(map[string]string{"status": "ok"})
+			return ctx.Results.JSON(map[string]any{
+				"data":  map[string]string{"status": "ok"},
+				"error": nil,
+			})
 		},
 	).HasDescription("Add a new membership to a profile")
 
@@ -289,7 +301,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
 			}
 
-			return ctx.Results.JSON(map[string]string{"status": "ok"})
+			return ctx.Results.JSON(map[string]any{
+				"data":  map[string]string{"status": "ok"},
+				"error": nil,
+			})
 		},
 	).HasDescription("Update a membership's access level")
 
@@ -348,7 +363,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
 			}
 
-			return ctx.Results.JSON(map[string]string{"status": "ok"})
+			return ctx.Results.JSON(map[string]any{
+				"data":  map[string]string{"status": "ok"},
+				"error": nil,
+			})
 		},
 	).HasDescription("Delete a membership from a profile")
 
@@ -400,7 +418,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			return ctx.Results.JSON(map[string]string{"status": "ok"})
+			return ctx.Results.JSON(map[string]any{
+				"data":  map[string]string{"status": "ok"},
+				"error": nil,
+			})
 		},
 	).HasDescription("Follow a profile")
 
@@ -454,7 +475,10 @@ func RegisterHTTPRoutesForProfileMemberships(
 				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
 			}
 
-			return ctx.Results.JSON(map[string]string{"status": "ok"})
+			return ctx.Results.JSON(map[string]any{
+				"data":  map[string]string{"status": "ok"},
+				"error": nil,
+			})
 		},
 	).HasDescription("Unfollow a profile")
 }

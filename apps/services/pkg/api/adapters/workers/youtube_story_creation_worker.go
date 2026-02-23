@@ -60,7 +60,7 @@ type storyCreationRepo interface {
 		storyPictureURI *string,
 		properties map[string]any,
 		visibility string,
-		featDiscussions bool,
+		featDiscussions *bool,
 	) error
 	UpsertStoryTx(
 		ctx context.Context,
@@ -364,7 +364,7 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 	}
 
 	// Update story (slug + picture)
-	err := w.storyRepo.UpdateStory(ctx, imp.StoryID, slug, storyPictureURI, nil, "public", false)
+	err := w.storyRepo.UpdateStory(ctx, imp.StoryID, slug, storyPictureURI, nil, "public", nil)
 	if err != nil {
 		return fmt.Errorf("failed to update story: %w", err)
 	}

@@ -522,7 +522,7 @@ func (r *Repository) UpdateStory(
 	storyPictureURI *string,
 	properties map[string]any,
 	visibility string,
-	featDiscussions bool,
+	featDiscussions *bool,
 ) error {
 	params := UpdateStoryParams{
 		ID:              id,
@@ -530,7 +530,7 @@ func (r *Repository) UpdateStory(
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
 		Properties:      vars.ToSQLNullRawMessage(properties),
 		Visibility:      visibility,
-		FeatDiscussions: featDiscussions,
+		FeatDiscussions: vars.ToSQLNullBool(featDiscussions),
 	}
 
 	_, err := r.queries.UpdateStory(ctx, params)

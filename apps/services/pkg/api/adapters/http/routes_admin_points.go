@@ -69,7 +69,10 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				return ctx.Results.JSON(awards)
+				return ctx.Results.JSON(map[string]any{
+					"data":  awards,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("List pending point awards").
@@ -111,7 +114,10 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				return ctx.Results.JSON(award)
+				return ctx.Results.JSON(map[string]any{
+					"data":  award,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("Get pending point award").
@@ -162,7 +168,10 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				return ctx.Results.JSON(tx)
+				return ctx.Results.JSON(map[string]any{
+					"data":  tx,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("Approve pending point award").
@@ -225,8 +234,9 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				return ctx.Results.JSON(map[string]string{
-					"status": "rejected",
+				return ctx.Results.JSON(map[string]any{
+					"data":  map[string]string{"status": "rejected"},
+					"error": nil,
 				})
 			},
 		).
@@ -267,7 +277,10 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				return ctx.Results.JSON(stats)
+				return ctx.Results.JSON(map[string]any{
+					"data":  stats,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("Get pending awards statistics").
@@ -348,7 +361,8 @@ func RegisterHTTPRoutesForAdminPoints(
 				}
 
 				return ctx.Results.JSON(map[string]any{
-					"results": results,
+					"data":  map[string]any{"results": results},
+					"error": nil,
 				})
 			},
 		).
@@ -432,7 +446,8 @@ func RegisterHTTPRoutesForAdminPoints(
 				}
 
 				return ctx.Results.JSON(map[string]any{
-					"results": results,
+					"data":  map[string]any{"results": results},
+					"error": nil,
 				})
 			},
 		).

@@ -14,7 +14,8 @@ import {
   Trash2,
 } from "lucide-react";
 import type { DiscussionComment } from "@/modules/backend/types";
-import { CommentMarkdown } from "./comment-markdown";
+import { MdxContent } from "@/components/userland/mdx-content";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CommentForm } from "./comment-form";
 import { CommentTree } from "./comment-tree";
 import styles from "./comment-card.module.css";
@@ -23,6 +24,7 @@ type CommentCardProps = {
   comment: DiscussionComment;
   locale: string;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   canModerate: boolean;
   isThreadLocked: boolean;
   profileSlug: string;
@@ -53,9 +55,9 @@ export function CommentCard(props: CommentCardProps) {
   const isHidden = props.comment.is_hidden;
   const isOwn = props.viewerProfileId !== null && props.comment.author_profile_id === props.viewerProfileId;
 
-  const formattedDate = new Date(props.comment.created_at).toLocaleDateString(
+  const formattedDate = new Date(props.comment.created_at).toLocaleString(
     props.locale,
-    { year: "numeric", month: "short", day: "numeric" },
+    { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" },
   );
 
   const handleUpvote = React.useCallback(async () => {
@@ -174,7 +176,24 @@ export function CommentCard(props: CommentCardProps) {
           {props.comment.is_edited && (
             <>
               <span className={styles.metaText}>&middot;</span>
-              <span className={styles.metaText}>{t("Discussions.edited")}</span>
+              <Popover>
+                <PopoverTrigger className={`${styles.metaText} cursor-pointer hover:underline`}>
+                  {t("Discussions.edited")}
+                </PopoverTrigger>
+                <PopoverContent side="top" className="w-auto px-3 py-2">
+                  <span className="text-xs text-muted-foreground">
+                    {props.comment.updated_at !== null
+                      ? new Date(props.comment.updated_at).toLocaleString(props.locale, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : ""}
+                  </span>
+                </PopoverContent>
+              </Popover>
             </>
           )}
           {props.comment.is_pinned && (
@@ -222,9 +241,20 @@ export function CommentCard(props: CommentCardProps) {
                   </div>
                 </form>
               )
-              : (
-                <CommentMarkdown content={props.comment.content} className={styles.commentContent} />
-              )}
+              : props.comment.compiledContent !== undefined && props.comment.compiledContent !== null
+                ? (
+                  <MdxContent
+                    compiledSource={props.comment.compiledContent}
+                    className={styles.commentContent}
+                    headingOffset={3}
+                    includeUserlandComponents={false}
+                  />
+                )
+                : (
+                  <p className={styles.commentContent} style={{ whiteSpace: "pre-wrap" }}>
+                    {props.comment.content}
+                  </p>
+                )}
 
         {/* Actions bar */}
         {!isDeleted && (
@@ -253,19 +283,7 @@ export function CommentCard(props: CommentCardProps) {
               </button>
             )}
 
-            {/* Delete (own or moderator) */}
-            {(isOwn || props.canModerate) && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className={styles.actionButton}
-              >
-                <Trash2 className="size-3" />
-                {t("Discussions.Delete")}
-              </button>
-            )}
-
-            {/* Moderator actions */}
+            {/* Moderator/admin actions (more menu) */}
             {props.canModerate && (
               <div className="relative">
                 <button
@@ -295,6 +313,16 @@ export function CommentCard(props: CommentCardProps) {
                         ? <><PinOff className="size-3" /> {t("Discussions.Unpin")}</>
                         : <><Pin className="size-3" /> {t("Discussions.Pin")}</>}
                     </button>
+                    {props.isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => { handleDelete(); setShowMoreActions(false); }}
+                        className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left text-destructive hover:bg-accent transition-colors"
+                      >
+                        <Trash2 className="size-3" />
+                        {t("Discussions.Delete")}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -322,6 +350,7 @@ export function CommentCard(props: CommentCardProps) {
                 comments={children}
                 locale={props.locale}
                 isAuthenticated={props.isAuthenticated}
+                isAdmin={props.isAdmin}
                 canModerate={props.canModerate}
                 isThreadLocked={props.isThreadLocked}
                 profileSlug={props.profileSlug}

@@ -86,7 +86,10 @@ func RegisterHTTPRoutesForAdminProfiles(
 					)
 				}
 
-				return ctx.Results.JSON(result)
+				return ctx.Results.JSON(map[string]any{
+					"data":  result,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("List all profiles").
@@ -141,7 +144,10 @@ func RegisterHTTPRoutesForAdminProfiles(
 					)
 				}
 
-				return ctx.Results.JSON(profile)
+				return ctx.Results.JSON(map[string]any{
+					"data":  profile,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("Get profile by slug").
@@ -247,7 +253,10 @@ func RegisterHTTPRoutesForAdminProfiles(
 					)
 				}
 
-				return ctx.Results.JSON(tx)
+				return ctx.Results.JSON(map[string]any{
+					"data":  tx,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("Add points to profile").

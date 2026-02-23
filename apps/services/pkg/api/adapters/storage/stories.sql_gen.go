@@ -2159,7 +2159,7 @@ SET
   story_picture_uri = $2,
   properties = $3,
   visibility = $4,
-  feat_discussions = $5,
+  feat_discussions = COALESCE($5, feat_discussions),
   updated_at = NOW()
 WHERE id = $6
   AND deleted_at IS NULL
@@ -2170,7 +2170,7 @@ type UpdateStoryParams struct {
 	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	Visibility      string                `db:"visibility" json:"visibility"`
-	FeatDiscussions bool                  `db:"feat_discussions" json:"feat_discussions"`
+	FeatDiscussions sql.NullBool          `db:"feat_discussions" json:"feat_discussions"`
 	ID              string                `db:"id" json:"id"`
 }
 
@@ -2182,7 +2182,7 @@ type UpdateStoryParams struct {
 //	  story_picture_uri = $2,
 //	  properties = $3,
 //	  visibility = $4,
-//	  feat_discussions = $5,
+//	  feat_discussions = COALESCE($5, feat_discussions),
 //	  updated_at = NOW()
 //	WHERE id = $6
 //	  AND deleted_at IS NULL

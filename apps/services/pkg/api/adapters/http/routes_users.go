@@ -43,7 +43,10 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 					)
 				}
 
-				return ctx.Results.JSON(records)
+				return ctx.Results.JSON(map[string]any{
+					"data":  records,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("List users").
@@ -201,8 +204,11 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 
 				// Set JWT as cookie or return in response
 				return ctx.Results.JSON(map[string]any{
-					"token": result.JWT,
-					"user":  result.User,
+					"data": map[string]any{
+						"token": result.JWT,
+						"user":  result.User,
+					},
+					"error": nil,
 				})
 			},
 		).
@@ -218,7 +224,10 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				// No session to logout, just clear cookie and return success
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
-				return ctx.Results.JSON(map[string]string{"status": "logged out"})
+				return ctx.Results.JSON(map[string]any{
+					"data":  map[string]string{"status": "logged out"},
+					"error": nil,
+				})
 			}
 
 			// Logout session: invalidate old, create new anonymous with same preferences
@@ -230,7 +239,10 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				// Still clear the cookie even if logout fails
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 
-				return ctx.Results.JSON(map[string]string{"status": "logged out"})
+				return ctx.Results.JSON(map[string]any{
+					"data":  map[string]string{"status": "logged out"},
+					"error": nil,
+				})
 			}
 
 			// Set new session cookie
@@ -242,7 +254,10 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				authService.Config,
 			)
 
-			return ctx.Results.JSON(map[string]string{"status": "logged out"})
+			return ctx.Results.JSON(map[string]any{
+				"data":  map[string]string{"status": "logged out"},
+				"error": nil,
+			})
 		}).
 		HasSummary("Logout").
 		HasDescription("Logs out the user and creates a new anonymous session.").
@@ -275,8 +290,11 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			}
 
 			return ctx.Results.JSON(map[string]any{
-				"token":     result.JWT,
-				"expiresAt": result.ExpiresAt.Unix(),
+				"data": map[string]any{
+					"token":     result.JWT,
+					"expiresAt": result.ExpiresAt.Unix(),
+				},
+				"error": nil,
 			})
 		}).
 		HasSummary("Refresh Token").

@@ -103,7 +103,10 @@ func RegisterHTTPRoutesForAdminWorkers(
 					return strings.Compare(a.Name, b.Name)
 				})
 
-				return ctx.Results.JSON(response)
+				return ctx.Results.JSON(map[string]any{
+					"data":  response,
+					"error": nil,
+				})
 			},
 		).
 		HasSummary("List all workers").
@@ -163,8 +166,11 @@ func RegisterHTTPRoutesForAdminWorkers(
 				}
 
 				return ctx.Results.JSON(map[string]any{
-					"name":       name,
-					"is_enabled": isEnabled,
+					"data": map[string]any{
+						"name":       name,
+						"is_enabled": isEnabled,
+					},
+					"error": nil,
 				})
 			},
 		).
@@ -224,8 +230,11 @@ func RegisterHTTPRoutesForAdminWorkers(
 				)
 
 				return ctx.Results.JSON(map[string]any{
-					"name":      name,
-					"triggered": true,
+					"data": map[string]any{
+						"name":      name,
+						"triggered": true,
+					},
+					"error": nil,
 				})
 			},
 		).

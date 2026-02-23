@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Lock, Unlock } from "lucide-react";
+import { Lock, MoreHorizontal, Unlock } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { backend } from "@/modules/backend/backend";
 import type {
@@ -28,6 +28,7 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   const [sortMode, setSortMode] = React.useState<DiscussionSortMode>("hot");
   const [isLoading, setIsLoading] = React.useState(true);
   const [hasLoaded, setHasLoaded] = React.useState(false);
+  const [showHeaderMenu, setShowHeaderMenu] = React.useState(false);
 
   // Fetch discussion data
   const fetchDiscussion = React.useCallback(async (sort: DiscussionSortMode) => {
@@ -41,7 +42,8 @@ export function DiscussionThread(props: DiscussionThreadProps) {
 
       if (data !== null && data !== undefined) {
         setThread(data.thread);
-        setComments(data.comments);
+        const compiled = await compileCommentsBatch(data.comments);
+        setComments(compiled);
       }
     } catch {
       // API error (500, network failure, etc.) — silently fail and show empty state
@@ -87,6 +89,7 @@ export function DiscussionThread(props: DiscussionThreadProps) {
     return false;
   }, [auth.isAuthenticated, auth.user, props.profileId]);
 
+  const isAdmin = auth.isAuthenticated && auth.user !== null && auth.user.kind === "admin";
   const viewerProfileId = auth.user?.individual_profile?.id ?? null;
   const isLocked = thread !== null && thread.is_locked;
   const targetSlug = props.profileSlug ?? "";
@@ -120,7 +123,8 @@ export function DiscussionThread(props: DiscussionThreadProps) {
         enriched.author_profile_title = auth.user.individual_profile.title;
         enriched.author_profile_picture_uri = auth.user.individual_profile.profile_picture_uri ?? null;
       }
-      setComments((prev) => [enriched, ...prev]);
+      const compiled = await compileOneComment(enriched);
+      setComments((prev) => [compiled, ...prev]);
       if (thread !== null) {
         setThread({ ...thread, comment_count: thread.comment_count + 1 });
       }
@@ -163,7 +167,8 @@ export function DiscussionThread(props: DiscussionThreadProps) {
       if (thread !== null) {
         setThread({ ...thread, comment_count: thread.comment_count + 1 });
       }
-      return enriched;
+      const compiled = await compileOneComment(enriched);
+      return compiled;
     }
     return null;
   }, [props.storySlug, props.profileSlug, props.locale, auth.user, thread]);
@@ -202,10 +207,17 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   const handleEdit = React.useCallback(async (commentId: string, content: string) => {
     const result = await backend.editDiscussionComment(props.locale, commentId, { content });
     if (result !== null) {
+      let compiledContent: string | null = null;
+      try {
+        const { compileMdx } = await import("@/lib/mdx");
+        compiledContent = await compileMdx(content);
+      } catch {
+        // Fall back to plain text
+      }
       setComments((prev) =>
         prev.map((c) => {
           if (c.id === commentId) {
-            return { ...c, content, is_edited: true };
+            return { ...c, content, is_edited: true, compiledContent };
           }
           return c;
         })
@@ -282,7 +294,8 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   const handleLoadReplies = React.useCallback(async (commentId: string): Promise<DiscussionComment[]> => {
     const data = await backend.getCommentReplies(props.locale, commentId);
     if (data !== null) {
-      return data.comments;
+      const compiled = await compileCommentsBatch(data.comments);
+      return compiled;
     }
     return [];
   }, [props.locale]);
@@ -330,17 +343,30 @@ export function DiscussionThread(props: DiscussionThreadProps) {
             </div>
           )}
 
-          {/* Lock/unlock button for moderators */}
+          {/* Moderator actions menu */}
           {canModerate && thread !== null && (
-            <button
-              type="button"
-              onClick={handleLockToggle}
-              className={styles.lockButton}
-            >
-              {isLocked
-                ? <><Unlock className="size-3.5" /> {t("Discussions.Unlock thread")}</>
-                : <><Lock className="size-3.5" /> {t("Discussions.Lock thread")}</>}
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+                className={styles.lockButton}
+              >
+                <MoreHorizontal className="size-4" />
+              </button>
+              {showHeaderMenu && (
+                <div className="absolute right-0 top-8 z-10 bg-popover border rounded-md shadow-md py-1 min-w-[180px]">
+                  <button
+                    type="button"
+                    onClick={() => { handleLockToggle(); setShowHeaderMenu(false); }}
+                    className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-accent transition-colors"
+                  >
+                    {isLocked
+                      ? <><Unlock className="size-3.5" /> {t("Discussions.Unlock thread")}</>
+                      : <><Lock className="size-3.5" /> {t("Discussions.Lock thread")}</>}
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -379,6 +405,7 @@ export function DiscussionThread(props: DiscussionThreadProps) {
             comments={comments}
             locale={props.locale}
             isAuthenticated={auth.isAuthenticated}
+            isAdmin={isAdmin}
             canModerate={canModerate}
             isThreadLocked={isLocked}
             profileSlug={targetSlug}
@@ -404,6 +431,44 @@ export function DiscussionThread(props: DiscussionThreadProps) {
         )}
     </div>
   );
+}
+
+/**
+ * Pre-compile MDX content for a batch of comments.
+ * Uses dynamic import to keep the MDX compiler out of the initial bundle.
+ */
+async function compileCommentsBatch(comments: DiscussionComment[]): Promise<DiscussionComment[]> {
+  try {
+    const { compileMdx } = await import("@/lib/mdx");
+    return await Promise.all(
+      comments.map(async (comment) => {
+        if (comment.content === "") {
+          return { ...comment, compiledContent: null };
+        }
+        try {
+          const compiledContent = await compileMdx(comment.content);
+          return { ...comment, compiledContent };
+        } catch {
+          return { ...comment, compiledContent: null };
+        }
+      }),
+    );
+  } catch {
+    return comments;
+  }
+}
+
+async function compileOneComment(comment: DiscussionComment): Promise<DiscussionComment> {
+  if (comment.content === "") {
+    return { ...comment, compiledContent: null };
+  }
+  try {
+    const { compileMdx } = await import("@/lib/mdx");
+    const compiledContent = await compileMdx(comment.content);
+    return { ...comment, compiledContent };
+  } catch {
+    return { ...comment, compiledContent: null };
+  }
 }
 
 /**

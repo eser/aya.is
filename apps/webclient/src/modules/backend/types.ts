@@ -708,6 +708,8 @@ export interface DiscussionComment {
   viewer_vote_direction: number;
   created_at: string;
   updated_at: string | null;
+  /** Frontend-only: pre-compiled MDX source, set at fetch time */
+  compiledContent?: string | null;
 }
 
 export interface DiscussionListResponse {

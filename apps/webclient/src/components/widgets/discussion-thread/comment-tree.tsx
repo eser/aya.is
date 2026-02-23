@@ -6,6 +6,7 @@ type CommentTreeProps = {
   comments: DiscussionComment[];
   locale: string;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   canModerate: boolean;
   isThreadLocked: boolean;
   profileSlug: string;
@@ -31,6 +32,7 @@ export function CommentTree(props: CommentTreeProps) {
           comment={comment}
           locale={props.locale}
           isAuthenticated={props.isAuthenticated}
+          isAdmin={props.isAdmin}
           canModerate={props.canModerate}
           isThreadLocked={props.isThreadLocked}
           profileSlug={props.profileSlug}

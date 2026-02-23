@@ -153,7 +153,7 @@ SET
   story_picture_uri = sqlc.narg(story_picture_uri),
   properties = sqlc.narg(properties),
   visibility = sqlc.arg(visibility),
-  feat_discussions = sqlc.arg(feat_discussions),
+  feat_discussions = COALESCE(sqlc.narg(feat_discussions), feat_discussions),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
