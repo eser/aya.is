@@ -135,7 +135,7 @@ func (p *Provider) fetchAndParseFile(
 	}
 
 	if body != "" {
-		props["content"] = body
+		props["content"] = SanitizeContent(body)
 	}
 
 	if fm.Slug != "" {
