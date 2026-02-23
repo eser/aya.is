@@ -62,10 +62,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			return ctx.Results.JSON(map[string]any{
-				"data":  records,
-				"error": nil,
-			})
+			return ctx.Results.JSON(records)
 		}).
 		HasSummary("List profiles").
 		HasDescription("List profiles.").
@@ -336,10 +333,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			return ctx.Results.JSON(map[string]any{
-				"data":  records,
-				"error": nil,
-			})
+			return ctx.Results.JSON(records)
 		}).
 		HasSummary("List stories published to profile slug").
 		HasDescription("List stories published to profile slug.").
@@ -373,10 +367,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					)
 				}
 
-				return ctx.Results.JSON(map[string]any{
-					"data":  records,
-					"error": nil,
-				})
+				return ctx.Results.JSON(records)
 			},
 		).
 		HasSummary("List stories authored by profile slug").
