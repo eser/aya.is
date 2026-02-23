@@ -1,6 +1,7 @@
 package externalsite
 
 import (
+	"path"
 	"regexp"
 	"strings"
 )
@@ -130,4 +131,69 @@ func SanitizeContent(content string) string {
 	result = regexp.MustCompile(`\n{3,}`).ReplaceAllString(result, "\n\n")
 
 	return strings.TrimSpace(result)
+}
+
+// Patterns for image references in markdown.
+var (
+	// Matches markdown images: ![alt](url).
+	reMarkdownImage = regexp.MustCompile(`(!\[[^\]]*\]\()([^)]+)(\))`)
+
+	// Matches HTML img tags: <img ... src="url" ...>.
+	reHTMLImgSrc = regexp.MustCompile(`(<img\s[^>]*?src=")([^"]+)("[^>]*>)`)
+)
+
+// ResolveRelativeImages rewrites relative image paths in markdown content
+// to absolute raw.githubusercontent.com URLs.
+//
+// Parameters:
+//   - content: the markdown body
+//   - ownerRepo: e.g. "Ardakilic/arda.pw"
+//   - branch: e.g. "master"
+//   - filePath: the source file path in the repo, e.g. "content/posts/my-post/index.md"
+func ResolveRelativeImages(content, ownerRepo, branch, filePath string) string {
+	fileDir := path.Dir(filePath) // e.g. "content/posts/my-post"
+	baseURL := "https://raw.githubusercontent.com/" + ownerRepo + "/" + branch + "/"
+
+	resolver := func(imageURL string) string {
+		// Skip absolute URLs and protocol-relative URLs
+		if strings.HasPrefix(imageURL, "http://") ||
+			strings.HasPrefix(imageURL, "https://") ||
+			strings.HasPrefix(imageURL, "//") {
+			return imageURL
+		}
+
+		// Skip data URIs
+		if strings.HasPrefix(imageURL, "data:") {
+			return imageURL
+		}
+
+		// Resolve relative path against the file's directory
+		resolved := path.Join(fileDir, imageURL) // path.Join cleans ./  and ../
+
+		return baseURL + resolved
+	}
+
+	result := content
+
+	// Rewrite markdown images: ![alt](relative/path)
+	result = reMarkdownImage.ReplaceAllStringFunc(result, func(match string) string {
+		parts := reMarkdownImage.FindStringSubmatch(match)
+		if len(parts) < 4 {
+			return match
+		}
+
+		return parts[1] + resolver(parts[2]) + parts[3]
+	})
+
+	// Rewrite HTML img src: <img src="relative/path">
+	result = reHTMLImgSrc.ReplaceAllStringFunc(result, func(match string) string {
+		parts := reHTMLImgSrc.FindStringSubmatch(match)
+		if len(parts) < 4 {
+			return match
+		}
+
+		return parts[1] + resolver(parts[2]) + parts[3]
+	})
+
+	return result
 }

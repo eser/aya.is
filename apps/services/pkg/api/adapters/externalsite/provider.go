@@ -135,7 +135,8 @@ func (p *Provider) fetchAndParseFile(
 	}
 
 	if body != "" {
-		props["content"] = SanitizeContent(body)
+		sanitized := SanitizeContent(body)
+		props["content"] = ResolveRelativeImages(sanitized, ownerRepo, branch, filePath)
 	}
 
 	if fm.Slug != "" {

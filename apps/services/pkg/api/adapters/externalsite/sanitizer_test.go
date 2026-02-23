@@ -190,3 +190,98 @@ Final paragraph.`
 		t.Errorf("got:\n%s\n\nwant:\n%s", got, want)
 	}
 }
+
+func TestResolveRelativeImages(t *testing.T) {
+	t.Parallel()
+
+	ownerRepo := "Ardakilic/arda.pw"
+	branch := "master"
+	filePath := "content/posts/2014-03-26-laravel-4-iliskiler-uzerinden-etkin-filtreleme-ve-gruplama/index.md"
+
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "relative with dot-slash",
+			input: `![laravel logo](./images/laravel-logo.png)`,
+			want:  `![laravel logo](https://raw.githubusercontent.com/Ardakilic/arda.pw/master/content/posts/2014-03-26-laravel-4-iliskiler-uzerinden-etkin-filtreleme-ve-gruplama/images/laravel-logo.png)`,
+		},
+		{
+			name:  "relative without dot-slash",
+			input: `![](images/laravel-logo.png)`,
+			want:  `![](https://raw.githubusercontent.com/Ardakilic/arda.pw/master/content/posts/2014-03-26-laravel-4-iliskiler-uzerinden-etkin-filtreleme-ve-gruplama/images/laravel-logo.png)`,
+		},
+		{
+			name:  "parent directory reference",
+			input: `![photo](../shared/photo.jpg)`,
+			want:  `![photo](https://raw.githubusercontent.com/Ardakilic/arda.pw/master/content/posts/shared/photo.jpg)`,
+		},
+		{
+			name:  "absolute URL left unchanged",
+			input: `![logo](https://example.com/logo.png)`,
+			want:  `![logo](https://example.com/logo.png)`,
+		},
+		{
+			name:  "protocol-relative URL left unchanged",
+			input: `![logo](//cdn.example.com/logo.png)`,
+			want:  `![logo](//cdn.example.com/logo.png)`,
+		},
+		{
+			name:  "data URI left unchanged",
+			input: `![pixel](data:image/png;base64,abc)`,
+			want:  `![pixel](data:image/png;base64,abc)`,
+		},
+		{
+			name:  "html img tag",
+			input: `<img src="./images/photo.jpg" alt="photo">`,
+			want:  `<img src="https://raw.githubusercontent.com/Ardakilic/arda.pw/master/content/posts/2014-03-26-laravel-4-iliskiler-uzerinden-etkin-filtreleme-ve-gruplama/images/photo.jpg" alt="photo">`,
+		},
+		{
+			name: "mixed content with multiple images",
+			input: `Some text
+
+![first](./images/one.png)
+
+More text
+
+![second](./images/two.jpg)
+
+![external](https://example.com/img.png)`,
+			want: `Some text
+
+![first](https://raw.githubusercontent.com/Ardakilic/arda.pw/master/content/posts/2014-03-26-laravel-4-iliskiler-uzerinden-etkin-filtreleme-ve-gruplama/images/one.png)
+
+More text
+
+![second](https://raw.githubusercontent.com/Ardakilic/arda.pw/master/content/posts/2014-03-26-laravel-4-iliskiler-uzerinden-etkin-filtreleme-ve-gruplama/images/two.jpg)
+
+![external](https://example.com/img.png)`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := ResolveRelativeImages(tt.input, ownerRepo, branch, filePath)
+			if got != tt.want {
+				t.Errorf("got:\n%s\n\nwant:\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestResolveRelativeImages_StandaloneFile(t *testing.T) {
+	t.Parallel()
+
+	// Non-page-bundle file — images relative to the posts directory
+	input := `![cover](./cover.png)`
+	got := ResolveRelativeImages(input, "user/repo", "main", "content/posts/my-post.md")
+	want := `![cover](https://raw.githubusercontent.com/user/repo/main/content/posts/cover.png)`
+
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
