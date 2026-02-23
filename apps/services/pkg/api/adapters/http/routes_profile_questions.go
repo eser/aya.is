@@ -86,10 +86,7 @@ func RegisterHTTPRoutesForProfileQuestions(
 				)
 			}
 
-			return ctx.Results.JSON(map[string]any{
-				"data":  result,
-				"error": nil,
-			})
+			return ctx.Results.JSON(result)
 		},
 	).HasDescription("List Q&A questions for a profile")
 

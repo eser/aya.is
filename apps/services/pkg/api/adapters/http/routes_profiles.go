@@ -470,10 +470,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					)
 				}
 
-				return ctx.Results.JSON(map[string]any{
-					"data":  records,
-					"error": nil,
-				})
+				return ctx.Results.JSON(records)
 			},
 		).
 		HasSummary("List profile contributions by profile slug").
@@ -514,10 +511,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					)
 				}
 
-				return ctx.Results.JSON(map[string]any{
-					"data":  records,
-					"error": nil,
-				})
+				return ctx.Results.JSON(records)
 			},
 		).
 		HasSummary("List profile members by profile slug").

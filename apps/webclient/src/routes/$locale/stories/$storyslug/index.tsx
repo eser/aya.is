@@ -5,11 +5,12 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { StoryContent } from "@/components/widgets/story-content";
 import { DiscussionThread } from "@/components/widgets/discussion-thread";
-import { compileMdx } from "@/lib/mdx";
+import { compileMdx, compileMdxLite } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
 import { generateMetaTags, truncateDescription } from "@/lib/seo";
 import { PageNotFound } from "@/components/page-not-found";
+import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 
 export const Route = createFileRoute("/$locale/stories/$storyslug/")({
   loader: async ({ params }) => {
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
     const story = await backend.getStory(locale, storyslug);
 
     if (story === null || story === undefined) {
-      return { story: null, compiledContent: null, currentUrl: null, locale, notFound: true as const };
+      return { story: null, compiledContent: null, currentUrl: null, locale, initialDiscussion: null, notFound: true as const };
     }
 
     // Compile MDX content on the server
@@ -34,7 +35,33 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
     // Get current URL for sharing
     const currentUrl = `${siteConfig.host}/${locale}/stories/${storyslug}`;
 
-    return { story, compiledContent, currentUrl, locale, notFound: false as const };
+    // Pre-fetch discussion data for SSR
+    let initialDiscussion: { thread: DiscussionListResponse["thread"]; comments: DiscussionComment[] } | null = null;
+    if (story.feat_discussions === true) {
+      try {
+        const discussion = await backend.getStoryDiscussion(locale, storyslug, "hot");
+        if (discussion !== null && discussion !== undefined) {
+          const compiledComments = await Promise.all(
+            discussion.comments.map(async (comment) => {
+              if (comment.content === "") {
+                return { ...comment, compiledContent: null };
+              }
+              try {
+                const compiled = await compileMdxLite(comment.content);
+                return { ...comment, compiledContent: compiled };
+              } catch {
+                return { ...comment, compiledContent: null };
+              }
+            }),
+          );
+          initialDiscussion = { thread: discussion.thread, comments: compiledComments };
+        }
+      } catch {
+        // Discussion fetch failed — component will fetch client-side
+      }
+    }
+
+    return { story, compiledContent, currentUrl, locale, initialDiscussion, notFound: false as const };
   },
   head: ({ loaderData }) => {
     if (loaderData === undefined || loaderData.notFound || loaderData.story === null) {
@@ -69,7 +96,7 @@ function StoryPage() {
     return <PageNotFound />;
   }
 
-  const { story, compiledContent, currentUrl } = loaderData;
+  const { story, compiledContent, currentUrl, initialDiscussion } = loaderData;
 
   // Get author profile slug for permissions check
   const authorProfileSlug = story.author_profile?.slug ?? null;
@@ -110,6 +137,7 @@ function StoryPage() {
             locale={params.locale}
             profileId={story.author_profile?.id ?? ""}
             profileKind={story.author_profile?.kind ?? "individual"}
+            initialData={initialDiscussion}
           />
         )}
       </section>

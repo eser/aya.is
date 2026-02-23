@@ -48,10 +48,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			return ctx.Results.JSON(map[string]any{
-				"data":  records,
-				"error": nil,
-			})
+			return ctx.Results.JSON(records)
 		}).
 		HasSummary("List stories").
 		HasDescription("List stories.").

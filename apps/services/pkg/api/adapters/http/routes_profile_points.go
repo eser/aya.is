@@ -112,10 +112,7 @@ func RegisterHTTPRoutesForProfilePoints(
 					)
 				}
 
-				return ctx.Results.JSON(map[string]any{
-					"data":  transactions,
-					"error": nil,
-				})
+				return ctx.Results.JSON(transactions)
 			},
 		).
 		HasSummary("List profile point transactions").

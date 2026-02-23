@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { ChevronUp, Eye, EyeOff, MessageSquare, Pencil } from "lucide-react";
 import type { ProfileQuestion } from "@/modules/backend/types";
+import { MdxContent } from "@/components/userland/mdx-content";
 import { QAMarkdown } from "./qa-markdown";
 import styles from "./question-card.module.css";
 
@@ -111,7 +112,9 @@ export function QuestionCard(props: QuestionCardProps) {
           )}
         </div>
 
-        <QAMarkdown content={props.question.content} className={styles.questionContent} />
+        {props.question.compiledContent !== undefined && props.question.compiledContent !== null
+          ? <MdxContent compiledSource={props.question.compiledContent} className={styles.questionContent} headingOffset={2} includeUserlandComponents={false} />
+          : <QAMarkdown content={props.question.content} className={styles.questionContent} />}
 
         {/* Answer display */}
         {props.question.answer_content !== null && !showEditForm && (
@@ -133,7 +136,9 @@ export function QuestionCard(props: QuestionCardProps) {
                 )}
               </span>
             </div>
-            <QAMarkdown content={props.question.answer_content} className={styles.answerContent} />
+            {props.question.compiledAnswer !== undefined && props.question.compiledAnswer !== null
+              ? <MdxContent compiledSource={props.question.compiledAnswer} className={styles.answerContent} headingOffset={2} includeUserlandComponents={false} />
+              : <QAMarkdown content={props.question.answer_content} className={styles.answerContent} />}
           </div>
         )}
 

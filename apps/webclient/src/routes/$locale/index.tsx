@@ -7,7 +7,7 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { Astronaut } from "@/components/widgets/astronaut";
 import { MdxContent } from "@/components/userland/mdx-content";
 import { Story } from "@/components/userland/story";
-import { compileMdx } from "@/lib/mdx";
+import { compileMdxLite } from "@/lib/mdx";
 import { formatMonthYear, parseDateFromSlug } from "@/lib/date";
 import { siteConfig } from "@/config";
 import { buildUrl, generateMetaTags } from "@/lib/seo";
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/$locale/")({
     const { locale } = params;
     await i18next.loadLanguages(locale);
     const introText = i18next.getFixedT(locale)("Home.IntroText");
-    const compiledIntro = await compileMdx(introText);
+    const compiledIntro = await compileMdxLite(introText);
 
     let allStories: StoryEx[] | null = null;
     try {

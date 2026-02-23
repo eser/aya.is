@@ -672,6 +672,10 @@ export interface ProfileQuestion {
   has_viewer_vote: boolean;
   created_at: string;
   updated_at: string | null;
+  /** Frontend-only: pre-compiled MDX source for question content */
+  compiledContent?: string | null;
+  /** Frontend-only: pre-compiled MDX source for answer content */
+  compiledAnswer?: string | null;
 }
 
 // Discussion Types

@@ -69,10 +69,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				return ctx.Results.JSON(map[string]any{
-					"data":  awards,
-					"error": nil,
-				})
+				return ctx.Results.JSON(awards)
 			},
 		).
 		HasSummary("List pending point awards").

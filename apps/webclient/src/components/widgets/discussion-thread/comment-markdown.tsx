@@ -14,8 +14,8 @@ export function CommentMarkdown(props: CommentMarkdownProps) {
 
     (async () => {
       try {
-        const { compileMdx } = await import("@/lib/mdx");
-        const compiled = await compileMdx(props.content);
+        const { compileMdxLite } = await import("@/lib/mdx");
+        const compiled = await compileMdxLite(props.content);
 
         if (!cancelled) {
           setCompiledSource(compiled);

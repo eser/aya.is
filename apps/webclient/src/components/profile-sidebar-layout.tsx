@@ -8,6 +8,7 @@ import { backend, type Profile } from "@/modules/backend/backend";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland";
 import { useAuth } from "@/lib/auth/auth-context";
+import { InlineMarkdown } from "@/lib/inline-markdown";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import {
   AlertDialog,
@@ -248,9 +249,10 @@ function ProfileSidebar(props: ProfileSidebarProps) {
 
         {props.profile.description !== null &&
           props.profile.description !== undefined && (
-          <p className="mt-0 mb-4 font-sans text-sm font-normal leading-snug text-left">
-            {props.profile.description}
-          </p>
+          <InlineMarkdown
+            content={props.profile.description}
+            className="mt-0 mb-4 font-sans text-sm font-normal leading-snug text-left"
+          />
         )}
       </div>
 

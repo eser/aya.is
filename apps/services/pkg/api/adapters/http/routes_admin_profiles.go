@@ -86,10 +86,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 					)
 				}
 
-				return ctx.Results.JSON(map[string]any{
-					"data":  result,
-					"error": nil,
-				})
+				return ctx.Results.JSON(result)
 			},
 		).
 		HasSummary("List all profiles").

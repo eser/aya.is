@@ -18,16 +18,25 @@ type DiscussionThreadProps = {
   locale: string;
   profileId: string;
   profileKind: string;
+  initialData?: {
+    thread: DiscussionThreadType;
+    comments: DiscussionComment[];
+  } | null;
 };
 
 export function DiscussionThread(props: DiscussionThreadProps) {
   const { t } = useTranslation();
   const auth = useAuth();
-  const [thread, setThread] = React.useState<DiscussionThreadType | null>(null);
-  const [comments, setComments] = React.useState<DiscussionComment[]>([]);
+  const hasInitialData = props.initialData !== undefined && props.initialData !== null;
+  const [thread, setThread] = React.useState<DiscussionThreadType | null>(
+    hasInitialData ? props.initialData.thread : null,
+  );
+  const [comments, setComments] = React.useState<DiscussionComment[]>(
+    hasInitialData ? props.initialData.comments : [],
+  );
   const [sortMode, setSortMode] = React.useState<DiscussionSortMode>("hot");
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [hasLoaded, setHasLoaded] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(!hasInitialData);
+  const [hasLoaded, setHasLoaded] = React.useState(hasInitialData);
   const [showHeaderMenu, setShowHeaderMenu] = React.useState(false);
 
   // Fetch discussion data
@@ -52,8 +61,17 @@ export function DiscussionThread(props: DiscussionThreadProps) {
     setHasLoaded(true);
   }, [props.storySlug, props.profileSlug, props.locale]);
 
-  // Initial load
+  // Track whether the initial SSR data has been used (skip first client fetch)
+  const usedInitialData = React.useRef(hasInitialData);
+
+  // Initial load — skip if SSR data was provided; re-fetch on sort change
   React.useEffect(() => {
+    if (usedInitialData.current) {
+      usedInitialData.current = false;
+
+      return;
+    }
+
     fetchDiscussion(sortMode);
   }, [fetchDiscussion, sortMode]);
 
@@ -209,8 +227,8 @@ export function DiscussionThread(props: DiscussionThreadProps) {
     if (result !== null) {
       let compiledContent: string | null = null;
       try {
-        const { compileMdx } = await import("@/lib/mdx");
-        compiledContent = await compileMdx(content);
+        const { compileMdxLite } = await import("@/lib/mdx");
+        compiledContent = await compileMdxLite(content);
       } catch {
         // Fall back to plain text
       }
@@ -439,14 +457,14 @@ export function DiscussionThread(props: DiscussionThreadProps) {
  */
 async function compileCommentsBatch(comments: DiscussionComment[]): Promise<DiscussionComment[]> {
   try {
-    const { compileMdx } = await import("@/lib/mdx");
+    const { compileMdxLite } = await import("@/lib/mdx");
     return await Promise.all(
       comments.map(async (comment) => {
         if (comment.content === "") {
           return { ...comment, compiledContent: null };
         }
         try {
-          const compiledContent = await compileMdx(comment.content);
+          const compiledContent = await compileMdxLite(comment.content);
           return { ...comment, compiledContent };
         } catch {
           return { ...comment, compiledContent: null };
@@ -463,8 +481,8 @@ async function compileOneComment(comment: DiscussionComment): Promise<Discussion
     return { ...comment, compiledContent: null };
   }
   try {
-    const { compileMdx } = await import("@/lib/mdx");
-    const compiledContent = await compileMdx(comment.content);
+    const { compileMdxLite } = await import("@/lib/mdx");
+    const compiledContent = await compileMdxLite(comment.content);
     return { ...comment, compiledContent };
   } catch {
     return { ...comment, compiledContent: null };

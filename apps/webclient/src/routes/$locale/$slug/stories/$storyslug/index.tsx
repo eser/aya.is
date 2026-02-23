@@ -4,9 +4,10 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { StoryContent } from "@/components/widgets/story-content";
 import { DiscussionThread } from "@/components/widgets/discussion-thread";
-import { compileMdx } from "@/lib/mdx";
+import { compileMdx, compileMdxLite } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
+import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { generateMetaTags, truncateDescription } from "@/lib/seo";
 import { ChildNotFound } from "../../route";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     const story = await backend.getProfileStory(locale, slug, storyslug);
 
     if (story === null || story === undefined) {
-      return { story: null, compiledContent: null, currentUrl: null, locale, slug, notFound: true as const };
+      return { story: null, compiledContent: null, currentUrl: null, locale, slug, initialDiscussion: null, notFound: true as const };
     }
 
     // Compile MDX content on the server
@@ -36,7 +37,33 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     // Build current URL for sharing
     const currentUrl = `${siteConfig.host}/${locale}/${slug}/stories/${storyslug}`;
 
-    return { story, compiledContent, currentUrl, locale, slug, notFound: false as const };
+    // Pre-fetch discussion data for SSR
+    let initialDiscussion: { thread: DiscussionListResponse["thread"]; comments: DiscussionComment[] } | null = null;
+    if (story.feat_discussions === true) {
+      try {
+        const discussion = await backend.getStoryDiscussion(locale, storyslug, "hot");
+        if (discussion !== null && discussion !== undefined) {
+          const compiledComments = await Promise.all(
+            discussion.comments.map(async (comment) => {
+              if (comment.content === "") {
+                return { ...comment, compiledContent: null };
+              }
+              try {
+                const compiled = await compileMdxLite(comment.content);
+                return { ...comment, compiledContent: compiled };
+              } catch {
+                return { ...comment, compiledContent: null };
+              }
+            }),
+          );
+          initialDiscussion = { thread: discussion.thread, comments: compiledComments };
+        }
+      } catch {
+        // Discussion fetch failed — component will fetch client-side
+      }
+    }
+
+    return { story, compiledContent, currentUrl, locale, slug, initialDiscussion, notFound: false as const };
   },
   head: ({ loaderData }) => {
     if (loaderData === undefined || loaderData.notFound || loaderData.story === null) {
@@ -72,7 +99,7 @@ function ProfileStoryPage() {
     return <ChildNotFound />;
   }
 
-  const { story, compiledContent, currentUrl, locale, slug } = loaderData;
+  const { story, compiledContent, currentUrl, locale, slug, initialDiscussion } = loaderData;
 
   // Check edit permissions
   React.useEffect(() => {
@@ -113,6 +140,7 @@ function ProfileStoryPage() {
           locale={params.locale}
           profileId={story.author_profile?.id ?? ""}
           profileKind={story.author_profile?.kind ?? "individual"}
+          initialData={initialDiscussion}
         />
       )}
     </ProfileSidebarLayout>
