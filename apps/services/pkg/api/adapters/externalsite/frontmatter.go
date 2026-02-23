@@ -99,6 +99,7 @@ func parseYAMLFrontmatter(content string) (map[string]any, string, error) {
 	body := rest[idx+4:] // skip \n---
 
 	var raw map[string]any
+
 	err := yaml.Unmarshal([]byte(fmBlock), &raw)
 	if err != nil {
 		return nil, "", err

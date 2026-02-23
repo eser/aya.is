@@ -881,10 +881,6 @@ function LinksSettingsPage() {
               <SpeakerDeck className="size-4 mr-2" />
               {t("Profile.Connect SpeakerDeck...")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleConnectExternalSite()}>
-              <Globe className="size-4 mr-2" />
-              {t("Profile.Connect External Site...")}
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleConnectTelegram()}>
               <Telegram className="size-4 mr-2" />
               {t("Profile.Connect Telegram...")}
@@ -896,6 +892,10 @@ function LinksSettingsPage() {
             <DropdownMenuItem onClick={() => handleConnectLinkedIn()}>
               <Linkedin className="size-4 mr-2" />
               {t("Profile.Connect LinkedIn")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleConnectExternalSite()}>
+              <Globe className="size-4 mr-2" />
+              {t("Profile.Connect External Site...")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleOpenAddDialog}>
