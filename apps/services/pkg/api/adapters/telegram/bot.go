@@ -354,7 +354,7 @@ func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
 	_ = b.client.SendMessage(ctx, msg.Chat.ID, "Invite code sent to your DM.")
 }
 
-func (b *Bot) handleGroupRegister(ctx context.Context, msg *Message) {
+func (b *Bot) handleGroupRegister(ctx context.Context, msg *Message) { //nolint:cyclop,funlen
 	if msg.From == nil || msg.From.IsBot {
 		return
 	}
@@ -376,6 +376,27 @@ func (b *Bot) handleGroupRegister(ctx context.Context, msg *Message) {
 	if member.Status != "creator" && member.Status != "administrator" {
 		_ = b.client.SendMessage(ctx, msg.Chat.ID,
 			"Only group administrators can register this group.")
+
+		return
+	}
+
+	// Verify the bot is an administrator in this group
+	botUserID, botErr := b.client.GetBotUserID(ctx)
+	if botErr != nil {
+		b.logger.WarnContext(ctx, "Failed to get bot user ID",
+			slog.String("error", botErr.Error()))
+
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Something went wrong. Please try again later.")
+
+		return
+	}
+
+	botMember, botMemberErr := b.client.GetChatMember(ctx, msg.Chat.ID, botUserID)
+	if botMemberErr != nil || botMember.Status != "administrator" {
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"I need to be an <b>administrator</b> in this group to manage invites.\n"+
+				"Please promote me to admin, then try /register again.")
 
 		return
 	}
@@ -509,7 +530,9 @@ func (b *Bot) sendJoinableGroups( //nolint:cyclop,funlen
 	// Build text list with full names and buttons only for joinable groups
 	var textBuilder strings.Builder
 
-	textBuilder.WriteString("Select a group to get an invite link:\n\n")
+	textBuilder.WriteString(
+		"Pick a button below to get invited to the selected group. Available private groups are:\n\n",
+	)
 
 	var buttons [][]InlineKeyboardButton
 
@@ -544,8 +567,7 @@ func (b *Bot) sendJoinableGroups( //nolint:cyclop,funlen
 
 		_ = b.client.SendMessageWithKeyboard(ctx, chatID, textBuilder.String(), keyboard)
 	} else {
-		_ = b.client.SendMessage(ctx, chatID,
-			"You're already a member of all available groups.")
+		_ = b.client.SendMessage(ctx, chatID, textBuilder.String())
 	}
 }
 

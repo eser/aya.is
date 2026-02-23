@@ -131,6 +131,7 @@ type Client struct {
 	logger     *logfx.Logger
 	httpClient HTTPClient
 	baseURL    string
+	botUserID  int64
 }
 
 // NewClient creates a new Telegram Bot API client.
@@ -161,6 +162,22 @@ func (c *Client) GetMe(ctx context.Context) (*BotInfo, error) {
 	}
 
 	return &info, nil
+}
+
+// GetBotUserID returns the bot's Telegram user ID, caching after first call.
+func (c *Client) GetBotUserID(ctx context.Context) (int64, error) {
+	if c.botUserID != 0 {
+		return c.botUserID, nil
+	}
+
+	info, err := c.GetMe(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	c.botUserID = info.ID
+
+	return c.botUserID, nil
 }
 
 // SetWebhook configures the webhook on Telegram's side.

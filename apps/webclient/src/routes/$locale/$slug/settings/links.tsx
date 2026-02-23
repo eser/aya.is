@@ -816,7 +816,7 @@ function LinksSettingsPage() {
         <DropdownMenu>
           <DropdownMenuTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 cursor-pointer">
             <Plus className="size-4" />
-            {t("Profile.Add Link")}
+            {t("Profile.Add Connection")}
             <ChevronDown className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-auto">
