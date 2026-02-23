@@ -122,10 +122,10 @@ function StoriesSettingsPage() {
     setIsLoading(true);
     const result = await backend.getProfileAuthoredStories(params.locale, params.slug);
     if (result !== null) {
-      // Sort by created_at descending
+      // Sort by published_at (falling back to created_at) descending
       const sorted = [...result].sort((a, b) => {
-        const dateA = a.created_at !== null ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at !== null ? new Date(b.created_at).getTime() : 0;
+        const dateA = new Date(a.published_at ?? a.created_at).getTime();
+        const dateB = new Date(b.published_at ?? b.created_at).getTime();
         return dateB - dateA;
       });
       setStories(sorted);
@@ -259,7 +259,7 @@ function StoriesSettingsPage() {
                           : <GlobeLock className="size-3.5 text-yellow-600" />}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {story.created_at !== null && formatDateString(story.created_at, locale)}
+                        {formatDateString(story.published_at ?? story.created_at, locale)}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
