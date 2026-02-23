@@ -51,33 +51,37 @@ func (w *ExternalSiteStoryProcessor) ProcessStories(ctx context.Context) error {
 
 	if len(imports) == 0 {
 		w.logger.DebugContext(ctx, "No external site imports need story creation")
+	} else {
+		w.logger.DebugContext(ctx, "Processing external site imports for story creation",
+			slog.Int("count", len(imports)))
 
-		return nil
-	}
+		created := 0
 
-	w.logger.DebugContext(ctx, "Processing external site imports for story creation",
-		slog.Int("count", len(imports)))
+		for _, imp := range imports {
+			createErr := w.createStoryFromImport(ctx, imp)
+			if createErr != nil {
+				w.logger.ErrorContext(ctx, "Failed to create story from external site import",
+					slog.String("import_id", imp.ID),
+					slog.String("remote_id", imp.RemoteID),
+					slog.String("profile_id", imp.ProfileID),
+					slog.Any("error", createErr))
 
-	created := 0
+				continue
+			}
 
-	for _, imp := range imports {
-		createErr := w.createStoryFromImport(ctx, imp)
-		if createErr != nil {
-			w.logger.ErrorContext(ctx, "Failed to create story from external site import",
-				slog.String("import_id", imp.ID),
-				slog.String("remote_id", imp.RemoteID),
-				slog.String("profile_id", imp.ProfileID),
-				slog.Any("error", createErr))
-
-			continue
+			created++
 		}
 
-		created++
+		w.logger.DebugContext(ctx, "Completed external site story creation cycle",
+			slog.Int("processed", len(imports)),
+			slog.Int("created", created))
 	}
 
-	w.logger.DebugContext(ctx, "Completed external site story creation cycle",
-		slog.Int("processed", len(imports)),
-		slog.Int("created", created))
+	// Always reconcile existing stories with latest import data
+	if err := w.reconcileExistingStories(ctx); err != nil {
+		w.logger.ErrorContext(ctx, "Failed to reconcile existing external site stories",
+			slog.Any("error", err))
+	}
 
 	return nil
 }
@@ -133,6 +137,80 @@ func extractExternalSiteImportMeta(
 		storyKind:   storyKind,
 		publishedAt: publishedAt,
 	}
+}
+
+// reconcileExistingStories updates existing stories to match the latest import data.
+func (w *ExternalSiteStoryProcessor) reconcileExistingStories(ctx context.Context) error {
+	imports, err := w.syncService.ListImportsWithExistingStories(
+		ctx,
+		"external-site",
+		w.config.BatchSize,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrSyncFailed, err)
+	}
+
+	if len(imports) == 0 {
+		return nil
+	}
+
+	w.logger.DebugContext(ctx, "Reconciling existing external site stories",
+		slog.Int("count", len(imports)))
+
+	reconciled := 0
+
+	for _, imp := range imports {
+		reconcileErr := w.reconcileStory(ctx, imp)
+		if reconcileErr != nil {
+			w.logger.ErrorContext(ctx, "Failed to reconcile external site story",
+				slog.String("story_id", imp.StoryID),
+				slog.String("remote_id", imp.RemoteID),
+				slog.Any("error", reconcileErr))
+
+			continue
+		}
+
+		reconciled++
+	}
+
+	w.logger.DebugContext(ctx, "Completed external site story reconciliation",
+		slog.Int("processed", len(imports)),
+		slog.Int("reconciled", reconciled))
+
+	return nil
+}
+
+// reconcileStory updates a single story's content to match the latest import data.
+func (w *ExternalSiteStoryProcessor) reconcileStory(
+	ctx context.Context,
+	imp *linksync.LinkImportWithStory,
+) error {
+	title, _ := imp.Properties["title"].(string)
+	description, _ := imp.Properties["description"].(string)
+	content, _ := imp.Properties["content"].(string)
+	language, _ := imp.Properties["language"].(string)
+
+	if title == "" {
+		title = "Untitled Post"
+	}
+
+	locale := language
+	if locale == "" {
+		locale = imp.ProfileDefaultLocale
+	}
+
+	if locale == "" {
+		locale = "en"
+	}
+
+	summary := truncateSummary(description, maxSummaryLength)
+
+	err := w.storyRepo.UpsertStoryTx(ctx, imp.StoryID, locale, title, summary, content)
+	if err != nil {
+		return fmt.Errorf("failed to upsert story translation: %w", err)
+	}
+
+	return nil
 }
 
 // createStoryFromImport creates a story from an external site import.
