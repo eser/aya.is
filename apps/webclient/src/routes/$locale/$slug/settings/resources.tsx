@@ -30,8 +30,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Check, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronDown, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import styles from "./resources.module.css";
 
 export const Route = createFileRoute("/$locale/$slug/settings/resources")({
@@ -306,16 +312,21 @@ function ResourcesSettings() {
             {t("Profile.Manage your resources and integrations.")}
           </p>
         </div>
-        <div className={styles.addMenu}>
-          <Button variant="outline" onClick={handleOpenAddGitHubDialog}>
-            <Plus className="size-4 mr-1" />
-            {t("Profile.Add GitHub Repository")}
-          </Button>
-          <Button variant="outline" onClick={handleOpenAddTelegramDialog}>
-            <Plus className="size-4 mr-1" />
-            {t("Profile.Add Telegram Group")}
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 cursor-pointer">
+            <Plus className="size-4" />
+            {t("Profile.Add Resource")}
+            <ChevronDown className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-auto">
+            <DropdownMenuItem onClick={() => handleOpenAddGitHubDialog()}>
+              {t("Profile.Add GitHub Repository")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleOpenAddTelegramDialog()}>
+              {t("Profile.Add Telegram Group")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Filter Tabs */}
@@ -405,27 +416,34 @@ function ResourcesSettings() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-1">
-                {resource.can_remove && (
+              {resource.can_remove && (
+                <div className="flex items-center gap-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                    >
+                      <MoreHorizontal className="size-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-auto">
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setDeleteTarget(resource)}
+                      >
+                        <Trash2 className="size-4" />
+                        {t("Profile.Remove Resource")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleOpenEditDialog(resource)}
-                    title={t("Profile.Edit...")}
+                    title={t("Profile.Edit Resource")}
                   >
                     <Pencil className="size-4" />
                   </Button>
-                )}
-                {resource.can_remove && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteTarget(resource)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -574,7 +592,7 @@ function ResourcesSettings() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("Profile.Edit...")}</DialogTitle>
+            <DialogTitle>{t("Profile.Edit Resource")}</DialogTitle>
             <DialogDescription>
               {editTarget?.title}
             </DialogDescription>

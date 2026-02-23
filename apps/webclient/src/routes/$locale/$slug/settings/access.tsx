@@ -4,6 +4,8 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+  MoreHorizontal,
+  Pencil,
   Plus,
   Trash2,
   Search,
@@ -48,6 +50,12 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import styles from "./access.module.css";
 
@@ -496,21 +504,31 @@ function AccessSettingsPage() {
                   <p className={styles.memberSlug}>@{memberProfile?.slug}</p>
                 </div>
                 <div className={styles.memberActions}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleOpenEditDialog(membership)}
-                    disabled={!canEditMember}
-                  >
-                    {t("Profile.Edit...")}
-                  </Button>
+                  {canDeleteMember && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-auto">
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => handleOpenDeleteDialog(membership)}
+                        >
+                          <Trash2 className="size-4" />
+                          {t("Profile.Remove Member")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleOpenDeleteDialog(membership)}
-                    disabled={!canDeleteMember}
+                    onClick={() => handleOpenEditDialog(membership)}
+                    disabled={!canEditMember}
                   >
-                    <Trash2 className="size-4" />
+                    <Pencil className="size-4" />
                   </Button>
                 </div>
               </div>

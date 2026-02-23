@@ -673,6 +673,7 @@
     "resources": "리소스",
     "Cannot delete team with resources": "리소스가 있는 팀은 삭제할 수 없습니다",
     "Cannot delete team with members and resources": "멤버와 리소스가 있는 팀은 삭제할 수 없습니다",
+    "Edit Resource": "리소스 편집",
     "Resource teams updated successfully": "리소스 팀이 성공적으로 업데이트되었습니다",
     "Failed to update resource teams": "리소스 팀 업데이트에 실패했습니다",
     "Generate": "생성",

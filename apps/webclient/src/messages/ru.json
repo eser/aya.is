@@ -673,6 +673,7 @@
     "resources": "ресурсы",
     "Cannot delete team with resources": "Невозможно удалить команду с ресурсами",
     "Cannot delete team with members and resources": "Невозможно удалить команду с участниками и ресурсами",
+    "Edit Resource": "Редактировать ресурс",
     "Resource teams updated successfully": "Команды ресурсов успешно обновлены",
     "Failed to update resource teams": "Не удалось обновить команды ресурсов",
     "Generate": "Сгенерировать",

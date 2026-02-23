@@ -681,6 +681,7 @@
     "resources": "resources",
     "Cannot delete team with resources": "Cannot delete team with resources",
     "Cannot delete team with members and resources": "Cannot delete team with members and resources",
+    "Edit Resource": "Edit Resource",
     "Resource teams updated successfully": "Resource teams updated successfully",
     "Failed to update resource teams": "Failed to update resource teams",
     "Generate": "Generate",

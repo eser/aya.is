@@ -673,6 +673,7 @@
     "resources": "موارد",
     "Cannot delete team with resources": "لا يمكن حذف فريق يحتوي على موارد",
     "Cannot delete team with members and resources": "لا يمكن حذف فريق يحتوي على أعضاء وموارد",
+    "Edit Resource": "تعديل المورد",
     "Resource teams updated successfully": "تم تحديث فرق الموارد بنجاح",
     "Failed to update resource teams": "فشل في تحديث فرق الموارد",
     "Generate": "إنشاء",

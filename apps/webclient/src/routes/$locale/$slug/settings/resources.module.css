@@ -63,7 +63,3 @@
 .resourceTeams {
   @apply flex items-center gap-1 mt-1;
 }
-
-.addMenu {
-  @apply flex items-center gap-2;
-}

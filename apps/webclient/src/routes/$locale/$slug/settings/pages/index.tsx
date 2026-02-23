@@ -399,7 +399,7 @@ function PagesSettingsPage() {
                   disabled={isSavingPrefs}
                 >
                   {isSavingPrefs && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  {isSavingPrefs ? t("Common.Saving...") : t("Profile.Save Changes")}
+                  {isSavingPrefs ? t("Common.Saving...") : t("Common.Save")}
                 </Button>
               </DialogFooter>
             </DialogContent>

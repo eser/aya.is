@@ -217,7 +217,10 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
               {t("Profile.Uploading...")}
             </>
           ) : (
-            t("Profile.Change Picture")
+            <>
+              <Camera className="size-4 mr-2" />
+              {t("Profile.Change Picture")}
+            </>
           )}
         </Button>
 

@@ -8,7 +8,6 @@ import {
   FileText,
   Globe,
   GlobeLock,
-  ImagePlus,
   Images,
   Info,
   Loader2,
@@ -215,7 +214,7 @@ function StoriesSettingsPage() {
                   disabled={isSavingDefaults}
                 >
                   {isSavingDefaults && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  {isSavingDefaults ? t("Common.Saving...") : t("Profile.Save Changes")}
+                  {isSavingDefaults ? t("Common.Saving...") : t("Common.Save")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -267,11 +266,6 @@ function StoriesSettingsPage() {
                       <LocaleLink to={`/stories/${story.slug}/edit`}>
                         <Button variant="ghost" size="icon" title={t("Common.Edit")}>
                           <Pencil className="size-4" />
-                        </Button>
-                      </LocaleLink>
-                      <LocaleLink to={`/stories/${story.slug}/cover`}>
-                        <Button variant="ghost" size="icon" title={t("CoverDesigner.Design Cover")}>
-                          <ImagePlus className="size-4" />
                         </Button>
                       </LocaleLink>
                       <LocaleLink to={`/stories/${story.slug}`}>

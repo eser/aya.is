@@ -673,6 +673,7 @@
     "resources": "resources",
     "Cannot delete team with resources": "Team met resources kan niet worden verwijderd",
     "Cannot delete team with members and resources": "Team met leden en resources kan niet worden verwijderd",
+    "Edit Resource": "Resource bewerken",
     "Resource teams updated successfully": "Resource teams succesvol bijgewerkt",
     "Failed to update resource teams": "Bijwerken van resource teams mislukt",
     "Generate": "Genereren",

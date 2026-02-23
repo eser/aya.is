@@ -673,6 +673,7 @@
     "resources": "リソース",
     "Cannot delete team with resources": "リソースがあるチームは削除できません",
     "Cannot delete team with members and resources": "メンバーとリソースがあるチームは削除できません",
+    "Edit Resource": "リソースを編集",
     "Resource teams updated successfully": "リソースチームが正常に更新されました",
     "Failed to update resource teams": "リソースチームの更新に失敗しました",
     "Generate": "生成",

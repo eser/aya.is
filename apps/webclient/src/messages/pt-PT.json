@@ -673,6 +673,7 @@
     "resources": "recursos",
     "Cannot delete team with resources": "Não é possível eliminar equipa com recursos",
     "Cannot delete team with members and resources": "Não é possível eliminar equipa com membros e recursos",
+    "Edit Resource": "Editar recurso",
     "Resource teams updated successfully": "Equipas de recursos atualizadas com sucesso",
     "Failed to update resource teams": "Falha ao atualizar equipas de recursos",
     "Generate": "Gerar",
