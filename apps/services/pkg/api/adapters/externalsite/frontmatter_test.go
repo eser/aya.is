@@ -183,12 +183,91 @@ func TestSlugFromPath(t *testing.T) {
 		{"_posts/2024-03-15-my-post.md", "2024-03-15-my-post"},
 		{"post.md", "post"},
 		{"content/talks/my-talk.tr.md", "my-talk.tr"},
+		// Hugo page bundles — index.md should return parent directory name
+		{"content/posts/2024-01-02-hello-hugo/index.md", "2024-01-02-hello-hugo"},
+		{"content/posts/my-post/index.md", "my-post"},
+		// Other markdown extensions
+		{"content/posts/next-post.mdx", "next-post"},
+		{"content/posts/markdoc-post.mdoc", "markdoc-post"},
+		{"content/posts/long-ext.markdown", "long-ext"},
+		// Page bundle with .mdx
+		{"content/posts/mdx-bundle/index.mdx", "mdx-bundle"},
 	}
 
 	for _, tt := range tests {
 		got := slugFromPath(tt.path)
 		if got != tt.want {
 			t.Errorf("slugFromPath(%q) = %q, want %q", tt.path, got, tt.want)
+		}
+	}
+}
+
+func TestFilterMarkdownFiles(t *testing.T) {
+	t.Parallel()
+
+	tree := []treeEntry{
+		{Path: "content", Type: "tree"},
+		{Path: "content/posts", Type: "tree"},
+		{Path: "content/posts/plain-post.md", Type: "blob"},
+		{Path: "content/posts/mdx-post.mdx", Type: "blob"},
+		{Path: "content/posts/markdoc-post.mdoc", Type: "blob"},
+		{Path: "content/posts/long-ext.markdown", Type: "blob"},
+		{Path: "content/posts/page-bundle/index.md", Type: "blob"},
+		{Path: "content/posts/mdx-bundle/index.mdx", Type: "blob"},
+		// Should be skipped:
+		{Path: "content/_index.md", Type: "blob"},
+		{Path: "content/posts/_index.md", Type: "blob"},
+		{Path: "content/index.md", Type: "blob"},
+		{Path: "README.md", Type: "blob"},
+		{Path: "content/README.markdown", Type: "blob"},
+		{Path: "content/posts/image.png", Type: "blob"},
+	}
+
+	files := filterMarkdownFiles(tree)
+
+	expected := map[string]bool{
+		"content/posts/plain-post.md":        true,
+		"content/posts/mdx-post.mdx":         true,
+		"content/posts/markdoc-post.mdoc":    true,
+		"content/posts/long-ext.markdown":    true,
+		"content/posts/page-bundle/index.md": true,
+		"content/posts/mdx-bundle/index.mdx": true,
+	}
+
+	if len(files) != len(expected) {
+		t.Errorf("expected %d files, got %d: %v", len(expected), len(files), files)
+	}
+
+	for _, f := range files {
+		if !expected[f] {
+			t.Errorf("unexpected file in result: %q", f)
+		}
+	}
+}
+
+func TestIsMarkdownFile(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		path string
+		want bool
+	}{
+		{"post.md", true},
+		{"post.mdx", true},
+		{"post.mdoc", true},
+		{"post.markdown", true},
+		{"POST.MD", true},
+		{"post.MDX", true},
+		{"image.png", false},
+		{"data.json", false},
+		{"script.js", false},
+		{"noext", false},
+	}
+
+	for _, tt := range tests {
+		got := isMarkdownFile(tt.path)
+		if got != tt.want {
+			t.Errorf("isMarkdownFile(%q) = %v, want %v", tt.path, got, tt.want)
 		}
 	}
 }

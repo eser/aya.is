@@ -186,12 +186,25 @@ func toStringSlice(v any) []string {
 }
 
 // slugFromPath extracts a slug from a file path.
-// e.g., "content/posts/my-cool-post.md" → "my-cool-post".
+// For Hugo page bundles (index.md inside a directory), uses the parent directory name.
+// e.g., "content/posts/my-cool-post.md" → "my-cool-post"
+// e.g., "content/posts/2024-01-02-hello-hugo/index.md" → "2024-01-02-hello-hugo".
 func slugFromPath(filePath string) string {
 	base := filepath.Base(filePath)
 	ext := filepath.Ext(base)
+	name := strings.TrimSuffix(base, ext)
 
-	return strings.TrimSuffix(base, ext)
+	// If this is a page bundle index file, use parent directory name as slug
+	if strings.ToLower(name) == "index" {
+		dir := filepath.Dir(filePath)
+		parent := filepath.Base(dir)
+
+		if parent != "." && parent != "/" {
+			return parent
+		}
+	}
+
+	return name
 }
 
 // languageFromPath detects locale from Zola-style path conventions.

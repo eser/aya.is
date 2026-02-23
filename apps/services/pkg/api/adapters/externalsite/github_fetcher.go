@@ -114,8 +114,37 @@ func fetchRepoTree(
 	return tree.Tree, nil
 }
 
-// filterMarkdownFiles selects .md blob files from a tree, skipping index/README files.
+// markdownExtensions lists recognised markdown file extensions.
+var markdownExtensions = []string{".md", ".mdx", ".mdoc", ".markdown"}
+
+// isMarkdownFile checks if a file path has a recognised markdown extension.
+func isMarkdownFile(path string) bool {
+	lower := strings.ToLower(path)
+	for _, ext := range markdownExtensions {
+		if strings.HasSuffix(lower, ext) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// stripMarkdownExt removes the markdown extension from a filename, returning the name part.
+func stripMarkdownExt(filename string) string {
+	lower := strings.ToLower(filename)
+	for _, ext := range markdownExtensions {
+		if strings.HasSuffix(lower, ext) {
+			return filename[:len(filename)-len(ext)]
+		}
+	}
+
+	return filename
+}
+
+// filterMarkdownFiles selects markdown blob files from a tree, skipping section index/README files.
+// Recognised extensions: .md, .mdx, .mdoc, .markdown.
 // It auto-detects the content root (content/, _posts/, or repo root).
+// Hugo page bundles (e.g. content/posts/my-post/index.md) are kept.
 func filterMarkdownFiles(tree []treeEntry) []string {
 	// Detect content root
 	contentRoot := detectContentRoot(tree)
@@ -127,7 +156,7 @@ func filterMarkdownFiles(tree []treeEntry) []string {
 			continue
 		}
 
-		if !strings.HasSuffix(entry.Path, ".md") {
+		if !isMarkdownFile(entry.Path) {
 			continue
 		}
 
@@ -136,12 +165,28 @@ func filterMarkdownFiles(tree []treeEntry) []string {
 			continue
 		}
 
-		// Skip index files and READMEs
 		base := entry.Path[strings.LastIndex(entry.Path, "/")+1:]
-		lower := strings.ToLower(base)
+		name := strings.ToLower(stripMarkdownExt(base))
 
-		if lower == "_index.md" || lower == "readme.md" || lower == "index.md" {
+		// Always skip _index (Hugo section listings) and README
+		if name == "_index" || name == "readme" {
 			continue
+		}
+
+		// For index files, only keep if it's a Hugo page bundle (nested in a post subdirectory).
+		// e.g. content/posts/my-post/index.md → keep (page bundle)
+		// e.g. content/index.md → skip (section root)
+		if name == "index" {
+			pathUnderRoot := entry.Path
+			if contentRoot != "" {
+				pathUnderRoot = strings.TrimPrefix(entry.Path, contentRoot)
+			}
+
+			// Count slashes to determine depth: "posts/my-post/index.md" has 2 slashes → keep
+			// "index.md" has 0 slashes → skip
+			if strings.Count(pathUnderRoot, "/") < 2 {
+				continue
+			}
 		}
 
 		files = append(files, entry.Path)
