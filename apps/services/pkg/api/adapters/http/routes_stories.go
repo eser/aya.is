@@ -422,6 +422,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				StoryPictureURI *string        `json:"story_picture_uri"`
 				Properties      map[string]any `json:"properties"`
 				Visibility      string         `json:"visibility"`
+				FeatDiscussions *bool          `json:"feat_discussions"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -471,6 +472,11 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
+			featDiscussions := false
+			if requestBody.FeatDiscussions != nil {
+				featDiscussions = *requestBody.FeatDiscussions
+			}
+
 			story, err := storyService.Update(
 				ctx.Request.Context(),
 				localeParam,
@@ -481,6 +487,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				requestBody.StoryPictureURI,
 				requestBody.Properties,
 				requestBody.Visibility,
+				featDiscussions,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {

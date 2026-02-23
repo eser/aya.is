@@ -781,12 +781,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Parse request body
 			var requestBody struct {
-				ProfilePictureURI *string        `json:"profile_picture_uri"`
-				Pronouns          *string        `json:"pronouns"`
-				Properties        map[string]any `json:"properties"`
-				FeatureRelations  *string        `json:"feature_relations"`
-				FeatureLinks      *string        `json:"feature_links"`
-				FeatureQA         *string        `json:"feature_qa"`
+				ProfilePictureURI               *string        `json:"profile_picture_uri"`
+				Pronouns                        *string        `json:"pronouns"`
+				Properties                      map[string]any `json:"properties"`
+				FeatureRelations                *string        `json:"feature_relations"`
+				FeatureLinks                    *string        `json:"feature_links"`
+				FeatureQA                       *string        `json:"feature_qa"`
+				FeatureDiscussions              *string        `json:"feature_discussions"`
+				OptionStoryDiscussionsByDefault *bool          `json:"option_story_discussions_by_default"`
 			}
 
 			if err := ctx.ParseJSONBody(&requestBody); err != nil {
@@ -824,6 +826,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.FeatureRelations,
 				requestBody.FeatureLinks,
 				requestBody.FeatureQA,
+				requestBody.FeatureDiscussions,
+				requestBody.OptionStoryDiscussionsByDefault,
 			)
 			if err != nil {
 				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {

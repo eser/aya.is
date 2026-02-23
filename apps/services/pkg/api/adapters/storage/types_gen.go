@@ -56,6 +56,44 @@ type Cache struct {
 	UpdatedAt time.Time             `db:"updated_at" json:"updated_at"`
 }
 
+type DiscussionComment struct {
+	ID            string         `db:"id" json:"id"`
+	ThreadID      string         `db:"thread_id" json:"thread_id"`
+	ParentID      sql.NullString `db:"parent_id" json:"parent_id"`
+	AuthorUserID  string         `db:"author_user_id" json:"author_user_id"`
+	Content       string         `db:"content" json:"content"`
+	Depth         int32          `db:"depth" json:"depth"`
+	VoteScore     int32          `db:"vote_score" json:"vote_score"`
+	UpvoteCount   int32          `db:"upvote_count" json:"upvote_count"`
+	DownvoteCount int32          `db:"downvote_count" json:"downvote_count"`
+	ReplyCount    int32          `db:"reply_count" json:"reply_count"`
+	IsPinned      bool           `db:"is_pinned" json:"is_pinned"`
+	IsHidden      bool           `db:"is_hidden" json:"is_hidden"`
+	IsEdited      bool           `db:"is_edited" json:"is_edited"`
+	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt     sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt     sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+}
+
+type DiscussionCommentVote struct {
+	ID        string    `db:"id" json:"id"`
+	CommentID string    `db:"comment_id" json:"comment_id"`
+	UserID    string    `db:"user_id" json:"user_id"`
+	Direction int16     `db:"direction" json:"direction"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+
+type DiscussionThread struct {
+	ID           string         `db:"id" json:"id"`
+	StoryID      sql.NullString `db:"story_id" json:"story_id"`
+	ProfileID    sql.NullString `db:"profile_id" json:"profile_id"`
+	IsLocked     bool           `db:"is_locked" json:"is_locked"`
+	CommentCount int32          `db:"comment_count" json:"comment_count"`
+	CreatedAt    time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt    sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt    sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+}
+
 type EventAudit struct {
 	ID         string                `db:"id" json:"id"`
 	EventType  string                `db:"event_type" json:"event_type"`
@@ -144,21 +182,23 @@ type MailboxReaction struct {
 }
 
 type Profile struct {
-	ID                string                `db:"id" json:"id"`
-	Slug              string                `db:"slug" json:"slug"`
-	Kind              string                `db:"kind" json:"kind"`
-	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
-	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
-	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
-	CreatedAt         time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt         sql.NullTime          `db:"updated_at" json:"updated_at"`
-	DeletedAt         sql.NullTime          `db:"deleted_at" json:"deleted_at"`
-	ApprovedAt        sql.NullTime          `db:"approved_at" json:"approved_at"`
-	Points            int32                 `db:"points" json:"points"`
-	FeatureRelations  string                `db:"feature_relations" json:"feature_relations"`
-	FeatureLinks      string                `db:"feature_links" json:"feature_links"`
-	DefaultLocale     string                `db:"default_locale" json:"default_locale"`
-	FeatureQa         string                `db:"feature_qa" json:"feature_qa"`
+	ID                              string                `db:"id" json:"id"`
+	Slug                            string                `db:"slug" json:"slug"`
+	Kind                            string                `db:"kind" json:"kind"`
+	ProfilePictureURI               sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
+	Pronouns                        sql.NullString        `db:"pronouns" json:"pronouns"`
+	Properties                      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt                       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt                       sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt                       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	ApprovedAt                      sql.NullTime          `db:"approved_at" json:"approved_at"`
+	Points                          int32                 `db:"points" json:"points"`
+	FeatureRelations                string                `db:"feature_relations" json:"feature_relations"`
+	FeatureLinks                    string                `db:"feature_links" json:"feature_links"`
+	DefaultLocale                   string                `db:"default_locale" json:"default_locale"`
+	FeatureQa                       string                `db:"feature_qa" json:"feature_qa"`
+	FeatureDiscussions              string                `db:"feature_discussions" json:"feature_discussions"`
+	OptionStoryDiscussionsByDefault bool                  `db:"option_story_discussions_by_default" json:"option_story_discussions_by_default"`
 }
 
 type ProfileCustomDomain struct {
@@ -411,6 +451,7 @@ type Story struct {
 	RemoteID        sql.NullString        `db:"remote_id" json:"remote_id"`
 	SeriesID        sql.NullString        `db:"series_id" json:"series_id"`
 	Visibility      string                `db:"visibility" json:"visibility"`
+	FeatDiscussions bool                  `db:"feat_discussions" json:"feat_discussions"`
 }
 
 type StoryInteraction struct {

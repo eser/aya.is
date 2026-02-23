@@ -3,6 +3,7 @@ import * as React from "react";
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { StoryContent } from "@/components/widgets/story-content";
+import { DiscussionThread } from "@/components/widgets/discussion-thread";
 import { compileMdx } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -105,6 +106,15 @@ function ProfileStoryPage() {
         headingOffset={2}
         editUrl={editUrl}
       />
+
+      {story.feat_discussions === true && (
+        <DiscussionThread
+          storySlug={params.storyslug}
+          locale={params.locale}
+          profileId={story.author_profile?.id ?? ""}
+          profileKind={story.author_profile?.kind ?? "individual"}
+        />
+      )}
     </ProfileSidebarLayout>
   );
 }

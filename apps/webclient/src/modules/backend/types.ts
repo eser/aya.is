@@ -21,6 +21,8 @@ export interface Profile {
   feature_relations?: string; // Visibility of Members/Contributions module
   feature_links?: string; // Visibility of Links module
   feature_qa?: string; // Visibility of Q&A module
+  feature_discussions?: string; // Visibility of Discussions module
+  option_story_discussions_by_default?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -201,6 +203,7 @@ export interface Story {
   properties: Record<string, unknown> | null;
   author_profile_id: string | null;
   author_profile: Profile | null;
+  feat_discussions: boolean;
   visibility: ContentVisibility;
   published_at: string | null;
   created_at: string;
@@ -361,6 +364,7 @@ export interface StoryEditData {
   properties?: Record<string, unknown> | null;
   author_profile_id: string | null;
   author_profile_slug: string | null;
+  feat_discussions: boolean;
   visibility: ContentVisibility;
   created_at: string;
   updated_at: string | null;
@@ -668,4 +672,50 @@ export interface ProfileQuestion {
   has_viewer_vote: boolean;
   created_at: string;
   updated_at: string | null;
+}
+
+// Discussion Types
+
+export type DiscussionSortMode = "hot" | "newest" | "oldest";
+
+export interface DiscussionThread {
+  id: string;
+  story_id: string | null;
+  profile_id: string | null;
+  is_locked: boolean;
+  comment_count: number;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface DiscussionComment {
+  id: string;
+  thread_id: string;
+  parent_id: string | null;
+  author_profile_id: string | null;
+  author_profile_slug: string | null;
+  author_profile_title: string | null;
+  author_profile_picture_uri: string | null;
+  content: string;
+  depth: number;
+  vote_score: number;
+  upvote_count: number;
+  downvote_count: number;
+  reply_count: number;
+  is_pinned: boolean;
+  is_hidden: boolean;
+  is_edited: boolean;
+  viewer_vote_direction: number;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface DiscussionListResponse {
+  thread: DiscussionThread;
+  comments: DiscussionComment[];
+}
+
+export interface DiscussionVoteResponse {
+  vote_score: number;
+  viewer_vote_direction: number;
 }

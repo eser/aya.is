@@ -436,6 +436,7 @@ func (r *Repository) InsertStory(
 	isManaged bool,
 	remoteID *string,
 	visibility string,
+	featDiscussions bool,
 ) (*stories.Story, error) {
 	params := InsertStoryParams{
 		ID:              id,
@@ -447,6 +448,7 @@ func (r *Repository) InsertStory(
 		IsManaged:       isManaged,
 		RemoteID:        vars.ToSQLNullString(remoteID),
 		Visibility:      visibility,
+		FeatDiscussions: featDiscussions,
 	}
 
 	row, err := r.queries.InsertStory(ctx, params)
@@ -463,6 +465,7 @@ func (r *Repository) InsertStory(
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
 		SeriesID:        vars.ToStringPtr(row.SeriesID),
 		Visibility:      row.Visibility,
+		FeatDiscussions: row.FeatDiscussions,
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -519,6 +522,7 @@ func (r *Repository) UpdateStory(
 	storyPictureURI *string,
 	properties map[string]any,
 	visibility string,
+	featDiscussions bool,
 ) error {
 	params := UpdateStoryParams{
 		ID:              id,
@@ -526,6 +530,7 @@ func (r *Repository) UpdateStory(
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
 		Properties:      vars.ToSQLNullRawMessage(properties),
 		Visibility:      visibility,
+		FeatDiscussions: featDiscussions,
 	}
 
 	_, err := r.queries.UpdateStory(ctx, params)
@@ -640,6 +645,7 @@ func (r *Repository) GetStoryForEdit(
 		CreatedAt:         row.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
 		IsManaged:         row.IsManaged,
+		FeatDiscussions:   row.FeatDiscussions,
 	}, nil
 }
 
@@ -889,6 +895,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Content:         storyTx.Content,
 			Properties:      vars.ToObject(story.Properties),
 			Visibility:      story.Visibility,
+			FeatDiscussions: story.FeatDiscussions,
 			CreatedAt:       story.CreatedAt,
 			UpdatedAt:       vars.ToTimePtr(story.UpdatedAt),
 			DeletedAt:       vars.ToTimePtr(story.DeletedAt),

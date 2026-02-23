@@ -81,23 +81,25 @@ var MinMembershipForVisibility = map[LinkVisibility]MembershipKind{
 }
 
 type Profile struct {
-	CreatedAt         time.Time  `json:"created_at"`
-	Properties        any        `json:"properties"`
-	ProfilePictureURI *string    `json:"profile_picture_uri"`
-	Pronouns          *string    `json:"pronouns"`
-	UpdatedAt         *time.Time `json:"updated_at"`
-	DeletedAt         *time.Time `json:"deleted_at"`
-	ID                string     `json:"id"`
-	Slug              string     `json:"slug"`
-	Kind              string     `json:"kind"`
-	Title             string     `json:"title"`
-	Description       string     `json:"description"`
-	DefaultLocale     string     `json:"default_locale"`
-	Points            uint64     `json:"points"`
-	HasTranslation    bool       `json:"has_translation"`
-	FeatureRelations  string     `json:"feature_relations"` // Visibility of Members/Contributions module
-	FeatureLinks      string     `json:"feature_links"`     // Visibility of Links module
-	FeatureQA         string     `json:"feature_qa"`        // Visibility of Q&A module
+	CreatedAt                       time.Time  `json:"created_at"`
+	Properties                      any        `json:"properties"`
+	ProfilePictureURI               *string    `json:"profile_picture_uri"`
+	Pronouns                        *string    `json:"pronouns"`
+	UpdatedAt                       *time.Time `json:"updated_at"`
+	DeletedAt                       *time.Time `json:"deleted_at"`
+	ID                              string     `json:"id"`
+	Slug                            string     `json:"slug"`
+	Kind                            string     `json:"kind"`
+	Title                           string     `json:"title"`
+	Description                     string     `json:"description"`
+	DefaultLocale                   string     `json:"default_locale"`
+	Points                          uint64     `json:"points"`
+	HasTranslation                  bool       `json:"has_translation"`
+	FeatureRelations                string     `json:"feature_relations"`   // Visibility of Members/Contributions module
+	FeatureLinks                    string     `json:"feature_links"`       // Visibility of Links module
+	FeatureQA                       string     `json:"feature_qa"`          // Visibility of Q&A module
+	FeatureDiscussions              string     `json:"feature_discussions"` // Visibility of Discussions module
+	OptionStoryDiscussionsByDefault bool       `json:"option_story_discussions_by_default"`
 }
 
 type ProfileCustomDomain struct {

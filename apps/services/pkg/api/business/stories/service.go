@@ -227,6 +227,7 @@ type Repository interface {
 		isManaged bool,
 		remoteID *string,
 		visibility string,
+		featDiscussions bool,
 	) (*Story, error)
 	InsertStoryTx(
 		ctx context.Context,
@@ -253,6 +254,7 @@ type Repository interface {
 		storyPictureURI *string,
 		properties map[string]any,
 		visibility string,
+		featDiscussions bool,
 	) error
 	UpdateStoryTx(
 		ctx context.Context,
@@ -795,6 +797,17 @@ func (s *Service) Create(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, authorProfileSlug, err)
 	}
 
+	// Fetch author profile to read discussion default
+	authorProfile, err := s.repo.GetProfileByID(ctx, localeCode, authorProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, authorProfileID, err)
+	}
+
+	featDiscussions := false
+	if authorProfile != nil {
+		featDiscussions = authorProfile.OptionStoryDiscussionsByDefault
+	}
+
 	// Generate new story ID
 	storyID := s.idGenerator()
 
@@ -810,6 +823,7 @@ func (s *Service) Create(
 		false,
 		nil,
 		visibility,
+		featDiscussions,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
@@ -904,6 +918,7 @@ func (s *Service) Update(
 	storyPictureURI *string,
 	properties map[string]any,
 	visibility string,
+	featDiscussions bool,
 ) (*StoryForEdit, error) {
 	// Check authorization
 	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
@@ -958,7 +973,15 @@ func (s *Service) Update(
 	}
 
 	// Update the story
-	err = s.repo.UpdateStory(ctx, storyID, slug, storyPictureURI, properties, visibility)
+	err = s.repo.UpdateStory(
+		ctx,
+		storyID,
+		slug,
+		storyPictureURI,
+		properties,
+		visibility,
+		featDiscussions,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToUpdateRecord, storyID, err)
 	}

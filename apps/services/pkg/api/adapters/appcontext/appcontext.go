@@ -26,6 +26,7 @@ import (
 	xadapter "github.com/eser/aya.is/services/pkg/api/adapters/x"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/discussions"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
@@ -88,6 +89,7 @@ type AppContext struct {
 	ProfileService             *profiles.Service
 	ProfilePointsService       *profile_points.Service
 	ProfileQuestionsService    *profile_questions.Service
+	DiscussionsService         *discussions.Service
 	MailboxService             *mailbox.Service
 	StoryService               *stories.Service
 	StoryInteractionService    *story_interactions.Service
@@ -314,6 +316,14 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.ProfileService,
 		a.AuditService,
 		profile_questions.DefaultIDGenerator,
+	)
+
+	a.DiscussionsService = discussions.NewService(
+		a.Logger,
+		a.Repository,
+		a.ProfileService,
+		a.AuditService,
+		discussions.DefaultIDGenerator,
 	)
 
 	mailboxRepo := storage.NewMailboxRepository(a.Repository)

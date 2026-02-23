@@ -1,0 +1,138 @@
+@reference "@/theme.css";
+
+.card {
+  @apply flex gap-3;
+}
+
+.hiddenCard {
+  @apply opacity-50;
+}
+
+.pinnedCard {
+  @apply border-l-2 border-primary/40 pl-3;
+}
+
+.voteColumn {
+  @apply flex flex-col items-center gap-0 min-w-[28px] pt-0.5;
+}
+
+.voteButton {
+  @apply p-0.5 rounded transition-colors text-muted-foreground/50 hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed;
+}
+
+.upvoted {
+  @apply text-primary;
+}
+
+.downvoted {
+  @apply text-destructive;
+}
+
+.voteScore {
+  @apply text-xs font-medium text-muted-foreground tabular-nums leading-none;
+}
+
+.contentColumn {
+  @apply flex-1 min-w-0;
+}
+
+.commentHeader {
+  @apply flex items-center gap-1.5 mb-1 flex-wrap;
+}
+
+.authorLink {
+  @apply text-xs font-medium text-foreground hover:underline;
+}
+
+.authorAvatar {
+  @apply size-4 rounded-full object-cover;
+}
+
+.metaText {
+  @apply text-xs text-muted-foreground;
+}
+
+.badge {
+  @apply px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-muted text-muted-foreground;
+}
+
+.pinnedBadge {
+  @apply px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-primary/10 text-primary;
+}
+
+.commentContent {
+  @apply text-sm text-foreground leading-relaxed mb-1.5;
+}
+
+.commentContent p {
+  @apply mb-1.5 last:mb-0;
+}
+
+.commentContent code {
+  @apply px-1 py-0.5 text-xs rounded bg-muted font-mono;
+}
+
+.commentContent pre {
+  @apply my-2 p-3 rounded-md bg-muted overflow-x-auto text-xs;
+}
+
+.commentContent pre code {
+  @apply p-0 bg-transparent;
+}
+
+.commentContent a {
+  @apply underline underline-offset-2;
+}
+
+.commentContent ul,
+.commentContent ol {
+  @apply ml-4 mb-2;
+}
+
+.commentContent ul {
+  @apply list-disc;
+}
+
+.commentContent ol {
+  @apply list-decimal;
+}
+
+.commentContent li {
+  @apply mb-1;
+}
+
+.commentContent blockquote {
+  @apply pl-3 border-l-2 border-muted-foreground/30 text-muted-foreground italic;
+}
+
+.deletedContent {
+  @apply text-sm text-muted-foreground italic mb-1.5;
+}
+
+.hiddenContent {
+  @apply text-sm text-muted-foreground italic mb-1.5;
+}
+
+.actions {
+  @apply flex gap-3 items-center;
+}
+
+.actionButton {
+  @apply flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer;
+}
+
+.replySection {
+  @apply mt-2;
+}
+
+.childrenSection {
+  @apply mt-2;
+}
+
+.loadRepliesButton {
+  @apply flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer mt-1;
+}
+
+.continueThread {
+  @apply text-xs text-primary hover:text-primary/80 transition-colors mt-1;
+}

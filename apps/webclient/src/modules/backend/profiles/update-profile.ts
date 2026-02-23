@@ -8,6 +8,7 @@ export type UpdateProfileRequest = {
   feature_relations?: string;
   feature_links?: string;
   feature_qa?: string;
+  option_story_discussions_by_default?: boolean;
 };
 
 export async function updateProfile(

@@ -74,6 +74,17 @@ import { voteQuestion } from "./questions/vote-question";
 import { answerQuestion } from "./questions/answer-question";
 import { editAnswer } from "./questions/edit-answer";
 import { hideQuestion } from "./questions/hide-question";
+import { getStoryDiscussion } from "./discussions/get-story-discussion";
+import { getProfileDiscussion } from "./discussions/get-profile-discussion";
+import { getCommentReplies } from "./discussions/get-comment-replies";
+import { createStoryComment } from "./discussions/create-story-comment";
+import { createProfileComment } from "./discussions/create-profile-comment";
+import { editComment as editDiscussionComment } from "./discussions/edit-comment";
+import { deleteComment as deleteDiscussionComment } from "./discussions/delete-comment";
+import { voteComment } from "./discussions/vote-comment";
+import { hideComment as hideDiscussionComment } from "./discussions/hide-comment";
+import { pinComment } from "./discussions/pin-comment";
+import { lockThread } from "./discussions/lock-thread";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
 import { checkStorySlug } from "./stories/check-story-slug";
@@ -143,6 +154,13 @@ export type { VoteQuestionResult } from "./questions/vote-question";
 export type { AnswerQuestionInput } from "./questions/answer-question";
 export type { EditAnswerInput } from "./questions/edit-answer";
 export type { HideQuestionInput } from "./questions/hide-question";
+export type { CreateCommentInput } from "./discussions/create-story-comment";
+export type { EditCommentInput } from "./discussions/edit-comment";
+export type { VoteCommentInput } from "./discussions/vote-comment";
+export type { HideCommentInput } from "./discussions/hide-comment";
+export type { PinCommentInput } from "./discussions/pin-comment";
+export type { LockThreadInput } from "./discussions/lock-thread";
+export type { CommentRepliesResponse } from "./discussions/get-comment-replies";
 export type {
   UnsplashPhoto,
   UnsplashPhotoUrls,
@@ -243,6 +261,19 @@ export const backend = {
   answerQuestion,
   editAnswer,
   hideQuestion,
+
+  // Discussions
+  getStoryDiscussion,
+  getProfileDiscussion,
+  getCommentReplies,
+  createStoryComment,
+  createProfileComment,
+  editDiscussionComment,
+  deleteDiscussionComment,
+  voteComment,
+  hideDiscussionComment,
+  pinComment,
+  lockThread,
 
   // Stories
   getStoriesByKinds,
@@ -405,6 +436,19 @@ export {
   answerQuestion,
   editAnswer,
   hideQuestion,
+
+  // Discussions
+  getStoryDiscussion,
+  getProfileDiscussion,
+  getCommentReplies,
+  createStoryComment,
+  createProfileComment,
+  editDiscussionComment,
+  deleteDiscussionComment,
+  voteComment,
+  hideDiscussionComment,
+  pinComment,
+  lockThread,
 
   // Activities
   getActivities,

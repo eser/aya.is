@@ -58,6 +58,17 @@ const (
 	ProfileQuestionHidden       EventType = "profile_question_hidden"
 )
 
+// Discussion events.
+const (
+	DiscussionCommentCreated EventType = "discussion_comment_created"
+	DiscussionCommentEdited  EventType = "discussion_comment_edited"
+	DiscussionCommentDeleted EventType = "discussion_comment_deleted"
+	DiscussionCommentVoted   EventType = "discussion_comment_voted"
+	DiscussionCommentHidden  EventType = "discussion_comment_hidden"
+	DiscussionCommentPinned  EventType = "discussion_comment_pinned"
+	DiscussionThreadLocked   EventType = "discussion_thread_locked"
+)
+
 // Points events.
 const (
 	PointsGained        EventType = "points_gained"

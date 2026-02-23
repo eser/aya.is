@@ -94,6 +94,7 @@ INSERT INTO "story" (
   is_managed,
   remote_id,
   visibility,
+  feat_discussions,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -105,6 +106,7 @@ INSERT INTO "story" (
   sqlc.arg(is_managed),
   sqlc.narg(remote_id),
   sqlc.arg(visibility),
+  sqlc.arg(feat_discussions),
   NOW()
 ) RETURNING *;
 
@@ -151,6 +153,7 @@ SET
   story_picture_uri = sqlc.narg(story_picture_uri),
   properties = sqlc.narg(properties),
   visibility = sqlc.arg(visibility),
+  feat_discussions = sqlc.arg(feat_discussions),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;

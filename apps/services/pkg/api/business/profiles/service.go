@@ -270,6 +270,8 @@ type Repository interface { //nolint:interfacebloat
 		featureRelations *string,
 		featureLinks *string,
 		featureQA *string,
+		featureDiscussions *string,
+		optionStoryDiscussionsByDefault *bool,
 	) error
 	UpdateProfileTx(
 		ctx context.Context,
@@ -1596,6 +1598,8 @@ func (s *Service) Update(
 	featureRelations *string,
 	featureLinks *string,
 	featureQA *string,
+	featureDiscussions *string,
+	optionStoryDiscussionsByDefault *bool,
 ) (*Profile, error) {
 	// Get profile ID
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
@@ -1628,7 +1632,7 @@ func (s *Service) Update(
 	}
 
 	// Validate module visibility values
-	for _, v := range []*string{featureRelations, featureLinks, featureQA} {
+	for _, v := range []*string{featureRelations, featureLinks, featureQA, featureDiscussions} {
 		if v != nil {
 			switch ModuleVisibility(*v) {
 			case ModuleVisibilityPublic, ModuleVisibilityHidden, ModuleVisibilityDisabled:
@@ -1648,6 +1652,8 @@ func (s *Service) Update(
 		featureRelations,
 		featureLinks,
 		featureQA,
+		featureDiscussions,
+		optionStoryDiscussionsByDefault,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToUpdateRecord, profileID, err)

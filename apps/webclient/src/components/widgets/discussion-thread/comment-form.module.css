@@ -1,0 +1,30 @@
+@reference "@/theme.css";
+
+.form {
+  @apply space-y-3;
+}
+
+.formCard {
+  @apply p-4 border rounded-lg bg-card;
+}
+
+.textarea {
+  @apply w-full p-3 text-sm border rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring;
+  field-sizing: content;
+}
+
+.footer {
+  @apply flex items-center justify-end gap-2;
+}
+
+.cancelButton {
+  @apply px-3 py-1.5 text-xs rounded-md border hover:bg-accent transition-colors;
+}
+
+.submitButton {
+  @apply px-3 py-1.5 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50;
+}
+
+.error {
+  @apply text-sm text-destructive;
+}

@@ -154,7 +154,7 @@ func (w *SpeakerDeckStoryProcessor) createStoryFromImport(
 	_, err := w.storyRepo.InsertStory(
 		ctx, storyID, imp.ProfileID, slug, "presentation",
 		meta.storyPictureURI, properties, true, &imp.RemoteID,
-		"public",
+		"public", false,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to insert story: %w", err)

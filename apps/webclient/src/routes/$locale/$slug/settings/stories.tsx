@@ -1,7 +1,8 @@
 // Profile stories settings
 import * as React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   ExternalLink,
   FileText,
@@ -10,17 +11,30 @@ import {
   ImagePlus,
   Images,
   Info,
+  Loader2,
   Megaphone,
   Newspaper,
   Pencil,
   PencilLine,
   Plus,
   Presentation,
+  Settings2,
 } from "lucide-react";
 import { backend, type StoryEx, type StoryKind } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { LocaleLink } from "@/components/locale-link";
 import {
   Pagination,
@@ -31,6 +45,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { formatDateString } from "@/lib/date";
+
+const settingsRoute = getRouteApi("/$locale/$slug/settings");
 
 const ITEMS_PER_PAGE = 10;
 
@@ -56,10 +72,47 @@ function StoriesSettingsPage() {
   const locale = i18n.language;
   const params = Route.useParams();
   const search = Route.useSearch();
+  const router = useRouter();
   const currentPage = search.page ?? 1;
+
+  const { profile: initialProfile } = settingsRoute.useLoaderData();
 
   const [stories, setStories] = React.useState<StoryEx[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+
+  // Story Defaults dialog state
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [isSavingDefaults, setIsSavingDefaults] = React.useState(false);
+  const [storyDiscussionsByDefault, setStoryDiscussionsByDefault] = React.useState(
+    initialProfile.option_story_discussions_by_default === true,
+  );
+
+  // Sync dialog state when profile changes
+  React.useEffect(() => {
+    setStoryDiscussionsByDefault(initialProfile.option_story_discussions_by_default === true);
+  }, [initialProfile]);
+
+  const handleSaveDefaults = async () => {
+    setIsSavingDefaults(true);
+    try {
+      const result = await backend.updateProfile(params.locale, params.slug, {
+        option_story_discussions_by_default: storyDiscussionsByDefault,
+      });
+
+      if (result === null) {
+        toast.error(t("Profile.Failed to update profile"));
+        return;
+      }
+
+      toast.success(t("Profile.Preferences saved"));
+      router.invalidate();
+      setDialogOpen(false);
+    } catch {
+      toast.error(t("Profile.Failed to update profile"));
+    } finally {
+      setIsSavingDefaults(false);
+    }
+  };
 
   // Load stories on mount
   React.useEffect(() => {
@@ -123,12 +176,58 @@ function StoriesSettingsPage() {
             {t("Profile.Manage your stories and articles.")}
           </p>
         </div>
-        <Link to="/$locale/stories/new" params={{ locale: params.locale }}>
-          <Button variant="default" size="sm">
-            <Plus className="mr-1.5 size-4" />
-            {t("ContentEditor.Add Story")}
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings2 className="mr-1.5 size-4" />
+                {t("Profile.Story Defaults...")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("Profile.Story Defaults")}</DialogTitle>
+                <DialogDescription>
+                  {t("Profile.Configure default settings for new stories.")}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <Field>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <FieldLabel>{t("Profile.Enable discussions by default")}</FieldLabel>
+                      <p className="text-sm text-muted-foreground">
+                        {t("Profile.New stories will have discussions enabled automatically.")}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={storyDiscussionsByDefault}
+                      onCheckedChange={setStoryDiscussionsByDefault}
+                    />
+                  </div>
+                </Field>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  onClick={handleSaveDefaults}
+                  disabled={isSavingDefaults}
+                >
+                  {isSavingDefaults && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {isSavingDefaults ? t("Common.Saving...") : t("Profile.Save Changes")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Link to="/$locale/stories/new" params={{ locale: params.locale }}>
+            <Button variant="default" size="sm">
+              <Plus className="mr-1.5 size-4" />
+              {t("ContentEditor.Add Story")}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {stories.length === 0

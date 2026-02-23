@@ -1,0 +1,9 @@
+@reference "@/theme.css";
+
+.tree {
+  @apply flex flex-col gap-4;
+}
+
+.childTree {
+  @apply flex flex-col gap-3 pl-4 border-l border-border/50 ml-3.5;
+}

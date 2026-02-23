@@ -69,6 +69,7 @@ type Story struct {
 	Content         string     `json:"content"`
 	Visibility      string     `json:"visibility"`
 	IsManaged       bool       `json:"is_managed"`
+	FeatDiscussions bool       `json:"feat_discussions"`
 }
 
 type StoryWithChildren struct {
@@ -95,6 +96,7 @@ type StoryForEdit struct {
 	Content           string     `json:"content"`
 	Visibility        string     `json:"visibility"`
 	IsManaged         bool       `json:"is_managed"`
+	FeatDiscussions   bool       `json:"feat_discussions"`
 }
 
 // StoryForEditWithPublications wraps StoryForEdit with its publications.
