@@ -620,7 +620,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Slug is already taken"))
 			}
 
-			// Create the profile
+			// Create the profile — copy user's profile picture for individual profiles
+			var profilePictureURI *string
+			if requestBody.Kind == "individual" {
+				profilePictureURI = user.ProfilePictureURI
+			}
+
 			profile, err := profileService.Create(
 				ctx.Request.Context(),
 				user.ID,
@@ -629,7 +634,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Kind,
 				requestBody.Title,
 				requestBody.Description,
-				nil, // profilePictureURI
+				profilePictureURI,
 				nil, // pronouns
 				nil, // properties
 			)
