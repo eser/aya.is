@@ -15,7 +15,7 @@ import {
   Heart,
   Star,
 } from "lucide-react";
-import { backend, type ProfileMembershipWithMember, type UserSearchResult, type MembershipKind } from "@/modules/backend/backend";
+import { backend, type ProfileMembershipWithMember, type UserSearchResult, type MembershipKind, type ProfileTeam } from "@/modules/backend/backend";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,6 +46,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+import { Checkbox } from "@/components/ui/checkbox";
 
 import styles from "./access.module.css";
 
@@ -200,6 +202,13 @@ function AccessSettingsPage() {
 
   // Edit dialog state
   const [editKind, setEditKind] = React.useState<MembershipKind>("contributor");
+  const [editTeamIds, setEditTeamIds] = React.useState<string[]>([]);
+
+  // Teams dialog state
+  const [isTeamsDialogOpen, setIsTeamsDialogOpen] = React.useState(false);
+  const [teams, setTeams] = React.useState<ProfileTeam[]>([]);
+  const [newTeamName, setNewTeamName] = React.useState("");
+  const [isTeamSaving, setIsTeamSaving] = React.useState(false);
 
   // Debounce search
   const searchTimeoutRef = React.useRef<number | null>(null);
@@ -209,6 +218,13 @@ function AccessSettingsPage() {
     loadMemberships();
   }, [params.locale, params.slug]);
 
+  const loadTeams = async () => {
+    const result = await backend.listProfileTeams(params.locale, params.slug);
+    if (result !== null) {
+      setTeams(result);
+    }
+  };
+
   const loadMemberships = async () => {
     setIsLoading(true);
     const result = await backend.listProfileMemberships(params.locale, params.slug);
@@ -217,6 +233,7 @@ function AccessSettingsPage() {
     } else {
       toast.error(t("Profile.Failed to load memberships"));
     }
+    await loadTeams();
     setIsLoading(false);
   };
 
@@ -264,6 +281,7 @@ function AccessSettingsPage() {
   const handleOpenEditDialog = (membership: ProfileMembershipWithMember) => {
     setEditingMembership(membership);
     setEditKind(membership.kind);
+    setEditTeamIds(membership.teams?.map((team) => team.id) ?? []);
     setIsEditDialogOpen(true);
   };
 
@@ -299,14 +317,21 @@ function AccessSettingsPage() {
     if (editingMembership === null) return;
 
     setIsSaving(true);
-    const success = await backend.updateProfileMembership(
+    const kindSuccess = await backend.updateProfileMembership(
       params.locale,
       params.slug,
       editingMembership.id,
       { kind: editKind },
     );
 
-    if (success) {
+    const teamsSuccess = await backend.setMembershipTeams(
+      params.locale,
+      params.slug,
+      editingMembership.id,
+      editTeamIds,
+    );
+
+    if (kindSuccess && teamsSuccess) {
       toast.success(t("Profile.Membership updated successfully"));
       setIsEditDialogOpen(false);
       setEditingMembership(null);
@@ -334,6 +359,41 @@ function AccessSettingsPage() {
     } else {
       toast.error(t("Profile.Failed to remove member"));
     }
+  };
+
+  const handleCreateTeam = async () => {
+    if (newTeamName.trim().length === 0) return;
+
+    setIsTeamSaving(true);
+    const team = await backend.createProfileTeam(params.locale, params.slug, newTeamName.trim());
+    if (team !== null) {
+      toast.success(t("Profile.Team created successfully"));
+      setNewTeamName("");
+      await loadTeams();
+    } else {
+      toast.error(t("Profile.Failed to create team"));
+    }
+    setIsTeamSaving(false);
+  };
+
+  const handleDeleteTeam = async (teamId: string) => {
+    setIsTeamSaving(true);
+    const success = await backend.deleteProfileTeam(params.locale, params.slug, teamId);
+    if (success) {
+      toast.success(t("Profile.Team deleted successfully"));
+      await loadTeams();
+    } else {
+      toast.error(t("Profile.Cannot delete team with members"));
+    }
+    setIsTeamSaving(false);
+  };
+
+  const handleToggleEditTeam = (teamId: string) => {
+    setEditTeamIds((prev) =>
+      prev.includes(teamId)
+        ? prev.filter((id) => id !== teamId)
+        : [...prev, teamId],
+    );
   };
 
   if (isLoading) {
@@ -374,10 +434,16 @@ function AccessSettingsPage() {
             {t("Profile.Manage who has access to this profile and their permission levels.")}
           </p>
         </div>
-        <Button onClick={handleOpenAddDialog}>
-          <Plus className="size-4 mr-1" />
-          {t("Profile.Add Member")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setIsTeamsDialogOpen(true)}>
+            <Users className="size-4 mr-1" />
+            {t("Profile.Teams...")}
+          </Button>
+          <Button onClick={handleOpenAddDialog}>
+            <Plus className="size-4 mr-1" />
+            {t("Profile.Add Member")}
+          </Button>
+        </div>
       </div>
 
       {memberships.length === 0 ? (
@@ -423,6 +489,9 @@ function AccessSettingsPage() {
                       <IconComponent className="size-3" />
                       {t(config.labelKey)}
                     </span>
+                    {membership.teams !== undefined && membership.teams.length > 0 && membership.teams.map((team) => (
+                      <span key={team.id} className={styles.teamBadge}>{team.name}</span>
+                    ))}
                   </div>
                   <p className={styles.memberSlug}>@{memberProfile?.slug}</p>
                 </div>
@@ -433,7 +502,7 @@ function AccessSettingsPage() {
                     onClick={() => handleOpenEditDialog(membership)}
                     disabled={!canEditMember}
                   >
-                    {t("Common.Edit")}
+                    {t("Profile.Edit...")}
                   </Button>
                   <Button
                     variant="ghost"
@@ -589,6 +658,23 @@ function AccessSettingsPage() {
                     />
                   )}
                 </div>
+
+                {teams.length > 0 && (
+                  <div className={styles.kindField}>
+                    <label className={styles.kindLabel}>{t("Profile.Assign Teams")}</label>
+                    <div className={styles.teamCheckboxList}>
+                      {teams.map((team) => (
+                        <label key={team.id} className={styles.teamCheckboxItem}>
+                          <Checkbox
+                            checked={editTeamIds.includes(team.id)}
+                            onCheckedChange={() => handleToggleEditTeam(team.id)}
+                          />
+                          <span className="text-sm">{team.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}
@@ -621,6 +707,65 @@ function AccessSettingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Teams Dialog */}
+      <Dialog open={isTeamsDialogOpen} onOpenChange={setIsTeamsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("Profile.Teams")}</DialogTitle>
+            <DialogDescription>
+              {t("Profile.Manage teams for this profile.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className={styles.teamList}>
+            {teams.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {t("Profile.No teams yet.")}
+              </p>
+            )}
+            {teams.map((team) => (
+              <div key={team.id} className={styles.teamItem}>
+                <div>
+                  <span className="text-sm font-medium">{team.name}</span>
+                  <span className={styles.teamMemberCount}>
+                    {" "}&middot;{" "}{team.member_count}{" "}{team.member_count === 1 ? t("Profile.member") : t("Profile.members")}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteTeam(team.id)}
+                  disabled={isTeamSaving || team.member_count > 0}
+                  title={team.member_count > 0 ? t("Profile.Cannot delete team with members") : undefined}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.addTeamForm}>
+            <Input
+              placeholder={t("Profile.Team name")}
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleCreateTeam();
+                }
+              }}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleCreateTeam}
+              disabled={isTeamSaving || newTeamName.trim().length === 0}
+            >
+              {t("Profile.Add Team")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

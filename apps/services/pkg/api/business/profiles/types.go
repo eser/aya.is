@@ -250,16 +250,26 @@ type ProfileBrief struct {
 	Description       string  `json:"description"`
 }
 
+// ProfileTeam represents a team within a profile for organizing members.
+type ProfileTeam struct {
+	ID          string  `json:"id"`
+	ProfileID   string  `json:"profile_id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	MemberCount int64   `json:"member_count"`
+}
+
 // ProfileMembershipWithMember includes membership data with member profile details.
 type ProfileMembershipWithMember struct {
-	ID              string        `json:"id"`
-	ProfileID       string        `json:"profile_id"`
-	MemberProfileID *string       `json:"member_profile_id"`
-	Kind            string        `json:"kind"`
-	Properties      any           `json:"properties"`
-	StartedAt       *time.Time    `json:"started_at"`
-	FinishedAt      *time.Time    `json:"finished_at"`
-	MemberProfile   *ProfileBrief `json:"member_profile"`
+	ID              string         `json:"id"`
+	ProfileID       string         `json:"profile_id"`
+	MemberProfileID *string        `json:"member_profile_id"`
+	Kind            string         `json:"kind"`
+	Properties      any            `json:"properties"`
+	StartedAt       *time.Time     `json:"started_at"`
+	FinishedAt      *time.Time     `json:"finished_at"`
+	MemberProfile   *ProfileBrief  `json:"member_profile"`
+	Teams           []*ProfileTeam `json:"teams"`
 }
 
 // UserSearchResult represents a user search result for adding memberships.

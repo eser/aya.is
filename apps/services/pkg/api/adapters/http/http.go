@@ -179,6 +179,13 @@ func Run(
 		userService,
 		profileService,
 	)
+	RegisterHTTPRoutesForProfileTeams( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		profileService,
+	)
 	RegisterHTTPRoutesForProfileQuestions( //nolint:contextcheck
 		routes,
 		logger,

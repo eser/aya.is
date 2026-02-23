@@ -943,7 +943,15 @@ func (r *Repository) ListProfileMembershipsForSettings(
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
 			},
+			Teams: []*profiles.ProfileTeam{},
 		}
+
+		// Populate teams for this membership
+		teams, teamsErr := r.ListMembershipTeams(ctx, row.ID)
+		if teamsErr == nil && teams != nil {
+			membership.Teams = teams
+		}
+
 		result = append(result, membership)
 	}
 
@@ -2249,4 +2257,146 @@ func (r *Repository) GetManagedGitHubLinkByProfileID(
 		ProfileID:       row.ProfileID,
 		AuthAccessToken: row.AuthAccessToken.String,
 	}, nil
+}
+
+// Profile Team methods
+
+func (r *Repository) ListProfileTeamsWithMemberCount(
+	ctx context.Context,
+	profileID string,
+) ([]*profiles.ProfileTeam, error) {
+	rows, err := r.queries.ListProfileTeamsWithMemberCount(
+		ctx,
+		ListProfileTeamsWithMemberCountParams{ProfileID: profileID},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.ProfileTeam, 0, len(rows))
+
+	for _, row := range rows {
+		result = append(result, &profiles.ProfileTeam{
+			ID:          row.ID,
+			ProfileID:   row.ProfileID,
+			Name:        row.Name,
+			Description: vars.ToStringPtr(row.Description),
+			MemberCount: row.MemberCount,
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) CreateProfileTeam(
+	ctx context.Context,
+	id string,
+	profileID string,
+	name string,
+	description *string,
+) (*profiles.ProfileTeam, error) {
+	row, err := r.queries.CreateProfileTeam(ctx, CreateProfileTeamParams{
+		ID:          id,
+		ProfileID:   profileID,
+		Name:        name,
+		Description: vars.ToSQLNullString(description),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &profiles.ProfileTeam{
+		ID:          row.ID,
+		ProfileID:   row.ProfileID,
+		Name:        row.Name,
+		Description: vars.ToStringPtr(row.Description),
+		MemberCount: 0,
+	}, nil
+}
+
+func (r *Repository) UpdateProfileTeam(
+	ctx context.Context,
+	id string,
+	name string,
+	description *string,
+) error {
+	_, err := r.queries.UpdateProfileTeam(ctx, UpdateProfileTeamParams{
+		ID:          id,
+		Name:        name,
+		Description: vars.ToSQLNullString(description),
+	})
+
+	return err
+}
+
+func (r *Repository) DeleteProfileTeam(
+	ctx context.Context,
+	id string,
+) error {
+	_, err := r.queries.DeleteProfileTeam(ctx, DeleteProfileTeamParams{ID: id})
+
+	return err
+}
+
+func (r *Repository) CountProfileTeamMembers(
+	ctx context.Context,
+	teamID string,
+) (int64, error) {
+	return r.queries.CountProfileTeamMembers(ctx, CountProfileTeamMembersParams{
+		ProfileTeamID: teamID,
+	})
+}
+
+func (r *Repository) ListMembershipTeams(
+	ctx context.Context,
+	membershipID string,
+) ([]*profiles.ProfileTeam, error) {
+	rows, err := r.queries.ListMembershipTeams(ctx, ListMembershipTeamsParams{
+		ProfileMembershipID: membershipID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.ProfileTeam, 0, len(rows))
+
+	for _, row := range rows {
+		result = append(result, &profiles.ProfileTeam{
+			ID:          row.ID,
+			ProfileID:   row.ProfileID,
+			Name:        row.Name,
+			Description: vars.ToStringPtr(row.Description),
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) SetMembershipTeams(
+	ctx context.Context,
+	membershipID string,
+	teamIDs []string,
+	idGenerator func() string,
+) error {
+	// Soft-delete all existing team assignments
+	_, err := r.queries.SetMembershipTeams_Delete(ctx, SetMembershipTeams_DeleteParams{
+		ProfileMembershipID: membershipID,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Insert new assignments
+	for _, teamID := range teamIDs {
+		_, err := r.queries.SetMembershipTeams_Insert(ctx, SetMembershipTeams_InsertParams{
+			ID:                  idGenerator(),
+			ProfileMembershipID: membershipID,
+			ProfileTeamID:       teamID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -146,6 +146,15 @@ export interface ProfileBrief {
   description?: string | null;
 }
 
+// Profile team for organizing members
+export interface ProfileTeam {
+  id: string;
+  profile_id: string;
+  name: string;
+  description: string | null;
+  member_count: number;
+}
+
 // Membership with member profile details for settings
 export interface ProfileMembershipWithMember {
   id: string;
@@ -156,6 +165,7 @@ export interface ProfileMembershipWithMember {
   started_at?: string | null;
   finished_at?: string | null;
   member_profile?: ProfileBrief | null;
+  teams?: ProfileTeam[];
 }
 
 // User search result for adding memberships

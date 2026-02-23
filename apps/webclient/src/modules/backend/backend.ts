@@ -36,6 +36,11 @@ import { searchUsersForMembership } from "./profiles/search-users-for-membership
 import { addProfileMembership } from "./profiles/add-profile-membership";
 import { updateProfileMembership } from "./profiles/update-profile-membership";
 import { deleteProfileMembership } from "./profiles/delete-profile-membership";
+import { listProfileTeams } from "./profiles/list-profile-teams";
+import { createProfileTeam } from "./profiles/create-profile-team";
+import { updateProfileTeam } from "./profiles/update-profile-team";
+import { deleteProfileTeam } from "./profiles/delete-profile-team";
+import { setMembershipTeams } from "./profiles/set-membership-teams";
 import { followProfile } from "./profiles/follow-profile";
 import { unfollowProfile } from "./profiles/unfollow-profile";
 import { createProfilePage } from "./profiles/create-profile-page";
@@ -218,6 +223,13 @@ export const backend = {
   deleteProfileMembership,
   followProfile,
   unfollowProfile,
+
+  // Profile Teams
+  listProfileTeams,
+  createProfileTeam,
+  updateProfileTeam,
+  deleteProfileTeam,
+  setMembershipTeams,
 
   // Profile Pages
   listProfilePages,
@@ -403,6 +415,11 @@ export {
   deleteProfileMembership,
   searchUsersForMembership,
   updateProfileMembership,
+  listProfileTeams,
+  createProfileTeam,
+  updateProfileTeam,
+  deleteProfileTeam,
+  setMembershipTeams,
   removeStory,
   removeUpload,
   search,

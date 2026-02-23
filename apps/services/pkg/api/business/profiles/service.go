@@ -14,23 +14,24 @@ import (
 )
 
 var (
-	ErrFailedToGetRecord    = errors.New("failed to get record")
-	ErrFailedToListRecords  = errors.New("failed to list records")
-	ErrFailedToCreateRecord = errors.New("failed to create record")
-	ErrFailedToUpdateRecord = errors.New("failed to update record")
-	ErrFailedToDeleteRecord = errors.New("failed to delete record")
-	ErrUnauthorized         = errors.New("unauthorized")
-	ErrInsufficientAccess   = errors.New("insufficient access level")
-	ErrNoMembershipFound    = errors.New("no membership found")
-	ErrNoIndividualProfile  = errors.New("user has no individual profile")
-	ErrProfileNotFound      = errors.New("profile not found")
-	ErrInvalidURI           = errors.New("invalid URI")
-	ErrInvalidURIPrefix     = errors.New("URI must start with allowed prefix")
-	ErrSearchFailed         = errors.New("search failed")
-	ErrDuplicateRecord      = errors.New("duplicate record")
-	ErrInvalidInput         = errors.New("invalid input")
-	ErrRelationsNotEnabled  = errors.New("relations feature is not enabled for this profile")
-	ErrLinksNotEnabled      = errors.New("links feature is not enabled for this profile")
+	ErrFailedToGetRecord           = errors.New("failed to get record")
+	ErrFailedToListRecords         = errors.New("failed to list records")
+	ErrFailedToCreateRecord        = errors.New("failed to create record")
+	ErrFailedToUpdateRecord        = errors.New("failed to update record")
+	ErrFailedToDeleteRecord        = errors.New("failed to delete record")
+	ErrUnauthorized                = errors.New("unauthorized")
+	ErrInsufficientAccess          = errors.New("insufficient access level")
+	ErrNoMembershipFound           = errors.New("no membership found")
+	ErrNoIndividualProfile         = errors.New("user has no individual profile")
+	ErrProfileNotFound             = errors.New("profile not found")
+	ErrInvalidURI                  = errors.New("invalid URI")
+	ErrInvalidURIPrefix            = errors.New("URI must start with allowed prefix")
+	ErrSearchFailed                = errors.New("search failed")
+	ErrDuplicateRecord             = errors.New("duplicate record")
+	ErrInvalidInput                = errors.New("invalid input")
+	ErrRelationsNotEnabled         = errors.New("relations feature is not enabled for this profile")
+	ErrLinksNotEnabled             = errors.New("links feature is not enabled for this profile")
+	ErrCannotDeleteTeamWithMembers = errors.New("cannot delete team that has members")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -564,6 +565,43 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		profileID string,
 	) (*ManagedGitHubLink, error)
+
+	// Profile Team methods
+	ListProfileTeamsWithMemberCount(
+		ctx context.Context,
+		profileID string,
+	) ([]*ProfileTeam, error)
+	CreateProfileTeam(
+		ctx context.Context,
+		id string,
+		profileID string,
+		name string,
+		description *string,
+	) (*ProfileTeam, error)
+	UpdateProfileTeam(
+		ctx context.Context,
+		id string,
+		name string,
+		description *string,
+	) error
+	DeleteProfileTeam(
+		ctx context.Context,
+		id string,
+	) error
+	CountProfileTeamMembers(
+		ctx context.Context,
+		teamID string,
+	) (int64, error)
+	ListMembershipTeams(
+		ctx context.Context,
+		membershipID string,
+	) ([]*ProfileTeam, error)
+	SetMembershipTeams(
+		ctx context.Context,
+		membershipID string,
+		teamIDs []string,
+		idGenerator func() string,
+	) error
 }
 
 type Service struct {
@@ -3793,4 +3831,168 @@ func (s *Service) GetManagedGitHubLink(
 	}
 
 	return link, nil
+}
+
+// ListTeams lists all teams for a profile with member counts. Requires maintainer access.
+func (s *Service) ListTeams(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+) ([]*ProfileTeam, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
+	}
+
+	teams, err := s.repo.ListProfileTeamsWithMemberCount(ctx, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToListRecords, profileID, err)
+	}
+
+	return teams, nil
+}
+
+// CreateTeam creates a new team for a profile. Requires maintainer access.
+func (s *Service) CreateTeam(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	name string,
+	description *string,
+) (*ProfileTeam, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return nil, ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return nil, err
+	}
+
+	if strings.TrimSpace(name) == "" {
+		return nil, fmt.Errorf("%w: team name is required", ErrInvalidInput)
+	}
+
+	id := string(s.idGenerator())
+
+	team, err := s.repo.CreateProfileTeam(ctx, id, profileID, name, description)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	}
+
+	return team, nil
+}
+
+// UpdateTeam updates an existing team. Requires maintainer access.
+func (s *Service) UpdateTeam(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	teamID string,
+	name string,
+	description *string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(name) == "" {
+		return fmt.Errorf("%w: team name is required", ErrInvalidInput)
+	}
+
+	err = s.repo.UpdateProfileTeam(ctx, teamID, name, description)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	return nil
+}
+
+// DeleteTeam deletes a team. Requires maintainer access. Fails if team has members.
+func (s *Service) DeleteTeam(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	teamID string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
+	}
+
+	memberCount, err := s.repo.CountProfileTeamMembers(ctx, teamID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if memberCount > 0 {
+		return ErrCannotDeleteTeamWithMembers
+	}
+
+	err = s.repo.DeleteProfileTeam(ctx, teamID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToDeleteRecord, err)
+	}
+
+	return nil
+}
+
+// SetMembershipTeams assigns teams to a membership. Requires maintainer access.
+func (s *Service) SetMembershipTeams(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	membershipID string,
+	teamIDs []string,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+	}
+
+	if profileID == "" {
+		return ErrProfileNotFound
+	}
+
+	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
+		return err
+	}
+
+	idGen := func() string { return string(s.idGenerator()) }
+
+	err = s.repo.SetMembershipTeams(ctx, membershipID, teamIDs, idGen)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	return nil
 }

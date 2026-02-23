@@ -265,6 +265,14 @@ type ProfileMembership struct {
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
+type ProfileMembershipTeam struct {
+	ID                  string       `db:"id" json:"id"`
+	ProfileMembershipID string       `db:"profile_membership_id" json:"profile_membership_id"`
+	ProfileTeamID       string       `db:"profile_team_id" json:"profile_team_id"`
+	CreatedAt           time.Time    `db:"created_at" json:"created_at"`
+	DeletedAt           sql.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
 type ProfilePage struct {
 	ID               string         `db:"id" json:"id"`
 	ProfileID        string         `db:"profile_id" json:"profile_id"`
@@ -355,6 +363,15 @@ type ProfileResource struct {
 	CreatedAt        time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt        sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt        sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+}
+
+type ProfileTeam struct {
+	ID          string         `db:"id" json:"id"`
+	ProfileID   string         `db:"profile_id" json:"profile_id"`
+	Name        string         `db:"name" json:"name"`
+	Description sql.NullString `db:"description" json:"description"`
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
+	DeletedAt   sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 }
 
 type ProfileTx struct {

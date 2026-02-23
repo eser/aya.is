@@ -133,3 +133,34 @@
 .onlyOwnerText {
   @apply text-sm text-muted-foreground;
 }
+
+/* Team badges */
+.teamBadge {
+  @apply text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground;
+}
+
+/* Teams Dialog */
+.teamList {
+  @apply space-y-2;
+}
+
+.teamItem {
+  @apply flex items-center justify-between p-2 rounded border;
+}
+
+.teamMemberCount {
+  @apply text-xs text-muted-foreground;
+}
+
+.addTeamForm {
+  @apply flex items-center gap-2 mt-4;
+}
+
+/* Team checkboxes in Edit dialog */
+.teamCheckboxList {
+  @apply space-y-2 mt-2;
+}
+
+.teamCheckboxItem {
+  @apply flex items-center gap-2 cursor-pointer;
+}

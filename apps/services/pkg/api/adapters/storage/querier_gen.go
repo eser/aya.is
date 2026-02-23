@@ -250,6 +250,11 @@ type Querier interface {
 	//  WHERE profile_id = $1
 	//    AND deleted_at IS NULL
 	CountProfileQuestionsByProfileID(ctx context.Context, arg CountProfileQuestionsByProfileIDParams) (int64, error)
+	//CountProfileTeamMembers
+	//
+	//  SELECT COUNT(*) FROM "profile_membership_team"
+	//  WHERE profile_team_id = $1 AND deleted_at IS NULL
+	CountProfileTeamMembers(ctx context.Context, arg CountProfileTeamMembersParams) (int64, error)
 	// Returns interaction counts grouped by kind for a story.
 	//
 	//  SELECT kind, COUNT(*) as count
@@ -520,6 +525,12 @@ type Querier interface {
 	//    $11, NOW()
 	//  ) RETURNING id, profile_id, kind, is_managed, remote_id, public_id, url, title, description, properties, added_by_profile_id, created_at, updated_at, deleted_at
 	CreateProfileResource(ctx context.Context, arg CreateProfileResourceParams) (*ProfileResource, error)
+	//CreateProfileTeam
+	//
+	//  INSERT INTO "profile_team" (id, profile_id, name, description)
+	//  VALUES ($1, $2, $3, $4)
+	//  RETURNING id, profile_id, name, description, created_at, deleted_at
+	CreateProfileTeam(ctx context.Context, arg CreateProfileTeamParams) (*ProfileTeam, error)
 	//CreateProfileTx
 	//
 	//  INSERT INTO "profile_tx" (profile_id, locale_code, title, description, properties)
@@ -711,6 +722,12 @@ type Querier interface {
 	//  WHERE question_id = $1
 	//    AND user_id = $2
 	DeleteProfileQuestionVote(ctx context.Context, arg DeleteProfileQuestionVoteParams) error
+	//DeleteProfileTeam
+	//
+	//  UPDATE "profile_team"
+	//  SET deleted_at = NOW()
+	//  WHERE id = $1 AND deleted_at IS NULL
+	DeleteProfileTeam(ctx context.Context, arg DeleteProfileTeamParams) (int64, error)
 	// ============================================================
 	// Hard delete (admin only)
 	// ============================================================
@@ -1414,6 +1431,11 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileSlugByIDForTelegram(ctx context.Context, arg GetProfileSlugByIDForTelegramParams) (string, error)
+	//GetProfileTeamByID
+	//
+	//  SELECT id, profile_id, name, description, created_at, deleted_at FROM "profile_team"
+	//  WHERE id = $1 AND deleted_at IS NULL
+	GetProfileTeamByID(ctx context.Context, arg GetProfileTeamByIDParams) (*ProfileTeam, error)
 	//GetProfileTxByID
 	//
 	//  SELECT pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -2392,6 +2414,13 @@ type Querier interface {
 	//  ORDER BY pl.updated_at ASC NULLS FIRST
 	//  LIMIT $1
 	ListManagedTelegramLinks(ctx context.Context, arg ListManagedTelegramLinksParams) ([]*ListManagedTelegramLinksRow, error)
+	//ListMembershipTeams
+	//
+	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at FROM "profile_team" pt
+	//  JOIN "profile_membership_team" pmt ON pmt.profile_team_id = pt.id AND pmt.deleted_at IS NULL
+	//  WHERE pmt.profile_membership_id = $1 AND pt.deleted_at IS NULL
+	//  ORDER BY pt.name ASC
+	ListMembershipTeams(ctx context.Context, arg ListMembershipTeamsParams) ([]*ProfileTeam, error)
 	//ListPendingAwards
 	//
 	//  SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at
@@ -2667,6 +2696,21 @@ type Querier interface {
 	//    AND pr.deleted_at IS NULL
 	//  ORDER BY pr.created_at DESC
 	ListProfileResourcesByProfileID(ctx context.Context, arg ListProfileResourcesByProfileIDParams) ([]*ListProfileResourcesByProfileIDRow, error)
+	//ListProfileTeams
+	//
+	//  SELECT id, profile_id, name, description, created_at, deleted_at FROM "profile_team"
+	//  WHERE profile_id = $1 AND deleted_at IS NULL
+	//  ORDER BY name ASC
+	ListProfileTeams(ctx context.Context, arg ListProfileTeamsParams) ([]*ProfileTeam, error)
+	//ListProfileTeamsWithMemberCount
+	//
+	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at, COUNT(pmt.id) AS member_count
+	//  FROM "profile_team" pt
+	//  LEFT JOIN "profile_membership_team" pmt ON pmt.profile_team_id = pt.id AND pmt.deleted_at IS NULL
+	//  WHERE pt.profile_id = $1 AND pt.deleted_at IS NULL
+	//  GROUP BY pt.id
+	//  ORDER BY pt.name ASC
+	ListProfileTeamsWithMemberCount(ctx context.Context, arg ListProfileTeamsWithMemberCountParams) ([]*ListProfileTeamsWithMemberCountRow, error)
 	//ListProfiles
 	//
 	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
@@ -3362,6 +3406,18 @@ type Querier interface {
 	//  VALUES ($1, $2, NOW())
 	//  ON CONFLICT ("key") DO UPDATE SET value = $2, updated_at = NOW()
 	SetInCache(ctx context.Context, arg SetInCacheParams) (int64, error)
+	//SetMembershipTeams_Delete
+	//
+	//  UPDATE "profile_membership_team"
+	//  SET deleted_at = NOW()
+	//  WHERE profile_membership_id = $1 AND deleted_at IS NULL
+	SetMembershipTeams_Delete(ctx context.Context, arg SetMembershipTeams_DeleteParams) (int64, error)
+	//SetMembershipTeams_Insert
+	//
+	//  INSERT INTO "profile_membership_team" (id, profile_membership_id, profile_team_id)
+	//  VALUES ($1, $2, $3)
+	//  RETURNING id, profile_membership_id, profile_team_id, created_at, deleted_at
+	SetMembershipTeams_Insert(ctx context.Context, arg SetMembershipTeams_InsertParams) (*ProfileMembershipTeam, error)
 	//SetParticipantArchived
 	//
 	//  UPDATE "mailbox_participant"
@@ -3703,6 +3759,12 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	UpdateProfileResourceProperties(ctx context.Context, arg UpdateProfileResourcePropertiesParams) (int64, error)
+	//UpdateProfileTeam
+	//
+	//  UPDATE "profile_team"
+	//  SET name = $1, description = $2
+	//  WHERE id = $3 AND deleted_at IS NULL
+	UpdateProfileTeam(ctx context.Context, arg UpdateProfileTeamParams) (int64, error)
 	//UpdateProfileTx
 	//
 	//  UPDATE "profile_tx"
