@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "Done",
     "This field is required": "This field is required",
-    "All": "All"
+    "All": "All",
+    "Skip": "Skip",
+    "Close": "Close"
   },
   "Layout": {
     "Homepage": "Homepage",

@@ -2252,10 +2252,16 @@ func (r *Repository) GetManagedGitHubLinkByProfileID(
 		return nil, err
 	}
 
+	var scope *string
+	if row.AuthAccessTokenScope.Valid {
+		scope = &row.AuthAccessTokenScope.String
+	}
+
 	return &profiles.ManagedGitHubLink{
-		ID:              row.ID,
-		ProfileID:       row.ProfileID,
-		AuthAccessToken: row.AuthAccessToken.String,
+		ID:                   row.ID,
+		ProfileID:            row.ProfileID,
+		AuthAccessToken:      row.AuthAccessToken.String,
+		AuthAccessTokenScope: scope,
 	}, nil
 }
 

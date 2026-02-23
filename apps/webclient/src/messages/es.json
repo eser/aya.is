@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "Hecho",
     "This field is required": "Este campo es obligatorio",
-    "All": "Todos"
+    "All": "Todos",
+    "Skip": "Omitir",
+    "Close": "Cerrar"
   },
   "Layout": {
     "Homepage": "Página de inicio",

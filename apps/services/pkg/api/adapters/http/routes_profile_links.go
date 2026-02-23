@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
@@ -17,6 +18,7 @@ import (
 	xadapter "github.com/eser/aya.is/services/pkg/api/adapters/x"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/siteimporter"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
@@ -42,6 +44,7 @@ func RegisterHTTPRoutesForProfileLinks(
 	profileService *profiles.Service,
 	providers *ProfileLinkProviders,
 	siteURI string,
+	auditService *events.AuditService,
 ) {
 	// Initiate OAuth flow for connecting a provider to a profile link
 	// Returns JSON with auth_url for frontend to redirect to
@@ -155,11 +158,35 @@ func RegisterHTTPRoutesForProfileLinks(
 					encodedState,
 				)
 			case "github":
-				authURL, err = providers.GitHub.InitiateProfileLinkOAuth(
-					ctx.Request.Context(),
-					redirectURI,
-					encodedState,
-				)
+				// Determine whether to use expanded scope (with read:org).
+				// Non-individual profiles always need read:org.
+				// Individual profiles use basic scope unless they already have read:org
+				// (e.g., from a previous org/product link), to avoid downgrading on reconnect.
+				useExpandedScope := profile.Kind != "individual"
+
+				if !useExpandedScope {
+					existingLink, linkErr := profileService.GetManagedGitHubLink(
+						ctx.Request.Context(), profile.ID)
+					if linkErr == nil && existingLink != nil &&
+						existingLink.AuthAccessTokenScope != nil &&
+						strings.Contains(*existingLink.AuthAccessTokenScope, "read:org") {
+						useExpandedScope = true
+					}
+				}
+
+				if useExpandedScope {
+					authURL, err = providers.GitHub.InitiateProfileLinkOAuth(
+						ctx.Request.Context(),
+						redirectURI,
+						encodedState,
+					)
+				} else {
+					authURL, err = providers.GitHub.InitiateOAuth(
+						ctx.Request.Context(),
+						redirectURI,
+						encodedState,
+					)
+				}
 			case "linkedin":
 				authURL, err = providers.LinkedIn.InitiateProfileLinkOAuth(
 					ctx.Request.Context(),
@@ -336,9 +363,23 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
-			// For GitHub/LinkedIn with organization/product profiles, store pending connection for account selection
-			if (providerParam == "github" || providerParam == "linkedin") &&
-				(stateObj.ProfileKind == "organization" || stateObj.ProfileKind == "product") {
+			// Record OAuth scope grant in audit trail
+			auditService.Record(ctx.Request.Context(), events.AuditParams{
+				EventType:  events.OAuthScopeGranted,
+				EntityType: "profile",
+				EntityID:   stateObj.ProfileSlug,
+				ActorKind:  events.ActorUser,
+				Payload: map[string]any{
+					"provider":      providerParam,
+					"scope_granted": result.Scope,
+					"profile_slug":  stateObj.ProfileSlug,
+					"profile_kind":  stateObj.ProfileKind,
+					"context":       "profile_link",
+				},
+			})
+
+			// For GitHub/LinkedIn, store pending connection for account selection
+			if providerParam == "github" || providerParam == "linkedin" {
 				pendingConn := &profiles.PendingOAuthConnection{
 					Provider:    providerParam,
 					AccessToken: result.AccessToken,
@@ -572,19 +613,6 @@ func RegisterHTTPRoutesForProfileLinks(
 				)
 			}
 
-			// Fetch organizations
-			orgs, err := providers.GitHub.Client().FetchUserOrganizations(
-				ctx.Request.Context(),
-				pendingConn.AccessToken,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Failed to fetch GitHub organizations",
-					slog.String("error", err.Error()))
-				// Don't fail, just return empty orgs
-				orgs = []*github.OrgInfo{}
-			}
-
-			// Build response with user account and organizations
 			// Construct html_url from login if not provided
 			userHTMLURL := userInfo.HTMLURL
 			if userHTMLURL == "" {
@@ -602,27 +630,44 @@ func RegisterHTTPRoutesForProfileLinks(
 				},
 			}
 
-			for _, org := range orgs {
-				name := org.Name
-				if name == "" {
-					name = org.Login
+			// Only fetch organizations for non-individual profiles (requires read:org scope)
+			if pendingConn.ProfileKind != "individual" {
+				orgs, err := providers.GitHub.Client().FetchUserOrganizations(
+					ctx.Request.Context(),
+					pendingConn.AccessToken,
+				)
+				if err != nil {
+					logger.ErrorContext(
+						ctx.Request.Context(),
+						"Failed to fetch GitHub organizations",
+						slog.String("error", err.Error()),
+					)
+					// Don't fail, just return empty orgs
+					orgs = []*github.OrgInfo{}
 				}
 
-				// GitHub /user/orgs API doesn't return html_url, construct it from login
-				htmlURL := org.HTMLURL
-				if htmlURL == "" {
-					htmlURL = "https://github.com/" + org.Login
-				}
+				for _, org := range orgs {
+					name := org.Name
+					if name == "" {
+						name = org.Login
+					}
 
-				accounts = append(accounts, profiles.GitHubAccount{
-					ID:          strconv.FormatInt(org.ID, 10),
-					Login:       org.Login,
-					Name:        name,
-					AvatarURL:   org.Avatar,
-					HTMLURL:     htmlURL,
-					Type:        "Organization",
-					Description: org.Description,
-				})
+					// GitHub /user/orgs API doesn't return html_url, construct it from login
+					htmlURL := org.HTMLURL
+					if htmlURL == "" {
+						htmlURL = "https://github.com/" + org.Login
+					}
+
+					accounts = append(accounts, profiles.GitHubAccount{
+						ID:          strconv.FormatInt(org.ID, 10),
+						Login:       org.Login,
+						Name:        name,
+						AvatarURL:   org.Avatar,
+						HTMLURL:     htmlURL,
+						Type:        "Organization",
+						Description: org.Description,
+					})
+				}
 			}
 
 			return ctx.Results.JSON(map[string]any{

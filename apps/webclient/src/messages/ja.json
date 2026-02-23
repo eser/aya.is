@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "完了",
     "This field is required": "この項目は必須です",
-    "All": "すべて"
+    "All": "すべて",
+    "Skip": "スキップ",
+    "Close": "閉じる"
   },
   "Layout": {
     "Homepage": "ホームページ",

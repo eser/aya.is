@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "완료",
     "This field is required": "이 항목은 필수입니다",
-    "All": "전체"
+    "All": "전체",
+    "Skip": "건너뛰기",
+    "Close": "닫기"
   },
   "Layout": {
     "Homepage": "홈페이지",

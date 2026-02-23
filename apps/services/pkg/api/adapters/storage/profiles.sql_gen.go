@@ -1016,7 +1016,7 @@ func (q *Queries) GetCustomDomainByDomain(ctx context.Context, arg GetCustomDoma
 }
 
 const getManagedGitHubLinkByProfileID = `-- name: GetManagedGitHubLinkByProfileID :one
-SELECT id, profile_id, auth_access_token
+SELECT id, profile_id, auth_access_token, auth_access_token_scope
 FROM "profile_link"
 WHERE profile_id = $1
   AND kind = 'github'
@@ -1031,14 +1031,15 @@ type GetManagedGitHubLinkByProfileIDParams struct {
 }
 
 type GetManagedGitHubLinkByProfileIDRow struct {
-	ID              string         `db:"id" json:"id"`
-	ProfileID       string         `db:"profile_id" json:"profile_id"`
-	AuthAccessToken sql.NullString `db:"auth_access_token" json:"auth_access_token"`
+	ID                   string         `db:"id" json:"id"`
+	ProfileID            string         `db:"profile_id" json:"profile_id"`
+	AuthAccessToken      sql.NullString `db:"auth_access_token" json:"auth_access_token"`
+	AuthAccessTokenScope sql.NullString `db:"auth_access_token_scope" json:"auth_access_token_scope"`
 }
 
 // GetManagedGitHubLinkByProfileID
 //
-//	SELECT id, profile_id, auth_access_token
+//	SELECT id, profile_id, auth_access_token, auth_access_token_scope
 //	FROM "profile_link"
 //	WHERE profile_id = $1
 //	  AND kind = 'github'
@@ -1049,7 +1050,12 @@ type GetManagedGitHubLinkByProfileIDRow struct {
 func (q *Queries) GetManagedGitHubLinkByProfileID(ctx context.Context, arg GetManagedGitHubLinkByProfileIDParams) (*GetManagedGitHubLinkByProfileIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getManagedGitHubLinkByProfileID, arg.ProfileID)
 	var i GetManagedGitHubLinkByProfileIDRow
-	err := row.Scan(&i.ID, &i.ProfileID, &i.AuthAccessToken)
+	err := row.Scan(
+		&i.ID,
+		&i.ProfileID,
+		&i.AuthAccessToken,
+		&i.AuthAccessTokenScope,
+	)
 	return &i, err
 }
 

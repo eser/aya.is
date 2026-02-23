@@ -54,7 +54,9 @@
     "Connecting...": "Bağlanıyor...",
     "Done": "Tamam",
     "This field is required": "Bu alan zorunludur",
-    "All": "Tümü"
+    "All": "Tümü",
+    "Skip": "Atla",
+    "Close": "Kapat"
   },
   "Layout": {
     "Homepage": "Ana Sayfa",

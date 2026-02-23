@@ -42,18 +42,22 @@ func (p *Provider) InitiateOAuth(
 	return authURL, nil
 }
 
-// InitiateProfileLinkOAuth builds the OAuth URL with expanded scope for profile linking.
-// Uses ProfileLinkScope which includes read:org for organization access.
+// InitiateProfileLinkOAuth builds the OAuth URL with expanded scope for non-individual profile linking.
+// Uses NonIndividualProfileLinkScope which includes read:org for organization access.
 func (p *Provider) InitiateProfileLinkOAuth(
 	ctx context.Context,
 	redirectURI string,
 	state string,
 ) (string, error) {
-	authURL := p.client.BuildAuthURL(redirectURI, state, p.client.Config().ProfileLinkScope)
+	authURL := p.client.BuildAuthURL(
+		redirectURI,
+		state,
+		p.client.Config().NonIndividualProfileLinkScope,
+	)
 
 	p.client.Logger().DebugContext(ctx, "Initiating GitHub OAuth for profile link",
 		slog.String("redirect_uri", redirectURI),
-		slog.String("scope", p.client.Config().ProfileLinkScope))
+		slog.String("scope", p.client.Config().NonIndividualProfileLinkScope))
 
 	return authURL, nil
 }
@@ -98,6 +102,6 @@ func (p *Provider) HandleOAuthCallback(
 		AccessToken:          tokenResp.AccessToken,
 		RefreshToken:         "", // GitHub doesn't provide refresh tokens by default
 		AccessTokenExpiresAt: nil,
-		Scope:                p.client.Config().Scope,
+		Scope:                tokenResp.Scope,
 	}, nil
 }

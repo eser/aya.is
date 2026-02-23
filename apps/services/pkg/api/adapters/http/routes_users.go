@@ -12,6 +12,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
@@ -26,6 +27,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 	userService *users.Service,
 	sessionService *sessions.Service,
 	profileService *profiles.Service,
+	auditService *events.AuditService,
 ) {
 	routes.
 		Route(
@@ -157,6 +159,26 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 					)
 				}
 
+				// Record OAuth scope grant in audit trail for login
+				tokenScope := ""
+				if result.Session != nil && result.Session.OAuthTokenScope != nil {
+					tokenScope = *result.Session.OAuthTokenScope
+				}
+
+				auditService.Record(ctx.Request.Context(), events.AuditParams{
+					EventType:  events.OAuthScopeGranted,
+					EntityType: "user",
+					EntityID:   result.User.ID,
+					ActorID:    &result.User.ID,
+					ActorKind:  events.ActorUser,
+					SessionID:  &result.SessionID,
+					Payload: map[string]any{
+						"provider":      authProvider,
+						"scope_granted": tokenScope,
+						"context":       "login",
+					},
+				})
+
 				// Set session cookie for cross-domain SSO
 				SetSessionCookie(
 					ctx.ResponseWriter,
@@ -176,11 +198,6 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 					githubHandle := ""
 					if result.User.GithubHandle != nil {
 						githubHandle = *result.User.GithubHandle
-					}
-
-					tokenScope := ""
-					if result.Session.OAuthTokenScope != nil {
-						tokenScope = *result.Session.OAuthTokenScope
 					}
 
 					upsertManagedGitHubLink(

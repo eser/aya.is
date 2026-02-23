@@ -96,6 +96,11 @@ const (
 	UserUpdated EventType = "user_updated"
 )
 
+// OAuth events.
+const (
+	OAuthScopeGranted EventType = "oauth_scope_granted"
+)
+
 // Telegram events.
 const (
 	TelegramInviteLinkGenerated EventType = "telegram_invite_link_generated"

@@ -16,6 +16,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/discussions"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
@@ -61,6 +62,7 @@ func Run(
 	aiModels *aifx.Registry,
 	runtimeStatesService *runtime_states.Service,
 	workerRegistry *workerfx.Registry,
+	auditService *events.AuditService,
 ) (func(), error) {
 	httpfx.SetDiscloseErrors(discloseErrors)
 
@@ -99,6 +101,7 @@ func Run(
 		userService,
 		sessionService,
 		profileService,
+		auditService,
 	)
 	RegisterHTTPRoutesForSessions( //nolint:contextcheck
 		routes,
@@ -163,6 +166,7 @@ func Run(
 		profileService,
 		profileLinkProviders,
 		baseURI,
+		auditService,
 	)
 	RegisterHTTPRoutesForProfileResources( //nolint:contextcheck
 		routes,

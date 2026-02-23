@@ -1100,7 +1100,7 @@ ORDER BY pr.created_at ASC
 LIMIT sqlc.arg(batch_size);
 
 -- name: GetManagedGitHubLinkByProfileID :one
-SELECT id, profile_id, auth_access_token
+SELECT id, profile_id, auth_access_token, auth_access_token_scope
 FROM "profile_link"
 WHERE profile_id = sqlc.arg(profile_id)
   AND kind = 'github'

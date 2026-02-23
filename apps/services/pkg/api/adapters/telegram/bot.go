@@ -270,7 +270,7 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 	keyboard := &InlineKeyboardMarkup{
 		InlineKeyboard: [][]InlineKeyboardButton{
 			{
-				{Text: "List groups I can join", CallbackData: "join"},
+				{Text: "List invite-only groups I can join", CallbackData: "join"},
 			},
 		},
 	}
@@ -481,7 +481,7 @@ func (b *Bot) handleJoin(ctx context.Context, cq *CallbackQuery) { //nolint:varn
 	b.sendJoinableGroups(ctx, chatID, cq.From.ID, info.ProfileID)
 }
 
-func (b *Bot) sendJoinableGroups(
+func (b *Bot) sendJoinableGroups( //nolint:cyclop,funlen
 	ctx context.Context,
 	chatID int64,
 	telegramUserID int64,
@@ -506,8 +506,12 @@ func (b *Bot) sendJoinableGroups(
 		return
 	}
 
-	// Build inline keyboard with membership status
-	buttons := make([][]InlineKeyboardButton, 0, len(groups))
+	// Build text list with full names and buttons only for joinable groups
+	var textBuilder strings.Builder
+
+	textBuilder.WriteString("Select a group to get an invite link:\n\n")
+
+	var buttons [][]InlineKeyboardButton
 
 	for _, group := range groups {
 		member, memberErr := b.client.GetChatMember(ctx, group.ChatID, telegramUserID)
@@ -520,34 +524,35 @@ func (b *Bot) sendJoinableGroups(
 			label += " (" + group.ProfileSlug + ")"
 		}
 
-		var callbackData string
-
 		if isJoined {
-			label = "\u2713 " + label
-			callbackData = "joined:" + group.ResourceID
+			textBuilder.WriteString("\u2713 " + label + "\n")
 		} else {
-			callbackData = "join:" + group.ResourceID
+			textBuilder.WriteString("\u25CB " + label + "\n")
+
+			buttons = append(buttons, []InlineKeyboardButton{
+				{Text: label, CallbackData: "join:" + group.ResourceID},
+			})
+		}
+	}
+
+	textBuilder.WriteString("\n\u2713 = already a member")
+
+	if len(buttons) > 0 {
+		keyboard := &InlineKeyboardMarkup{
+			InlineKeyboard: buttons,
 		}
 
-		buttons = append(buttons, []InlineKeyboardButton{
-			{Text: label, CallbackData: callbackData},
-		})
+		_ = b.client.SendMessageWithKeyboard(ctx, chatID, textBuilder.String(), keyboard)
+	} else {
+		_ = b.client.SendMessage(ctx, chatID,
+			"You're already a member of all available groups.")
 	}
-
-	keyboard := &InlineKeyboardMarkup{
-		InlineKeyboard: buttons,
-	}
-
-	_ = b.client.SendMessageWithKeyboard(ctx, chatID,
-		"Select a group to get an invite link:\n\n\u2713 = already a member",
-		keyboard,
-	)
 }
 
-func (b *Bot) handleJoinGroup(
+func (b *Bot) handleJoinGroup( //nolint:cyclop,funlen
 	ctx context.Context,
-	cq *CallbackQuery,
-) { //nolint:cyclop,funlen,varnamelen
+	cq *CallbackQuery, //nolint:varnamelen
+) {
 	resourceID := strings.TrimPrefix(cq.Data, "join:")
 
 	info, err := b.service.GetLinkedProfile(ctx, cq.From.ID)

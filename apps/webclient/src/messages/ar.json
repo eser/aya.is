@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "تم",
     "This field is required": "هذا الحقل مطلوب",
-    "All": "الكل"
+    "All": "الكل",
+    "Skip": "تخطي",
+    "Close": "إغلاق"
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",

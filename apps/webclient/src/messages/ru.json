@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "Готово",
     "This field is required": "Это поле обязательно",
-    "All": "Все"
+    "All": "Все",
+    "Skip": "Пропустить",
+    "Close": "Закрыть"
   },
   "Layout": {
     "Homepage": "Главная страница",

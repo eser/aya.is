@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "完成",
     "This field is required": "此字段为必填项",
-    "All": "全部"
+    "All": "全部",
+    "Skip": "跳过",
+    "Close": "关闭"
   },
   "Layout": {
     "Homepage": "首页",

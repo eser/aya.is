@@ -376,7 +376,8 @@ type ProfileResource struct {
 
 // ManagedGitHubLink holds the access token data for a managed GitHub profile link.
 type ManagedGitHubLink struct {
-	ID              string `json:"id"`
-	ProfileID       string `json:"profile_id"`
-	AuthAccessToken string `json:"-"` // Never expose tokens via JSON
+	ID                   string  `json:"id"`
+	ProfileID            string  `json:"profile_id"`
+	AuthAccessToken      string  `json:"-"` // Never expose tokens via JSON
+	AuthAccessTokenScope *string `json:"-"` // OAuth scope granted for this link
 }

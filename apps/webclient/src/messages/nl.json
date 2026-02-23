@@ -54,7 +54,9 @@
     "Connecting...": "Connecting...",
     "Done": "Klaar",
     "This field is required": "Dit veld is verplicht",
-    "All": "Alle"
+    "All": "Alle",
+    "Skip": "Overslaan",
+    "Close": "Sluiten"
   },
   "Layout": {
     "Homepage": "Startpagina",

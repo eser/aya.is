@@ -1037,7 +1037,7 @@ type Querier interface {
 	GetMailboxParticipant(ctx context.Context, arg GetMailboxParticipantParams) (*GetMailboxParticipantRow, error)
 	//GetManagedGitHubLinkByProfileID
 	//
-	//  SELECT id, profile_id, auth_access_token
+	//  SELECT id, profile_id, auth_access_token, auth_access_token_scope
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND kind = 'github'

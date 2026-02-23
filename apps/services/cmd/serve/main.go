@@ -67,6 +67,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			appContext.AIModels,
 			appContext.RuntimeStateService,
 			appContext.WorkerRegistry,
+			appContext.AuditService,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(
