@@ -503,6 +503,7 @@ INSERT INTO "profile_link" (
   auth_access_token_expires_at,
   auth_refresh_token,
   auth_refresh_token_expires_at,
+  properties,
   added_by_profile_id,
   created_at
 ) VALUES (
@@ -523,6 +524,7 @@ INSERT INTO "profile_link" (
   sqlc.narg(auth_access_token_expires_at),
   sqlc.narg(auth_refresh_token),
   sqlc.narg(auth_refresh_token_expires_at),
+  sqlc.narg(properties),
   sqlc.narg(added_by_profile_id),
   NOW()
 ) RETURNING *;

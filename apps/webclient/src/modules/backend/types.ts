@@ -37,7 +37,8 @@ export type ProfileLinkKind =
   | "speakerdeck"
   | "bsky"
   | "discord"
-  | "telegram";
+  | "telegram"
+  | "external-site";
 
 export type LinkVisibility =
   | "public"
@@ -63,6 +64,7 @@ export interface ProfileLink {
   remote_id?: string | null;
   public_id?: string | null;
   uri?: string | null;
+  properties?: Record<string, unknown> | null;
   title: string;
   icon?: string | null; // Custom emoticon or initials - if not specified, kind-based icon is used
   group?: string | null;

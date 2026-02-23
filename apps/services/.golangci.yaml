@@ -33,6 +33,7 @@ linters:
               desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
           allow:
             - $gostd
+            - github.com/BurntSushi/toml
             - github.com/anthropics/anthropic-sdk-go
             - github.com/aws/aws-sdk-go-v2
             - github.com/eser/aya.is/services
@@ -54,6 +55,7 @@ linters:
             - go.opentelemetry.io/otel
             - golang.org/x/net/http/httpguts
             - google.golang.org/genai
+            - gopkg.in/yaml.v3
             - modernc.org/sqlite
     revive:
       rules:

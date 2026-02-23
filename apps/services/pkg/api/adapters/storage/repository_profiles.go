@@ -1240,6 +1240,7 @@ func (r *Repository) GetProfileLink(
 		RemoteID:         vars.ToStringPtr(row.RemoteID),
 		PublicID:         vars.ToStringPtr(row.PublicID),
 		URI:              vars.ToStringPtr(row.URI),
+		Properties:       unmarshalProperties(row.Properties),
 		Title:            row.Title,
 		Icon:             iconPtr,
 		Group:            vars.ToStringPtr(row.Group),
@@ -1282,6 +1283,7 @@ func (r *Repository) CreateProfileLink(
 		AuthAccessTokenExpiresAt:  sql.NullTime{Valid: false},
 		AuthRefreshToken:          sql.NullString{Valid: false},
 		AuthRefreshTokenExpiresAt: sql.NullTime{Valid: false},
+		Properties:                pqtype.NullRawMessage{Valid: false},
 		AddedByProfileID:          vars.ToSQLNullString(addedByProfileID),
 	})
 	if err != nil {
@@ -1300,6 +1302,7 @@ func (r *Repository) CreateProfileLink(
 		RemoteID:         vars.ToStringPtr(row.RemoteID),
 		PublicID:         vars.ToStringPtr(row.PublicID),
 		URI:              vars.ToStringPtr(row.URI),
+		Properties:       unmarshalProperties(row.Properties),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
@@ -1535,6 +1538,19 @@ func (r *Repository) DeleteProfilePage(
 
 // OAuth Profile Link methods
 
+// unmarshalProperties converts a JSONB column value to map[string]any.
+func unmarshalProperties(raw pqtype.NullRawMessage) map[string]any {
+	if !raw.Valid || raw.RawMessage == nil {
+		return nil
+	}
+
+	var props map[string]any
+
+	_ = json.Unmarshal(raw.RawMessage, &props)
+
+	return props
+}
+
 func (r *Repository) GetProfileLinkByRemoteID(
 	ctx context.Context,
 	profileID string,
@@ -1566,6 +1582,7 @@ func (r *Repository) GetProfileLinkByRemoteID(
 		RemoteID:   vars.ToStringPtr(row.RemoteID),
 		PublicID:   vars.ToStringPtr(row.PublicID),
 		URI:        vars.ToStringPtr(row.URI),
+		Properties: unmarshalProperties(row.Properties),
 		CreatedAt:  row.CreatedAt,
 		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
@@ -1646,6 +1663,7 @@ func (r *Repository) CreateOAuthProfileLink(
 	accessToken string,
 	accessTokenExpiresAt *sql.NullTime,
 	refreshToken *string,
+	properties map[string]any,
 ) (*profiles.ProfileLink, error) {
 	var refreshTokenSQL sql.NullString
 	if refreshToken != nil {
@@ -1655,6 +1673,17 @@ func (r *Repository) CreateOAuthProfileLink(
 	var expiresAtSQL sql.NullTime
 	if accessTokenExpiresAt != nil {
 		expiresAtSQL = *accessTokenExpiresAt
+	}
+
+	var propsJSON pqtype.NullRawMessage
+
+	if properties != nil {
+		data, err := json.Marshal(properties)
+		if err != nil {
+			return nil, err
+		}
+
+		propsJSON = pqtype.NullRawMessage{RawMessage: data, Valid: true}
 	}
 
 	row, err := r.queries.CreateProfileLink(ctx, CreateProfileLinkParams{
@@ -1677,6 +1706,7 @@ func (r *Repository) CreateOAuthProfileLink(
 		AuthRefreshTokenExpiresAt: sql.NullTime{
 			Valid: false,
 		}, // Google doesn't provide refresh token expiry
+		Properties:       propsJSON,
 		AddedByProfileID: sql.NullString{Valid: false}, // OAuth links don't track added_by
 	})
 	if err != nil {
@@ -1695,6 +1725,7 @@ func (r *Repository) CreateOAuthProfileLink(
 		RemoteID:         vars.ToStringPtr(row.RemoteID),
 		PublicID:         vars.ToStringPtr(row.PublicID),
 		URI:              vars.ToStringPtr(row.URI),
+		Properties:       unmarshalProperties(row.Properties),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),

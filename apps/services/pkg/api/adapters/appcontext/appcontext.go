@@ -16,6 +16,7 @@ import (
 	appleadapter "github.com/eser/aya.is/services/pkg/api/adapters/apple"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
+	"github.com/eser/aya.is/services/pkg/api/adapters/externalsite"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
@@ -71,18 +72,19 @@ type AppContext struct {
 	S3Client        *s3client.Client
 
 	// External Services
-	GitHubClient        *github.Client
-	GitHubProvider      *github.Provider
-	AppleClient         *appleadapter.Client
-	AppleProvider       *appleadapter.Provider
-	LinkedInProvider    *linkedin.Provider
-	YouTubeProvider     *youtube.Provider
-	SpeakerDeckProvider *speakerdeck.Provider
-	XProvider           *xadapter.Provider
-	PKCEStore           *profiles.PKCEStore
-	UnsplashClient      *unsplash.Client
-	TelegramClient      *telegramadapter.Client
-	TelegramBot         *telegramadapter.Bot
+	GitHubClient         *github.Client
+	GitHubProvider       *github.Provider
+	AppleClient          *appleadapter.Client
+	AppleProvider        *appleadapter.Provider
+	LinkedInProvider     *linkedin.Provider
+	YouTubeProvider      *youtube.Provider
+	SpeakerDeckProvider  *speakerdeck.Provider
+	ExternalSiteProvider *externalsite.Provider
+	XProvider            *xadapter.Provider
+	PKCEStore            *profiles.PKCEStore
+	UnsplashClient       *unsplash.Client
+	TelegramClient       *telegramadapter.Client
+	TelegramBot          *telegramadapter.Bot
 
 	// Business
 	TelegramService            *telegrambiz.Service
@@ -447,6 +449,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.HTTPClient,
 	)
 	a.SiteImporterService.RegisterProvider(a.SpeakerDeckProvider)
+
+	// External site provider (for profile links - no OAuth, GitHub-based)
+	a.ExternalSiteProvider = externalsite.NewProvider(
+		a.Logger,
+		a.HTTPClient,
+	)
+	a.SiteImporterService.RegisterProvider(a.ExternalSiteProvider)
 
 	// Unsplash client (for background images, optional)
 	if a.Config.Externals.Unsplash.IsConfigured() {

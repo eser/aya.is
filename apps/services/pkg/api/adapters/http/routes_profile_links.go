@@ -566,6 +566,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					result.AccessToken,
 					expiresAt,
 					&result.RefreshToken,
+					nil,
 				)
 				if err != nil {
 					logger.ErrorContext(ctx.Request.Context(), "Failed to create OAuth profile link",
@@ -841,6 +842,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					pendingConn.AccessToken,
 					nil,
 					nil,
+					nil,
 				)
 				if err != nil {
 					logger.ErrorContext(ctx.Request.Context(), "Failed to create link",
@@ -1099,6 +1101,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					pendingConn.AccessToken,
 					nil,
 					nil,
+					nil,
 				)
 				if err != nil {
 					logger.ErrorContext(ctx.Request.Context(), "Failed to create link",
@@ -1300,6 +1303,7 @@ func RegisterHTTPRoutesForProfileLinks(
 				"",
 				nil,
 				nil,
+				nil,
 			)
 			if err != nil {
 				logger.ErrorContext(ctx.Request.Context(), "Failed to create SpeakerDeck link",
@@ -1324,5 +1328,231 @@ func RegisterHTTPRoutesForProfileLinks(
 		}).
 		HasSummary("Connect SpeakerDeck").
 		HasDescription("Connect a SpeakerDeck account to a profile by validating the RSS feed.").
+		HasResponse(http.StatusOK)
+
+	// Connect External Site (non-OAuth, GitHub repo-based)
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_links/connect/external-site",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			// Get session ID from context
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			// Get variables from path
+			_, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
+			slugParam := ctx.Request.PathValue("slug")
+
+			// Get user ID from session
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			canEdit, permErr := profileService.HasUserAccessToProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				slugParam,
+				profiles.MembershipKindMaintainer,
+			)
+			if permErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithSanitizedError(permErr),
+				)
+			}
+
+			if !canEdit {
+				return ctx.Results.Error(
+					http.StatusForbidden,
+					httpfx.WithErrorMessage("You do not have permission to edit this profile"),
+				)
+			}
+
+			// Parse request body
+			var reqBody struct {
+				System  string `json:"system"`
+				URL     string `json:"url"`
+				SiteURL string `json:"site_url"`
+			}
+
+			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Invalid request body"),
+				)
+			}
+
+			if reqBody.System == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("System is required"),
+				)
+			}
+
+			if reqBody.SiteURL == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Site URL is required"),
+				)
+			}
+
+			// For jekyll-hugo-zola system, validate GitHub repo
+			if reqBody.System == "jekyll-hugo-zola" {
+				if reqBody.URL == "" {
+					return ctx.Results.BadRequest(
+						httpfx.WithErrorMessage(
+							"GitHub repository URL is required for this system",
+						),
+					)
+				}
+			}
+
+			// Check connection via SiteImporter
+			if providers.SiteImporter == nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("External site integration not configured"),
+				)
+			}
+
+			checkResult, err := providers.SiteImporter.CheckConnection(
+				ctx.Request.Context(),
+				"external-site",
+				reqBody.URL,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "External site check failed",
+					slog.String("error", err.Error()),
+					slog.String("url", reqBody.URL))
+
+				return ctx.Results.Error(
+					http.StatusBadRequest,
+					httpfx.WithErrorMessage("Could not validate the repository"),
+				)
+			}
+
+			// Get profile ID
+			profileID, err := profileService.GetProfileIDBySlug(
+				ctx.Request.Context(),
+				slugParam,
+			)
+			if err != nil || profileID == "" {
+				return ctx.Results.Error(
+					http.StatusNotFound,
+					httpfx.WithErrorMessage("Profile not found"),
+				)
+			}
+
+			// Check for duplicate
+			existingLink, err := profileService.GetProfileLinkByRemoteID(
+				ctx.Request.Context(),
+				profileID,
+				"external-site",
+				checkResult.Username,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to check existing link",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to check existing link"),
+				)
+			}
+
+			if existingLink != nil {
+				return ctx.Results.Error(
+					http.StatusConflict,
+					httpfx.WithErrorMessage("This external site is already connected"),
+				)
+			}
+
+			// Check if this remote_id is already used by another profile
+			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
+				ctx.Request.Context(),
+				"external-site",
+				checkResult.Username,
+				profileID,
+			)
+			if checkErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to check remote ID"),
+				)
+			}
+
+			if inUse {
+				return ctx.Results.Error(
+					http.StatusConflict,
+					httpfx.WithErrorMessage(
+						"This repository is already connected to another profile",
+					),
+				)
+			}
+
+			// Build properties
+			linkProperties := map[string]any{
+				"system": reqBody.System,
+			}
+
+			if reqBody.System == "jekyll-hugo-zola" {
+				linkProperties["github_repo"] = checkResult.Username
+			}
+
+			// Create profile link (non-OAuth, no tokens)
+			linkID := lib.IDsGenerateUnique()
+			maxOrder, _ := profileService.GetMaxProfileLinkOrder(ctx.Request.Context(), profileID)
+
+			_, err = profileService.CreateOAuthProfileLink(
+				ctx.Request.Context(),
+				linkID,
+				"external-site",
+				profileID,
+				maxOrder+1,
+				"en",
+				checkResult.Username,
+				checkResult.Username,
+				reqBody.SiteURL,
+				checkResult.Title,
+				"external-site",
+				"",
+				"",
+				nil,
+				nil,
+				linkProperties,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to create external site link",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to create link"),
+				)
+			}
+
+			logger.DebugContext(ctx.Request.Context(), "Connected external site",
+				slog.String("profile_slug", slugParam),
+				slog.String("repo", checkResult.Username),
+				slog.String("site_url", reqBody.SiteURL))
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{
+					"status": "connected",
+				},
+				"error": nil,
+			})
+		}).
+		HasSummary("Connect External Site").
+		HasDescription("Connect an external site (Jekyll/Hugo/Zola) GitHub repo to a profile.").
 		HasResponse(http.StatusOK)
 }

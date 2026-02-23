@@ -524,6 +524,7 @@ func upsertManagedGitHubLink(
 		accessToken,
 		nil, // accessTokenExpiresAt
 		nil, // refreshToken
+		nil, // properties
 	)
 	if err != nil {
 		logger.WarnContext(ctx, "Failed to create managed GitHub link",

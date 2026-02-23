@@ -87,6 +87,7 @@ const LINK_TYPES: LinkTypeConfig[] = [
   { kind: "bsky", label: "Bluesky", icon: Bsky, placeholder: "https://bsky.app/profile/handle" },
   { kind: "discord", label: "Discord", icon: Discord, placeholder: "https://discord.gg/invite" },
   { kind: "telegram", label: "Telegram", icon: Telegram, placeholder: "https://t.me/username" },
+  { kind: "external-site", label: "External Site", icon: Globe, placeholder: "https://example.com" },
   { kind: "website", label: "Website", icon: Globe, placeholder: "https://example.com" },
 ];
 
@@ -182,6 +183,13 @@ function LinksSettingsPage() {
   const [isSpeakerDeckDialogOpen, setIsSpeakerDeckDialogOpen] = React.useState(false);
   const [speakerDeckUrl, setSpeakerDeckUrl] = React.useState("");
   const [isConnectingSpeakerDeck, setIsConnectingSpeakerDeck] = React.useState(false);
+
+  // External site connect state
+  const [isExternalSiteDialogOpen, setIsExternalSiteDialogOpen] = React.useState(false);
+  const [externalSiteSystem, setExternalSiteSystem] = React.useState("jekyll-hugo-zola");
+  const [externalSiteRepoUrl, setExternalSiteRepoUrl] = React.useState("");
+  const [externalSiteSiteUrl, setExternalSiteSiteUrl] = React.useState("");
+  const [isConnectingExternalSite, setIsConnectingExternalSite] = React.useState(false);
 
   // Telegram connect state
   const [isTelegramDialogOpen, setIsTelegramDialogOpen] = React.useState(false);
@@ -567,6 +575,45 @@ function LinksSettingsPage() {
     setIsConnectingSpeakerDeck(false);
   };
 
+  const handleConnectExternalSite = () => {
+    setExternalSiteSystem("jekyll-hugo-zola");
+    setExternalSiteRepoUrl("");
+    setExternalSiteSiteUrl("");
+    setIsExternalSiteDialogOpen(true);
+  };
+
+  const handleSubmitExternalSite = async () => {
+    if (externalSiteSiteUrl.trim() === "") {
+      toast.error(t("Profile.Site URL is required"));
+      return;
+    }
+
+    if (externalSiteSystem === "jekyll-hugo-zola" && externalSiteRepoUrl.trim() === "") {
+      toast.error(t("Profile.GitHub repository URL is required"));
+      return;
+    }
+
+    setIsConnectingExternalSite(true);
+    const result = await backend.connectExternalSite(
+      params.locale,
+      params.slug,
+      externalSiteSystem,
+      externalSiteRepoUrl,
+      externalSiteSiteUrl,
+    );
+
+    if (result !== null) {
+      toast.success(t("Profile.Connected successfully", { provider: "external-site" }));
+      setIsExternalSiteDialogOpen(false);
+      setExternalSiteRepoUrl("");
+      setExternalSiteSiteUrl("");
+      loadLinks();
+    } else {
+      toast.error(t("Profile.Failed to connect external site"));
+    }
+    setIsConnectingExternalSite(false);
+  };
+
   const handleConnectTelegram = () => {
     setTelegramCode("");
     setTelegramConnectionStatus("idle");
@@ -655,6 +702,8 @@ function LinksSettingsPage() {
       handleConnectLinkedIn();
     } else if (link.kind === "x") {
       handleConnectX();
+    } else if (link.kind === "external-site") {
+      handleConnectExternalSite();
     }
   };
 
@@ -831,6 +880,10 @@ function LinksSettingsPage() {
             <DropdownMenuItem onClick={() => handleConnectSpeakerDeck()}>
               <SpeakerDeck className="size-4 mr-2" />
               {t("Profile.Connect SpeakerDeck...")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleConnectExternalSite()}>
+              <Globe className="size-4 mr-2" />
+              {t("Profile.Connect External Site...")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleConnectTelegram()}>
               <Telegram className="size-4 mr-2" />
@@ -1410,6 +1463,104 @@ function LinksSettingsPage() {
               disabled={isConnectingSpeakerDeck || speakerDeckUrl.trim() === ""}
             >
               {isConnectingSpeakerDeck ? t("Common.Connecting...") : t("Profile.Connect")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* External Site Connect Dialog */}
+      <Dialog open={isExternalSiteDialogOpen} onOpenChange={(open) => {
+        if (!open && !isConnectingExternalSite) {
+          setIsExternalSiteDialogOpen(false);
+          setExternalSiteRepoUrl("");
+          setExternalSiteSiteUrl("");
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="size-5" />
+              {t("Profile.Connect External Site...")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("Profile.Import content from your static site's GitHub repository.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <Field>
+              <FieldLabel htmlFor="external-site-system">{t("Profile.System")}</FieldLabel>
+              <Select
+                value={externalSiteSystem}
+                onValueChange={(value) => setExternalSiteSystem(value)}
+                disabled={isConnectingExternalSite}
+              >
+                <SelectTrigger id="external-site-system">
+                  <SelectValue>
+                    {externalSiteSystem === "jekyll-hugo-zola"
+                      ? t("Profile.Jekyll, Hugo or Zola site")
+                      : t("Profile.Other")}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="jekyll-hugo-zola">
+                    {t("Profile.Jekyll, Hugo or Zola site")}
+                  </SelectItem>
+                  <SelectItem value="other">
+                    {t("Profile.Other")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            {externalSiteSystem === "jekyll-hugo-zola" && (
+              <Field>
+                <FieldLabel htmlFor="external-site-repo">{t("Profile.GitHub Repository")}</FieldLabel>
+                <Input
+                  id="external-site-repo"
+                  value={externalSiteRepoUrl}
+                  onChange={(e) => setExternalSiteRepoUrl(e.target.value)}
+                  placeholder="https://github.com/user/website or user/website"
+                  disabled={isConnectingExternalSite}
+                />
+                <FieldDescription>
+                  {t("Profile.Enter the GitHub repository URL or owner/repo format.")}
+                </FieldDescription>
+              </Field>
+            )}
+
+            <Field>
+              <FieldLabel htmlFor="external-site-url">{t("Profile.Site URL")}</FieldLabel>
+              <Input
+                id="external-site-url"
+                value={externalSiteSiteUrl}
+                onChange={(e) => setExternalSiteSiteUrl(e.target.value)}
+                placeholder="https://example.com"
+                disabled={isConnectingExternalSite}
+              />
+              <FieldDescription>
+                {t("Profile.The production URL of your website.")}
+              </FieldDescription>
+            </Field>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsExternalSiteDialogOpen(false);
+                setExternalSiteRepoUrl("");
+                setExternalSiteSiteUrl("");
+              }}
+              disabled={isConnectingExternalSite}
+            >
+              {t("Common.Cancel")}
+            </Button>
+            <Button
+              onClick={handleSubmitExternalSite}
+              disabled={isConnectingExternalSite || externalSiteSiteUrl.trim() === "" || (externalSiteSystem === "jekyll-hugo-zola" && externalSiteRepoUrl.trim() === "")}
+            >
+              {isConnectingExternalSite ? t("Common.Connecting...") : t("Profile.Connect")}
             </Button>
           </DialogFooter>
         </DialogContent>

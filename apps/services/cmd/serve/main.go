@@ -203,6 +203,35 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		})
 	}
 
+	// External site sync worker
+	if appContext.Config.Workers.ExternalSiteSync.FullSyncEnabled {
+		externalSiteStoryProcessor := workers.NewExternalSiteStoryProcessor(
+			&appContext.Config.Workers.ExternalSiteSync,
+			appContext.Logger,
+			appContext.ProfileLinkSyncService,
+			appContext.Repository,
+			idGen,
+		)
+
+		externalSiteSyncWorker := workers.NewExternalSiteSyncWorker(
+			&appContext.Config.Workers.ExternalSiteSync,
+			appContext.Logger,
+			appContext.ProfileLinkSyncService,
+			appContext.SiteImporterService,
+			externalSiteStoryProcessor,
+			appContext.RuntimeStateService,
+			idGen,
+		)
+
+		runner := workerfx.NewRunner(externalSiteSyncWorker, appContext.Logger)
+		runner.SetStateKey("external-site.sync.full_sync_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("external-site-full-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
 	// Queue worker
 	if appContext.Config.Workers.Queue.Enabled {
 		workerID := idGen()

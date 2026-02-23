@@ -159,6 +159,7 @@ type ProfileLink struct {
 	RemoteID         *string        `json:"remote_id"`
 	PublicID         *string        `json:"public_id"`
 	URI              *string        `json:"uri"`
+	Properties       map[string]any `json:"properties,omitempty"`
 	Title            string         `json:"title"`       // From profile_link_tx
 	Icon             *string        `json:"icon"`        // From profile_link_tx - custom emoticon or initials
 	Group            *string        `json:"group"`       // From profile_link_tx

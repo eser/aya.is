@@ -253,6 +253,7 @@ INSERT INTO "profile_link" (
   auth_access_token_expires_at,
   auth_refresh_token,
   auth_refresh_token_expires_at,
+  properties,
   added_by_profile_id,
   created_at
 ) VALUES (
@@ -274,29 +275,31 @@ INSERT INTO "profile_link" (
   $16,
   $17,
   $18,
+  $19,
   NOW()
 ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 `
 
 type CreateProfileLinkParams struct {
-	ID                        string         `db:"id" json:"id"`
-	Kind                      string         `db:"kind" json:"kind"`
-	ProfileID                 string         `db:"profile_id" json:"profile_id"`
-	LinkOrder                 int32          `db:"link_order" json:"link_order"`
-	IsManaged                 bool           `db:"is_managed" json:"is_managed"`
-	IsVerified                bool           `db:"is_verified" json:"is_verified"`
-	IsFeatured                bool           `db:"is_featured" json:"is_featured"`
-	Visibility                string         `db:"visibility" json:"visibility"`
-	RemoteID                  sql.NullString `db:"remote_id" json:"remote_id"`
-	PublicID                  sql.NullString `db:"public_id" json:"public_id"`
-	URI                       sql.NullString `db:"uri" json:"uri"`
-	AuthProvider              sql.NullString `db:"auth_provider" json:"auth_provider"`
-	AuthAccessTokenScope      sql.NullString `db:"auth_access_token_scope" json:"auth_access_token_scope"`
-	AuthAccessToken           sql.NullString `db:"auth_access_token" json:"auth_access_token"`
-	AuthAccessTokenExpiresAt  sql.NullTime   `db:"auth_access_token_expires_at" json:"auth_access_token_expires_at"`
-	AuthRefreshToken          sql.NullString `db:"auth_refresh_token" json:"auth_refresh_token"`
-	AuthRefreshTokenExpiresAt sql.NullTime   `db:"auth_refresh_token_expires_at" json:"auth_refresh_token_expires_at"`
-	AddedByProfileID          sql.NullString `db:"added_by_profile_id" json:"added_by_profile_id"`
+	ID                        string                `db:"id" json:"id"`
+	Kind                      string                `db:"kind" json:"kind"`
+	ProfileID                 string                `db:"profile_id" json:"profile_id"`
+	LinkOrder                 int32                 `db:"link_order" json:"link_order"`
+	IsManaged                 bool                  `db:"is_managed" json:"is_managed"`
+	IsVerified                bool                  `db:"is_verified" json:"is_verified"`
+	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
+	Visibility                string                `db:"visibility" json:"visibility"`
+	RemoteID                  sql.NullString        `db:"remote_id" json:"remote_id"`
+	PublicID                  sql.NullString        `db:"public_id" json:"public_id"`
+	URI                       sql.NullString        `db:"uri" json:"uri"`
+	AuthProvider              sql.NullString        `db:"auth_provider" json:"auth_provider"`
+	AuthAccessTokenScope      sql.NullString        `db:"auth_access_token_scope" json:"auth_access_token_scope"`
+	AuthAccessToken           sql.NullString        `db:"auth_access_token" json:"auth_access_token"`
+	AuthAccessTokenExpiresAt  sql.NullTime          `db:"auth_access_token_expires_at" json:"auth_access_token_expires_at"`
+	AuthRefreshToken          sql.NullString        `db:"auth_refresh_token" json:"auth_refresh_token"`
+	AuthRefreshTokenExpiresAt sql.NullTime          `db:"auth_refresh_token_expires_at" json:"auth_refresh_token_expires_at"`
+	Properties                pqtype.NullRawMessage `db:"properties" json:"properties"`
+	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
 }
 
 // CreateProfileLink
@@ -319,6 +322,7 @@ type CreateProfileLinkParams struct {
 //	  auth_access_token_expires_at,
 //	  auth_refresh_token,
 //	  auth_refresh_token_expires_at,
+//	  properties,
 //	  added_by_profile_id,
 //	  created_at
 //	) VALUES (
@@ -340,6 +344,7 @@ type CreateProfileLinkParams struct {
 //	  $16,
 //	  $17,
 //	  $18,
+//	  $19,
 //	  NOW()
 //	) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error) {
@@ -361,6 +366,7 @@ func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkPa
 		arg.AuthAccessTokenExpiresAt,
 		arg.AuthRefreshToken,
 		arg.AuthRefreshTokenExpiresAt,
+		arg.Properties,
 		arg.AddedByProfileID,
 	)
 	var i ProfileLink

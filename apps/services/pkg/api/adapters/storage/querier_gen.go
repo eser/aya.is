@@ -418,6 +418,7 @@ type Querier interface {
 	//    auth_access_token_expires_at,
 	//    auth_refresh_token,
 	//    auth_refresh_token_expires_at,
+	//    properties,
 	//    added_by_profile_id,
 	//    created_at
 	//  ) VALUES (
@@ -439,6 +440,7 @@ type Querier interface {
 	//    $16,
 	//    $17,
 	//    $18,
+	//    $19,
 	//    NOW()
 	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
 	CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error)

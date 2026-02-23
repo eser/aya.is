@@ -25,11 +25,20 @@ type SpeakerDeckSyncConfig struct {
 	BatchSize        int           `conf:"batch_size"         default:"10"`
 }
 
+// ExternalSiteSyncConfig holds configuration for the external site sync worker.
+type ExternalSiteSyncConfig struct {
+	FullSyncEnabled  bool          `conf:"full_sync_enabled"  default:"true"`
+	FullSyncInterval time.Duration `conf:"full_sync_interval" default:"6h"`
+	CheckInterval    time.Duration `conf:"check_interval"     default:"1m"`
+	BatchSize        int           `conf:"batch_size"         default:"10"`
+}
+
 // Config holds all worker configurations.
 type Config struct {
-	YouTubeSync     YouTubeSyncConfig        `conf:"youtube_sync"`
-	GitHubSync      GitHubSyncConfig         `conf:"github_sync"`
-	SpeakerDeckSync SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
-	Queue           QueueWorkerConfig        `conf:"queue"`
-	TelegramBot     TelegramBotPollingConfig `conf:"telegram_bot"`
+	YouTubeSync      YouTubeSyncConfig        `conf:"youtube_sync"`
+	GitHubSync       GitHubSyncConfig         `conf:"github_sync"`
+	SpeakerDeckSync  SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
+	ExternalSiteSync ExternalSiteSyncConfig   `conf:"external_site_sync"`
+	Queue            QueueWorkerConfig        `conf:"queue"`
+	TelegramBot      TelegramBotPollingConfig `conf:"telegram_bot"`
 }

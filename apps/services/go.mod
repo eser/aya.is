@@ -3,6 +3,7 @@ module github.com/eser/aya.is/services
 go 1.25.7
 
 require (
+	github.com/BurntSushi/toml v1.5.0
 	github.com/anthropics/anthropic-sdk-go v1.26.0
 	github.com/aws/aws-sdk-go-v2 v1.41.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.9
@@ -38,6 +39,7 @@ require (
 	golang.org/x/sys v0.41.0
 	golang.org/x/text v0.34.0
 	google.golang.org/genai v1.47.0
+	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.46.1
 )
 
@@ -57,7 +59,6 @@ require (
 	github.com/Antonboom/errname v1.1.0 // indirect
 	github.com/Antonboom/nilnil v1.1.0 // indirect
 	github.com/Antonboom/testifylint v1.6.1 // indirect
-	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
 	github.com/GaijinEntertainment/go-exhaustruct/v3 v3.3.1 // indirect
 	github.com/KimMachineGun/automemlimit v0.7.4 // indirect
@@ -347,7 +348,6 @@ require (
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
 	modernc.org/libc v1.67.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

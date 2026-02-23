@@ -455,6 +455,7 @@ type Repository interface { //nolint:interfacebloat
 		accessToken string,
 		accessTokenExpiresAt *sql.NullTime,
 		refreshToken *string,
+		properties map[string]any,
 	) (*ProfileLink, error)
 	UpdateProfileLinkOAuthTokens(
 		ctx context.Context,
@@ -2851,11 +2852,13 @@ func (s *Service) CreateOAuthProfileLink(
 	accessToken string,
 	accessTokenExpiresAt *sql.NullTime,
 	refreshToken *string,
+	properties map[string]any,
 ) (*ProfileLink, error) {
 	// Create the OAuth profile link
 	link, err := s.repo.CreateOAuthProfileLink(
 		ctx, id, kind, profileID, order, remoteID, publicID, uri,
 		authProvider, authScope, accessToken, accessTokenExpiresAt, refreshToken,
+		properties,
 	)
 	if err != nil {
 		return nil, err
