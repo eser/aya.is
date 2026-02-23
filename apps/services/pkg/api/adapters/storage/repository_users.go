@@ -33,6 +33,7 @@ func (r *Repository) GetUserByID(
 		GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
 		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
 		XHandle:             vars.ToStringPtr(row.XHandle),
+		AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
 		IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
 		CreatedAt:           row.CreatedAt,
 		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
@@ -68,6 +69,7 @@ func (r *Repository) GetUserByEmail(
 		GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
 		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
 		XHandle:             vars.ToStringPtr(row.XHandle),
+		AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
 		IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
 		CreatedAt:           row.CreatedAt,
 		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
@@ -105,6 +107,45 @@ func (r *Repository) GetUserByGitHubRemoteID(
 		GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
 		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
 		XHandle:             vars.ToStringPtr(row.XHandle),
+		AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
+		IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
+		CreatedAt:           row.CreatedAt,
+		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:           vars.ToTimePtr(row.DeletedAt),
+	}
+
+	return result, nil
+}
+
+func (r *Repository) GetUserByAppleRemoteID(
+	ctx context.Context,
+	appleRemoteID string,
+) (*users.User, error) {
+	row, err := r.queries.GetUserByAppleRemoteID(
+		ctx,
+		GetUserByAppleRemoteIDParams{
+			AppleRemoteID: sql.NullString{String: appleRemoteID, Valid: true},
+		},
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	result := &users.User{
+		ID:                  row.ID,
+		Kind:                row.Kind,
+		Name:                row.Name,
+		Email:               vars.ToStringPtr(row.Email),
+		Phone:               vars.ToStringPtr(row.Phone),
+		GithubHandle:        vars.ToStringPtr(row.GithubHandle),
+		GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
+		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
+		XHandle:             vars.ToStringPtr(row.XHandle),
+		AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
 		IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
 		CreatedAt:           row.CreatedAt,
 		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
@@ -174,6 +215,7 @@ func (r *Repository) CreateUser(
 		BskyRemoteID:        sql.NullString{String: "", Valid: false},
 		XHandle:             vars.ToSQLNullString(user.XHandle),
 		XRemoteID:           sql.NullString{String: "", Valid: false},
+		AppleRemoteID:       vars.ToSQLNullString(user.AppleRemoteID),
 		IndividualProfileID: vars.ToSQLNullString(user.IndividualProfileID),
 		CreatedAt:           user.CreatedAt,
 		UpdatedAt:           vars.ToSQLNullTime(user.UpdatedAt),
@@ -202,6 +244,7 @@ func (r *Repository) UpdateUser(
 		BskyRemoteID:        sql.NullString{String: "", Valid: false},
 		XHandle:             vars.ToSQLNullString(user.XHandle),
 		XRemoteID:           sql.NullString{String: "", Valid: false},
+		AppleRemoteID:       vars.ToSQLNullString(user.AppleRemoteID),
 		IndividualProfileID: vars.ToSQLNullString(user.IndividualProfileID),
 	})
 	if err != nil {

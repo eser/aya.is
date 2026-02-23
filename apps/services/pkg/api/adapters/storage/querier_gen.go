@@ -594,6 +594,7 @@ type Querier interface {
 	//      bsky_remote_id,
 	//      x_handle,
 	//      x_remote_id,
+	//      apple_remote_id,
 	//      individual_profile_id,
 	//      created_at,
 	//      updated_at,
@@ -614,7 +615,8 @@ type Querier interface {
 	//      $12,
 	//      $13,
 	//      $14,
-	//      $15
+	//      $15,
+	//      $16
 	//    )
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	//DecrementDiscussionCommentReplyCount
@@ -1749,9 +1751,17 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetUserBriefInfoByID(ctx context.Context, arg GetUserBriefInfoByIDParams) (*GetUserBriefInfoByIDRow, error)
+	//GetUserByAppleRemoteID
+	//
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+	//  FROM "user"
+	//  WHERE apple_remote_id = $1
+	//    AND deleted_at IS NULL
+	//  LIMIT 1
+	GetUserByAppleRemoteID(ctx context.Context, arg GetUserByAppleRemoteIDParams) (*User, error)
 	//GetUserByEmail
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 	//  FROM "user"
 	//  WHERE email = $1
 	//    AND deleted_at IS NULL
@@ -1759,7 +1769,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (*User, error)
 	//GetUserByGitHubRemoteID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 	//  FROM "user"
 	//  WHERE github_remote_id = $1
 	//    AND deleted_at IS NULL
@@ -1767,7 +1777,7 @@ type Querier interface {
 	GetUserByGitHubRemoteID(ctx context.Context, arg GetUserByGitHubRemoteIDParams) (*User, error)
 	//GetUserByID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 	//  FROM "user"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
@@ -3170,7 +3180,7 @@ type Querier interface {
 	ListTopLevelDiscussionComments(ctx context.Context, arg ListTopLevelDiscussionCommentsParams) ([]*ListTopLevelDiscussionCommentsRow, error)
 	//ListUsers
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 	//  FROM "user"
 	//  WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND deleted_at IS NULL
@@ -3931,8 +3941,9 @@ type Querier interface {
 	//    bsky_remote_id = $8,
 	//    x_handle = $9,
 	//    x_remote_id = $10,
-	//    individual_profile_id = $11
-	//  WHERE id = $12
+	//    apple_remote_id = $11,
+	//    individual_profile_id = $12
+	//  WHERE id = $13
 	//    AND deleted_at IS NULL
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	//UpsertProfileLinkTx

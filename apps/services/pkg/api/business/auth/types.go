@@ -29,6 +29,14 @@ type LinkedInOAuthConfig struct {
 	ProfileLinkScope string `conf:"profile_link_scope" default:"openid profile email r_basicprofile r_organization_social"`
 }
 
+type AppleAuthProviderConfig struct {
+	ClientID   string `conf:"client_id"`
+	TeamID     string `conf:"team_id"`
+	KeyID      string `conf:"key_id"`
+	PrivateKey string `conf:"private_key"`
+	Scope      string `conf:"scope"       default:"name email"`
+}
+
 type XOAuthConfig struct {
 	ClientID         string `conf:"client_id"`
 	ClientSecret     string `conf:"client_secret"`
@@ -38,6 +46,7 @@ type XOAuthConfig struct {
 
 type Config struct {
 	GitHub    GitHubAuthProviderConfig `conf:"github"`
+	Apple     AppleAuthProviderConfig  `conf:"apple"`
 	YouTube   YouTubeOAuthConfig       `conf:"youtube"`
 	LinkedIn  LinkedInOAuthConfig      `conf:"linkedin"`
 	X         XOAuthConfig             `conf:"x"`

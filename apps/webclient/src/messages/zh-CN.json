@@ -126,7 +126,10 @@
     "Search for profiles, stories, and pages": "搜索个人资料、故事和页面"
   },
   "Auth": {
+    "Login": "登录",
+    "Choose a login method": "选择登录方式",
     "Login with GitHub": "使用 GitHub 登录",
+    "Login with Apple": "使用 Apple 登录",
     "My Profile": "我的资料",
     "Profiles": "资料列表",
     "Logout": "退出登录",

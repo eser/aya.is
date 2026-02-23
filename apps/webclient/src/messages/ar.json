@@ -126,7 +126,10 @@
     "Search for profiles, stories, and pages": "Search for profiles, stories, and pages"
   },
   "Auth": {
+    "Login": "تسجيل الدخول",
+    "Choose a login method": "اختر طريقة تسجيل الدخول",
     "Login with GitHub": "تسجيل الدخول بـ GitHub",
+    "Login with Apple": "تسجيل الدخول بـ Apple",
     "My Profile": "ملفي الشخصي",
     "Profiles": "الملفات الشخصية",
     "Logout": "تسجيل الخروج",

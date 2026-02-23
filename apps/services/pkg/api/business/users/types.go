@@ -54,7 +54,8 @@ type User struct {
 	GithubRemoteID *string   `json:"github_remote_id"`
 	BskyHandle     *string   `json:"bsky_handle"`
 	// BskyRemoteID        *string    `json:"bsky_remote_id"`
-	XHandle *string `json:"x_handle"`
+	XHandle       *string `json:"x_handle"`
+	AppleRemoteID *string `json:"apple_remote_id"`
 	// XRemoteID           *string    `json:"x_remote_id"`
 	IndividualProfileID *string    `json:"individual_profile_id"`
 	UpdatedAt           *time.Time `json:"updated_at"`

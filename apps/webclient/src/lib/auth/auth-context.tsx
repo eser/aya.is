@@ -39,7 +39,7 @@ type AuthContextValue = {
   user: User | null;
   token: string | null;
   preferences: SessionPreferences | null;
-  login: (redirectUri?: string) => void;
+  login: (redirectUri?: string, provider?: string) => void;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 };
@@ -161,7 +161,7 @@ export function AuthProvider(props: AuthProviderProps) {
     return () => clearInterval(interval);
   }, [state.isAuthenticated, state.token]);
 
-  const login = React.useCallback((redirectUri?: string) => {
+  const login = React.useCallback((redirectUri?: string, provider: string = "github") => {
     const locale = getCurrentLanguage();
     const backendUri = getBackendUri();
 
@@ -172,7 +172,7 @@ export function AuthProvider(props: AuthProviderProps) {
     const callbackUrlObj = new URL(`${origin}/auth/callback`);
     callbackUrlObj.searchParams.set("redirect", redirectUri ?? `/${locale}`);
 
-    const loginUrlObj = new URL(`${backendUri}/${locale}/auth/github/login`);
+    const loginUrlObj = new URL(`${backendUri}/${locale}/auth/${provider}/login`);
     loginUrlObj.searchParams.set("redirect_uri", callbackUrlObj.toString());
 
     if (globalThis.location !== undefined) {

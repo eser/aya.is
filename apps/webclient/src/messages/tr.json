@@ -126,7 +126,10 @@
     "Search for profiles, stories, and pages": "Profil, hikaye ve sayfa arayın"
   },
   "Auth": {
+    "Login": "Giriş Yap",
+    "Choose a login method": "Bir giriş yöntemi seçin",
     "Login with GitHub": "GitHub ile Giriş",
+    "Login with Apple": "Apple ile Giriş",
     "My Profile": "Profilim",
     "Profiles": "Profiller",
     "Logout": "Çıkış yap",

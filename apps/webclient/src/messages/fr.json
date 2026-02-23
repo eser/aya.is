@@ -126,7 +126,10 @@
     "Search for profiles, stories, and pages": "Search for profiles, stories, and pages"
   },
   "Auth": {
+    "Login": "Connexion",
+    "Choose a login method": "Choisissez une méthode de connexion",
     "Login with GitHub": "Se connecter avec GitHub",
+    "Login with Apple": "Se connecter avec Apple",
     "My Profile": "Mon Profil",
     "Profiles": "Profils",
     "Logout": "Se déconnecter",

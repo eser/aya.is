@@ -47,6 +47,12 @@ type Provider interface {
 	) (OAuthCallbackResult, error)
 }
 
+// FirstAuthInfoSetter is an optional interface for providers that accept user info
+// from the first authorization (e.g., Apple sends name/email only on first auth).
+type FirstAuthInfoSetter interface {
+	SetFirstAuthUserInfo(name, email string)
+}
+
 type TokenService interface {
 	// ParseToken validates a JWT token and returns the claims
 	ParseToken(tokenStr string) (*JWTClaims, error)
@@ -139,6 +145,19 @@ func (s *Service) isAllowedRedirectOrigin(ctx context.Context, origin string) bo
 	return false
 }
 
+// SetProviderFirstAuthInfo sets first-authorization user info on a provider, if it supports it.
+// Used for providers like Apple that send user name/email only on first authorization.
+func (s *Service) SetProviderFirstAuthInfo(providerName, name, email string) {
+	provider := s.GetProvider(providerName)
+	if provider == nil {
+		return
+	}
+
+	if setter, ok := provider.(FirstAuthInfoSetter); ok {
+		setter.SetFirstAuthUserInfo(name, email)
+	}
+}
+
 func (s *Service) Initiate(
 	ctx context.Context,
 	providerName string,
@@ -199,19 +218,34 @@ func (s *Service) AuthHandleCallback(
 		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
 	}
 
-	// Create/update user
+	// Create/update user (provider-aware)
 	s.logger.DebugContext(ctx, "Creating/updating user from OAuth",
 		slog.String("provider", providerName),
 		slog.String("remote_id", accountInfo.RemoteID),
 		slog.String("username", accountInfo.Username))
 
-	user, err := s.userService.UpsertGitHubUser(
-		ctx,
-		accountInfo.RemoteID,
-		accountInfo.Email,
-		accountInfo.Name,
-		accountInfo.Username,
-	)
+	var user *users.User
+
+	switch providerName {
+	case "github":
+		user, err = s.userService.UpsertGitHubUser(
+			ctx,
+			accountInfo.RemoteID,
+			accountInfo.Email,
+			accountInfo.Name,
+			accountInfo.Username,
+		)
+	case "apple":
+		user, err = s.userService.UpsertAppleUser(
+			ctx,
+			accountInfo.RemoteID,
+			accountInfo.Email,
+			accountInfo.Name,
+		)
+	default:
+		return AuthResult{}, ErrProviderNotFound
+	}
+
 	if err != nil {
 		s.logger.ErrorContext(ctx, "Failed to upsert user",
 			slog.String("remote_id", accountInfo.RemoteID),

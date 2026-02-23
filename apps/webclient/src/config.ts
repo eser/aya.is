@@ -27,6 +27,9 @@ export type SiteConfig = {
   host: string;
   backendUri: string;
   telegramBotUsername: string;
+
+  authGithubEnabled: boolean;
+  authAppleEnabled: boolean;
 };
 
 export const siteConfig: SiteConfig = {
@@ -49,6 +52,9 @@ export const siteConfig: SiteConfig = {
   host: import.meta.env.VITE_HOST ?? "https://aya.is",
   backendUri: import.meta.env.VITE_BACKEND_URI ?? "https://api.aya.is",
   telegramBotUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME ?? "aya_is_bot",
+
+  authGithubEnabled: import.meta.env.VITE_AUTH_GITHUB_ENABLED !== "false",
+  authAppleEnabled: import.meta.env.VITE_AUTH_APPLE_ENABLED === "true",
 };
 
 export const getBackendUri = (): string => {

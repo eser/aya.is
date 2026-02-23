@@ -13,6 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
+	appleadapter "github.com/eser/aya.is/services/pkg/api/adapters/apple"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
@@ -72,6 +73,8 @@ type AppContext struct {
 	// External Services
 	GitHubClient        *github.Client
 	GitHubProvider      *github.Provider
+	AppleClient         *appleadapter.Client
+	AppleProvider       *appleadapter.Provider
 	LinkedInProvider    *linkedin.Provider
 	YouTubeProvider     *youtube.Provider
 	SpeakerDeckProvider *speakerdeck.Provider
@@ -406,6 +409,15 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 
 	a.GitHubProvider = github.NewProvider(a.GitHubClient)
 
+	// Apple provider (for auth)
+	a.AppleClient = appleadapter.NewClient(
+		&a.Config.Auth.Apple,
+		a.Logger,
+		a.HTTPClient,
+	)
+
+	a.AppleProvider = appleadapter.NewProvider(a.AppleClient)
+
 	// YouTube provider (for profile links)
 	a.YouTubeProvider = youtube.NewProvider(
 		&a.Config.Auth.YouTube,
@@ -520,6 +532,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	// Auth Providers (adapters)
 	// ----------------------------------------------------
 	a.AuthService.RegisterProvider("github", a.GitHubProvider)
+	a.AuthService.RegisterProvider("apple", a.AppleProvider)
 
 	return nil
 }

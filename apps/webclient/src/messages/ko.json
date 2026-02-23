@@ -126,7 +126,10 @@
     "Search for profiles, stories, and pages": "Search for profiles, stories, and pages"
   },
   "Auth": {
+    "Login": "로그인",
+    "Choose a login method": "로그인 방법을 선택하세요",
     "Login with GitHub": "GitHub로 로그인",
+    "Login with Apple": "Apple로 로그인",
     "My Profile": "내 프로필",
     "Profiles": "프로필 목록",
     "Logout": "로그아웃",

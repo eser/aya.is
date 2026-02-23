@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -228,6 +229,104 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 		).
 		HasSummary("Auth Callback").
 		HasDescription("Handles auth provider callback and returns JWT.").
+		HasResponse(http.StatusOK)
+
+	// Apple Sign In uses response_mode=form_post, sending code/state via POST body.
+	// This route handles that POST callback, parses Apple's first-auth user info,
+	// then delegates to the same auth callback logic as the GET route.
+	routes.
+		Route(
+			"POST /{locale}/auth/{authProvider}/callback",
+			func(ctx *httpfx.Context) httpfx.Result {
+				authProvider := ctx.Request.PathValue("authProvider")
+
+				// Parse form body (Apple sends application/x-www-form-urlencoded)
+				if err := ctx.Request.ParseForm(); err != nil {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("failed to parse form"))
+				}
+
+				code := ctx.Request.FormValue("code")
+				state := ctx.Request.FormValue("state")
+
+				// redirect_uri comes from the original query string (set during Initiate)
+				redirectURI := ctx.Request.URL.Query().Get("redirect_uri")
+
+				if code == "" {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("code is required"))
+				}
+
+				if state == "" {
+					return ctx.Results.BadRequest(httpfx.WithErrorMessage("state is required"))
+				}
+
+				// Apple sends user info (name, email) only on first authorization via POST body.
+				// Parse it and pass to the provider before handling the callback.
+				userJSON := ctx.Request.FormValue("user")
+				if userJSON != "" {
+					var userData struct {
+						Name struct {
+							FirstName string `json:"firstName"`
+							LastName  string `json:"lastName"`
+						} `json:"name"`
+						Email string `json:"email"`
+					}
+
+					jsonErr := json.Unmarshal([]byte(userJSON), &userData)
+					if jsonErr == nil {
+						name := userData.Name.FirstName
+						if userData.Name.LastName != "" {
+							if name != "" {
+								name += " "
+							}
+
+							name += userData.Name.LastName
+						}
+
+						authService.SetProviderFirstAuthInfo(authProvider, name, userData.Email)
+					}
+				}
+
+				result, err := authService.AuthHandleCallback(
+					ctx.Request.Context(),
+					authProvider,
+					code,
+					state,
+					redirectURI,
+				)
+				if err != nil {
+					logger.ErrorContext(ctx.Request.Context(), "Auth POST callback failed",
+						slog.String("error", err.Error()),
+						slog.String("provider", authProvider))
+
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithErrorMessage("Auth callback failed"),
+					)
+				}
+
+				// Set session cookie for cross-domain SSO
+				SetSessionCookie(
+					ctx.ResponseWriter,
+					result.SessionID,
+					result.ExpiresAt,
+					authService.Config,
+				)
+
+				if result.RedirectURI != "" {
+					return ctx.Results.Redirect(result.RedirectURI)
+				}
+
+				return ctx.Results.JSON(map[string]any{
+					"data": map[string]any{
+						"token": result.JWT,
+						"user":  result.User,
+					},
+					"error": nil,
+				})
+			},
+		).
+		HasSummary("Auth POST Callback").
+		HasDescription("Handles auth provider POST callback (e.g., Apple form_post).").
 		HasResponse(http.StatusOK)
 
 	routes.

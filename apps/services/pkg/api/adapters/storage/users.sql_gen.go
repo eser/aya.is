@@ -24,6 +24,7 @@ INSERT INTO "user" (
     bsky_remote_id,
     x_handle,
     x_remote_id,
+    apple_remote_id,
     individual_profile_id,
     created_at,
     updated_at,
@@ -44,7 +45,8 @@ VALUES (
     $12,
     $13,
     $14,
-    $15
+    $15,
+    $16
   )
 `
 
@@ -60,6 +62,7 @@ type CreateUserParams struct {
 	BskyRemoteID        sql.NullString `db:"bsky_remote_id" json:"bsky_remote_id"`
 	XHandle             sql.NullString `db:"x_handle" json:"x_handle"`
 	XRemoteID           sql.NullString `db:"x_remote_id" json:"x_remote_id"`
+	AppleRemoteID       sql.NullString `db:"apple_remote_id" json:"apple_remote_id"`
 	IndividualProfileID sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
 	CreatedAt           time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt           sql.NullTime   `db:"updated_at" json:"updated_at"`
@@ -80,6 +83,7 @@ type CreateUserParams struct {
 //	    bsky_remote_id,
 //	    x_handle,
 //	    x_remote_id,
+//	    apple_remote_id,
 //	    individual_profile_id,
 //	    created_at,
 //	    updated_at,
@@ -100,7 +104,8 @@ type CreateUserParams struct {
 //	    $12,
 //	    $13,
 //	    $14,
-//	    $15
+//	    $15,
+//	    $16
 //	  )
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	_, err := q.db.ExecContext(ctx, createUser,
@@ -115,6 +120,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 		arg.BskyRemoteID,
 		arg.XHandle,
 		arg.XRemoteID,
+		arg.AppleRemoteID,
 		arg.IndividualProfileID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -123,8 +129,51 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
+const getUserByAppleRemoteID = `-- name: GetUserByAppleRemoteID :one
+SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+FROM "user"
+WHERE apple_remote_id = $1
+  AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetUserByAppleRemoteIDParams struct {
+	AppleRemoteID sql.NullString `db:"apple_remote_id" json:"apple_remote_id"`
+}
+
+// GetUserByAppleRemoteID
+//
+//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+//	FROM "user"
+//	WHERE apple_remote_id = $1
+//	  AND deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetUserByAppleRemoteID(ctx context.Context, arg GetUserByAppleRemoteIDParams) (*User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByAppleRemoteID, arg.AppleRemoteID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Kind,
+		&i.Name,
+		&i.Email,
+		&i.Phone,
+		&i.GithubHandle,
+		&i.GithubRemoteID,
+		&i.BskyHandle,
+		&i.BskyRemoteID,
+		&i.XHandle,
+		&i.XRemoteID,
+		&i.IndividualProfileID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.AppleRemoteID,
+	)
+	return &i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 FROM "user"
 WHERE email = $1
   AND deleted_at IS NULL
@@ -137,7 +186,7 @@ type GetUserByEmailParams struct {
 
 // GetUserByEmail
 //
-//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 //	FROM "user"
 //	WHERE email = $1
 //	  AND deleted_at IS NULL
@@ -161,12 +210,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.AppleRemoteID,
 	)
 	return &i, err
 }
 
 const getUserByGitHubRemoteID = `-- name: GetUserByGitHubRemoteID :one
-SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 FROM "user"
 WHERE github_remote_id = $1
   AND deleted_at IS NULL
@@ -179,7 +229,7 @@ type GetUserByGitHubRemoteIDParams struct {
 
 // GetUserByGitHubRemoteID
 //
-//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 //	FROM "user"
 //	WHERE github_remote_id = $1
 //	  AND deleted_at IS NULL
@@ -203,12 +253,13 @@ func (q *Queries) GetUserByGitHubRemoteID(ctx context.Context, arg GetUserByGitH
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.AppleRemoteID,
 	)
 	return &i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 FROM "user"
 WHERE id = $1
   AND deleted_at IS NULL
@@ -221,7 +272,7 @@ type GetUserByIDParams struct {
 
 // GetUserByID
 //
-//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 //	FROM "user"
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
@@ -245,12 +296,13 @@ func (q *Queries) GetUserByID(ctx context.Context, arg GetUserByIDParams) (*User
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.AppleRemoteID,
 	)
 	return &i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 FROM "user"
 WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
   AND deleted_at IS NULL
@@ -262,7 +314,7 @@ type ListUsersParams struct {
 
 // ListUsers
 //
-//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+//	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
 //	FROM "user"
 //	WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 //	  AND deleted_at IS NULL
@@ -291,6 +343,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, 
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.AppleRemoteID,
 		); err != nil {
 			return nil, err
 		}
@@ -368,8 +421,9 @@ SET kind = $1,
   bsky_remote_id = $8,
   x_handle = $9,
   x_remote_id = $10,
-  individual_profile_id = $11
-WHERE id = $12
+  apple_remote_id = $11,
+  individual_profile_id = $12
+WHERE id = $13
   AND deleted_at IS NULL
 `
 
@@ -384,6 +438,7 @@ type UpdateUserParams struct {
 	BskyRemoteID        sql.NullString `db:"bsky_remote_id" json:"bsky_remote_id"`
 	XHandle             sql.NullString `db:"x_handle" json:"x_handle"`
 	XRemoteID           sql.NullString `db:"x_remote_id" json:"x_remote_id"`
+	AppleRemoteID       sql.NullString `db:"apple_remote_id" json:"apple_remote_id"`
 	IndividualProfileID sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
 	ID                  string         `db:"id" json:"id"`
 }
@@ -401,8 +456,9 @@ type UpdateUserParams struct {
 //	  bsky_remote_id = $8,
 //	  x_handle = $9,
 //	  x_remote_id = $10,
-//	  individual_profile_id = $11
-//	WHERE id = $12
+//	  apple_remote_id = $11,
+//	  individual_profile_id = $12
+//	WHERE id = $13
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateUser,
@@ -416,6 +472,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, 
 		arg.BskyRemoteID,
 		arg.XHandle,
 		arg.XRemoteID,
+		arg.AppleRemoteID,
 		arg.IndividualProfileID,
 		arg.ID,
 	)

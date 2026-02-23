@@ -19,6 +19,13 @@ WHERE github_remote_id = sqlc.arg(github_remote_id)
   AND deleted_at IS NULL
 LIMIT 1;
 
+-- name: GetUserByAppleRemoteID :one
+SELECT *
+FROM "user"
+WHERE apple_remote_id = sqlc.arg(apple_remote_id)
+  AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: ListUsers :many
 SELECT *
 FROM "user"
@@ -38,6 +45,7 @@ INSERT INTO "user" (
     bsky_remote_id,
     x_handle,
     x_remote_id,
+    apple_remote_id,
     individual_profile_id,
     created_at,
     updated_at,
@@ -55,6 +63,7 @@ VALUES (
     sqlc.arg(bsky_remote_id),
     sqlc.arg(x_handle),
     sqlc.arg(x_remote_id),
+    sqlc.arg(apple_remote_id),
     sqlc.arg(individual_profile_id),
     sqlc.arg(created_at),
     sqlc.arg(updated_at),
@@ -73,6 +82,7 @@ SET kind = sqlc.arg(kind),
   bsky_remote_id = sqlc.arg(bsky_remote_id),
   x_handle = sqlc.arg(x_handle),
   x_remote_id = sqlc.arg(x_remote_id),
+  apple_remote_id = sqlc.arg(apple_remote_id),
   individual_profile_id = sqlc.arg(individual_profile_id)
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
