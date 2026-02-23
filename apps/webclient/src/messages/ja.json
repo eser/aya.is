@@ -201,6 +201,7 @@
     "Profile Details": "プロファイル詳細",
     "follower": "フォロワー",
     "sponsor": "スポンサー",
+    "member": "メンバー",
     "contributor": "貢献者",
     "maintainer": "メンテナー",
     "lead": "リード",
@@ -437,6 +438,7 @@
     "Visibility.public": "公開",
     "Visibility.followers": "フォロワー以上",
     "Visibility.sponsors": "スポンサー以上",
+    "Visibility.members": "メンバー+",
     "Visibility.contributors": "コントリビューター以上",
     "Visibility.maintainers": "メンテナー以上",
     "Visibility.leads": "リード以上",
@@ -627,6 +629,7 @@
       "lead": "リード",
       "maintainer": "メンテナー",
       "contributor": "貢献者",
+      "member": "メンバー",
       "sponsor": "スポンサー",
       "follower": "フォロワー"
     },

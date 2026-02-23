@@ -201,6 +201,7 @@
     "Profile Details": "Profil Detayları",
     "follower": "Takipçi",
     "sponsor": "Sponsor",
+    "member": "Üye",
     "contributor": "Katkıcı",
     "maintainer": "Sürdüren",
     "lead": "Lider",
@@ -437,6 +438,7 @@
     "Visibility.public": "Herkese Açık",
     "Visibility.followers": "Takipçiler+",
     "Visibility.sponsors": "Sponsorlar+",
+    "Visibility.members": "Üyeler+",
     "Visibility.contributors": "Katkıda Bulunanlar+",
     "Visibility.maintainers": "Bakımcılar+",
     "Visibility.leads": "Liderler+",
@@ -631,6 +633,7 @@
       "lead": "Lider",
       "maintainer": "Bakımcı",
       "contributor": "Katkıcı",
+      "member": "Üye",
       "sponsor": "Sponsor",
       "follower": "Takipçi"
     },

@@ -77,6 +77,7 @@ const MEMBERSHIP_KINDS: MembershipKindConfig[] = [
   { kind: "lead", labelKey: "Profile.MembershipKind.lead", icon: Shield, color: "text-blue-500" },
   { kind: "maintainer", labelKey: "Profile.MembershipKind.maintainer", icon: Wrench, color: "text-green-500" },
   { kind: "contributor", labelKey: "Profile.MembershipKind.contributor", icon: UserPlus, color: "text-purple-500" },
+  { kind: "member", labelKey: "Profile.MembershipKind.member", icon: Users, color: "text-teal-500" },
   { kind: "sponsor", labelKey: "Profile.MembershipKind.sponsor", icon: Heart, color: "text-pink-500" },
   { kind: "follower", labelKey: "Profile.MembershipKind.follower", icon: Star, color: "text-gray-500" },
 ];

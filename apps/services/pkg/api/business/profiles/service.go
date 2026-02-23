@@ -3005,10 +3005,11 @@ var (
 var membershipRoleLevel = map[string]int{
 	"follower":    1,
 	"sponsor":     2,
-	"contributor": 3,
-	"maintainer":  4,
-	"lead":        5,
-	"owner":       6,
+	"member":      3,
+	"contributor": 4,
+	"maintainer":  5,
+	"lead":        6,
+	"owner":       7,
 }
 
 // ListMembershipsForSettings lists all memberships for a profile (for settings page).
@@ -3074,7 +3075,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 	// Validate kind
 	validKinds := map[string]bool{
 		"owner": true, "lead": true, "maintainer": true,
-		"contributor": true, "sponsor": true, "follower": true,
+		"contributor": true, "member": true, "sponsor": true, "follower": true,
 	}
 	if !validKinds[newKind] {
 		return ErrInvalidMembershipKind
@@ -3381,7 +3382,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	// Validate kind
 	validKinds := map[string]bool{
 		"owner": true, "lead": true, "maintainer": true,
-		"contributor": true, "sponsor": true, "follower": true,
+		"contributor": true, "member": true, "sponsor": true, "follower": true,
 	}
 	if !validKinds[kind] {
 		return ErrInvalidMembershipKind

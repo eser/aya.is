@@ -22,6 +22,7 @@ const (
 	LinkVisibilityPublic       LinkVisibility = "public"       // Everyone can see
 	LinkVisibilityFollowers    LinkVisibility = "followers"    // Followers and above
 	LinkVisibilitySponsors     LinkVisibility = "sponsors"     // Sponsors and above
+	LinkVisibilityMembers      LinkVisibility = "members"      // Members and above
 	LinkVisibilityContributors LinkVisibility = "contributors" // Contributors and above
 	LinkVisibilityMaintainers  LinkVisibility = "maintainers"  // Maintainers and above
 	LinkVisibilityLeads        LinkVisibility = "leads"        // Leads and above
@@ -52,6 +53,7 @@ type MembershipKind string
 const (
 	MembershipKindFollower    MembershipKind = "follower"
 	MembershipKindSponsor     MembershipKind = "sponsor"
+	MembershipKindMember      MembershipKind = "member"
 	MembershipKindContributor MembershipKind = "contributor"
 	MembershipKindMaintainer  MembershipKind = "maintainer"
 	MembershipKindLead        MembershipKind = "lead"
@@ -63,10 +65,11 @@ const (
 var MembershipKindLevel = map[MembershipKind]int{
 	MembershipKindFollower:    1,
 	MembershipKindSponsor:     2,
-	MembershipKindContributor: 3,
-	MembershipKindMaintainer:  4,
-	MembershipKindLead:        5,
-	MembershipKindOwner:       6,
+	MembershipKindMember:      3,
+	MembershipKindContributor: 4,
+	MembershipKindMaintainer:  5,
+	MembershipKindLead:        6,
+	MembershipKindOwner:       7,
 }
 
 // MinMembershipForVisibility maps visibility levels to minimum membership required.
@@ -74,6 +77,7 @@ var MinMembershipForVisibility = map[LinkVisibility]MembershipKind{
 	LinkVisibilityPublic:       "",                        // no membership required
 	LinkVisibilityFollowers:    MembershipKindFollower,    // followers+
 	LinkVisibilitySponsors:     MembershipKindSponsor,     // sponsors+
+	LinkVisibilityMembers:      MembershipKindMember,      // members+
 	LinkVisibilityContributors: MembershipKindContributor, // contributors+
 	LinkVisibilityMaintainers:  MembershipKindMaintainer,  // maintainers+
 	LinkVisibilityLeads:        MembershipKindLead,        // leads+

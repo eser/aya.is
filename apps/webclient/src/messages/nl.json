@@ -201,6 +201,7 @@
     "Profile Details": "Profiel details",
     "follower": "Volger",
     "sponsor": "Sponsor",
+    "member": "Lid",
     "contributor": "Bijdrager",
     "maintainer": "Beheerder",
     "lead": "Leider",
@@ -437,6 +438,7 @@
     "Visibility.public": "Openbaar",
     "Visibility.followers": "Volgers+",
     "Visibility.sponsors": "Sponsors+",
+    "Visibility.members": "Leden+",
     "Visibility.contributors": "Bijdragers+",
     "Visibility.maintainers": "Beheerders+",
     "Visibility.leads": "Leiders+",
@@ -627,6 +629,7 @@
       "lead": "Leider",
       "maintainer": "Beheerder",
       "contributor": "Bijdrager",
+      "member": "Lid",
       "sponsor": "Sponsor",
       "follower": "Volger"
     },

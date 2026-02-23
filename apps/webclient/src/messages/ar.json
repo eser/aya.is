@@ -201,6 +201,7 @@
     "Profile Details": "تفاصيل الملف الشخصي",
     "follower": "متابع",
     "sponsor": "راعي",
+    "member": "عضو",
     "contributor": "مساهم",
     "maintainer": "صائن",
     "lead": "قائد",
@@ -437,6 +438,7 @@
     "Visibility.public": "عام",
     "Visibility.followers": "المتابعون+",
     "Visibility.sponsors": "الرعاة+",
+    "Visibility.members": "أعضاء+",
     "Visibility.contributors": "المساهمون+",
     "Visibility.maintainers": "المشرفون+",
     "Visibility.leads": "القادة+",
@@ -627,6 +629,7 @@
       "lead": "قائد",
       "maintainer": "مشرف",
       "contributor": "مساهم",
+      "member": "عضو",
       "sponsor": "راعي",
       "follower": "متابع"
     },

@@ -201,6 +201,7 @@
     "Profile Details": "Детали профиля",
     "follower": "Подписчик",
     "sponsor": "Спонсор",
+    "member": "Участник",
     "contributor": "Участник",
     "maintainer": "Сопровождающий",
     "lead": "Руководитель",
@@ -437,6 +438,7 @@
     "Visibility.public": "Публичный",
     "Visibility.followers": "Подписчики+",
     "Visibility.sponsors": "Спонсоры+",
+    "Visibility.members": "Участники+",
     "Visibility.contributors": "Участники+",
     "Visibility.maintainers": "Сопровождающие+",
     "Visibility.leads": "Руководители+",
@@ -627,6 +629,7 @@
       "lead": "Руководитель",
       "maintainer": "Сопровождающий",
       "contributor": "Участник",
+      "member": "Участник",
       "sponsor": "Спонсор",
       "follower": "Подписчик"
     },

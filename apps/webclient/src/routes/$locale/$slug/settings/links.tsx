@@ -109,6 +109,7 @@ const VISIBILITY_OPTIONS: { value: LinkVisibility; labelKey: string }[] = [
   { value: "public", labelKey: "Profile.Visibility.public" },
   { value: "followers", labelKey: "Profile.Visibility.followers" },
   { value: "sponsors", labelKey: "Profile.Visibility.sponsors" },
+  { value: "members", labelKey: "Profile.Visibility.members" },
   { value: "contributors", labelKey: "Profile.Visibility.contributors" },
   { value: "maintainers", labelKey: "Profile.Visibility.maintainers" },
   { value: "leads", labelKey: "Profile.Visibility.leads" },

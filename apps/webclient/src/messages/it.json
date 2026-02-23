@@ -201,6 +201,7 @@
     "Profile Details": "Dettagli del profilo",
     "follower": "Follower",
     "sponsor": "Sponsor",
+    "member": "Membro",
     "contributor": "Contributore",
     "maintainer": "Manutentore",
     "lead": "Responsabile",
@@ -437,6 +438,7 @@
     "Visibility.public": "Pubblico",
     "Visibility.followers": "Follower+",
     "Visibility.sponsors": "Sponsor+",
+    "Visibility.members": "Membri+",
     "Visibility.contributors": "Contributori+",
     "Visibility.maintainers": "Manutentori+",
     "Visibility.leads": "Leader+",
@@ -627,6 +629,7 @@
       "lead": "Responsabile",
       "maintainer": "Manutentore",
       "contributor": "Contributore",
+      "member": "Membro",
       "sponsor": "Sponsor",
       "follower": "Follower"
     },

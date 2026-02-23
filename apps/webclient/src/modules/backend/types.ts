@@ -43,6 +43,7 @@ export type LinkVisibility =
   | "public"
   | "followers"
   | "sponsors"
+  | "members"
   | "contributors"
   | "maintainers"
   | "leads"
@@ -112,6 +113,7 @@ export interface ProfileMember {
 export type ProfileMembershipKind =
   | "follower"
   | "sponsor"
+  | "member"
   | "contributor"
   | "maintainer"
   | "lead"

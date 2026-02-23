@@ -201,6 +201,7 @@
     "Profile Details": "个人资料详情",
     "follower": "关注者",
     "sponsor": "赞助者",
+    "member": "成员",
     "contributor": "贡献者",
     "maintainer": "维护者",
     "lead": "负责人",
@@ -437,6 +438,7 @@
     "Visibility.public": "公开",
     "Visibility.followers": "关注者及以上",
     "Visibility.sponsors": "赞助者及以上",
+    "Visibility.members": "成员+",
     "Visibility.contributors": "贡献者及以上",
     "Visibility.maintainers": "维护者及以上",
     "Visibility.leads": "负责人及以上",
@@ -627,6 +629,7 @@
       "lead": "负责人",
       "maintainer": "维护者",
       "contributor": "贡献者",
+      "member": "成员",
       "sponsor": "赞助者",
       "follower": "关注者"
     },

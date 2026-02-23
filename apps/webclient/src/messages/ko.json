@@ -201,6 +201,7 @@
     "Profile Details": "프로필 세부정보",
     "follower": "팔로워",
     "sponsor": "스폰서",
+    "member": "멤버",
     "contributor": "기여자",
     "maintainer": "관리자",
     "lead": "리드",
@@ -437,6 +438,7 @@
     "Visibility.public": "전체 공개",
     "Visibility.followers": "팔로워 이상",
     "Visibility.sponsors": "후원자 이상",
+    "Visibility.members": "멤버+",
     "Visibility.contributors": "기여자 이상",
     "Visibility.maintainers": "관리자 이상",
     "Visibility.leads": "리드 이상",
@@ -627,6 +629,7 @@
       "lead": "리드",
       "maintainer": "관리자",
       "contributor": "기여자",
+      "member": "멤버",
       "sponsor": "후원자",
       "follower": "팔로워"
     },

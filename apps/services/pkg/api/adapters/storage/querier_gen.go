@@ -2560,9 +2560,10 @@ type Querier interface {
 	//      WHEN 'lead' THEN 2
 	//      WHEN 'maintainer' THEN 3
 	//      WHEN 'contributor' THEN 4
-	//      WHEN 'sponsor' THEN 5
-	//      WHEN 'follower' THEN 6
-	//      ELSE 7
+	//      WHEN 'member' THEN 5
+	//      WHEN 'sponsor' THEN 6
+	//      WHEN 'follower' THEN 7
+	//      ELSE 8
 	//    END,
 	//    pm.started_at ASC
 	ListProfileMembershipsForSettings(ctx context.Context, arg ListProfileMembershipsForSettingsParams) ([]*ListProfileMembershipsForSettingsRow, error)

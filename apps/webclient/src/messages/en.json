@@ -204,6 +204,7 @@
     "Profile Details": "Profile Details",
     "follower": "Follower",
     "sponsor": "Sponsor",
+    "member": "Member",
     "contributor": "Contributor",
     "maintainer": "Maintainer",
     "lead": "Lead",
@@ -441,6 +442,7 @@
     "Visibility.public": "Public",
     "Visibility.followers": "Followers+",
     "Visibility.sponsors": "Sponsors+",
+    "Visibility.members": "Members+",
     "Visibility.contributors": "Contributors+",
     "Visibility.maintainers": "Maintainers+",
     "Visibility.leads": "Leads+",
@@ -635,6 +637,7 @@
       "lead": "Lead",
       "maintainer": "Maintainer",
       "contributor": "Contributor",
+      "member": "Member",
       "sponsor": "Sponsor",
       "follower": "Follower"
     },
