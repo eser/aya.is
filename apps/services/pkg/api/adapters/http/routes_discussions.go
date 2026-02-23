@@ -54,9 +54,12 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 				return handleDiscussionError(ctx, logger, err, "story", slugParam)
 			}
 
-			return ctx.Results.JSON(discussions.ListResponse{
-				Thread:   thread,
-				Comments: comments,
+			return ctx.Results.JSON(map[string]any{
+				"data": discussions.ListResponse{
+					Thread:   thread,
+					Comments: comments,
+				},
+				"error": nil,
 			})
 		},
 	).HasDescription("List discussion comments for a story")
@@ -92,9 +95,12 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 				return handleDiscussionError(ctx, logger, err, "profile", slugParam)
 			}
 
-			return ctx.Results.JSON(discussions.ListResponse{
-				Thread:   thread,
-				Comments: comments,
+			return ctx.Results.JSON(map[string]any{
+				"data": discussions.ListResponse{
+					Thread:   thread,
+					Comments: comments,
+				},
+				"error": nil,
 			})
 		},
 	).HasDescription("List discussion comments for a profile")
@@ -132,7 +138,10 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 			}
 
 			return ctx.Results.JSON(map[string]any{
-				"comments": comments,
+				"data": map[string]any{
+					"comments": comments,
+				},
+				"error": nil,
 			})
 		},
 	).HasDescription("List replies to a discussion comment")

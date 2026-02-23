@@ -31,16 +31,20 @@ export function DiscussionThread(props: DiscussionThreadProps) {
 
   // Fetch discussion data
   const fetchDiscussion = React.useCallback(async (sort: DiscussionSortMode) => {
-    let data = null;
-    if (props.storySlug !== undefined) {
-      data = await backend.getStoryDiscussion(props.locale, props.storySlug, sort);
-    } else if (props.profileSlug !== undefined) {
-      data = await backend.getProfileDiscussion(props.locale, props.profileSlug, sort);
-    }
+    try {
+      let data = null;
+      if (props.storySlug !== undefined) {
+        data = await backend.getStoryDiscussion(props.locale, props.storySlug, sort);
+      } else if (props.profileSlug !== undefined) {
+        data = await backend.getProfileDiscussion(props.locale, props.profileSlug, sort);
+      }
 
-    if (data !== null) {
-      setThread(data.thread);
-      setComments(data.comments);
+      if (data !== null && data !== undefined) {
+        setThread(data.thread);
+        setComments(data.comments);
+      }
+    } catch {
+      // API error (500, network failure, etc.) — silently fail and show empty state
     }
     setIsLoading(false);
     setHasLoaded(true);

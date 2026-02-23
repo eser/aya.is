@@ -394,6 +394,7 @@ func (s *Service) Vote(ctx context.Context, params VoteParams) (*VoteResponse, e
 			}
 
 			scoreDelta = -direction
+
 			if direction == int(VoteUp) {
 				upvoteDelta = -1
 			} else {
@@ -409,6 +410,7 @@ func (s *Service) Vote(ctx context.Context, params VoteParams) (*VoteResponse, e
 			}
 
 			scoreDelta = 2 * direction
+
 			if direction == int(VoteUp) {
 				upvoteDelta = 1
 				downvoteDelta = -1
@@ -429,6 +431,7 @@ func (s *Service) Vote(ctx context.Context, params VoteParams) (*VoteResponse, e
 		}
 
 		scoreDelta = direction
+
 		if direction == int(VoteUp) {
 			upvoteDelta = 1
 		} else {
