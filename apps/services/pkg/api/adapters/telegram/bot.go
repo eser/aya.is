@@ -42,6 +42,12 @@ func (b *Bot) Client() *Client {
 
 // HandleUpdate processes a single Telegram update.
 func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclop
+	if update.CallbackQuery != nil {
+		b.handleCallbackQuery(ctx, update.CallbackQuery)
+
+		return
+	}
+
 	if update.Message == nil {
 		return
 	}
@@ -81,6 +87,8 @@ func (b *Bot) HandleUpdate(ctx context.Context, update *Update) { //nolint:cyclo
 		b.handleStatus(ctx, msg)
 	case "/groups":
 		b.handleGroups(ctx, msg)
+	case "/join":
+		b.handleJoinDirect(ctx, msg)
 	case "/unlink":
 		b.handleUnlink(ctx, msg)
 	default:
@@ -144,6 +152,7 @@ func (b *Bot) handleHelp(ctx context.Context, msg *Message) {
 		"/start — Get a verification code to link your account\n" +
 		"/status — Check your linked AYA profile\n" +
 		"/groups — List Telegram groups from your profiles\n" +
+		"/join — List private groups you can join\n" +
 		"/invite — Generate an invite code (use in a group chat)\n" +
 		"/register — Register a group as a resource (use in a group chat)\n" +
 		"/unlink — Disconnect your Telegram account from AYA\n" +
@@ -247,6 +256,10 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 			label = "Telegram"
 		}
 
+		if link.LinkVisibility != "" && link.LinkVisibility != "public" {
+			label += " (" + link.LinkVisibility + "+)"
+		}
+
 		if link.LinkURI != "" {
 			builder.WriteString(fmt.Sprintf("  • <a href=\"%s\">%s</a>\n", link.LinkURI, label))
 		} else {
@@ -254,9 +267,15 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 		}
 	}
 
-	_ = b.client.SendMessageWithOpts(ctx, msg.Chat.ID, builder.String(), SendMessageOpts{
-		DisableLinkPreview: true,
-	})
+	keyboard := &InlineKeyboardMarkup{
+		InlineKeyboard: [][]InlineKeyboardButton{
+			{
+				{Text: "List groups I can join", CallbackData: "join"},
+			},
+		},
+	}
+
+	_ = b.client.SendMessageWithKeyboard(ctx, msg.Chat.ID, builder.String(), keyboard)
 }
 
 func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
@@ -409,6 +428,211 @@ func (b *Bot) handleGroupRegister(ctx context.Context, msg *Message) {
 	}
 
 	_ = b.client.SendMessage(ctx, msg.Chat.ID, "Registration code sent to your DM.")
+}
+
+func (b *Bot) handleCallbackQuery(ctx context.Context, cq *CallbackQuery) { //nolint:varnamelen
+	if cq.From == nil || cq.From.IsBot {
+		return
+	}
+
+	switch {
+	case cq.Data == "join":
+		b.handleJoin(ctx, cq)
+	case strings.HasPrefix(cq.Data, "join:"):
+		b.handleJoinGroup(ctx, cq)
+	case strings.HasPrefix(cq.Data, "joined:"):
+		_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "You're already a member of this group.")
+
+		return
+	}
+
+	// Answer callback to remove loading indicator
+	_ = b.client.AnswerCallbackQuery(ctx, cq.ID, "")
+}
+
+func (b *Bot) handleJoinDirect(ctx context.Context, msg *Message) {
+	info, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
+	if err != nil {
+		_ = b.client.SendMessage(ctx, msg.Chat.ID,
+			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
+				"Send /start to get a verification code.")
+
+		return
+	}
+
+	b.sendJoinableGroups(ctx, msg.Chat.ID, msg.From.ID, info.ProfileID)
+}
+
+func (b *Bot) handleJoin(ctx context.Context, cq *CallbackQuery) { //nolint:varnamelen
+	info, err := b.service.GetLinkedProfile(ctx, cq.From.ID)
+	if err != nil {
+		_ = b.client.SendMessage(ctx, cq.From.ID,
+			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
+				"Send /start to get a verification code.")
+
+		return
+	}
+
+	chatID := cq.From.ID
+	if cq.Message != nil {
+		chatID = cq.Message.Chat.ID
+	}
+
+	b.sendJoinableGroups(ctx, chatID, cq.From.ID, info.ProfileID)
+}
+
+func (b *Bot) sendJoinableGroups(
+	ctx context.Context,
+	chatID int64,
+	telegramUserID int64,
+	profileID string,
+) {
+	groups, groupsErr := b.service.GetEligibleTelegramGroups(ctx, profileID)
+	if groupsErr != nil {
+		b.logger.WarnContext(ctx, "Failed to get eligible telegram groups",
+			slog.String("profile_id", profileID),
+			slog.String("error", groupsErr.Error()))
+
+		_ = b.client.SendMessage(ctx, chatID,
+			"Something went wrong. Please try again later.")
+
+		return
+	}
+
+	if len(groups) == 0 {
+		_ = b.client.SendMessage(ctx, chatID,
+			"No Telegram groups are available for your teams.")
+
+		return
+	}
+
+	// Build inline keyboard with membership status
+	buttons := make([][]InlineKeyboardButton, 0, len(groups))
+
+	for _, group := range groups {
+		member, memberErr := b.client.GetChatMember(ctx, group.ChatID, telegramUserID)
+
+		isJoined := memberErr == nil && member != nil &&
+			(member.Status == "member" || member.Status == "administrator" || member.Status == "creator")
+
+		label := group.GroupTitle
+		if group.ProfileSlug != "" {
+			label += " (" + group.ProfileSlug + ")"
+		}
+
+		var callbackData string
+
+		if isJoined {
+			label = "\u2713 " + label
+			callbackData = "joined:" + group.ResourceID
+		} else {
+			callbackData = "join:" + group.ResourceID
+		}
+
+		buttons = append(buttons, []InlineKeyboardButton{
+			{Text: label, CallbackData: callbackData},
+		})
+	}
+
+	keyboard := &InlineKeyboardMarkup{
+		InlineKeyboard: buttons,
+	}
+
+	_ = b.client.SendMessageWithKeyboard(ctx, chatID,
+		"Select a group to get an invite link:\n\n\u2713 = already a member",
+		keyboard,
+	)
+}
+
+func (b *Bot) handleJoinGroup(
+	ctx context.Context,
+	cq *CallbackQuery,
+) { //nolint:cyclop,funlen,varnamelen
+	resourceID := strings.TrimPrefix(cq.Data, "join:")
+
+	info, err := b.service.GetLinkedProfile(ctx, cq.From.ID)
+	if err != nil {
+		_ = b.client.SendMessage(ctx, cq.From.ID,
+			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
+				"Send /start to get a verification code.")
+
+		return
+	}
+
+	// Re-fetch eligible groups to validate access
+	groups, groupsErr := b.service.GetEligibleTelegramGroups(ctx, info.ProfileID)
+	if groupsErr != nil {
+		_ = b.client.SendMessage(ctx, cq.From.ID,
+			"Something went wrong. Please try again later.")
+
+		return
+	}
+
+	// Find the requested group
+	var target *telegrambiz.EligibleTelegramGroup
+
+	for i := range groups {
+		if groups[i].ResourceID == resourceID {
+			target = &groups[i]
+
+			break
+		}
+	}
+
+	if target == nil {
+		_ = b.client.SendMessage(ctx, cq.From.ID,
+			"You don't have access to this group, or it no longer exists.")
+
+		return
+	}
+
+	// Check if already a member
+	member, memberErr := b.client.GetChatMember(ctx, target.ChatID, cq.From.ID)
+	if memberErr == nil && member != nil &&
+		(member.Status == "member" || member.Status == "administrator" || member.Status == "creator") {
+		_ = b.client.SendMessage(ctx, cq.From.ID,
+			fmt.Sprintf("You're already a member of <b>%s</b>.", target.GroupTitle))
+
+		return
+	}
+
+	// Generate single-use invite link
+	inviteName := "AYA /join"
+	if cq.From.Username != "" {
+		inviteName += " for @" + cq.From.Username
+	}
+
+	inviteLink, createErr := b.client.CreateChatInviteLink(ctx, target.ChatID, inviteName, 1)
+	if createErr != nil {
+		b.logger.ErrorContext(ctx, "Failed to create invite link",
+			slog.Int64("chat_id", target.ChatID),
+			slog.String("resource_id", resourceID),
+			slog.String("error", createErr.Error()))
+
+		_ = b.client.SendMessage(ctx, cq.From.ID,
+			"Failed to create an invite link. The bot may not be an administrator in this group.")
+
+		return
+	}
+
+	// Record audit entry for leak detection
+	b.service.RecordInviteLinkGenerated(
+		ctx,
+		info.ProfileID,
+		cq.From.ID,
+		target.ChatID,
+		target.GroupTitle,
+		inviteLink.InviteLink,
+	)
+
+	text := fmt.Sprintf(
+		"Here is your invite link for <b>%s</b>:\n\n%s\n\n"+
+			"This link can only be used once.",
+		target.GroupTitle,
+		inviteLink.InviteLink,
+	)
+
+	_ = b.client.SendMessage(ctx, cq.From.ID, text)
 }
 
 func (b *Bot) handleUnknown(ctx context.Context, msg *Message) {

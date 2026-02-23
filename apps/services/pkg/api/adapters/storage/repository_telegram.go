@@ -255,6 +255,57 @@ func (a *telegramAdapter) GetMemberProfileTelegramLinks(
 	return result, nil
 }
 
+func (a *telegramAdapter) GetEligibleTelegramGroupsForProfile(
+	ctx context.Context,
+	memberProfileID string,
+) ([]telegrambiz.EligibleTelegramGroup, error) {
+	rows, err := a.repo.queries.GetEligibleTelegramGroupsForProfile(
+		ctx,
+		GetEligibleTelegramGroupsForProfileParams{
+			MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]telegrambiz.EligibleTelegramGroup, 0, len(rows))
+
+	for _, row := range rows {
+		var chatID int64
+
+		if row.Properties.Valid && len(row.Properties.RawMessage) > 0 {
+			var props map[string]any
+
+			unmarshalErr := json.Unmarshal(row.Properties.RawMessage, &props)
+			if unmarshalErr == nil {
+				if v, ok := props["telegram_chat_id"]; ok {
+					switch n := v.(type) {
+					case float64:
+						chatID = int64(n)
+					case json.Number:
+						chatID, _ = n.Int64()
+					}
+				}
+			}
+		}
+
+		if chatID == 0 {
+			continue
+		}
+
+		result = append(result, telegrambiz.EligibleTelegramGroup{
+			ResourceID:   row.ResourceID,
+			GroupTitle:   row.GroupTitle,
+			ChatID:       chatID,
+			ProfileSlug:  row.ProfileSlug,
+			ProfileTitle: row.ProfileTitle,
+		})
+	}
+
+	return result, nil
+}
+
 func (a *telegramAdapter) GetMaxProfileLinkOrder(
 	ctx context.Context,
 	profileID string,

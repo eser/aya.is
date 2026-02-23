@@ -269,6 +269,9 @@ func (c *Client) SendMessageWithKeyboard(
 		"text":         text,
 		"parse_mode":   "HTML",
 		"reply_markup": keyboard,
+		"link_preview_options": map[string]any{
+			"is_disabled": true,
+		},
 	}
 
 	_, err := c.callAPI(ctx, "sendMessage", payload)

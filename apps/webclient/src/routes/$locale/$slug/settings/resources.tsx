@@ -2,12 +2,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import {
-  backend,
-  type ProfileResource,
-  type ProfileTeam,
-  type GitHubRepo,
-} from "@/modules/backend/backend";
+import { backend, type GitHubRepo, type ProfileResource, type ProfileTeam } from "@/modules/backend/backend";
 import { GitHub, Telegram } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -77,6 +72,13 @@ function ResourcesSettings() {
   const [editTeamIds, setEditTeamIds] = React.useState<string[]>([]);
   const [savingTeams, setSavingTeams] = React.useState(false);
 
+  // Add-dialog team assignment state
+  const [addTeamIds, setAddTeamIds] = React.useState<string[]>([]);
+  const [githubAddStep, setGithubAddStep] = React.useState<"select" | "teams">("select");
+  const [githubNewResourceIds, setGithubNewResourceIds] = React.useState<string[]>([]);
+  const [telegramNewResourceId, setTelegramNewResourceId] = React.useState<string | null>(null);
+  const [savingAddTeams, setSavingAddTeams] = React.useState(false);
+
   const loadResources = React.useCallback(async () => {
     setIsLoading(true);
     const data = await backend.listProfileResources(params.locale, params.slug);
@@ -93,9 +95,7 @@ function ResourcesSettings() {
     loadResources();
   }, [loadResources]);
 
-  const filteredResources = filter === "all"
-    ? resources
-    : resources.filter((r) => r.kind === filter);
+  const filteredResources = filter === "all" ? resources : resources.filter((r) => r.kind === filter);
 
   // GitHub dialog handlers
   const handleOpenAddGitHubDialog = async () => {
@@ -103,13 +103,25 @@ function ResourcesSettings() {
     setReposLoading(true);
     setRepoSearch("");
     setSelectedRepoIds(new Set());
+    setGithubAddStep("select");
+    setGithubNewResourceIds([]);
+    setAddTeamIds([]);
 
-    const data = await backend.listGitHubRepos(params.locale, params.slug);
+    const [data, teamsData] = await Promise.all([
+      backend.listGitHubRepos(params.locale, params.slug),
+      backend.listProfileTeams(params.locale, params.slug),
+    ]);
+
     if (data !== null) {
       setRepos(data);
     } else {
       toast.error(t("Profile.Failed to load repositories"));
     }
+
+    if (teamsData !== null) {
+      setTeams(teamsData);
+    }
+
     setReposLoading(false);
   };
 
@@ -132,6 +144,8 @@ function ResourcesSettings() {
     setAddingRepos(true);
 
     let addedCount = 0;
+    const newIds: string[] = [];
+
     for (const repo of selectedRepos) {
       const result = await backend.createProfileResource(params.locale, params.slug, {
         kind: "github_repo",
@@ -150,13 +164,20 @@ function ResourcesSettings() {
 
       if (result !== null) {
         addedCount++;
+        newIds.push(result.id);
       }
     }
 
     if (addedCount > 0) {
       toast.success(t("Profile.Resources added successfully", { count: addedCount }));
-      setIsAddGitHubDialogOpen(false);
       await loadResources();
+
+      if (teams.length > 0) {
+        setGithubNewResourceIds(newIds);
+        setGithubAddStep("teams");
+      } else {
+        setIsAddGitHubDialogOpen(false);
+      }
     } else {
       toast.error(t("Profile.Failed to add resource"));
     }
@@ -164,11 +185,18 @@ function ResourcesSettings() {
   };
 
   // Telegram dialog handlers
-  const handleOpenAddTelegramDialog = () => {
+  const handleOpenAddTelegramDialog = async () => {
     setIsAddTelegramDialogOpen(true);
     setTelegramRegisterCode("");
     setTelegramRegisterStatus("idle");
     setTelegramRegisterError("");
+    setTelegramNewResourceId(null);
+    setAddTeamIds([]);
+
+    const teamsData = await backend.listProfileTeams(params.locale, params.slug);
+    if (teamsData !== null) {
+      setTeams(teamsData);
+    }
   };
 
   const handleVerifyRegisterCode = async () => {
@@ -186,6 +214,7 @@ function ResourcesSettings() {
 
     if (result !== null) {
       setTelegramRegisterStatus("registered");
+      setTelegramNewResourceId(result.id);
       await loadResources();
     } else {
       setTelegramRegisterStatus("error");
@@ -227,11 +256,7 @@ function ResourcesSettings() {
   };
 
   const handleToggleEditTeam = (teamId: string) => {
-    setEditTeamIds((prev) =>
-      prev.includes(teamId)
-        ? prev.filter((id) => id !== teamId)
-        : [...prev, teamId],
-    );
+    setEditTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
   };
 
   const handleSaveResourceTeams = async () => {
@@ -255,12 +280,47 @@ function ResourcesSettings() {
     setSavingTeams(false);
   };
 
+  // Add-dialog team assignment handlers
+  const handleToggleAddTeam = (teamId: string) => {
+    setAddTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
+  };
+
+  const handleSaveGithubAddTeams = async () => {
+    setSavingAddTeams(true);
+
+    for (const resourceId of githubNewResourceIds) {
+      await backend.setResourceTeams(
+        params.locale,
+        params.slug,
+        resourceId,
+        addTeamIds,
+      );
+    }
+
+    setSavingAddTeams(false);
+    setIsAddGitHubDialogOpen(false);
+    await loadResources();
+  };
+
+  const handleSaveTelegramAddTeams = async () => {
+    if (telegramNewResourceId === null) return;
+
+    setSavingAddTeams(true);
+    await backend.setResourceTeams(
+      params.locale,
+      params.slug,
+      telegramNewResourceId,
+      addTeamIds,
+    );
+    setSavingAddTeams(false);
+    setIsAddTelegramDialogOpen(false);
+    await loadResources();
+  };
+
   // Filtered repos for GitHub dialog
   const searchFilteredRepos = repoSearch === ""
     ? repos
-    : repos.filter((repo) =>
-        repo.full_name.toLowerCase().includes(repoSearch.toLowerCase()),
-      );
+    : repos.filter((repo) => repo.full_name.toLowerCase().includes(repoSearch.toLowerCase()));
 
   const existingRemoteIds = new Set(
     resources
@@ -365,37 +425,41 @@ function ResourcesSettings() {
         </button>
       </div>
 
-      {filteredResources.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>{t("Profile.No resources added yet.")}</p>
-          <Button variant="outline" onClick={handleOpenAddGitHubDialog}>
-            <Plus className="size-4 mr-1" />
-            {t("Profile.Add Your First Resource")}
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filteredResources.map((resource) => (
-            <div key={resource.id} className={styles.resourceCard}>
-              <div className={styles.resourceInfo}>
-                <div className={styles.resourceTitle}>
-                  {resource.url !== null && resource.url !== undefined ? (
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline"
-                    >
-                      {resource.title}
-                    </a>
-                  ) : (
-                    resource.title
-                  )}
-                </div>
-                <div className={styles.resourceMeta}>
-                  <span>{resourceKindLabel(resource.kind)}</span>
-                  {resource.properties !== null &&
-                    resource.properties !== undefined && (
+      {filteredResources.length === 0
+        ? (
+          <div className={styles.emptyState}>
+            <p>{t("Profile.No resources added yet.")}</p>
+            <Button variant="outline" onClick={handleOpenAddGitHubDialog}>
+              <Plus className="size-4 mr-1" />
+              {t("Profile.Add Your First Resource")}
+            </Button>
+          </div>
+        )
+        : (
+          <div className="space-y-3">
+            {filteredResources.map((resource) => (
+              <div key={resource.id} className={styles.resourceCard}>
+                <div className={styles.resourceInfo}>
+                  <div className={styles.resourceTitle}>
+                    {resource.url !== null && resource.url !== undefined
+                      ? (
+                        <a
+                          href={resource.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {resource.title}
+                        </a>
+                      )
+                      : (
+                        resource.title
+                      )}
+                  </div>
+                  <div className={styles.resourceMeta}>
+                    <span>{resourceKindLabel(resource.kind)}</span>
+                    {resource.properties !== null &&
+                      resource.properties !== undefined && (
                       <>
                         {(resource.properties as Record<string, unknown>).language !== undefined && (
                           <span>
@@ -409,56 +473,53 @@ function ResourcesSettings() {
                         )}
                       </>
                     )}
-                  {resource.added_by_profile !== null &&
-                    resource.added_by_profile !== undefined && (
+                    {resource.added_by_profile !== null &&
+                      resource.added_by_profile !== undefined && (
                       <span>
-                        {t("Profile.Added by")}{" "}
-                        {resource.added_by_profile.title}
+                        {t("Profile.Added by")} {resource.added_by_profile.title}
                       </span>
                     )}
+                  </div>
+                  {resource.teams !== undefined && resource.teams.length > 0 && (
+                    <div className={styles.resourceTeams}>
+                      {resource.teams.map((team) => (
+                        <span key={team.id} className={styles.teamBadge}>
+                          {team.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {resource.teams !== undefined && resource.teams.length > 0 && (
-                  <div className={styles.resourceTeams}>
-                    {resource.teams.map((team) => (
-                      <span key={team.id} className={styles.teamBadge}>
-                        {team.name}
-                      </span>
-                    ))}
+                {resource.can_remove && (
+                  <div className="flex items-center gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <MoreHorizontal className="size-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-auto">
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => setDeleteTarget(resource)}
+                        >
+                          <Trash2 className="size-4" />
+                          {t("Profile.Remove Resource")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleOpenEditDialog(resource)}
+                      title={t("Profile.Edit Resource")}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
                   </div>
                 )}
               </div>
-              {resource.can_remove && (
-                <div className="flex items-center gap-1">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-auto">
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => setDeleteTarget(resource)}
-                      >
-                        <Trash2 className="size-4" />
-                        {t("Profile.Remove Resource")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleOpenEditDialog(resource)}
-                    title={t("Profile.Edit Resource")}
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
 
       {/* Add GitHub Repository Dialog */}
       <Dialog open={isAddGitHubDialogOpen} onOpenChange={setIsAddGitHubDialogOpen}>
@@ -472,84 +533,130 @@ function ResourcesSettings() {
             </DialogDescription>
           </DialogHeader>
 
-          <Input
-            placeholder={t("Profile.Search repositories...")}
-            value={repoSearch}
-            onChange={(e) => setRepoSearch(e.target.value)}
-          />
-          <div className={styles.repoList}>
-            {reposLoading ? (
-              <div className={styles.emptyState}>
-                <p>{t("Common.Loading")}</p>
-              </div>
-            ) : availableRepos.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p>{t("Profile.No repositories found.")}</p>
-              </div>
-            ) : (
-              availableRepos.map((repo) => (
-                <button
-                  key={repo.id}
-                  type="button"
-                  className={`${styles.repoItem} ${selectedRepoIds.has(repo.id) ? styles.repoItemSelected : ""}`}
-                  disabled={addingRepos}
-                  onClick={() => handleToggleRepo(repo.id)}
-                >
-                  <div className="flex shrink-0 items-center justify-center size-5 rounded border border-border mt-0.5">
-                    {selectedRepoIds.has(repo.id) && (
-                      <Check className="size-3.5 text-primary" />
+          {githubAddStep === "select"
+            ? (
+              <>
+                <Input
+                  placeholder={t("Profile.Search repositories...")}
+                  value={repoSearch}
+                  onChange={(e) => setRepoSearch(e.target.value)}
+                />
+                <div className={styles.repoList}>
+                  {reposLoading
+                    ? (
+                      <div className={styles.emptyState}>
+                        <p>{t("Common.Loading")}</p>
+                      </div>
+                    )
+                    : availableRepos.length === 0
+                    ? (
+                      <div className={styles.emptyState}>
+                        <p>{t("Profile.No repositories found.")}</p>
+                      </div>
+                    )
+                    : (
+                      availableRepos.map((repo) => (
+                        <button
+                          key={repo.id}
+                          type="button"
+                          className={`${styles.repoItem} ${
+                            selectedRepoIds.has(repo.id) ? styles.repoItemSelected : ""
+                          }`}
+                          disabled={addingRepos}
+                          onClick={() => handleToggleRepo(repo.id)}
+                        >
+                          <div className="flex shrink-0 items-center justify-center size-5 rounded border border-border mt-0.5">
+                            {selectedRepoIds.has(repo.id) && <Check className="size-3.5 text-primary" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="block text-sm font-medium truncate">
+                              {repo.full_name}
+                            </span>
+                            {repo.description !== "" && (
+                              <span className="block text-xs text-muted-foreground truncate">
+                                {repo.description}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs text-muted-foreground">
+                            {repo.language !== "" && <span>{repo.language}</span>}
+                            <span>&#9733; {repo.stars}</span>
+                            {repo.private && (
+                              <span className="text-orange-500">
+                                {t("Common.Private")}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ))
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="block text-sm font-medium truncate">
-                      {repo.full_name}
-                    </span>
-                    {repo.description !== "" && (
-                      <span className="block text-xs text-muted-foreground truncate">
-                        {repo.description}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs text-muted-foreground">
-                    {repo.language !== "" && <span>{repo.language}</span>}
-                    <span>&#9733; {repo.stars}</span>
-                    {repo.private && (
-                      <span className="text-orange-500">
-                        {t("Common.Private")}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
+                </div>
 
-          <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
-            <p className="text-xs text-muted-foreground text-left">
-              {t("Profile.Repositories are listed from your own GitHub account access.")}
-            </p>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button variant="outline" onClick={() => setIsAddGitHubDialogOpen(false)}>
-                {t("Common.Cancel")}
-              </Button>
-              {selectedRepoIds.size > 0 && (
-                <Button onClick={handleAddSelectedRepos} disabled={addingRepos}>
-                  {addingRepos
-                    ? t("Common.Loading")
-                    : t("Profile.Add Selected", { count: selectedRepoIds.size })}
-                </Button>
-              )}
-            </div>
-          </DialogFooter>
+                <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+                  <p className="text-xs text-muted-foreground text-left">
+                    {t("Profile.Repositories are listed from your own GitHub account access.")}
+                  </p>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button variant="outline" onClick={() => setIsAddGitHubDialogOpen(false)}>
+                      {t("Common.Cancel")}
+                    </Button>
+                    {selectedRepoIds.size > 0 && (
+                      <Button onClick={handleAddSelectedRepos} disabled={addingRepos}>
+                        {addingRepos ? t("Common.Loading") : t("Profile.Add Selected", { count: selectedRepoIds.size })}
+                      </Button>
+                    )}
+                  </div>
+                </DialogFooter>
+              </>
+            )
+            : (
+              <>
+                <div className={styles.editDialogContent}>
+                  {teams.length > 0 && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t("Profile.Assign Teams")}
+                      </label>
+                      <div className={styles.teamCheckboxList}>
+                        {teams.map((team) => (
+                          <label key={team.id} className={styles.teamCheckboxItem}>
+                            <Checkbox
+                              checked={addTeamIds.includes(team.id)}
+                              onCheckedChange={() => handleToggleAddTeam(team.id)}
+                            />
+                            <span className="text-sm">{team.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddGitHubDialogOpen(false)}
+                  >
+                    {t("Common.Skip")}
+                  </Button>
+                  <Button onClick={handleSaveGithubAddTeams} disabled={savingAddTeams}>
+                    {savingAddTeams ? t("Common.Loading") : t("Common.Save")}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
         </DialogContent>
       </Dialog>
 
       {/* Add Telegram Group Dialog */}
-      <Dialog open={isAddTelegramDialogOpen} onOpenChange={(open) => {
-        if (!open && !isVerifyingRegisterCode) {
-          setIsAddTelegramDialogOpen(false);
-        }
-      }}>
+      <Dialog
+        open={isAddTelegramDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isVerifyingRegisterCode) {
+            setIsAddTelegramDialogOpen(false);
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -562,108 +669,142 @@ function ResourcesSettings() {
           </DialogHeader>
 
           <div className="py-4">
-            {telegramRegisterStatus === "registered" ? (
-              <div className="text-center py-6">
-                <div className="flex items-center justify-center mb-4">
-                  <CircleCheck className="size-12 text-green-600" />
-                </div>
-                <p className="text-lg font-medium text-foreground mb-2">
-                  {t("Profile.Telegram group registered!")}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {t("Profile.Your Telegram group has been registered as a resource.")}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Step 1 */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    1
+            {telegramRegisterStatus === "registered"
+              ? (
+                <div className="text-center py-6">
+                  <div className="flex items-center justify-center mb-4">
+                    <CircleCheck className="size-12 text-green-600" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Add AYA bot to your group")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Add our bot to your Telegram group.")}
-                      {" "}
-                      <a
-                        href={`https://t.me/${siteConfig.telegramBotUsername}?startgroup=true`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline"
-                      >
-                        @{siteConfig.telegramBotUsername}
-                      </a>
-                    </p>
-                  </div>
-                </div>
+                  <p className="text-lg font-medium text-foreground mb-2">
+                    {t("Profile.Telegram group registered!")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("Profile.Your Telegram group has been registered as a resource.")}
+                  </p>
 
-                {/* Step 2 */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    2
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Type /register in the group")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.A group administrator should type /register in the group chat. The bot will send a registration code via DM.")}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    3
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Paste registration code")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Paste the code below and click Verify.")}
-                    </p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <Input
-                        value={telegramRegisterCode}
-                        onChange={(e) => setTelegramRegisterCode(e.target.value)}
-                        placeholder={t("Profile.Enter registration code")}
-                        className="text-sm font-mono uppercase"
-                        maxLength={10}
-                        disabled={isVerifyingRegisterCode}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleVerifyRegisterCode();
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={handleVerifyRegisterCode}
-                        disabled={isVerifyingRegisterCode || telegramRegisterCode.trim() === ""}
-                      >
-                        {isVerifyingRegisterCode
-                          ? <Spinner className="size-4" />
-                          : t("Profile.Verify")}
-                      </Button>
+                  {teams.length > 0 && (
+                    <div className="mt-6 text-left space-y-2">
+                      <label className="text-sm font-medium">
+                        {t("Profile.Assign Teams")}
+                      </label>
+                      <div className={styles.teamCheckboxList}>
+                        {teams.map((team) => (
+                          <label key={team.id} className={styles.teamCheckboxItem}>
+                            <Checkbox
+                              checked={addTeamIds.includes(team.id)}
+                              onCheckedChange={() => handleToggleAddTeam(team.id)}
+                            />
+                            <span className="text-sm">{team.name}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
-                    {telegramRegisterError !== "" && (
-                      <p className="text-sm text-destructive mt-2">
-                        {telegramRegisterError}
-                      </p>
+                  )}
+
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsAddTelegramDialogOpen(false)}
+                    >
+                      {addTeamIds.length === 0 ? t("Common.Close") : t("Common.Skip")}
+                    </Button>
+                    {addTeamIds.length > 0 && (
+                      <Button onClick={handleSaveTelegramAddTeams} disabled={savingAddTeams}>
+                        {savingAddTeams ? t("Common.Loading") : t("Common.Save")}
+                      </Button>
                     )}
                   </div>
                 </div>
+              )
+              : (
+                <div className="space-y-6">
+                  {/* Step 1 */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                      1
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {t("Profile.Add AYA bot to your group")}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {t("Profile.Add our bot to your Telegram group.")}{" "}
+                        <a
+                          href={`https://t.me/${siteConfig.telegramBotUsername}?startgroup=true`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline"
+                        >
+                          @{siteConfig.telegramBotUsername}
+                        </a>
+                      </p>
+                    </div>
+                  </div>
 
-                {/* Expiry notice */}
-                <p className="text-xs text-muted-foreground">
-                  {t("Profile.The code expires in 10 minutes. If it expires, type /register again to get a new one.")}
-                </p>
-              </div>
-            )}
+                  {/* Step 2 */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {t("Profile.Type /register in the group")}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {t(
+                          "Profile.A group administrator should type /register in the group chat. The bot will send a registration code via DM.",
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                      3
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {t("Profile.Paste registration code")}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {t("Profile.Paste the code below and click Verify.")}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Input
+                          value={telegramRegisterCode}
+                          onChange={(e) => setTelegramRegisterCode(e.target.value)}
+                          placeholder={t("Profile.Enter registration code")}
+                          className="text-sm font-mono uppercase"
+                          maxLength={10}
+                          disabled={isVerifyingRegisterCode}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleVerifyRegisterCode();
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={handleVerifyRegisterCode}
+                          disabled={isVerifyingRegisterCode || telegramRegisterCode.trim() === ""}
+                        >
+                          {isVerifyingRegisterCode ? <Spinner className="size-4" /> : t("Profile.Verify")}
+                        </Button>
+                      </div>
+                      {telegramRegisterError !== "" && (
+                        <p className="text-sm text-destructive mt-2">
+                          {telegramRegisterError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expiry notice */}
+                  <p className="text-xs text-muted-foreground">
+                    {t("Profile.The code expires in 10 minutes. If it expires, type /register again to get a new one.")}
+                  </p>
+                </div>
+              )}
           </div>
         </DialogContent>
       </Dialog>

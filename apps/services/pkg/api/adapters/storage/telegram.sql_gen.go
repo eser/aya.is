@@ -83,6 +83,107 @@ func (q *Queries) CreateExternalCode(ctx context.Context, arg CreateExternalCode
 	return err
 }
 
+const getEligibleTelegramGroupsForProfile = `-- name: GetEligibleTelegramGroupsForProfile :many
+SELECT DISTINCT
+  pr.id as resource_id,
+  pr.title as group_title,
+  pr.properties as properties,
+  p.slug as profile_slug,
+  pt_tx.title as profile_title
+FROM "profile_membership" pm
+  INNER JOIN "profile_membership_team" pmt ON pmt.profile_membership_id = pm.id
+    AND pmt.deleted_at IS NULL
+  INNER JOIN "profile_resource_team" prt ON prt.profile_team_id = pmt.profile_team_id
+    AND prt.deleted_at IS NULL
+  INNER JOIN "profile_resource" pr ON pr.id = prt.profile_resource_id
+    AND pr.kind = 'telegram_group'
+    AND pr.deleted_at IS NULL
+  INNER JOIN "profile" p ON p.id = pr.profile_id
+    AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt_tx ON pt_tx.profile_id = p.id
+    AND pt_tx.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      ORDER BY CASE WHEN ptf.locale_code = p.default_locale THEN 0 ELSE 1 END
+      LIMIT 1
+    )
+WHERE pm.member_profile_id = $1
+  AND pm.deleted_at IS NULL
+  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+ORDER BY p.slug, pr.title
+`
+
+type GetEligibleTelegramGroupsForProfileParams struct {
+	MemberProfileID sql.NullString `db:"member_profile_id" json:"member_profile_id"`
+}
+
+type GetEligibleTelegramGroupsForProfileRow struct {
+	ResourceID   string                `db:"resource_id" json:"resource_id"`
+	GroupTitle   string                `db:"group_title" json:"group_title"`
+	Properties   pqtype.NullRawMessage `db:"properties" json:"properties"`
+	ProfileSlug  string                `db:"profile_slug" json:"profile_slug"`
+	ProfileTitle string                `db:"profile_title" json:"profile_title"`
+}
+
+// For a given member profile, find telegram_group resources they can access
+// through team assignments: membership → membership_team → team → resource_team → resource.
+//
+//	SELECT DISTINCT
+//	  pr.id as resource_id,
+//	  pr.title as group_title,
+//	  pr.properties as properties,
+//	  p.slug as profile_slug,
+//	  pt_tx.title as profile_title
+//	FROM "profile_membership" pm
+//	  INNER JOIN "profile_membership_team" pmt ON pmt.profile_membership_id = pm.id
+//	    AND pmt.deleted_at IS NULL
+//	  INNER JOIN "profile_resource_team" prt ON prt.profile_team_id = pmt.profile_team_id
+//	    AND prt.deleted_at IS NULL
+//	  INNER JOIN "profile_resource" pr ON pr.id = prt.profile_resource_id
+//	    AND pr.kind = 'telegram_group'
+//	    AND pr.deleted_at IS NULL
+//	  INNER JOIN "profile" p ON p.id = pr.profile_id
+//	    AND p.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" pt_tx ON pt_tx.profile_id = p.id
+//	    AND pt_tx.locale_code = (
+//	      SELECT ptf.locale_code FROM "profile_tx" ptf
+//	      WHERE ptf.profile_id = p.id
+//	      ORDER BY CASE WHEN ptf.locale_code = p.default_locale THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
+//	WHERE pm.member_profile_id = $1
+//	  AND pm.deleted_at IS NULL
+//	  AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+//	ORDER BY p.slug, pr.title
+func (q *Queries) GetEligibleTelegramGroupsForProfile(ctx context.Context, arg GetEligibleTelegramGroupsForProfileParams) ([]*GetEligibleTelegramGroupsForProfileRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEligibleTelegramGroupsForProfile, arg.MemberProfileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetEligibleTelegramGroupsForProfileRow{}
+	for rows.Next() {
+		var i GetEligibleTelegramGroupsForProfileRow
+		if err := rows.Scan(
+			&i.ResourceID,
+			&i.GroupTitle,
+			&i.Properties,
+			&i.ProfileSlug,
+			&i.ProfileTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getExternalCodeByCode = `-- name: GetExternalCodeByCode :one
 SELECT id, code, external_system, properties, created_at, expires_at, consumed_at
 FROM "external_code"

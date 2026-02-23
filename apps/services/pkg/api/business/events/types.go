@@ -95,3 +95,8 @@ const (
 	UserCreated EventType = "user_created"
 	UserUpdated EventType = "user_updated"
 )
+
+// Telegram events.
+const (
+	TelegramInviteLinkGenerated EventType = "telegram_invite_link_generated"
+)

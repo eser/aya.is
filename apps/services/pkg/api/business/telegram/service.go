@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 )
 
@@ -63,13 +64,21 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		memberProfileID string,
 	) ([]RawGroupTelegramLink, error)
+
+	// GetEligibleTelegramGroupsForProfile returns telegram_group resources the user
+	// can access through team assignments.
+	GetEligibleTelegramGroupsForProfile(
+		ctx context.Context,
+		memberProfileID string,
+	) ([]EligibleTelegramGroup, error)
 }
 
 // Service provides Telegram account linking business logic.
 type Service struct {
-	logger      *logfx.Logger
-	repo        Repository
-	idGenerator func() string
+	logger       *logfx.Logger
+	repo         Repository
+	idGenerator  func() string
+	auditService *events.AuditService
 }
 
 // NewService creates a new Telegram service.
@@ -77,11 +86,13 @@ func NewService(
 	logger *logfx.Logger,
 	repo Repository,
 	idGenerator func() string,
+	auditService *events.AuditService,
 ) *Service {
 	return &Service{
-		logger:      logger,
-		repo:        repo,
-		idGenerator: idGenerator,
+		logger:       logger,
+		repo:         repo,
+		idGenerator:  idGenerator,
+		auditService: auditService,
 	}
 }
 
@@ -306,11 +317,12 @@ func (s *Service) GetGroupTelegramLinks(
 		}
 
 		result = append(result, GroupTelegramLink{
-			ProfileSlug:  raw.ProfileSlug,
-			ProfileTitle: raw.ProfileTitle,
-			LinkTitle:    raw.LinkTitle,
-			LinkURI:      raw.LinkURI,
-			LinkPublicID: raw.LinkPublicID,
+			ProfileSlug:    raw.ProfileSlug,
+			ProfileTitle:   raw.ProfileTitle,
+			LinkTitle:      raw.LinkTitle,
+			LinkURI:        raw.LinkURI,
+			LinkPublicID:   raw.LinkPublicID,
+			LinkVisibility: raw.LinkVisibility,
 		})
 	}
 
@@ -447,6 +459,45 @@ func (s *Service) ResolveGroupRegisterCode(
 		ChatID:    getInt64Prop(externalCode.Properties, "telegram_chat_id"),
 		ChatTitle: getStringProp(externalCode.Properties, "telegram_chat_title"),
 	}, nil
+}
+
+// GetEligibleTelegramGroups returns Telegram group resources the user can join
+// through their team assignments.
+func (s *Service) GetEligibleTelegramGroups(
+	ctx context.Context,
+	memberProfileID string,
+) ([]EligibleTelegramGroup, error) {
+	groups, err := s.repo.GetEligibleTelegramGroupsForProfile(ctx, memberProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("get eligible telegram groups: %w", err)
+	}
+
+	return groups, nil
+}
+
+// RecordInviteLinkGenerated records an audit entry when a single-use invite link is generated.
+// Fire-and-forget: errors are logged but not propagated.
+func (s *Service) RecordInviteLinkGenerated(
+	ctx context.Context,
+	profileID string,
+	telegramUserID int64,
+	chatID int64,
+	groupTitle string,
+	inviteLink string,
+) {
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.TelegramInviteLinkGenerated,
+		EntityType: "telegram_group",
+		EntityID:   strconv.FormatInt(chatID, 10),
+		ActorID:    &profileID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"telegram_user_id": telegramUserID,
+			"chat_id":          chatID,
+			"group_title":      groupTitle,
+			"invite_link":      inviteLink,
+		},
+	})
 }
 
 // ConsumeGroupRegisterCode marks a register code as consumed after resource creation.

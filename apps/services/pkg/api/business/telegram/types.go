@@ -44,17 +44,27 @@ type RawGroupTelegramLink struct {
 
 // GroupTelegramLink represents a Telegram link from a group profile visible to the user.
 type GroupTelegramLink struct {
-	ProfileSlug  string
-	ProfileTitle string
-	LinkTitle    string
-	LinkURI      string
-	LinkPublicID string
+	ProfileSlug    string
+	ProfileTitle   string
+	LinkTitle      string
+	LinkURI        string
+	LinkPublicID   string
+	LinkVisibility string
 }
 
 // GroupRegisterCodeData contains the resolved data from a group registration code.
 type GroupRegisterCodeData struct {
 	ChatID    int64
 	ChatTitle string
+}
+
+// EligibleTelegramGroup represents a Telegram group resource the user can join via team membership.
+type EligibleTelegramGroup struct {
+	ResourceID   string
+	GroupTitle   string
+	ChatID       int64
+	ProfileSlug  string
+	ProfileTitle string
 }
 
 // CreateProfileLinkParams contains parameters for creating a telegram profile link.

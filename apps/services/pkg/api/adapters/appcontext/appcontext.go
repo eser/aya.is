@@ -467,6 +467,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			a.Logger,
 			telegramRepo,
 			idGen,
+			a.AuditService,
 		)
 
 		a.TelegramBot = telegramadapter.NewBot(
