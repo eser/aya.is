@@ -32,5 +32,6 @@ export async function getAdminWorkers(): Promise<AdminWorkerStatus[] | null> {
   });
 
   if (!response.ok) return null;
-  return response.json();
+  const result = await response.json();
+  return result.data;
 }
