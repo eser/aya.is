@@ -9,10 +9,11 @@ import (
 
 // Config types.
 type GitHubAuthProviderConfig struct {
-	ClientID                      string `conf:"client_id"`
-	ClientSecret                  string `conf:"client_secret"`
-	Scope                         string `conf:"scope"                             default:"read:user user:email public_repo"`
-	NonIndividualProfileLinkScope string `conf:"non_individual_profile_link_scope" default:"read:user user:email read:org public_repo"`
+	ClientID             string `conf:"client_id"`
+	ClientSecret         string `conf:"client_secret"`
+	InitialScope         string `conf:"initial_scope"          default:"read:user user:email"`
+	ResourceScope        string `conf:"resource_scope"         default:"read:user user:email public_repo"`
+	NonOrganizationScope string `conf:"non_organization_scope" default:"read:user user:email read:org public_repo"`
 }
 
 type YouTubeOAuthConfig struct {

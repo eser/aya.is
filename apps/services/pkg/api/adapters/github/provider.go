@@ -34,7 +34,7 @@ func (p *Provider) InitiateOAuth(
 	redirectURI string,
 	state string,
 ) (string, error) {
-	authURL := p.client.BuildAuthURL(redirectURI, state, p.client.Config().Scope)
+	authURL := p.client.BuildAuthURL(redirectURI, state, p.client.Config().InitialScope)
 
 	p.client.Logger().DebugContext(ctx, "Initiating GitHub OAuth",
 		slog.String("redirect_uri", redirectURI))
@@ -43,7 +43,7 @@ func (p *Provider) InitiateOAuth(
 }
 
 // InitiateProfileLinkOAuth builds the OAuth URL with expanded scope for non-individual profile linking.
-// Uses NonIndividualProfileLinkScope which includes read:org for organization access.
+// Uses NonOrganizationScope which includes read:org for organization access.
 func (p *Provider) InitiateProfileLinkOAuth(
 	ctx context.Context,
 	redirectURI string,
@@ -52,12 +52,32 @@ func (p *Provider) InitiateProfileLinkOAuth(
 	authURL := p.client.BuildAuthURL(
 		redirectURI,
 		state,
-		p.client.Config().NonIndividualProfileLinkScope,
+		p.client.Config().NonOrganizationScope,
 	)
 
 	p.client.Logger().DebugContext(ctx, "Initiating GitHub OAuth for profile link",
 		slog.String("redirect_uri", redirectURI),
-		slog.String("scope", p.client.Config().NonIndividualProfileLinkScope))
+		slog.String("scope", p.client.Config().NonOrganizationScope))
+
+	return authURL, nil
+}
+
+// InitiateResourceScopeOAuth builds the OAuth URL with resource scope (public_repo).
+// Used when the user needs repo access but doesn't have it yet.
+func (p *Provider) InitiateResourceScopeOAuth(
+	ctx context.Context,
+	redirectURI string,
+	state string,
+) (string, error) {
+	authURL := p.client.BuildAuthURL(
+		redirectURI,
+		state,
+		p.client.Config().ResourceScope,
+	)
+
+	p.client.Logger().DebugContext(ctx, "Initiating GitHub OAuth for resource scope",
+		slog.String("redirect_uri", redirectURI),
+		slog.String("scope", p.client.Config().ResourceScope))
 
 	return authURL, nil
 }

@@ -660,6 +660,7 @@
     "No repositories found.": "لم يتم العثور على مستودعات.",
     "Repositories are listed from your own GitHub account access.": "يتم عرض المستودعات من خلال وصول حسابك الخاص على GitHub.",
     "Failed to load repositories": "فشل تحميل المستودعات",
+    "Failed to initiate GitHub authorization": "فشل في بدء تفويض GitHub",
     "Are you sure you want to remove this resource?": "هل أنت متأكد من إزالة هذا المورد؟",
     "Resource added successfully": "تمت إضافة المورد بنجاح",
     "Failed to add resource": "فشل في إضافة المورد",

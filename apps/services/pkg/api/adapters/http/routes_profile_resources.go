@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -158,6 +159,16 @@ func RegisterHTTPRoutesForProfileResources(
 						"No GitHub access token available. Please connect GitHub on your profile.",
 					),
 				)
+			}
+
+			// Check if the token has public_repo scope (needed for repo listing)
+			if gitHubLink.AuthAccessTokenScope == nil ||
+				!strings.Contains(*gitHubLink.AuthAccessTokenScope, "public_repo") {
+				return ctx.Results.JSON(map[string]any{
+					"data":         nil,
+					"needs_reauth": true,
+					"error":        nil,
+				})
 			}
 
 			// Fetch repos from GitHub API using the viewer's token

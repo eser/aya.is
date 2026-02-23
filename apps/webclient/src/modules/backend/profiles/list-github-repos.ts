@@ -2,12 +2,17 @@ import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 import type { GitHubRepo } from "../types";
 
+export type ListGitHubReposResult = {
+  repos: GitHubRepo[] | null;
+  needsReauth: boolean;
+};
+
 export async function listGitHubRepos(
   locale: string,
   slug: string,
-): Promise<GitHubRepo[] | null> {
+): Promise<ListGitHubReposResult> {
   const token = getAuthToken();
-  if (token === null) return null;
+  if (token === null) return { repos: null, needsReauth: false };
 
   const response = await fetch(
     `${getBackendUri()}/${locale}/profiles/${slug}/_resources/github/repos`,
@@ -21,7 +26,12 @@ export async function listGitHubRepos(
     },
   );
 
-  if (!response.ok) return null;
+  if (!response.ok) return { repos: null, needsReauth: false };
   const result = await response.json();
-  return result.data;
+
+  if (result.needs_reauth === true) {
+    return { repos: null, needsReauth: true };
+  }
+
+  return { repos: result.data, needsReauth: false };
 }

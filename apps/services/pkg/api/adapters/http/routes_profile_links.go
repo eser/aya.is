@@ -158,24 +158,40 @@ func RegisterHTTPRoutesForProfileLinks(
 					encodedState,
 				)
 			case "github":
-				// Determine whether to use expanded scope (with read:org).
-				// Non-individual profiles always need read:org.
-				// Individual profiles use basic scope unless they already have read:org
-				// (e.g., from a previous org/product link), to avoid downgrading on reconnect.
+				// Three-tier scope selection:
+				// 1. NonOrganizationScope (read:org + public_repo) for org/product profiles
+				// 2. ResourceScope (public_repo) when scope_upgrade=resource or existing token has public_repo
+				// 3. InitialScope (read:user + user:email only) for basic individual link
+				scopeUpgrade := ctx.Request.URL.Query().Get("scope_upgrade")
 				useExpandedScope := profile.Kind != "individual"
+				useResourceScope := false
 
 				if !useExpandedScope {
-					existingLink, linkErr := profileService.GetManagedGitHubLink(
-						ctx.Request.Context(), profile.ID)
-					if linkErr == nil && existingLink != nil &&
-						existingLink.AuthAccessTokenScope != nil &&
-						strings.Contains(*existingLink.AuthAccessTokenScope, "read:org") {
-						useExpandedScope = true
+					if scopeUpgrade == "resource" {
+						useResourceScope = true
+					} else {
+						// Check existing link scope for retention
+						existingLink, linkErr := profileService.GetManagedGitHubLink(
+							ctx.Request.Context(), profile.ID)
+						if linkErr == nil && existingLink != nil &&
+							existingLink.AuthAccessTokenScope != nil {
+							if strings.Contains(*existingLink.AuthAccessTokenScope, "read:org") {
+								useExpandedScope = true
+							} else if strings.Contains(*existingLink.AuthAccessTokenScope, "public_repo") {
+								useResourceScope = true
+							}
+						}
 					}
 				}
 
 				if useExpandedScope {
 					authURL, err = providers.GitHub.InitiateProfileLinkOAuth(
+						ctx.Request.Context(),
+						redirectURI,
+						encodedState,
+					)
+				} else if useResourceScope {
+					authURL, err = providers.GitHub.InitiateResourceScopeOAuth(
 						ctx.Request.Context(),
 						redirectURI,
 						encodedState,

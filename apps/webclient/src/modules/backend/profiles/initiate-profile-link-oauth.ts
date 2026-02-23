@@ -9,12 +9,19 @@ export async function initiateProfileLinkOAuth(
   locale: string,
   slug: string,
   provider: string,
+  scopeUpgrade?: string,
 ): Promise<InitiateOAuthResponse | null> {
   const token = getAuthToken();
   if (token === null) return null;
 
+  let url =
+    `${getBackendUri()}/${locale}/profiles/${slug}/_links/connect/${provider}`;
+  if (scopeUpgrade !== undefined) {
+    url += `?scope_upgrade=${scopeUpgrade}`;
+  }
+
   const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_links/connect/${provider}`,
+    url,
     {
       method: "POST",
       headers: {

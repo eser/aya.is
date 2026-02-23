@@ -336,6 +336,21 @@ func upsertManagedGitHubLink(
 	// This prevents duplicates even when remote_id differs (e.g., manual link vs auto-sync).
 	managedLink, _ := profileService.GetManagedGitHubLink(ctx, profileID)
 	if managedLink != nil {
+		// Don't downgrade scope: if existing link has broader scope, skip token update.
+		// Login tokens may lack public_repo or read:org that the user previously granted.
+		if managedLink.AuthAccessTokenScope != nil &&
+			wouldDowngradeScope(*managedLink.AuthAccessTokenScope, tokenScope) {
+			logger.DebugContext(
+				ctx,
+				"Skipping managed GitHub link update: existing scope is broader",
+				slog.String("profile_id", profileID),
+				slog.String("existing_scope", *managedLink.AuthAccessTokenScope),
+				slog.String("new_scope", tokenScope),
+			)
+
+			return
+		}
+
 		err := profileService.UpdateProfileLinkOAuthTokens(
 			ctx,
 			managedLink.ID,
@@ -419,4 +434,16 @@ func upsertManagedGitHubLink(
 		logger.DebugContext(ctx, "Created managed GitHub link on login",
 			slog.String("profile_id", profileID))
 	}
+}
+
+// wouldDowngradeScope returns true if replacing existingScope with newScope
+// would lose important permissions (public_repo or read:org).
+func wouldDowngradeScope(existingScope, newScope string) bool {
+	existingHasPublicRepo := strings.Contains(existingScope, "public_repo")
+	newHasPublicRepo := strings.Contains(newScope, "public_repo")
+	existingHasReadOrg := strings.Contains(existingScope, "read:org")
+	newHasReadOrg := strings.Contains(newScope, "read:org")
+
+	return (existingHasPublicRepo && !newHasPublicRepo) ||
+		(existingHasReadOrg && !newHasReadOrg)
 }

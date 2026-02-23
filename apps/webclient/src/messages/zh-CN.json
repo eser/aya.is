@@ -660,6 +660,7 @@
     "No repositories found.": "未找到仓库。",
     "Repositories are listed from your own GitHub account access.": "仓库通过您自己的GitHub账户访问权限列出。",
     "Failed to load repositories": "加载仓库失败",
+    "Failed to initiate GitHub authorization": "无法启动 GitHub 授权",
     "Are you sure you want to remove this resource?": "您确定要移除此资源吗？",
     "Resource added successfully": "资源添加成功",
     "Failed to add resource": "添加资源失败",

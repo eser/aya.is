@@ -660,6 +660,7 @@
     "No repositories found.": "Репозитории не найдены.",
     "Repositories are listed from your own GitHub account access.": "Репозитории отображаются из доступа вашей собственной учётной записи GitHub.",
     "Failed to load repositories": "Не удалось загрузить репозитории",
+    "Failed to initiate GitHub authorization": "Не удалось начать авторизацию GitHub",
     "Are you sure you want to remove this resource?": "Вы уверены, что хотите удалить этот ресурс?",
     "Resource added successfully": "Ресурс успешно добавлен",
     "Failed to add resource": "Не удалось добавить ресурс",

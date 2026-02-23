@@ -660,6 +660,7 @@
     "No repositories found.": "リポジトリが見つかりません。",
     "Repositories are listed from your own GitHub account access.": "リポジトリはあなた自身のGitHubアカウントアクセスから一覧表示されます。",
     "Failed to load repositories": "リポジトリの読み込みに失敗しました",
+    "Failed to initiate GitHub authorization": "GitHub認証を開始できませんでした",
     "Are you sure you want to remove this resource?": "このリソースを削除してもよろしいですか？",
     "Resource added successfully": "リソースが正常に追加されました",
     "Failed to add resource": "リソースの追加に失敗しました",

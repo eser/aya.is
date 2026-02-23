@@ -660,6 +660,7 @@
     "No repositories found.": "Nenhum repositório encontrado.",
     "Repositories are listed from your own GitHub account access.": "Os repositórios são listados a partir do acesso da sua própria conta GitHub.",
     "Failed to load repositories": "Falha ao carregar repositórios",
+    "Failed to initiate GitHub authorization": "Não foi possível iniciar a autorização do GitHub",
     "Are you sure you want to remove this resource?": "Tem a certeza de que pretende remover este recurso?",
     "Resource added successfully": "Recurso adicionado com sucesso",
     "Failed to add resource": "Falha ao adicionar recurso",

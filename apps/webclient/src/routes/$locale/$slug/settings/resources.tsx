@@ -107,13 +107,34 @@ function ResourcesSettings() {
     setGithubNewResourceIds([]);
     setAddTeamIds([]);
 
-    const [data, teamsData] = await Promise.all([
+    const [reposResult, teamsData] = await Promise.all([
       backend.listGitHubRepos(params.locale, params.slug),
       backend.listProfileTeams(params.locale, params.slug),
     ]);
 
-    if (data !== null) {
-      setRepos(data);
+    if (reposResult.needsReauth) {
+      // Token lacks public_repo scope — trigger re-auth with resource scope upgrade
+      setIsAddGitHubDialogOpen(false);
+      setReposLoading(false);
+
+      const oauthResult = await backend.initiateProfileLinkOAuth(
+        params.locale,
+        params.slug,
+        "github",
+        "resource",
+      );
+
+      if (oauthResult !== null) {
+        window.location.href = oauthResult.auth_url;
+      } else {
+        toast.error(t("Profile.Failed to initiate GitHub authorization"));
+      }
+
+      return;
+    }
+
+    if (reposResult.repos !== null) {
+      setRepos(reposResult.repos);
     } else {
       toast.error(t("Profile.Failed to load repositories"));
     }
