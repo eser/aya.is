@@ -37,6 +37,7 @@ const LINK_TYPES: LinkTypeConfig[] = [
   { kind: "discord", label: "Discord", icon: Discord },
   { kind: "telegram", label: "Telegram", icon: Telegram },
   { kind: "website", label: "Website", icon: Globe },
+  { kind: "external-site", label: "External Site", icon: Globe },
 ];
 
 function getLinkTypeConfig(kind: ProfileLinkKind): LinkTypeConfig {

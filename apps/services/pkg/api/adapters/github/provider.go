@@ -119,6 +119,7 @@ func (p *Provider) HandleOAuthCallback(
 		Name:                 name,
 		Email:                userInfo.Email,
 		URI:                  userInfo.HTMLURL,
+		ProfilePictureURI:    userInfo.Avatar,
 		AccessToken:          tokenResp.AccessToken,
 		RefreshToken:         "", // GitHub doesn't provide refresh tokens by default
 		AccessTokenExpiresAt: nil,

@@ -598,6 +598,7 @@ type Querier interface {
 	//      x_remote_id,
 	//      apple_remote_id,
 	//      individual_profile_id,
+	//      profile_picture_uri,
 	//      created_at,
 	//      updated_at,
 	//      deleted_at
@@ -618,7 +619,8 @@ type Querier interface {
 	//      $13,
 	//      $14,
 	//      $15,
-	//      $16
+	//      $16,
+	//      $17
 	//    )
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	//DecrementDiscussionCommentReplyCount
@@ -1755,7 +1757,7 @@ type Querier interface {
 	GetUserBriefInfoByID(ctx context.Context, arg GetUserBriefInfoByIDParams) (*GetUserBriefInfoByIDRow, error)
 	//GetUserByAppleRemoteID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
 	//  FROM "user"
 	//  WHERE apple_remote_id = $1
 	//    AND deleted_at IS NULL
@@ -1763,7 +1765,7 @@ type Querier interface {
 	GetUserByAppleRemoteID(ctx context.Context, arg GetUserByAppleRemoteIDParams) (*User, error)
 	//GetUserByEmail
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
 	//  FROM "user"
 	//  WHERE email = $1
 	//    AND deleted_at IS NULL
@@ -1771,7 +1773,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (*User, error)
 	//GetUserByGitHubRemoteID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
 	//  FROM "user"
 	//  WHERE github_remote_id = $1
 	//    AND deleted_at IS NULL
@@ -1779,7 +1781,7 @@ type Querier interface {
 	GetUserByGitHubRemoteID(ctx context.Context, arg GetUserByGitHubRemoteIDParams) (*User, error)
 	//GetUserByID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
 	//  FROM "user"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
@@ -3182,7 +3184,7 @@ type Querier interface {
 	ListTopLevelDiscussionComments(ctx context.Context, arg ListTopLevelDiscussionCommentsParams) ([]*ListTopLevelDiscussionCommentsRow, error)
 	//ListUsers
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
 	//  FROM "user"
 	//  WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND deleted_at IS NULL
@@ -3944,8 +3946,9 @@ type Querier interface {
 	//    x_handle = $9,
 	//    x_remote_id = $10,
 	//    apple_remote_id = $11,
-	//    individual_profile_id = $12
-	//  WHERE id = $13
+	//    individual_profile_id = $12,
+	//    profile_picture_uri = $13
+	//  WHERE id = $14
 	//    AND deleted_at IS NULL
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 	//UpsertProfileLinkTx

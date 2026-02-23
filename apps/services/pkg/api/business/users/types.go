@@ -58,6 +58,7 @@ type User struct {
 	AppleRemoteID *string `json:"apple_remote_id"`
 	// XRemoteID           *string    `json:"x_remote_id"`
 	IndividualProfileID *string    `json:"individual_profile_id"`
+	ProfilePictureURI   *string    `json:"profile_picture_uri"`
 	UpdatedAt           *time.Time `json:"updated_at"`
 	DeletedAt           *time.Time `json:"deleted_at"`
 	ID                  string     `json:"id"`

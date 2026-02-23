@@ -192,12 +192,13 @@ func (s *Service) TerminateSession(ctx context.Context, sessionID, userID string
 	return nil
 }
 
-func (s *Service) UpsertGitHubUser( //nolint:funlen
+func (s *Service) UpsertGitHubUser( //nolint:funlen,cyclop
 	ctx context.Context,
 	githubRemoteID string,
 	email string,
 	name string,
 	githubHandle string,
+	profilePictureURI string,
 ) (*User, error) {
 	// First, try to find user by GitHub Remote ID
 	existingUser, err := s.repo.GetUserByGitHubRemoteID(ctx, githubRemoteID)
@@ -216,6 +217,10 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 		existingUser.Email = &email
 		existingUser.GithubHandle = &githubHandle
 		existingUser.GithubRemoteID = &githubRemoteID
+
+		if profilePictureURI != "" {
+			existingUser.ProfilePictureURI = &profilePictureURI
+		}
 
 		now := time.Now()
 		existingUser.UpdatedAt = &now
@@ -249,6 +254,10 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 			existingUser.GithubHandle = &githubHandle
 			existingUser.GithubRemoteID = &githubRemoteID
 
+			if profilePictureURI != "" {
+				existingUser.ProfilePictureURI = &profilePictureURI
+			}
+
 			now := time.Now()
 			existingUser.UpdatedAt = &now
 
@@ -275,6 +284,11 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 	}
 
 	// User doesn't exist, create new one
+	var picturePtr *string
+	if profilePictureURI != "" {
+		picturePtr = &profilePictureURI
+	}
+
 	newUser := &User{
 		ID:                  string(s.idGenerator()),
 		Kind:                "regular",
@@ -282,6 +296,7 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 		Email:               &email,
 		GithubHandle:        &githubHandle,
 		GithubRemoteID:      &githubRemoteID,
+		ProfilePictureURI:   picturePtr,
 		BskyHandle:          nil,
 		XHandle:             nil,
 		IndividualProfileID: nil,
@@ -306,11 +321,12 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen
 	return newUser, nil
 }
 
-func (s *Service) UpsertAppleUser( //nolint:funlen
+func (s *Service) UpsertAppleUser( //nolint:funlen,cyclop
 	ctx context.Context,
 	appleRemoteID string,
 	email string,
 	name string,
+	profilePictureURI string,
 ) (*User, error) {
 	// First, try to find user by Apple Remote ID
 	existingUser, err := s.repo.GetUserByAppleRemoteID(ctx, appleRemoteID)
@@ -332,6 +348,10 @@ func (s *Service) UpsertAppleUser( //nolint:funlen
 
 		if email != "" {
 			existingUser.Email = &email
+		}
+
+		if profilePictureURI != "" {
+			existingUser.ProfilePictureURI = &profilePictureURI
 		}
 
 		existingUser.AppleRemoteID = &appleRemoteID
@@ -368,6 +388,10 @@ func (s *Service) UpsertAppleUser( //nolint:funlen
 				existingUser.Name = name
 			}
 
+			if profilePictureURI != "" {
+				existingUser.ProfilePictureURI = &profilePictureURI
+			}
+
 			existingUser.AppleRemoteID = &appleRemoteID
 
 			now := time.Now()
@@ -396,12 +420,18 @@ func (s *Service) UpsertAppleUser( //nolint:funlen
 	}
 
 	// User doesn't exist, create new one
+	var picturePtr *string
+	if profilePictureURI != "" {
+		picturePtr = &profilePictureURI
+	}
+
 	newUser := &User{
 		ID:                  string(s.idGenerator()),
 		Kind:                "regular",
 		Name:                name,
 		Email:               &email,
 		AppleRemoteID:       &appleRemoteID,
+		ProfilePictureURI:   picturePtr,
 		IndividualProfileID: nil,
 		CreatedAt:           time.Now(),
 		UpdatedAt:           nil,

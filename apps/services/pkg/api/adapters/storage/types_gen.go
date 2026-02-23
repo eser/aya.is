@@ -539,4 +539,5 @@ type User struct {
 	UpdatedAt           sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt           sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	AppleRemoteID       sql.NullString `db:"apple_remote_id" json:"apple_remote_id"`
+	ProfilePictureURI   sql.NullString `db:"profile_picture_uri" json:"profile_picture_uri"`
 }

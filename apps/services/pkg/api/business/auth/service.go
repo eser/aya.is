@@ -234,6 +234,7 @@ func (s *Service) AuthHandleCallback(
 			accountInfo.Email,
 			accountInfo.Name,
 			accountInfo.Username,
+			accountInfo.ProfilePictureURI,
 		)
 	case "apple":
 		user, err = s.userService.UpsertAppleUser(
@@ -241,6 +242,7 @@ func (s *Service) AuthHandleCallback(
 			accountInfo.RemoteID,
 			accountInfo.Email,
 			accountInfo.Name,
+			accountInfo.ProfilePictureURI,
 		)
 	default:
 		return AuthResult{}, ErrProviderNotFound

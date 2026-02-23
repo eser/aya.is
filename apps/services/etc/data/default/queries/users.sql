@@ -47,6 +47,7 @@ INSERT INTO "user" (
     x_remote_id,
     apple_remote_id,
     individual_profile_id,
+    profile_picture_uri,
     created_at,
     updated_at,
     deleted_at
@@ -65,6 +66,7 @@ VALUES (
     sqlc.arg(x_remote_id),
     sqlc.arg(apple_remote_id),
     sqlc.arg(individual_profile_id),
+    sqlc.arg(profile_picture_uri),
     sqlc.arg(created_at),
     sqlc.arg(updated_at),
     sqlc.arg(deleted_at)
@@ -83,7 +85,8 @@ SET kind = sqlc.arg(kind),
   x_handle = sqlc.arg(x_handle),
   x_remote_id = sqlc.arg(x_remote_id),
   apple_remote_id = sqlc.arg(apple_remote_id),
-  individual_profile_id = sqlc.arg(individual_profile_id)
+  individual_profile_id = sqlc.arg(individual_profile_id),
+  profile_picture_uri = sqlc.arg(profile_picture_uri)
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
