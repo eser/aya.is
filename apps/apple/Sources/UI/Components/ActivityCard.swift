@@ -103,6 +103,7 @@ public struct ActivityCard: View {
                 }
             }
             .padding(AYASpacing.md)
+            .frame(maxHeight: .infinity, alignment: .top)
             .background(AYAColors.surfaceSecondary)
         }
         .accessibilityElement(children: .combine)
