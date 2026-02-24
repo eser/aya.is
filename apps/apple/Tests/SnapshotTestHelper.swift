@@ -41,10 +41,10 @@ func assertSwiftUISnapshot<V: View>(
         .environment(\.referenceDate, snapshotReferenceDate)
     if let height {
         let layout = SwiftUISnapshotLayout.fixed(width: width, height: height)
-        assertSnapshot(of: localized, as: .image(layout: layout), named: snapshotName, file: file, testName: testName, line: line)
+        assertSnapshot(of: localized, as: .image(precision: 1, perceptualPrecision: 0.98, layout: layout), named: snapshotName, file: file, testName: testName, line: line)
     } else {
         let wrappedView = localized.frame(width: width)
-        assertSnapshot(of: wrappedView, as: .image(layout: .sizeThatFits), named: snapshotName, file: file, testName: testName, line: line)
+        assertSnapshot(of: wrappedView, as: .image(precision: 1, perceptualPrecision: 0.98, layout: .sizeThatFits), named: snapshotName, file: file, testName: testName, line: line)
     }
 }
 
@@ -79,7 +79,7 @@ func assertSwiftUISnapshot<V: View>(
     hostingView.frame = NSRect(origin: .zero, size: fittingSize)
     assertSnapshot(
         of: hostingView,
-        as: .image(size: fittingSize),
+        as: .image(precision: 1, perceptualPrecision: 0.98, size: fittingSize),
         named: snapshotName,
         file: file,
         testName: testName,
