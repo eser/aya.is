@@ -132,16 +132,17 @@ extension RTLSnapshotTests {
         testName: String = #function,
         line: UInt = #line
     ) {
+        let localized = view.environment(\.locale, snapshotLocale)
         #if os(iOS)
         let platformSuffix = "iOS"
         let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
-        let vc = UIHostingController(rootView: view)
+        let vc = UIHostingController(rootView: localized)
         vc.view.frame = CGRect(x: 0, y: 0, width: 390, height: height)
         assertSnapshot(of: vc, as: .image(on: .init(safeArea: .zero, size: CGSize(width: 390, height: height), traits: .init())), named: snapshotName, file: file, testName: testName, line: line)
         #elseif os(macOS)
         let platformSuffix = "macOS"
         let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
-        let hostingView = NSHostingView(rootView: view.frame(width: 390))
+        let hostingView = NSHostingView(rootView: localized.frame(width: 390))
         hostingView.frame = NSRect(x: 0, y: 0, width: 390, height: height)
         assertSnapshot(of: hostingView, as: .image, named: snapshotName, file: file, testName: testName, line: line)
         #endif

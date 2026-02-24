@@ -1,6 +1,10 @@
 import SwiftUI
 import SnapshotTesting
 
+/// Fixed locale used across all snapshot tests to ensure consistent
+/// date/number formatting regardless of host system locale.
+let snapshotLocale = Locale(identifier: "en_US")
+
 #if os(iOS)
 import UIKit
 
@@ -17,11 +21,12 @@ func assertSwiftUISnapshot<V: View>(
     line: UInt = #line
 ) {
     let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
+    let localized = view.environment(\.locale, snapshotLocale)
     if let height {
         let layout = SwiftUISnapshotLayout.fixed(width: width, height: height)
-        assertSnapshot(of: view, as: .image(layout: layout), named: snapshotName, file: file, testName: testName, line: line)
+        assertSnapshot(of: localized, as: .image(layout: layout), named: snapshotName, file: file, testName: testName, line: line)
     } else {
-        let wrappedView = view.frame(width: width)
+        let wrappedView = localized.frame(width: width)
         assertSnapshot(of: wrappedView, as: .image(layout: .sizeThatFits), named: snapshotName, file: file, testName: testName, line: line)
     }
 }
@@ -42,7 +47,8 @@ func assertSwiftUISnapshot<V: View>(
     line: UInt = #line
 ) {
     let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
-    let hostingView = NSHostingView(rootView: view)
+    let localized = view.environment(\.locale, snapshotLocale)
+    let hostingView = NSHostingView(rootView: localized)
     let fittingSize: CGSize
     if let height {
         fittingSize = CGSize(width: width, height: height)
