@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Design-token namespace for all AYA brand and semantic colors.
 public enum AYAColors {
     // MARK: - Backgrounds
     #if os(macOS)

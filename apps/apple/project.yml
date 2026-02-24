@@ -26,7 +26,7 @@ targets:
         buildPhase: resources
     dependencies:
       - package: AYA
-        product: AYA
+        product: AYAKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: is.aya.app
@@ -52,7 +52,7 @@ targets:
         buildPhase: resources
     dependencies:
       - package: AYA
-        product: AYA
+        product: AYAKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.macos

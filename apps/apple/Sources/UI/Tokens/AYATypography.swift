@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Design-token namespace for the AYA type scale.
 public enum AYATypography {
     public static let largeTitle: Font = .largeTitle
     public static let title: Font = .title

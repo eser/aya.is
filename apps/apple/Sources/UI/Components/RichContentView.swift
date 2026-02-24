@@ -1,12 +1,15 @@
 import SwiftUI
 
+/// A view that parses a Markdown string and renders headings, blockquotes, code blocks, lists, images, and paragraphs.
 public struct RichContentView: View {
     let content: String
 
+    /// Creates a rich content view from raw Markdown text.
     public init(content: String) {
         self.content = content
     }
 
+    /// The rendered Markdown content as a vertical stack of block-level elements.
     public var body: some View {
         VStack(alignment: .leading, spacing: AYASpacing.md) {
             ForEach(Array(parseBlocks(content).enumerated()), id: \.offset) { _, block in

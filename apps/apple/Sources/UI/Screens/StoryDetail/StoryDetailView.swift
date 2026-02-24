@@ -1,7 +1,6 @@
 import SwiftUI
-import Models
-import Networking
 
+/// View model that loads and holds the full content of a single story.
 @Observable @MainActor
 public final class StoryDetailViewModel {
     var story: Story?
@@ -11,6 +10,12 @@ public final class StoryDetailViewModel {
     let client: APIClientProtocol
     private let locale: String
 
+    /// Creates a story detail view model.
+    /// - Parameters:
+    ///   - slug: The story's URL slug.
+    ///   - client: The API client for fetching story content.
+    ///   - locale: The locale for content localization.
+    ///   - initialStory: An optional pre-loaded story to display immediately.
     public init(
         slug: String,
         client: APIClientProtocol,
@@ -35,10 +40,12 @@ public final class StoryDetailViewModel {
     }
 }
 
+/// Detail screen displaying a story's hero image, author info, and rich content.
 public struct StoryDetailView: View {
     @Bindable var viewModel: StoryDetailViewModel
     @Environment(\.locale) private var appLocale
 
+    /// Creates a story detail view backed by the given view model.
     public init(viewModel: StoryDetailViewModel) {
         self.viewModel = viewModel
     }

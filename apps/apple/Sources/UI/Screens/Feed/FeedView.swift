@@ -1,11 +1,11 @@
 import SwiftUI
-import Models
-import Networking
 
+/// The main feed screen displaying stories, activities, profiles, and search results.
 public struct FeedView: View {
     @Bindable var viewModel: FeedViewModel
     @Environment(\.locale) private var appLocale
 
+    /// Creates a feed view backed by the given view model.
     public init(viewModel: FeedViewModel) {
         self.viewModel = viewModel
     }
@@ -305,21 +305,28 @@ public struct FeedView: View {
 
 // MARK: - Navigation Destination
 
+/// Navigation destinations reachable from the feed.
 public enum FeedDestination: Hashable {
+    /// Navigate to a story detail screen.
     case story(Story)
+    /// Navigate to an activity detail screen.
     case activity(Activity)
+    /// Navigate to a profile detail screen.
     case profile(Profile)
+    /// Navigate to the detail screen for a search result.
     case search(SearchResult)
 }
 
 // MARK: - Navigation Container
 
+/// Root navigation container that wraps `FeedView` in a `NavigationStack` with toolbar, locale, and theme controls.
 public struct FeedNavigationView: View {
     @Bindable var viewModel: FeedViewModel
     @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
     @AppStorage("appColorScheme") private var appColorScheme: String = "system"
     @Environment(\.colorScheme) private var systemColorScheme
 
+    /// Creates the navigation view with the given feed view model.
     public init(viewModel: FeedViewModel) {
         self.viewModel = viewModel
     }

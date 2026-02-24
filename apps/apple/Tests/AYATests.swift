@@ -1,7 +1,6 @@
 import Foundation
 import Testing
-import Models
-import Networking
+@testable import AYAKit
 
 @Suite("Models")
 struct ModelTests {

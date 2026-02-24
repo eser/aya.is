@@ -1,11 +1,13 @@
 import SwiftUI
 
+/// A titled section with an optional "See all" action, wrapping arbitrary content.
 public struct ContentSection<Content: View>: View {
     let title: String
     var seeAllAction: (() -> Void)?
     var seeAllLabel: String = "See all"
     @ViewBuilder let content: () -> Content
 
+    /// Creates a content section.
     public init(
         title: String,
         seeAllAction: (() -> Void)? = nil,
@@ -18,6 +20,7 @@ public struct ContentSection<Content: View>: View {
         self.content = content
     }
 
+    /// The section layout: header row with title and optional action, followed by the content.
     public var body: some View {
         VStack(alignment: .leading, spacing: AYASpacing.sm) {
             HStack {

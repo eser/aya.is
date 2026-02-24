@@ -1,7 +1,5 @@
 import SwiftUI
-import Models
-import Networking
-import UI
+import AYAKit
 
 @main
 struct AYAApp: App {

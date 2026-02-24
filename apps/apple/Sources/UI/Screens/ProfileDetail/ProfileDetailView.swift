@@ -1,6 +1,4 @@
 import SwiftUI
-import Models
-import Networking
 
 @Observable @MainActor
 public final class ProfileDetailViewModel {

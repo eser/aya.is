@@ -1,6 +1,5 @@
 import SwiftUI
-import Networking
-import UI
+import AYAKit
 
 struct ContentView: View {
     @State private var viewModel = FeedViewModel(client: APIClient())

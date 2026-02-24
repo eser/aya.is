@@ -1,7 +1,6 @@
 import SwiftUI
-import Models
-import Networking
 
+/// View model that loads and holds the full content of a single activity.
 @Observable @MainActor
 public final class ActivityDetailViewModel {
     var activity: Activity?
@@ -11,6 +10,12 @@ public final class ActivityDetailViewModel {
     let client: APIClientProtocol
     private let locale: String
 
+    /// Creates an activity detail view model.
+    /// - Parameters:
+    ///   - slug: The activity's URL slug.
+    ///   - client: The API client for fetching activity content.
+    ///   - locale: The locale for content localization.
+    ///   - initialActivity: An optional pre-loaded activity to display immediately.
     public init(
         slug: String,
         client: APIClientProtocol,

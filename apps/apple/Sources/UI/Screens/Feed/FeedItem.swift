@@ -1,12 +1,17 @@
 import Foundation
-import Models
 
+/// A feed item representing one of the content types displayed in the main feed.
 public enum FeedItem: Identifiable, Hashable, Sendable {
+    /// A story entry authored by a profile.
     case story(Story)
+    /// An activity such as a workshop, meetup, or conference.
     case activity(Activity)
+    /// An individual profile (person).
     case profile(Profile)
+    /// A product profile.
     case product(Profile)
 
+    /// A unique identifier combining the content type prefix and the item's own ID.
     public var id: String {
         switch self {
         case .story(let s): "story-\(s.id)"
@@ -16,6 +21,7 @@ public enum FeedItem: Identifiable, Hashable, Sendable {
         }
     }
 
+    /// The associated date for sorting, parsed from the item's date strings.
     public var date: Date? {
         let dateString: String? = switch self {
         case .story(let s): s.publishedAt ?? s.createdAt
@@ -27,6 +33,7 @@ public enum FeedItem: Identifiable, Hashable, Sendable {
         return Self.parseDate(dateString)
     }
 
+    /// The display title of the feed item.
     public var title: String {
         switch self {
         case .story(let s): s.title
@@ -36,6 +43,7 @@ public enum FeedItem: Identifiable, Hashable, Sendable {
         }
     }
 
+    /// The URL-friendly slug used for navigation and deep linking.
     public var slug: String {
         switch self {
         case .story(let s): s.slug
@@ -58,6 +66,7 @@ public enum FeedItem: Identifiable, Hashable, Sendable {
     }
 }
 
+/// Filter options for narrowing the feed to a specific content type.
 public enum FeedFilter: String, CaseIterable, Sendable {
     case stories
     case activities

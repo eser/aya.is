@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A large, hero-style card with a full-bleed image and overlaid title, summary, and author.
 public struct FeaturedStoryCard: View {
     let title: String
     let summary: String?
@@ -7,6 +8,7 @@ public struct FeaturedStoryCard: View {
     let authorName: String?
     let kind: String?
 
+    /// Creates a featured story card.
     public init(
         title: String,
         summary: String? = nil,
@@ -21,6 +23,7 @@ public struct FeaturedStoryCard: View {
         self.kind = kind
     }
 
+    /// The card layout: background image with gradient overlay, kind badge, title, summary, and author.
     public var body: some View {
         ZStack(alignment: .bottomLeading) {
             if let imageUrl {

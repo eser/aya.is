@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A card view that displays a story with an optional hero image, title, summary, and author info.
 public struct StoryCard: View {
     let title: String
     let summary: String?
@@ -9,6 +10,7 @@ public struct StoryCard: View {
     let date: String?
     let kind: String?
 
+    /// Creates a story card.
     public init(
         title: String,
         summary: String? = nil,
@@ -27,6 +29,7 @@ public struct StoryCard: View {
         self.kind = kind
     }
 
+    /// The card layout: hero image, kind badge, date, title, summary, and author row.
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if imageUrl != nil {

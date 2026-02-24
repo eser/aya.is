@@ -9,26 +9,19 @@ let package = Package(
         .macOS(.v15),
     ],
     products: [
-        .library(name: "AYA", targets: ["Models", "Networking", "UI"]),
+        .library(name: "AYAKit", targets: ["AYAKit"]),
     ],
     targets: [
         .target(
-            name: "Models",
-            path: "Sources/Models"
-        ),
-        .target(
-            name: "Networking",
-            dependencies: ["Models"],
-            path: "Sources/Networking"
-        ),
-        .target(
-            name: "UI",
-            dependencies: ["Models", "Networking"],
-            path: "Sources/UI"
+            name: "AYAKit",
+            path: "Sources",
+            exclude: ["App"]
         ),
         .testTarget(
             name: "AYATests",
-            dependencies: ["Models", "Networking", "UI"],
+            dependencies: [
+                "AYAKit",
+            ],
             path: "Tests"
         ),
     ]

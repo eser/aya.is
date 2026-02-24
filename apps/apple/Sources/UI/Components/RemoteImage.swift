@@ -1,12 +1,15 @@
 import SwiftUI
 
+/// A placeholder avatar icon used when no profile image is available.
 public struct DefaultAvatarView: View {
     var size: CGFloat = 48
 
+    /// Creates a default avatar view with the given size.
     public init(size: CGFloat = 48) {
         self.size = size
     }
 
+    /// The avatar icon, tinted with the accent color.
     public var body: some View {
         Image(systemName: "person.crop.circle.fill")
             .resizable()
@@ -16,15 +19,18 @@ public struct DefaultAvatarView: View {
     }
 }
 
+/// An asynchronous image view that loads from a remote URL with loading and fallback states.
 public struct RemoteImage: View {
     let url: URL?
     var cornerRadius: CGFloat = AYACornerRadius.md
 
+    /// Creates a remote image from an optional URL string.
     public init(urlString: String?, cornerRadius: CGFloat = AYACornerRadius.md) {
         self.url = urlString.flatMap { URL(string: $0) }
         self.cornerRadius = cornerRadius
     }
 
+    /// The image view with loading spinner, success, and fallback phases.
     public var body: some View {
         AsyncImage(url: url) { phase in
             switch phase {

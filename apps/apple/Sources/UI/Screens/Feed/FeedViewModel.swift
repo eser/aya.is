@@ -1,7 +1,6 @@
 import Foundation
-import Models
-import Networking
 
+/// View model that manages feed data loading, filtering, searching, and pagination.
 @Observable @MainActor
 public final class FeedViewModel {
     // MARK: - Published State
@@ -35,6 +34,10 @@ public final class FeedViewModel {
 
     // MARK: - Init
 
+    /// Creates a new feed view model.
+    /// - Parameters:
+    ///   - client: The API client used to fetch feed data.
+    ///   - locale: The locale for content localization.
     public init(client: APIClientProtocol, locale: String = LocaleHelper.currentLocale) {
         self.client = client
         self.locale = locale

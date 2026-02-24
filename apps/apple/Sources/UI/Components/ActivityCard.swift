@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A card view that displays an activity or event with date, time, and an optional image.
 public struct ActivityCard: View {
     let title: String
     let summary: String?
@@ -8,6 +9,7 @@ public struct ActivityCard: View {
     let timeStart: String?
     let timeEnd: String?
 
+    /// Creates an activity card.
     public init(
         title: String,
         summary: String? = nil,
@@ -24,6 +26,7 @@ public struct ActivityCard: View {
         self.timeEnd = timeEnd
     }
 
+    /// The card layout: image or calendar placeholder, kind badge, time, title, and summary.
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if imageUrl != nil {

@@ -2,9 +2,12 @@ import SwiftUI
 
 // MARK: - Loading View
 
+/// A full-screen loading placeholder composed of skeleton cards.
 public struct AYALoadingView: View {
+    /// Creates a loading view.
     public init() {}
 
+    /// Two stacked skeleton cards centered vertically.
     public var body: some View {
         VStack(spacing: AYASpacing.md) {
             Spacer()
@@ -19,17 +22,20 @@ public struct AYALoadingView: View {
 
 // MARK: - Error View
 
+/// A centered error view with a warning icon, message, and retry button.
 public struct AYAErrorView: View {
     let message: String
     let retryLabel: String
     let onRetry: () -> Void
 
+    /// Creates an error view.
     public init(message: String, retryLabel: String = "Try Again", onRetry: @escaping () -> Void) {
         self.message = message
         self.retryLabel = retryLabel
         self.onRetry = onRetry
     }
 
+    /// The error layout: icon, message text, and retry button.
     public var body: some View {
         VStack(spacing: AYASpacing.md) {
             Spacer()
@@ -51,15 +57,18 @@ public struct AYAErrorView: View {
 
 // MARK: - Empty View
 
+/// A centered empty-state view with an icon and descriptive title.
 public struct AYAEmptyView: View {
     let title: String
     let systemImage: String
 
+    /// Creates an empty-state view.
     public init(title: String, systemImage: String = "tray") {
         self.title = title
         self.systemImage = systemImage
     }
 
+    /// The empty-state layout: icon and title centered vertically.
     public var body: some View {
         VStack(spacing: AYASpacing.md) {
             Spacer()
@@ -77,13 +86,16 @@ public struct AYAEmptyView: View {
 
 // MARK: - Markdown View
 
+/// A convenience wrapper that renders Markdown content using ``RichContentView``.
 public struct MarkdownView: View {
     let content: String
 
+    /// Creates a Markdown view from raw Markdown text.
     public init(content: String) {
         self.content = content
     }
 
+    /// The rendered Markdown output.
     public var body: some View {
         RichContentView(content: content)
     }

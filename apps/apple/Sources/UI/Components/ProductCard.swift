@@ -1,10 +1,12 @@
 import SwiftUI
 
+/// A compact horizontal card that displays a product with its image, title, and description.
 public struct ProductCard: View {
     let title: String
     let description: String?
     let imageUrl: String?
 
+    /// Creates a product card.
     public init(title: String, description: String? = nil, imageUrl: String? = nil) {
         self.title = title
         self.description = description
@@ -13,6 +15,7 @@ public struct ProductCard: View {
 
     @Environment(\.locale) private var appLocale
 
+    /// The card layout: product image, title, description, and a "Product" badge.
     public var body: some View {
         HStack(spacing: AYASpacing.md) {
             RemoteImage(urlString: imageUrl, cornerRadius: AYACornerRadius.lg)

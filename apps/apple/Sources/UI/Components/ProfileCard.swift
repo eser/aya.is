@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A compact horizontal card that displays a profile avatar, name, description, kind badge, and points.
 public struct ProfileCard: View {
     let title: String
     let description: String?
@@ -7,6 +8,7 @@ public struct ProfileCard: View {
     let kind: String?
     let points: Int?
 
+    /// Creates a profile card.
     public init(
         title: String,
         description: String? = nil,
@@ -21,6 +23,7 @@ public struct ProfileCard: View {
         self.points = points
     }
 
+    /// The card layout: avatar, text stack, kind badge, and optional points indicator.
     public var body: some View {
         HStack(spacing: AYASpacing.md) {
             RemoteImage(urlString: imageUrl, cornerRadius: 22)

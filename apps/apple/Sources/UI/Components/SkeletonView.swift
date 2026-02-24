@@ -1,14 +1,17 @@
 import SwiftUI
 
+/// An animated shimmer placeholder used while content is loading.
 public struct SkeletonView: View {
     var height: CGFloat
 
     @State private var shimmerOffset: CGFloat = -1
 
+    /// Creates a skeleton view with the given height.
     public init(height: CGFloat = 20) {
         self.height = height
     }
 
+    /// The shimmer rectangle that animates across the view.
     public var body: some View {
         RoundedRectangle(cornerRadius: AYACornerRadius.sm)
             .fill(AYAColors.contentBackground)
@@ -34,9 +37,12 @@ public struct SkeletonView: View {
     }
 }
 
+/// A composite skeleton placeholder that mimics the layout of a typical content card.
 public struct SkeletonCardView: View {
+    /// Creates a skeleton card view.
     public init() {}
 
+    /// The skeleton card layout: image area, title bar, subtitle bar, and metadata row.
     public var body: some View {
         VStack(alignment: .leading, spacing: AYASpacing.sm) {
             SkeletonView(height: 180)
