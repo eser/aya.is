@@ -7,6 +7,9 @@ import SnapshotTesting
 final class StoryCardSnapshotTests: XCTestCase {
 
     override func invokeTest() {
+        let original = NSTimeZone.default
+        NSTimeZone.default = TimeZone(identifier: "UTC")!
+        defer { NSTimeZone.default = original }
         withSnapshotTesting(record: .missing) {
             super.invokeTest()
         }
@@ -38,6 +41,16 @@ final class StoryCardSnapshotTests: XCTestCase {
             authorName: "Author",
             date: "2025-06-01T12:00:00Z",
             kind: "article"
+        )
+        assertSwiftUISnapshot(of: card)
+    }
+
+    func testStoryCard_authorOnly() {
+        let card = StoryCard(
+            title: "Quick Update on the Project",
+            summary: "A brief note from the maintainer.",
+            authorName: "Alp Özcan",
+            kind: "note"
         )
         assertSwiftUISnapshot(of: card)
     }

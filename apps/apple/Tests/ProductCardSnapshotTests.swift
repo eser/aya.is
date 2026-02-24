@@ -7,6 +7,9 @@ import SnapshotTesting
 final class ProductCardSnapshotTests: XCTestCase {
 
     override func invokeTest() {
+        let original = NSTimeZone.default
+        NSTimeZone.default = TimeZone(identifier: "UTC")!
+        defer { NSTimeZone.default = original }
         withSnapshotTesting(record: .missing) {
             super.invokeTest()
         }
