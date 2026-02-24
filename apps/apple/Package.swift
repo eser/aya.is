@@ -11,6 +11,9 @@ let package = Package(
     products: [
         .library(name: "AYAKit", targets: ["AYAKit"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.0"),
+    ],
     targets: [
         .target(
             name: "AYAKit",
@@ -21,6 +24,7 @@ let package = Package(
             name: "AYATests",
             dependencies: [
                 "AYAKit",
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],
             path: "Tests"
         ),
