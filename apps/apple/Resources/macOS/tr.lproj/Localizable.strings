@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "Açık Yazılım Ağı";
+
+/* Feed */
+"feed.search.placeholder" = "Yazılar, kişiler, ürünler ara...";
+"feed.filter.stories" = "Yazılar";
+"feed.filter.activities" = "Etkinlikler";
+"feed.filter.people" = "Kişiler";
+"feed.filter.products" = "Ürünler";
+"feed.error.retry" = "Tekrar Dene";
+"feed.empty" = "İçerik bulunamadı";
+
+/* Detail */
+"detail.story" = "Yazı";
+"detail.activity" = "Etkinlik";
+"detail.profile" = "Profil";
+
+/* Activity */
+"activity.join" = "Etkinliğe Katıl";
+"activity.rsvp" = "Katılım Bildir";
+
+/* Profile */
+"profile.points" = "puan";
+"profile.pages" = "Sayfalar";
+"profile.stories" = "Yazılar";
+"profile.activities" = "Etkinlikler";
+
+/* Product */
+"product.badge" = "Ürün";
