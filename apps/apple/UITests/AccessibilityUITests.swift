@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class AccessibilityUITests: XCTestCase {
 
     private var app: XCUIApplication!
