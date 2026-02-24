@@ -89,6 +89,23 @@ targets:
         TEST_HOST: ""
         SWIFT_STRICT_CONCURRENCY: complete
 
+  AYA-macOS-Tests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - package: AYA
+        product: AYAKit
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.macos.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: ""
+        SWIFT_STRICT_CONCURRENCY: complete
+
   AYA-iOS-UITests:
     type: bundle.ui-testing
     platform: iOS

@@ -129,14 +129,18 @@ extension RTLSnapshotTests {
         testName: String = #function,
         line: UInt = #line
     ) {
-        #if os(macOS)
-        let hostingView = NSHostingView(rootView: view.frame(width: 390))
-        hostingView.frame = NSRect(x: 0, y: 0, width: 390, height: height)
-        assertSnapshot(of: hostingView, as: .image, named: name, file: file, testName: testName, line: line)
-        #else
+        #if os(iOS)
+        let platformSuffix = "iOS"
+        let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
         let vc = UIHostingController(rootView: view)
         vc.view.frame = CGRect(x: 0, y: 0, width: 390, height: height)
-        assertSnapshot(of: vc, as: .image(on: .init(safeArea: .zero, size: CGSize(width: 390, height: height), traits: .init())), named: name, file: file, testName: testName, line: line)
+        assertSnapshot(of: vc, as: .image(on: .init(safeArea: .zero, size: CGSize(width: 390, height: height), traits: .init())), named: snapshotName, file: file, testName: testName, line: line)
+        #elseif os(macOS)
+        let platformSuffix = "macOS"
+        let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
+        let hostingView = NSHostingView(rootView: view.frame(width: 390))
+        hostingView.frame = NSRect(x: 0, y: 0, width: 390, height: height)
+        assertSnapshot(of: hostingView, as: .image, named: snapshotName, file: file, testName: testName, line: line)
         #endif
     }
 }

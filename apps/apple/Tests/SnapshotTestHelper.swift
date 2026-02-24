@@ -4,36 +4,44 @@ import SnapshotTesting
 #if os(iOS)
 import UIKit
 
+private let platformSuffix = "iOS"
+
 @MainActor
 func assertSwiftUISnapshot<V: View>(
     of view: V,
+    named name: String? = nil,
     width: CGFloat = 350,
     height: CGFloat? = nil,
     file: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line
 ) {
+    let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
     if let height {
         let layout = SwiftUISnapshotLayout.fixed(width: width, height: height)
-        assertSnapshot(of: view, as: .image(layout: layout), file: file, testName: testName, line: line)
+        assertSnapshot(of: view, as: .image(layout: layout), named: snapshotName, file: file, testName: testName, line: line)
     } else {
         let wrappedView = view.frame(width: width)
-        assertSnapshot(of: wrappedView, as: .image(layout: .sizeThatFits), file: file, testName: testName, line: line)
+        assertSnapshot(of: wrappedView, as: .image(layout: .sizeThatFits), named: snapshotName, file: file, testName: testName, line: line)
     }
 }
 
 #elseif os(macOS)
 import AppKit
 
+private let platformSuffix = "macOS"
+
 @MainActor
 func assertSwiftUISnapshot<V: View>(
     of view: V,
+    named name: String? = nil,
     width: CGFloat = 350,
     height: CGFloat? = nil,
     file: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line
 ) {
+    let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
     let hostingView = NSHostingView(rootView: view)
     let fittingSize: CGSize
     if let height {
@@ -47,6 +55,7 @@ func assertSwiftUISnapshot<V: View>(
     assertSnapshot(
         of: hostingView,
         as: .image(size: fittingSize),
+        named: snapshotName,
         file: file,
         testName: testName,
         line: line
