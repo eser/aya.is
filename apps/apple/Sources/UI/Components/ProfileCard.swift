@@ -69,10 +69,20 @@ public struct ProfileCard: View {
             }
         }
         .padding(AYASpacing.md)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(profileAccessibilityLabel)
         .background(AYAColors.surfacePrimary)
         .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.xl))
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 3)
         .shadow(color: .black.opacity(0.03), radius: 1, x: 0, y: 1)
+    }
+
+    private var profileAccessibilityLabel: String {
+        var parts: [String] = [title]
+        if let kind { parts.append(kind.capitalized) }
+        if let description { parts.append(description) }
+        if let points, points > 0 { parts.append("\(points) points") }
+        return parts.joined(separator: ", ")
     }
 
     private func kindColor(_ kind: String) -> Color {

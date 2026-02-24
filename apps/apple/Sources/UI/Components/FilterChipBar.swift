@@ -46,6 +46,9 @@ public struct FilterChipBar: View {
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(chip.label)
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                    .accessibilityHint(isSelected ? "Double tap to remove filter" : "Double tap to filter by \(chip.label)")
                 }
             }
             .padding(.horizontal, AYASpacing.md)

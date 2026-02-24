@@ -94,5 +94,17 @@ public struct FeaturedStoryCard: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.xl))
         .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(featuredAccessibilityLabel)
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var featuredAccessibilityLabel: String {
+        var parts: [String] = ["Featured"]
+        if let kind { parts.append(kind.capitalized) }
+        parts.append(title)
+        if let summary { parts.append(summary) }
+        if let authorName { parts.append("By \(authorName)") }
+        return parts.joined(separator: ", ")
     }
 }

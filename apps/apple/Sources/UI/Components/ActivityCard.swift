@@ -105,10 +105,21 @@ public struct ActivityCard: View {
             .padding(AYASpacing.md)
             .background(AYAColors.surfaceSecondary)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(activityAccessibilityLabel)
         .background(AYAColors.surfacePrimary)
         .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.xl))
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
         .shadow(color: .black.opacity(0.04), radius: 2, x: 0, y: 1)
+    }
+
+    private var activityAccessibilityLabel: String {
+        var parts: [String] = []
+        if let activityKind { parts.append(activityKind.capitalized) }
+        parts.append(title)
+        if let summary { parts.append(summary) }
+        if let timeStart { parts.append("Starts \(timeString(timeStart))") }
+        return parts.joined(separator: ", ")
     }
 
     private var kindColor: Color {

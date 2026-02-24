@@ -34,6 +34,7 @@ public struct SkeletonView: View {
                     shimmerOffset = 1.5
                 }
             }
+            .accessibilityHidden(true)
     }
 }
 
@@ -60,5 +61,6 @@ public struct SkeletonCardView: View {
         .padding(AYASpacing.md)
         .background(AYAColors.surfacePrimary)
         .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.lg))
+        .accessibilityHidden(true)
     }
 }

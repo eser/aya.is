@@ -17,6 +17,8 @@ public struct AYALoadingView: View {
         }
         .padding(AYASpacing.md)
         .frame(maxWidth: .infinity)
+        .accessibilityLabel("Loading content")
+        .accessibilityAddTraits(.updatesFrequently)
     }
 }
 
@@ -42,6 +44,7 @@ public struct AYAErrorView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 48))
                 .foregroundStyle(AYAColors.warning)
+                .accessibilityHidden(true)
             Text(message)
                 .font(AYATypography.body)
                 .foregroundStyle(AYAColors.textSecondary)
@@ -52,6 +55,8 @@ public struct AYAErrorView: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Error: \(message)")
     }
 }
 
@@ -75,12 +80,15 @@ public struct AYAEmptyView: View {
             Image(systemName: systemImage)
                 .font(.system(size: 48))
                 .foregroundStyle(AYAColors.textTertiary)
+                .accessibilityHidden(true)
             Text(title)
                 .font(AYATypography.body)
                 .foregroundStyle(AYAColors.textSecondary)
             Spacer()
         }
         .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
     }
 }
 

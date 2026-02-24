@@ -85,6 +85,7 @@ public struct ProfileDetailView: View {
                             }
                         }
                     }
+                    .accessibilityElement(children: .combine)
 
                     if !profile.description.isEmpty {
                         RichContentView(content: profile.description)

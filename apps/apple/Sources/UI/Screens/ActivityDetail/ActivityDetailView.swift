@@ -96,6 +96,7 @@ public struct ActivityDetailView: View {
                                     Label(String(localized: "activity.join", defaultValue: "Join Activity", locale: appLocale), systemImage: "arrow.up.right.square")
                                 }
                                 .buttonStyle(.bordered)
+                                .accessibilityHint("Opens external link to join the activity")
                             }
 
                             if let uri = props.externalAttendanceUri, let url = URL(string: uri) {
@@ -103,6 +104,7 @@ public struct ActivityDetailView: View {
                                     Label(String(localized: "activity.rsvp", defaultValue: "RSVP", locale: appLocale), systemImage: "person.badge.plus")
                                 }
                                 .buttonStyle(.bordered)
+                                .accessibilityHint("Opens external link to RSVP")
                             }
                         }
 

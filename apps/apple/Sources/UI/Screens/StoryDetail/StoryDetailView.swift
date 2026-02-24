@@ -90,6 +90,8 @@ public struct StoryDetailView: View {
                                     }
                                 }
                             }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("Author: \(author.title)")
                         }
 
                         Divider()

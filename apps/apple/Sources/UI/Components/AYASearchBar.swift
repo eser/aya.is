@@ -39,11 +39,14 @@ public struct AYASearchBar: View {
                         .foregroundStyle(AYAColors.textTertiary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Clear search")
+                .accessibilityHint("Double tap to clear the search field")
             }
         }
         .padding(.horizontal, AYASpacing.md)
         .padding(.vertical, AYASpacing.sm + 2)
         .background(AYAColors.contentBackground)
         .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.xl))
+        .accessibilityElement(children: .contain)
     }
 }

@@ -97,10 +97,22 @@ public struct StoryCard: View {
             .padding(AYASpacing.md)
             .background(AYAColors.surfaceSecondary)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(storyAccessibilityLabel)
         .background(AYAColors.surfacePrimary)
         .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.xl))
         .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
         .shadow(color: .black.opacity(0.04), radius: 2, x: 0, y: 1)
+    }
+
+    private var storyAccessibilityLabel: String {
+        var parts: [String] = []
+        if let kind { parts.append(kind.capitalized) }
+        parts.append(title)
+        if let summary { parts.append(summary) }
+        if let authorName { parts.append("By \(authorName)") }
+        if let date { parts.append(formattedDate(date)) }
+        return parts.joined(separator: ", ")
     }
 
     private func kindColor(_ kind: String) -> Color {

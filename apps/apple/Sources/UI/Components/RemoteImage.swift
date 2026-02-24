@@ -16,6 +16,7 @@ public struct DefaultAvatarView: View {
             .aspectRatio(contentMode: .fit)
             .foregroundStyle(AYAColors.accent.opacity(0.5))
             .frame(width: size, height: size)
+            .accessibilityHidden(true)
     }
 }
 
@@ -50,6 +51,7 @@ public struct RemoteImage: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .accessibilityHidden(true)
     }
 
     private var placeholder: some View {

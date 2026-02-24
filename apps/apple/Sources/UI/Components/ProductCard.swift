@@ -47,9 +47,17 @@ public struct ProductCard: View {
                 .clipShape(Capsule())
         }
         .padding(AYASpacing.md)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(productAccessibilityLabel)
         .background(AYAColors.surfacePrimary)
         .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.xl))
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 3)
         .shadow(color: .black.opacity(0.03), radius: 1, x: 0, y: 1)
+    }
+
+    private var productAccessibilityLabel: String {
+        var parts: [String] = ["Product", title]
+        if let description { parts.append(description) }
+        return parts.joined(separator: ", ")
     }
 }
