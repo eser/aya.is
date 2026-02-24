@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -13,6 +14,20 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/vars"
 	"github.com/sqlc-dev/pqtype"
 )
+
+// clampInt32 safely converts an int to int32 by clamping to the int32 range,
+// preventing silent overflow on 64-bit platforms.
+func clampInt32(v int) int32 {
+	if v > math.MaxInt32 {
+		return math.MaxInt32
+	}
+
+	if v < math.MinInt32 {
+		return math.MinInt32
+	}
+
+	return int32(v)
+}
 
 func (r *Repository) GetProfileIDBySlug(ctx context.Context, slug string) (string, error) {
 	var result string
@@ -1802,8 +1817,8 @@ func (r *Repository) ListAllProfilesForAdmin(
 	rows, err := r.queries.ListAllProfilesForAdmin(ctx, ListAllProfilesForAdminParams{
 		LocaleCode:  localeCode,
 		FilterKind:  filterKindSQL,
-		LimitCount:  int32(limit),
-		OffsetCount: int32(offset),
+		LimitCount:  clampInt32(limit),
+		OffsetCount: clampInt32(offset),
 	})
 	if err != nil {
 		return nil, err

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { sanitizeImageSrc } from "@/lib/url";
 import { backend } from "@/modules/backend/backend";
 import type { UploadPurpose } from "@/modules/backend/types";
 import styles from "./content-editor.module.css";
@@ -219,7 +220,7 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
             <div className="space-y-4">
               <div className={styles.uploadPreview}>
                 <img
-                  src={URL.createObjectURL(selectedFile)}
+                  src={sanitizeImageSrc(URL.createObjectURL(selectedFile))}
                   alt="Preview"
                   className={styles.uploadPreviewImage}
                 />

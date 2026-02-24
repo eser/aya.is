@@ -6,10 +6,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	neturl "net/url"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
 )
+
+// escapeOwnerRepo URL-path-escapes the owner and repo segments individually,
+// preserving the slash separator. This prevents injection into URL paths.
+func escapeOwnerRepo(ownerRepo string) string {
+	parts := strings.SplitN(ownerRepo, "/", 2) //nolint:mnd
+	if len(parts) < 2 {                        //nolint:mnd
+		return neturl.PathEscape(ownerRepo)
+	}
+
+	return neturl.PathEscape(parts[0]) + "/" + neturl.PathEscape(parts[1])
+}
 
 const (
 	githubAPIBase = "https://api.github.com"
@@ -40,7 +52,7 @@ func fetchRepoInfo(
 	client *httpclient.Client,
 	ownerRepo string,
 ) (*repoInfoResponse, error) {
-	url := fmt.Sprintf("%s/repos/%s", githubAPIBase, ownerRepo)
+	url := fmt.Sprintf("%s/repos/%s", githubAPIBase, escapeOwnerRepo(ownerRepo))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -85,7 +97,7 @@ func fetchRepoTree(
 ) ([]treeEntry, error) {
 	url := fmt.Sprintf(
 		"%s/repos/%s/git/trees/%s?recursive=1",
-		githubAPIBase, ownerRepo, branch,
+		githubAPIBase, escapeOwnerRepo(ownerRepo), neturl.PathEscape(branch),
 	)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -221,7 +233,13 @@ func fetchRawFile(
 	branch string,
 	filePath string,
 ) (string, error) {
-	url := fmt.Sprintf("%s/%s/%s/%s", githubRawBase, ownerRepo, branch, filePath)
+	url := fmt.Sprintf(
+		"%s/%s/%s/%s",
+		githubRawBase,
+		escapeOwnerRepo(ownerRepo),
+		neturl.PathEscape(branch),
+		filePath,
+	)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {

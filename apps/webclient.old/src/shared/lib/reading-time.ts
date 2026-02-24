@@ -3,9 +3,17 @@
  * Assumes average reading speed of 200 words per minute
  */
 export function calculateReadingTime(content: string): number {
-  // Remove HTML tags and markdown syntax
-  const cleanText = content
-    .replace(/<[^>]*>/g, "") // Remove HTML tags
+  // Remove HTML tags and markdown syntax.
+  // Iteratively strip tags to handle nested partial tags like <scr<script>ipt>.
+  let stripped = content;
+  let prev: string;
+  do {
+    prev = stripped;
+    stripped = stripped.replace(/<[^>]*>/g, "");
+  } while (stripped !== prev);
+
+  const cleanText = stripped
+    .replace(/<[^>]*$/g, "") // Remove any trailing unclosed tag fragment
     .replace(/\*\*([^*]+)\*\*/g, "$1") // Remove bold markdown
     .replace(/\*([^*]+)\*/g, "$1") // Remove italic markdown
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Remove markdown links

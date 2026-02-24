@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	neturl "net/url"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
@@ -162,7 +163,12 @@ func (p *Provider) fetchAndParseFile(
 
 	// Build the GitHub blob URL for the file
 	parts := strings.SplitN(ownerRepo, "/", 2)
-	blobURL := fmt.Sprintf("https://github.com/%s/blob/%s/%s", ownerRepo, branch, filePath)
+	blobURL := fmt.Sprintf(
+		"https://github.com/%s/blob/%s/%s",
+		escapeOwnerRepo(ownerRepo),
+		neturl.PathEscape(branch),
+		filePath,
+	)
 
 	if len(parts) != 2 {
 		blobURL = ""

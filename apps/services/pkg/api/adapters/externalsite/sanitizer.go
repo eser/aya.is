@@ -1,6 +1,7 @@
 package externalsite
 
 import (
+	neturl "net/url"
 	"path"
 	"regexp"
 	"strings"
@@ -152,7 +153,11 @@ var (
 //   - filePath: the source file path in the repo, e.g. "content/posts/my-post/index.md"
 func ResolveRelativeImages(content, ownerRepo, branch, filePath string) string {
 	fileDir := path.Dir(filePath) // e.g. "content/posts/my-post"
-	baseURL := "https://raw.githubusercontent.com/" + ownerRepo + "/" + branch + "/"
+	baseURL := "https://raw.githubusercontent.com/" + escapeOwnerRepo(
+		ownerRepo,
+	) + "/" + neturl.PathEscape(
+		branch,
+	) + "/"
 
 	resolver := func(imageURL string) string {
 		// Skip absolute URLs and protocol-relative URLs

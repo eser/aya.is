@@ -45,6 +45,7 @@ import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
 import { sanitizeSlug, slugify } from "@/lib/slugify";
 import { isAllowedURI } from "@/config";
+import { sanitizeImageSrc } from "@/lib/url";
 import { backend } from "@/modules/backend/backend";
 import { getEntityConfig } from "./entity-types";
 
@@ -1027,7 +1028,7 @@ export function ContentEditor(props: ContentEditorProps) {
                 {storyPictureUriError !== null && <FieldError>{storyPictureUriError}</FieldError>}
                 {storyPictureUri !== null && storyPictureUri !== "" && storyPictureUriError === null && (
                   <img
-                    src={storyPictureUri}
+                    src={sanitizeImageSrc(storyPictureUri)}
                     alt="Picture preview"
                     className="mt-2 rounded-md max-h-32 w-full object-cover"
                   />

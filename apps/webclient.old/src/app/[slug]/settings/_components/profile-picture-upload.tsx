@@ -7,6 +7,25 @@ import { Button } from "@/shared/components/ui/button.tsx";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert.tsx";
 
 import styles from "./profile-picture-upload.module.css";
+
+const SAFE_PROTOCOLS = ["https:", "http:", "data:", "blob:"];
+function sanitizeImageSrc(src: string | null | undefined): string {
+  if (src === null || src === undefined || src === "") {
+    return "";
+  }
+  try {
+    const parsed = new URL(src, "https://placeholder.invalid");
+    if (SAFE_PROTOCOLS.includes(parsed.protocol)) {
+      return src;
+    }
+  } catch {
+    if (src.startsWith("/") && !src.startsWith("//")) {
+      return src;
+    }
+  }
+  return "";
+}
+
 type ProfilePictureUploadProps = {
   currentProfilePictureURI?: string | null;
   onUploadComplete: (newProfilePictureURI: string) => void;
@@ -127,7 +146,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
           ? (
             <div className={styles.imagePreview}>
               <img
-                src={currentImage}
+                src={sanitizeImageSrc(currentImage)}
                 alt={t("Profile", "Profile picture") ?? "Profile picture"}
                 className={styles.image}
               />

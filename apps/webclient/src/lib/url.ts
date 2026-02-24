@@ -5,6 +5,35 @@ import {
   type SupportedLocaleCode,
 } from "@/config";
 
+const SAFE_IMAGE_PROTOCOLS = ["https:", "http:", "data:", "blob:"];
+
+/**
+ * Sanitize a URL for use in img src attributes.
+ * Blocks dangerous protocols (e.g. javascript:) while allowing
+ * http, https, data, and blob URIs.
+ * Returns empty string for unsafe or invalid inputs.
+ */
+export function sanitizeImageSrc(src: string | null | undefined): string {
+  if (src === null || src === undefined || src === "") {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(src, "https://placeholder.invalid");
+
+    if (SAFE_IMAGE_PROTOCOLS.includes(parsed.protocol)) {
+      return src;
+    }
+  } catch {
+    // Relative paths are safe (they resolve against the page origin)
+    if (src.startsWith("/") && !src.startsWith("//")) {
+      return src;
+    }
+  }
+
+  return "";
+}
+
 interface UrlOptions {
   locale?: string;
   isCustomDomain?: boolean;

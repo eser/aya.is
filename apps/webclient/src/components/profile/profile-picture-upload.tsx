@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { sanitizeImageSrc } from "@/lib/url";
 
 type ProfilePictureUploadProps = {
   currentImageUri: string | null | undefined;
@@ -171,7 +172,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
         >
           {hasImage ? (
             <img
-              src={displayImageUri}
+              src={sanitizeImageSrc(displayImageUri)}
               alt={props.profileTitle}
               className="size-full object-cover"
             />

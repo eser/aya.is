@@ -460,7 +460,7 @@ func reflectSetField( //nolint:cyclop,funlen
 		int64Value, _ := strconv.ParseInt(value, 10, 64)
 		finalValue = reflect.ValueOf(int64Value)
 	case reflect.TypeFor[uint]():
-		uint64Value, _ := strconv.ParseUint(value, 10, 64)
+		uint64Value, _ := strconv.ParseUint(value, 10, strconv.IntSize)
 		uintValue := uint(uint64Value)
 		finalValue = reflect.ValueOf(uintValue)
 	case reflect.TypeFor[uint8]():

@@ -21,7 +21,7 @@ export function formatFrontmatter(
       const needsQuotes = value.includes(":") || value.includes('"') ||
         value.includes("\n") || value.startsWith(" ") || value.endsWith(" ");
       if (needsQuotes) {
-        const escaped = value.replace(/"/g, '\\"');
+        const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
         lines.push(`${key}: "${escaped}"`);
       } else {
         lines.push(`${key}: ${value}`);

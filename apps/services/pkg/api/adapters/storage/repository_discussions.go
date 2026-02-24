@@ -4,10 +4,25 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"math"
 
 	"github.com/eser/aya.is/services/pkg/api/business/discussions"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
 )
+
+// safeInt32 clamps an int to the int32 range before conversion,
+// preventing silent overflow on 64-bit platforms.
+func safeInt32(v int) int32 {
+	if v > math.MaxInt32 {
+		return math.MaxInt32
+	}
+
+	if v < math.MinInt32 {
+		return math.MinInt32
+	}
+
+	return int32(v)
+}
 
 // GetDiscussionVisibility returns the discussions module visibility for a profile.
 func (r *Repository) GetDiscussionVisibility(
@@ -175,8 +190,8 @@ func (r *Repository) ListTopLevelComments(
 		ThreadID:      params.ThreadID,
 		IncludeHidden: params.IncludeHidden,
 		SortMode:      string(params.Sort),
-		PageLimit:     int32(params.Limit),
-		PageOffset:    int32(params.Offset),
+		PageLimit:     safeInt32(params.Limit),
+		PageOffset:    safeInt32(params.Offset),
 	})
 	if err != nil {
 		return nil, err
@@ -201,8 +216,8 @@ func (r *Repository) ListChildComments(
 		ThreadID:      params.ThreadID,
 		ParentID:      vars.ToSQLNullString(params.ParentID),
 		IncludeHidden: params.IncludeHidden,
-		PageLimit:     int32(params.Limit),
-		PageOffset:    int32(params.Offset),
+		PageLimit:     safeInt32(params.Limit),
+		PageOffset:    safeInt32(params.Offset),
 	})
 	if err != nil {
 		return nil, err
