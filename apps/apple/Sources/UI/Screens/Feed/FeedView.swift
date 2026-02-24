@@ -389,12 +389,16 @@ public struct FeedNavigationView: View {
                                     }
                                 }
                             } label: {
-                                Text(LocaleHelper.flag(for: preferredLocale))
-                                    .font(.body)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(AYAColors.accentSubtle)
-                                    .clipShape(Capsule())
+                                HStack(spacing: 4) {
+                                    Text(LocaleHelper.flag(for: preferredLocale))
+                                    Text(LocaleHelper.displayName(for: preferredLocale))
+                                        .font(AYATypography.caption)
+                                        .fontWeight(.medium)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(AYAColors.accentSubtle)
+                                .clipShape(Capsule())
                             }
                             .accessibilityLabel("Change language, current: \(LocaleHelper.displayName(for: preferredLocale))")
                         }
