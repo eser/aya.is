@@ -1,0 +1,76 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build the iOS app"
+  lane :build do
+    xcodebuild(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-iOS",
+      configuration: "Release",
+      destination: "generic/platform=iOS",
+      xcargs: "CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation"
+    )
+  end
+
+  desc "Run tests"
+  lane :test do
+    scan(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-iOS",
+      destination: "platform=iOS Simulator,name=iPhone 16",
+      code_coverage: true,
+      clean: true
+    )
+  end
+
+  desc "Build and archive for App Store"
+  lane :archive do
+    build_app(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-iOS",
+      export_method: "app-store",
+      skip_codesigning: true
+    )
+  end
+
+  desc "Upload to TestFlight"
+  lane :beta do
+    # TODO: Configure signing and App Store Connect credentials
+    UI.important("Signing and App Store Connect credentials not yet configured.")
+    UI.important("Set up match or manual signing before running this lane.")
+  end
+end
+
+platform :mac do
+  desc "Build the macOS app"
+  lane :build do
+    xcodebuild(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-macOS",
+      configuration: "Release",
+      destination: "platform=macOS",
+      xcargs: "CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation"
+    )
+  end
+
+  desc "Run tests"
+  lane :test do
+    scan(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-macOS",
+      destination: "platform=macOS",
+      code_coverage: true,
+      clean: true
+    )
+  end
+
+  desc "Build and archive for Mac App Store"
+  lane :archive do
+    build_app(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-macOS",
+      export_method: "app-store",
+      skip_codesigning: true
+    )
+  end
+end
