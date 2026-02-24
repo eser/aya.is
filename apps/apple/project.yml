@@ -11,6 +11,9 @@ options:
 packages:
   AYA:
     path: .
+  swift-snapshot-testing:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: "1.17.0"
 
 settings:
   base:
@@ -67,6 +70,23 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_STRICT_CONCURRENCY: complete
+
+  AYA-Tests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - package: AYA
+        product: AYAKit
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: ""
         SWIFT_STRICT_CONCURRENCY: complete
 
   AYA-iOS-UITests:

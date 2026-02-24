@@ -125,7 +125,7 @@ extension RTLSnapshotTests {
         of view: V,
         named name: String? = nil,
         height: CGFloat = 200,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         testName: String = #function,
         line: UInt = #line
     ) {
