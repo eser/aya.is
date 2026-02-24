@@ -117,6 +117,7 @@ repos:
             .github/.*|
             .git/COMMIT_EDITMSG|
             docs/.*|
+            apps/apple/.*|
             apps/webclient/.*|
             apps/webclient.old/.*|
             apps/services/pkg/ajan/configfx/README.md|
