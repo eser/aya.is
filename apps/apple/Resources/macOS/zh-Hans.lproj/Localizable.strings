@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "开放软件网络";
+
+/* Feed */
+"feed.search.placeholder" = "搜索文章、人物、产品...";
+"feed.filter.stories" = "文章";
+"feed.filter.activities" = "活动";
+"feed.filter.people" = "人物";
+"feed.filter.products" = "产品";
+"feed.error.retry" = "重试";
+"feed.empty" = "未找到内容";
+
+/* Detail */
+"detail.story" = "文章";
+"detail.activity" = "活动";
+"detail.profile" = "个人资料";
+
+/* Activity */
+"activity.join" = "加入活动";
+"activity.rsvp" = "确认出席";
+
+/* Profile */
+"profile.points" = "积分";
+"profile.pages" = "页面";
+"profile.stories" = "文章";
+"profile.activities" = "活动";
+
+/* Product */
+"product.badge" = "产品";

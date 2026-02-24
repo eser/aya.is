@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "Rede de software aberto";
+
+/* Feed */
+"feed.search.placeholder" = "Pesquisar artigos, pessoas, produtos...";
+"feed.filter.stories" = "Artigos";
+"feed.filter.activities" = "Atividades";
+"feed.filter.people" = "Pessoas";
+"feed.filter.products" = "Produtos";
+"feed.error.retry" = "Tentar novamente";
+"feed.empty" = "Nenhum conteúdo encontrado";
+
+/* Detail */
+"detail.story" = "Artigo";
+"detail.activity" = "Atividade";
+"detail.profile" = "Perfil";
+
+/* Activity */
+"activity.join" = "Participar da atividade";
+"activity.rsvp" = "Confirmar presença";
+
+/* Profile */
+"profile.points" = "pontos";
+"profile.pages" = "Páginas";
+"profile.stories" = "Artigos";
+"profile.activities" = "Atividades";
+
+/* Product */
+"product.badge" = "Produto";

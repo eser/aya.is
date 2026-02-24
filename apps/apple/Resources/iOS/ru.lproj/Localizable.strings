@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "Открытая программная сеть";
+
+/* Feed */
+"feed.search.placeholder" = "Поиск статей, людей, продуктов...";
+"feed.filter.stories" = "Статьи";
+"feed.filter.activities" = "Мероприятия";
+"feed.filter.people" = "Люди";
+"feed.filter.products" = "Продукты";
+"feed.error.retry" = "Повторить";
+"feed.empty" = "Контент не найден";
+
+/* Detail */
+"detail.story" = "Статья";
+"detail.activity" = "Мероприятие";
+"detail.profile" = "Профиль";
+
+/* Activity */
+"activity.join" = "Присоединиться";
+"activity.rsvp" = "Подтвердить участие";
+
+/* Profile */
+"profile.points" = "баллов";
+"profile.pages" = "Страницы";
+"profile.stories" = "Статьи";
+"profile.activities" = "Мероприятия";
+
+/* Product */
+"product.badge" = "Продукт";

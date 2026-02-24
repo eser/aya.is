@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "Open softwarenetwerk";
+
+/* Feed */
+"feed.search.placeholder" = "Zoek artikelen, mensen, producten...";
+"feed.filter.stories" = "Artikelen";
+"feed.filter.activities" = "Activiteiten";
+"feed.filter.people" = "Mensen";
+"feed.filter.products" = "Producten";
+"feed.error.retry" = "Opnieuw proberen";
+"feed.empty" = "Geen inhoud gevonden";
+
+/* Detail */
+"detail.story" = "Artikel";
+"detail.activity" = "Activiteit";
+"detail.profile" = "Profiel";
+
+/* Activity */
+"activity.join" = "Deelnemen aan activiteit";
+"activity.rsvp" = "Aanwezigheid bevestigen";
+
+/* Profile */
+"profile.points" = "punten";
+"profile.pages" = "Pagina's";
+"profile.stories" = "Artikelen";
+"profile.activities" = "Activiteiten";
+
+/* Product */
+"product.badge" = "Product";

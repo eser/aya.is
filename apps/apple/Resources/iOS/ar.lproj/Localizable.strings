@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "شبكة البرمجيات المفتوحة";
+
+/* Feed */
+"feed.search.placeholder" = "البحث عن مقالات، أشخاص، منتجات...";
+"feed.filter.stories" = "مقالات";
+"feed.filter.activities" = "أنشطة";
+"feed.filter.people" = "أشخاص";
+"feed.filter.products" = "منتجات";
+"feed.error.retry" = "إعادة المحاولة";
+"feed.empty" = "لم يتم العثور على محتوى";
+
+/* Detail */
+"detail.story" = "مقال";
+"detail.activity" = "نشاط";
+"detail.profile" = "الملف الشخصي";
+
+/* Activity */
+"activity.join" = "الانضمام للنشاط";
+"activity.rsvp" = "تأكيد الحضور";
+
+/* Profile */
+"profile.points" = "نقاط";
+"profile.pages" = "صفحات";
+"profile.stories" = "مقالات";
+"profile.activities" = "أنشطة";
+
+/* Product */
+"product.badge" = "منتج";

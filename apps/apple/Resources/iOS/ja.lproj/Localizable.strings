@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "オープンソフトウェアネットワーク";
+
+/* Feed */
+"feed.search.placeholder" = "記事、人物、製品を検索...";
+"feed.filter.stories" = "記事";
+"feed.filter.activities" = "アクティビティ";
+"feed.filter.people" = "人物";
+"feed.filter.products" = "製品";
+"feed.error.retry" = "再試行";
+"feed.empty" = "コンテンツが見つかりません";
+
+/* Detail */
+"detail.story" = "記事";
+"detail.activity" = "アクティビティ";
+"detail.profile" = "プロフィール";
+
+/* Activity */
+"activity.join" = "アクティビティに参加";
+"activity.rsvp" = "出欠を回答";
+
+/* Profile */
+"profile.points" = "ポイント";
+"profile.pages" = "ページ";
+"profile.stories" = "記事";
+"profile.activities" = "アクティビティ";
+
+/* Product */
+"product.badge" = "製品";

@@ -1,0 +1,30 @@
+/* App */
+"app.title" = "AYA";
+"app.subtitle" = "오픈 소프트웨어 네트워크";
+
+/* Feed */
+"feed.search.placeholder" = "기사, 사람, 제품 검색...";
+"feed.filter.stories" = "기사";
+"feed.filter.activities" = "활동";
+"feed.filter.people" = "사람";
+"feed.filter.products" = "제품";
+"feed.error.retry" = "다시 시도";
+"feed.empty" = "콘텐츠를 찾을 수 없습니다";
+
+/* Detail */
+"detail.story" = "기사";
+"detail.activity" = "활동";
+"detail.profile" = "프로필";
+
+/* Activity */
+"activity.join" = "활동 참여";
+"activity.rsvp" = "참석 확인";
+
+/* Profile */
+"profile.points" = "포인트";
+"profile.pages" = "페이지";
+"profile.stories" = "기사";
+"profile.activities" = "활동";
+
+/* Product */
+"product.badge" = "제품";
