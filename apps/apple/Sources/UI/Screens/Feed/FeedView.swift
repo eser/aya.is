@@ -99,9 +99,9 @@ public struct FeedView: View {
             let displayItems = feedDisplayItems
             ForEach(displayItems) { item in
                 feedItemView(item)
-                    .onAppear {
+                    .task(id: item.id) {
                         if item == displayItems.last {
-                            Task { await viewModel.loadMore() }
+                            await viewModel.loadMore()
                         }
                     }
             }
@@ -123,9 +123,9 @@ public struct FeedView: View {
             LazyVGrid(columns: columns, spacing: AYASpacing.md) {
                 ForEach(displayItems) { item in
                     feedItemView(item)
-                        .onAppear {
+                        .task(id: item.id) {
                             if item == displayItems.last {
-                                Task { await viewModel.loadMore() }
+                                await viewModel.loadMore()
                             }
                         }
                 }
@@ -186,9 +186,9 @@ public struct FeedView: View {
                             searchResultRow(result)
                         }
                         .buttonStyle(.plain)
-                        .onAppear {
+                        .task(id: result.id) {
                             if result == viewModel.searchResults.last {
-                                Task { await viewModel.loadMore() }
+                                await viewModel.loadMore()
                             }
                         }
                     }

@@ -27,7 +27,8 @@ public final class FeedViewModel {
     private var productCursor: String?
     private var searchCursor: String?
 
-    private var searchTask: Task<Void, Never>?
+    nonisolated(unsafe) private var searchTask: Task<Void, Never>?
+    nonisolated(unsafe) private var paginationTask: Task<Void, Never>?
 
     let client: APIClientProtocol
     var locale: String
@@ -41,6 +42,11 @@ public final class FeedViewModel {
     public init(client: APIClientProtocol, locale: String = LocaleHelper.currentLocale) {
         self.client = client
         self.locale = locale
+    }
+
+    deinit {
+        searchTask?.cancel()
+        paginationTask?.cancel()
     }
 
     // MARK: - Load
@@ -136,6 +142,8 @@ public final class FeedViewModel {
     // MARK: - Refresh
 
     func refresh() async {
+        paginationTask?.cancel()
+        paginationTask = nil
         stories = []
         activities = []
         people = []

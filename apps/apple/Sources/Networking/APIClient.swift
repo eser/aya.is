@@ -46,6 +46,10 @@ public struct APIClient: APIClientProtocol {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         self.decoder = decoder
+
+        // Limit URLCache to prevent unbounded memory growth during infinite scroll
+        URLCache.shared.memoryCapacity = 50 * 1024 * 1024   // 50 MB
+        URLCache.shared.diskCapacity = 200 * 1024 * 1024     // 200 MB
     }
 
     // MARK: - Stories
