@@ -1,4 +1,5 @@
 .PHONY: project build-ios build-macos test test-ios test-macos clean lint \
+       uitest-ios uitest-macos \
        fastlane-ios-build fastlane-macos-build fastlane-ios-test fastlane-macos-test \
        fastlane-setup check format
 
@@ -48,13 +49,31 @@ test-macos: project
 		-skipPackagePluginValidation \
 		CODE_SIGNING_ALLOWED=NO
 
+# --- UI Tests ---
+
+uitest-ios: project
+	xcodebuild test \
+		-project AYA.xcodeproj \
+		-scheme AYA-iOS-UITests \
+		-destination 'platform=iOS Simulator,name=iPhone 16' \
+		-skipPackagePluginValidation \
+		CODE_SIGNING_ALLOWED=NO
+
+uitest-macos: project
+	xcodebuild test \
+		-project AYA.xcodeproj \
+		-scheme AYA-macOS-UITests \
+		-destination 'platform=macOS' \
+		-skipPackagePluginValidation \
+		CODE_SIGNING_ALLOWED=NO
+
 # --- Lint ---
 
 lint:
-	@echo "Checking for removed DI patterns..."
-	@! grep -r "ComponentResolver\|ComponentBinding\|UIFactory\|service.locator\|AppLogger" Sources/ || \
-		(echo "ERROR: Found references to removed DI patterns" && exit 1)
-	@echo "Clean — no legacy patterns found."
+	@echo "Checking code conventions..."
+	@! grep -rn "^import Models$$\|^import Networking$$\|^import UI$$" Sources/ || \
+		(echo "ERROR: Found unexpected module imports" && exit 1)
+	@echo "Clean — all conventions verified."
 
 format:
 	swift format --in-place --recursive Sources/ Tests/

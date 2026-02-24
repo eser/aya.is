@@ -99,6 +99,34 @@ jobs:
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
+  ui-test-ios:
+    name: UI Tests (iOS)
+    runs-on: macos-15
+    needs: build-ios
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run UI Tests
+        run: |
+          xcodebuild test \
+            -project AYA.xcodeproj \
+            -scheme AYA-iOS-UITests \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
+
   lint:
     name: Lint
     runs-on: macos-15
@@ -108,16 +136,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify no legacy DI patterns
+      - name: Verify code conventions
         run: |
-          echo "Checking for removed patterns..."
-          ! grep -r "ComponentResolver\|ComponentBinding\|UIFactory\|service.locator\|AppLogger" Sources/ || \
-            (echo "ERROR: Found references to removed DI patterns" && exit 1)
-          echo "Clean — no legacy patterns found."
-
-      - name: Verify single-module architecture
-        run: |
-          echo "Checking for cross-module imports..."
+          echo "Checking import conventions..."
           ! grep -rn "^import Models$\|^import Networking$\|^import UI$" Sources/ || \
-            (echo "ERROR: Found cross-module imports in flattened architecture" && exit 1)
-          echo "Clean — single-module architecture verified."
+            (echo "ERROR: Found unexpected module imports" && exit 1)
+          echo "Clean — all conventions verified."

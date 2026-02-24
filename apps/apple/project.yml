@@ -68,3 +68,31 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_HARDENED_RUNTIME: YES
         SWIFT_STRICT_CONCURRENCY: complete
+
+  AYA-iOS-UITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: AYA-iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: AYA-iOS
+        SWIFT_STRICT_CONCURRENCY: complete
+
+  AYA-macOS-UITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: AYA-macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.macos.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: AYA-macOS
+        SWIFT_STRICT_CONCURRENCY: complete
