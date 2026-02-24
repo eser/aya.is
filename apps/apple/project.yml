@@ -32,7 +32,7 @@ targets:
         product: AYAKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.ios
         PRODUCT_NAME: AYA
         MARKETING_VERSION: "0.2.1"
         CURRENT_PROJECT_VERSION: "2"
@@ -58,7 +58,7 @@ targets:
         product: AYAKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.macos
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.mac
         PRODUCT_NAME: AYA
         MARKETING_VERSION: "0.2.1"
         CURRENT_PROJECT_VERSION: "2"
@@ -84,7 +84,7 @@ targets:
         product: SnapshotTesting
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.tests
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.ios.tests
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: ""
         SWIFT_STRICT_CONCURRENCY: complete
@@ -101,7 +101,7 @@ targets:
         product: SnapshotTesting
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.macos.tests
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.mac.tests
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: ""
         SWIFT_STRICT_CONCURRENCY: complete
@@ -115,7 +115,7 @@ targets:
       - target: AYA-iOS
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.ios.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: AYA-iOS
         SWIFT_STRICT_CONCURRENCY: complete
@@ -129,7 +129,7 @@ targets:
       - target: AYA-macOS
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: is.aya.app.macos.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.mac.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: AYA-macOS
         SWIFT_STRICT_CONCURRENCY: complete
