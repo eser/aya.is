@@ -419,6 +419,8 @@
     "Open Telegram Bot": "افتح بوت Telegram",
     "Type /start, get the code": "اكتب /start واحصل على الرمز",
     "Send /start to the bot and it will reply with a verification code.": "أرسل /start إلى البوت وسيرد برمز تحقق.",
+    "Set link visibility": "Set link visibility",
+    "Choose who can see this link on your profile.": "Choose who can see this link on your profile.",
     "Paste verification code": "الصق رمز التحقق",
     "Paste the code below and click Verify.": "الصق الرمز أدناه وانقر تحقق.",
     "Enter verification code": "أدخل رمز التحقق",

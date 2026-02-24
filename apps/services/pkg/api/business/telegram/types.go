@@ -75,5 +75,6 @@ type CreateProfileLinkParams struct {
 	PublicID         string // Telegram username
 	URI              string // https://t.me/<username>
 	Order            int
+	Visibility       string // Link visibility (public, followers, etc.)
 	AddedByProfileID string
 }

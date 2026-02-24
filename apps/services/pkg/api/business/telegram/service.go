@@ -152,6 +152,7 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 	profileID string,
 	profileSlug string,
 	userID string,
+	visibility string,
 ) (*LinkResult, error) {
 	// Look up the code
 	externalCode, err := s.repo.GetExternalCodeByCode(ctx, code)
@@ -189,6 +190,11 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 		uri = "https://t.me/" + telegramUsername
 	}
 
+	// Default to "public" if no visibility specified
+	if visibility == "" {
+		visibility = "public"
+	}
+
 	// Create the profile link
 	err = s.repo.CreateTelegramProfileLink(ctx, &CreateProfileLinkParams{
 		ID:               s.idGenerator(),
@@ -197,6 +203,7 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 		PublicID:         telegramUsername,
 		URI:              uri,
 		Order:            maxOrder + 1,
+		Visibility:       visibility,
 		AddedByProfileID: profileID,
 	})
 	if err != nil {

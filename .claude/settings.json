@@ -1,5 +1,133 @@
 {
+  "env": {
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(command -v:*)",
+      "Bash(coolify app deployments list:*)",
+      "Bash(coolify app list:*)",
+      "Bash(coolify app logs:*)",
+      "Bash(coolify deploy list:*)",
+      "Bash(curl:*)",
+      "Bash(date:*)",
+      "Bash(deno check:*)",
+      "Bash(deno fmt:*)",
+      "Bash(deno lint:*)",
+      "Bash(deno task test:*)",
+      "Bash(deno test:*)",
+      "Bash(dig:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(find:*)",
+      "Bash(gh auth status:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh search:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(git show-ref:*)",
+      "Bash(git show:*)",
+      "Bash(git status:*)",
+      "Bash(go doc:*)",
+      "Bash(go test:*)",
+      "Bash(grep:*)",
+      "Bash(gsutil cat:*)",
+      "Bash(ls:*)",
+      "Bash(lsof:*)",
+      "Bash(nslookup:*)",
+      "Bash(rg:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "mcp__aya__get_profile_page",
+      "mcp__aya__get_profile",
+      "mcp__aya__get_story",
+      "mcp__aya__list_news",
+      "mcp__aya__list_profiles",
+      "mcp__aya__list_stories",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__context7__query-docs",
+      "mcp__context7__resolve-library-id",
+      "mcp__fetch__fetch",
+      "mcp__ide__getDiagnostics",
+      "mcp__plugin_context7_context7__query-docs",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__postgres__get_object_details",
+      "mcp__postgres__list_objects",
+      "mcp__postgres__list_schemas",
+      "mcp__shadcn__get_add_command_for_items",
+      "mcp__shadcn__get_audit_checklist",
+      "mcp__shadcn__get_item_examples_from_registries",
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__list_items_in_registries",
+      "mcp__shadcn__search_items_in_registries",
+      "mcp__shadcn__view_items_in_registries",
+      "mcp__zen__analyze",
+      "mcp__zen__chat",
+      "mcp__zen__codereview",
+      "mcp__zen__planner",
+      "mcp__zen__precommit",
+      "mcp__zen__thinkdeep",
+      "Skill(architecture-guidelines)",
+      "Skill(eser-rules-manager)",
+      "Skill(go-practices)",
+      "Skill(javascript-practices)",
+      "Skill(workflow-practices)",
+      "WebFetch(domain:api.aya.is)",
+      "WebFetch(domain:base-ui.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)",
+      "Bash(git switch:*)",
+      "Bash(npx tsc:*)"
+    ],
+    "ask": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/decision-nudge.js",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
   "enabledPlugins": {
+    "context7@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true
-  }
+  },
+  "outputStyle": "Explanatory",
+  "alwaysThinkingEnabled": true,
+  "promptSuggestionEnabled": false,
+  "skipDangerousModePermissionPrompt": true,
+  "teammateMode": "in-process"
 }

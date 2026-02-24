@@ -181,7 +181,7 @@ func (a *telegramAdapter) CreateTelegramProfileLink(
 		IsManaged:  true,
 		IsVerified: true,
 		IsFeatured: false,
-		Visibility: "public",
+		Visibility: params.Visibility,
 		RemoteID: sql.NullString{
 			String: params.RemoteID,
 			Valid:  params.RemoteID != "",

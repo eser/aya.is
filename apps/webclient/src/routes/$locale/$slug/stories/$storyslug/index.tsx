@@ -9,7 +9,7 @@ import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { generateMetaTags, truncateDescription } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { ChildNotFound } from "../../route";
 
 const profileRoute = getRouteApi("/$locale/$slug");
@@ -70,6 +70,10 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
       return { meta: [] };
     }
     const { story, currentUrl, locale } = loaderData;
+    const sourceUrl = story.properties?.source_url as string | undefined;
+    const canonicalUrl = (story.is_managed === true && sourceUrl !== undefined && sourceUrl !== "")
+      ? sourceUrl
+      : buildUrl(locale, "stories", story.slug ?? "");
     return {
       meta: generateMetaTags({
         title: story.title ?? "Story",
@@ -82,6 +86,7 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
         modifiedTime: story.updated_at,
         author: story.author_profile?.title ?? null,
       }),
+      links: [generateCanonicalLink(canonicalUrl)],
     };
   },
   component: ProfileStoryPage,

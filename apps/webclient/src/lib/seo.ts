@@ -109,6 +109,11 @@ export function buildUrl(locale: string, ...pathSegments: string[]): string {
   return `${siteConfig.host}/${locale}${path !== "" ? `/${path}` : ""}`;
 }
 
+// Helper to generate a canonical link tag for head()
+export function generateCanonicalLink(url: string): { rel: string; href: string } {
+  return { rel: "canonical", href: url };
+}
+
 // Helper to truncate description to recommended length
 export function truncateDescription(text: string | null | undefined, maxLength = 160): string {
   if (text === null || text === undefined || text === "") {

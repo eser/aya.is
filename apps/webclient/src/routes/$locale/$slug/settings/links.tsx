@@ -194,6 +194,7 @@ function LinksSettingsPage() {
   // Telegram connect state
   const [isTelegramDialogOpen, setIsTelegramDialogOpen] = React.useState(false);
   const [telegramCode, setTelegramCode] = React.useState("");
+  const [telegramVisibility, setTelegramVisibility] = React.useState<LinkVisibility>("public");
   const [isVerifyingTelegramCode, setIsVerifyingTelegramCode] = React.useState(false);
   const [telegramConnectionStatus, setTelegramConnectionStatus] = React.useState<
     "idle" | "connected" | "error"
@@ -616,6 +617,7 @@ function LinksSettingsPage() {
 
   const handleConnectTelegram = () => {
     setTelegramCode("");
+    setTelegramVisibility("public");
     setTelegramConnectionStatus("idle");
     setTelegramErrorMessage("");
     setIsVerifyingTelegramCode(false);
@@ -633,6 +635,7 @@ function LinksSettingsPage() {
       params.locale,
       params.slug,
       code,
+      telegramVisibility,
     );
 
     if (result !== null) {
@@ -661,6 +664,7 @@ function LinksSettingsPage() {
   const handleCloseTelegramDialog = () => {
     setIsTelegramDialogOpen(false);
     setTelegramCode("");
+    setTelegramVisibility("public");
     setTelegramConnectionStatus("idle");
     setTelegramErrorMessage("");
     setIsVerifyingTelegramCode(false);
@@ -1635,10 +1639,44 @@ function LinksSettingsPage() {
                   </div>
                 </div>
 
-                {/* Step 3 */}
+                {/* Step 3 — Visibility */}
                 <div className="flex gap-3">
                   <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
                     3
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">
+                      {t("Profile.Set link visibility")}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("Profile.Choose who can see this link on your profile.")}
+                    </p>
+                    <div className="mt-3">
+                      <Select
+                        value={telegramVisibility}
+                        onValueChange={(value) => setTelegramVisibility(value as LinkVisibility)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue>
+                            {t(`Profile.Visibility.${telegramVisibility}`)}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VISIBILITY_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {t(option.labelKey)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 4 — Verification */}
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    4
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">

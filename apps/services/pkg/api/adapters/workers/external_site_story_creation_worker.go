@@ -245,6 +245,7 @@ func (w *ExternalSiteStoryProcessor) createStoryFromImport(
 	properties := map[string]any{
 		"managed_by": "external_site_sync_worker",
 		"remote_id":  imp.RemoteID,
+		"source_url": meta.link,
 	}
 
 	_, err := w.storyRepo.InsertStory(

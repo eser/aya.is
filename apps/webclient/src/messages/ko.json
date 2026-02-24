@@ -419,6 +419,8 @@
     "Open Telegram Bot": "Telegram 봇 열기",
     "Type /start, get the code": "/start를 입력하고 코드 받기",
     "Send /start to the bot and it will reply with a verification code.": "봇에게 /start를 보내면 인증 코드를 답장합니다.",
+    "Set link visibility": "Set link visibility",
+    "Choose who can see this link on your profile.": "Choose who can see this link on your profile.",
     "Paste verification code": "인증 코드 붙여넣기",
     "Paste the code below and click Verify.": "아래에 코드를 붙여넣고 인증을 클릭하세요.",
     "Enter verification code": "인증 코드 입력",

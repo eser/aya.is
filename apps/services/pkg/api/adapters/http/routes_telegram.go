@@ -114,7 +114,8 @@ func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen
 
 			// Parse request body
 			var body struct {
-				Code string `json:"code"`
+				Code       string `json:"code"`
+				Visibility string `json:"visibility"`
 			}
 
 			err := json.NewDecoder(ctx.Request.Body).Decode(&body)
@@ -143,6 +144,7 @@ func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen
 				profile.ID,
 				profile.Slug,
 				*session.LoggedInUserID,
+				body.Visibility,
 			)
 			if verifyErr != nil {
 				logger.WarnContext(ctx.Request.Context(), "Telegram code verification failed",

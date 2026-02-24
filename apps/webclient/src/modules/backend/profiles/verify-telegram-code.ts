@@ -12,6 +12,7 @@ export async function verifyTelegramCode(
   locale: string,
   slug: string,
   code: string,
+  visibility?: string,
 ): Promise<VerifyTelegramCodeResponse | null> {
   const token = getAuthToken();
   if (token === null) return null;
@@ -25,7 +26,7 @@ export async function verifyTelegramCode(
         Authorization: `Bearer ${token}`,
       },
       credentials: "include",
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, visibility }),
     },
   );
 

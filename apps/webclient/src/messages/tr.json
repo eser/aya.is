@@ -419,6 +419,8 @@
     "Open Telegram Bot": "Telegram Botu Aç",
     "Type /start, get the code": "/start yazın ve kodu alın",
     "Send /start to the bot and it will reply with a verification code.": "Bota /start gönderin, size bir doğrulama kodu ile yanıt verecektir.",
+    "Set link visibility": "Bağlantı görünürlüğünü ayarlayın",
+    "Choose who can see this link on your profile.": "Bu bağlantıyı profilinizde kimlerin görebileceğini seçin.",
     "Paste verification code": "Doğrulama kodunu yapıştırın",
     "Paste the code below and click Verify.": "Kodu aşağıya yapıştırın ve Doğrula'ya tıklayın.",
     "Enter verification code": "Doğrulama kodunu girin",

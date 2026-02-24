@@ -419,6 +419,8 @@
     "Open Telegram Bot": "打开 Telegram 机器人",
     "Type /start, get the code": "输入 /start，获取验证码",
     "Send /start to the bot and it will reply with a verification code.": "向机器人发送 /start，它将回复一个验证码。",
+    "Set link visibility": "Set link visibility",
+    "Choose who can see this link on your profile.": "Choose who can see this link on your profile.",
     "Paste verification code": "粘贴验证码",
     "Paste the code below and click Verify.": "在下方粘贴验证码并点击验证。",
     "Enter verification code": "输入验证码",

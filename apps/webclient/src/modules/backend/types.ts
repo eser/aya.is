@@ -218,6 +218,7 @@ export interface Story {
   properties: Record<string, unknown> | null;
   author_profile_id: string | null;
   author_profile: Profile | null;
+  is_managed: boolean;
   feat_discussions: boolean;
   visibility: ContentVisibility;
   published_at: string | null;

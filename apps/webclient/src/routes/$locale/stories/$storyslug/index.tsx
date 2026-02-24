@@ -8,7 +8,7 @@ import { DiscussionThread } from "@/components/widgets/discussion-thread";
 import { compileMdx, compileMdxLite } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { generateMetaTags, truncateDescription } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { PageNotFound } from "@/components/page-not-found";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 
@@ -68,6 +68,8 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
       return { meta: [] };
     }
     const { story, currentUrl, locale } = loaderData;
+    const sourceUrl = story.properties?.source_url as string | undefined;
+    const canonicalUrl = (story.is_managed === true && sourceUrl !== undefined && sourceUrl !== "") ? sourceUrl : currentUrl;
     return {
       meta: generateMetaTags({
         title: story.title ?? "Story",
@@ -80,6 +82,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
         modifiedTime: story.updated_at,
         author: story.author_profile?.title ?? null,
       }),
+      links: [generateCanonicalLink(canonicalUrl)],
     };
   },
   component: StoryPage,

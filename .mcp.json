@@ -6,6 +6,16 @@
         "shadcn@latest",
         "mcp"
       ]
+    },
+    "decision-memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@decision-memory/mcp-server@latest"
+      ],
+      "env": {
+        "DECISION_MEMORY_FILE": "DECISIONS.toon"
+      }
     }
   }
 }

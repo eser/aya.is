@@ -423,6 +423,8 @@
     "Open Telegram Bot": "Open Telegram Bot",
     "Type /start, get the code": "Type /start, get the code",
     "Send /start to the bot and it will reply with a verification code.": "Send /start to the bot and it will reply with a verification code.",
+    "Set link visibility": "Set link visibility",
+    "Choose who can see this link on your profile.": "Choose who can see this link on your profile.",
     "Paste verification code": "Paste verification code",
     "Paste the code below and click Verify.": "Paste the code below and click Verify.",
     "Enter verification code": "Enter verification code",
