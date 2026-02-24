@@ -50,7 +50,7 @@ public final class ProfileDetailViewModel {
 
 public struct ProfileDetailView: View {
     @Bindable var viewModel: ProfileDetailViewModel
-    @Environment(\.locale) private var appLocale
+    @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
 
     public init(viewModel: ProfileDetailViewModel) {
         self.viewModel = viewModel
@@ -79,7 +79,7 @@ public struct ProfileDetailView: View {
                                 .clipShape(Capsule())
 
                             if profile.points > 0 {
-                                Text("\(profile.points) \(String(localized: "profile.points", defaultValue: "points", locale: appLocale))")
+                                Text("\(profile.points) \(LocaleHelper.localized("profile.points", defaultValue: "points", locale: preferredLocale))")
                                     .font(AYATypography.caption)
                                     .foregroundStyle(AYAColors.textSecondary)
                             }
@@ -93,7 +93,7 @@ public struct ProfileDetailView: View {
 
                     Picker("Section", selection: $viewModel.selectedTab) {
                         ForEach(ProfileDetailViewModel.ProfileTab.allCases, id: \.self) { tab in
-                            Text(localizedTabLabel(tab, locale: appLocale)).tag(tab)
+                            Text(localizedTabLabel(tab, locale: preferredLocale)).tag(tab)
                         }
                     }
                     .pickerStyle(.segmented)
@@ -101,7 +101,7 @@ public struct ProfileDetailView: View {
                     switch viewModel.selectedTab {
                     case .pages:
                         if viewModel.pages.isEmpty {
-                            Text(String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale))
+                            Text(LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale))
                                 .font(AYATypography.body)
                                 .foregroundStyle(AYAColors.textTertiary)
                         } else {
@@ -119,7 +119,7 @@ public struct ProfileDetailView: View {
 
                     case .stories:
                         if viewModel.stories.isEmpty {
-                            Text(String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale))
+                            Text(LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale))
                                 .font(AYATypography.body)
                                 .foregroundStyle(AYAColors.textTertiary)
                         } else {
@@ -135,7 +135,7 @@ public struct ProfileDetailView: View {
                         }
 
                     case .activities:
-                        Text(String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale))
+                        Text(LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale))
                             .font(AYATypography.body)
                             .foregroundStyle(AYAColors.textTertiary)
                     }
@@ -147,18 +147,18 @@ public struct ProfileDetailView: View {
                 AYAErrorView(message: error) { Task { await viewModel.load() } }
             }
         }
-        .navigationTitle(viewModel.profile?.title ?? String(localized: "detail.profile", defaultValue: "Profile", locale: appLocale))
+        .navigationTitle(viewModel.profile?.title ?? LocaleHelper.localized("detail.profile", defaultValue: "Profile", locale: preferredLocale))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .task { await viewModel.load() }
     }
 
-    private func localizedTabLabel(_ tab: ProfileDetailViewModel.ProfileTab, locale: Locale) -> String {
+    private func localizedTabLabel(_ tab: ProfileDetailViewModel.ProfileTab, locale: String) -> String {
         switch tab {
-        case .pages: String(localized: "profile.pages", defaultValue: "Pages", locale: locale)
-        case .stories: String(localized: "profile.stories", defaultValue: "Stories", locale: locale)
-        case .activities: String(localized: "profile.activities", defaultValue: "Activities", locale: locale)
+        case .pages: LocaleHelper.localized("profile.pages", defaultValue: "Pages", locale: locale)
+        case .stories: LocaleHelper.localized("profile.stories", defaultValue: "Stories", locale: locale)
+        case .activities: LocaleHelper.localized("profile.activities", defaultValue: "Activities", locale: locale)
         }
     }
 }

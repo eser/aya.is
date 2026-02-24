@@ -43,7 +43,7 @@ public final class StoryDetailViewModel {
 /// Detail screen displaying a story's hero image, author info, and rich content.
 public struct StoryDetailView: View {
     @Bindable var viewModel: StoryDetailViewModel
-    @Environment(\.locale) private var appLocale
+    @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
 
     /// Creates a story detail view backed by the given view model.
     public init(viewModel: StoryDetailViewModel) {
@@ -110,7 +110,7 @@ public struct StoryDetailView: View {
                 AYAErrorView(message: error) { Task { await viewModel.loadStory() } }
             }
         }
-        .navigationTitle(viewModel.story?.title ?? String(localized: "detail.story", defaultValue: "Story", locale: appLocale))
+        .navigationTitle(viewModel.story?.title ?? LocaleHelper.localized("detail.story", defaultValue: "Story", locale: preferredLocale))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif

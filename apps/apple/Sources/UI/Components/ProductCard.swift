@@ -13,7 +13,7 @@ public struct ProductCard: View {
         self.imageUrl = imageUrl
     }
 
-    @Environment(\.locale) private var appLocale
+    @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
 
     /// The card layout: product image, title, description, and a "Product" badge.
     public var body: some View {
@@ -37,7 +37,7 @@ public struct ProductCard: View {
 
             Spacer()
 
-            Text(String(localized: "product.badge", defaultValue: "Product", locale: appLocale))
+            Text(LocaleHelper.localized("product.badge", defaultValue: "Product", locale: preferredLocale))
                 .font(AYATypography.caption2)
                 .fontWeight(.medium)
                 .foregroundStyle(.purple)

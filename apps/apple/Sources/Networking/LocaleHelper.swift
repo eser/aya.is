@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// Resolves the user's preferred locale to a supported API locale.
 public enum LocaleHelper: Sendable {
@@ -18,6 +19,19 @@ public enum LocaleHelper: Sendable {
         ("zh-Hans", "简体中文", "\u{1F1E8}\u{1F1F3}"),
         ("ar", "العربية", "\u{1F1F8}\u{1F1E6}"),
     ]
+
+    /// RTL locale codes.
+    public static let rtlLocales: Set<String> = ["ar"]
+
+    /// Returns true if the given locale code is right-to-left.
+    public static func isRTL(_ code: String) -> Bool {
+        rtlLocales.contains(code)
+    }
+
+    /// Returns the layout direction for a locale code.
+    public static func layoutDirection(for code: String) -> LayoutDirection {
+        isRTL(code) ? .rightToLeft : .leftToRight
+    }
 
     /// Returns the user's preferred language if supported, otherwise `"en"`.
     public static var currentLocale: String {
@@ -39,5 +53,15 @@ public enum LocaleHelper: Sendable {
     /// Returns the flag emoji for a locale code.
     public static func flag(for code: String) -> String {
         supportedLocales.first { $0.code == code }?.flag ?? "🏳️"
+    }
+
+    /// Returns a localized string from the correct `.lproj` bundle for runtime language switching.
+    public static func localized(_ key: String, defaultValue: String, locale: String) -> String {
+        guard let path = Bundle.main.path(forResource: locale, ofType: "lproj"),
+              let bundle = Bundle(path: path) else {
+            return defaultValue
+        }
+        let result = bundle.localizedString(forKey: key, value: defaultValue, table: nil)
+        return result
     }
 }

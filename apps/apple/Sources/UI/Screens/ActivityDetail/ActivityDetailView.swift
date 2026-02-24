@@ -42,7 +42,7 @@ public final class ActivityDetailViewModel {
 
 public struct ActivityDetailView: View {
     @Bindable var viewModel: ActivityDetailViewModel
-    @Environment(\.locale) private var appLocale
+    @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
 
     public init(viewModel: ActivityDetailViewModel) {
         self.viewModel = viewModel
@@ -93,7 +93,7 @@ public struct ActivityDetailView: View {
 
                             if let uri = props.externalActivityUri, let url = URL(string: uri) {
                                 Link(destination: url) {
-                                    Label(String(localized: "activity.join", defaultValue: "Join Activity", locale: appLocale), systemImage: "arrow.up.right.square")
+                                    Label(LocaleHelper.localized("activity.join", defaultValue: "Join Activity", locale: preferredLocale), systemImage: "arrow.up.right.square")
                                 }
                                 .buttonStyle(.bordered)
                                 .accessibilityHint("Opens external link to join the activity")
@@ -101,7 +101,7 @@ public struct ActivityDetailView: View {
 
                             if let uri = props.externalAttendanceUri, let url = URL(string: uri) {
                                 Link(destination: url) {
-                                    Label(String(localized: "activity.rsvp", defaultValue: "RSVP", locale: appLocale), systemImage: "person.badge.plus")
+                                    Label(LocaleHelper.localized("activity.rsvp", defaultValue: "RSVP", locale: preferredLocale), systemImage: "person.badge.plus")
                                 }
                                 .buttonStyle(.bordered)
                                 .accessibilityHint("Opens external link to RSVP")
@@ -121,7 +121,7 @@ public struct ActivityDetailView: View {
                 AYAErrorView(message: error) { Task { await viewModel.load() } }
             }
         }
-        .navigationTitle(viewModel.activity?.title ?? String(localized: "detail.activity", defaultValue: "Activity", locale: appLocale))
+        .navigationTitle(viewModel.activity?.title ?? LocaleHelper.localized("detail.activity", defaultValue: "Activity", locale: preferredLocale))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif

@@ -3,7 +3,7 @@ import SwiftUI
 /// The main feed screen displaying stories, activities, profiles, and search results.
 public struct FeedView: View {
     @Bindable var viewModel: FeedViewModel
-    @Environment(\.locale) private var appLocale
+    @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
 
     /// Creates a feed view backed by the given view model.
     public init(viewModel: FeedViewModel) {
@@ -18,7 +18,7 @@ public struct FeedView: View {
                     get: { viewModel.searchQuery },
                     set: { viewModel.searchQuery = $0; viewModel.onSearchChanged() }
                 ),
-                placeholder: String(localized: "feed.search.placeholder", defaultValue: "Search stories, people, products...", locale: appLocale)
+                placeholder: LocaleHelper.localized("feed.search.placeholder", defaultValue: "Search stories, people, products...", locale: preferredLocale)
             )
             .padding(.horizontal, AYASpacing.md)
             .padding(.vertical, AYASpacing.sm)
@@ -26,10 +26,10 @@ public struct FeedView: View {
             // Filter chips
             FilterChipBar(
                 chips: [
-                    FilterChip(id: FeedFilter.stories.rawValue, label: String(localized: "feed.filter.stories", defaultValue: "Stories", locale: appLocale)),
-                    FilterChip(id: FeedFilter.activities.rawValue, label: String(localized: "feed.filter.activities", defaultValue: "Activities", locale: appLocale)),
-                    FilterChip(id: FeedFilter.people.rawValue, label: String(localized: "feed.filter.people", defaultValue: "People", locale: appLocale)),
-                    FilterChip(id: FeedFilter.products.rawValue, label: String(localized: "feed.filter.products", defaultValue: "Products", locale: appLocale)),
+                    FilterChip(id: FeedFilter.stories.rawValue, label: LocaleHelper.localized("feed.filter.stories", defaultValue: "Stories", locale: preferredLocale)),
+                    FilterChip(id: FeedFilter.activities.rawValue, label: LocaleHelper.localized("feed.filter.activities", defaultValue: "Activities", locale: preferredLocale)),
+                    FilterChip(id: FeedFilter.people.rawValue, label: LocaleHelper.localized("feed.filter.people", defaultValue: "People", locale: preferredLocale)),
+                    FilterChip(id: FeedFilter.products.rawValue, label: LocaleHelper.localized("feed.filter.products", defaultValue: "Products", locale: preferredLocale)),
                 ],
                 selectedID: Binding(
                     get: { viewModel.activeFilter?.rawValue },
@@ -53,14 +53,14 @@ public struct FeedView: View {
                 } else if let error = viewModel.error, viewModel.items.isEmpty {
                     AYAErrorView(
                         message: error,
-                        retryLabel: String(localized: "feed.error.retry", defaultValue: "Try Again", locale: appLocale)
+                        retryLabel: LocaleHelper.localized("feed.error.retry", defaultValue: "Try Again", locale: preferredLocale)
                     ) {
                         Task { await viewModel.refresh() }
                     }
                     .transition(.opacity)
                 } else if viewModel.items.isEmpty {
                     AYAEmptyView(
-                        title: String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale),
+                        title: LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale),
                         systemImage: "newspaper"
                     )
                     .transition(.opacity)
@@ -176,7 +176,7 @@ public struct FeedView: View {
                         .padding(.top, AYASpacing.xxl)
                 } else if viewModel.searchResults.isEmpty && !viewModel.isSearching {
                     AYAEmptyView(
-                        title: String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale),
+                        title: LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale),
                         systemImage: "magnifyingglass"
                     )
                     .padding(.top, AYASpacing.xl)
@@ -351,7 +351,7 @@ public struct FeedNavigationView: View {
     public var body: some View {
         NavigationStack {
             FeedView(viewModel: viewModel)
-                .navigationTitle(String(localized: "app.title", defaultValue: "AYA", locale: currentLocale))
+                .navigationTitle(LocaleHelper.localized("app.title", defaultValue: "AYA", locale: preferredLocale))
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.large)
                 #endif
@@ -359,7 +359,7 @@ public struct FeedNavigationView: View {
                 .toolbarTitleDisplayMode(.inline)
                 #endif
                 #if os(macOS)
-                .navigationSubtitle(String(localized: "app.subtitle", defaultValue: "Open Software Network", locale: currentLocale))
+                .navigationSubtitle(LocaleHelper.localized("app.subtitle", defaultValue: "Open Software Network", locale: preferredLocale))
                 #endif
                 .toolbar {
                     ToolbarItem(placement: .automatic) {
@@ -427,6 +427,7 @@ public struct FeedNavigationView: View {
                 }
         }
         .environment(\.locale, currentLocale)
+        .environment(\.layoutDirection, LocaleHelper.layoutDirection(for: preferredLocale))
         .preferredColorScheme(resolvedColorScheme)
         .onAppear {
             if viewModel.locale != preferredLocale {
