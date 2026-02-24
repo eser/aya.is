@@ -15,7 +15,7 @@
 "detail.story" = "文章";
 "detail.activity" = "活动";
 "detail.profile" = "个人资料";
-"detail.close" = "";
+"detail.close" = "关闭";
 
 /* Activity */
 "activity.join" = "加入活动";

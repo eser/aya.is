@@ -145,7 +145,7 @@ public struct ActivityDetailView: View {
         if date == nil {
             let short = DateFormatter()
             short.dateFormat = "yyyy-MM-dd'T'HH:mm"
-            short.timeZone = TimeZone(identifier: "Europe/Istanbul")
+            short.timeZone = .current
             date = short.date(from: iso)
         }
         guard let date else { return iso }

@@ -61,7 +61,7 @@ public enum FeedItem: Identifiable, Hashable, Sendable {
         if let date = formatter.date(from: iso) { return date }
         let short = DateFormatter()
         short.dateFormat = "yyyy-MM-dd'T'HH:mm"
-        short.timeZone = TimeZone(identifier: "Europe/Istanbul")
+        short.timeZone = .current
         return short.date(from: iso)
     }
 }
