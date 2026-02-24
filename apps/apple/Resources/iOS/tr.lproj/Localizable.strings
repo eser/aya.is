@@ -15,6 +15,7 @@
 "detail.story" = "Yazı";
 "detail.activity" = "Etkinlik";
 "detail.profile" = "Profil";
+"detail.close" = "Kapat";
 
 /* Activity */
 "activity.join" = "Etkinliğe Katıl";

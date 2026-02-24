@@ -15,6 +15,7 @@
 "detail.story" = "記事";
 "detail.activity" = "アクティビティ";
 "detail.profile" = "プロフィール";
+"detail.close" = "閉じる";
 
 /* Activity */
 "activity.join" = "アクティビティに参加";

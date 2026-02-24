@@ -15,6 +15,7 @@
 "detail.story" = "Artículo";
 "detail.activity" = "Actividad";
 "detail.profile" = "Perfil";
+"detail.close" = "Cerrar";
 
 /* Activity */
 "activity.join" = "Unirse a la actividad";

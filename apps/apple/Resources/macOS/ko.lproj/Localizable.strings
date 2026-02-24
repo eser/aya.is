@@ -15,6 +15,7 @@
 "detail.story" = "기사";
 "detail.activity" = "활동";
 "detail.profile" = "프로필";
+"detail.close" = "닫기";
 
 /* Activity */
 "activity.join" = "활동 참여";

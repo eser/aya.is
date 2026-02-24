@@ -267,47 +267,68 @@ public struct FeedView: View {
         }
     }
 
+    @ViewBuilder
     private func searchResultRow(_ result: SearchResult) -> some View {
-        HStack(spacing: AYASpacing.md) {
-            RemoteImage(urlString: result.imageUri, cornerRadius: AYACornerRadius.md)
-                .frame(width: 48, height: 48)
+        switch result.type {
+        case "story":
+            StoryCard(
+                title: result.title,
+                summary: result.summary,
+                imageUrl: result.imageUri,
+                authorName: result.profileTitle,
+                kind: result.kind
+            )
+        case "profile":
+            ProfileCard(
+                title: result.title,
+                description: result.summary,
+                imageUrl: result.imageUri,
+                kind: result.kind
+            )
+        default:
+            HStack(spacing: AYASpacing.md) {
+                RemoteImage(urlString: result.imageUri, cornerRadius: AYACornerRadius.md)
+                    .frame(width: 48, height: 48)
 
-            VStack(alignment: .leading, spacing: AYASpacing.xs) {
-                HStack(spacing: AYASpacing.sm) {
-                    Text(result.type.capitalized)
-                        .font(AYATypography.caption2)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(colorForType(result.type))
-                        .clipShape(Capsule())
-
-                    if let kind = result.kind {
-                        Text(kind.capitalized)
+                VStack(alignment: .leading, spacing: AYASpacing.xs) {
+                    HStack(spacing: AYASpacing.sm) {
+                        Text(result.type.capitalized)
                             .font(AYATypography.caption2)
-                            .foregroundStyle(AYAColors.textTertiary)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(colorForType(result.type))
+                            .clipShape(Capsule())
+
+                        if let kind = result.kind {
+                            Text(kind.capitalized)
+                                .font(AYATypography.caption2)
+                                .foregroundStyle(AYAColors.textTertiary)
+                        }
+                    }
+
+                    Text(result.title)
+                        .font(AYATypography.headline)
+                        .foregroundStyle(AYAColors.textPrimary)
+                        .lineLimit(2)
+
+                    if let summary = result.summary, !summary.isEmpty {
+                        Text(summary)
+                            .font(AYATypography.caption)
+                            .foregroundStyle(AYAColors.textSecondary)
+                            .lineLimit(2)
                     }
                 }
 
-                Text(result.title)
-                    .font(AYATypography.headline)
-                    .foregroundStyle(AYAColors.textPrimary)
-                    .lineLimit(1)
-
-                if let summary = result.summary, !summary.isEmpty {
-                    Text(summary)
-                        .font(AYATypography.caption)
-                        .foregroundStyle(AYAColors.textSecondary)
-                        .lineLimit(2)
-                }
+                Spacer()
             }
-
-            Spacer()
+            .padding(AYASpacing.md)
+            .background(AYAColors.surfacePrimary)
+            .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.xl))
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 3)
+            .shadow(color: .black.opacity(0.03), radius: 1, x: 0, y: 1)
         }
-        .padding(AYASpacing.md)
-        .background(AYAColors.surfacePrimary)
-        .clipShape(RoundedRectangle(cornerRadius: AYACornerRadius.lg))
-        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
     }
 
     private func colorForType(_ type: String) -> Color {
@@ -420,8 +441,7 @@ public struct FeedNavigationView: View {
                                 Button {
                                     viewModel.selectedProfile = nil
                                 } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(AYAColors.textTertiary)
+                                    Label(LocaleHelper.localized("detail.close", defaultValue: "Close", locale: preferredLocale), systemImage: "xmark.circle.fill")
                                 }
                             }
                         }

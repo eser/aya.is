@@ -91,7 +91,7 @@ public struct ProfileDetailView: View {
                         RichContentView(content: profile.description)
                     }
 
-                    Picker("Section", selection: $viewModel.selectedTab) {
+                    Picker("", selection: $viewModel.selectedTab) {
                         ForEach(ProfileDetailViewModel.ProfileTab.allCases, id: \.self) { tab in
                             Text(localizedTabLabel(tab, locale: preferredLocale)).tag(tab)
                         }

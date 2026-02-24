@@ -15,6 +15,7 @@
 "detail.story" = "مقال";
 "detail.activity" = "نشاط";
 "detail.profile" = "الملف الشخصي";
+"detail.close" = "إغلاق";
 
 /* Activity */
 "activity.join" = "الانضمام للنشاط";

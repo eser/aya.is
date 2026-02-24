@@ -31,9 +31,9 @@ public struct RemoteImage: View {
         self.cornerRadius = cornerRadius
     }
 
-    /// The image view with loading spinner, success, and fallback phases.
+    /// The image view with smooth fade-in, loading placeholder, and fallback phases.
     public var body: some View {
-        AsyncImage(url: url) { phase in
+        AsyncImage(url: url, transaction: Transaction(animation: .easeIn(duration: 0.2))) { phase in
             switch phase {
             case .success(let image):
                 image
@@ -44,7 +44,6 @@ public struct RemoteImage: View {
             default:
                 if url != nil {
                     placeholder
-                        .overlay { ProgressView() }
                 } else {
                     fallbackView
                 }
