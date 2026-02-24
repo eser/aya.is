@@ -5,20 +5,46 @@ on:
     branches: [main]
     paths:
       - 'apps/apple/**'
+      - '.github/workflows/apple.yml'
   pull_request:
     branches: [main]
     paths:
       - 'apps/apple/**'
+      - '.github/workflows/apple.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  WORKING_DIR: apps/apple
   XCODE_VERSION: '16.0'
 
 jobs:
+  test:
+    name: Unit & Snapshot Tests
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Run all tests
+        run: swift test
+
+      - name: Upload snapshot failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshot-failures
+          path: apps/apple/AYATests/__Snapshots__/
+          retention-days: 7
+
   build-ios:
     name: Build iOS
     runs-on: macos-15
@@ -73,21 +99,6 @@ jobs:
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
-  test:
-    name: Run Tests
-    runs-on: macos-15
-    defaults:
-      run:
-        working-directory: apps/apple
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
-
-      - name: Run SPM tests
-        run: swift test
-
   lint:
     name: Lint
     runs-on: macos-15
@@ -97,9 +108,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify no DI patterns
+      - name: Verify no legacy DI patterns
         run: |
           echo "Checking for removed patterns..."
           ! grep -r "ComponentResolver\|ComponentBinding\|UIFactory\|service.locator\|AppLogger" Sources/ || \
             (echo "ERROR: Found references to removed DI patterns" && exit 1)
           echo "Clean — no legacy patterns found."
+
+      - name: Verify single-module architecture
+        run: |
+          echo "Checking for cross-module imports..."
+          ! grep -rn "^import Models$\|^import Networking$\|^import UI$" Sources/ || \
+            (echo "ERROR: Found cross-module imports in flattened architecture" && exit 1)
+          echo "Clean — single-module architecture verified."
