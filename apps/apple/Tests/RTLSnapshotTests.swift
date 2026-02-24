@@ -132,7 +132,9 @@ extension RTLSnapshotTests {
         testName: String = #function,
         line: UInt = #line
     ) {
-        let localized = view.environment(\.locale, snapshotLocale)
+        let localized = view
+            .environment(\.locale, snapshotLocale)
+            .environment(\.referenceDate, snapshotReferenceDate)
         #if os(iOS)
         let platformSuffix = "iOS"
         let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix

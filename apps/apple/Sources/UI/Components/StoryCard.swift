@@ -2,6 +2,9 @@ import SwiftUI
 
 /// A card view that displays a story with an optional hero image, title, summary, and author info.
 public struct StoryCard: View {
+    @Environment(\.referenceDate) private var referenceDate
+    @Environment(\.locale) private var locale
+
     let title: String
     let summary: String?
     let imageUrl: String?
@@ -130,18 +133,19 @@ public struct StoryCard: View {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let date = formatter.date(from: iso) {
-            return Self.relativeDateFormatter.localizedString(for: date, relativeTo: Date())
+            return relativeDateFormatter.localizedString(for: date, relativeTo: referenceDate)
         }
         formatter.formatOptions = [.withInternetDateTime]
         if let date = formatter.date(from: iso) {
-            return Self.relativeDateFormatter.localizedString(for: date, relativeTo: Date())
+            return relativeDateFormatter.localizedString(for: date, relativeTo: referenceDate)
         }
         return iso
     }
 
-    private static let relativeDateFormatter: RelativeDateTimeFormatter = {
+    private var relativeDateFormatter: RelativeDateTimeFormatter {
         let f = RelativeDateTimeFormatter()
         f.unitsStyle = .abbreviated
+        f.locale = locale
         return f
-    }()
+    }
 }

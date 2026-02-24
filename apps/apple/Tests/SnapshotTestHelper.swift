@@ -1,9 +1,24 @@
 import SwiftUI
 import SnapshotTesting
+@testable import AYAKit
 
 /// Fixed locale used across all snapshot tests to ensure consistent
 /// date/number formatting regardless of host system locale.
 let snapshotLocale = Locale(identifier: "en_US")
+
+/// Fixed reference date used across all snapshot tests so that relative
+/// date strings (e.g. "1 mo. ago") remain deterministic over time.
+let snapshotReferenceDate: Date = {
+    var components = DateComponents()
+    components.year = 2026
+    components.month = 2
+    components.day = 1
+    components.hour = 0
+    components.minute = 0
+    components.second = 0
+    components.timeZone = TimeZone(identifier: "UTC")
+    return Calendar(identifier: .gregorian).date(from: components)!
+}()
 
 #if os(iOS)
 import UIKit
@@ -21,7 +36,9 @@ func assertSwiftUISnapshot<V: View>(
     line: UInt = #line
 ) {
     let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
-    let localized = view.environment(\.locale, snapshotLocale)
+    let localized = view
+        .environment(\.locale, snapshotLocale)
+        .environment(\.referenceDate, snapshotReferenceDate)
     if let height {
         let layout = SwiftUISnapshotLayout.fixed(width: width, height: height)
         assertSnapshot(of: localized, as: .image(layout: layout), named: snapshotName, file: file, testName: testName, line: line)
@@ -47,7 +64,9 @@ func assertSwiftUISnapshot<V: View>(
     line: UInt = #line
 ) {
     let snapshotName = name.map { "\($0)-\(platformSuffix)" } ?? platformSuffix
-    let localized = view.environment(\.locale, snapshotLocale)
+    let localized = view
+        .environment(\.locale, snapshotLocale)
+        .environment(\.referenceDate, snapshotReferenceDate)
     let hostingView = NSHostingView(rootView: localized)
     let fittingSize: CGSize
     if let height {

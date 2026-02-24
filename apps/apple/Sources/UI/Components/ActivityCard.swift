@@ -2,6 +2,9 @@ import SwiftUI
 
 /// A card view that displays an activity or event with date, time, and an optional image.
 public struct ActivityCard: View {
+    @Environment(\.referenceDate) private var referenceDate
+    @Environment(\.locale) private var locale
+
     let title: String
     let summary: String?
     let imageUrl: String?
@@ -148,6 +151,7 @@ public struct ActivityCard: View {
     private func dayString(_ iso: String) -> String {
         guard let date = parseDate(iso) else { return "" }
         let f = DateFormatter()
+        f.locale = locale
         f.dateFormat = "d"
         return f.string(from: date)
     }
@@ -155,6 +159,7 @@ public struct ActivityCard: View {
     private func monthString(_ iso: String) -> String {
         guard let date = parseDate(iso) else { return "" }
         let f = DateFormatter()
+        f.locale = locale
         f.dateFormat = "MMM"
         return f.string(from: date)
     }
@@ -162,6 +167,7 @@ public struct ActivityCard: View {
     private func timeString(_ iso: String) -> String {
         guard let date = parseDate(iso) else { return "" }
         let f = DateFormatter()
+        f.locale = locale
         f.timeStyle = .short
         return f.string(from: date)
     }
