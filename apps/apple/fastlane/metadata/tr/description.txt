@@ -1,0 +1,24 @@
+AYA, toplumsal fayda için teknoloji geliştiren yazılımcıları ve kuruluşları bir araya getiren açık kaynaklı bir topluluk platformudur.
+
+2023 Türkiye-Suriye deprem yardım çalışmalarından doğan AYA (Açık Yazılım Ağı), 24.000'den fazla gönüllünün hayat kurtaran araçlar geliştirmek için bir araya geldiği tabandan büyüyen bir hareketten ortaya çıkmıştır. Bugün açık kaynak topluluğu için bir merkez olarak hizmet vermekte, teknolojinin erişilebilir, kapsayıcı ve amaca yönelik olması gerektiğine inanan insanları buluşturmaktadır.
+
+HİKAYELERİ VE MAKALELERİ KEŞFEDİN
+Ağ genelindeki yazılımcılar ve kuruluşlardan topluluk hikayeleri, teknik makaleler ve proje güncellemeleri okuyun. Gerçek bir fark yaratan açık kaynak girişimleri hakkında bilgi edinin.
+
+TOPLULUK ETKİNLİKLERİNİ BULUN
+Yaklaşan buluşmaları, konferansları, hackathonları ve atölyeleri keşfedin. Yakınınızdaki etkinlikleri bulun veya topluluk tarafından düzenlenen çevrimiçi buluşmalara katılın.
+
+GELİŞTİRİCİ PROFİLLERİNİ İNCELEYİN
+Projelerin arkasındaki insanları tanıyın. İlgi alanlarınızı paylaşan iş birlikçileri, mentorları ve katkıda bulunanları bulmak için geliştirici profillerini inceleyin.
+
+HERKES İÇİN TASARLANDI
+- Sağdan sola Arapça desteği dahil 13 dilde kullanılabilir
+- Rahat okuma için karanlık ve aydınlık mod
+- iPhone, iPad ve Mac için optimize edilmiş duyarlı ızgara düzeni
+- Tüm içerikte hızlı arama
+- Göz atmak için hesap gerekmez
+
+AÇIK KAYNAK VE TOPLULUK TARAFINDAN GELİŞTİRİLMİŞ
+AYA, Apache 2.0 lisansı altında sunulmakta ve tamamen topluluk tarafından geliştirilmektedir. Kaynak kodu herkese açıktır ve her seviyeden yazılımcının katkıları memnuniyetle karşılanır.
+
+Giriş gerekmez. Reklam yok. Takip yok. Sadece açık kaynak aracılığıyla daha iyi bir dünya inşa etmek için birlikte çalışan bir topluluk.
