@@ -60,7 +60,8 @@ public struct APIClient: APIClientProtocol {
     /// Fetches a single story by its slug.
     public func fetchStory(locale: String, slug: String) async throws -> Story {
         let components = urlComponents(path: "/\(locale)/stories/\(slug)")
-        return try await request(components)
+        let response: APISingleResponse<Story> = try await request(components)
+        return response.data
     }
 
     // MARK: - Activities
@@ -75,7 +76,8 @@ public struct APIClient: APIClientProtocol {
     /// Fetches a single activity by its slug.
     public func fetchActivity(locale: String, slug: String) async throws -> Activity {
         let components = urlComponents(path: "/\(locale)/activities/\(slug)")
-        return try await request(components)
+        let response: APISingleResponse<Activity> = try await request(components)
+        return response.data
     }
 
     // MARK: - Profiles
@@ -93,7 +95,8 @@ public struct APIClient: APIClientProtocol {
     /// Fetches a single profile by its slug.
     public func fetchProfile(locale: String, slug: String) async throws -> Profile {
         let components = urlComponents(path: "/\(locale)/profiles/\(slug)")
-        return try await request(components)
+        let response: APISingleResponse<Profile> = try await request(components)
+        return response.data
     }
 
     /// Fetches pages belonging to a profile.

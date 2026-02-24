@@ -10,6 +10,12 @@ public struct APIResponse<T: Decodable & Sendable>: Decodable, Sendable {
     public let cursor: String?
 }
 
+/// Single-item API response wrapper.
+public struct APISingleResponse<T: Decodable & Sendable>: Decodable, Sendable {
+    /// The response payload.
+    public let data: T
+}
+
 // MARK: - Profile
 
 /// A user or organization profile.
