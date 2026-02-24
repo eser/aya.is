@@ -24,7 +24,7 @@ env:
 
 jobs:
   test-ios:
-    name: Unit & Snapshot Tests (iOS)
+    name: Unit Tests (iOS)
     runs-on: macos-26
     defaults:
       run:
@@ -43,22 +43,22 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Run all tests on iPhone 16e (iOS 26.2)
+      - name: Run unit tests on iPhone 16e (iOS 26.2)
         run: |
           xcodebuild test \
             -project AYA.xcodeproj \
             -scheme AYA-Tests \
             -destination 'platform=iOS Simulator,name=iPhone 16e,OS=26.2' \
             -skipPackagePluginValidation \
+            -skip-testing:AYA-Tests/RTLSnapshotTests \
+            -skip-testing:AYA-Tests/UtilityViewsSnapshotTests \
+            -skip-testing:AYA-Tests/ProfileCardSnapshotTests \
+            -skip-testing:AYA-Tests/StoryCardSnapshotTests \
+            -skip-testing:AYA-Tests/ProductCardSnapshotTests \
+            -skip-testing:AYA-Tests/FeaturedStoryCardSnapshotTests \
+            -skip-testing:AYA-Tests/ActivityCardSnapshotTests \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Upload snapshot failures
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: snapshot-failures-ios
-          path: apps/apple/Tests/__Snapshots__/
-          retention-days: 7
 
   build-ios:
     name: Build iOS

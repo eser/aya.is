@@ -1,8 +1,0 @@
-# App identifiers
-app_identifier("is.aya.app")
-
-# Apple Developer Portal / App Store Connect
-# TODO: Configure these with your Apple Developer account
-# apple_id("your@email.com")
-# team_id("XXXXXXXXXX")
-# itc_team_id("XXXXXXXXXX")
