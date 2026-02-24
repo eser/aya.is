@@ -101,6 +101,7 @@ public struct StoryCard: View {
             .frame(maxHeight: .infinity, alignment: .top)
             .background(AYAColors.surfaceSecondary)
         }
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(storyAccessibilityLabel)
         .background(AYAColors.surfacePrimary)

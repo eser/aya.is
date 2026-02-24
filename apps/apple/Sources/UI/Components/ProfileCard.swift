@@ -69,6 +69,7 @@ public struct ProfileCard: View {
             }
         }
         .padding(AYASpacing.md)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(profileAccessibilityLabel)
         .background(AYAColors.surfacePrimary)

@@ -29,6 +29,7 @@ public struct RichContentView: View {
         case orderedItem(Int, String)
         case unorderedItem(String)
         case image(String, String?)
+        case embed(String)
         case horizontalRule
         case paragraph(String)
     }
@@ -91,6 +92,15 @@ public struct RichContentView: View {
                 continue
             }
 
+            // Embed: %[url] syntax (Hashnode-compatible)
+            if let embedRange = trimmed.range(of: #"^%\[([^\]]+)\]$"#, options: .regularExpression) {
+                let inner = String(trimmed[embedRange])
+                let url = String(inner.dropFirst(2).dropLast())
+                blocks.append(.embed(url))
+                i += 1
+                continue
+            }
+
             if trimmed.hasPrefix("![") {
                 if let range = trimmed.range(of: #"!\[(.*?)\]\((.*?)\)"#, options: .regularExpression) {
                     let match = String(trimmed[range])
@@ -119,7 +129,7 @@ public struct RichContentView: View {
             var paraLines: [String] = []
             while i < lines.count {
                 let l = lines[i].trimmingCharacters(in: .whitespaces)
-                if l.isEmpty || l.hasPrefix("#") || l.hasPrefix(">") || l.hasPrefix("```") || l.hasPrefix("- ") || l.hasPrefix("* ") || l.hasPrefix("![") || l.isHorizontalRule {
+                if l.isEmpty || l.hasPrefix("#") || l.hasPrefix(">") || l.hasPrefix("```") || l.hasPrefix("- ") || l.hasPrefix("* ") || l.hasPrefix("![") || l.hasPrefix("%[") || l.isHorizontalRule {
                     break
                 }
                 if l.orderedListItem() != nil { break }
@@ -223,6 +233,9 @@ public struct RichContentView: View {
                         .italic()
                 }
             }
+
+        case .embed(let url):
+            EmbedView(url: url)
 
         case .horizontalRule:
             Rectangle()

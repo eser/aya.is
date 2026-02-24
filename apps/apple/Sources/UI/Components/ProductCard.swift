@@ -47,6 +47,7 @@ public struct ProductCard: View {
                 .clipShape(Capsule())
         }
         .padding(AYASpacing.md)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(productAccessibilityLabel)
         .background(AYAColors.surfacePrimary)

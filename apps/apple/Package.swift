@@ -13,10 +13,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.0"),
+        .package(url: "https://github.com/SvenTiigi/YouTubePlayerKit", from: "1.9.0"),
     ],
     targets: [
         .target(
             name: "AYAKit",
+            dependencies: [
+                .product(name: "YouTubePlayerKit", package: "YouTubePlayerKit"),
+            ],
             path: "Sources",
             exclude: ["App"]
         ),

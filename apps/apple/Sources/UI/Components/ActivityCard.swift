@@ -109,6 +109,7 @@ public struct ActivityCard: View {
             .frame(maxHeight: .infinity, alignment: .top)
             .background(AYAColors.surfaceSecondary)
         }
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(activityAccessibilityLabel)
         .background(AYAColors.surfacePrimary)

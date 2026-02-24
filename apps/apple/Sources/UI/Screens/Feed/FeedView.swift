@@ -82,14 +82,25 @@ public struct FeedView: View {
     private var feedContent: some View {
         GeometryReader { geo in
             let useGrid = geo.size.width >= Self.gridBreakpoint
-            ScrollView {
-                if useGrid {
-                    gridFeedContent(width: geo.size.width)
-                } else {
-                    singleColumnFeedContent
+            ScrollViewReader { proxy in
+                ScrollView {
+                    Color.clear
+                        .frame(height: 0)
+                        .id("feedTop")
+
+                    if useGrid {
+                        gridFeedContent(width: geo.size.width)
+                    } else {
+                        singleColumnFeedContent
+                    }
+                }
+                .refreshable { await viewModel.refresh() }
+                .onChange(of: viewModel.activeFilter) {
+                    withAnimation {
+                        proxy.scrollTo("feedTop", anchor: .top)
+                    }
                 }
             }
-            .refreshable { await viewModel.refresh() }
         }
     }
 
