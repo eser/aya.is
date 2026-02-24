@@ -43,12 +43,12 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Run all tests on iPhone 16 (iOS 18.5)
+      - name: Run all tests on iPhone 16e (iOS 26.2)
         run: |
           xcodebuild test \
             -project AYA.xcodeproj \
             -scheme AYA-Tests \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+            -destination 'platform=iOS Simulator,name=iPhone 16e,OS=26.2' \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
@@ -175,7 +175,7 @@ jobs:
           xcodebuild test \
             -project AYA.xcodeproj \
             -scheme AYA-iOS-UITests \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 16e' \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
