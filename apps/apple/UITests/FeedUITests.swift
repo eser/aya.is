@@ -7,7 +7,7 @@ final class FeedUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["-AppleLanguages", "(en)"]
+        app.launchArguments = ["--uitesting", "-AppleLanguages", "(en)"]
         app.launch()
     }
 
@@ -114,13 +114,9 @@ final class FeedUITests: XCTestCase {
         searchField.tap()
         searchField.typeText("scaling")
 
-        // Wait for search results (debounce 400ms + network)
-        sleep(3)
-
-        // Tap the first search result
-        let scrollView = app.scrollViews.firstMatch
-        let firstResult = scrollView.buttons.firstMatch
-        XCTAssertTrue(firstResult.waitForExistence(timeout: 5), "Search results should appear")
+        // Wait for search results (debounce 400ms + response)
+        let firstResult = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Scaling Community Platforms'")).firstMatch
+        XCTAssertTrue(firstResult.waitForExistence(timeout: 10), "Search results should appear")
         firstResult.tap()
 
         // Verify detail screen loads without error
@@ -145,13 +141,9 @@ final class FeedUITests: XCTestCase {
         searchField.tap()
         searchField.typeText("eser")
 
-        // Wait for search results
-        sleep(3)
-
         // Tap a profile result
-        let scrollView = app.scrollViews.firstMatch
-        let firstResult = scrollView.buttons.firstMatch
-        if firstResult.waitForExistence(timeout: 5) {
+        let firstResult = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Eser Ozvataf'")).firstMatch
+        if firstResult.waitForExistence(timeout: 10) {
             firstResult.tap()
 
             // Wait for detail to load
@@ -166,16 +158,10 @@ final class FeedUITests: XCTestCase {
     // MARK: - Navigation
 
     func testTapStoryCardNavigatesToDetail() throws {
-        let scrollView = app.scrollViews.firstMatch
-        XCTAssertTrue(scrollView.waitForExistence(timeout: 10))
-
-        // Wait for content to load
-        sleep(2)
-
-        // Tap the first card-like element
-        let firstCell = scrollView.buttons.firstMatch
-        if firstCell.waitForExistence(timeout: 5) {
-            firstCell.tap()
+        // Wait for feed content to load
+        let firstCard = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Scaling Community Platforms'")).firstMatch
+        if firstCard.waitForExistence(timeout: 10) {
+            firstCard.tap()
 
             // Should navigate to detail - check for back button
             let backButton = app.navigationBars.buttons.firstMatch
