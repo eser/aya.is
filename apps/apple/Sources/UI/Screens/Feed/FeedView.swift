@@ -43,11 +43,13 @@ public struct FeedView: View {
             .padding(.bottom, AYASpacing.sm)
 
             // Content
-            Group {
+            ZStack {
                 if !viewModel.searchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
                     searchContent
+                        .transition(.opacity)
                 } else if viewModel.isLoading && viewModel.items.isEmpty {
                     AYALoadingView()
+                        .transition(.opacity)
                 } else if let error = viewModel.error, viewModel.items.isEmpty {
                     AYAErrorView(
                         message: error,
@@ -55,15 +57,20 @@ public struct FeedView: View {
                     ) {
                         Task { await viewModel.refresh() }
                     }
+                    .transition(.opacity)
                 } else if viewModel.items.isEmpty {
                     AYAEmptyView(
                         title: String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale),
                         systemImage: "newspaper"
                     )
+                    .transition(.opacity)
                 } else {
                     feedContent
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.searchQuery.isEmpty)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.isSearching)
         }
         .task { await viewModel.load() }
     }
@@ -161,32 +168,38 @@ public struct FeedView: View {
     // MARK: - Search Content
 
     private var searchContent: some View {
-        Group {
-            if viewModel.isSearching && viewModel.searchResults.isEmpty {
-                AYALoadingView()
-            } else if viewModel.searchResults.isEmpty && !viewModel.isSearching {
-                AYAEmptyView(
-                    title: String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale),
-                    systemImage: "magnifyingglass"
-                )
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: AYASpacing.sm) {
-                        ForEach(viewModel.searchResults) { result in
-                            NavigationLink(value: FeedDestination.search(result)) {
-                                searchResultRow(result)
-                            }
-                            .buttonStyle(.plain)
-                            .onAppear {
-                                if result == viewModel.searchResults.last {
-                                    Task { await viewModel.loadMore() }
-                                }
+        ScrollView {
+            LazyVStack(spacing: AYASpacing.sm) {
+                if viewModel.isSearching && viewModel.searchResults.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, AYASpacing.xxl)
+                } else if viewModel.searchResults.isEmpty && !viewModel.isSearching {
+                    AYAEmptyView(
+                        title: String(localized: "feed.empty", defaultValue: "No content found", locale: appLocale),
+                        systemImage: "magnifyingglass"
+                    )
+                    .padding(.top, AYASpacing.xl)
+                } else {
+                    ForEach(viewModel.searchResults) { result in
+                        NavigationLink(value: FeedDestination.search(result)) {
+                            searchResultRow(result)
+                        }
+                        .buttonStyle(.plain)
+                        .onAppear {
+                            if result == viewModel.searchResults.last {
+                                Task { await viewModel.loadMore() }
                             }
                         }
                     }
-                    .padding(AYASpacing.md)
+
+                    if viewModel.isSearching {
+                        ProgressView()
+                            .padding()
+                    }
                 }
             }
+            .padding(AYASpacing.md)
         }
     }
 
@@ -208,6 +221,7 @@ public struct FeedView: View {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityHint("Double tap to view details")
 
         case .activity(let activity):
             NavigationLink(value: FeedDestination.activity(activity)) {
@@ -221,6 +235,7 @@ public struct FeedView: View {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityHint("Double tap to view details")
 
         case .profile(let profile):
             Button {
@@ -235,6 +250,7 @@ public struct FeedView: View {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityHint("Double tap to view profile")
 
         case .product(let profile):
             Button {
@@ -247,6 +263,7 @@ public struct FeedView: View {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityHint("Double tap to view profile")
         }
     }
 
@@ -339,6 +356,9 @@ public struct FeedNavigationView: View {
                 .navigationBarTitleDisplayMode(.large)
                 #endif
                 #if os(macOS)
+                .toolbarTitleDisplayMode(.inline)
+                #endif
+                #if os(macOS)
                 .navigationSubtitle(String(localized: "app.subtitle", defaultValue: "Open Software Network", locale: currentLocale))
                 #endif
                 .toolbar {
@@ -352,27 +372,31 @@ public struct FeedNavigationView: View {
                                     .imageScale(.medium)
                                     .contentTransition(.symbolEffect(.replace))
                             }
+                            .accessibilityLabel("Toggle appearance")
+                            .accessibilityHint("Switches between light and dark mode")
 
                             Menu {
-                                Button {
-                                    setLocale("en")
-                                } label: {
-                                    Label("English", systemImage: preferredLocale == "en" ? "checkmark" : "")
-                                }
-                                Button {
-                                    setLocale("tr")
-                                } label: {
-                                    Label("Türkçe", systemImage: preferredLocale == "tr" ? "checkmark" : "")
+                                ForEach(LocaleHelper.supportedLocales, id: \.code) { locale in
+                                    Button {
+                                        setLocale(locale.code)
+                                    } label: {
+                                        HStack {
+                                            Text("\(locale.flag) \(locale.name)")
+                                            if preferredLocale == locale.code {
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
                                 }
                             } label: {
-                                Text(preferredLocale.uppercased())
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
+                                Text(LocaleHelper.flag(for: preferredLocale))
+                                    .font(.body)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
                                     .background(AYAColors.accentSubtle)
                                     .clipShape(Capsule())
                             }
+                            .accessibilityLabel("Change language, current: \(LocaleHelper.displayName(for: preferredLocale))")
                         }
                     }
                 }
