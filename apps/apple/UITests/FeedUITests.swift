@@ -105,6 +105,64 @@ final class FeedUITests: XCTestCase {
         XCTAssertTrue(scrollView.exists, "Search results should be scrollable")
     }
 
+    // MARK: - Search Navigation
+
+    func testSearchResultNavigatesToStoryDetail() throws {
+        let searchField = app.textFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 10))
+
+        searchField.tap()
+        searchField.typeText("scaling")
+
+        // Wait for search results (debounce 400ms + network)
+        sleep(3)
+
+        // Tap the first search result
+        let scrollView = app.scrollViews.firstMatch
+        let firstResult = scrollView.buttons.firstMatch
+        XCTAssertTrue(firstResult.waitForExistence(timeout: 5), "Search results should appear")
+        firstResult.tap()
+
+        // Verify detail screen loads without error
+        let backButton = app.navigationBars.buttons.firstMatch
+        XCTAssertTrue(backButton.waitForExistence(timeout: 10), "Detail screen should load")
+
+        // Verify no error view is shown
+        let errorText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Failed to decode'"))
+        XCTAssertEqual(errorText.count, 0, "Detail screen should not show a decode error")
+
+        // Verify content loaded (scroll view exists with content)
+        let detailScroll = app.scrollViews.firstMatch
+        XCTAssertTrue(detailScroll.exists, "Detail content should be scrollable")
+
+        backButton.tap()
+    }
+
+    func testSearchResultNavigatesToProfileDetail() throws {
+        let searchField = app.textFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 10))
+
+        searchField.tap()
+        searchField.typeText("eser")
+
+        // Wait for search results
+        sleep(3)
+
+        // Tap a profile result
+        let scrollView = app.scrollViews.firstMatch
+        let firstResult = scrollView.buttons.firstMatch
+        if firstResult.waitForExistence(timeout: 5) {
+            firstResult.tap()
+
+            // Wait for detail to load
+            sleep(2)
+
+            // Verify no decode error
+            let errorText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Failed to decode'"))
+            XCTAssertEqual(errorText.count, 0, "Profile detail should not show a decode error")
+        }
+    }
+
     // MARK: - Navigation
 
     func testTapStoryCardNavigatesToDetail() throws {
