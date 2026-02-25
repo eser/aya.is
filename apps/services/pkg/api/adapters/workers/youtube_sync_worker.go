@@ -266,13 +266,19 @@ func (w *YouTubeSyncWorker) syncLink( //nolint:cyclop,funlen
 				return result
 			}
 
+			// Preserve existing refresh token if Google didn't return a new one
+			refreshToken := refreshResult.RefreshToken
+			if refreshToken == nil {
+				refreshToken = link.AuthRefreshToken
+			}
+
 			// Update tokens in database
 			err = w.syncService.UpdateLinkTokens(
 				ctx,
 				link.ID,
 				refreshResult.AccessToken,
 				refreshResult.AccessTokenExpiresAt,
-				refreshResult.RefreshToken,
+				refreshToken,
 			)
 			if err != nil {
 				result.Error = err
