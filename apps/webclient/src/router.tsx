@@ -52,12 +52,12 @@ export async function getRouter() {
       ? {
         input: ({ url }) => {
           // /en/about -> /en/{profileSlug}/about
-          // / -> /tr/{profileSlug} (adds default locale for empty paths)
           const pathParts = url.pathname.split("/").filter(Boolean);
 
-          // If path is empty, prepend the default locale
+          // Root path: let routes/index.tsx detect preferred locale via
+          // cookie → Accept-Language → domain default → fallback chain
           if (pathParts.length === 0) {
-            pathParts.push(defaultLocale);
+            return url;
           }
 
           // System routes (e.g., /auth/callback) are not profile-scoped
