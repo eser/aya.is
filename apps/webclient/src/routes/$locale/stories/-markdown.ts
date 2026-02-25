@@ -6,6 +6,7 @@ import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { formatDateShort, parseDateFromSlug } from "@/lib/date";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { backend } from "@/modules/backend/backend";
+import { supportedLocales, type SupportedLocaleCode, isValidLocale } from "@/config";
 import type { StoryEx } from "@/modules/backend/types";
 
 /**
@@ -45,8 +46,16 @@ export function generateStoriesListingMarkdown(
     const slug = story.slug ?? "";
     const summary = story.summary ?? "";
     const author = story.author_profile?.title ?? "";
+    const storyLocale = story.locale_code?.trim() ?? "";
 
     let line = `- [${title}](/${locale}/stories/${slug}.md)`;
+
+    // Add locale badge when story language differs from viewer's locale
+    if (storyLocale !== "" && storyLocale !== locale && isValidLocale(storyLocale)) {
+      const localeData = supportedLocales[storyLocale as SupportedLocaleCode];
+      line += ` [${localeData.englishName}]`;
+    }
+
     if (author !== "") {
       line += ` by ${author}`;
     }
@@ -65,12 +74,9 @@ export function generateStoriesListingMarkdown(
  */
 export function registerGlobalStoriesListingHandler(): void {
   registerMarkdownHandler("$locale/stories", async (_params, locale, _searchParams) => {
-    // Get all story kinds
+    // Match the HTML route: only articles
     const stories = await backend.getStoriesByKinds(locale, [
       "article",
-      "announcement",
-      "content",
-      "presentation",
     ]);
 
     if (stories === null) {

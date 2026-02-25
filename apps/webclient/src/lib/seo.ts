@@ -114,6 +114,35 @@ export function generateCanonicalLink(url: string): { rel: string; href: string 
   return { rel: "canonical", href: url };
 }
 
+// Helper to compute canonical URL for stories with locale-aware fallback
+export function computeStoryCanonicalUrl(
+  story: { is_managed: boolean; properties: Record<string, unknown> | null; locale_code?: string; slug: string | null },
+  viewerLocale: string,
+  ...pathPrefix: string[]
+): string {
+  // Rule 1: managed content with external source URL
+  const sourceUrl = story.properties?.source_url as string | undefined;
+  if (story.is_managed === true && sourceUrl !== undefined && sourceUrl !== "") {
+    return sourceUrl;
+  }
+
+  // Rule 2: fallback content → use content's original locale
+  const contentLocale = story.locale_code?.trim() ?? viewerLocale;
+  const effectiveLocale = contentLocale !== "" ? contentLocale : viewerLocale;
+
+  // Always builds on main domain via siteConfig.host
+  return buildUrl(effectiveLocale, ...pathPrefix, story.slug ?? "");
+}
+
+// Helper to compute Content-Language header value
+export function computeContentLanguage(viewerLocale: string, contentLocale: string | undefined): string {
+  const content = contentLocale?.trim() ?? viewerLocale;
+  if (content !== "" && content !== viewerLocale) {
+    return `${viewerLocale}, ${content}`;
+  }
+  return viewerLocale;
+}
+
 // Helper to truncate description to recommended length
 export function truncateDescription(text: string | null | undefined, maxLength = 160): string {
   if (text === null || text === undefined || text === "") {

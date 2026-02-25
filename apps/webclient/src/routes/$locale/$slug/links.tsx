@@ -14,7 +14,7 @@ import {
 import i18next from "i18next";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { buildUrl, generateMetaTags } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 
@@ -90,6 +90,7 @@ export const Route = createFileRoute("/$locale/$slug/links")({
         locale,
         type: "website",
       }),
+      links: [generateCanonicalLink(buildUrl(locale, slug, "links"))],
     };
   },
   component: LinksPage,

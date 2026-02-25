@@ -4,6 +4,7 @@
 import { formatFrontmatter } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { backend } from "@/modules/backend/backend";
+import { supportedLocales, type SupportedLocaleCode, isValidLocale } from "@/config";
 import type { Profile, ProfilePage, Story } from "@/modules/backend/types";
 
 const STORIES_PER_PAGE = 12;
@@ -64,7 +65,17 @@ export function generateProfileMarkdown(
     for (const story of stories) {
       const title = story.title ?? "Untitled";
       const slug = story.slug ?? "";
-      sections.push(`- [${title}](/${locale}/${profile.slug}/stories/${slug}.md)`);
+      const storyLocale = story.locale_code?.trim() ?? "";
+
+      let line = `- [${title}](/${locale}/${profile.slug}/stories/${slug}.md)`;
+
+      // Add locale badge when story language differs from viewer's locale
+      if (storyLocale !== "" && storyLocale !== locale && isValidLocale(storyLocale)) {
+        const localeData = supportedLocales[storyLocale as SupportedLocaleCode];
+        line += ` [${localeData.englishName}]`;
+      }
+
+      sections.push(line);
     }
   }
 

@@ -1,5 +1,6 @@
 // Locale layout - handles locale validation and i18n sync
 import { CatchNotFound, createFileRoute, Outlet, redirect, notFound } from "@tanstack/react-router";
+import { setResponseHeader } from "@tanstack/react-start/server";
 import { isValidLocale, type SupportedLocaleCode } from "@/config";
 import { getPreferredLocale } from "@/lib/get-locale";
 import { PageNotFound } from "@/components/page-not-found";
@@ -26,6 +27,12 @@ export const Route = createFileRoute("/$locale")({
       const preferredLocale = await getPreferredLocale();
       const newPath = `/${preferredLocale}${location.pathname}`;
       throw redirect({ to: newPath, replace: true });
+    }
+
+    // Set default Content-Language header for all locale routes
+    // Child routes with content-specific locale override this
+    if (import.meta.env.SSR) {
+      setResponseHeader("Content-Language", locale);
     }
 
     return {

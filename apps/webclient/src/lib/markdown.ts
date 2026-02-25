@@ -38,13 +38,14 @@ export function formatFrontmatter(
 /**
  * Create a Response with text/markdown content type
  */
-export function createMarkdownResponse(content: string): Response {
-  return new Response(content, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/markdown; charset=utf-8",
-    },
-  });
+export function createMarkdownResponse(content: string, contentLanguage?: string): Response {
+  const headers: Record<string, string> = {
+    "Content-Type": "text/markdown; charset=utf-8",
+  };
+  if (contentLanguage !== undefined) {
+    headers["Content-Language"] = contentLanguage;
+  }
+  return new Response(content, { status: 200, headers });
 }
 
 /**

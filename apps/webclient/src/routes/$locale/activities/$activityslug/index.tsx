@@ -9,7 +9,8 @@ import { compileMdx } from "@/lib/mdx";
 import { MdxContent } from "@/components/userland/mdx-content";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { generateMetaTags, truncateDescription } from "@/lib/seo";
+import { setResponseHeader } from "@tanstack/react-start/server";
+import { buildUrl, computeContentLanguage, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { formatDateTimeLong } from "@/lib/date";
 import { LocaleLink } from "@/components/locale-link";
 import { PageNotFound } from "@/components/page-not-found";
@@ -52,6 +53,11 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
       backend.getInteractionCounts(locale, activityslug).catch(() => null),
     ]);
 
+    // Set Content-Language header with content locale awareness
+    if (import.meta.env.SSR) {
+      setResponseHeader("Content-Language", computeContentLanguage(locale, activity.locale_code));
+    }
+
     return {
       activity,
       compiledContent,
@@ -67,6 +73,7 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
       return { meta: [] };
     }
     const { activity, currentUrl, locale } = loaderData;
+    const activityslug = activity.slug ?? "";
     return {
       meta: generateMetaTags({
         title: activity.title ?? "Activity",
@@ -79,6 +86,7 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
         modifiedTime: activity.updated_at,
         author: activity.author_profile?.title ?? null,
       }),
+      links: [generateCanonicalLink(buildUrl(locale, "activities", activityslug))],
     };
   },
   component: ActivityDetailPage,

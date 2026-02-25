@@ -3,7 +3,7 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { buildUrl, generateMetaTags } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
 
 const profileRoute = getRouteApi("/$locale/$slug");
@@ -41,6 +41,7 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
         locale,
         type: "website",
       }),
+      links: [generateCanonicalLink(buildUrl(locale, slug, "stories"))],
     };
   },
   component: ProfileStoriesIndexPage,

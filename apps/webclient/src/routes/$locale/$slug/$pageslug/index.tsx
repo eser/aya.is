@@ -8,7 +8,8 @@ import { compileMdx } from "@/lib/mdx";
 import { Button } from "@/components/ui/button";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { buildUrl, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { setResponseHeader } from "@tanstack/react-start/server";
+import { buildUrl, computeContentLanguage, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { ChildNotFound } from "../route";
 
 const profileRoute = getRouteApi("/$locale/$slug");
@@ -40,6 +41,11 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
       }
     }
 
+    // Set Content-Language header with content locale awareness
+    if (import.meta.env.SSR) {
+      setResponseHeader("Content-Language", computeContentLanguage(locale, page.locale_code));
+    }
+
     return { page, compiledContent, notFound: false, locale, slug, pageslug };
   },
   head: ({ loaderData }) => {
@@ -47,6 +53,8 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
     if (page === null) {
       return { meta: [] };
     }
+    const contentLocale = page.locale_code?.trim() ?? locale;
+    const canonicalLocale = (contentLocale !== "" && contentLocale !== locale) ? contentLocale : locale;
     return {
       meta: generateMetaTags({
         title: page.title,
@@ -57,6 +65,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
         type: "article",
         publishedTime: page.published_at,
       }),
+      links: [generateCanonicalLink(buildUrl(canonicalLocale, slug, pageslug))],
     };
   },
   component: ProfileCustomPage,

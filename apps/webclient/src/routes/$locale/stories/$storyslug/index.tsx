@@ -8,7 +8,8 @@ import { DiscussionThread } from "@/components/widgets/discussion-thread";
 import { compileMdx, compileMdxLite } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { buildUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { setResponseHeader } from "@tanstack/react-start/server";
+import { computeContentLanguage, computeStoryCanonicalUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { PageNotFound } from "@/components/page-not-found";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 
@@ -61,6 +62,11 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
       }
     }
 
+    // Set Content-Language header with content locale awareness
+    if (import.meta.env.SSR) {
+      setResponseHeader("Content-Language", computeContentLanguage(locale, story.locale_code));
+    }
+
     return { story, compiledContent, currentUrl, locale, initialDiscussion, notFound: false as const };
   },
   head: ({ loaderData }) => {
@@ -68,8 +74,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
       return { meta: [] };
     }
     const { story, currentUrl, locale } = loaderData;
-    const sourceUrl = story.properties?.source_url as string | undefined;
-    const canonicalUrl = (story.is_managed === true && sourceUrl !== undefined && sourceUrl !== "") ? sourceUrl : currentUrl;
+    const canonicalUrl = computeStoryCanonicalUrl(story, locale, "stories");
     return {
       meta: generateMetaTags({
         title: story.title ?? "Story",

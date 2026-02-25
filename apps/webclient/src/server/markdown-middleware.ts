@@ -185,7 +185,7 @@ export const markdownMiddleware = createMiddleware().server(
         const markdown = await handler(params, locale, url.searchParams);
 
         if (markdown !== null) {
-          return createMarkdownResponse(markdown);
+          return createMarkdownResponse(markdown, locale);
         }
         // Handler returned null, try next one
       } catch (error) {

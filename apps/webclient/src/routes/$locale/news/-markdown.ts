@@ -6,6 +6,7 @@ import { formatFrontmatter } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { formatDateShort, parseDateFromSlug } from "@/lib/date";
 import { backend } from "@/modules/backend/backend";
+import { supportedLocales, type SupportedLocaleCode, isValidLocale } from "@/config";
 import type { StoryEx } from "@/modules/backend/types";
 
 /**
@@ -24,10 +25,18 @@ export function generateNewsListingMarkdown(
     const title = item.title ?? "Untitled";
     const slug = item.slug ?? "";
     const summary = item.summary ?? "";
+    const storyLocale = item.locale_code?.trim() ?? "";
     const publishDate = item.slug !== null ? parseDateFromSlug(item.slug) : null;
     const dateStr = publishDate !== null ? formatDateShort(publishDate, locale) : "";
 
     let line = `- [${title}](/${locale}/news/${slug}.md)`;
+
+    // Add locale badge when story language differs from viewer's locale
+    if (storyLocale !== "" && storyLocale !== locale && isValidLocale(storyLocale)) {
+      const localeData = supportedLocales[storyLocale as SupportedLocaleCode];
+      line += ` [${localeData.englishName}]`;
+    }
+
     if (dateStr !== "") {
       line += ` (${dateStr})`;
     }

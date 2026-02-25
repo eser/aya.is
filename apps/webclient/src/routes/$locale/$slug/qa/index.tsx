@@ -3,7 +3,7 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { ChildNotFound } from "../route";
-import { buildUrl, generateMetaTags } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { compileMdxLite } from "@/lib/mdx";
 import type { ProfileQuestion } from "@/modules/backend/types";
 import i18next from "i18next";
@@ -72,6 +72,7 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
         locale,
         type: "website",
       }),
+      links: [generateCanonicalLink(buildUrl(locale, slug, "qa"))],
     };
   },
   component: QAIndexPage,

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { MemberCard } from "@/components/userland/member-card/member-card";
-import { buildUrl, generateMetaTags } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
 import { ChildNotFound } from "./route";
 
@@ -56,6 +56,7 @@ export const Route = createFileRoute("/$locale/$slug/members")({
         locale,
         type: "website",
       }),
+      links: [generateCanonicalLink(buildUrl(locale, slug, "members"))],
     };
   },
   component: MembersPage,

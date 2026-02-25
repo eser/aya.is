@@ -10,7 +10,7 @@ import { Story } from "@/components/userland/story";
 import { compileMdxLite } from "@/lib/mdx";
 import { formatMonthYear, parseDateFromSlug } from "@/lib/date";
 import { siteConfig } from "@/config";
-import { buildUrl, generateMetaTags } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { backend } from "@/modules/backend/backend";
 import type { StoryEx } from "@/modules/backend/types";
 import i18next from "i18next";
@@ -60,6 +60,7 @@ export const Route = createFileRoute("/$locale/")({
         locale,
         type: "website",
       }),
+      links: [generateCanonicalLink(buildUrl(locale))],
     };
   },
   component: LocaleHomePage,

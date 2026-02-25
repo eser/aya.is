@@ -6,7 +6,7 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
-import { buildUrl, generateMetaTags } from "@/lib/seo";
+import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { ElementsContent } from "./_components/-elements-content";
 import i18next from "i18next";
 
@@ -38,6 +38,7 @@ export const Route = createFileRoute("/$locale/elements/")({
         locale,
         type: "website",
       }),
+      links: [generateCanonicalLink(buildUrl(locale, "elements"))],
     };
   },
   component: ElementsIndexPage,
