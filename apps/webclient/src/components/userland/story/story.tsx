@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { formatDateString } from "@/lib/date";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { InlineMarkdown } from "@/lib/inline-markdown";
+import { LocaleBadge } from "@/components/locale-badge";
 import type { Story as StoryType, StoryEx, StoryKind } from "@/modules/backend/types";
 import styles from "./story.module.css";
 
@@ -85,7 +86,10 @@ export function Story(props: StoryProps) {
           )}
         </div>
         <div className={styles.contentArea}>
-          <h3 className={styles.title}>{stripMarkdown(props.story.title ?? "")}</h3>
+          <h3 className={styles.title}>
+            {stripMarkdown(props.story.title ?? "")}
+            <LocaleBadge localeCode={props.story.locale_code} viewerLocale={locale} className={styles.localeBadge} />
+          </h3>
           {props.story.summary !== null && props.story.summary !== undefined && (
             <InlineMarkdown content={props.story.summary} className={styles.summary} />
           )}

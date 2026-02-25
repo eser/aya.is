@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { LocaleBadge } from "@/components/locale-badge";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,8 @@ export type ProfileCardProps = {
 };
 
 export function ProfileCard(props: ProfileCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const { profile, variant = "avatar", showKindBadge = false } = props;
 
   if (variant === "cover") {
@@ -43,7 +45,10 @@ export function ProfileCard(props: ProfileCardProps) {
             )}
           </div>
           <div className={styles.coverInfo}>
-            <h3 className={styles.title}>{stripMarkdown(profile.title ?? "")}</h3>
+            <h3 className={styles.title}>
+              {stripMarkdown(profile.title ?? "")}
+              <LocaleBadge localeCode={profile.locale_code} viewerLocale={locale} className={styles.localeBadge} />
+            </h3>
             {profile.description !== null && profile.description !== undefined && (
               <InlineMarkdown content={profile.description} className={styles.description} />
             )}
@@ -69,7 +74,10 @@ export function ProfileCard(props: ProfileCardProps) {
           />
         </div>
         <div className={styles.info}>
-          <h3 className={styles.title}>{stripMarkdown(profile.title ?? "")}</h3>
+          <h3 className={styles.title}>
+            {stripMarkdown(profile.title ?? "")}
+            <LocaleBadge localeCode={profile.locale_code} viewerLocale={locale} className={styles.localeBadge} />
+          </h3>
           {profile.description !== null &&
             profile.description !== undefined && (
               <InlineMarkdown content={profile.description} className={styles.description} />

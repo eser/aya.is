@@ -9,10 +9,12 @@ export type Result<T> = {
 export interface Profile {
   id: string;
   slug: string;
+  kind: "individual" | "organization" | "product";
+  locale_code?: string;
   title: string;
   description?: string | null;
   pronouns?: string | null;
-  kind: "individual" | "organization" | "product";
+  default_locale?: string;
   profile_picture_uri?: string | null;
   links?: ProfileLink[];
   pages?: ProfilePage[];
@@ -210,6 +212,7 @@ export interface Story {
   id: string;
   kind: StoryKind;
   slug: string | null;
+  locale_code?: string;
   story_picture_uri: string | null;
   series_id: string | null;
   title: string | null;
@@ -375,6 +378,7 @@ export interface StoryEditData {
   locale_code: string;
   is_fallback: boolean;
   is_managed: boolean;
+  tx_is_managed: boolean;
   story_picture_uri: string | null;
   title: string | null;
   summary: string | null;

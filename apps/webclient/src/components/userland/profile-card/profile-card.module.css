@@ -63,3 +63,7 @@
 .description {
   @apply text-sm text-muted-foreground line-clamp-3;
 }
+
+.localeBadge {
+  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle;
+}

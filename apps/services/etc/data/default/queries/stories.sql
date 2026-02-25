@@ -47,6 +47,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = sqlc.arg(locale_code)
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -116,13 +118,15 @@ INSERT INTO "story_tx" (
   locale_code,
   title,
   summary,
-  content
+  content,
+  is_managed
 ) VALUES (
   sqlc.arg(story_id),
   sqlc.arg(locale_code),
   sqlc.arg(title),
   sqlc.arg(summary),
-  sqlc.arg(content)
+  sqlc.arg(content),
+  sqlc.arg(is_managed)
 );
 
 -- name: InsertStoryPublication :one
@@ -173,17 +177,20 @@ INSERT INTO "story_tx" (
   locale_code,
   title,
   summary,
-  content
+  content,
+  is_managed
 ) VALUES (
   sqlc.arg(story_id),
   sqlc.arg(locale_code),
   sqlc.arg(title),
   sqlc.arg(summary),
-  sqlc.arg(content)
+  sqlc.arg(content),
+  sqlc.arg(is_managed)
 ) ON CONFLICT (story_id, locale_code) DO UPDATE SET
   title = EXCLUDED.title,
   summary = EXCLUDED.summary,
-  content = EXCLUDED.content;
+  content = EXCLUDED.content,
+  is_managed = EXCLUDED.is_managed;
 
 -- name: DeleteStoryTx :execrows
 DELETE FROM "story_tx"
@@ -202,21 +209,24 @@ WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
 -- name: GetStoryForEdit :one
--- Uses locale fallback: prefers the requested locale, falls back to any translation.
+-- Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 -- The returned locale_code indicates which translation was actually found.
--- Includes is_managed flag to protect synced stories from editing.
+-- Includes is_managed flag (tx_is_managed) to protect synced stories from editing.
 SELECT
   s.*,
   st.locale_code,
   st.title,
   st.summary,
   st.content,
+  st.is_managed as tx_is_managed,
   p.slug as author_profile_slug
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = sqlc.arg(locale_code)
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -248,7 +258,7 @@ WHERE s.id = sqlc.arg(story_id)
 LIMIT 1;
 
 -- name: ListStoriesOfPublication :many
--- Strict locale matching: only returns stories that have a translation for the requested locale.
+-- Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 SELECT
   sqlc.embed(s),
   sqlc.embed(st),
@@ -258,7 +268,14 @@ SELECT
   (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = sqlc.arg(locale_code)
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    AND (stx.locale_code = sqlc.arg(locale_code)
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
   AND p1.approved_at IS NOT NULL
   AND p1.deleted_at IS NULL
@@ -298,7 +315,7 @@ ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE
 
 -- name: ListStoriesByAuthorProfileID :many
 -- Lists all stories authored by a profile, including unpublished ones.
--- Uses locale fallback: prefers the requested locale, falls back to any translation.
+-- Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 -- Publications are included as optional data (LEFT JOIN).
 SELECT
   sqlc.embed(s),
@@ -312,6 +329,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = sqlc.arg(locale_code)
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -350,7 +369,7 @@ ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE
 
 -- name: ListStoriesOfPublicationForViewer :many
 -- Like ListStoriesOfPublication but includes private stories for authorized viewers.
--- List semantics: public shown to all, private only to admin/author/maintainer+.
+-- Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 -- Unlisted stories are always excluded from listings (accessible only via direct link).
 SELECT
   sqlc.embed(s),
@@ -361,7 +380,14 @@ SELECT
   (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = sqlc.arg(locale_code)
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    AND (stx.locale_code = sqlc.arg(locale_code)
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
   AND p1.approved_at IS NOT NULL
   AND p1.deleted_at IS NULL
@@ -426,6 +452,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = sqlc.arg(locale_code)
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -593,6 +621,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = sqlc.arg(locale_code)
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -653,3 +683,9 @@ LEFT JOIN "profile_membership" pm ON pm.profile_id = sqlc.arg(profile_id)::CHAR(
 WHERE u.id = sqlc.arg(user_id)
   AND u.deleted_at IS NULL
 LIMIT 1;
+
+-- name: IsStoryTxManaged :one
+-- Returns the is_managed flag for a specific story translation.
+-- Used to gate editing: managed translations cannot be modified by users.
+SELECT is_managed FROM "story_tx"
+WHERE story_id = sqlc.arg(story_id) AND locale_code = sqlc.arg(locale_code);

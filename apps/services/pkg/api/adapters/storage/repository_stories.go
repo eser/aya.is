@@ -478,6 +478,7 @@ func (r *Repository) InsertStoryTx(
 	title string,
 	summary string,
 	content string,
+	isManaged bool,
 ) error {
 	params := InsertStoryTxParams{
 		StoryID:    storyID,
@@ -485,6 +486,7 @@ func (r *Repository) InsertStoryTx(
 		Title:      title,
 		Summary:    summary,
 		Content:    content,
+		IsManaged:  isManaged,
 	}
 
 	return r.queries.InsertStoryTx(ctx, params)
@@ -566,6 +568,7 @@ func (r *Repository) UpsertStoryTx(
 	title string,
 	summary string,
 	content string,
+	isManaged bool,
 ) error {
 	params := UpsertStoryTxParams{
 		StoryID:    storyID,
@@ -573,9 +576,22 @@ func (r *Repository) UpsertStoryTx(
 		Title:      title,
 		Summary:    summary,
 		Content:    content,
+		IsManaged:  isManaged,
 	}
 
 	return r.queries.UpsertStoryTx(ctx, params)
+}
+
+// IsStoryTxManaged returns the is_managed flag for a specific story translation.
+func (r *Repository) IsStoryTxManaged(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+) (bool, error) {
+	return r.queries.IsStoryTxManaged(ctx, IsStoryTxManagedParams{
+		StoryID:    storyID,
+		LocaleCode: localeCode,
+	})
 }
 
 func (r *Repository) RemoveStory(ctx context.Context, id string) error {
@@ -645,6 +661,7 @@ func (r *Repository) GetStoryForEdit(
 		CreatedAt:         row.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
 		IsManaged:         row.IsManaged,
+		TxIsManaged:       row.TxIsManaged,
 		FeatDiscussions:   row.FeatDiscussions,
 	}, nil
 }
@@ -848,6 +865,7 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Title:           storyTx.Title,
 				Summary:         storyTx.Summary,
 				Content:         storyTx.Content,
+				LocaleCode:      storyTx.LocaleCode,
 				Properties:      vars.ToObject(story.Properties),
 				Visibility:      story.Visibility,
 				IsManaged:       story.IsManaged,
@@ -864,6 +882,7 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Pronouns:          vars.ToStringPtr(profile.Pronouns),
 				Title:             profileTx.Title,
 				Description:       profileTx.Description,
+				LocaleCode:        profileTx.LocaleCode,
 				Properties:        vars.ToObject(profile.Properties),
 				CreatedAt:         profile.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
@@ -895,6 +914,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Title:           storyTx.Title,
 			Summary:         storyTx.Summary,
 			Content:         storyTx.Content,
+			LocaleCode:      storyTx.LocaleCode,
 			Properties:      vars.ToObject(story.Properties),
 			Visibility:      story.Visibility,
 			IsManaged:       story.IsManaged,
@@ -911,6 +931,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Pronouns:          vars.ToStringPtr(profile.Pronouns),
 			Title:             profileTx.Title,
 			Description:       profileTx.Description,
+			LocaleCode:        profileTx.LocaleCode,
 			Properties:        vars.ToObject(profile.Properties),
 			CreatedAt:         profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
@@ -965,6 +986,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Pronouns:          publicationProfile.Profile.Pronouns,
 			Title:             publicationProfile.ProfileTx.Title,
 			Description:       publicationProfile.ProfileTx.Description,
+			LocaleCode:        publicationProfile.ProfileTx.LocaleCode,
 			Properties:        publicationProfile.Profile.Properties,
 			CreatedAt:         publicationProfile.Profile.CreatedAt,
 			UpdatedAt:         publicationProfile.Profile.UpdatedAt,

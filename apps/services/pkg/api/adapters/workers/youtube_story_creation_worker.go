@@ -42,6 +42,7 @@ type storyCreationRepo interface {
 		title string,
 		summary string,
 		content string,
+		isManaged bool,
 	) error
 	InsertStoryPublication(
 		ctx context.Context,
@@ -69,6 +70,7 @@ type storyCreationRepo interface {
 		title string,
 		summary string,
 		content string,
+		isManaged bool,
 	) error
 	UpdateStoryPublicationDate(ctx context.Context, id string, publishedAt time.Time) error
 	RemoveStoryPublication(ctx context.Context, id string) error
@@ -220,6 +222,7 @@ func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:cyclop,funlen
 		videoMeta.title,
 		summary,
 		content,
+		true,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to insert story translation: %w", err)
@@ -373,7 +376,15 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 	content := buildStoryContent(imp.RemoteID, videoMeta.description)
 	summary := truncateSummary(videoMeta.description, maxSummaryLength)
 
-	err = w.storyRepo.UpsertStoryTx(ctx, imp.StoryID, locale, videoMeta.title, summary, content)
+	err = w.storyRepo.UpsertStoryTx(
+		ctx,
+		imp.StoryID,
+		locale,
+		videoMeta.title,
+		summary,
+		content,
+		true,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to upsert story translation: %w", err)
 	}

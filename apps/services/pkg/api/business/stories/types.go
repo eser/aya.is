@@ -64,6 +64,7 @@ type Story struct {
 	ID              string     `json:"id"`
 	Slug            string     `json:"slug"`
 	Kind            string     `json:"kind"`
+	LocaleCode      string     `json:"locale_code"`
 	Title           string     `json:"title"`
 	Summary         string     `json:"summary"`
 	Content         string     `json:"content"`
@@ -96,6 +97,7 @@ type StoryForEdit struct {
 	Content           string     `json:"content"`
 	Visibility        string     `json:"visibility"`
 	IsManaged         bool       `json:"is_managed"`
+	TxIsManaged       bool       `json:"tx_is_managed"`
 	FeatDiscussions   bool       `json:"feat_discussions"`
 }
 

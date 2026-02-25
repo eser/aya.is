@@ -114,6 +114,7 @@ type ContentEditorProps = {
   onAutoTranslate?: (targetLocale: string) => Promise<void>;
   onDeleteTranslation?: (locale: string) => Promise<void>;
   isManaged?: boolean;
+  txIsManaged?: boolean;
 };
 
 export function ContentEditor(props: ContentEditorProps) {
@@ -137,6 +138,7 @@ export function ContentEditor(props: ContentEditorProps) {
     onAutoTranslate,
     onDeleteTranslation,
     isManaged = false,
+    txIsManaged = false,
   } = props;
 
   const isAdmin = userKind === "admin";
@@ -671,10 +673,14 @@ export function ContentEditor(props: ContentEditorProps) {
       </div>
 
       {/* Managed Story Banner */}
-      {isManaged && (
+      {(isManaged || txIsManaged) && (
         <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 px-4 py-2 text-sm text-amber-800 dark:text-amber-200">
           <Info className="size-4 shrink-0" />
-          <span>{t("ContentEditor.This story is synced from an external source. Some fields cannot be edited.")}</span>
+          <span>
+            {txIsManaged
+              ? t("ContentEditor.This translation is synced from an external source and cannot be edited. You can add translations in other languages.")
+              : t("ContentEditor.This story is synced from an external source. Some fields cannot be edited.")}
+          </span>
         </div>
       )}
 
@@ -893,7 +899,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   }}
                   placeholder={t("ContentEditor.Enter title...")}
                   aria-invalid={titleError !== null || undefined}
-                  disabled={isManaged}
+                  disabled={txIsManaged}
                 />
                 {titleError !== null && <FieldError>{titleError}</FieldError>}
               </Field>
@@ -909,7 +915,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   onChange={(e) => setSummary(e.target.value)}
                   placeholder={t("ContentEditor.Brief summary...")}
                   className="min-h-[80px]"
-                  disabled={isManaged}
+                  disabled={txIsManaged}
                 />
               </Field>
 
@@ -1133,8 +1139,8 @@ export function ContentEditor(props: ContentEditorProps) {
           <EditorToolbar
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            onFormat={isManaged ? undefined : handleFormat}
-            onImageUpload={isManaged ? undefined : () => setShowImageModal(true)}
+            onFormat={txIsManaged ? undefined : handleFormat}
+            onImageUpload={txIsManaged ? undefined : () => setShowImageModal(true)}
           />
 
           <div className={styles.editorPanels}>
@@ -1147,7 +1153,7 @@ export function ContentEditor(props: ContentEditorProps) {
                       value={content}
                       onChange={setContent}
                       placeholder={t("ContentEditor.Write your content in markdown...")}
-                      disabled={isManaged}
+                      disabled={txIsManaged}
                       textareaRef={editorTextareaRef}
                     />
                   </div>
@@ -1168,6 +1174,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   value={content}
                   onChange={setContent}
                   placeholder={t("ContentEditor.Write your content in markdown...")}
+                  disabled={txIsManaged}
                 />
               </div>
             )}

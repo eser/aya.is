@@ -25,6 +25,15 @@ func ToStringPtr(s sql.NullString) *string {
 	return nil
 }
 
+// EmptyToNil converts an empty string to nil, non-empty to *string.
+func EmptyToNil(s string) *string {
+	if s == "" {
+		return nil
+	}
+
+	return &s
+}
+
 func ToSQLNullString(s *string) sql.NullString {
 	if s != nil {
 		return sql.NullString{String: *s, Valid: true}

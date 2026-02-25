@@ -94,6 +94,7 @@ type Profile struct {
 	ID                              string     `json:"id"`
 	Slug                            string     `json:"slug"`
 	Kind                            string     `json:"kind"`
+	LocaleCode                      string     `json:"locale_code"`
 	Title                           string     `json:"title"`
 	Description                     string     `json:"description"`
 	DefaultLocale                   string     `json:"default_locale"`

@@ -236,6 +236,7 @@ type Repository interface {
 		title string,
 		summary string,
 		content string,
+		isManaged bool,
 	) error
 	InsertStoryPublication(
 		ctx context.Context,
@@ -271,7 +272,9 @@ type Repository interface {
 		title string,
 		summary string,
 		content string,
+		isManaged bool,
 	) error
+	IsStoryTxManaged(ctx context.Context, storyID string, localeCode string) (bool, error)
 	RemoveStory(ctx context.Context, id string) error
 	DeleteStoryTx(ctx context.Context, storyID string, localeCode string) error
 	ListStoryTxLocales(ctx context.Context, storyID string) ([]string, error)
@@ -840,6 +843,7 @@ func (s *Service) Create(
 		title,
 		summary,
 		content,
+		false,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: translation: %w", ErrFailedToInsertRecord, err)
@@ -1032,18 +1036,15 @@ func (s *Service) UpdateTranslation(
 		)
 	}
 
-	// Check if story is managed (synced from external source)
-	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
-	if err != nil {
-		return fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
-	}
-
-	if storyForEdit != nil && storyForEdit.IsManaged {
+	// Check if the specific translation is managed (synced from external source)
+	txIsManaged, txErr := s.repo.IsStoryTxManaged(ctx, storyID, localeCode)
+	if txErr == nil && txIsManaged {
 		return ErrManagedStory
 	}
+	// If txErr (row doesn't exist) → this is a new translation → allow
 
 	// Update the translation (use upsert to handle new locales)
-	err = s.repo.UpsertStoryTx(ctx, storyID, localeCode, title, summary, content)
+	err = s.repo.UpsertStoryTx(ctx, storyID, localeCode, title, summary, content, false)
 	if err != nil {
 		return fmt.Errorf(
 			"%w(storyID: %s, locale: %s): %w",
@@ -1085,6 +1086,12 @@ func (s *Service) DeleteTranslation(
 			userID,
 			storyID,
 		)
+	}
+
+	// Check if the translation is managed (cannot delete synced translations)
+	txIsManaged, txErr := s.repo.IsStoryTxManaged(ctx, storyID, localeCode)
+	if txErr == nil && txIsManaged {
+		return ErrManagedStory
 	}
 
 	err = s.repo.DeleteStoryTx(ctx, storyID, localeCode)

@@ -60,3 +60,7 @@
 .rsvpBadge {
   @apply text-xs px-1.5 py-0.5 rounded bg-muted;
 }
+
+.localeBadge {
+  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle;
+}

@@ -260,7 +260,7 @@ func (w *ExternalSiteStoryProcessor) reconcileStory(
 
 	summary := truncateSummary(description, maxSummaryLength)
 
-	err := w.storyRepo.UpsertStoryTx(ctx, imp.StoryID, locale, title, summary, content)
+	err := w.storyRepo.UpsertStoryTx(ctx, imp.StoryID, locale, title, summary, content, true)
 	if err != nil {
 		return fmt.Errorf("failed to upsert story translation: %w", err)
 	}
@@ -319,7 +319,7 @@ func (w *ExternalSiteStoryProcessor) createStoryFromImport(
 
 	summary := truncateSummary(meta.description, maxSummaryLength)
 
-	err = w.storyRepo.InsertStoryTx(ctx, storyID, locale, meta.title, summary, meta.content)
+	err = w.storyRepo.InsertStoryTx(ctx, storyID, locale, meta.title, summary, meta.content, true)
 	if err != nil {
 		return fmt.Errorf("failed to insert story translation: %w", err)
 	}

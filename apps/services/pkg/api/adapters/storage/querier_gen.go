@@ -1219,18 +1219,21 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
-	//    plt."group" as "group",
-	//    plt.description as description
+	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, pl.kind) as title,
+	//    COALESCE(plt.icon, '') as icon,
+	//    COALESCE(plt."group", '') as "group",
+	//    COALESCE(plt.description, '') as description
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-	//      AND plt_def.locale_code = p.default_locale
+	//      AND plt.locale_code = (
+	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
+	//        WHERE pltf.profile_link_id = pl.id
+	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//  WHERE pl.id = $2
 	//    AND pl.deleted_at IS NULL
 	GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*GetProfileLinkRow, error)
@@ -1578,7 +1581,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications,
@@ -1588,6 +1591,8 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
+	//      AND (stx.locale_code = $1
+	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
@@ -1632,9 +1637,9 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//    AND published_at IS NOT NULL
 	GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirstPublishedAtParams) (interface{}, error)
-	// Uses locale fallback: prefers the requested locale, falls back to any translation.
+	// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 	// The returned locale_code indicates which translation was actually found.
-	// Includes is_managed flag to protect synced stories from editing.
+	// Includes is_managed flag (tx_is_managed) to protect synced stories from editing.
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
@@ -1642,12 +1647,15 @@ type Querier interface {
 	//    st.title,
 	//    st.summary,
 	//    st.content,
+	//    st.is_managed as tx_is_managed,
 	//    p.slug as author_profile_slug
 	//  FROM "story" s
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
+	//      AND (stx.locale_code = $1
+	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
@@ -2024,15 +2032,23 @@ type Querier interface {
 	//    locale_code,
 	//    title,
 	//    summary,
-	//    content
+	//    content,
+	//    is_managed
 	//  ) VALUES (
 	//    $1,
 	//    $2,
 	//    $3,
 	//    $4,
-	//    $5
+	//    $5,
+	//    $6
 	//  )
 	InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error
+	// Returns the is_managed flag for a specific story translation.
+	// Used to gate editing: managed translations cannot be modified by users.
+	//
+	//  SELECT is_managed FROM "story_tx"
+	//  WHERE story_id = $1 AND locale_code = $2
+	IsStoryTxManaged(ctx context.Context, arg IsStoryTxManagedParams) (bool, error)
 	//ListAcceptedMailboxInvitations
 	//
 	//  SELECT
@@ -2057,7 +2073,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -2067,6 +2083,8 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
+	//      AND (stx.locale_code = $1
+	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
@@ -2116,16 +2134,21 @@ type Querier interface {
 	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
-	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
-	//    COALESCE(plt."group", plt_def."group", '') as "group",
-	//    COALESCE(plt.description, plt_def.description, '') as description
+	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, pl.kind) as title,
+	//    COALESCE(plt.icon, '') as icon,
+	//    COALESCE(plt."group", '') as "group",
+	//    COALESCE(plt.description, '') as description
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-	//      AND plt_def.locale_code = p.default_locale
+	//      AND plt.locale_code = (
+	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
+	//        WHERE pltf.profile_link_id = pl.id
+	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//  WHERE pl.profile_id = $2
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
@@ -2285,16 +2308,21 @@ type Querier interface {
 	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
-	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
-	//    COALESCE(plt."group", plt_def."group", '') as "group",
-	//    COALESCE(plt.description, plt_def.description, '') as description
+	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, pl.kind) as title,
+	//    COALESCE(plt.icon, '') as icon,
+	//    COALESCE(plt."group", '') as "group",
+	//    COALESCE(plt.description, '') as description
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-	//      AND plt_def.locale_code = p.default_locale
+	//      AND plt.locale_code = (
+	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
+	//        WHERE pltf.profile_link_id = pl.id
+	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//  WHERE pl.profile_id = $2
 	//    AND pl.is_featured = TRUE
 	//    AND pl.deleted_at IS NULL
@@ -2493,12 +2521,11 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
-	//    COALESCE(plt.icon, plt_def.icon, '') as icon,
-	//    plt."group" as "group",
-	//    plt.description as description,
+	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, pl.kind) as title,
+	//    COALESCE(plt.icon, '') as icon,
+	//    COALESCE(plt."group", '') as "group",
+	//    COALESCE(plt.description, '') as description,
 	//    p_added.slug as added_by_slug,
 	//    p_added.kind as added_by_kind,
 	//    COALESCE(pt_added.title, '') as added_by_title,
@@ -2507,9 +2534,13 @@ type Querier interface {
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-	//      AND plt_def.locale_code = p.default_locale
+	//      AND plt.locale_code = (
+	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
+	//        WHERE pltf.profile_link_id = pl.id
+	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//    LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
 	//    LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 	//  WHERE pl.profile_id = $2
@@ -2520,18 +2551,22 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-	//    COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-	//    COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-	//    COALESCE(plt.title, plt_def.title, pl.kind) as title,
-	//    plt."group" as "group",
-	//    plt.description as description
+	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
+	//    COALESCE(plt.title, pl.kind) as title,
+	//    COALESCE(plt.icon, '') as icon,
+	//    COALESCE(plt."group", '') as "group",
+	//    COALESCE(plt.description, '') as description
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//      AND p.deleted_at IS NULL
 	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-	//      AND plt.locale_code = $1
-	//    LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-	//      AND plt_def.locale_code = p.default_locale
+	//      AND plt.locale_code = (
+	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
+	//        WHERE pltf.profile_link_id = pl.id
+	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        LIMIT 1
+	//      )
 	//  WHERE pl.kind = $2
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
@@ -2844,12 +2879,12 @@ type Querier interface {
 	//    created_at DESC
 	ListSessionsByUserID(ctx context.Context, arg ListSessionsByUserIDParams) ([]*ListSessionsByUserIDRow, error)
 	// Lists all stories authored by a profile, including unpublished ones.
-	// Uses locale fallback: prefers the requested locale, falls back to any translation.
+	// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 	// Publications are included as optional data (LEFT JOIN).
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -2859,6 +2894,8 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
+	//      AND (stx.locale_code = $1
+	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
@@ -2901,7 +2938,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -2911,6 +2948,8 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
+	//      AND (stx.locale_code = $1
+	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 	//      LIMIT 1
 	//    )
@@ -2959,18 +2998,25 @@ type Querier interface {
 	//    )
 	//  ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 	ListStoriesByAuthorProfileIDForViewer(ctx context.Context, arg ListStoriesByAuthorProfileIDForViewerParams) ([]*ListStoriesByAuthorProfileIDForViewerRow, error)
-	// Strict locale matching: only returns stories that have a translation for the requested locale.
+	// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 	//  FROM "story" s
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
-	//    AND st.locale_code = $1
+	//    AND st.locale_code = (
+	//      SELECT stx.locale_code FROM "story_tx" stx
+	//      WHERE stx.story_id = s.id
+	//      AND (stx.locale_code = $1
+	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      LIMIT 1
+	//    )
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
 	//    AND p1.approved_at IS NOT NULL
 	//    AND p1.deleted_at IS NULL
@@ -3009,19 +3055,26 @@ type Querier interface {
 	//  ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 	ListStoriesOfPublication(ctx context.Context, arg ListStoriesOfPublicationParams) ([]*ListStoriesOfPublicationRow, error)
 	// Like ListStoriesOfPublication but includes private stories for authorized viewers.
-	// List semantics: public shown to all, private only to admin/author/maintainer+.
+	// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 	// Unlisted stories are always excluded from listings (accessible only via direct link).
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 	//  FROM "story" s
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
-	//    AND st.locale_code = $1
+	//    AND st.locale_code = (
+	//      SELECT stx.locale_code FROM "story_tx" stx
+	//      WHERE stx.story_id = s.id
+	//      AND (stx.locale_code = $1
+	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      LIMIT 1
+	//    )
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
 	//    AND p1.approved_at IS NOT NULL
 	//    AND p1.deleted_at IS NULL
@@ -4044,17 +4097,20 @@ type Querier interface {
 	//    locale_code,
 	//    title,
 	//    summary,
-	//    content
+	//    content,
+	//    is_managed
 	//  ) VALUES (
 	//    $1,
 	//    $2,
 	//    $3,
 	//    $4,
-	//    $5
+	//    $5,
+	//    $6
 	//  ) ON CONFLICT (story_id, locale_code) DO UPDATE SET
 	//    title = EXCLUDED.title,
 	//    summary = EXCLUDED.summary,
-	//    content = EXCLUDED.content
+	//    content = EXCLUDED.content,
+	//    is_managed = EXCLUDED.is_managed
 	UpsertStoryTx(ctx context.Context, arg UpsertStoryTxParams) error
 }
 

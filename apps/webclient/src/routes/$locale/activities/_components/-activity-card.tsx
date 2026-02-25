@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { formatDateTimeShort } from "@/lib/date";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { InlineMarkdown } from "@/lib/inline-markdown";
+import { LocaleBadge } from "@/components/locale-badge";
 import type { StoryEx, ActivityProperties } from "@/modules/backend/types";
 import styles from "./-activity-card.module.css";
 
@@ -64,6 +65,7 @@ export function ActivityCard(props: ActivityCardProps) {
           <h3 className={styles.title}>
             {stripMarkdown(props.activity.title ?? "")}
             <span className={styles.badge}>{t(kindLabelKey)}</span>
+            <LocaleBadge localeCode={props.activity.locale_code} viewerLocale={locale} className={styles.localeBadge} />
           </h3>
           {props.activity.summary !== null && props.activity.summary !== undefined && (
             <InlineMarkdown content={props.activity.summary} className={styles.summary} />

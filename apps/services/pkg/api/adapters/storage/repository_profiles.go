@@ -307,6 +307,7 @@ func (r *Repository) GetProfileByID(
 
 		ProfilePictureURI:               vars.ToStringPtr(row.Profile.ProfilePictureURI),
 		Pronouns:                        vars.ToStringPtr(row.Profile.Pronouns),
+		LocaleCode:                      row.ProfileTx.LocaleCode,
 		Title:                           row.ProfileTx.Title,
 		Description:                     row.ProfileTx.Description,
 		DefaultLocale:                   row.Profile.DefaultLocale,
@@ -352,6 +353,7 @@ func (r *Repository) ListProfiles(
 
 			ProfilePictureURI:  vars.ToStringPtr(row.Profile.ProfilePictureURI),
 			Pronouns:           vars.ToStringPtr(row.Profile.Pronouns),
+			LocaleCode:         row.ProfileTx.LocaleCode,
 			Title:              row.ProfileTx.Title,
 			Description:        row.ProfileTx.Description,
 			DefaultLocale:      row.Profile.DefaultLocale,
@@ -565,8 +567,8 @@ func (r *Repository) ListProfileLinksByProfileID(
 			URI:         row.URI.String,
 			Title:       row.Title,
 			Icon:        row.Icon,
-			Group:       row.Group.String,
-			Description: row.Description.String,
+			Group:       row.Group,
+			Description: row.Description,
 		}
 	}
 
@@ -615,6 +617,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
+				LocaleCode:        row.ProfileTx.LocaleCode,
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
 				DefaultLocale:     row.Profile.DefaultLocale,
@@ -630,6 +633,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
+				LocaleCode:        row.ProfileTx_2.LocaleCode,
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
 				DefaultLocale:     row.Profile_2.DefaultLocale,
@@ -694,6 +698,7 @@ func (r *Repository) ListProfileMembers(
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
+				LocaleCode:        row.ProfileTx.LocaleCode,
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
 				DefaultLocale:     row.Profile.DefaultLocale,
@@ -709,6 +714,7 @@ func (r *Repository) ListProfileMembers(
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
+				LocaleCode:        row.ProfileTx_2.LocaleCode,
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
 				DefaultLocale:     row.Profile_2.DefaultLocale,
@@ -761,6 +767,7 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
+				LocaleCode:        row.ProfileTx.LocaleCode,
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
 				DefaultLocale:     row.Profile.DefaultLocale,
@@ -1258,8 +1265,8 @@ func (r *Repository) GetProfileLink(
 		Properties:       unmarshalProperties(row.Properties),
 		Title:            row.Title,
 		Icon:             iconPtr,
-		Group:            vars.ToStringPtr(row.Group),
-		Description:      vars.ToStringPtr(row.Description),
+		Group:            vars.EmptyToNil(row.Group),
+		Description:      vars.EmptyToNil(row.Description),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),

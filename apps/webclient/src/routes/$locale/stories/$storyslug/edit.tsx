@@ -365,6 +365,7 @@ function EditStoryPage() {
         onAutoTranslate={handleAutoTranslate}
         onDeleteTranslation={handleDeleteTranslation}
         isManaged={storyData.is_managed}
+        txIsManaged={storyData.tx_is_managed}
       />
     </PageLayout>
   );

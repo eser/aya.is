@@ -5,6 +5,7 @@ import { Coins, Ellipsis, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus
 import { toast } from "sonner";
 import { Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { backend, type Profile } from "@/modules/backend/backend";
+import { LocaleBadge } from "@/components/locale-badge";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -335,6 +336,11 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                 className="no-underline transition-colors text-muted-foreground hover:text-foreground"
               >
                 {page.title}
+                <LocaleBadge
+                  localeCode={page.locale_code}
+                  viewerLocale={props.locale}
+                  className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle"
+                />
               </LocaleLink>
             </li>
           ))}

@@ -520,6 +520,7 @@ type StoryTx struct {
 	Summary      string      `db:"summary" json:"summary"`
 	Content      string      `db:"content" json:"content"`
 	SearchVector interface{} `db:"search_vector" json:"search_vector"`
+	IsManaged    bool        `db:"is_managed" json:"is_managed"`
 }
 
 type User struct {

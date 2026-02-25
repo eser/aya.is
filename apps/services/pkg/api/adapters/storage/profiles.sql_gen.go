@@ -1389,18 +1389,21 @@ func (q *Queries) GetProfileIdentifierByID(ctx context.Context, arg GetProfileId
 const getProfileLink = `-- name: GetProfileLink :one
 SELECT
   pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_def.icon, '') as icon,
-  plt."group" as "group",
-  plt.description as description
+  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, pl.kind) as title,
+  COALESCE(plt.icon, '') as icon,
+  COALESCE(plt."group", '') as "group",
+  COALESCE(plt.description, '') as description
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-    AND plt.locale_code = $1
-  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-    AND plt_def.locale_code = p.default_locale
+    AND plt.locale_code = (
+      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+      WHERE pltf.profile_link_id = pl.id
+      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE pl.id = $2
   AND pl.deleted_at IS NULL
 `
@@ -1433,30 +1436,32 @@ type GetProfileLinkRow struct {
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
-	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
 	Icon                      string                `db:"icon" json:"icon"`
-	Group                     sql.NullString        `db:"group" json:"group"`
-	Description               sql.NullString        `db:"description" json:"description"`
+	Group                     string                `db:"group" json:"group"`
+	Description               string                `db:"description" json:"description"`
 }
 
 // GetProfileLink
 //
 //	SELECT
 //	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-//	  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-//	  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-//	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-//	  COALESCE(plt.icon, plt_def.icon, '') as icon,
-//	  plt."group" as "group",
-//	  plt.description as description
+//	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+//	  COALESCE(plt.title, pl.kind) as title,
+//	  COALESCE(plt.icon, '') as icon,
+//	  COALESCE(plt."group", '') as "group",
+//	  COALESCE(plt.description, '') as description
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-//	    AND plt.locale_code = $1
-//	  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-//	    AND plt_def.locale_code = p.default_locale
+//	    AND plt.locale_code = (
+//	      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+//	      WHERE pltf.profile_link_id = pl.id
+//	      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+//	      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
 //	WHERE pl.id = $2
 //	  AND pl.deleted_at IS NULL
 func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) (*GetProfileLinkRow, error) {
@@ -1485,7 +1490,6 @@ func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) 
 		&i.Visibility,
 		&i.IsFeatured,
 		&i.AddedByProfileID,
-		&i.ProfileLinkID,
 		&i.LocaleCode,
 		&i.Title,
 		&i.Icon,
@@ -2513,16 +2517,21 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_def.icon, '') as icon,
-  COALESCE(plt."group", plt_def."group", '') as "group",
-  COALESCE(plt.description, plt_def.description, '') as description
+  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, pl.kind) as title,
+  COALESCE(plt.icon, '') as icon,
+  COALESCE(plt."group", '') as "group",
+  COALESCE(plt.description, '') as description
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-    AND plt.locale_code = $1
-  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-    AND plt_def.locale_code = p.default_locale
+    AND plt.locale_code = (
+      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+      WHERE pltf.profile_link_id = pl.id
+      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE pl.profile_id = $2
   AND pl.deleted_at IS NULL
 ORDER BY pl."order"
@@ -2542,6 +2551,7 @@ type ListAllProfileLinksByProfileIDRow struct {
 	IsManaged   bool           `db:"is_managed" json:"is_managed"`
 	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
 	Visibility  string         `db:"visibility" json:"visibility"`
+	LocaleCode  string         `db:"locale_code" json:"locale_code"`
 	Title       string         `db:"title" json:"title"`
 	Icon        string         `db:"icon" json:"icon"`
 	Group       string         `db:"group" json:"group"`
@@ -2559,16 +2569,21 @@ type ListAllProfileLinksByProfileIDRow struct {
 //	  pl.is_managed,
 //	  pl.is_featured,
 //	  pl.visibility,
-//	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-//	  COALESCE(plt.icon, plt_def.icon, '') as icon,
-//	  COALESCE(plt."group", plt_def."group", '') as "group",
-//	  COALESCE(plt.description, plt_def.description, '') as description
+//	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+//	  COALESCE(plt.title, pl.kind) as title,
+//	  COALESCE(plt.icon, '') as icon,
+//	  COALESCE(plt."group", '') as "group",
+//	  COALESCE(plt.description, '') as description
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-//	    AND plt.locale_code = $1
-//	  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-//	    AND plt_def.locale_code = p.default_locale
+//	    AND plt.locale_code = (
+//	      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+//	      WHERE pltf.profile_link_id = pl.id
+//	      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+//	      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
 //	WHERE pl.profile_id = $2
 //	  AND pl.deleted_at IS NULL
 //	ORDER BY pl."order"
@@ -2590,6 +2605,7 @@ func (q *Queries) ListAllProfileLinksByProfileID(ctx context.Context, arg ListAl
 			&i.IsManaged,
 			&i.IsFeatured,
 			&i.Visibility,
+			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
 			&i.Group,
@@ -2787,16 +2803,21 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
-  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_def.icon, '') as icon,
-  COALESCE(plt."group", plt_def."group", '') as "group",
-  COALESCE(plt.description, plt_def.description, '') as description
+  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, pl.kind) as title,
+  COALESCE(plt.icon, '') as icon,
+  COALESCE(plt."group", '') as "group",
+  COALESCE(plt.description, '') as description
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-    AND plt.locale_code = $1
-  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-    AND plt_def.locale_code = p.default_locale
+    AND plt.locale_code = (
+      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+      WHERE pltf.profile_link_id = pl.id
+      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE pl.profile_id = $2
   AND pl.is_featured = TRUE
   AND pl.deleted_at IS NULL
@@ -2817,6 +2838,7 @@ type ListFeaturedProfileLinksByProfileIDRow struct {
 	IsManaged   bool           `db:"is_managed" json:"is_managed"`
 	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
 	Visibility  string         `db:"visibility" json:"visibility"`
+	LocaleCode  string         `db:"locale_code" json:"locale_code"`
 	Title       string         `db:"title" json:"title"`
 	Icon        string         `db:"icon" json:"icon"`
 	Group       string         `db:"group" json:"group"`
@@ -2834,16 +2856,21 @@ type ListFeaturedProfileLinksByProfileIDRow struct {
 //	  pl.is_managed,
 //	  pl.is_featured,
 //	  pl.visibility,
-//	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-//	  COALESCE(plt.icon, plt_def.icon, '') as icon,
-//	  COALESCE(plt."group", plt_def."group", '') as "group",
-//	  COALESCE(plt.description, plt_def.description, '') as description
+//	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+//	  COALESCE(plt.title, pl.kind) as title,
+//	  COALESCE(plt.icon, '') as icon,
+//	  COALESCE(plt."group", '') as "group",
+//	  COALESCE(plt.description, '') as description
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-//	    AND plt.locale_code = $1
-//	  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-//	    AND plt_def.locale_code = p.default_locale
+//	    AND plt.locale_code = (
+//	      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+//	      WHERE pltf.profile_link_id = pl.id
+//	      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+//	      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
 //	WHERE pl.profile_id = $2
 //	  AND pl.is_featured = TRUE
 //	  AND pl.deleted_at IS NULL
@@ -2866,6 +2893,7 @@ func (q *Queries) ListFeaturedProfileLinksByProfileID(ctx context.Context, arg L
 			&i.IsManaged,
 			&i.IsFeatured,
 			&i.Visibility,
+			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
 			&i.Group,
@@ -2983,12 +3011,11 @@ func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHub
 const listProfileLinksByProfileID = `-- name: ListProfileLinksByProfileID :many
 SELECT
   pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-  COALESCE(plt.icon, plt_def.icon, '') as icon,
-  plt."group" as "group",
-  plt.description as description,
+  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, pl.kind) as title,
+  COALESCE(plt.icon, '') as icon,
+  COALESCE(plt."group", '') as "group",
+  COALESCE(plt.description, '') as description,
   p_added.slug as added_by_slug,
   p_added.kind as added_by_kind,
   COALESCE(pt_added.title, '') as added_by_title,
@@ -2997,9 +3024,13 @@ SELECT
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-    AND plt.locale_code = $1
-  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-    AND plt_def.locale_code = p.default_locale
+    AND plt.locale_code = (
+      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+      WHERE pltf.profile_link_id = pl.id
+      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
   LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
   LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 WHERE pl.profile_id = $2
@@ -3035,12 +3066,11 @@ type ListProfileLinksByProfileIDRow struct {
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
-	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
 	Icon                      string                `db:"icon" json:"icon"`
-	Group                     sql.NullString        `db:"group" json:"group"`
-	Description               sql.NullString        `db:"description" json:"description"`
+	Group                     string                `db:"group" json:"group"`
+	Description               string                `db:"description" json:"description"`
 	AddedBySlug               sql.NullString        `db:"added_by_slug" json:"added_by_slug"`
 	AddedByKind               sql.NullString        `db:"added_by_kind" json:"added_by_kind"`
 	AddedByTitle              string                `db:"added_by_title" json:"added_by_title"`
@@ -3052,12 +3082,11 @@ type ListProfileLinksByProfileIDRow struct {
 //
 //	SELECT
 //	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-//	  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-//	  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-//	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-//	  COALESCE(plt.icon, plt_def.icon, '') as icon,
-//	  plt."group" as "group",
-//	  plt.description as description,
+//	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+//	  COALESCE(plt.title, pl.kind) as title,
+//	  COALESCE(plt.icon, '') as icon,
+//	  COALESCE(plt."group", '') as "group",
+//	  COALESCE(plt.description, '') as description,
 //	  p_added.slug as added_by_slug,
 //	  p_added.kind as added_by_kind,
 //	  COALESCE(pt_added.title, '') as added_by_title,
@@ -3066,9 +3095,13 @@ type ListProfileLinksByProfileIDRow struct {
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-//	    AND plt.locale_code = $1
-//	  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-//	    AND plt_def.locale_code = p.default_locale
+//	    AND plt.locale_code = (
+//	      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+//	      WHERE pltf.profile_link_id = pl.id
+//	      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+//	      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
 //	  LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
 //	  LEFT JOIN "profile_tx" pt_added ON pt_added.profile_id = p_added.id AND pt_added.locale_code = p_added.default_locale
 //	WHERE pl.profile_id = $2
@@ -3106,7 +3139,6 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 			&i.Visibility,
 			&i.IsFeatured,
 			&i.AddedByProfileID,
-			&i.ProfileLinkID,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
@@ -3134,18 +3166,22 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 const listProfileLinksForKind = `-- name: ListProfileLinksForKind :many
 SELECT
   pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-  plt."group" as "group",
-  plt.description as description
+  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+  COALESCE(plt.title, pl.kind) as title,
+  COALESCE(plt.icon, '') as icon,
+  COALESCE(plt."group", '') as "group",
+  COALESCE(plt.description, '') as description
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
     AND p.deleted_at IS NULL
   LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-    AND plt.locale_code = $1
-  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-    AND plt_def.locale_code = p.default_locale
+    AND plt.locale_code = (
+      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+      WHERE pltf.profile_link_id = pl.id
+      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+      LIMIT 1
+    )
 WHERE pl.kind = $2
   AND pl.deleted_at IS NULL
 ORDER BY pl."order"
@@ -3179,29 +3215,33 @@ type ListProfileLinksForKindRow struct {
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
-	ProfileLinkID             string                `db:"profile_link_id" json:"profile_link_id"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
-	Group                     sql.NullString        `db:"group" json:"group"`
-	Description               sql.NullString        `db:"description" json:"description"`
+	Icon                      string                `db:"icon" json:"icon"`
+	Group                     string                `db:"group" json:"group"`
+	Description               string                `db:"description" json:"description"`
 }
 
 // ListProfileLinksForKind
 //
 //	SELECT
 //	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
-//	  COALESCE(plt.profile_link_id, plt_def.profile_link_id, pl.id) as profile_link_id,
-//	  COALESCE(plt.locale_code, plt_def.locale_code, p.default_locale) as locale_code,
-//	  COALESCE(plt.title, plt_def.title, pl.kind) as title,
-//	  plt."group" as "group",
-//	  plt.description as description
+//	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
+//	  COALESCE(plt.title, pl.kind) as title,
+//	  COALESCE(plt.icon, '') as icon,
+//	  COALESCE(plt."group", '') as "group",
+//	  COALESCE(plt.description, '') as description
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	    AND p.deleted_at IS NULL
 //	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
-//	    AND plt.locale_code = $1
-//	  LEFT JOIN "profile_link_tx" plt_def ON plt_def.profile_link_id = pl.id
-//	    AND plt_def.locale_code = p.default_locale
+//	    AND plt.locale_code = (
+//	      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+//	      WHERE pltf.profile_link_id = pl.id
+//	      AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
+//	      ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+//	      LIMIT 1
+//	    )
 //	WHERE pl.kind = $2
 //	  AND pl.deleted_at IS NULL
 //	ORDER BY pl."order"
@@ -3237,9 +3277,9 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 			&i.Visibility,
 			&i.IsFeatured,
 			&i.AddedByProfileID,
-			&i.ProfileLinkID,
 			&i.LocaleCode,
 			&i.Title,
+			&i.Icon,
 			&i.Group,
 			&i.Description,
 		); err != nil {

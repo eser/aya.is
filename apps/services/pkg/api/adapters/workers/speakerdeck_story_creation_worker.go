@@ -163,7 +163,7 @@ func (w *SpeakerDeckStoryProcessor) createStoryFromImport(
 	content := buildSpeakerDeckStoryContent(meta.pdfURL, meta.link, meta.description)
 	summary := truncateSummary(meta.description, maxSummaryLength)
 
-	err = w.storyRepo.InsertStoryTx(ctx, storyID, locale, meta.title, summary, content)
+	err = w.storyRepo.InsertStoryTx(ctx, storyID, locale, meta.title, summary, content, true)
 	if err != nil {
 		return fmt.Errorf("failed to insert story translation: %w", err)
 	}

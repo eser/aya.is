@@ -64,7 +64,7 @@ func (q *Queries) DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (i
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
   p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
   pb.publications,
@@ -74,6 +74,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = $1
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -131,7 +133,7 @@ type GetStoryByIDRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 //	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 //	  pb.publications,
@@ -141,6 +143,8 @@ type GetStoryByIDRow struct {
 //	  AND st.locale_code = (
 //	    SELECT stx.locale_code FROM "story_tx" stx
 //	    WHERE stx.story_id = s.id
+//	    AND (stx.locale_code = $1
+//	         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 //	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 //	    LIMIT 1
 //	  )
@@ -205,6 +209,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.StoryTx.Summary,
 		&i.StoryTx.Content,
 		&i.StoryTx.SearchVector,
+		&i.StoryTx.IsManaged,
 		&i.Profile.ID,
 		&i.Profile.Slug,
 		&i.Profile.Kind,
@@ -267,12 +272,15 @@ SELECT
   st.title,
   st.summary,
   st.content,
+  st.is_managed as tx_is_managed,
   p.slug as author_profile_slug
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = $1
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -306,12 +314,13 @@ type GetStoryForEditRow struct {
 	Title             string                `db:"title" json:"title"`
 	Summary           string                `db:"summary" json:"summary"`
 	Content           string                `db:"content" json:"content"`
+	TxIsManaged       bool                  `db:"tx_is_managed" json:"tx_is_managed"`
 	AuthorProfileSlug sql.NullString        `db:"author_profile_slug" json:"author_profile_slug"`
 }
 
-// Uses locale fallback: prefers the requested locale, falls back to any translation.
+// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 // The returned locale_code indicates which translation was actually found.
-// Includes is_managed flag to protect synced stories from editing.
+// Includes is_managed flag (tx_is_managed) to protect synced stories from editing.
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
@@ -319,12 +328,15 @@ type GetStoryForEditRow struct {
 //	  st.title,
 //	  st.summary,
 //	  st.content,
+//	  st.is_managed as tx_is_managed,
 //	  p.slug as author_profile_slug
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = (
 //	    SELECT stx.locale_code FROM "story_tx" stx
 //	    WHERE stx.story_id = s.id
+//	    AND (stx.locale_code = $1
+//	         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 //	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 //	    LIMIT 1
 //	  )
@@ -354,6 +366,7 @@ func (q *Queries) GetStoryForEdit(ctx context.Context, arg GetStoryForEditParams
 		&i.Title,
 		&i.Summary,
 		&i.Content,
+		&i.TxIsManaged,
 		&i.AuthorProfileSlug,
 	)
 	return &i, err
@@ -798,13 +811,15 @@ INSERT INTO "story_tx" (
   locale_code,
   title,
   summary,
-  content
+  content,
+  is_managed
 ) VALUES (
   $1,
   $2,
   $3,
   $4,
-  $5
+  $5,
+  $6
 )
 `
 
@@ -814,6 +829,7 @@ type InsertStoryTxParams struct {
 	Title      string `db:"title" json:"title"`
 	Summary    string `db:"summary" json:"summary"`
 	Content    string `db:"content" json:"content"`
+	IsManaged  bool   `db:"is_managed" json:"is_managed"`
 }
 
 // InsertStoryTx
@@ -823,13 +839,15 @@ type InsertStoryTxParams struct {
 //	  locale_code,
 //	  title,
 //	  summary,
-//	  content
+//	  content,
+//	  is_managed
 //	) VALUES (
 //	  $1,
 //	  $2,
 //	  $3,
 //	  $4,
-//	  $5
+//	  $5,
+//	  $6
 //	)
 func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) error {
 	_, err := q.db.ExecContext(ctx, insertStoryTx,
@@ -838,14 +856,37 @@ func (q *Queries) InsertStoryTx(ctx context.Context, arg InsertStoryTxParams) er
 		arg.Title,
 		arg.Summary,
 		arg.Content,
+		arg.IsManaged,
 	)
 	return err
+}
+
+const isStoryTxManaged = `-- name: IsStoryTxManaged :one
+SELECT is_managed FROM "story_tx"
+WHERE story_id = $1 AND locale_code = $2
+`
+
+type IsStoryTxManagedParams struct {
+	StoryID    string `db:"story_id" json:"story_id"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+}
+
+// Returns the is_managed flag for a specific story translation.
+// Used to gate editing: managed translations cannot be modified by users.
+//
+//	SELECT is_managed FROM "story_tx"
+//	WHERE story_id = $1 AND locale_code = $2
+func (q *Queries) IsStoryTxManaged(ctx context.Context, arg IsStoryTxManagedParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, isStoryTxManaged, arg.StoryID, arg.LocaleCode)
+	var is_managed bool
+	err := row.Scan(&is_managed)
+	return is_managed, err
 }
 
 const listActivityStories = `-- name: ListActivityStories :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -855,6 +896,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = $1
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -913,7 +956,7 @@ type ListActivityStoriesRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -923,6 +966,8 @@ type ListActivityStoriesRow struct {
 //	  AND st.locale_code = (
 //	    SELECT stx.locale_code FROM "story_tx" stx
 //	    WHERE stx.story_id = s.id
+//	    AND (stx.locale_code = $1
+//	         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 //	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 //	    LIMIT 1
 //	  )
@@ -990,6 +1035,7 @@ func (q *Queries) ListActivityStories(ctx context.Context, arg ListActivityStori
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
+			&i.StoryTx.IsManaged,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1032,7 +1078,7 @@ func (q *Queries) ListActivityStories(ctx context.Context, arg ListActivityStori
 const listStoriesByAuthorProfileID = `-- name: ListStoriesByAuthorProfileID :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -1042,6 +1088,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = $1
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -1095,12 +1143,12 @@ type ListStoriesByAuthorProfileIDRow struct {
 }
 
 // Lists all stories authored by a profile, including unpublished ones.
-// Uses locale fallback: prefers the requested locale, falls back to any translation.
+// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 // Publications are included as optional data (LEFT JOIN).
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -1110,6 +1158,8 @@ type ListStoriesByAuthorProfileIDRow struct {
 //	  AND st.locale_code = (
 //	    SELECT stx.locale_code FROM "story_tx" stx
 //	    WHERE stx.story_id = s.id
+//	    AND (stx.locale_code = $1
+//	         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 //	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 //	    LIMIT 1
 //	  )
@@ -1175,6 +1225,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
+			&i.StoryTx.IsManaged,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1217,7 +1268,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 const listStoriesByAuthorProfileIDForViewer = `-- name: ListStoriesByAuthorProfileIDForViewer :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -1227,6 +1278,8 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
+    AND (stx.locale_code = $1
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
     ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
     LIMIT 1
   )
@@ -1298,7 +1351,7 @@ type ListStoriesByAuthorProfileIDForViewerRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -1308,6 +1361,8 @@ type ListStoriesByAuthorProfileIDForViewerRow struct {
 //	  AND st.locale_code = (
 //	    SELECT stx.locale_code FROM "story_tx" stx
 //	    WHERE stx.story_id = s.id
+//	    AND (stx.locale_code = $1
+//	         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
 //	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
 //	    LIMIT 1
 //	  )
@@ -1390,6 +1445,7 @@ func (q *Queries) ListStoriesByAuthorProfileIDForViewer(ctx context.Context, arg
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
+			&i.StoryTx.IsManaged,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1432,14 +1488,21 @@ func (q *Queries) ListStoriesByAuthorProfileIDForViewer(ctx context.Context, arg
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
   (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = $1
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    AND (stx.locale_code = $1
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
   AND p1.approved_at IS NOT NULL
   AND p1.deleted_at IS NULL
@@ -1494,18 +1557,25 @@ type ListStoriesOfPublicationRow struct {
 	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
-// Strict locale matching: only returns stories that have a translation for the requested locale.
+// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
 //	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
-//	  AND st.locale_code = $1
+//	  AND st.locale_code = (
+//	    SELECT stx.locale_code FROM "story_tx" stx
+//	    WHERE stx.story_id = s.id
+//	    AND (stx.locale_code = $1
+//	         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+//	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
 //	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
 //	  AND p1.approved_at IS NOT NULL
 //	  AND p1.deleted_at IS NULL
@@ -1577,6 +1647,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
+			&i.StoryTx.IsManaged,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1619,14 +1690,21 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 const listStoriesOfPublicationForViewer = `-- name: ListStoriesOfPublicationForViewer :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
   (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = $1
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    AND (stx.locale_code = $1
+         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+    LIMIT 1
+  )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
   AND p1.approved_at IS NOT NULL
   AND p1.deleted_at IS NULL
@@ -1694,19 +1772,26 @@ type ListStoriesOfPublicationForViewerRow struct {
 }
 
 // Like ListStoriesOfPublication but includes private stories for authorized viewers.
-// List semantics: public shown to all, private only to admin/author/maintainer+.
+// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 // Unlisted stories are always excluded from listings (accessible only via direct link).
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
 //	  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
-//	  AND st.locale_code = $1
+//	  AND st.locale_code = (
+//	    SELECT stx.locale_code FROM "story_tx" stx
+//	    WHERE stx.story_id = s.id
+//	    AND (stx.locale_code = $1
+//	         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
+//	    ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+//	    LIMIT 1
+//	  )
 //	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
 //	  AND p1.approved_at IS NOT NULL
 //	  AND p1.deleted_at IS NULL
@@ -1790,6 +1875,7 @@ func (q *Queries) ListStoriesOfPublicationForViewer(ctx context.Context, arg Lis
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
+			&i.StoryTx.IsManaged,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -2308,17 +2394,20 @@ INSERT INTO "story_tx" (
   locale_code,
   title,
   summary,
-  content
+  content,
+  is_managed
 ) VALUES (
   $1,
   $2,
   $3,
   $4,
-  $5
+  $5,
+  $6
 ) ON CONFLICT (story_id, locale_code) DO UPDATE SET
   title = EXCLUDED.title,
   summary = EXCLUDED.summary,
-  content = EXCLUDED.content
+  content = EXCLUDED.content,
+  is_managed = EXCLUDED.is_managed
 `
 
 type UpsertStoryTxParams struct {
@@ -2327,6 +2416,7 @@ type UpsertStoryTxParams struct {
 	Title      string `db:"title" json:"title"`
 	Summary    string `db:"summary" json:"summary"`
 	Content    string `db:"content" json:"content"`
+	IsManaged  bool   `db:"is_managed" json:"is_managed"`
 }
 
 // UpsertStoryTx
@@ -2336,17 +2426,20 @@ type UpsertStoryTxParams struct {
 //	  locale_code,
 //	  title,
 //	  summary,
-//	  content
+//	  content,
+//	  is_managed
 //	) VALUES (
 //	  $1,
 //	  $2,
 //	  $3,
 //	  $4,
-//	  $5
+//	  $5,
+//	  $6
 //	) ON CONFLICT (story_id, locale_code) DO UPDATE SET
 //	  title = EXCLUDED.title,
 //	  summary = EXCLUDED.summary,
-//	  content = EXCLUDED.content
+//	  content = EXCLUDED.content,
+//	  is_managed = EXCLUDED.is_managed
 func (q *Queries) UpsertStoryTx(ctx context.Context, arg UpsertStoryTxParams) error {
 	_, err := q.db.ExecContext(ctx, upsertStoryTx,
 		arg.StoryID,
@@ -2354,6 +2447,7 @@ func (q *Queries) UpsertStoryTx(ctx context.Context, arg UpsertStoryTxParams) er
 		arg.Title,
 		arg.Summary,
 		arg.Content,
+		arg.IsManaged,
 	)
 	return err
 }
