@@ -19,6 +19,7 @@ export type RequestContext = {
   path: string[];
   originalPath: string[];
   cookieHeader?: string;
+  acceptLanguageHeader?: string;
   ssrTheme?: string;
   /** Per-request dedup cache for authenticated SSR fetches. */
   inflightGetRequests?: Map<string, Promise<unknown>>;

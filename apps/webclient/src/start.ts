@@ -66,11 +66,14 @@ const customDomainMiddleware = createMiddleware()
       }
     }
 
+    const acceptLanguageHeader = getRequestHeader("accept-language") ?? undefined;
+
     const requestContext: RequestContext = {
       domainConfiguration: domainConfiguration,
       path: pathParts,
       originalPath: originalPathParts,
       cookieHeader,
+      acceptLanguageHeader,
       ssrTheme,
     };
 
