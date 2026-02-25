@@ -243,3 +243,35 @@ func languageFromPath(filePath string) string {
 
 	return ""
 }
+
+// tagLanguageMap maps common tag values to ISO 639-1 locale codes.
+// Keys must be lowercase.
+var tagLanguageMap = map[string]string{
+	"turkce":   "tr",
+	"türkçe":   "tr",
+	"turkish":  "tr",
+	"english":  "en",
+	"deutsch":  "de",
+	"german":   "de",
+	"français": "fr",
+	"french":   "fr",
+	"español":  "es",
+	"spanish":  "es",
+	"japanese": "ja",
+	"korean":   "ko",
+	"arabic":   "ar",
+	"russian":  "ru",
+	"chinese":  "zh",
+}
+
+// languageFromTags infers locale from well-known language tag values.
+// Returns "" if no language tag is found.
+func languageFromTags(tags []string) string {
+	for _, tag := range tags {
+		if locale, ok := tagLanguageMap[strings.ToLower(tag)]; ok {
+			return locale
+		}
+	}
+
+	return ""
+}

@@ -91,7 +91,8 @@ func (w *ExternalSiteStoryProcessor) ProcessStories(ctx context.Context) error {
 	}
 
 	// Always reconcile existing stories with latest import data
-	if err := w.reconcileExistingStories(ctx); err != nil {
+	err := w.reconcileExistingStories(ctx)
+	if err != nil {
 		w.logger.ErrorContext(ctx, "Failed to reconcile existing external site stories",
 			slog.Any("error", err))
 	}
