@@ -448,6 +448,8 @@
     "The production URL of your website.": "The production URL of your website.",
     "Site URL is required": "Site URL is required",
     "GitHub repository URL is required": "GitHub repository URL is required",
+    "Content Folder": "Content Folder",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "The folder containing your posts in the repository. Leave empty to import from the root.",
     "Failed to connect external site": "Failed to connect external site",
     "Connect": "Connect",
     "Connected": "Connected",

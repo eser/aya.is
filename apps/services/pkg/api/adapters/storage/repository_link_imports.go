@@ -277,13 +277,17 @@ func (r *Repository) ListManagedLinksForKindPublic(
 	}
 
 	links := make([]*linksync.PublicManagedLink, len(rows))
+
 	for i, row := range rows {
+		contentFolder, _ := row.ContentFolder.(string)
+
 		links[i] = &linksync.PublicManagedLink{
-			ID:        row.ID,
-			ProfileID: row.ProfileID,
-			Kind:      row.Kind,
-			RemoteID:  row.RemoteID.String,
-			URI:       row.URI.String,
+			ID:            row.ID,
+			ProfileID:     row.ProfileID,
+			Kind:          row.Kind,
+			RemoteID:      row.RemoteID.String,
+			URI:           row.URI.String,
+			ContentFolder: contentFolder,
 		}
 	}
 

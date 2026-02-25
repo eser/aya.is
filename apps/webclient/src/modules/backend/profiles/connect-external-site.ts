@@ -11,9 +11,15 @@ export async function connectExternalSite(
   system: string,
   url: string,
   siteUrl: string,
+  contentFolder: string,
 ): Promise<ConnectExternalSiteResponse | null> {
   const token = getAuthToken();
   if (token === null) return null;
+
+  const body: Record<string, string> = { system, url, site_url: siteUrl };
+  if (contentFolder !== "") {
+    body.content_folder = contentFolder;
+  }
 
   const response = await fetch(
     `${getBackendUri()}/${locale}/profiles/${slug}/_links/connect/external-site`,
@@ -24,7 +30,7 @@ export async function connectExternalSite(
         Authorization: `Bearer ${token}`,
       },
       credentials: "include",
-      body: JSON.stringify({ system, url, site_url: siteUrl }),
+      body: JSON.stringify(body),
     },
   );
 

@@ -444,6 +444,8 @@
     "The production URL of your website.": "Web sitenizin yayında olan URL'si.",
     "Site URL is required": "Site URL'si gereklidir",
     "GitHub repository URL is required": "GitHub depo URL'si gereklidir",
+    "Content Folder": "İçerik Klasörü",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "Depodaki yazılarınızın bulunduğu klasör. Kök dizinden içe aktarmak için boş bırakın.",
     "Failed to connect external site": "Harici site bağlantısı başarısız",
     "Connect": "Bağlan",
     "Connected": "Bağlı",

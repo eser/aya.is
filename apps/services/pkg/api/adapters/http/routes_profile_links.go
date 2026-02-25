@@ -1382,9 +1382,10 @@ func RegisterHTTPRoutesForProfileLinks(
 
 			// Parse request body
 			var reqBody struct {
-				System  string `json:"system"`
-				URL     string `json:"url"`
-				SiteURL string `json:"site_url"`
+				System        string `json:"system"`
+				URL           string `json:"url"`
+				SiteURL       string `json:"site_url"`
+				ContentFolder string `json:"content_folder"`
 			}
 
 			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
@@ -1506,6 +1507,10 @@ func RegisterHTTPRoutesForProfileLinks(
 
 			if reqBody.System == "jekyll-hugo-zola" {
 				linkProperties["github_repo"] = checkResult.Username
+			}
+
+			if reqBody.ContentFolder != "" {
+				linkProperties["content_folder"] = reqBody.ContentFolder
 			}
 
 			// Create profile link (non-OAuth, no tokens)

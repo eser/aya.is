@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"path"
+	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
@@ -78,6 +80,26 @@ func (s *Service) SyncPublicLink(
 		slog.String("kind", link.Kind),
 		slog.String("link_id", link.ID),
 		slog.Int("count", len(items)))
+
+	// Filter items by content folder if configured
+	if link.ContentFolder != "" && link.ContentFolder != "/" {
+		contentFolder := path.Clean(link.ContentFolder)
+		filtered := make([]*ImportItem, 0, len(items))
+
+		for _, item := range items {
+			itemPath := path.Clean(item.RemoteID)
+			if strings.HasPrefix(itemPath, contentFolder+"/") || itemPath == contentFolder {
+				filtered = append(filtered, item)
+			}
+		}
+
+		s.logger.DebugContext(ctx, "Filtered items by content folder",
+			slog.String("content_folder", contentFolder),
+			slog.Int("before", len(items)),
+			slog.Int("after", len(filtered)))
+
+		items = filtered
+	}
 
 	s.upsertItems(ctx, link, result, items)
 

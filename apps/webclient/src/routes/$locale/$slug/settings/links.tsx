@@ -189,6 +189,7 @@ function LinksSettingsPage() {
   const [externalSiteSystem, setExternalSiteSystem] = React.useState("jekyll-hugo-zola");
   const [externalSiteRepoUrl, setExternalSiteRepoUrl] = React.useState("");
   const [externalSiteSiteUrl, setExternalSiteSiteUrl] = React.useState("");
+  const [externalSiteContentFolder, setExternalSiteContentFolder] = React.useState("");
   const [isConnectingExternalSite, setIsConnectingExternalSite] = React.useState(false);
 
   // Telegram connect state
@@ -580,6 +581,7 @@ function LinksSettingsPage() {
     setExternalSiteSystem("jekyll-hugo-zola");
     setExternalSiteRepoUrl("");
     setExternalSiteSiteUrl("");
+    setExternalSiteContentFolder("");
     setIsExternalSiteDialogOpen(true);
   };
 
@@ -601,6 +603,7 @@ function LinksSettingsPage() {
       externalSiteSystem,
       externalSiteRepoUrl,
       externalSiteSiteUrl,
+      externalSiteContentFolder,
     );
 
     if (result !== null) {
@@ -608,6 +611,7 @@ function LinksSettingsPage() {
       setIsExternalSiteDialogOpen(false);
       setExternalSiteRepoUrl("");
       setExternalSiteSiteUrl("");
+      setExternalSiteContentFolder("");
       loadLinks();
     } else {
       toast.error(t("Profile.Failed to connect external site"));
@@ -1546,6 +1550,22 @@ function LinksSettingsPage() {
                 {t("Profile.The production URL of your website.")}
               </FieldDescription>
             </Field>
+
+            {externalSiteSystem === "jekyll-hugo-zola" && (
+              <Field>
+                <FieldLabel htmlFor="external-site-content-folder">{t("Profile.Content Folder")}</FieldLabel>
+                <Input
+                  id="external-site-content-folder"
+                  value={externalSiteContentFolder}
+                  onChange={(e) => setExternalSiteContentFolder(e.target.value)}
+                  placeholder="content/posts"
+                  disabled={isConnectingExternalSite}
+                />
+                <FieldDescription>
+                  {t("Profile.The folder containing your posts in the repository. Leave empty to import from the root.")}
+                </FieldDescription>
+              </Field>
+            )}
           </div>
 
           <DialogFooter>
@@ -1555,6 +1575,7 @@ function LinksSettingsPage() {
                 setIsExternalSiteDialogOpen(false);
                 setExternalSiteRepoUrl("");
                 setExternalSiteSiteUrl("");
+                setExternalSiteContentFolder("");
               }}
               disabled={isConnectingExternalSite}
             >

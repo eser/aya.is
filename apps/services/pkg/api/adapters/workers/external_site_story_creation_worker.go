@@ -127,7 +127,8 @@ func extractExternalSiteImportMeta(
 	publishedAt := time.Now()
 
 	if publishedAtStr != "" {
-		if parsed, parseErr := time.Parse(time.RFC3339, publishedAtStr); parseErr == nil {
+		if parsed, parseErr := time.Parse(time.RFC3339, publishedAtStr); parseErr == nil &&
+			!parsed.IsZero() {
 			publishedAt = parsed
 		}
 	}

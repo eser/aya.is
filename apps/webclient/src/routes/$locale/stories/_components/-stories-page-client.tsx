@@ -44,13 +44,21 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
     if (props.initialStories === null) return [];
 
     const storiesWithDates = props.initialStories
-      .map((story) => ({
-        story,
-        date: parseDateFromSlug(story.slug),
-      }))
-      .filter(
-        (item): item is { story: StoryEx; date: Date } => item.date !== null,
-      );
+      .map((story) => {
+        const slugDate = parseDateFromSlug(story.slug);
+        if (slugDate !== null) {
+          return { story, date: slugDate };
+        }
+
+        // Fall back to published_at or created_at
+        const fallback = story.published_at ?? story.created_at;
+        const parsed = new Date(fallback);
+        const fallbackDate = Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 1900
+          ? new Date()
+          : parsed;
+
+        return { story, date: fallbackDate };
+      });
 
     storiesWithDates.sort((a, b) => b.date.getTime() - a.date.getTime());
 

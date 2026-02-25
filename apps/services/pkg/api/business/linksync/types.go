@@ -68,11 +68,12 @@ type LinkImportWithStory struct {
 
 // PublicManagedLink represents a managed link without OAuth tokens (e.g. SpeakerDeck).
 type PublicManagedLink struct {
-	ID        string
-	ProfileID string
-	Kind      string
-	RemoteID  string
-	URI       string
+	ID            string
+	ProfileID     string
+	Kind          string
+	RemoteID      string
+	URI           string
+	ContentFolder string
 }
 
 // TokenRefreshResult contains the result of a token refresh.
