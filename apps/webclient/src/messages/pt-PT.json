@@ -1024,5 +1024,20 @@
     "Failed to send": "Falha ao enviar",
     "TelegramInvitationInfo": "Este é um convite de grupo do Telegram para se juntar a \"{{groupName}}\". Depois de aceitar este convite, o nosso bot do Telegram enviará um link de convite por mensagem direta.",
     "TelegramLinkRequired": "Para aceitar este convite de grupo do Telegram, precisa primeiro associar a sua conta do Telegram. Aceda às definições do seu perfil e conecte o Telegram."
+  },
+  "Locales": {
+    "tr": "Turco",
+    "en": "Inglês",
+    "fr": "Francês",
+    "de": "Alemão",
+    "es": "Espanhol",
+    "pt-PT": "Português",
+    "it": "Italiano",
+    "nl": "Neerlandês",
+    "ja": "Japonês",
+    "ko": "Coreano",
+    "ru": "Russo",
+    "zh-CN": "Chinês",
+    "ar": "Árabe"
   }
 }

@@ -1024,5 +1024,20 @@
     "Failed to send": "Verzenden mislukt",
     "TelegramInvitationInfo": "Dit is een Telegram-groepsuitnodiging om lid te worden van \"{{groupName}}\". Zodra je deze uitnodiging hebt geaccepteerd, stuurt onze Telegram-bot je een uitnodigingslink via een privébericht.",
     "TelegramLinkRequired": "Om deze Telegram-groepsuitnodiging te accepteren, moet je eerst je Telegram-account koppelen. Ga naar je profielinstellingen en verbind Telegram."
+  },
+  "Locales": {
+    "tr": "Turks",
+    "en": "Engels",
+    "fr": "Frans",
+    "de": "Duits",
+    "es": "Spaans",
+    "pt-PT": "Portugees",
+    "it": "Italiaans",
+    "nl": "Nederlands",
+    "ja": "Japans",
+    "ko": "Koreaans",
+    "ru": "Russisch",
+    "zh-CN": "Chinees",
+    "ar": "Arabisch"
   }
 }

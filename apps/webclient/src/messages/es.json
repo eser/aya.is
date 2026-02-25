@@ -1024,5 +1024,20 @@
     "Failed to send": "Error al enviar",
     "TelegramInvitationInfo": "Esta es una invitación de grupo de Telegram para unirse a \"{{groupName}}\". Una vez que hayas aceptado esta invitación, nuestro bot de Telegram te enviará un enlace de invitación por mensaje directo.",
     "TelegramLinkRequired": "Para aceptar esta invitación de grupo de Telegram, primero necesitas vincular tu cuenta de Telegram. Ve a la configuración de tu perfil y conecta Telegram."
+  },
+  "Locales": {
+    "tr": "Turco",
+    "en": "Inglés",
+    "fr": "Francés",
+    "de": "Alemán",
+    "es": "Español",
+    "pt-PT": "Portugués",
+    "it": "Italiano",
+    "nl": "Neerlandés",
+    "ja": "Japonés",
+    "ko": "Coreano",
+    "ru": "Ruso",
+    "zh-CN": "Chino",
+    "ar": "Árabe"
   }
 }

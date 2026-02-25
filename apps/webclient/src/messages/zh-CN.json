@@ -1024,5 +1024,20 @@
     "Failed to send": "发送失败",
     "TelegramInvitationInfo": "这是加入\"{{groupName}}\"的 Telegram 群组邀请。一旦您接受此邀请，我们的 Telegram 机器人将通过私信向您发送邀请链接。",
     "TelegramLinkRequired": "要接受此 Telegram 群组邀请，您需要先关联您的 Telegram 账户。请前往您的个人资料设置并连接 Telegram。"
+  },
+  "Locales": {
+    "tr": "土耳其语",
+    "en": "英语",
+    "fr": "法语",
+    "de": "德语",
+    "es": "西班牙语",
+    "pt-PT": "葡萄牙语",
+    "it": "意大利语",
+    "nl": "荷兰语",
+    "ja": "日语",
+    "ko": "韩语",
+    "ru": "俄语",
+    "zh-CN": "中文",
+    "ar": "阿拉伯语"
   }
 }

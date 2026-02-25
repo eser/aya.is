@@ -1024,5 +1024,20 @@
     "Failed to send": "Senden fehlgeschlagen",
     "TelegramInvitationInfo": "Dies ist eine Telegram-Gruppeneinladung zum Beitritt zu \"{{groupName}}\". Sobald Sie diese Einladung angenommen haben, wird Ihnen unser Telegram-Bot einen Einladungslink per Direktnachricht senden.",
     "TelegramLinkRequired": "Um diese Telegram-Gruppeneinladung anzunehmen, müssen Sie zuerst Ihr Telegram-Konto verknüpfen. Gehen Sie zu Ihren Profileinstellungen und verbinden Sie Telegram."
+  },
+  "Locales": {
+    "tr": "Türkisch",
+    "en": "Englisch",
+    "fr": "Französisch",
+    "de": "Deutsch",
+    "es": "Spanisch",
+    "pt-PT": "Portugiesisch",
+    "it": "Italienisch",
+    "nl": "Niederländisch",
+    "ja": "Japanisch",
+    "ko": "Koreanisch",
+    "ru": "Russisch",
+    "zh-CN": "Chinesisch",
+    "ar": "Arabisch"
   }
 }

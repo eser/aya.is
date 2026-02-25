@@ -1040,5 +1040,20 @@
     "Failed to send": "Failed to send",
     "TelegramInvitationInfo": "This is a Telegram group invitation for joining \"{{groupName}}\". Once you've accepted this invitation, our Telegram bot will deliver an invitation link to you via DM.",
     "TelegramLinkRequired": "To accept this Telegram group invitation, you need to link your Telegram account first. Go to your profile settings and connect Telegram."
+  },
+  "Locales": {
+    "tr": "Turkish",
+    "en": "English",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "pt-PT": "Portuguese",
+    "it": "Italian",
+    "nl": "Dutch",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "ru": "Russian",
+    "zh-CN": "Chinese",
+    "ar": "Arabic"
   }
 }

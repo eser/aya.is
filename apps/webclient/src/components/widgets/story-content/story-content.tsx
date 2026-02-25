@@ -1,5 +1,6 @@
 import type { StoryEx } from "@/modules/backend/types";
 import { TextContent } from "@/components/widgets/text-content";
+import { LocaleBadge } from "@/components/locale-badge";
 import { StoryMetadata } from "./story-metadata";
 import { StoryFooter } from "./story-footer";
 
@@ -34,7 +35,13 @@ export function StoryContent(props: StoryContentProps) {
 
   return (
     <article className="content">
-      <TitleTag>{story.title}</TitleTag>
+      <TitleTag>
+        {story.title}
+        <LocaleBadge
+          localeCode={story.locale_code}
+          className="text-sm font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-3 align-middle"
+        />
+      </TitleTag>
 
       <StoryMetadata story={story} editUrl={editUrl} coverUrl={coverUrl} />
 

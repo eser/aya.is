@@ -1033,5 +1033,20 @@
     "Failed to send": "Gönderilemedi",
     "TelegramInvitationInfo": "Bu, \"{{groupName}}\" grubuna katılmak için bir Telegram grup davetiyesidir. Bu daveti kabul ettiğinizde, Telegram botumuz size doğrudan mesaj yoluyla bir davet bağlantısı gönderecektir.",
     "TelegramLinkRequired": "Bu Telegram grup davetini kabul etmek için önce Telegram hesabınızı bağlamanız gerekiyor. Profil ayarlarınıza gidin ve Telegram'ı bağlayın."
+  },
+  "Locales": {
+    "tr": "Türkçe",
+    "en": "İngilizce",
+    "fr": "Fransızca",
+    "de": "Almanca",
+    "es": "İspanyolca",
+    "pt-PT": "Portekizce",
+    "it": "İtalyanca",
+    "nl": "Felemenkçe",
+    "ja": "Japonca",
+    "ko": "Korece",
+    "ru": "Rusça",
+    "zh-CN": "Çince",
+    "ar": "Arapça"
   }
 }
