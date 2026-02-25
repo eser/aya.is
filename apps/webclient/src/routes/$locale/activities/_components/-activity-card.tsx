@@ -65,7 +65,7 @@ export function ActivityCard(props: ActivityCardProps) {
           <h3 className={styles.title}>
             {stripMarkdown(props.activity.title ?? "")}
             <span className={styles.badge}>{t(kindLabelKey)}</span>
-            <LocaleBadge localeCode={props.activity.locale_code} viewerLocale={locale} className={styles.localeBadge} />
+            <LocaleBadge localeCode={props.activity.locale_code} className={styles.localeBadge} />
           </h3>
           {props.activity.summary !== null && props.activity.summary !== undefined && (
             <InlineMarkdown content={props.activity.summary} className={styles.summary} />

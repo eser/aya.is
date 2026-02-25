@@ -18,8 +18,7 @@ export type ProfileCardProps = {
 };
 
 export function ProfileCard(props: ProfileCardProps) {
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language;
+  const { t } = useTranslation();
   const { profile, variant = "avatar", showKindBadge = false } = props;
 
   if (variant === "cover") {
@@ -47,7 +46,7 @@ export function ProfileCard(props: ProfileCardProps) {
           <div className={styles.coverInfo}>
             <h3 className={styles.title}>
               {stripMarkdown(profile.title ?? "")}
-              <LocaleBadge localeCode={profile.locale_code} viewerLocale={locale} className={styles.localeBadge} />
+              <LocaleBadge localeCode={profile.locale_code} className={styles.localeBadge} />
             </h3>
             {profile.description !== null && profile.description !== undefined && (
               <InlineMarkdown content={profile.description} className={styles.description} />
@@ -76,7 +75,7 @@ export function ProfileCard(props: ProfileCardProps) {
         <div className={styles.info}>
           <h3 className={styles.title}>
             {stripMarkdown(profile.title ?? "")}
-            <LocaleBadge localeCode={profile.locale_code} viewerLocale={locale} className={styles.localeBadge} />
+            <LocaleBadge localeCode={profile.locale_code} className={styles.localeBadge} />
           </h3>
           {profile.description !== null &&
             profile.description !== undefined && (

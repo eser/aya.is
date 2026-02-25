@@ -88,7 +88,7 @@ export function Story(props: StoryProps) {
         <div className={styles.contentArea}>
           <h3 className={styles.title}>
             {stripMarkdown(props.story.title ?? "")}
-            <LocaleBadge localeCode={props.story.locale_code} viewerLocale={locale} className={styles.localeBadge} />
+            <LocaleBadge localeCode={props.story.locale_code} className={styles.localeBadge} />
           </h3>
           {props.story.summary !== null && props.story.summary !== undefined && (
             <InlineMarkdown content={props.story.summary} className={styles.summary} />

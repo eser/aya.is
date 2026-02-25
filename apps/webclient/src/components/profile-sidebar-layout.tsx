@@ -338,7 +338,6 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                 {page.title}
                 <LocaleBadge
                   localeCode={page.locale_code}
-                  viewerLocale={props.locale}
                   className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle"
                 />
               </LocaleLink>
