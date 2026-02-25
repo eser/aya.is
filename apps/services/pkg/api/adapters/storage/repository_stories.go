@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -651,7 +652,7 @@ func (r *Repository) GetStoryForEdit(
 		AuthorProfileSlug: vars.ToStringPtr(row.AuthorProfileSlug),
 		Slug:              row.Slug,
 		Kind:              row.Kind,
-		LocaleCode:        row.LocaleCode,
+		LocaleCode:        strings.TrimRight(row.LocaleCode, " "),
 		StoryPictureURI:   vars.ToStringPtr(row.StoryPictureURI),
 		Properties:        vars.ToObject(row.Properties),
 		Title:             row.Title,
@@ -865,7 +866,7 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Title:           storyTx.Title,
 				Summary:         storyTx.Summary,
 				Content:         storyTx.Content,
-				LocaleCode:      storyTx.LocaleCode,
+				LocaleCode:      strings.TrimRight(storyTx.LocaleCode, " "),
 				Properties:      vars.ToObject(story.Properties),
 				Visibility:      story.Visibility,
 				IsManaged:       story.IsManaged,
@@ -882,7 +883,7 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Pronouns:          vars.ToStringPtr(profile.Pronouns),
 				Title:             profileTx.Title,
 				Description:       profileTx.Description,
-				LocaleCode:        profileTx.LocaleCode,
+				LocaleCode:        strings.TrimRight(profileTx.LocaleCode, " "),
 				Properties:        vars.ToObject(profile.Properties),
 				CreatedAt:         profile.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
@@ -914,7 +915,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Title:           storyTx.Title,
 			Summary:         storyTx.Summary,
 			Content:         storyTx.Content,
-			LocaleCode:      storyTx.LocaleCode,
+			LocaleCode:      strings.TrimRight(storyTx.LocaleCode, " "),
 			Properties:      vars.ToObject(story.Properties),
 			Visibility:      story.Visibility,
 			IsManaged:       story.IsManaged,
@@ -931,7 +932,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Pronouns:          vars.ToStringPtr(profile.Pronouns),
 			Title:             profileTx.Title,
 			Description:       profileTx.Description,
-			LocaleCode:        profileTx.LocaleCode,
+			LocaleCode:        strings.TrimRight(profileTx.LocaleCode, " "),
 			Properties:        vars.ToObject(profile.Properties),
 			CreatedAt:         profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
@@ -986,7 +987,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Pronouns:          publicationProfile.Profile.Pronouns,
 			Title:             publicationProfile.ProfileTx.Title,
 			Description:       publicationProfile.ProfileTx.Description,
-			LocaleCode:        publicationProfile.ProfileTx.LocaleCode,
+			LocaleCode:        strings.TrimRight(publicationProfile.ProfileTx.LocaleCode, " "),
 			Properties:        publicationProfile.Profile.Properties,
 			CreatedAt:         publicationProfile.Profile.CreatedAt,
 			UpdatedAt:         publicationProfile.Profile.UpdatedAt,

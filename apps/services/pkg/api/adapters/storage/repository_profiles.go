@@ -307,7 +307,7 @@ func (r *Repository) GetProfileByID(
 
 		ProfilePictureURI:               vars.ToStringPtr(row.Profile.ProfilePictureURI),
 		Pronouns:                        vars.ToStringPtr(row.Profile.Pronouns),
-		LocaleCode:                      row.ProfileTx.LocaleCode,
+		LocaleCode:                      strings.TrimRight(row.ProfileTx.LocaleCode, " "),
 		Title:                           row.ProfileTx.Title,
 		Description:                     row.ProfileTx.Description,
 		DefaultLocale:                   row.Profile.DefaultLocale,
@@ -353,7 +353,7 @@ func (r *Repository) ListProfiles(
 
 			ProfilePictureURI:  vars.ToStringPtr(row.Profile.ProfilePictureURI),
 			Pronouns:           vars.ToStringPtr(row.Profile.Pronouns),
-			LocaleCode:         row.ProfileTx.LocaleCode,
+			LocaleCode:         strings.TrimRight(row.ProfileTx.LocaleCode, " "),
 			Title:              row.ProfileTx.Title,
 			Description:        row.ProfileTx.Description,
 			DefaultLocale:      row.Profile.DefaultLocale,
@@ -433,7 +433,7 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 	result := &profiles.ProfilePage{
 		ID:               row.ID,
 		Slug:             row.Slug,
-		LocaleCode:       row.LocaleCode,
+		LocaleCode:       strings.TrimRight(row.LocaleCode, " "),
 		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
 		Title:            row.Title,
 		Summary:          row.Summary,
@@ -523,7 +523,7 @@ func (r *Repository) GetProfilePageByProfileIDAndSlugForViewer(
 	result := &profiles.ProfilePage{
 		ID:               row.ID,
 		Slug:             row.Slug,
-		LocaleCode:       row.LocaleCode,
+		LocaleCode:       strings.TrimRight(row.LocaleCode, " "),
 		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
 		Title:            row.Title,
 		Summary:          row.Summary,
@@ -617,7 +617,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-				LocaleCode:        row.ProfileTx.LocaleCode,
+				LocaleCode:        strings.TrimRight(row.ProfileTx.LocaleCode, " "),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
 				DefaultLocale:     row.Profile.DefaultLocale,
@@ -633,7 +633,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
-				LocaleCode:        row.ProfileTx_2.LocaleCode,
+				LocaleCode:        strings.TrimRight(row.ProfileTx_2.LocaleCode, " "),
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
 				DefaultLocale:     row.Profile_2.DefaultLocale,
@@ -698,7 +698,7 @@ func (r *Repository) ListProfileMembers(
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-				LocaleCode:        row.ProfileTx.LocaleCode,
+				LocaleCode:        strings.TrimRight(row.ProfileTx.LocaleCode, " "),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
 				DefaultLocale:     row.Profile.DefaultLocale,
@@ -714,7 +714,7 @@ func (r *Repository) ListProfileMembers(
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
-				LocaleCode:        row.ProfileTx_2.LocaleCode,
+				LocaleCode:        strings.TrimRight(row.ProfileTx_2.LocaleCode, " "),
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
 				DefaultLocale:     row.Profile_2.DefaultLocale,
@@ -767,7 +767,7 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 
 				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-				LocaleCode:        row.ProfileTx.LocaleCode,
+				LocaleCode:        strings.TrimRight(row.ProfileTx.LocaleCode, " "),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
 				DefaultLocale:     row.Profile.DefaultLocale,
@@ -1217,7 +1217,7 @@ func (r *Repository) GetProfileTxByID(
 	for i, row := range rows {
 		translations[i] = &profiles.ProfileTx{
 			ProfileID:   row.ProfileTx.ProfileID,
-			LocaleCode:  row.ProfileTx.LocaleCode,
+			LocaleCode:  strings.TrimRight(row.ProfileTx.LocaleCode, " "),
 			Title:       row.ProfileTx.Title,
 			Description: row.ProfileTx.Description,
 			Properties:  vars.ToObject(row.ProfileTx.Properties),

@@ -4,16 +4,13 @@ import { supportedLocales, type SupportedLocaleCode } from "@/config";
 export function LocaleBadge(props: { localeCode?: string; className?: string }) {
   const params = useParams({ strict: false }) as { locale?: string };
   const viewerLocale = params.locale ?? "";
+  const localeCode = props.localeCode?.trim() ?? "";
 
-  if (
-    props.localeCode === undefined
-    || props.localeCode === ""
-    || props.localeCode === viewerLocale
-  ) {
+  if (localeCode === "" || localeCode === viewerLocale) {
     return null;
   }
 
-  const data = supportedLocales[props.localeCode as SupportedLocaleCode];
+  const data = supportedLocales[localeCode as SupportedLocaleCode];
   if (data === undefined) {
     return null;
   }
