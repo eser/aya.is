@@ -123,27 +123,55 @@ function preprocessHtmlStyles(source: string): string {
 /**
  * Compiles MDX source to a function body string that can be serialized.
  * This runs on the server (in the loader).
+ *
+ * If full MDX compilation fails (e.g. imported content with bare { or <
+ * that breaks JSX parsing), falls back to plain markdown mode which
+ * treats those characters as literal text.
  */
 export async function compileMdx(source: string): Promise<string> {
   const preprocessed = preprocessHtmlStyles(source);
-  const compiled = await compile(preprocessed, {
-    outputFormat: "function-body",
-    remarkPlugins: [remarkEmbed, remarkGfm],
-    rehypePlugins: [
-      [rehypeShiki, {
-        themes: {
-          light: "github-light",
-          dark: "github-dark",
-        },
-        defaultColor: false,
-      }],
-      rehypeSlug,
-      [rehypeAutolinkHeadings, { behavior: "wrap" }],
-      rehypeExternalLinks,
-    ],
-  });
 
-  return String(compiled);
+  try {
+    const compiled = await compile(preprocessed, {
+      outputFormat: "function-body",
+      remarkPlugins: [remarkEmbed, remarkGfm],
+      rehypePlugins: [
+        [rehypeShiki, {
+          themes: {
+            light: "github-light",
+            dark: "github-dark",
+          },
+          defaultColor: false,
+        }],
+        rehypeSlug,
+        [rehypeAutolinkHeadings, { behavior: "wrap" }],
+        rehypeExternalLinks,
+      ],
+    });
+
+    return String(compiled);
+  } catch {
+    // Fallback: compile as plain markdown (no JSX/expression support)
+    const compiled = await compile(preprocessed, {
+      outputFormat: "function-body",
+      format: "md",
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [
+        [rehypeShiki, {
+          themes: {
+            light: "github-light",
+            dark: "github-dark",
+          },
+          defaultColor: false,
+        }],
+        rehypeSlug,
+        [rehypeAutolinkHeadings, { behavior: "wrap" }],
+        rehypeExternalLinks,
+      ],
+    });
+
+    return String(compiled);
+  }
 }
 
 /**
@@ -156,13 +184,25 @@ export async function compileMdx(source: string): Promise<string> {
  */
 export async function compileMdxLite(source: string): Promise<string> {
   const preprocessed = preprocessHtmlStyles(source);
-  const compiled = await compile(preprocessed, {
-    outputFormat: "function-body",
-    remarkPlugins: [remarkGfm],
-    rehypePlugins: [rehypeExternalLinks],
-  });
 
-  return String(compiled);
+  try {
+    const compiled = await compile(preprocessed, {
+      outputFormat: "function-body",
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [rehypeExternalLinks],
+    });
+
+    return String(compiled);
+  } catch {
+    const compiled = await compile(preprocessed, {
+      outputFormat: "function-body",
+      format: "md",
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [rehypeExternalLinks],
+    });
+
+    return String(compiled);
+  }
 }
 
 /**
