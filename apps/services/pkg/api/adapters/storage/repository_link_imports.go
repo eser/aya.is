@@ -283,6 +283,7 @@ func (r *Repository) ListManagedLinksForKindPublic(
 			ProfileID: row.ProfileID,
 			Kind:      row.Kind,
 			RemoteID:  row.RemoteID.String,
+			URI:       row.URI.String,
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -94,6 +95,8 @@ type externalSiteImportMeta struct {
 	slug        string
 	language    string
 	link        string
+	siteURL     string
+	sourcePath  string
 	storyKind   string
 	publishedAt time.Time
 }
@@ -108,6 +111,8 @@ func extractExternalSiteImportMeta(
 	slug, _ := imp.Properties["slug"].(string)
 	language, _ := imp.Properties["language"].(string)
 	link, _ := imp.Properties["link"].(string)
+	siteURL, _ := imp.Properties["site_url"].(string)
+	sourcePath, _ := imp.Properties["source_path"].(string)
 	storyKind, _ := imp.Properties["story_kind"].(string)
 	publishedAtStr, _ := imp.Properties["published_at"].(string)
 
@@ -134,9 +139,45 @@ func extractExternalSiteImportMeta(
 		slug:        slug,
 		language:    language,
 		link:        link,
+		siteURL:     siteURL,
+		sourcePath:  sourcePath,
 		storyKind:   storyKind,
 		publishedAt: publishedAt,
 	}
+}
+
+// buildPublishedURL constructs the published URL for an external site post.
+// For Hugo/Jekyll/Zola sites, the pattern is typically {site_url}/{section}/{slug}/.
+// The section is extracted from the source path (e.g., "content/posts/.../index.md" → "posts").
+func buildPublishedURL(siteURL, sourcePath, slug string) string {
+	if siteURL == "" || slug == "" {
+		return ""
+	}
+
+	siteURL = strings.TrimRight(siteURL, "/")
+
+	// Extract section from source path (e.g., "content/posts/..." → "posts")
+	section := ""
+
+	parts := strings.Split(sourcePath, "/")
+	if len(parts) >= 2 { //nolint:mnd
+		// Skip "content" or "_posts" prefix, take the next segment as section
+		start := 0
+
+		if parts[0] == "content" || parts[0] == "_posts" {
+			start = 1
+		}
+
+		if start < len(parts)-1 {
+			section = parts[start]
+		}
+	}
+
+	if section != "" {
+		return siteURL + "/" + section + "/" + slug + "/"
+	}
+
+	return siteURL + "/" + slug + "/"
 }
 
 // reconcileExistingStories updates existing stories to match the latest import data.
@@ -242,10 +283,15 @@ func (w *ExternalSiteStoryProcessor) createStoryFromImport(
 	storyID := w.idGenerator()
 	publicationID := w.idGenerator()
 
+	sourceURL := buildPublishedURL(meta.siteURL, meta.sourcePath, meta.slug)
+	if sourceURL == "" {
+		sourceURL = meta.link // fallback to GitHub blob URL
+	}
+
 	properties := map[string]any{
 		"managed_by": "external_site_sync_worker",
 		"remote_id":  imp.RemoteID,
-		"source_url": meta.link,
+		"source_url": sourceURL,
 	}
 
 	_, err := w.storyRepo.InsertStory(

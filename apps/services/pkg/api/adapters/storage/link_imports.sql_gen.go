@@ -407,7 +407,8 @@ SELECT
   pl.id,
   pl.profile_id,
   pl.kind,
-  pl.remote_id
+  pl.remote_id,
+  pl.uri
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
     AND p.deleted_at IS NULL
@@ -428,6 +429,7 @@ type ListManagedLinksForKindPublicRow struct {
 	ProfileID string         `db:"profile_id" json:"profile_id"`
 	Kind      string         `db:"kind" json:"kind"`
 	RemoteID  sql.NullString `db:"remote_id" json:"remote_id"`
+	URI       sql.NullString `db:"uri" json:"uri"`
 }
 
 // For non-OAuth managed links (e.g. SpeakerDeck) that don't require auth tokens.
@@ -436,7 +438,8 @@ type ListManagedLinksForKindPublicRow struct {
 //	  pl.id,
 //	  pl.profile_id,
 //	  pl.kind,
-//	  pl.remote_id
+//	  pl.remote_id,
+//	  pl.uri
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	    AND p.deleted_at IS NULL
@@ -459,6 +462,7 @@ func (q *Queries) ListManagedLinksForKindPublic(ctx context.Context, arg ListMan
 			&i.ProfileID,
 			&i.Kind,
 			&i.RemoteID,
+			&i.URI,
 		); err != nil {
 			return nil, err
 		}

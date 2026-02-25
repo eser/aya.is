@@ -2438,7 +2438,8 @@ type Querier interface {
 	//    pl.id,
 	//    pl.profile_id,
 	//    pl.kind,
-	//    pl.remote_id
+	//    pl.remote_id,
+	//    pl.uri
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//      AND p.deleted_at IS NULL

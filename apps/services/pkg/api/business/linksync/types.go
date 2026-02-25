@@ -72,6 +72,7 @@ type PublicManagedLink struct {
 	ProfileID string
 	Kind      string
 	RemoteID  string
+	URI       string
 }
 
 // TokenRefreshResult contains the result of a token refresh.

@@ -106,6 +106,7 @@ func (s *Service) upsertItems(
 		props["link"] = item.Link
 		props["thumbnail_url"] = item.ThumbnailURL
 		props["story_kind"] = item.StoryKind
+		props["site_url"] = link.URI
 
 		err := s.syncService.UpsertImport(ctx, link.ID, item.RemoteID, props)
 		if err != nil {
