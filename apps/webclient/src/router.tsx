@@ -1,7 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import { DEFAULT_LOCALE, predefinedSlugs, siteConfig } from "@/config";
-import i18n from "@/modules/i18n/i18n";
+import { predefinedSlugs, siteConfig } from "@/config";
 
 import type { RequestContext } from "@/request-context";
 
@@ -35,16 +34,9 @@ export async function getRouter() {
     requestContext.domainConfiguration.profileSlug
   ) || undefined;
 
-  const defaultLocale = (
-    (
-      requestContext?.domainConfiguration.type === "main" ||
-      requestContext?.domainConfiguration.type === "custom-domain"
-    ) && requestContext?.domainConfiguration?.defaultCulture
-  ) || DEFAULT_LOCALE;
-
   const router = createRouter({
     routeTree,
-    context: { requestContext, i18nInstance: i18n },
+    context: { requestContext },
     defaultPreload: "intent",
     scrollRestoration: true,
 

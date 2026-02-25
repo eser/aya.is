@@ -26,8 +26,13 @@ import "@/styles.css";
 
 type MyRouterContext = {
   requestContext: RequestContext | undefined;
-  i18nInstance: I18nType;
 };
+
+// SSR: per-request i18n clone to avoid singleton race conditions between concurrent requests.
+// Client: always uses the singleton (safe — one request at a time).
+// Using a module-scoped variable instead of router context because i18n instances
+// are not JSON-serializable (methods, event emitters) and would break TanStack Router's hydration.
+let ssrI18nInstance: I18nType | null = null;
 
 // Detect navigation state from URL, host, and request context
 function detectNavigationState(
@@ -65,20 +70,19 @@ function detectNavigationState(
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   beforeLoad: async ({ context, location }) => {
     const { locale } = parseLocaleFromPath(location.pathname);
-    let i18nInstance: I18nType = context.i18nInstance;
 
     if (locale !== null && isValidLocale(locale)) {
       if (import.meta.env.SSR) {
         // Server: clone to isolate concurrent SSR requests
-        i18nInstance = i18n.cloneInstance({ lng: locale });
-        await i18nInstance.loadLanguages(locale);
+        ssrI18nInstance = i18n.cloneInstance({ lng: locale });
+        await ssrI18nInstance.loadLanguages(locale);
       } else if (i18n.language !== locale) {
         // Client: safe to mutate singleton (one request at a time)
         await i18n.changeLanguage(locale);
       }
     }
 
-    return { requestContext: context.requestContext, i18nInstance };
+    return { requestContext: context.requestContext };
   },
   head: () => ({
     meta: generateMetaTags({
@@ -95,13 +99,16 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootComponent() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
-  const { requestContext, i18nInstance } = Route.useRouteContext();
+  const { requestContext } = Route.useRouteContext();
 
   // Get host from window on client side
   const host = typeof window !== "undefined" ? globalThis.location.host : undefined;
 
   // Detect navigation state from URL, context, and host
   const navigationState = detectNavigationState(pathname, requestContext, host);
+
+  // SSR uses the per-request clone; client uses the singleton
+  const i18nInstance = import.meta.env.SSR && ssrI18nInstance !== null ? ssrI18nInstance : i18n;
 
   return (
     <I18nextProvider i18n={i18nInstance}>
@@ -134,14 +141,13 @@ function RootComponent() {
 function LocaleSynchronizer() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
-  const { i18nInstance } = Route.useRouteContext();
 
   useEffect(() => {
     const { locale } = parseLocaleFromPath(pathname);
-    if (locale !== null && isValidLocale(locale) && i18nInstance.language !== locale) {
-      i18nInstance.changeLanguage(locale);
+    if (locale !== null && isValidLocale(locale) && i18n.language !== locale) {
+      i18n.changeLanguage(locale);
     }
-  }, [pathname, i18nInstance]);
+  }, [pathname]);
 
   return null;
 }
