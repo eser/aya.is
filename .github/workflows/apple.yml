@@ -47,7 +47,7 @@ jobs:
         run: |
           xcodebuild test \
             -project AYA.xcodeproj \
-            -scheme AYA-Tests \
+            -scheme AYA-iOS \
             -destination 'platform=iOS Simulator,name=iPhone 16e,OS=26.2' \
             -skipPackagePluginValidation \
             -skip-testing:AYA-Tests/RTLSnapshotTests \
