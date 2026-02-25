@@ -577,11 +577,18 @@ function LinksSettingsPage() {
     setIsConnectingSpeakerDeck(false);
   };
 
-  const handleConnectExternalSite = () => {
-    setExternalSiteSystem("jekyll-hugo-zola");
-    setExternalSiteRepoUrl("");
-    setExternalSiteSiteUrl("");
-    setExternalSiteContentFolder("");
+  const handleConnectExternalSite = (existingLink?: ProfileLink) => {
+    if (existingLink !== undefined && existingLink.properties !== null && existingLink.properties !== undefined) {
+      setExternalSiteSystem((existingLink.properties.system as string) ?? "jekyll-hugo-zola");
+      setExternalSiteRepoUrl((existingLink.properties.github_repo as string) ?? "");
+      setExternalSiteSiteUrl(existingLink.uri ?? "");
+      setExternalSiteContentFolder((existingLink.properties.content_folder as string) ?? "");
+    } else {
+      setExternalSiteSystem("jekyll-hugo-zola");
+      setExternalSiteRepoUrl("");
+      setExternalSiteSiteUrl("");
+      setExternalSiteContentFolder("");
+    }
     setIsExternalSiteDialogOpen(true);
   };
 
@@ -711,7 +718,7 @@ function LinksSettingsPage() {
     } else if (link.kind === "x") {
       handleConnectX();
     } else if (link.kind === "external-site") {
-      handleConnectExternalSite();
+      handleConnectExternalSite(link);
     }
   };
 

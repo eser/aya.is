@@ -152,10 +152,10 @@ func (p *Provider) fetchAndParseFile(
 		props["tags"] = fm.Tags
 	}
 
-	// Build description
-	description := fm.Description
+	// Build description — strip HTML and markdown for clean plain text
+	description := SanitizeDescription(fm.Description)
 	if description == "" && len(body) > 0 {
-		description = truncateString(body, 200)
+		description = truncateString(SanitizeDescription(body), 200)
 	}
 
 	// Determine story kind from directory

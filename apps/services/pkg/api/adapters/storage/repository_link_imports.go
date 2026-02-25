@@ -283,6 +283,7 @@ func (r *Repository) ListManagedLinksForKindPublic(
 
 		if row.Properties.Valid {
 			var props map[string]any
+
 			unmarshalErr := json.Unmarshal(row.Properties.RawMessage, &props)
 			if unmarshalErr == nil {
 				contentFolder, _ = props["content_folder"].(string)

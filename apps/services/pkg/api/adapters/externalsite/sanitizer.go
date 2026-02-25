@@ -134,6 +134,56 @@ func SanitizeContent(content string) string {
 	return strings.TrimSpace(result)
 }
 
+// SanitizeDescription strips HTML tags and markdown syntax from a description string,
+// producing clean plain text suitable for display in story cards.
+func SanitizeDescription(s string) string {
+	// Strip HTML tags
+	inTag := false
+
+	var result strings.Builder
+
+	for _, ch := range s {
+		if ch == '<' {
+			inTag = true
+
+			continue
+		}
+
+		if ch == '>' {
+			inTag = false
+
+			result.WriteRune(' ')
+
+			continue
+		}
+
+		if !inTag {
+			result.WriteRune(ch)
+		}
+	}
+
+	text := result.String()
+
+	// Strip markdown heading markers (# ## ### etc. and === --- underlines)
+	text = reMarkdownHeading.ReplaceAllString(text, "$1")
+	text = reMarkdownUnderlineHeading.ReplaceAllString(text, "")
+
+	// Strip markdown image/link syntax but keep alt text
+	text = reMarkdownImageLink.ReplaceAllString(text, "$1")
+
+	// Collapse whitespace
+	text = reMultipleSpaces.ReplaceAllString(text, " ")
+
+	return strings.TrimSpace(text)
+}
+
+var (
+	reMarkdownHeading          = regexp.MustCompile(`(?m)^#{1,6}\s+(.+)$`)
+	reMarkdownUnderlineHeading = regexp.MustCompile(`(?m)^[=\-]{3,}\s*$`)
+	reMarkdownImageLink        = regexp.MustCompile(`!?\[([^\]]*)\]\([^)]+\)`)
+	reMultipleSpaces           = regexp.MustCompile(`\s{2,}`)
+)
+
 // Patterns for image references in markdown.
 var (
 	// Matches markdown images: ![alt](url).
