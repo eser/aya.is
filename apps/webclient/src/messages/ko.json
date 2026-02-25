@@ -444,6 +444,8 @@
     "The production URL of your website.": "웹사이트의 프로덕션 URL.",
     "Site URL is required": "사이트 URL은 필수입니다",
     "GitHub repository URL is required": "GitHub 저장소 URL은 필수입니다",
+    "Content Folder": "콘텐츠 폴더",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "저장소에서 게시물이 포함된 폴더입니다. 루트에서 가져오려면 비워 두세요.",
     "Failed to connect external site": "외부 사이트 연결에 실패했습니다",
     "Connect": "Connect",
     "Connected": "Connected",

@@ -2440,7 +2440,7 @@ type Querier interface {
 	//    pl.kind,
 	//    pl.remote_id,
 	//    pl.uri,
-	//    pl.properties->>'content_folder' AS content_folder
+	//    pl.properties
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//      AND p.deleted_at IS NULL

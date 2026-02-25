@@ -444,6 +444,8 @@
     "The production URL of your website.": "De productie-URL van uw website.",
     "Site URL is required": "Site-URL is vereist",
     "GitHub repository URL is required": "GitHub-repository-URL is vereist",
+    "Content Folder": "Inhoudmap",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "De map met je berichten in de repository. Laat leeg om vanuit de hoofdmap te importeren.",
     "Failed to connect external site": "Verbinding met externe site mislukt",
     "Connect": "Connect",
     "Connected": "Connected",

@@ -444,6 +444,8 @@
     "The production URL of your website.": "عنوان URL الإنتاجي لموقعك.",
     "Site URL is required": "عنوان URL للموقع مطلوب",
     "GitHub repository URL is required": "عنوان URL لمستودع GitHub مطلوب",
+    "Content Folder": "مجلد المحتوى",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "المجلد الذي يحتوي على منشوراتك في المستودع. اتركه فارغًا للاستيراد من الجذر.",
     "Failed to connect external site": "فشل ربط الموقع الخارجي",
     "Connect": "Connect",
     "Connected": "Connected",

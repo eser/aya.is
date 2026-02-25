@@ -444,6 +444,8 @@
     "The production URL of your website.": "Рабочий URL вашего сайта.",
     "Site URL is required": "URL сайта обязателен",
     "GitHub repository URL is required": "URL GitHub-репозитория обязателен",
+    "Content Folder": "Папка контента",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "Папка с вашими публикациями в репозитории. Оставьте пустым для импорта из корня.",
     "Failed to connect external site": "Не удалось подключить внешний сайт",
     "Connect": "Connect",
     "Connected": "Connected",

@@ -279,7 +279,15 @@ func (r *Repository) ListManagedLinksForKindPublic(
 	links := make([]*linksync.PublicManagedLink, len(rows))
 
 	for i, row := range rows {
-		contentFolder, _ := row.ContentFolder.(string)
+		var contentFolder string
+
+		if row.Properties.Valid {
+			var props map[string]any
+			unmarshalErr := json.Unmarshal(row.Properties.RawMessage, &props)
+			if unmarshalErr == nil {
+				contentFolder, _ = props["content_folder"].(string)
+			}
+		}
 
 		links[i] = &linksync.PublicManagedLink{
 			ID:            row.ID,

@@ -444,6 +444,8 @@
     "The production URL of your website.": "ウェブサイトの本番URL。",
     "Site URL is required": "サイトURLは必須です",
     "GitHub repository URL is required": "GitHubリポジトリのURLは必須です",
+    "Content Folder": "コンテンツフォルダー",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "リポジトリ内の投稿が含まれるフォルダー。ルートからインポートするには空のままにしてください。",
     "Failed to connect external site": "外部サイトの接続に失敗しました",
     "Connect": "Connect",
     "Connected": "Connected",

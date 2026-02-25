@@ -444,6 +444,8 @@
     "The production URL of your website.": "L'URL de production de votre site web.",
     "Site URL is required": "L'URL du site est requise",
     "GitHub repository URL is required": "L'URL du dépôt GitHub est requise",
+    "Content Folder": "Dossier de contenu",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "Le dossier contenant vos articles dans le dépôt. Laissez vide pour importer depuis la racine.",
     "Failed to connect external site": "Échec de la connexion au site externe",
     "Connect": "Connect",
     "Connected": "Connected",

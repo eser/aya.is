@@ -444,6 +444,8 @@
     "The production URL of your website.": "您网站的生产URL。",
     "Site URL is required": "站点URL为必填项",
     "GitHub repository URL is required": "GitHub仓库URL为必填项",
+    "Content Folder": "内容文件夹",
+    "The folder containing your posts in the repository. Leave empty to import from the root.": "仓库中包含您文章的文件夹。留空则从根目录导入。",
     "Failed to connect external site": "连接外部站点失败",
     "Connect": "Connect",
     "Connected": "已连接",

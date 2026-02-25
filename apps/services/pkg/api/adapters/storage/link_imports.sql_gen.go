@@ -409,7 +409,7 @@ SELECT
   pl.kind,
   pl.remote_id,
   pl.uri,
-  pl.properties->>'content_folder' AS content_folder
+  pl.properties
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
     AND p.deleted_at IS NULL
@@ -426,12 +426,12 @@ type ListManagedLinksForKindPublicParams struct {
 }
 
 type ListManagedLinksForKindPublicRow struct {
-	ID            string         `db:"id" json:"id"`
-	ProfileID     string         `db:"profile_id" json:"profile_id"`
-	Kind          string         `db:"kind" json:"kind"`
-	RemoteID      sql.NullString `db:"remote_id" json:"remote_id"`
-	URI           sql.NullString `db:"uri" json:"uri"`
-	ContentFolder interface{}    `db:"content_folder" json:"content_folder"`
+	ID         string                `db:"id" json:"id"`
+	ProfileID  string                `db:"profile_id" json:"profile_id"`
+	Kind       string                `db:"kind" json:"kind"`
+	RemoteID   sql.NullString        `db:"remote_id" json:"remote_id"`
+	URI        sql.NullString        `db:"uri" json:"uri"`
+	Properties pqtype.NullRawMessage `db:"properties" json:"properties"`
 }
 
 // For non-OAuth managed links (e.g. SpeakerDeck) that don't require auth tokens.
@@ -442,7 +442,7 @@ type ListManagedLinksForKindPublicRow struct {
 //	  pl.kind,
 //	  pl.remote_id,
 //	  pl.uri,
-//	  pl.properties->>'content_folder' AS content_folder
+//	  pl.properties
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	    AND p.deleted_at IS NULL
@@ -466,7 +466,7 @@ func (q *Queries) ListManagedLinksForKindPublic(ctx context.Context, arg ListMan
 			&i.Kind,
 			&i.RemoteID,
 			&i.URI,
-			&i.ContentFolder,
+			&i.Properties,
 		); err != nil {
 			return nil, err
 		}
