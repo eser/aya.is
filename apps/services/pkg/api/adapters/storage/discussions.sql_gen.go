@@ -136,8 +136,11 @@ FROM "discussion_comment" dc
     AND apt.locale_code = (
       SELECT aptf.locale_code FROM "profile_tx" aptf
       WHERE aptf.profile_id = ap.id
-        AND (aptf.locale_code = $1 OR aptf.locale_code = ap.default_locale)
-      ORDER BY CASE WHEN aptf.locale_code = $1 THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN aptf.locale_code = $1 THEN 0
+        WHEN aptf.locale_code = ap.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
 WHERE dc.id = $2
@@ -187,8 +190,11 @@ type GetDiscussionCommentRow struct {
 //	    AND apt.locale_code = (
 //	      SELECT aptf.locale_code FROM "profile_tx" aptf
 //	      WHERE aptf.profile_id = ap.id
-//	        AND (aptf.locale_code = $1 OR aptf.locale_code = ap.default_locale)
-//	      ORDER BY CASE WHEN aptf.locale_code = $1 THEN 0 ELSE 1 END
+//	      ORDER BY CASE
+//	        WHEN aptf.locale_code = $1 THEN 0
+//	        WHEN aptf.locale_code = ap.default_locale THEN 1
+//	        ELSE 2
+//	      END
 //	      LIMIT 1
 //	    )
 //	WHERE dc.id = $2
@@ -697,8 +703,11 @@ FROM "discussion_comment" dc
     AND apt.locale_code = (
       SELECT aptf.locale_code FROM "profile_tx" aptf
       WHERE aptf.profile_id = ap.id
-        AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
-      ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN aptf.locale_code = $2 THEN 0
+        WHEN aptf.locale_code = ap.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
 WHERE dc.thread_id = $3
@@ -768,8 +777,11 @@ type ListChildDiscussionCommentsRow struct {
 //	    AND apt.locale_code = (
 //	      SELECT aptf.locale_code FROM "profile_tx" aptf
 //	      WHERE aptf.profile_id = ap.id
-//	        AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
-//	      ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+//	      ORDER BY CASE
+//	        WHEN aptf.locale_code = $2 THEN 0
+//	        WHEN aptf.locale_code = ap.default_locale THEN 1
+//	        ELSE 2
+//	      END
 //	      LIMIT 1
 //	    )
 //	WHERE dc.thread_id = $3
@@ -855,8 +867,11 @@ FROM "discussion_comment" dc
     AND apt.locale_code = (
       SELECT aptf.locale_code FROM "profile_tx" aptf
       WHERE aptf.profile_id = ap.id
-        AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
-      ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN aptf.locale_code = $2 THEN 0
+        WHEN aptf.locale_code = ap.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
 WHERE dc.thread_id = $3
@@ -930,8 +945,11 @@ type ListTopLevelDiscussionCommentsRow struct {
 //	    AND apt.locale_code = (
 //	      SELECT aptf.locale_code FROM "profile_tx" aptf
 //	      WHERE aptf.profile_id = ap.id
-//	        AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
-//	      ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+//	      ORDER BY CASE
+//	        WHEN aptf.locale_code = $2 THEN 0
+//	        WHEN aptf.locale_code = ap.default_locale THEN 1
+//	        ELSE 2
+//	      END
 //	      LIMIT 1
 //	    )
 //	WHERE dc.thread_id = $3

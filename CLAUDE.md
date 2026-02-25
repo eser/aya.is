@@ -104,11 +104,36 @@ function Component({ title }: Props) {}
 
 ## Project-Specific Notes
 
-### Internationalization
+### Internationalization & Locale Fallback (CRITICAL)
 
 - 13 locales: ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN
 - Translation keys use English text: `t("Section", "English text")`
 - Messages in `/apps/webclient/src/messages/[locale].json`
+- All `_tx` tables use `CHAR(12)` for `locale_code` — **always `strings.TrimRight(value, " ")` when mapping to Go business types**
+
+#### 3-Tier Locale Fallback Pattern
+
+All `_tx` table joins (story_tx, profile_tx, profile_page_tx, profile_link_tx) MUST use the 3-tier fallback subquery — never restrict with `AND (locale = X OR locale = Y)`:
+
+```sql
+-- CORRECT: 3-tier fallback — always finds a translation if one exists
+AND st.locale_code = (
+  SELECT stx.locale_code FROM "story_tx" stx
+  WHERE stx.story_id = s.id
+  ORDER BY CASE
+    WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0          -- requested locale
+    WHEN stx.locale_code = <default_locale_reference> THEN 1     -- entity's default
+    ELSE 2                                                        -- any available
+  END
+  LIMIT 1
+)
+
+-- WRONG: 2-tier — drops entities when default_locale doesn't match any translation
+AND (stx.locale_code = sqlc.arg(locale_code) OR stx.locale_code = <default>)
+ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+```
+
+For stories, `<default_locale_reference>` is `(SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id)`. For profiles/pages/links, it's `p.default_locale` directly.
 
 ### Profile System
 

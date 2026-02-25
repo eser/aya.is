@@ -47,9 +47,11 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
-    AND (stx.locale_code = sqlc.arg(locale_code)
-         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
     LIMIT 1
   )
   LEFT JOIN "profile" p ON p.id = s.author_profile_id
@@ -225,9 +227,11 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
-    AND (stx.locale_code = sqlc.arg(locale_code)
-         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
     LIMIT 1
   )
   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
@@ -271,9 +275,11 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
-    AND (stx.locale_code = sqlc.arg(locale_code)
-         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
     LIMIT 1
   )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -329,9 +335,11 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
-    AND (stx.locale_code = sqlc.arg(locale_code)
-         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
     LIMIT 1
   )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -383,9 +391,11 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
-    AND (stx.locale_code = sqlc.arg(locale_code)
-         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
     LIMIT 1
   )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -452,9 +462,11 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
-    AND (stx.locale_code = sqlc.arg(locale_code)
-         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
     LIMIT 1
   )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -621,9 +633,11 @@ FROM "story" s
   AND st.locale_code = (
     SELECT stx.locale_code FROM "story_tx" stx
     WHERE stx.story_id = s.id
-    AND (stx.locale_code = sqlc.arg(locale_code)
-         OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-    ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
     LIMIT 1
   )
   LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id

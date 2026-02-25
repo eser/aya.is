@@ -33,8 +33,11 @@ FROM "profile_question" pq
     AND apt.locale_code = (
       SELECT aptf.locale_code FROM "profile_tx" aptf
       WHERE aptf.profile_id = ap.id
-        AND (aptf.locale_code = sqlc.arg(locale_code) OR aptf.locale_code = ap.default_locale)
-      ORDER BY CASE WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN aptf.locale_code = ap.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
   LEFT JOIN "profile" bp ON bp.id = pq.answered_by
@@ -42,8 +45,11 @@ FROM "profile_question" pq
     AND bpt.locale_code = (
       SELECT bptf.locale_code FROM "profile_tx" bptf
       WHERE bptf.profile_id = bp.id
-        AND (bptf.locale_code = sqlc.arg(locale_code) OR bptf.locale_code = bp.default_locale)
-      ORDER BY CASE WHEN bptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN bptf.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN bptf.locale_code = bp.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
 WHERE pq.profile_id = sqlc.arg(profile_id)

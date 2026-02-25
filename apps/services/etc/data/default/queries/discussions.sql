@@ -72,8 +72,11 @@ FROM "discussion_comment" dc
     AND apt.locale_code = (
       SELECT aptf.locale_code FROM "profile_tx" aptf
       WHERE aptf.profile_id = ap.id
-        AND (aptf.locale_code = sqlc.arg(locale_code) OR aptf.locale_code = ap.default_locale)
-      ORDER BY CASE WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN aptf.locale_code = ap.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
 WHERE dc.id = sqlc.arg(id)
@@ -108,8 +111,11 @@ FROM "discussion_comment" dc
     AND apt.locale_code = (
       SELECT aptf.locale_code FROM "profile_tx" aptf
       WHERE aptf.profile_id = ap.id
-        AND (aptf.locale_code = sqlc.arg(locale_code) OR aptf.locale_code = ap.default_locale)
-      ORDER BY CASE WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN aptf.locale_code = ap.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
 WHERE dc.thread_id = sqlc.arg(thread_id)
@@ -147,8 +153,11 @@ FROM "discussion_comment" dc
     AND apt.locale_code = (
       SELECT aptf.locale_code FROM "profile_tx" aptf
       WHERE aptf.profile_id = ap.id
-        AND (aptf.locale_code = sqlc.arg(locale_code) OR aptf.locale_code = ap.default_locale)
-      ORDER BY CASE WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN aptf.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN aptf.locale_code = ap.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
 WHERE dc.thread_id = sqlc.arg(thread_id)

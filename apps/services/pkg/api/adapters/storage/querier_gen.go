@@ -863,8 +863,11 @@ type Querier interface {
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN ptf.locale_code = $1 THEN 0
+	//        WHEN ptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE p.slug = $2
@@ -893,8 +896,11 @@ type Querier interface {
 	//      AND apt.locale_code = (
 	//        SELECT aptf.locale_code FROM "profile_tx" aptf
 	//        WHERE aptf.profile_id = ap.id
-	//          AND (aptf.locale_code = $1 OR aptf.locale_code = ap.default_locale)
-	//        ORDER BY CASE WHEN aptf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN aptf.locale_code = $1 THEN 0
+	//          WHEN aptf.locale_code = ap.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE dc.id = $2
@@ -1177,8 +1183,11 @@ type Querier interface {
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN ptf.locale_code = $1 THEN 0
+	//        WHEN ptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE p.id = $2
@@ -1230,8 +1239,11 @@ type Querier interface {
 	//      AND plt.locale_code = (
 	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
 	//        WHERE pltf.profile_link_id = pl.id
-	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
-	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN pltf.locale_code = $1 THEN 0
+	//          WHEN pltf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE pl.id = $2
@@ -1333,8 +1345,11 @@ type Querier interface {
 	//      AND pt.locale_code = (
 	//        SELECT ptf.locale_code FROM "profile_tx" ptf
 	//        WHERE ptf.profile_id = p.id
-	//        AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//        ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN ptf.locale_code = $1 THEN 0
+	//          WHEN ptf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE
@@ -1385,8 +1400,11 @@ type Querier interface {
 	//    AND ppt.locale_code = (
 	//      SELECT pptf.locale_code FROM "profile_page_tx" pptf
 	//      WHERE pptf.profile_page_id = pp.id
-	//      AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN pptf.locale_code = $1 THEN 0
+	//        WHEN pptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
@@ -1403,8 +1421,11 @@ type Querier interface {
 	//    AND ppt.locale_code = (
 	//      SELECT pptf.locale_code FROM "profile_page_tx" pptf
 	//      WHERE pptf.profile_page_id = pp.id
-	//      AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN pptf.locale_code = $1 THEN 0
+	//        WHEN pptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "user" u ON u.id = $2::CHAR(26)
@@ -1495,8 +1516,11 @@ type Querier interface {
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN ptf.locale_code = $1 THEN 0
+	//        WHEN ptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE p.id = ANY($2::TEXT[])
@@ -1591,9 +1615,11 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
-	//      AND (stx.locale_code = $1
-	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p ON p.id = s.author_profile_id
@@ -1654,9 +1680,11 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
-	//      AND (stx.locale_code = $1
-	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
@@ -2083,9 +2111,11 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
-	//      AND (stx.locale_code = $1
-	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -2145,8 +2175,11 @@ type Querier interface {
 	//      AND plt.locale_code = (
 	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
 	//        WHERE pltf.profile_link_id = pl.id
-	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
-	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN pltf.locale_code = $1 THEN 0
+	//          WHEN pltf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE pl.profile_id = $2
@@ -2173,8 +2206,11 @@ type Querier interface {
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN ptf.locale_code = $1 THEN 0
+	//        WHEN ptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE p.deleted_at IS NULL
@@ -2207,8 +2243,11 @@ type Querier interface {
 	//      AND apt.locale_code = (
 	//        SELECT aptf.locale_code FROM "profile_tx" aptf
 	//        WHERE aptf.profile_id = ap.id
-	//          AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
-	//        ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN aptf.locale_code = $2 THEN 0
+	//          WHEN aptf.locale_code = ap.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE dc.thread_id = $3
@@ -2319,8 +2358,11 @@ type Querier interface {
 	//      AND plt.locale_code = (
 	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
 	//        WHERE pltf.profile_link_id = pl.id
-	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
-	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN pltf.locale_code = $1 THEN 0
+	//          WHEN pltf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE pl.profile_id = $2
@@ -2537,8 +2579,11 @@ type Querier interface {
 	//      AND plt.locale_code = (
 	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
 	//        WHERE pltf.profile_link_id = pl.id
-	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
-	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN pltf.locale_code = $1 THEN 0
+	//          WHEN pltf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//    LEFT JOIN "profile" p_added ON p_added.id = pl.added_by_profile_id AND p_added.deleted_at IS NULL
@@ -2563,8 +2608,11 @@ type Querier interface {
 	//      AND plt.locale_code = (
 	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
 	//        WHERE pltf.profile_link_id = pl.id
-	//        AND (pltf.locale_code = $1 OR pltf.locale_code = p.default_locale)
-	//        ORDER BY CASE WHEN pltf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN pltf.locale_code = $1 THEN 0
+	//          WHEN pltf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE pl.kind = $2
@@ -2589,8 +2637,11 @@ type Querier interface {
 	//  	  AND p1t.locale_code = (
 	//        SELECT p1tf.locale_code FROM "profile_tx" p1tf
 	//        WHERE p1tf.profile_id = p1.id
-	//        AND (p1tf.locale_code = $2 OR p1tf.locale_code = p1.default_locale)
-	//        ORDER BY CASE WHEN p1tf.locale_code = $2 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN p1tf.locale_code = $2 THEN 0
+	//          WHEN p1tf.locale_code = p1.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//    INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
@@ -2601,8 +2652,11 @@ type Querier interface {
 	//  	  AND p2t.locale_code = (
 	//        SELECT p2tf.locale_code FROM "profile_tx" p2tf
 	//        WHERE p2tf.profile_id = p2.id
-	//        AND (p2tf.locale_code = $2 OR p2tf.locale_code = p2.default_locale)
-	//        ORDER BY CASE WHEN p2tf.locale_code = $2 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN p2tf.locale_code = $2 THEN 0
+	//          WHEN p2tf.locale_code = p2.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE pm.deleted_at IS NULL
@@ -2629,8 +2683,11 @@ type Querier interface {
 	//    AND mpt.locale_code = (
 	//      SELECT mptf.locale_code FROM "profile_tx" mptf
 	//      WHERE mptf.profile_id = mp.id
-	//      AND (mptf.locale_code = $1 OR mptf.locale_code = mp.default_locale)
-	//      ORDER BY CASE WHEN mptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN mptf.locale_code = $1 THEN 0
+	//        WHEN mptf.locale_code = mp.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE pm.profile_id = $2
@@ -2669,8 +2726,11 @@ type Querier interface {
 	//    AND ppt.locale_code = (
 	//      SELECT pptf.locale_code FROM "profile_page_tx" pptf
 	//      WHERE pptf.profile_page_id = pp.id
-	//      AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN pptf.locale_code = $1 THEN 0
+	//        WHEN pptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
@@ -2695,8 +2755,11 @@ type Querier interface {
 	//    AND ppt.locale_code = (
 	//      SELECT pptf.locale_code FROM "profile_page_tx" pptf
 	//      WHERE pptf.profile_page_id = pp.id
-	//      AND (pptf.locale_code = $1 OR pptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN pptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN pptf.locale_code = $1 THEN 0
+	//        WHEN pptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p_added ON p_added.id = pp.added_by_profile_id AND p_added.deleted_at IS NULL
@@ -2749,8 +2812,11 @@ type Querier interface {
 	//      AND apt.locale_code = (
 	//        SELECT aptf.locale_code FROM "profile_tx" aptf
 	//        WHERE aptf.profile_id = ap.id
-	//          AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
-	//        ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN aptf.locale_code = $2 THEN 0
+	//          WHEN aptf.locale_code = ap.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//    LEFT JOIN "profile" bp ON bp.id = pq.answered_by
@@ -2758,8 +2824,11 @@ type Querier interface {
 	//      AND bpt.locale_code = (
 	//        SELECT bptf.locale_code FROM "profile_tx" bptf
 	//        WHERE bptf.profile_id = bp.id
-	//          AND (bptf.locale_code = $2 OR bptf.locale_code = bp.default_locale)
-	//        ORDER BY CASE WHEN bptf.locale_code = $2 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN bptf.locale_code = $2 THEN 0
+	//          WHEN bptf.locale_code = bp.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE pq.profile_id = $3
@@ -2810,8 +2879,11 @@ type Querier interface {
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN ptf.locale_code = $1 THEN 0
+	//        WHEN ptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
@@ -2894,9 +2966,11 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
-	//      AND (stx.locale_code = $1
-	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -2948,9 +3022,11 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
-	//      AND (stx.locale_code = $1
-	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -3012,9 +3088,11 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
-	//      AND (stx.locale_code = $1
-	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -3070,9 +3148,11 @@ type Querier interface {
 	//    AND st.locale_code = (
 	//      SELECT stx.locale_code FROM "story_tx" stx
 	//      WHERE stx.story_id = s.id
-	//      AND (stx.locale_code = $1
-	//           OR stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id))
-	//      ORDER BY CASE WHEN stx.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
@@ -3221,8 +3301,11 @@ type Querier interface {
 	//      AND apt.locale_code = (
 	//        SELECT aptf.locale_code FROM "profile_tx" aptf
 	//        WHERE aptf.profile_id = ap.id
-	//          AND (aptf.locale_code = $2 OR aptf.locale_code = ap.default_locale)
-	//        ORDER BY CASE WHEN aptf.locale_code = $2 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN aptf.locale_code = $2 THEN 0
+	//          WHEN aptf.locale_code = ap.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE dc.thread_id = $3
@@ -3408,8 +3491,11 @@ type Querier interface {
 	//      AND pt.locale_code = (
 	//        SELECT ptf.locale_code FROM "profile_tx" ptf
 	//        WHERE ptf.profile_id = p.id
-	//        AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//        ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN ptf.locale_code = $1 THEN 0
+	//          WHEN ptf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
 	//  WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
@@ -3491,8 +3577,11 @@ type Querier interface {
 	//    AND pt.locale_code = (
 	//      SELECT ptf.locale_code FROM "profile_tx" ptf
 	//      WHERE ptf.profile_id = p.id
-	//      AND (ptf.locale_code = $1 OR ptf.locale_code = p.default_locale)
-	//      ORDER BY CASE WHEN ptf.locale_code = $1 THEN 0 ELSE 1 END
+	//      ORDER BY CASE
+	//        WHEN ptf.locale_code = $1 THEN 0
+	//        WHEN ptf.locale_code = p.default_locale THEN 1
+	//        ELSE 2
+	//      END
 	//      LIMIT 1
 	//    )
 	//  WHERE u.deleted_at IS NULL
