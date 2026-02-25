@@ -133,6 +133,23 @@ func mapToFrontmatter(raw map[string]any) *ParsedFrontmatter {
 		}
 	}
 
+	// Check Zola's [extra] section for language if not found at top level
+	if fm.Language == "" {
+		if extra, ok := fm.Extra["extra"].(map[string]any); ok {
+			if lang := toString(extra["language"]); lang != "" {
+				fm.Language = lang
+			} else if lang := toString(extra["lang"]); lang != "" {
+				fm.Language = lang
+			}
+		}
+	}
+
+	// Infer language from tags when no explicit language field is set.
+	// Common in Hugo blogs that don't use multilingual mode.
+	if fm.Language == "" {
+		fm.Language = languageFromTags(fm.Tags)
+	}
+
 	return fm
 }
 

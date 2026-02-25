@@ -38,25 +38,29 @@ func NewExternalSiteStoryProcessor(
 }
 
 // ProcessStories creates stories from new imports and reconciles existing stories.
+// It drains all pending imports in batches rather than processing a single batch,
+// because external site imports are cheap DB operations (unlike API-based providers).
 func (w *ExternalSiteStoryProcessor) ProcessStories(ctx context.Context) error {
 	w.logger.DebugContext(ctx, "Starting external site story creation cycle")
 
-	imports, err := w.syncService.ListImportsForStoryCreation(
-		ctx,
-		"external-site",
-		w.config.BatchSize,
-	)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrSyncFailed, err)
-	}
+	totalCreated := 0
 
-	if len(imports) == 0 {
-		w.logger.DebugContext(ctx, "No external site imports need story creation")
-	} else {
+	for {
+		imports, err := w.syncService.ListImportsForStoryCreation(
+			ctx,
+			"external-site",
+			w.config.BatchSize,
+		)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrSyncFailed, err)
+		}
+
+		if len(imports) == 0 {
+			break
+		}
+
 		w.logger.DebugContext(ctx, "Processing external site imports for story creation",
-			slog.Int("count", len(imports)))
-
-		created := 0
+			slog.Int("batch_count", len(imports)))
 
 		for _, imp := range imports {
 			createErr := w.createStoryFromImport(ctx, imp)
@@ -70,12 +74,20 @@ func (w *ExternalSiteStoryProcessor) ProcessStories(ctx context.Context) error {
 				continue
 			}
 
-			created++
+			totalCreated++
 		}
 
+		// If we got fewer than BatchSize, all pending imports have been processed
+		if len(imports) < w.config.BatchSize {
+			break
+		}
+	}
+
+	if totalCreated == 0 {
+		w.logger.DebugContext(ctx, "No external site imports need story creation")
+	} else {
 		w.logger.DebugContext(ctx, "Completed external site story creation cycle",
-			slog.Int("processed", len(imports)),
-			slog.Int("created", created))
+			slog.Int("created", totalCreated))
 	}
 
 	// Always reconcile existing stories with latest import data
