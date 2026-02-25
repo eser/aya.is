@@ -144,6 +144,27 @@ func mapToFrontmatter(raw map[string]any) *ParsedFrontmatter {
 		}
 	}
 
+	// Check Zola's [taxonomies] section for language and tags
+	if taxonomies, ok := fm.Extra["taxonomies"].(map[string]any); ok {
+		if fm.Language == "" {
+			// [taxonomies] language can be a string or array: language = ["tr"]
+			if lang := toString(taxonomies["language"]); lang != "" {
+				fm.Language = lang
+			} else if langs := toStringSlice(taxonomies["language"]); len(langs) > 0 {
+				fm.Language = langs[0]
+			}
+		}
+
+		// Merge taxonomies tags if top-level tags were not found
+		if len(fm.Tags) == 0 {
+			if tags := toStringSlice(taxonomies["tags"]); len(tags) > 0 {
+				fm.Tags = tags
+			} else if tags := toStringSlice(taxonomies["categories"]); len(tags) > 0 {
+				fm.Tags = tags
+			}
+		}
+	}
+
 	// Infer language from tags when no explicit language field is set.
 	// Common in Hugo blogs that don't use multilingual mode.
 	if fm.Language == "" {
