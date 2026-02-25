@@ -1,6 +1,7 @@
 // Locale layout - handles locale validation and i18n sync
 import { CatchNotFound, createFileRoute, Outlet, redirect, notFound } from "@tanstack/react-router";
-import { DEFAULT_LOCALE, isValidLocale, type SupportedLocaleCode } from "@/config";
+import { isValidLocale, type SupportedLocaleCode } from "@/config";
+import { getPreferredLocale } from "@/lib/get-locale";
 import { PageNotFound } from "@/components/page-not-found";
 
 // Paths that should NOT be matched by the $locale route
@@ -20,8 +21,10 @@ export const Route = createFileRoute("/$locale")({
     // Check if this is a valid locale
     if (!isValidLocale(locale)) {
       // Not a valid locale - treat as profile slug
-      // Redirect to /{DEFAULT_LOCALE}/{slug}/rest-of-path
-      const newPath = `/${DEFAULT_LOCALE}${location.pathname}`;
+      // Redirect to /{preferredLocale}/{slug}/rest-of-path
+      // Uses cookie → Accept-Language → domain default → 'en' detection chain
+      const preferredLocale = await getPreferredLocale();
+      const newPath = `/${preferredLocale}${location.pathname}`;
       throw redirect({ to: newPath, replace: true });
     }
 

@@ -33,7 +33,6 @@
     "npm:cmdk@^1.1.1": "1.1.1_react@19.2.4_react-dom@19.2.4__react@19.2.4_@types+react@19.2.14_@types+react-dom@19.2.3__@types+react@19.2.14",
     "npm:date-fns@^4.1.0": "4.1.0",
     "npm:embla-carousel-react@^8.6.0": "8.6.0_react@19.2.4_embla-carousel@8.6.0",
-    "npm:i18next-browser-languagedetector@^8.2.1": "8.2.1",
     "npm:i18next-resources-to-backend@^1.2.1": "1.2.1",
     "npm:i18next@^25.8.13": "25.8.13_typescript@5.9.3",
     "npm:input-otp@^1.4.2": "1.4.2_react@19.2.4_react-dom@19.2.4__react@19.2.4",
@@ -3423,12 +3422,6 @@
     "human-signals@8.0.1": {
       "integrity": "sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ=="
     },
-    "i18next-browser-languagedetector@8.2.1": {
-      "integrity": "sha512-bZg8+4bdmaOiApD7N7BPT9W8MLZG+nPTOFlLiJiT8uzKXFjhxw4v2ierCXOwB5sFDMtuA5G4kgYZ0AznZxQ/cw==",
-      "dependencies": [
-        "@babel/runtime"
-      ]
-    },
     "i18next-resources-to-backend@1.2.1": {
       "integrity": "sha512-okHbVA+HZ7n1/76MsfhPqDou0fptl2dAlhRDu2ideXloRRduzHsqDOznJBef+R3DFZnbvWoBW+KxJ7fnFjd6Yw==",
       "dependencies": [
@@ -5927,7 +5920,6 @@
         "npm:cmdk@^1.1.1",
         "npm:date-fns@^4.1.0",
         "npm:embla-carousel-react@^8.6.0",
-        "npm:i18next-browser-languagedetector@^8.2.1",
         "npm:i18next-resources-to-backend@^1.2.1",
         "npm:i18next@^25.8.13",
         "npm:input-otp@^1.4.2",

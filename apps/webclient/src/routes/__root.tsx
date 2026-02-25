@@ -21,10 +21,12 @@ import { generateMetaTags } from "@/lib/seo";
 import { parseLocaleFromPath } from "@/lib/url";
 import type { RequestContext } from "@/request-context";
 import i18n from "@/modules/i18n/i18n";
+import type { i18n as I18nType } from "i18next";
 import "@/styles.css";
 
 type MyRouterContext = {
   requestContext: RequestContext | undefined;
+  i18nInstance: I18nType;
 };
 
 // Detect navigation state from URL, host, and request context
@@ -61,9 +63,22 @@ function detectNavigationState(
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-  beforeLoad: ({ context }) => {
-    // Pass the context from middleware
-    return { requestContext: context.requestContext };
+  beforeLoad: async ({ context, location }) => {
+    const { locale } = parseLocaleFromPath(location.pathname);
+    let i18nInstance: I18nType = context.i18nInstance;
+
+    if (locale !== null && isValidLocale(locale)) {
+      if (import.meta.env.SSR) {
+        // Server: clone to isolate concurrent SSR requests
+        i18nInstance = i18n.cloneInstance({ lng: locale });
+        await i18nInstance.loadLanguages(locale);
+      } else if (i18n.language !== locale) {
+        // Client: safe to mutate singleton (one request at a time)
+        await i18n.changeLanguage(locale);
+      }
+    }
+
+    return { requestContext: context.requestContext, i18nInstance };
   },
   head: () => ({
     meta: generateMetaTags({
@@ -80,7 +95,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootComponent() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
-  const { requestContext } = Route.useRouteContext();
+  const { requestContext, i18nInstance } = Route.useRouteContext();
 
   // Get host from window on client side
   const host = typeof window !== "undefined" ? globalThis.location.host : undefined;
@@ -89,7 +104,7 @@ function RootComponent() {
   const navigationState = detectNavigationState(pathname, requestContext, host);
 
   return (
-    <I18nextProvider i18n={i18n}>
+    <I18nextProvider i18n={i18nInstance}>
       <NavigationProvider state={navigationState}>
         <RootDocument
           locale={navigationState.locale}
@@ -119,15 +134,14 @@ function RootComponent() {
 function LocaleSynchronizer() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
-  const { requestContext } = Route.useRouteContext();
-  const host = typeof window !== "undefined" ? globalThis.location.host : undefined;
+  const { i18nInstance } = Route.useRouteContext();
 
   useEffect(() => {
-    const navigationState = detectNavigationState(pathname, requestContext, host);
-    if (i18n.language !== navigationState.locale) {
-      i18n.changeLanguage(navigationState.locale);
+    const { locale } = parseLocaleFromPath(pathname);
+    if (locale !== null && isValidLocale(locale) && i18nInstance.language !== locale) {
+      i18nInstance.changeLanguage(locale);
     }
-  }, [pathname, requestContext, host]);
+  }, [pathname, i18nInstance]);
 
   return null;
 }

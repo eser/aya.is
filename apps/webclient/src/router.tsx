@@ -1,6 +1,7 @@
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { DEFAULT_LOCALE, predefinedSlugs, siteConfig } from "@/config";
+import i18n from "@/modules/i18n/i18n";
 
 import type { RequestContext } from "@/request-context";
 
@@ -43,7 +44,7 @@ export async function getRouter() {
 
   const router = createRouter({
     routeTree,
-    context: { requestContext },
+    context: { requestContext, i18nInstance: i18n },
     defaultPreload: "intent",
     scrollRestoration: true,
 

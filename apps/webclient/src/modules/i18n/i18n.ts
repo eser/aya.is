@@ -1,6 +1,5 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
 import resourcesToBackend from "i18next-resources-to-backend";
 
 import { DEFAULT_LOCALE, FALLBACK_LOCALE, SUPPORTED_LOCALES } from "@/config";
@@ -38,7 +37,6 @@ const loadResources = resourcesToBackend(
 
 i18n
   .use(loadResources)
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     fallbackLng: FALLBACK_LOCALE,
@@ -101,17 +99,6 @@ i18n
         }
         return String(value);
       },
-    },
-
-    detection: {
-      // Order of detection methods
-      order: ["path", "cookie", "navigator"],
-      // Look for locale in URL path (e.g., /en/page)
-      lookupFromPathIndex: 0,
-      // Cookie settings
-      lookupCookie: "SITE_LOCALE",
-      caches: ["cookie"],
-      cookieMinutes: 60 * 24 * 365, // 1 year
     },
 
     react: {
