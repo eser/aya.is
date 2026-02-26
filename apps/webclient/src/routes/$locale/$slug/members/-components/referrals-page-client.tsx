@@ -28,7 +28,14 @@ const VOTE_LABELS = [
 export function ReferralsPageClient(props: ReferralsPageClientProps) {
   const { t } = useTranslation();
   const [referrals, setReferrals] = React.useState(props.referrals);
+  const [prevPropsReferrals, setPrevPropsReferrals] = React.useState(props.referrals);
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+
+  // Sync with loader data when it changes (e.g., after tab navigation)
+  if (props.referrals !== prevPropsReferrals) {
+    setPrevPropsReferrals(props.referrals);
+    setReferrals(props.referrals);
+  }
 
   const handleReferralCreated = React.useCallback(
     async () => {
@@ -261,6 +268,21 @@ function ReferralCard(props: ReferralCardProps) {
   const [totalVotes, setTotalVotes] = React.useState(props.referral.total_votes);
   const [averageScore, setAverageScore] = React.useState(props.referral.average_score);
   const [comment, setComment] = React.useState(props.referral.viewer_vote_comment ?? "");
+
+  // Sync with loader data when props change (e.g., after tab navigation)
+  const [prevReferral, setPrevReferral] = React.useState(props.referral);
+  if (props.referral !== prevReferral) {
+    setPrevReferral(props.referral);
+    const score = props.referral.viewer_vote_score !== 0
+      ? props.referral.viewer_vote_score
+      : null;
+    setViewerScore(score ?? null);
+    setShowCommentInput(score !== null);
+    setTotalVotes(props.referral.total_votes);
+    setAverageScore(props.referral.average_score);
+    setComment(props.referral.viewer_vote_comment ?? "");
+    setVotes(null);
+  }
 
   const referred = props.referral.referred_profile;
   const referrer = props.referral.referrer_profile;
