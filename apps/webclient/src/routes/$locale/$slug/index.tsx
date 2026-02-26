@@ -7,6 +7,7 @@ import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories
 import { Button } from "@/components/ui/button";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+import { buildUrl, generateCanonicalLink } from "@/lib/seo";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
@@ -19,6 +20,12 @@ export const Route = createFileRoute("/$locale/$slug/")({
     const { slug, locale } = params;
     const stories = await backend.getProfileStories(locale, slug);
     return { stories, slug, locale };
+  },
+  head: ({ loaderData }) => {
+    const { locale, slug } = loaderData;
+    return {
+      links: [generateCanonicalLink(buildUrl(locale, slug))],
+    };
   },
   component: ProfileIndexPage,
 });

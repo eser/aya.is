@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { buildUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { buildUrl, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { PageNotFound } from "@/components/page-not-found";
 
 export const Route = createFileRoute("/$locale/$slug")({
@@ -40,7 +40,6 @@ export const Route = createFileRoute("/$locale/$slug")({
         locale,
         type: "profile",
       }),
-      links: [generateCanonicalLink(buildUrl(locale, slug))],
     };
   },
   component: ProfileRoute,
