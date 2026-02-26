@@ -1,5 +1,5 @@
 // Profile members layout with Members/Referrals tab navigation
-import { createFileRoute, getRouteApi, Outlet } from "@tanstack/react-router";
+import { CatchNotFound, createFileRoute, getRouteApi, Outlet } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
@@ -17,10 +17,9 @@ const MEMBER_PLUS_KINDS = new Set([
 
 export const Route = createFileRoute("/$locale/$slug/members")({
   component: MembersLayout,
-  notFoundComponent: MembersChildNotFound,
 });
 
-function MembersChildNotFound() {
+function NotFoundContent() {
   const { t } = useTranslation();
 
   return (
@@ -81,7 +80,9 @@ function MembersLayout() {
           </nav>
         )}
 
-        <Outlet />
+        <CatchNotFound fallback={<NotFoundContent />}>
+          <Outlet />
+        </CatchNotFound>
       </div>
     </ProfileSidebarLayout>
   );
