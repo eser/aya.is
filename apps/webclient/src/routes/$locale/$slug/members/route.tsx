@@ -1,5 +1,5 @@
 // Profile members layout with Members/Referrals tab navigation
-import { CatchNotFound, createFileRoute, getRouteApi, Outlet } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Outlet } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
@@ -18,19 +18,6 @@ const MEMBER_PLUS_KINDS = new Set([
 export const Route = createFileRoute("/$locale/$slug/members")({
   component: MembersLayout,
 });
-
-function NotFoundContent() {
-  const { t } = useTranslation();
-
-  return (
-    <div className="content">
-      <h2>{t("Layout.Page not found")}</h2>
-      <p className="text-muted-foreground">
-        {t("Layout.The page you are looking for does not exist. Please check your spelling and try again.")}
-      </p>
-    </div>
-  );
-}
 
 function MembersLayout() {
   const { profile, permissions } = parentRoute.useLoaderData();
@@ -80,9 +67,7 @@ function MembersLayout() {
           </nav>
         )}
 
-        <CatchNotFound fallback={<NotFoundContent />}>
-          <Outlet />
-        </CatchNotFound>
+        <Outlet />
       </div>
     </ProfileSidebarLayout>
   );

@@ -1,5 +1,6 @@
 // Profile membership referrals page
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
@@ -27,7 +28,15 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       MEMBER_PLUS_KINDS.has(permissions.viewer_membership_kind);
 
     if (profile?.feature_relations === "disabled" || !isMemberPlus) {
-      throw notFound();
+      return {
+        referrals: null,
+        teams: null,
+        locale,
+        slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     const [referrals, teams] = await Promise.all([
@@ -49,10 +58,11 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       slug,
       translatedTitle,
       translatedDescription,
+      notFound: false as const,
     };
   },
   head: ({ loaderData }) => {
-    if (loaderData === undefined) {
+    if (loaderData === undefined || loaderData.notFound) {
       return { meta: [] };
     }
 
@@ -74,8 +84,27 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
   component: ReferralsPage,
 });
 
+function NotFoundContent() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="content">
+      <h2>{t("Layout.Page not found")}</h2>
+      <p className="text-muted-foreground">
+        {t("Layout.The page you are looking for does not exist. Please check your spelling and try again.")}
+      </p>
+    </div>
+  );
+}
+
 function ReferralsPage() {
-  const { referrals, teams, locale, slug } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
+
+  if (loaderData.notFound) {
+    return <NotFoundContent />;
+  }
+
+  const { referrals, teams, locale, slug } = loaderData;
 
   return (
     <ReferralsPageClient
