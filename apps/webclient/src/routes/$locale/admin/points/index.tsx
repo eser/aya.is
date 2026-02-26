@@ -242,7 +242,7 @@ function AdminPointsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {stats.points_awarded.toLocaleString()}
+                  {(stats.points_awarded ?? 0).toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {t("Admin.Total points distributed")}
@@ -251,7 +251,7 @@ function AdminPointsDashboard() {
             </Card>
           </div>
 
-          {Object.keys(stats.by_event_type).length > 0 && (
+          {stats.by_event_type !== undefined && Object.keys(stats.by_event_type).length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">
