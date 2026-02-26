@@ -1,12 +1,9 @@
 // Profile membership referrals page
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
-import { ChildNotFound } from "../route";
 import { ReferralsPageClient } from "./-components/referrals-page-client";
-
-const parentRoute = getRouteApi("/$locale/$slug");
 
 const MEMBER_PLUS_KINDS = new Set([
   "member",
@@ -30,15 +27,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       MEMBER_PLUS_KINDS.has(permissions.viewer_membership_kind);
 
     if (profile?.feature_relations === "disabled" || !isMemberPlus) {
-      return {
-        referrals: null,
-        teams: null,
-        locale,
-        slug,
-        translatedTitle: "",
-        translatedDescription: "",
-        notFound: true as const,
-      };
+      throw notFound();
     }
 
     const [referrals, teams] = await Promise.all([
@@ -60,11 +49,10 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       slug,
       translatedTitle,
       translatedDescription,
-      notFound: false as const,
     };
   },
   head: ({ loaderData }) => {
-    if (loaderData === undefined || loaderData.notFound) {
+    if (loaderData === undefined) {
       return { meta: [] };
     }
 
@@ -84,18 +72,10 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
     };
   },
   component: ReferralsPage,
-  notFoundComponent: ChildNotFound,
 });
 
 function ReferralsPage() {
-  const loaderData = Route.useLoaderData();
-  const { profile } = parentRoute.useLoaderData();
-
-  if (loaderData.notFound || profile === null) {
-    return <ChildNotFound />;
-  }
-
-  const { referrals, teams, locale, slug } = loaderData;
+  const { referrals, teams, locale, slug } = Route.useLoaderData();
 
   return (
     <ReferralsPageClient

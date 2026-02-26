@@ -17,7 +17,6 @@ const MEMBER_PLUS_KINDS = new Set([
 
 export const Route = createFileRoute("/$locale/$slug/members")({
   component: MembersLayout,
-  notFoundComponent: ChildNotFound,
 });
 
 function MembersLayout() {
