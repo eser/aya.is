@@ -126,7 +126,7 @@ func (r *Repository) ListProfileMembershipReferralsByProfileID(
 
 		var viewerVoteScore *int16
 
-		if row.ViewerVoteScore != 0 {
+		if row.ViewerVoteScore != -1 {
 			score := row.ViewerVoteScore
 			viewerVoteScore = &score
 		}

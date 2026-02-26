@@ -226,7 +226,7 @@ type ReferralCardProps = {
 function ReferralCard(props: ReferralCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const initialScore = props.referral.viewer_vote_score !== 0
+  const initialScore = props.referral.viewer_vote_score !== -1
     ? props.referral.viewer_vote_score
     : null;
   const [viewerScore, setViewerScore] = React.useState<number | null>(
@@ -275,7 +275,7 @@ function ReferralCard(props: ReferralCardProps) {
 
   const [, saveAction, isSaving] = React.useActionState(
     async (_prev: null): Promise<null> => {
-      if (viewerScore === null || viewerScore === 0) return null;
+      if (viewerScore === null) return null;
 
       const trimmedComment = comment.trim();
       const result = await backend.voteReferral(
@@ -389,7 +389,7 @@ function ReferralCard(props: ReferralCardProps) {
         {/* Vote buttons (local selection only, no auto-submit) */}
         <div className={styles.voteButtons}>
           {VOTE_LABELS.map((label, i) => {
-            const score = i + 1;
+            const score = i;
             const isActive = viewerScore === score;
             return (
               <button
@@ -477,7 +477,7 @@ function ReferralCard(props: ReferralCardProps) {
                         </LocaleLink>
                       )}
                       <span className={styles.voteItemScore}>
-                        {t(VOTE_LABELS[vote.score - 1])}
+                        {t(VOTE_LABELS[vote.score])}
                       </span>
                     </div>
                     {vote.comment !== null &&

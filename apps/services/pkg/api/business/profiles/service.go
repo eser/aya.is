@@ -39,7 +39,7 @@ var (
 	ErrCannotReferSelf               = errors.New("cannot refer yourself")
 	ErrCannotReferExistingMember     = errors.New("cannot refer someone who is already a member")
 	ErrReferralNotFound              = errors.New("referral not found")
-	ErrInvalidVoteScore              = errors.New("vote score must be between 1 and 5")
+	ErrInvalidVoteScore              = errors.New("vote score must be between 0 and 4")
 	ErrReferralNotVoting             = errors.New("referral is not in voting status")
 )
 
@@ -4305,7 +4305,7 @@ func (s *Service) VoteOnReferral(
 	score int16,
 	comment *string,
 ) (*ReferralVote, error) {
-	const minScore, maxScore = 1, 5
+	const minScore, maxScore = 0, 4
 
 	if score < minScore || score > maxScore {
 		return nil, ErrInvalidVoteScore

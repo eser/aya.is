@@ -38,7 +38,7 @@ SELECT
   COALESCE((SELECT v.score FROM "profile_membership_referral_vote" v
    WHERE v.profile_membership_referral_id = pmr.id
      AND v.voter_membership_id = sqlc.narg(viewer_membership_id)
-  ), 0)::SMALLINT AS viewer_vote_score,
+  ), -1)::SMALLINT AS viewer_vote_score,
   (SELECT v.comment FROM "profile_membership_referral_vote" v
    WHERE v.profile_membership_referral_id = pmr.id
      AND v.voter_membership_id = sqlc.narg(viewer_membership_id)
