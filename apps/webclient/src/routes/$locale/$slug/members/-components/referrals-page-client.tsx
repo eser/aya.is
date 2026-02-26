@@ -252,13 +252,18 @@ type ReferralCardProps = {
 
 function ReferralCard(props: ReferralCardProps) {
   const { t } = useTranslation();
+  const initialScore = props.referral.viewer_vote_score !== 0
+    ? props.referral.viewer_vote_score
+    : null;
   const [viewerScore, setViewerScore] = React.useState<number | null>(
-    props.referral.viewer_vote_score ?? null,
+    initialScore ?? null,
   );
   const [comment, setComment] = React.useState(
     props.referral.viewer_vote_comment ?? "",
   );
-  const [showCommentInput, setShowCommentInput] = React.useState(false);
+  const [showCommentInput, setShowCommentInput] = React.useState(
+    initialScore !== null,
+  );
   const [showVotes, setShowVotes] = React.useState(false);
   const [votes, setVotes] = React.useState<ReferralVote[] | null>(null);
   const [isVoting, setIsVoting] = React.useState(false);
@@ -280,19 +285,21 @@ function ReferralCard(props: ReferralCardProps) {
       setViewerScore(score);
       setShowCommentInput(true);
 
-      const result = await backend.voteReferral(
-        props.locale,
-        props.slug,
-        props.referral.id,
-        score,
-        comment.trim().length > 0 ? comment.trim() : null,
-      );
+      try {
+        const result = await backend.voteReferral(
+          props.locale,
+          props.slug,
+          props.referral.id,
+          score,
+          comment.trim().length > 0 ? comment.trim() : null,
+        );
 
-      if (result !== null) {
-        props.onVoteUpdated(props.referral.id, score);
+        if (result !== null) {
+          props.onVoteUpdated(props.referral.id, score);
+        }
+      } finally {
+        setIsVoting(false);
       }
-
-      setIsVoting(false);
     },
     [
       isVoting,
@@ -305,18 +312,24 @@ function ReferralCard(props: ReferralCardProps) {
   );
 
   const handleCommentSubmit = React.useCallback(async () => {
-    if (viewerScore === null) return;
+    if (viewerScore === null || viewerScore === 0) return;
 
     setIsVoting(true);
-    await backend.voteReferral(
-      props.locale,
-      props.slug,
-      props.referral.id,
-      viewerScore,
-      comment.trim().length > 0 ? comment.trim() : null,
-    );
-    setIsVoting(false);
-    setShowCommentInput(false);
+    try {
+      const result = await backend.voteReferral(
+        props.locale,
+        props.slug,
+        props.referral.id,
+        viewerScore,
+        comment.trim().length > 0 ? comment.trim() : null,
+      );
+
+      if (result !== null) {
+        setShowCommentInput(false);
+      }
+    } finally {
+      setIsVoting(false);
+    }
   }, [
     viewerScore,
     comment,
