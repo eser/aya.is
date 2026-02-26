@@ -30,18 +30,6 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       backend.listProfileTeams(locale, slug),
     ]);
 
-    if (referrals === null) {
-      return {
-        referrals: null,
-        teams: null,
-        locale,
-        slug,
-        translatedTitle: "",
-        translatedDescription: "",
-        notFound: true as const,
-      };
-    }
-
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = `${t("Layout.Referrals")} - ${profile?.title ?? slug}`;
@@ -50,7 +38,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
     );
 
     return {
-      referrals,
+      referrals: referrals ?? [],
       teams: teams ?? [],
       locale,
       slug,
@@ -87,9 +75,7 @@ function ReferralsPage() {
   const loaderData = Route.useLoaderData();
   const { profile } = parentRoute.useLoaderData();
 
-  if (
-    loaderData.notFound || loaderData.referrals === null || profile === null
-  ) {
+  if (loaderData.notFound || profile === null) {
     return <ChildNotFound />;
   }
 
@@ -98,7 +84,7 @@ function ReferralsPage() {
   return (
     <ReferralsPageClient
       referrals={referrals}
-      teams={teams ?? []}
+      teams={teams}
       locale={locale}
       slug={slug}
     />

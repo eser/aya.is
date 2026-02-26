@@ -1,5 +1,4 @@
-import { getBackendUri } from "@/config";
-import { getAuthToken } from "../fetcher";
+import { fetcher } from "../fetcher";
 import type { ReferralVote } from "../types";
 
 export async function getReferralVotes(
@@ -7,22 +6,8 @@ export async function getReferralVotes(
   slug: string,
   referralId: string,
 ): Promise<ReferralVote[] | null> {
-  const token = getAuthToken();
-  if (token === null) return null;
-
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_referrals/${referralId}/votes`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-    },
+  return await fetcher<ReferralVote[]>(
+    locale,
+    `/profiles/${slug}/_referrals/${referralId}/votes`,
   );
-
-  if (!response.ok) return null;
-  const result = await response.json();
-  return result.data ?? null;
 }

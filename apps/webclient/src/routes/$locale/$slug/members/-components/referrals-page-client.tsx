@@ -38,11 +38,15 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
   const handleReferralCreated = React.useCallback(
-    (referral: ProfileMembershipReferral) => {
-      setReferrals((prev) => [referral, ...prev]);
+    async () => {
       setShowCreateDialog(false);
+      // Re-fetch the full list to get complete data with joined profiles
+      const updated = await backend.listReferrals(props.locale, props.slug);
+      if (updated !== null) {
+        setReferrals(updated);
+      }
     },
-    [],
+    [props.locale, props.slug],
   );
 
   const handleVoteUpdated = React.useCallback(
@@ -120,7 +124,7 @@ type CreateReferralDialogProps = {
   locale: string;
   slug: string;
   teams: ProfileTeam[];
-  onCreated: (referral: ProfileMembershipReferral) => void;
+  onCreated: () => void;
   onClose: () => void;
 };
 
@@ -157,7 +161,7 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
         return;
       }
 
-      props.onCreated(result);
+      props.onCreated();
     },
     [username, selectedTeamIds, props.locale, props.slug, props.onCreated, t],
   );
