@@ -245,7 +245,9 @@
     "Status.reference_rejected": "거부됨",
     "Status.invitation_pending_response": "대기 중",
     "Status.invitation_accepted": "수락됨",
-    "Status.invitation_rejected": "거절됨"
+    "Status.invitation_rejected": "거절됨",
+    "Failed to submit vote": "투표 제출에 실패했습니다",
+    "Comment saved": "댓글이 저장되었습니다"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

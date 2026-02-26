@@ -40,7 +40,7 @@ var (
 	ErrCannotReferExistingMember     = errors.New("cannot refer someone who is already a member")
 	ErrReferralNotFound              = errors.New("referral not found")
 	ErrInvalidVoteScore              = errors.New("vote score must be between 1 and 5")
-	ErrCannotVoteOwnReferral         = errors.New("cannot vote on your own referral")
+	ErrReferralNotVoting             = errors.New("referral is not in voting status")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -4330,6 +4330,10 @@ func (s *Service) VoteOnReferral(
 		return nil, ErrReferralNotFound
 	}
 
+	if referral.Status != ReferralStatusVoting {
+		return nil, ErrReferralNotVoting
+	}
+
 	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
@@ -4344,10 +4348,6 @@ func (s *Service) VoteOnReferral(
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrNoMembershipFound, err)
-	}
-
-	if voterMembership.ID == referral.ReferrerMembershipID {
-		return nil, ErrCannotVoteOwnReferral
 	}
 
 	voteID := string(s.idGenerator())

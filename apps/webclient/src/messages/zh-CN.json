@@ -245,7 +245,9 @@
     "Status.reference_rejected": "已拒绝",
     "Status.invitation_pending_response": "待处理",
     "Status.invitation_accepted": "已接受",
-    "Status.invitation_rejected": "已拒绝"
+    "Status.invitation_rejected": "已拒绝",
+    "Failed to submit vote": "提交投票失败",
+    "Comment saved": "评论已保存"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

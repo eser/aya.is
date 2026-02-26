@@ -245,7 +245,9 @@
     "Status.reference_rejected": "Rejeté",
     "Status.invitation_pending_response": "En attente",
     "Status.invitation_accepted": "Accepté",
-    "Status.invitation_rejected": "Refusé"
+    "Status.invitation_rejected": "Refusé",
+    "Failed to submit vote": "Échec de l'envoi du vote",
+    "Comment saved": "Commentaire enregistré"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

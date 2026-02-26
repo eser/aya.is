@@ -245,7 +245,9 @@
     "Status.reference_rejected": "Rechazado",
     "Status.invitation_pending_response": "Pendiente",
     "Status.invitation_accepted": "Aceptado",
-    "Status.invitation_rejected": "Rechazado"
+    "Status.invitation_rejected": "Rechazado",
+    "Failed to submit vote": "Error al enviar el voto",
+    "Comment saved": "Comentario guardado"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

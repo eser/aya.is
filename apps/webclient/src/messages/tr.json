@@ -245,7 +245,9 @@
     "Status.reference_rejected": "Reddedildi",
     "Status.invitation_pending_response": "Beklemede",
     "Status.invitation_accepted": "Kabul Edildi",
-    "Status.invitation_rejected": "Reddedildi"
+    "Status.invitation_rejected": "Reddedildi",
+    "Failed to submit vote": "Oy gönderilemedi",
+    "Comment saved": "Yorum kaydedildi"
   },
   "Links": {
     "All links associated with this profile.": "Bu profille ilişkili tüm bağlantılar.",

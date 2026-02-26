@@ -245,7 +245,9 @@
     "Status.reference_rejected": "Abgelehnt",
     "Status.invitation_pending_response": "Ausstehend",
     "Status.invitation_accepted": "Angenommen",
-    "Status.invitation_rejected": "Abgelehnt"
+    "Status.invitation_rejected": "Abgelehnt",
+    "Failed to submit vote": "Abstimmung konnte nicht gesendet werden",
+    "Comment saved": "Kommentar gespeichert"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

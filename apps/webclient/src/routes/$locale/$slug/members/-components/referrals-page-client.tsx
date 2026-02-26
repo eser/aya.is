@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { toast } from "sonner";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import { backend } from "@/modules/backend/backend";
@@ -296,6 +297,8 @@ function ReferralCard(props: ReferralCardProps) {
 
         if (result !== null) {
           props.onVoteUpdated(props.referral.id, score);
+        } else {
+          toast.error(t("Referrals.Failed to submit vote"));
         }
       } finally {
         setIsVoting(false);
@@ -308,6 +311,7 @@ function ReferralCard(props: ReferralCardProps) {
       props.slug,
       props.referral.id,
       props.onVoteUpdated,
+      t,
     ],
   );
 
@@ -325,7 +329,10 @@ function ReferralCard(props: ReferralCardProps) {
       );
 
       if (result !== null) {
+        toast.success(t("Referrals.Comment saved"));
         setShowCommentInput(false);
+      } else {
+        toast.error(t("Referrals.Failed to submit vote"));
       }
     } finally {
       setIsVoting(false);

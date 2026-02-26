@@ -245,7 +245,9 @@
     "Status.reference_rejected": "却下",
     "Status.invitation_pending_response": "保留中",
     "Status.invitation_accepted": "承認済み",
-    "Status.invitation_rejected": "拒否"
+    "Status.invitation_rejected": "拒否",
+    "Failed to submit vote": "投票の送信に失敗しました",
+    "Comment saved": "コメントが保存されました"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

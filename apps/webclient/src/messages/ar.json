@@ -245,7 +245,9 @@
     "Status.reference_rejected": "مرفوض",
     "Status.invitation_pending_response": "قيد الانتظار",
     "Status.invitation_accepted": "مقبول",
-    "Status.invitation_rejected": "مرفوض"
+    "Status.invitation_rejected": "مرفوض",
+    "Failed to submit vote": "فشل في إرسال التصويت",
+    "Comment saved": "تم حفظ التعليق"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

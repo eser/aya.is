@@ -245,7 +245,9 @@
     "Status.reference_rejected": "Rifiutato",
     "Status.invitation_pending_response": "In attesa",
     "Status.invitation_accepted": "Accettato",
-    "Status.invitation_rejected": "Rifiutato"
+    "Status.invitation_rejected": "Rifiutato",
+    "Failed to submit vote": "Impossibile inviare il voto",
+    "Comment saved": "Commento salvato"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

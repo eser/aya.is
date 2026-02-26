@@ -245,7 +245,9 @@
     "Status.reference_rejected": "Отклонено",
     "Status.invitation_pending_response": "Ожидание",
     "Status.invitation_accepted": "Принято",
-    "Status.invitation_rejected": "Отклонено"
+    "Status.invitation_rejected": "Отклонено",
+    "Failed to submit vote": "Не удалось отправить голос",
+    "Comment saved": "Комментарий сохранён"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

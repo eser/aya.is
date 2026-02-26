@@ -245,7 +245,9 @@
     "Status.reference_rejected": "Afgewezen",
     "Status.invitation_pending_response": "In afwachting",
     "Status.invitation_accepted": "Geaccepteerd",
-    "Status.invitation_rejected": "Afgewezen"
+    "Status.invitation_rejected": "Afgewezen",
+    "Failed to submit vote": "Stem kon niet worden verzonden",
+    "Comment saved": "Opmerking opgeslagen"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

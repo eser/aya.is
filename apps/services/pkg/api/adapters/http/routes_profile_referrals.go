@@ -288,7 +288,7 @@ func RegisterHTTPRoutesForProfileReferrals(
 					statusCode = http.StatusNotFound
 				case errors.Is(err, profiles.ErrInvalidVoteScore):
 					statusCode = http.StatusBadRequest
-				case errors.Is(err, profiles.ErrCannotVoteOwnReferral):
+				case errors.Is(err, profiles.ErrReferralNotVoting):
 					statusCode = http.StatusBadRequest
 				}
 
