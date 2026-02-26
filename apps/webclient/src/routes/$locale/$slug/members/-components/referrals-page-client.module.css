@@ -85,10 +85,6 @@
   @apply text-sm text-destructive;
 }
 
-.successMessage {
-  @apply text-sm text-green-600 dark:text-green-400;
-}
-
 /* Referral card */
 .referralCard {
   @apply border rounded-lg p-4 space-y-3;
@@ -133,10 +129,6 @@
 /* Vote section */
 .voteSection {
   @apply space-y-2;
-}
-
-.voteSummary {
-  @apply flex items-center gap-3 text-sm text-muted-foreground;
 }
 
 .voteButtons {
@@ -209,13 +201,4 @@
 
 .voteItemComment {
   @apply text-xs text-muted-foreground mt-0.5;
-}
-
-/* Score breakdown bar */
-.scoreBreakdown {
-  @apply flex gap-0.5 h-2 rounded-full overflow-hidden flex-1;
-}
-
-.scoreSegment {
-  @apply h-full transition-all;
 }

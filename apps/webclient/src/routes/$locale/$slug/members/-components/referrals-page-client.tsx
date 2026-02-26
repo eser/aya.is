@@ -25,14 +25,6 @@ const VOTE_LABELS = [
   "Referrals.Strongly Agree",
 ] as const;
 
-const SCORE_COLORS = [
-  "bg-red-500",
-  "bg-orange-400",
-  "bg-yellow-400",
-  "bg-lime-500",
-  "bg-green-500",
-] as const;
-
 export function ReferralsPageClient(props: ReferralsPageClientProps) {
   const { t } = useTranslation();
   const [referrals, setReferrals] = React.useState(props.referrals);
@@ -259,9 +251,6 @@ function ReferralCard(props: ReferralCardProps) {
   const [viewerScore, setViewerScore] = React.useState<number | null>(
     initialScore ?? null,
   );
-  const [comment, setComment] = React.useState(
-    props.referral.viewer_vote_comment ?? "",
-  );
   const [showCommentInput, setShowCommentInput] = React.useState(
     initialScore !== null,
   );
@@ -269,6 +258,9 @@ function ReferralCard(props: ReferralCardProps) {
   const [votes, setVotes] = React.useState<ReferralVote[] | null>(null);
   const [isVoting, setIsVoting] = React.useState(false);
   const [isLoadingVotes, setIsLoadingVotes] = React.useState(false);
+  const [totalVotes, setTotalVotes] = React.useState(props.referral.total_votes);
+  const [averageScore, setAverageScore] = React.useState(props.referral.average_score);
+  const commentRef = React.useRef<HTMLTextAreaElement>(null);
 
   const referred = props.referral.referred_profile;
   const referrer = props.referral.referrer_profile;
@@ -277,6 +269,24 @@ function ReferralCard(props: ReferralCardProps) {
     props.locale,
     { year: "numeric", month: "short", day: "numeric" },
   );
+
+  const refreshVotes = React.useCallback(async () => {
+    const freshVotes = await backend.getReferralVotes(
+      props.locale,
+      props.slug,
+      props.referral.id,
+    );
+
+    if (freshVotes !== null) {
+      setVotes(freshVotes);
+      setTotalVotes(freshVotes.length);
+
+      if (freshVotes.length > 0) {
+        const avg = freshVotes.reduce((sum, v) => sum + v.score, 0) / freshVotes.length;
+        setAverageScore(Math.round(avg * 10) / 10);
+      }
+    }
+  }, [props.locale, props.slug, props.referral.id]);
 
   const handleVote = React.useCallback(
     async (score: number) => {
@@ -287,16 +297,18 @@ function ReferralCard(props: ReferralCardProps) {
       setShowCommentInput(true);
 
       try {
+        const commentText = commentRef.current?.value.trim() ?? "";
         const result = await backend.voteReferral(
           props.locale,
           props.slug,
           props.referral.id,
           score,
-          comment.trim().length > 0 ? comment.trim() : null,
+          commentText.length > 0 ? commentText : null,
         );
 
         if (result !== null) {
           props.onVoteUpdated(props.referral.id, score);
+          await refreshVotes();
         } else {
           toast.error(t("Referrals.Failed to submit vote"));
         }
@@ -306,44 +318,39 @@ function ReferralCard(props: ReferralCardProps) {
     },
     [
       isVoting,
-      comment,
       props.locale,
       props.slug,
       props.referral.id,
       props.onVoteUpdated,
+      refreshVotes,
       t,
     ],
   );
 
-  const handleCommentSubmit = React.useCallback(async () => {
-    if (viewerScore === null || viewerScore === 0) return;
+  const [, saveAction, isSaving] = React.useActionState(
+    async (_prev: null, formData: FormData): Promise<null> => {
+      if (viewerScore === null || viewerScore === 0) return null;
 
-    setIsVoting(true);
-    try {
+      const commentText = (formData.get("comment") as string).trim();
       const result = await backend.voteReferral(
         props.locale,
         props.slug,
         props.referral.id,
         viewerScore,
-        comment.trim().length > 0 ? comment.trim() : null,
+        commentText.length > 0 ? commentText : null,
       );
 
       if (result !== null) {
         toast.success(t("Referrals.Comment saved"));
-        setShowCommentInput(false);
+        await refreshVotes();
       } else {
         toast.error(t("Referrals.Failed to submit vote"));
       }
-    } finally {
-      setIsVoting(false);
-    }
-  }, [
-    viewerScore,
-    comment,
-    props.locale,
-    props.slug,
-    props.referral.id,
-  ]);
+
+      return null;
+    },
+    null,
+  );
 
   const handleToggleVotes = React.useCallback(async () => {
     if (showVotes) {
@@ -432,36 +439,6 @@ function ReferralCard(props: ReferralCardProps) {
 
       {/* Vote section */}
       <div className={styles.voteSection}>
-        {/* Vote summary */}
-        <div className={styles.voteSummary}>
-          <span>
-            {props.referral.total_votes} {t("Referrals.votes")}
-          </span>
-          {props.referral.total_votes > 0 && (
-            <>
-              <span>&middot;</span>
-              <span>
-                {t("Referrals.average")}: {props.referral.average_score.toFixed(1)}
-              </span>
-              <div className={styles.scoreBreakdown}>
-                {SCORE_COLORS.map((color, i) => {
-                  const score = i + 1;
-                  const count = props.referral.vote_breakdown?.[score] ?? 0;
-                  const pct = props.referral.total_votes > 0 ? (count / props.referral.total_votes) * 100 : 0;
-                  return (
-                    <div
-                      key={score}
-                      className={`${styles.scoreSegment} ${color}`}
-                      style={{ width: `${pct}%` }}
-                      title={`${VOTE_LABELS[i]}: ${count}`}
-                    />
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
-
         {/* Vote buttons */}
         <div className={styles.voteButtons}>
           {VOTE_LABELS.map((label, i) => {
@@ -473,7 +450,7 @@ function ReferralCard(props: ReferralCardProps) {
                 type="button"
                 className={isActive ? styles.voteButtonActive : styles.voteButton}
                 onClick={() => handleVote(score)}
-                disabled={isVoting}
+                disabled={isVoting || isSaving}
                 title={t(label)}
               >
                 {t(label)}
@@ -482,29 +459,29 @@ function ReferralCard(props: ReferralCardProps) {
           })}
         </div>
 
-        {/* Comment input */}
+        {/* Comment form */}
         {showCommentInput && viewerScore !== null && (
-          <div className={styles.commentSection}>
+          <form action={saveAction} className={styles.commentSection}>
             <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              ref={commentRef}
+              name="comment"
+              defaultValue={props.referral.viewer_vote_comment ?? ""}
               placeholder={t("Referrals.Add a comment (optional)")}
               className={styles.commentTextarea}
               rows={2}
             />
             <button
-              type="button"
-              onClick={handleCommentSubmit}
-              disabled={isVoting}
+              type="submit"
+              disabled={isSaving || isVoting}
               className={styles.commentSubmit}
             >
-              {t("Referrals.Save comment")}
+              {t("Common.Save")}
             </button>
-          </div>
+          </form>
         )}
 
-        {/* View votes toggle */}
-        {props.referral.total_votes > 0 && (
+        {/* View all votes toggle */}
+        {totalVotes > 0 && (
           <div className={styles.voteDetails}>
             <button
               type="button"
@@ -513,7 +490,7 @@ function ReferralCard(props: ReferralCardProps) {
             >
               <span className="flex items-center gap-1">
                 {showVotes ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-                {t("Referrals.View All Votes")} ({props.referral.total_votes})
+                {t("Referrals.View All")} ({totalVotes} {t("Referrals.votes")}, {averageScore.toFixed(1)} {t("Referrals.average")})
               </span>
             </button>
 
