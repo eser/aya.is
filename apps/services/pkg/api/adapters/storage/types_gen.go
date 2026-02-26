@@ -265,6 +265,36 @@ type ProfileMembership struct {
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
+type ProfileMembershipReferral struct {
+	ID                   string       `db:"id" json:"id"`
+	ProfileID            string       `db:"profile_id" json:"profile_id"`
+	ReferredProfileID    string       `db:"referred_profile_id" json:"referred_profile_id"`
+	ReferrerMembershipID string       `db:"referrer_membership_id" json:"referrer_membership_id"`
+	Status               string       `db:"status" json:"status"`
+	VoteCount            int32        `db:"vote_count" json:"vote_count"`
+	CreatedAt            time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt            sql.NullTime `db:"updated_at" json:"updated_at"`
+	DeletedAt            sql.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
+type ProfileMembershipReferralTeam struct {
+	ID                          string       `db:"id" json:"id"`
+	ProfileMembershipReferralID string       `db:"profile_membership_referral_id" json:"profile_membership_referral_id"`
+	ProfileTeamID               string       `db:"profile_team_id" json:"profile_team_id"`
+	CreatedAt                   time.Time    `db:"created_at" json:"created_at"`
+	DeletedAt                   sql.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
+type ProfileMembershipReferralVote struct {
+	ID                          string         `db:"id" json:"id"`
+	ProfileMembershipReferralID string         `db:"profile_membership_referral_id" json:"profile_membership_referral_id"`
+	VoterMembershipID           string         `db:"voter_membership_id" json:"voter_membership_id"`
+	Score                       int16          `db:"score" json:"score"`
+	Comment                     sql.NullString `db:"comment" json:"comment"`
+	CreatedAt                   time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt                   sql.NullTime   `db:"updated_at" json:"updated_at"`
+}
+
 type ProfileMembershipTeam struct {
 	ID                  string       `db:"id" json:"id"`
 	ProfileMembershipID string       `db:"profile_membership_id" json:"profile_membership_id"`

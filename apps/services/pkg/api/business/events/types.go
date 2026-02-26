@@ -49,6 +49,12 @@ const (
 	ProfileMembershipDeleted EventType = "profile_membership_deleted"
 )
 
+// Profile referral events.
+const (
+	ProfileReferralCreated EventType = "profile_referral_created"
+	ProfileReferralVoted   EventType = "profile_referral_voted"
+)
+
 // Profile question events.
 const (
 	ProfileQuestionCreated      EventType = "profile_question_created"

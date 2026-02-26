@@ -162,6 +162,48 @@ export interface ProfileTeam {
   resource_count: number;
 }
 
+// Referral status
+export type ReferralStatus =
+  | "voting"
+  | "frozen"
+  | "reference_rejected"
+  | "invitation_pending_response"
+  | "invitation_accepted"
+  | "invitation_rejected";
+
+export type ReferralVoteScore = 1 | 2 | 3 | 4 | 5;
+
+// Profile membership referral
+export interface ProfileMembershipReferral {
+  id: string;
+  profile_id: string;
+  referred_profile_id: string;
+  referrer_membership_id: string;
+  status: ReferralStatus;
+  vote_count: number;
+  created_at: string;
+  updated_at?: string | null;
+  referrer_profile: ProfileBrief;
+  referred_profile: ProfileBrief;
+  teams: ProfileTeam[];
+  total_votes: number;
+  average_score: number;
+  viewer_vote_score?: ReferralVoteScore | null;
+  viewer_vote_comment?: string | null;
+}
+
+// Referral vote
+export interface ReferralVote {
+  id: string;
+  profile_membership_referral_id: string;
+  voter_membership_id: string;
+  score: ReferralVoteScore;
+  comment?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+  voter_profile: ProfileBrief;
+}
+
 // Membership with member profile details for settings
 export interface ProfileMembershipWithMember {
   id: string;

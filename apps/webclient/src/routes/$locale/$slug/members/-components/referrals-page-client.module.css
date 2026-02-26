@@ -1,0 +1,221 @@
+@reference "@/theme.css";
+
+.header {
+  @apply flex items-center justify-between;
+}
+
+.headerText h2 {
+  @apply font-serif text-2xl font-bold text-foreground;
+}
+
+.headerText p {
+  @apply text-muted-foreground;
+}
+
+.referButton {
+  @apply px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90
+    transition-colors;
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed hover:bg-primary;
+  }
+}
+
+.emptyState {
+  @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+.emptyStateText {
+  @apply text-muted-foreground;
+}
+
+/* Create referral dialog */
+.dialogOverlay {
+  @apply fixed inset-0 bg-black/50 z-50 flex items-center justify-center;
+}
+
+.dialogContent {
+  @apply bg-background rounded-lg shadow-lg p-6 w-full max-w-md mx-4 space-y-4;
+}
+
+.dialogTitle {
+  @apply text-lg font-semibold;
+}
+
+.formGroup {
+  @apply space-y-2;
+}
+
+.label {
+  @apply block text-sm font-medium text-foreground;
+}
+
+.input {
+  @apply w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground
+    placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring;
+}
+
+.teamCheckboxes {
+  @apply space-y-2 max-h-40 overflow-y-auto;
+}
+
+.teamCheckbox {
+  @apply flex items-center gap-2 text-sm;
+}
+
+.dialogActions {
+  @apply flex gap-2 justify-end pt-2;
+}
+
+.cancelButton {
+  @apply px-4 py-2 text-sm font-medium rounded-md border border-input bg-background text-foreground hover:bg-accent
+    transition-colors;
+}
+
+.submitButton {
+  @apply px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90
+    transition-colors;
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed hover:bg-primary;
+  }
+}
+
+.errorMessage {
+  @apply text-sm text-destructive;
+}
+
+.successMessage {
+  @apply text-sm text-green-600 dark:text-green-400;
+}
+
+/* Referral card */
+.referralCard {
+  @apply border rounded-lg p-4 space-y-3;
+}
+
+.referralHeader {
+  @apply flex items-start justify-between gap-4;
+}
+
+.referralProfileInfo {
+  @apply flex items-center gap-3;
+}
+
+.referralAvatar {
+  @apply size-10 rounded-full;
+}
+
+.referralName {
+  @apply text-sm font-medium text-foreground hover:underline;
+}
+
+.referralSlug {
+  @apply text-xs text-muted-foreground;
+}
+
+.referrerInfo {
+  @apply text-xs text-muted-foreground;
+}
+
+.statusBadge {
+  @apply px-2 py-0.5 text-xs font-medium rounded-full bg-muted text-muted-foreground;
+}
+
+.teamBadges {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.teamBadge {
+  @apply px-2 py-0.5 text-xs rounded-full bg-accent text-accent-foreground;
+}
+
+/* Vote section */
+.voteSection {
+  @apply space-y-2;
+}
+
+.voteSummary {
+  @apply flex items-center gap-3 text-sm text-muted-foreground;
+}
+
+.voteButtons {
+  @apply flex gap-1;
+}
+
+.voteButton {
+  @apply px-3 py-1.5 text-xs font-medium rounded-md border border-input bg-background text-muted-foreground
+    hover:bg-accent transition-colors;
+}
+
+.voteButtonActive {
+  @apply px-3 py-1.5 text-xs font-medium rounded-md border-2 border-primary bg-primary/10 text-primary;
+}
+
+.commentSection {
+  @apply mt-2;
+}
+
+.commentTextarea {
+  @apply w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground
+    placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none;
+}
+
+.commentSubmit {
+  @apply mt-1 px-3 py-1 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90
+    transition-colors;
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
+
+/* Vote details */
+.voteDetails {
+  @apply border-t pt-3 mt-3;
+}
+
+.voteDetailsToggle {
+  @apply text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer;
+}
+
+.voteList {
+  @apply mt-2 space-y-2;
+}
+
+.voteItem {
+  @apply flex items-start gap-3 text-sm;
+}
+
+.voteItemAvatar {
+  @apply size-6 rounded-full;
+}
+
+.voteItemContent {
+  @apply flex-1;
+}
+
+.voteItemHeader {
+  @apply flex items-center gap-2;
+}
+
+.voteItemName {
+  @apply font-medium text-foreground text-xs;
+}
+
+.voteItemScore {
+  @apply text-xs text-muted-foreground;
+}
+
+.voteItemComment {
+  @apply text-xs text-muted-foreground mt-0.5;
+}
+
+/* Score breakdown bar */
+.scoreBreakdown {
+  @apply flex gap-0.5 h-2 rounded-full overflow-hidden flex-1;
+}
+
+.scoreSegment {
+  @apply h-full transition-all;
+}

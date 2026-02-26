@@ -35,6 +35,12 @@ var (
 	ErrLinksNotEnabled               = errors.New("links feature is not enabled for this profile")
 	ErrCannotDeleteTeamWithMembers   = errors.New("cannot delete team that has members")
 	ErrCannotDeleteTeamWithResources = errors.New("cannot delete team that has resources")
+	ErrReferralAlreadyExists         = errors.New("referral already exists for this profile")
+	ErrCannotReferSelf               = errors.New("cannot refer yourself")
+	ErrCannotReferExistingMember     = errors.New("cannot refer someone who is already a member")
+	ErrReferralNotFound              = errors.New("referral not found")
+	ErrInvalidVoteScore              = errors.New("vote score must be between 1 and 5")
+	ErrCannotVoteOwnReferral         = errors.New("cannot vote on your own referral")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -620,6 +626,61 @@ type Repository interface { //nolint:interfacebloat
 		teamIDs []string,
 		idGenerator func() string,
 	) error
+
+	// Referral methods
+	CreateProfileMembershipReferral(
+		ctx context.Context,
+		id string,
+		profileID string,
+		referredProfileID string,
+		referrerMembershipID string,
+	) (*ProfileMembershipReferral, error)
+	GetProfileMembershipReferralByID(
+		ctx context.Context,
+		id string,
+	) (*ProfileMembershipReferral, error)
+	GetProfileMembershipReferralByProfileAndReferred(
+		ctx context.Context,
+		profileID string,
+		referredProfileID string,
+	) (*ProfileMembershipReferral, error)
+	ListProfileMembershipReferralsByProfileID(
+		ctx context.Context,
+		localeCode string,
+		profileID string,
+		viewerMembershipID *string,
+	) ([]*ProfileMembershipReferral, error)
+	UpsertReferralVote(
+		ctx context.Context,
+		id string,
+		referralID string,
+		voterMembershipID string,
+		score int16,
+		comment *string,
+	) (*ReferralVote, error)
+	ListReferralVotes(
+		ctx context.Context,
+		localeCode string,
+		referralID string,
+	) ([]*ReferralVote, error)
+	UpdateReferralVoteCount(
+		ctx context.Context,
+		referralID string,
+	) error
+	InsertReferralTeam(
+		ctx context.Context,
+		id string,
+		referralID string,
+		teamID string,
+	) error
+	ListReferralTeams(
+		ctx context.Context,
+		referralID string,
+	) ([]*ProfileTeam, error)
+	GetReferralVoteBreakdown(
+		ctx context.Context,
+		referralID string,
+	) (map[int]int, error)
 }
 
 type Service struct {
@@ -4066,4 +4127,286 @@ func (s *Service) SetResourceTeams(
 	}
 
 	return nil
+}
+
+// CreateReferral creates a new membership referral. The referrer must be member+ on the profile.
+func (s *Service) CreateReferral( //nolint:cyclop
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	referredProfileSlug string,
+	teamIDs []string,
+) (*ProfileMembershipReferral, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMember)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if userInfo.IndividualProfileID == nil {
+		return nil, fmt.Errorf("%w: %w", ErrInsufficientAccess, ErrNoIndividualProfile)
+	}
+
+	referrerMembership, err := s.repo.GetProfileMembershipByProfileAndMember(
+		ctx, profileID, *userInfo.IndividualProfileID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrNoMembershipFound, err)
+	}
+
+	referredProfileID, err := s.repo.GetProfileIDBySlug(ctx, referredProfileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: referred profile not found: %w", ErrProfileNotFound, err)
+	}
+
+	if *userInfo.IndividualProfileID == referredProfileID {
+		return nil, ErrCannotReferSelf
+	}
+
+	existingMembership, _ := s.repo.GetProfileMembershipByProfileAndMember(
+		ctx, profileID, referredProfileID,
+	)
+	if existingMembership != nil &&
+		MembershipKindLevel[MembershipKind(existingMembership.Kind)] >= MembershipKindLevel[MembershipKindMember] {
+		return nil, ErrCannotReferExistingMember
+	}
+
+	existingReferral, _ := s.repo.GetProfileMembershipReferralByProfileAndReferred(
+		ctx, profileID, referredProfileID,
+	)
+	if existingReferral != nil {
+		return nil, ErrReferralAlreadyExists
+	}
+
+	if len(teamIDs) > 0 {
+		referrerTeams, teamsErr := s.repo.ListMembershipTeams(ctx, referrerMembership.ID)
+		if teamsErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, teamsErr)
+		}
+
+		referrerTeamSet := make(map[string]bool, len(referrerTeams))
+		for _, team := range referrerTeams {
+			referrerTeamSet[team.ID] = true
+		}
+
+		for _, teamID := range teamIDs {
+			if !referrerTeamSet[teamID] {
+				return nil, fmt.Errorf(
+					"%w: team %s does not belong to referrer",
+					ErrInvalidInput,
+					teamID,
+				)
+			}
+		}
+	}
+
+	referralID := string(s.idGenerator())
+
+	referral, err := s.repo.CreateProfileMembershipReferral(
+		ctx, referralID, profileID, referredProfileID, referrerMembership.ID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	}
+
+	for _, teamID := range teamIDs {
+		teamRecordID := string(s.idGenerator())
+
+		insertErr := s.repo.InsertReferralTeam(ctx, teamRecordID, referralID, teamID)
+		if insertErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, insertErr)
+		}
+	}
+
+	teams, _ := s.repo.ListReferralTeams(ctx, referralID)
+	referral.Teams = teams
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileReferralCreated,
+		EntityType: "referral",
+		EntityID:   referralID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"profile_id":             profileID,
+			"referred_profile":       referredProfileSlug,
+			"referrer_membership_id": referrerMembership.ID,
+		},
+	})
+
+	return referral, nil
+}
+
+// ListReferrals lists all active referrals for a profile. Member+ only.
+func (s *Service) ListReferrals(
+	ctx context.Context,
+	localeCode string,
+	userID string,
+	profileSlug string,
+) ([]*ProfileMembershipReferral, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMember)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	var viewerMembershipID *string
+
+	if userInfo.IndividualProfileID != nil {
+		membership, membershipErr := s.repo.GetProfileMembershipByProfileAndMember(
+			ctx, profileID, *userInfo.IndividualProfileID,
+		)
+		if membershipErr == nil && membership != nil {
+			viewerMembershipID = &membership.ID
+		}
+	}
+
+	referrals, err := s.repo.ListProfileMembershipReferralsByProfileID(
+		ctx, localeCode, profileID, viewerMembershipID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	for _, referral := range referrals {
+		teams, teamsErr := s.repo.ListReferralTeams(ctx, referral.ID)
+		if teamsErr == nil {
+			referral.Teams = teams
+		}
+	}
+
+	return referrals, nil
+}
+
+// VoteOnReferral casts or updates a vote on a referral. Member+ only.
+func (s *Service) VoteOnReferral(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	referralID string,
+	score int16,
+	comment *string,
+) (*ReferralVote, error) {
+	const minScore, maxScore = 1, 5
+
+	if score < minScore || score > maxScore {
+		return nil, ErrInvalidVoteScore
+	}
+
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMember)
+	if err != nil {
+		return nil, err
+	}
+
+	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+	}
+
+	if referral.ProfileID != profileID {
+		return nil, ErrReferralNotFound
+	}
+
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if userInfo.IndividualProfileID == nil {
+		return nil, fmt.Errorf("%w: %w", ErrInsufficientAccess, ErrNoIndividualProfile)
+	}
+
+	voterMembership, err := s.repo.GetProfileMembershipByProfileAndMember(
+		ctx, profileID, *userInfo.IndividualProfileID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrNoMembershipFound, err)
+	}
+
+	if voterMembership.ID == referral.ReferrerMembershipID {
+		return nil, ErrCannotVoteOwnReferral
+	}
+
+	voteID := string(s.idGenerator())
+
+	vote, err := s.repo.UpsertReferralVote(
+		ctx, voteID, referralID, voterMembership.ID, score, comment,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	}
+
+	_ = s.repo.UpdateReferralVoteCount(ctx, referralID)
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileReferralVoted,
+		EntityType: "referral",
+		EntityID:   referralID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		Payload: map[string]any{
+			"score":   score,
+			"vote_id": vote.ID,
+		},
+	})
+
+	return vote, nil
+}
+
+// GetReferralVotes gets all votes for a referral. Member+ only.
+func (s *Service) GetReferralVotes(
+	ctx context.Context,
+	localeCode string,
+	userID string,
+	profileSlug string,
+	referralID string,
+) ([]*ReferralVote, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMember)
+	if err != nil {
+		return nil, err
+	}
+
+	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+	}
+
+	if referral.ProfileID != profileID {
+		return nil, ErrReferralNotFound
+	}
+
+	votes, err := s.repo.ListReferralVotes(ctx, localeCode, referralID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return votes, nil
 }

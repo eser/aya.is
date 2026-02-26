@@ -1,41 +1,54 @@
-// Profile members page
+// Profile members list page
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
-import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { MemberCard } from "@/components/userland/member-card/member-card";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
-import { ChildNotFound } from "./route";
+import { ChildNotFound } from "../route";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
-export const Route = createFileRoute("/$locale/$slug/members")({
+export const Route = createFileRoute("/$locale/$slug/members/")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
     const profile = await backend.getProfile(locale, slug);
 
     if (profile?.feature_relations === "disabled") {
-      return { members: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        members: null,
+        locale,
+        slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     const members = await backend.getProfileMembers(locale, slug);
 
     if (members === null) {
-      return { members: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        members: null,
+        locale,
+        slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
-    // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = `${t("Layout.Members")} - ${profile?.title ?? slug}`;
-    const translatedDescription = t("Members.Individuals and organizations that are members of this profile.");
+    const translatedDescription = t(
+      "Members.Individuals and organizations that are members of this profile.",
+    );
 
     return {
       members,
       locale,
       slug,
-      profileTitle: profile?.title ?? slug,
       translatedTitle,
       translatedDescription,
       notFound: false as const,
@@ -65,41 +78,39 @@ export const Route = createFileRoute("/$locale/$slug/members")({
 
 function MembersPage() {
   const loaderData = Route.useLoaderData();
-  const { profile, permissions } = parentRoute.useLoaderData();
+  const { profile } = parentRoute.useLoaderData();
   const { t } = useTranslation();
 
   if (loaderData.notFound || loaderData.members === null || profile === null) {
     return <ChildNotFound />;
   }
 
-  const { members, locale, slug } = loaderData;
+  const { members } = loaderData;
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
-      <div className="space-y-6">
-        <div>
-          <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Members")}</h2>
-          <p className="text-muted-foreground">
-            {t(
-              "Members.Individuals and organizations that are members of this profile.",
-            )}
-          </p>
-        </div>
-
-        {members !== null && members.length > 0
-          ? (
-            <div className="flex flex-col gap-4">
-              {members.map((membership) => (
-                <MemberCard key={membership.id} membership={membership} />
-              ))}
-            </div>
-          )
-          : (
-            <p className="text-muted-foreground">
-              {t("Members.No members found.")}
-            </p>
+    <>
+      <div>
+        <h2 className="font-serif text-2xl font-bold text-foreground">
+          {t("Layout.Members")}
+        </h2>
+        <p className="text-muted-foreground">
+          {t(
+            "Members.Individuals and organizations that are members of this profile.",
           )}
+        </p>
       </div>
-    </ProfileSidebarLayout>
+
+      {members !== null && members.length > 0
+        ? (
+          <div className="flex flex-col gap-4">
+            {members.map((membership) => <MemberCard key={membership.id} membership={membership} />)}
+          </div>
+        )
+        : (
+          <p className="text-muted-foreground">
+            {t("Members.No members found.")}
+          </p>
+        )}
+    </>
   );
 }

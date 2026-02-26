@@ -43,6 +43,10 @@ import { updateProfileTeam } from "./profiles/update-profile-team";
 import { deleteProfileTeam } from "./profiles/delete-profile-team";
 import { setMembershipTeams } from "./profiles/set-membership-teams";
 import { setResourceTeams } from "./profiles/set-resource-teams";
+import { listReferrals } from "./profiles/list-referrals";
+import { createReferral } from "./profiles/create-referral";
+import { voteReferral } from "./profiles/vote-referral";
+import { getReferralVotes } from "./profiles/get-referral-votes";
 import { followProfile } from "./profiles/follow-profile";
 import { unfollowProfile } from "./profiles/unfollow-profile";
 import { createProfilePage } from "./profiles/create-profile-page";
@@ -238,6 +242,12 @@ export const backend = {
   setMembershipTeams,
   setResourceTeams,
 
+  // Profile Referrals
+  listReferrals,
+  createReferral,
+  voteReferral,
+  getReferralVotes,
+
   // Profile Pages
   listProfilePages,
   createProfilePage,
@@ -396,6 +406,7 @@ export {
   createProfileResource,
   createProfileTeam,
   createQuestion,
+  createReferral,
   createSession,
   createStoryComment,
   deleteDiscussionComment,
@@ -443,6 +454,7 @@ export {
   getProfileStories,
   getProfileStory,
   getProfileTranslations,
+  getReferralVotes,
   getSessionCurrent,
   getSpotlight,
   getStories,
@@ -472,6 +484,7 @@ export {
   listProfilePointTransactions,
   listProfileResources,
   listProfileTeams,
+  listReferrals,
   // Translation management
   listStoryTranslationLocales,
   lockThread,
@@ -515,4 +528,5 @@ export {
   verifyTelegramRegisterCode,
   voteComment,
   voteQuestion,
+  voteReferral,
 };

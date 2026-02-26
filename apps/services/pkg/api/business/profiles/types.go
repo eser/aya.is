@@ -288,6 +288,49 @@ type UserSearchResult struct {
 	Profile             *ProfileBrief `json:"profile"`
 }
 
+// ReferralStatus represents the current status of a membership referral.
+type ReferralStatus string
+
+const (
+	ReferralStatusVoting                    ReferralStatus = "voting"
+	ReferralStatusFrozen                    ReferralStatus = "frozen"
+	ReferralStatusReferenceRejected         ReferralStatus = "reference_rejected"
+	ReferralStatusInvitationPendingResponse ReferralStatus = "invitation_pending_response"
+	ReferralStatusInvitationAccepted        ReferralStatus = "invitation_accepted"
+	ReferralStatusInvitationRejected        ReferralStatus = "invitation_rejected"
+)
+
+// ProfileMembershipReferral represents a referral for a potential new member.
+type ProfileMembershipReferral struct {
+	ReferrerProfile      *ProfileBrief  `json:"referrer_profile"`
+	ReferredProfile      *ProfileBrief  `json:"referred_profile"`
+	Teams                []*ProfileTeam `json:"teams"`
+	ViewerVoteComment    *string        `json:"viewer_vote_comment"`
+	ViewerVoteScore      *int16         `json:"viewer_vote_score"`
+	UpdatedAt            *time.Time     `json:"updated_at"`
+	CreatedAt            time.Time      `json:"created_at"`
+	ID                   string         `json:"id"`
+	ProfileID            string         `json:"profile_id"`
+	ReferredProfileID    string         `json:"referred_profile_id"`
+	ReferrerMembershipID string         `json:"referrer_membership_id"`
+	Status               ReferralStatus `json:"status"`
+	AverageScore         float64        `json:"average_score"`
+	TotalVotes           int64          `json:"total_votes"`
+	VoteCount            int            `json:"vote_count"`
+}
+
+// ReferralVote represents a single vote on a referral.
+type ReferralVote struct {
+	VoterProfile                *ProfileBrief `json:"voter_profile"`
+	Comment                     *string       `json:"comment"`
+	UpdatedAt                   *time.Time    `json:"updated_at"`
+	CreatedAt                   time.Time     `json:"created_at"`
+	ID                          string        `json:"id"`
+	ProfileMembershipReferralID string        `json:"profile_membership_referral_id"`
+	VoterMembershipID           string        `json:"voter_membership_id"`
+	Score                       int16         `json:"score"`
+}
+
 type ExternalPost struct {
 	CreatedAt *time.Time `json:"created_at"` //nolint:tagliatelle
 	ID        string     `json:"id"`
