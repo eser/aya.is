@@ -5,7 +5,7 @@ import { backend } from "@/modules/backend/backend";
 import { MemberCard } from "@/components/userland/member-card/member-card";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
-import { ChildNotFound } from "../route";
+import { NotFoundContent } from "./route";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
@@ -73,7 +73,6 @@ export const Route = createFileRoute("/$locale/$slug/members/")({
     };
   },
   component: MembersPage,
-  notFoundComponent: ChildNotFound,
 });
 
 function MembersPage() {
@@ -82,7 +81,7 @@ function MembersPage() {
   const { t } = useTranslation();
 
   if (loaderData.notFound || loaderData.members === null || profile === null) {
-    return <ChildNotFound />;
+    return <NotFoundContent />;
   }
 
   const { members } = loaderData;

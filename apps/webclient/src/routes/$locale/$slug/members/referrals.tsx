@@ -1,9 +1,9 @@
 // Profile membership referrals page
 import { createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
+import { NotFoundContent } from "./route";
 import { ReferralsPageClient } from "./-components/referrals-page-client";
 
 const MEMBER_PLUS_KINDS = new Set([
@@ -83,19 +83,6 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
   },
   component: ReferralsPage,
 });
-
-function NotFoundContent() {
-  const { t } = useTranslation();
-
-  return (
-    <div className="content">
-      <h2>{t("Layout.Page not found")}</h2>
-      <p className="text-muted-foreground">
-        {t("Layout.The page you are looking for does not exist. Please check your spelling and try again.")}
-      </p>
-    </div>
-  );
-}
 
 function ReferralsPage() {
   const loaderData = Route.useLoaderData();
