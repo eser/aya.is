@@ -8,12 +8,28 @@ import { ReferralsPageClient } from "./-components/referrals-page-client";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
+const MEMBER_PLUS_KINDS = new Set([
+  "member",
+  "contributor",
+  "maintainer",
+  "lead",
+  "owner",
+]);
+
 export const Route = createFileRoute("/$locale/$slug/members/referrals")({
   loader: async ({ params }) => {
     const { locale, slug } = params;
-    const profile = await backend.getProfile(locale, slug);
+    const [profile, permissions] = await Promise.all([
+      backend.getProfile(locale, slug),
+      backend.getProfilePermissions(locale, slug),
+    ]);
 
-    if (profile?.feature_relations === "disabled") {
+    const isMemberPlus =
+      permissions?.viewer_membership_kind !== undefined &&
+      permissions.viewer_membership_kind !== null &&
+      MEMBER_PLUS_KINDS.has(permissions.viewer_membership_kind);
+
+    if (profile?.feature_relations === "disabled" || !isMemberPlus) {
       return {
         referrals: null,
         teams: null,
