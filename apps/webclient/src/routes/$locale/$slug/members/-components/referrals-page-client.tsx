@@ -232,12 +232,8 @@ function ReferralCard(props: ReferralCardProps) {
   const [viewerScore, setViewerScore] = React.useState<number | null>(
     initialScore ?? null,
   );
-  const [showCommentInput, setShowCommentInput] = React.useState(
-    initialScore !== null,
-  );
   const [showVotes, setShowVotes] = React.useState(false);
   const [votes, setVotes] = React.useState<ReferralVote[] | null>(null);
-  const [isVoting, setIsVoting] = React.useState(false);
   const [isLoadingVotes, setIsLoadingVotes] = React.useState(false);
   const [totalVotes, setTotalVotes] = React.useState(props.referral.total_votes);
   const [averageScore, setAverageScore] = React.useState(props.referral.average_score);
@@ -269,57 +265,25 @@ function ReferralCard(props: ReferralCardProps) {
     }
   }, [props.locale, props.slug, props.referral.id]);
 
-  const handleVote = React.useCallback(
-    async (score: number) => {
-      if (isVoting) return;
+  const handleReset = React.useCallback(() => {
+    setViewerScore(initialScore ?? null);
+    setComment(props.referral.viewer_vote_comment ?? "");
+  }, [initialScore, props.referral.viewer_vote_comment]);
 
-      setIsVoting(true);
-      setViewerScore(score);
-      setShowCommentInput(true);
-
-      try {
-        const trimmedComment = comment.trim();
-        const result = await backend.voteReferral(
-          props.locale,
-          props.slug,
-          props.referral.id,
-          score,
-          trimmedComment.length > 0 ? trimmedComment : null,
-        );
-
-        if (result !== null) {
-          await refreshVotes();
-          router.invalidate();
-        } else {
-          toast.error(t("Referrals.Failed to submit vote"));
-        }
-      } finally {
-        setIsVoting(false);
-      }
-    },
-    [
-      isVoting,
-      comment,
-      props.locale,
-      props.slug,
-      props.referral.id,
-      refreshVotes,
-      router,
-      t,
-    ],
-  );
+  const isDirty = viewerScore !== (initialScore ?? null)
+    || comment !== (props.referral.viewer_vote_comment ?? "");
 
   const [, saveAction, isSaving] = React.useActionState(
-    async (_prev: null, formData: FormData): Promise<null> => {
+    async (_prev: null): Promise<null> => {
       if (viewerScore === null || viewerScore === 0) return null;
 
-      const commentText = (formData.get("comment") as string).trim();
+      const trimmedComment = comment.trim();
       const result = await backend.voteReferral(
         props.locale,
         props.slug,
         props.referral.id,
         viewerScore,
-        commentText.length > 0 ? commentText : null,
+        trimmedComment.length > 0 ? trimmedComment : null,
       );
 
       if (result !== null) {
@@ -421,8 +385,8 @@ function ReferralCard(props: ReferralCardProps) {
       )}
 
       {/* Vote section */}
-      <div className={styles.voteSection}>
-        {/* Vote buttons */}
+      <form action={saveAction} className={styles.voteSection}>
+        {/* Vote buttons (local selection only, no auto-submit) */}
         <div className={styles.voteButtons}>
           {VOTE_LABELS.map((label, i) => {
             const score = i + 1;
@@ -432,8 +396,8 @@ function ReferralCard(props: ReferralCardProps) {
                 key={score}
                 type="button"
                 className={isActive ? styles.voteButtonActive : styles.voteButton}
-                onClick={() => handleVote(score)}
-                disabled={isVoting || isSaving}
+                onClick={() => setViewerScore(score)}
+                disabled={isSaving}
                 title={t(label)}
               >
                 {t(label)}
@@ -442,91 +406,99 @@ function ReferralCard(props: ReferralCardProps) {
           })}
         </div>
 
-        {/* Comment form */}
-        {showCommentInput && viewerScore !== null && (
-          <form action={saveAction} className={styles.commentSection}>
-            <textarea
-              name="comment"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder={t("Referrals.Add a comment (optional)")}
-              className={styles.commentTextarea}
-              rows={2}
-            />
-            <button
-              type="submit"
-              disabled={isSaving || isVoting}
-              className={styles.commentSubmit}
-            >
-              {t("Common.Save")}
-            </button>
-          </form>
-        )}
+        {/* Comment */}
+        <textarea
+          name="comment"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder={t("Referrals.Add a comment (optional)")}
+          className={styles.commentTextarea}
+          rows={2}
+        />
 
-        {/* View all votes toggle */}
-        {totalVotes > 0 && (
-          <div className={styles.voteDetails}>
-            <button
-              type="button"
-              onClick={handleToggleVotes}
-              className={styles.voteDetailsToggle}
-            >
-              <span className="flex items-center gap-1">
-                {showVotes ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-                {t("Referrals.View All")} ({totalVotes} {t("Referrals.votes")}, {averageScore.toFixed(1)} {t("Referrals.average")})
-              </span>
-            </button>
+        {/* Form actions */}
+        <div className={styles.formActions}>
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={isSaving || !isDirty}
+            className={styles.resetButton}
+          >
+            {t("Common.Reset")}
+          </button>
+          <button
+            type="submit"
+            disabled={isSaving || viewerScore === null || !isDirty}
+            className={styles.commentSubmit}
+          >
+            {t("Common.Save")}
+          </button>
+        </div>
+      </form>
 
-            {showVotes && votes !== null && (
-              <div className={styles.voteList}>
-                {votes.map((vote) => (
-                  <div key={vote.id} className={styles.voteItem}>
-                    {vote.voter_profile !== undefined &&
-                      vote.voter_profile !== null && (
-                      <LocaleLink to={`/${vote.voter_profile.slug}`}>
-                        <SiteAvatar
-                          src={vote.voter_profile.profile_picture_uri}
-                          name={vote.voter_profile.title}
-                          fallbackName={vote.voter_profile.slug}
-                          className={styles.voteItemAvatar}
-                        />
-                      </LocaleLink>
-                    )}
-                    <div className={styles.voteItemContent}>
-                      <div className={styles.voteItemHeader}>
-                        {vote.voter_profile !== undefined &&
-                          vote.voter_profile !== null && (
-                          <LocaleLink
-                            to={`/${vote.voter_profile.slug}`}
-                            className={styles.voteItemName}
-                          >
-                            {vote.voter_profile.title}
-                          </LocaleLink>
-                        )}
-                        <span className={styles.voteItemScore}>
-                          {t(VOTE_LABELS[vote.score - 1])}
-                        </span>
-                      </div>
-                      {vote.comment !== null &&
-                        vote.comment !== undefined && (
-                        <p className={styles.voteItemComment}>
-                          {vote.comment}
-                        </p>
+      {/* View all votes toggle */}
+      {totalVotes > 0 && (
+        <div className={styles.voteDetails}>
+          <button
+            type="button"
+            onClick={handleToggleVotes}
+            className={styles.voteDetailsToggle}
+          >
+            <span className="flex items-center gap-1">
+              {showVotes ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+              {t("Referrals.View All")} ({totalVotes} {t("Referrals.votes")}, {averageScore.toFixed(1)} {t("Referrals.average")})
+            </span>
+          </button>
+
+          {showVotes && votes !== null && (
+            <div className={styles.voteList}>
+              {votes.map((vote) => (
+                <div key={vote.id} className={styles.voteItem}>
+                  {vote.voter_profile !== undefined &&
+                    vote.voter_profile !== null && (
+                    <LocaleLink to={`/${vote.voter_profile.slug}`}>
+                      <SiteAvatar
+                        src={vote.voter_profile.profile_picture_uri}
+                        name={vote.voter_profile.title}
+                        fallbackName={vote.voter_profile.slug}
+                        className={styles.voteItemAvatar}
+                      />
+                    </LocaleLink>
+                  )}
+                  <div className={styles.voteItemContent}>
+                    <div className={styles.voteItemHeader}>
+                      {vote.voter_profile !== undefined &&
+                        vote.voter_profile !== null && (
+                        <LocaleLink
+                          to={`/${vote.voter_profile.slug}`}
+                          className={styles.voteItemName}
+                        >
+                          {vote.voter_profile.title}
+                        </LocaleLink>
                       )}
+                      <span className={styles.voteItemScore}>
+                        {t(VOTE_LABELS[vote.score - 1])}
+                      </span>
                     </div>
+                    {vote.comment !== null &&
+                      vote.comment !== undefined && (
+                      <p className={styles.voteItemComment}>
+                        {vote.comment}
+                      </p>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
+          )}
 
-            {showVotes && isLoadingVotes && (
-              <p className="text-xs text-muted-foreground mt-2">
-                {t("Common.Loading")}...
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+          {showVotes && isLoadingVotes && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {t("Common.Loading")}...
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

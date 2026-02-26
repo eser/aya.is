@@ -144,17 +144,26 @@
   @apply px-3 py-1.5 text-xs font-medium rounded-md border-2 border-primary bg-primary/10 text-primary;
 }
 
-.commentSection {
-  @apply mt-2;
-}
-
 .commentTextarea {
   @apply w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground
     placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none;
 }
 
+.formActions {
+  @apply flex justify-end gap-2 mt-1;
+}
+
+.resetButton {
+  @apply px-3 py-1 text-xs font-medium rounded-md border border-input bg-background text-muted-foreground
+    hover:bg-accent hover:text-foreground transition-colors;
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
+
 .commentSubmit {
-  @apply mt-1 px-3 py-1 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90
+  @apply px-3 py-1 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90
     transition-colors;
 
   &:disabled {
