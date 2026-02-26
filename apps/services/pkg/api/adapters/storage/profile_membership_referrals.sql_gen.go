@@ -232,10 +232,10 @@ SELECT
    WHERE v.profile_membership_referral_id = pmr.id)::BIGINT AS total_votes,
   COALESCE((SELECT AVG(v.score)::NUMERIC(3,2) FROM "profile_membership_referral_vote" v
    WHERE v.profile_membership_referral_id = pmr.id), 0)::TEXT AS average_score,
-  (SELECT v.score FROM "profile_membership_referral_vote" v
+  COALESCE((SELECT v.score FROM "profile_membership_referral_vote" v
    WHERE v.profile_membership_referral_id = pmr.id
      AND v.voter_membership_id = $1
-  ) AS viewer_vote_score,
+  ), 0)::SMALLINT AS viewer_vote_score,
   (SELECT v.comment FROM "profile_membership_referral_vote" v
    WHERE v.profile_membership_referral_id = pmr.id
      AND v.voter_membership_id = $1
@@ -317,10 +317,10 @@ type ListProfileMembershipReferralsByProfileIDRow struct {
 //	   WHERE v.profile_membership_referral_id = pmr.id)::BIGINT AS total_votes,
 //	  COALESCE((SELECT AVG(v.score)::NUMERIC(3,2) FROM "profile_membership_referral_vote" v
 //	   WHERE v.profile_membership_referral_id = pmr.id), 0)::TEXT AS average_score,
-//	  (SELECT v.score FROM "profile_membership_referral_vote" v
+//	  COALESCE((SELECT v.score FROM "profile_membership_referral_vote" v
 //	   WHERE v.profile_membership_referral_id = pmr.id
 //	     AND v.voter_membership_id = $1
-//	  ) AS viewer_vote_score,
+//	  ), 0)::SMALLINT AS viewer_vote_score,
 //	  (SELECT v.comment FROM "profile_membership_referral_vote" v
 //	   WHERE v.profile_membership_referral_id = pmr.id
 //	     AND v.voter_membership_id = $1
