@@ -9,8 +9,8 @@ import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { setResponseHeader } from "@tanstack/react-start/server";
 import { computeContentLanguage, computeStoryCanonicalUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { setContentLanguageHeader } from "@/lib/set-content-language";
 import { ChildNotFound } from "../../route";
 
 const profileRoute = getRouteApi("/$locale/$slug");
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
 
     // Set Content-Language header with content locale awareness
     if (import.meta.env.SSR) {
-      setResponseHeader("Content-Language", computeContentLanguage(locale, story.locale_code));
+      await setContentLanguageHeader({ data: computeContentLanguage(locale, story.locale_code) });
     }
 
     return { story, compiledContent, currentUrl, locale, slug, initialDiscussion, notFound: false as const };

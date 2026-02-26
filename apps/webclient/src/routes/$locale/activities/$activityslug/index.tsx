@@ -9,8 +9,8 @@ import { compileMdx } from "@/lib/mdx";
 import { MdxContent } from "@/components/userland/mdx-content";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { setResponseHeader } from "@tanstack/react-start/server";
 import { buildUrl, computeContentLanguage, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { setContentLanguageHeader } from "@/lib/set-content-language";
 import { formatDateTimeLong } from "@/lib/date";
 import { LocaleLink } from "@/components/locale-link";
 import { PageNotFound } from "@/components/page-not-found";
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
 
     // Set Content-Language header with content locale awareness
     if (import.meta.env.SSR) {
-      setResponseHeader("Content-Language", computeContentLanguage(locale, activity.locale_code));
+      await setContentLanguageHeader({ data: computeContentLanguage(locale, activity.locale_code) });
     }
 
     return {
