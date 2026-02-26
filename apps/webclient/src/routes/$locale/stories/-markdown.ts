@@ -51,10 +51,7 @@ export function generateStoriesListingMarkdown(
  */
 export function registerGlobalStoriesListingHandler(): void {
   registerMarkdownHandler("$locale/stories", async (_params, locale, _searchParams) => {
-    // Match the HTML route: only articles
-    const stories = await backend.getStoriesByKinds(locale, [
-      "article",
-    ]);
+    const stories = await backend.getStories(locale);
 
     if (stories === null) {
       return null;

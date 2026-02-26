@@ -17,7 +17,7 @@ export const Route = createFileRoute("/$locale/stories/")({
   },
   loader: async ({ params }) => {
     const { locale } = params;
-    const stories = await backend.getStoriesByKinds(locale, ["article"]);
+    const stories = await backend.getStories(locale);
 
     // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/$locale/stories/")({
     return {
       stories,
       locale,
-      translatedTitle: t("Layout.Articles"),
+      translatedTitle: t("Layout.Stories"),
       translatedDescription: t("Stories.Browse articles and stories from the AYA community"),
     };
   },
@@ -55,7 +55,7 @@ function StoriesIndexPage() {
       <section className="container px-4 py-8 mx-auto">
         <div className="content">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="no-margin">{t("Layout.Articles")}</h1>
+            <h1 className="no-margin">{t("Layout.Stories")}</h1>
             {isAuthenticated && (
               <Link
                 to="/$locale/stories/new"

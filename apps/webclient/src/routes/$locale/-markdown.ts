@@ -7,16 +7,6 @@ import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { getLocaleData, siteConfig } from "@/config";
 import { backend } from "@/modules/backend/backend";
 
-const STORY_KINDS = [
-  "article",
-  "news",
-  "announcement",
-  "status",
-  "content",
-  "presentation",
-  "activity",
-];
-
 /**
  * Generate markdown for the locale index page
  */
@@ -32,7 +22,7 @@ export async function generateLocaleIndexMarkdown(locale: string): Promise<strin
 
   let storiesSection = "";
   try {
-    const allStories = await backend.getStoriesByKinds(locale, STORY_KINDS);
+    const allStories = await backend.getStories(locale);
     if (allStories !== null && allStories.length > 0) {
       const storyLinks = allStories.map((story) => formatStoryListItem(story, locale, "stories"));
       storiesSection = `\n\n## Latest Stories\n\n${storyLinks.join("\n\n")}`;

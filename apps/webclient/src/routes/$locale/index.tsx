@@ -16,16 +16,6 @@ import type { StoryEx } from "@/modules/backend/types";
 import i18next from "i18next";
 import styles from "./-home.module.css";
 
-const STORY_KINDS = [
-  "article",
-  "news",
-  "announcement",
-  "status",
-  "content",
-  "presentation",
-  "activity",
-];
-
 const MAX_STORIES = 20;
 
 type GroupedStories = {
@@ -43,7 +33,7 @@ export const Route = createFileRoute("/$locale/")({
 
     let allStories: StoryEx[] | null = null;
     try {
-      allStories = await backend.getStoriesByKinds(locale, STORY_KINDS);
+      allStories = await backend.getStories(locale);
     } catch {
       // Fetch can fail during HMR — render page without stories
     }
@@ -170,9 +160,7 @@ function LocaleHomePage() {
                   {formatMonthYear(group.date, locale)}
                 </h3>
                 <div>
-                  {group.stories.map((story) => (
-                    <Story key={story.id} story={story} />
-                  ))}
+                  {group.stories.map((story) => <Story key={story.id} story={story} />)}
                 </div>
               </div>
             ))}
