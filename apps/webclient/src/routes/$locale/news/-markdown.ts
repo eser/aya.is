@@ -2,11 +2,9 @@
  * News domain - markdown generation utilities
  * News is a filtered view of stories with kind="news"
  */
-import { formatFrontmatter } from "@/lib/markdown";
+import { formatFrontmatter, formatStoryListItem } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
-import { formatDateShort, parseDateFromSlug } from "@/lib/date";
 import { backend } from "@/modules/backend/backend";
-import { supportedLocales, type SupportedLocaleCode, isValidLocale } from "@/config";
 import type { StoryEx } from "@/modules/backend/types";
 
 /**
@@ -21,30 +19,7 @@ export function generateNewsListingMarkdown(
     generated_at: new Date().toISOString(),
   });
 
-  const newsLinks = news.map((item) => {
-    const title = item.title ?? "Untitled";
-    const slug = item.slug ?? "";
-    const summary = item.summary ?? "";
-    const storyLocale = item.locale_code?.trim() ?? "";
-    const publishDate = item.slug !== null ? parseDateFromSlug(item.slug) : null;
-    const dateStr = publishDate !== null ? formatDateShort(publishDate, locale) : "";
-
-    let line = `- [${title}](/${locale}/news/${slug}.md)`;
-
-    // Add locale badge when story language differs from viewer's locale
-    if (storyLocale !== "" && storyLocale !== locale && isValidLocale(storyLocale)) {
-      const localeData = supportedLocales[storyLocale as SupportedLocaleCode];
-      line += ` [${localeData.englishName}]`;
-    }
-
-    if (dateStr !== "") {
-      line += ` (${dateStr})`;
-    }
-    if (summary !== "") {
-      line += `\n  ${summary}`;
-    }
-    return line;
-  });
+  const newsLinks = news.map((item) => formatStoryListItem(item, locale, "news"));
 
   return `${frontmatter}\n\n${newsLinks.join("\n\n")}`;
 }

@@ -9,10 +9,7 @@
 // Domain-specific markdown handler registrations
 // Files prefixed with - are excluded from TanStack Router's route scanning
 import { registerProfileStoryMarkdownHandler } from "@/routes/$locale/$slug/stories/-markdown";
-import {
-  registerProfileMarkdownHandler,
-  registerProfilePageMarkdownHandler,
-} from "@/routes/$locale/$slug/-markdown";
+import { registerProfileMarkdownHandler, registerProfilePageMarkdownHandler } from "@/routes/$locale/$slug/-markdown";
 import {
   registerGlobalStoriesListingHandler,
   registerGlobalStoryMarkdownHandler,
@@ -21,6 +18,7 @@ import { registerNewsListingHandler } from "@/routes/$locale/news/-markdown";
 import { registerProductsListingHandler } from "@/routes/$locale/products/-markdown";
 import { registerElementsListingHandler } from "@/routes/$locale/elements/-markdown";
 import { registerActivitiesListingHandler } from "@/routes/$locale/activities/-markdown";
+import { registerContentsListingHandler } from "@/routes/$locale/contents/-markdown";
 import { registerLocaleIndexHandler } from "@/routes/$locale/-markdown";
 
 /**
@@ -54,6 +52,9 @@ export function registerAllMarkdownHandlers(): void {
 
   // Activities listing: /$locale/activities
   registerActivitiesListingHandler();
+
+  // Contents listing: /$locale/contents
+  registerContentsListingHandler();
 
   // Locale index: /$locale
   registerLocaleIndexHandler();

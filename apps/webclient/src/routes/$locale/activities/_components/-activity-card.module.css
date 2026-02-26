@@ -1,10 +1,10 @@
 @reference "@/theme.css";
 
 .card {
-  @apply flex flex-col md:flex-row items-start gap-4 py-6 border-b border-border;
+  @apply flex flex-col md:flex-row items-center md:items-start gap-4 py-6;
 
-  &:last-child {
-    @apply border-b-0;
+  &:first-child {
+    @apply pt-0;
   }
 
   &:hover .title {
@@ -25,8 +25,16 @@
     text-muted-foreground overflow-hidden;
 }
 
+.authorAvatarContainer {
+  @apply absolute bottom-1 right-1 p-0.5 bg-card rounded-full shadow-md;
+}
+
+.authorAvatarImage {
+  @apply block w-[56px] h-[56px] rounded-full object-cover border-2 border-background;
+}
+
 .contentArea {
-  @apply flex flex-col flex-grow min-w-0;
+  @apply flex flex-col flex-grow;
 }
 
 .badge {
@@ -34,15 +42,15 @@
 }
 
 .title {
-  @apply text-lg font-semibold text-foreground transition-colors duration-200;
+  @apply text-xl font-semibold text-foreground mb-1 transition-colors duration-200;
 }
 
 .summary {
-  @apply text-sm text-muted-foreground leading-relaxed line-clamp-2 mt-1;
+  @apply text-sm text-muted-foreground leading-relaxed line-clamp-2 mb-2;
 }
 
 .meta {
-  @apply flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2;
+  @apply flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-auto pt-2;
 }
 
 .timeRange {

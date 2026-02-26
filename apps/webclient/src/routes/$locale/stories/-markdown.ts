@@ -1,12 +1,11 @@
 /**
  * Global stories domain - markdown generation utilities
  */
-import { formatFrontmatter } from "@/lib/markdown";
+import { formatFrontmatter, formatStoryListItem } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { formatDateShort, parseDateFromSlug } from "@/lib/date";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { backend } from "@/modules/backend/backend";
-import { supportedLocales, type SupportedLocaleCode, isValidLocale } from "@/config";
 import type { StoryEx } from "@/modules/backend/types";
 
 /**
@@ -41,29 +40,7 @@ export function generateStoriesListingMarkdown(
     generated_at: new Date().toISOString(),
   });
 
-  const storyLinks = stories.map((story) => {
-    const title = story.title ?? "Untitled";
-    const slug = story.slug ?? "";
-    const summary = story.summary ?? "";
-    const author = story.author_profile?.title ?? "";
-    const storyLocale = story.locale_code?.trim() ?? "";
-
-    let line = `- [${title}](/${locale}/stories/${slug}.md)`;
-
-    // Add locale badge when story language differs from viewer's locale
-    if (storyLocale !== "" && storyLocale !== locale && isValidLocale(storyLocale)) {
-      const localeData = supportedLocales[storyLocale as SupportedLocaleCode];
-      line += ` [${localeData.englishName}]`;
-    }
-
-    if (author !== "") {
-      line += ` by ${author}`;
-    }
-    if (summary !== "") {
-      line += `\n  ${summary}`;
-    }
-    return line;
-  });
+  const storyLinks = stories.map((story) => formatStoryListItem(story, locale, "stories"));
 
   return `${frontmatter}\n\n${storyLinks.join("\n\n")}`;
 }

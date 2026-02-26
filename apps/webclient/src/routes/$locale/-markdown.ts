@@ -2,14 +2,25 @@
  * Locale index domain - markdown generation utilities
  * Provides an overview of the locale with links to main sections
  */
-import { formatFrontmatter } from "@/lib/markdown";
+import { formatFrontmatter, formatStoryListItem } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
-import { siteConfig, getLocaleData } from "@/config";
+import { getLocaleData, siteConfig } from "@/config";
+import { backend } from "@/modules/backend/backend";
+
+const STORY_KINDS = [
+  "article",
+  "news",
+  "announcement",
+  "status",
+  "content",
+  "presentation",
+  "activity",
+];
 
 /**
  * Generate markdown for the locale index page
  */
-export function generateLocaleIndexMarkdown(locale: string): string {
+export async function generateLocaleIndexMarkdown(locale: string): Promise<string> {
   const localeData = getLocaleData(locale);
   const localeName = localeData?.name ?? locale;
 
@@ -18,6 +29,17 @@ export function generateLocaleIndexMarkdown(locale: string): string {
     locale_name: localeName,
     generated_at: new Date().toISOString(),
   });
+
+  let storiesSection = "";
+  try {
+    const allStories = await backend.getStoriesByKinds(locale, STORY_KINDS);
+    if (allStories !== null && allStories.length > 0) {
+      const storyLinks = allStories.map((story) => formatStoryListItem(story, locale, "stories"));
+      storiesSection = `\n\n## Latest Stories\n\n${storyLinks.join("\n\n")}`;
+    }
+  } catch {
+    // Stories fetch failed — render page without stories
+  }
 
   const content = `${siteConfig.description}
 
@@ -28,12 +50,13 @@ export function generateLocaleIndexMarkdown(locale: string): string {
 - [Products](/${locale}/products.md): Open source projects and products
 - [Elements](/${locale}/elements.md): Individuals and organizations
 - [Activities](/${locale}/activities.md): Community activities
+- [Contents](/${locale}/contents.md): Community content
 
 ## Links
 
 - [GitHub](${siteConfig.links.github})
 - [X/Twitter](${siteConfig.links.x})
-- [Instagram](${siteConfig.links.instagram})
+- [Instagram](${siteConfig.links.instagram})${storiesSection}
 `;
 
   return `${frontmatter}\n\n${content}`;
@@ -47,7 +70,7 @@ function handleLocaleIndex(
   locale: string,
   _searchParams: URLSearchParams,
 ): Promise<string | null> {
-  return Promise.resolve(generateLocaleIndexMarkdown(locale));
+  return generateLocaleIndexMarkdown(locale);
 }
 
 /**
