@@ -8,8 +8,7 @@ import { compileMdx } from "@/lib/mdx";
 import { Button } from "@/components/ui/button";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { buildUrl, computeContentLanguage, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
-import { setContentLanguageHeader } from "@/lib/set-content-language";
+import { buildUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { ChildNotFound } from "../route";
 
 const profileRoute = getRouteApi("/$locale/$slug");
@@ -39,11 +38,6 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
         console.error("Failed to compile MDX:", error);
         compiledContent = null;
       }
-    }
-
-    // Set Content-Language header with content locale awareness
-    if (import.meta.env.SSR) {
-      await setContentLanguageHeader({ data: computeContentLanguage(locale, page.locale_code) });
     }
 
     return { page, compiledContent, notFound: false, locale, slug, pageslug };

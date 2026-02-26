@@ -8,8 +8,7 @@ import { DiscussionThread } from "@/components/widgets/discussion-thread";
 import { compileMdx, compileMdxLite } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { computeContentLanguage, computeStoryCanonicalUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
-import { setContentLanguageHeader } from "@/lib/set-content-language";
+import { computeStoryCanonicalUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
 import { PageNotFound } from "@/components/page-not-found";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 
@@ -60,11 +59,6 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
       } catch {
         // Discussion fetch failed — component will fetch client-side
       }
-    }
-
-    // Set Content-Language header with content locale awareness
-    if (import.meta.env.SSR) {
-      await setContentLanguageHeader({ data: computeContentLanguage(locale, story.locale_code) });
     }
 
     return { story, compiledContent, currentUrl, locale, initialDiscussion, notFound: false as const };
