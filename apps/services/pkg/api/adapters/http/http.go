@@ -71,6 +71,7 @@ func Run(
 
 	// http middlewares
 	routes.Use(middlewares.ErrorHandlerMiddleware())
+	routes.Use(middlewares.SecurityHeadersMiddleware())
 	routes.Use(middlewares.ResolveAddressMiddleware())
 	routes.Use(middlewares.ResponseTimeMiddleware())
 	routes.Use(

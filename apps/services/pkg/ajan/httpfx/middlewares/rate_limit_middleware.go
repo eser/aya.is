@@ -170,7 +170,16 @@ func RateLimitMiddleware(options ...RateLimitOption) httpfx.Handler {
 		RequestsPerMinute: 60, //nolint:mnd
 		WindowSize:        time.Minute,
 		KeyFunc: func(ctx *httpfx.Context) string {
-			// Default: rate limit by IP address (without port)
+			// Use resolved client address from ResolveAddressMiddleware if available.
+			// This ensures correct rate limiting behind reverse proxies where
+			// RemoteAddr is always the proxy IP (often 127.0.0.1).
+			if addr, ok := ctx.Request.Context().Value(ClientAddr).(string); ok && addr != "" {
+				host, _, _ := lib.SplitHostPort(addr)
+
+				return host
+			}
+
+			// Fallback to socket address when ResolveAddressMiddleware hasn't run
 			host, _, _ := lib.SplitHostPort(ctx.Request.RemoteAddr)
 
 			return host
