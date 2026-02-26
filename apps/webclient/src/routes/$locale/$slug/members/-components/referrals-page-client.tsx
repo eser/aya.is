@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { LocaleLink } from "@/components/locale-link";
@@ -27,41 +28,15 @@ const VOTE_LABELS = [
 
 export function ReferralsPageClient(props: ReferralsPageClientProps) {
   const { t } = useTranslation();
-  const [referrals, setReferrals] = React.useState(props.referrals);
-  const [prevPropsReferrals, setPrevPropsReferrals] = React.useState(props.referrals);
+  const router = useRouter();
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
-  // Sync with loader data when it changes (e.g., after tab navigation)
-  if (props.referrals !== prevPropsReferrals) {
-    setPrevPropsReferrals(props.referrals);
-    setReferrals(props.referrals);
-  }
-
   const handleReferralCreated = React.useCallback(
-    async () => {
+    () => {
       setShowCreateDialog(false);
-      // Re-fetch the full list to get complete data with joined profiles
-      const updated = await backend.listReferrals(props.locale, props.slug);
-      if (updated !== null) {
-        setReferrals(updated);
-      }
+      router.invalidate();
     },
-    [props.locale, props.slug],
-  );
-
-  const handleVoteUpdated = React.useCallback(
-    (referralId: string, score: number) => {
-      setReferrals((prev) =>
-        prev.map((r) => {
-          if (r.id !== referralId) return r;
-          return {
-            ...r,
-            viewer_vote_score: score as 1 | 2 | 3 | 4 | 5,
-          };
-        })
-      );
-    },
-    [],
+    [router],
   );
 
   return (
@@ -83,7 +58,7 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
         </button>
       </div>
 
-      {referrals.length === 0
+      {props.referrals.length === 0
         ? (
           <div className={styles.emptyState}>
             <p className={styles.emptyStateText}>
@@ -93,13 +68,12 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
         )
         : (
           <div className="flex flex-col gap-4">
-            {referrals.map((referral) => (
+            {props.referrals.map((referral) => (
               <ReferralCard
                 key={referral.id}
                 referral={referral}
                 locale={props.locale}
                 slug={props.slug}
-                onVoteUpdated={handleVoteUpdated}
               />
             ))}
           </div>
@@ -247,11 +221,11 @@ type ReferralCardProps = {
   referral: ProfileMembershipReferral;
   locale: string;
   slug: string;
-  onVoteUpdated: (referralId: string, score: number) => void;
 };
 
 function ReferralCard(props: ReferralCardProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const initialScore = props.referral.viewer_vote_score !== 0
     ? props.referral.viewer_vote_score
     : null;
@@ -268,21 +242,6 @@ function ReferralCard(props: ReferralCardProps) {
   const [totalVotes, setTotalVotes] = React.useState(props.referral.total_votes);
   const [averageScore, setAverageScore] = React.useState(props.referral.average_score);
   const [comment, setComment] = React.useState(props.referral.viewer_vote_comment ?? "");
-
-  // Sync with loader data when props change (e.g., after tab navigation)
-  const [prevReferral, setPrevReferral] = React.useState(props.referral);
-  if (props.referral !== prevReferral) {
-    setPrevReferral(props.referral);
-    const score = props.referral.viewer_vote_score !== 0
-      ? props.referral.viewer_vote_score
-      : null;
-    setViewerScore(score ?? null);
-    setShowCommentInput(score !== null);
-    setTotalVotes(props.referral.total_votes);
-    setAverageScore(props.referral.average_score);
-    setComment(props.referral.viewer_vote_comment ?? "");
-    setVotes(null);
-  }
 
   const referred = props.referral.referred_profile;
   const referrer = props.referral.referrer_profile;
@@ -329,8 +288,8 @@ function ReferralCard(props: ReferralCardProps) {
         );
 
         if (result !== null) {
-          props.onVoteUpdated(props.referral.id, score);
           await refreshVotes();
+          router.invalidate();
         } else {
           toast.error(t("Referrals.Failed to submit vote"));
         }
@@ -344,8 +303,8 @@ function ReferralCard(props: ReferralCardProps) {
       props.locale,
       props.slug,
       props.referral.id,
-      props.onVoteUpdated,
       refreshVotes,
+      router,
       t,
     ],
   );
@@ -366,6 +325,7 @@ function ReferralCard(props: ReferralCardProps) {
       if (result !== null) {
         toast.success(t("Referrals.Comment saved"));
         await refreshVotes();
+        router.invalidate();
       } else {
         toast.error(t("Referrals.Failed to submit vote"));
       }
