@@ -49,6 +49,23 @@ export function formatDateTimeShort(date: Date, locale: string): string {
 }
 
 /**
+ * Format a date-time range, collapsing shared parts when on the same day.
+ * Same day:      "23 Feb 2026, 20:30 – 21:30"
+ * Different day: "23 Feb 2026, 20:30 – 24 Feb 2026, 01:30"
+ */
+export function formatDateTimeRange(start: Date, end: Date, locale: string): string {
+  const formatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return formatter.formatRange(start, end);
+}
+
+/**
  * Format month and year (e.g., "January 2026")
  */
 export function formatMonthYear(date: Date, locale: string): string {

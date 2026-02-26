@@ -5,7 +5,7 @@ import { Calendar } from "lucide-react";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import { cn } from "@/lib/utils";
-import { formatDateTimeShort } from "@/lib/date";
+import { formatDateTimeRange, formatDateTimeShort } from "@/lib/date";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { InlineMarkdown } from "@/lib/inline-markdown";
 import { LocaleBadge } from "@/components/locale-badge";
@@ -84,8 +84,9 @@ export function ActivityCard(props: ActivityCardProps) {
             {timeStart !== null && (
               <span className={styles.timeRange}>
                 <Calendar className="size-3.5" />
-                {formatDateTimeShort(timeStart, locale)}
-                {timeEnd !== null && <>– {formatDateTimeShort(timeEnd, locale)}</>}
+                {timeEnd !== null
+                  ? formatDateTimeRange(timeStart, timeEnd, locale)
+                  : formatDateTimeShort(timeStart, locale)}
               </span>
             )}
             {props.activity.author_profile !== null &&
