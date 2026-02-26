@@ -327,6 +327,11 @@
     "Failed to create news": "Haber oluşturulamadı",
     "Latest news and updates from the AYA community": "AYA topluluğundan en son haberler ve güncellemeler"
   },
+  "Articles": {
+    "Add Article": "Makale Ekle",
+    "Article created successfully": "Makale başarıyla oluşturuldu",
+    "Failed to create article": "Makale oluşturulamadı"
+  },
   "Content": {
     "Add Content": "İçerik Ekle",
     "Content created successfully": "İçerik başarıyla oluşturuldu",

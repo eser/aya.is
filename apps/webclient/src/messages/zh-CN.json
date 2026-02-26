@@ -327,6 +327,11 @@
     "Failed to create news": "创建新闻失败",
     "Latest news and updates from the AYA community": "来自 AYA 社区的最新新闻和更新"
   },
+  "Articles": {
+    "Add Article": "添加文章",
+    "Article created successfully": "文章创建成功",
+    "Failed to create article": "文章创建失败"
+  },
   "Content": {
     "Add Content": "Add Content",
     "Content created successfully": "Content created successfully",

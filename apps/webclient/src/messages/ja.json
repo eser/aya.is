@@ -327,6 +327,11 @@
     "Failed to create news": "Failed to create news",
     "Latest news and updates from the AYA community": "Latest news and updates from the AYA community"
   },
+  "Articles": {
+    "Add Article": "記事を追加",
+    "Article created successfully": "記事が正常に作成されました",
+    "Failed to create article": "記事の作成に失敗しました"
+  },
   "Content": {
     "Add Content": "Add Content",
     "Content created successfully": "Content created successfully",

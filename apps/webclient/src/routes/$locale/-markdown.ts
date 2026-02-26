@@ -45,7 +45,8 @@ export async function generateLocaleIndexMarkdown(locale: string): Promise<strin
 
 ## Sections
 
-- [Stories](/${locale}/stories.md): Articles, announcements, and content
+- [Articles](/${locale}/articles.md): Articles and blog posts
+- [Stories](/${locale}/stories.md): Announcements and content
 - [News](/${locale}/news.md): Latest news and updates
 - [Products](/${locale}/products.md): Open source projects and products
 - [Elements](/${locale}/elements.md): Individuals and organizations

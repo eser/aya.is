@@ -327,6 +327,11 @@
     "Failed to create news": "Failed to create news",
     "Latest news and updates from the AYA community": "Latest news and updates from the AYA community"
   },
+  "Articles": {
+    "Add Article": "Adicionar artigo",
+    "Article created successfully": "Artigo criado com sucesso",
+    "Failed to create article": "Falha ao criar artigo"
+  },
   "Content": {
     "Add Content": "Add Content",
     "Content created successfully": "Content created successfully",

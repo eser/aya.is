@@ -327,6 +327,11 @@
     "Failed to create news": "Failed to create news",
     "Latest news and updates from the AYA community": "Latest news and updates from the AYA community"
   },
+  "Articles": {
+    "Add Article": "기사 추가",
+    "Article created successfully": "기사가 성공적으로 생성되었습니다",
+    "Failed to create article": "기사 생성에 실패했습니다"
+  },
   "Content": {
     "Add Content": "Add Content",
     "Content created successfully": "Content created successfully",

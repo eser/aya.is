@@ -52,7 +52,7 @@ const navItems = [
   {
     key: "articles",
     titleKey: "Layout.Articles",
-    href: "/stories",
+    href: "/articles",
     icon: ScrollTextIcon,
   },
   {

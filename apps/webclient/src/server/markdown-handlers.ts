@@ -15,6 +15,7 @@ import {
   registerGlobalStoryMarkdownHandler,
 } from "@/routes/$locale/stories/-markdown";
 import { registerNewsListingHandler } from "@/routes/$locale/news/-markdown";
+import { registerArticlesListingHandler } from "@/routes/$locale/articles/-markdown";
 import { registerProductsListingHandler } from "@/routes/$locale/products/-markdown";
 import { registerElementsListingHandler } from "@/routes/$locale/elements/-markdown";
 import { registerActivitiesListingHandler } from "@/routes/$locale/activities/-markdown";
@@ -43,6 +44,9 @@ export function registerAllMarkdownHandlers(): void {
 
   // News listing: /$locale/news
   registerNewsListingHandler();
+
+  // Articles listing: /$locale/articles
+  registerArticlesListingHandler();
 
   // Products listing: /$locale/products
   registerProductsListingHandler();
