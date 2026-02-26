@@ -9,7 +9,8 @@ import { compileMdx } from "@/lib/mdx";
 import { MdxContent } from "@/components/userland/mdx-content";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { buildUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { buildUrl, computeContentLanguage, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import { setServerResponseHeader } from "@/lib/server-headers";
 import { formatDateTimeLong } from "@/lib/date";
 import { LocaleLink } from "@/components/locale-link";
 import { PageNotFound } from "@/components/page-not-found";
@@ -51,6 +52,9 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
       backend.getMyInteractions(locale, activityslug).catch(() => null),
       backend.getInteractionCounts(locale, activityslug).catch(() => null),
     ]);
+
+    // Set Content-Language header with content locale awareness
+    setServerResponseHeader("Content-Language", computeContentLanguage(locale, activity.locale_code));
 
     return {
       activity,

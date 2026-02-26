@@ -2,6 +2,7 @@
 import { CatchNotFound, createFileRoute, Outlet, redirect, notFound } from "@tanstack/react-router";
 import { isValidLocale, type SupportedLocaleCode } from "@/config";
 import { getPreferredLocale } from "@/lib/get-locale";
+import { setServerResponseHeader } from "@/lib/server-headers";
 import { PageNotFound } from "@/components/page-not-found";
 
 // Paths that should NOT be matched by the $locale route
@@ -27,6 +28,10 @@ export const Route = createFileRoute("/$locale")({
       const newPath = `/${preferredLocale}${location.pathname}`;
       throw redirect({ to: newPath, replace: true });
     }
+
+    // Set default Content-Language header for all locale routes
+    // Child routes with content-specific locale override this
+    setServerResponseHeader("Content-Language", locale);
 
     return {
       locale: locale as SupportedLocaleCode,
