@@ -663,6 +663,7 @@
     "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten? Es wird zum Follower herabgestuft und verliert seine aktuelle Zugriffsebene.",
     "Follow": "Folgen",
     "Unfollow": "Entfolgen",
+    "Invite someone": "Jemanden einladen...",
     "Followed successfully": "Erfolgreich gefolgt",
     "Unfollowed successfully": "Erfolgreich entfolgt",
     "Failed to follow": "Folgen fehlgeschlagen",

@@ -663,6 +663,7 @@
     "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "هل أنت متأكد أنك تريد إزالة هذا العضو؟ سيتم تخفيض رتبته إلى متابع وسيفقد مستوى وصوله الحالي.",
     "Follow": "متابعة",
     "Unfollow": "إلغاء المتابعة",
+    "Invite someone": "دعوة شخص ما...",
     "Followed successfully": "تمت المتابعة بنجاح",
     "Unfollowed successfully": "تم إلغاء المتابعة بنجاح",
     "Failed to follow": "فشل في المتابعة",

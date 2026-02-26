@@ -667,6 +667,7 @@
     "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Bu üyeyi kaldırmak istediğinizden emin misiniz? Takipçi seviyesine düşürülecek ve mevcut yetki seviyesini kaybedecektir.",
     "Follow": "Takip Et",
     "Unfollow": "Takipten Çık",
+    "Invite someone": "Birini davet et...",
     "Followed successfully": "Takip edildi",
     "Unfollowed successfully": "Takipten çıkıldı",
     "Failed to follow": "Takip edilemedi",

@@ -663,6 +663,7 @@
     "Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.": "Вы уверены, что хотите удалить этого участника? Он будет понижен до подписчика и потеряет текущий уровень доступа.",
     "Follow": "Подписаться",
     "Unfollow": "Отписаться",
+    "Invite someone": "Пригласить кого-то...",
     "Followed successfully": "Подписка оформлена",
     "Unfollowed successfully": "Подписка отменена",
     "Failed to follow": "Не удалось подписаться",

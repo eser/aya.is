@@ -1,7 +1,7 @@
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Coins, Ellipsis, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
+import { ChevronDown, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { backend, type Profile } from "@/modules/backend/backend";
@@ -67,7 +67,12 @@ type ProfileSidebarLayoutProps = {
 export function ProfileSidebarLayout(props: ProfileSidebarLayoutProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 items-start">
-      <ProfileSidebar profile={props.profile} slug={props.slug} locale={props.locale} viewerMembershipKind={props.viewerMembershipKind} />
+      <ProfileSidebar
+        profile={props.profile}
+        slug={props.slug}
+        locale={props.locale}
+        viewerMembershipKind={props.viewerMembershipKind}
+      />
       <main className="min-w-0">{props.children}</main>
     </div>
   );
@@ -80,8 +85,8 @@ type ProfileSidebarProps = {
   viewerMembershipKind?: string | null;
 };
 
-// Membership kinds at or above sponsor level (cannot self-unfollow, shown as badge)
-const ADVANCED_KINDS = new Set(["sponsor", "contributor", "maintainer", "lead", "owner"]);
+// Membership kinds at or above member level (can invite others)
+const MEMBER_PLUS_KINDS = new Set(["member", "contributor", "maintainer", "lead", "owner"]);
 
 function ProfileSidebar(props: ProfileSidebarProps) {
   const { t } = useTranslation();
@@ -103,10 +108,9 @@ function ProfileSidebar(props: ProfileSidebarProps) {
   const isOwnProfile = user?.individual_profile_id === props.profile.id;
 
   const isFollower = localMembershipKind === "follower";
-  const isAdvanced = localMembershipKind !== null && ADVANCED_KINDS.has(localMembershipKind);
+  const isMemberPlus = localMembershipKind !== null && MEMBER_PLUS_KINDS.has(localMembershipKind);
   const showFollowButton = isAuthenticated && !isOwnProfile && localMembershipKind === null;
-  const showUnfollowButton = isAuthenticated && !isOwnProfile && isFollower;
-  const showBadge = isAuthenticated && !isOwnProfile && isAdvanced;
+  const showRelationDropdown = isAuthenticated && !isOwnProfile && localMembershipKind !== null;
 
   const handleFollow = async () => {
     setIsProcessing(true);
@@ -141,7 +145,8 @@ function ProfileSidebar(props: ProfileSidebarProps) {
     setIsProcessing(false);
   };
 
-  const buttonClass = "no-underline inline-flex items-center gap-1.5 rounded-md bg-background/80 backdrop-blur-sm px-2.5 py-1.5 text-xs font-medium text-muted-foreground shadow-sm border border-border/50 transition-colors hover:text-foreground hover:bg-background";
+  const buttonClass =
+    "no-underline inline-flex items-center gap-1.5 rounded-md bg-background/80 backdrop-blur-sm px-2.5 py-1.5 text-xs font-medium text-muted-foreground shadow-sm border border-border/50 transition-colors hover:text-foreground hover:bg-background";
 
   return (
     <aside className="flex flex-col gap-4">
@@ -174,23 +179,27 @@ function ProfileSidebar(props: ProfileSidebarProps) {
               {isProcessing ? t("Common.Saving...") : t("Profile.Follow")}
             </button>
           )}
-          {showUnfollowButton && (
+          {showRelationDropdown && localMembershipKind !== null && (
             <DropdownMenu>
               <DropdownMenuTrigger className={buttonClass}>
-                <Ellipsis size="14" />
+                {t(`Profile.MembershipKind.${localMembershipKind}`)}
+                <ChevronDown size="14" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsUnfollowDialogOpen(true)}>
-                  <UserMinus size="14" />
-                  {t("Profile.Unfollow")}
-                </DropdownMenuItem>
+                {isMemberPlus && (
+                  <DropdownMenuItem disabled>
+                    <UserPlus size="14" />
+                    {t("Profile.Invite someone")}
+                  </DropdownMenuItem>
+                )}
+                {isFollower && (
+                  <DropdownMenuItem onClick={() => setIsUnfollowDialogOpen(true)}>
+                    <UserMinus size="14" />
+                    {t("Profile.Unfollow")}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-          {showBadge && localMembershipKind !== null && (
-            <span className={`${buttonClass} cursor-default`}>
-              {t(`Profile.MembershipKind.${localMembershipKind}`)}
-            </span>
           )}
         </div>
       </div>
@@ -258,13 +267,15 @@ function ProfileSidebar(props: ProfileSidebarProps) {
       </div>
 
       {/* Points Display */}
-      {/* {props.profile.points > 0 && (
+      {
+        /* {props.profile.points > 0 && (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Coins className="size-4" />
           <span className="font-semibold text-foreground">{props.profile.points.toLocaleString()}</span>
           <span>{t("Profile.points")}</span>
         </div>
-      )} */}
+      )} */
+      }
 
       {/* Navigation */}
       <nav className="flex justify-center font-serif md:justify-start">
