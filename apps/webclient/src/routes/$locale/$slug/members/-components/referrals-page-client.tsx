@@ -260,7 +260,7 @@ function ReferralCard(props: ReferralCardProps) {
   const [isLoadingVotes, setIsLoadingVotes] = React.useState(false);
   const [totalVotes, setTotalVotes] = React.useState(props.referral.total_votes);
   const [averageScore, setAverageScore] = React.useState(props.referral.average_score);
-  const commentRef = React.useRef<HTMLTextAreaElement>(null);
+  const [comment, setComment] = React.useState(props.referral.viewer_vote_comment ?? "");
 
   const referred = props.referral.referred_profile;
   const referrer = props.referral.referrer_profile;
@@ -297,13 +297,13 @@ function ReferralCard(props: ReferralCardProps) {
       setShowCommentInput(true);
 
       try {
-        const commentText = commentRef.current?.value.trim() ?? "";
+        const trimmedComment = comment.trim();
         const result = await backend.voteReferral(
           props.locale,
           props.slug,
           props.referral.id,
           score,
-          commentText.length > 0 ? commentText : null,
+          trimmedComment.length > 0 ? trimmedComment : null,
         );
 
         if (result !== null) {
@@ -318,6 +318,7 @@ function ReferralCard(props: ReferralCardProps) {
     },
     [
       isVoting,
+      comment,
       props.locale,
       props.slug,
       props.referral.id,
@@ -463,9 +464,9 @@ function ReferralCard(props: ReferralCardProps) {
         {showCommentInput && viewerScore !== null && (
           <form action={saveAction} className={styles.commentSection}>
             <textarea
-              ref={commentRef}
               name="comment"
-              defaultValue={props.referral.viewer_vote_comment ?? ""}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
               placeholder={t("Referrals.Add a comment (optional)")}
               className={styles.commentTextarea}
               rows={2}
