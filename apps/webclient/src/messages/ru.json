@@ -57,7 +57,8 @@
     "This field is required": "Это поле обязательно",
     "All": "Все",
     "Skip": "Пропустить",
-    "Close": "Закрыть"
+    "Close": "Закрыть",
+    "Bulletins": "Рассылки"
   },
   "Layout": {
     "Homepage": "Главная страница",
@@ -1076,5 +1077,25 @@
     "ru": "Русский",
     "zh-CN": "Китайский",
     "ar": "Арабский"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "Управляйте настройками доставки дайджестов.",
+    "Sending Frequency": "Частота отправки",
+    "Dont send": "Не отправлять",
+    "Daily": "Ежедневно",
+    "Every 2 days": "Каждые 2 дня",
+    "Weekly": "Еженедельно",
+    "Channels": "Каналы",
+    "Email": "Эл. почта",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "Предпочтительное время отправки (UTC)",
+    "Emails delivered to": "Ваши письма будут доставлены на {{email}}.",
+    "Email not specified": "Ваш адрес электронной почты не указан.",
+    "Email help": "Если вы считаете, что с вашим адресом электронной почты что-то не так, пожалуйста, сообщите нам.",
+    "Telegram not connected": "Подключите Telegram в Социальных ссылках, чтобы активировать этот канал.",
+    "Last digest sent at": "Последний дайджест отправлен {{date}}.",
+    "No digest sent yet": "Дайджест ещё не отправлялся.",
+    "Preferences saved": "Настройки рассылки успешно сохранены.",
+    "Failed to save": "Не удалось сохранить настройки рассылки."
   }
 }

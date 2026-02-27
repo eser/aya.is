@@ -59,6 +59,7 @@ func (a *bulletinAdapter) GetActiveSubscriptionsForWindow(
 			ProfileID:     row.ProfileID,
 			ProfileSlug:   row.ProfileSlug,
 			Channel:       bulletinbiz.ChannelKind(row.Channel),
+			Frequency:     bulletinbiz.DigestFrequency(row.Frequency),
 			PreferredTime: int(row.PreferredTime),
 			DefaultLocale: strings.TrimRight(row.DefaultLocale, " "),
 			CreatedAt:     row.CreatedAt,
@@ -187,6 +188,7 @@ func (a *bulletinAdapter) GetSubscriptionsByProfileID(
 			ID:            row.ID,
 			ProfileID:     row.ProfileID,
 			Channel:       bulletinbiz.ChannelKind(row.Channel),
+			Frequency:     bulletinbiz.DigestFrequency(row.Frequency),
 			PreferredTime: int(row.PreferredTime),
 			CreatedAt:     row.CreatedAt,
 		}
@@ -226,6 +228,7 @@ func (a *bulletinAdapter) GetSubscription(
 		ID:            row.ID,
 		ProfileID:     row.ProfileID,
 		Channel:       bulletinbiz.ChannelKind(row.Channel),
+		Frequency:     bulletinbiz.DigestFrequency(row.Frequency),
 		PreferredTime: int(row.PreferredTime),
 		CreatedAt:     row.CreatedAt,
 	}
@@ -251,6 +254,7 @@ func (a *bulletinAdapter) UpsertSubscription(
 		ID:            sub.ID,
 		ProfileID:     sub.ProfileID,
 		Channel:       string(sub.Channel),
+		Frequency:     string(sub.Frequency),
 		PreferredTime: int16(sub.PreferredTime),
 	})
 
@@ -260,12 +264,14 @@ func (a *bulletinAdapter) UpsertSubscription(
 func (a *bulletinAdapter) UpdateSubscriptionPreferences(
 	ctx context.Context,
 	id string,
+	frequency bulletinbiz.DigestFrequency,
 	preferredTime int,
 ) error {
 	return a.repo.queries.UpdateBulletinSubscriptionPreferences(
 		ctx,
 		UpdateBulletinSubscriptionPreferencesParams{
 			ID:            id,
+			Frequency:     string(frequency),
 			PreferredTime: int16(preferredTime),
 		},
 	)
@@ -278,6 +284,18 @@ func (a *bulletinAdapter) DeleteSubscription(
 	return a.repo.queries.DeleteBulletinSubscription(ctx, DeleteBulletinSubscriptionParams{
 		ID: id,
 	})
+}
+
+func (a *bulletinAdapter) DeleteSubscriptionsByProfileID(
+	ctx context.Context,
+	profileID string,
+) error {
+	return a.repo.queries.DeleteBulletinSubscriptionsByProfileID(
+		ctx,
+		DeleteBulletinSubscriptionsByProfileIDParams{
+			ProfileID: profileID,
+		},
+	)
 }
 
 // bulletinEmailResolver implements bulletin.UserEmailResolver.

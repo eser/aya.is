@@ -57,7 +57,8 @@
     "This field is required": "هذا الحقل مطلوب",
     "All": "الكل",
     "Skip": "تخطي",
-    "Close": "إغلاق"
+    "Close": "إغلاق",
+    "Bulletins": "النشرات"
   },
   "Layout": {
     "Homepage": "الصفحة الرئيسية",
@@ -1076,5 +1077,25 @@
     "ru": "الروسية",
     "zh-CN": "الصينية",
     "ar": "العربية"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "إدارة تفضيلات تسليم الملخصات.",
+    "Sending Frequency": "تكرار الإرسال",
+    "Dont send": "عدم الإرسال",
+    "Daily": "يومي",
+    "Every 2 days": "كل يومين",
+    "Weekly": "أسبوعي",
+    "Channels": "القنوات",
+    "Email": "البريد الإلكتروني",
+    "Telegram": "تيليجرام",
+    "Preferred Sending Hour": "وقت الإرسال المفضل (UTC)",
+    "Emails delivered to": "سيتم تسليم رسائلك الإلكترونية إلى {{email}}.",
+    "Email not specified": "لم يتم تحديد عنوان بريدك الإلكتروني.",
+    "Email help": "إذا كنت تعتقد أن هناك خطأ في عنوان بريدك الإلكتروني، يرجى إبلاغنا.",
+    "Telegram not connected": "قم بتوصيل تيليجرام في الروابط الاجتماعية لتفعيل هذه القناة.",
+    "Last digest sent at": "آخر ملخص تم إرساله في {{date}}.",
+    "No digest sent yet": "لم يتم إرسال أي ملخص بعد.",
+    "Preferences saved": "تم حفظ تفضيلات النشرة بنجاح.",
+    "Failed to save": "فشل في حفظ تفضيلات النشرة."
   }
 }

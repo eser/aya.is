@@ -57,7 +57,8 @@
     "This field is required": "この項目は必須です",
     "All": "すべて",
     "Skip": "スキップ",
-    "Close": "閉じる"
+    "Close": "閉じる",
+    "Bulletins": "ブレティン"
   },
   "Layout": {
     "Homepage": "ホームページ",
@@ -1076,5 +1077,25 @@
     "ru": "ロシア語",
     "zh-CN": "中国語",
     "ar": "アラビア語"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "ダイジェスト配信の設定を管理します。",
+    "Sending Frequency": "送信頻度",
+    "Dont send": "送信しない",
+    "Daily": "毎日",
+    "Every 2 days": "2日ごと",
+    "Weekly": "毎週",
+    "Channels": "チャンネル",
+    "Email": "メール",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "希望送信時刻（UTC）",
+    "Emails delivered to": "メールは {{email}} に配信されます。",
+    "Email not specified": "メールアドレスが指定されていません。",
+    "Email help": "メールアドレスに問題があると思われる場合は、お知らせください。",
+    "Telegram not connected": "このチャンネルを有効にするには、ソーシャルリンクでTelegramを接続してください。",
+    "Last digest sent at": "最終ダイジェスト送信日時：{{date}}。",
+    "No digest sent yet": "まだダイジェストは送信されていません。",
+    "Preferences saved": "ブレティン設定が正常に保存されました。",
+    "Failed to save": "ブレティン設定の保存に失敗しました。"
   }
 }

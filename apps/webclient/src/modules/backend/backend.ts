@@ -148,10 +148,13 @@ import { addAdminPoints } from "./admin/add-admin-points";
 import { getAdminWorkers } from "./admin/get-admin-workers";
 import { toggleAdminWorker } from "./admin/toggle-admin-worker";
 import { triggerAdminWorker } from "./admin/trigger-admin-worker";
+import { getBulletinPreferences } from "./bulletins/get-bulletin-preferences";
+import { updateBulletinPreferences } from "./bulletins/update-bulletin-preferences";
 
 // Re-export types
 export * from "./types";
 export type { AdminWorkerStatus } from "./admin/get-admin-workers";
+export type { BulletinPreferences, UpdateBulletinPreferencesRequest } from "./bulletins/types";
 export type { AccessibleProfile } from "./sessions/types";
 export type { ToggleWorkerResult } from "./admin/toggle-admin-worker";
 export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
@@ -377,6 +380,10 @@ export const backend = {
   rejectPendingAward,
   bulkApprovePendingAwards,
   bulkRejectPendingAwards,
+
+  // Bulletins
+  getBulletinPreferences,
+  updateBulletinPreferences,
 };
 
 // Individual exports for tree-shaking
@@ -428,6 +435,7 @@ export {
   getAdminProfile,
   getAdminProfiles,
   getAdminWorkers,
+  getBulletinPreferences,
   getCommentReplies,
   getConversation,
   getCurrentSession,
@@ -511,6 +519,7 @@ export {
   toggleAdminWorker,
   triggerAdminWorker,
   unarchiveConversation,
+  updateBulletinPreferences,
   updateProfile,
   updateProfileLink,
   updateProfileMembership,

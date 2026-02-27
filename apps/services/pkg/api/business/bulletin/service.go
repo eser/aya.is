@@ -31,8 +31,14 @@ type Repository interface {
 	GetSubscriptionsByProfileID(ctx context.Context, profileID string) ([]*Subscription, error)
 	GetSubscription(ctx context.Context, id string) (*Subscription, error)
 	UpsertSubscription(ctx context.Context, sub *Subscription) error
-	UpdateSubscriptionPreferences(ctx context.Context, id string, preferredTime int) error
+	UpdateSubscriptionPreferences(
+		ctx context.Context,
+		id string,
+		frequency DigestFrequency,
+		preferredTime int,
+	) error
 	DeleteSubscription(ctx context.Context, id string) error
+	DeleteSubscriptionsByProfileID(ctx context.Context, profileID string) error
 }
 
 // Channel defines the delivery port for sending bulletins.
@@ -141,8 +147,19 @@ func (s *Service) processSubscription(
 		locale = "en"
 	}
 
-	// Determine the "since" cutoff — last bulletin time or 24h ago for first-time
-	since := now.Add(-24 * time.Hour)
+	// Determine the "since" cutoff — frequency-aware lookback, or last bulletin time
+	var lookback time.Duration
+
+	switch sub.Frequency {
+	case FrequencyBiDaily:
+		lookback = 48 * time.Hour
+	case FrequencyWeekly:
+		lookback = 7 * 24 * time.Hour //nolint:mnd
+	default: // daily
+		lookback = 24 * time.Hour
+	}
+
+	since := now.Add(-lookback)
 	if sub.LastBulletinAt != nil {
 		since = *sub.LastBulletinAt
 	}
@@ -323,12 +340,14 @@ func (s *Service) Subscribe(
 	ctx context.Context,
 	profileID string,
 	channel ChannelKind,
+	frequency DigestFrequency,
 	preferredTime int,
 ) (*Subscription, error) {
 	sub := &Subscription{
 		ID:            s.idGen(),
 		ProfileID:     profileID,
 		Channel:       channel,
+		Frequency:     frequency,
 		PreferredTime: preferredTime,
 	}
 
@@ -340,15 +359,76 @@ func (s *Service) Subscribe(
 	return sub, nil
 }
 
-// UpdatePreferences updates the preferred time for a subscription.
+// UpdatePreferences updates the frequency and preferred time for a subscription.
 func (s *Service) UpdatePreferences(
 	ctx context.Context,
 	subscriptionID string,
+	frequency DigestFrequency,
 	preferredTime int,
 ) error {
-	err := s.repo.UpdateSubscriptionPreferences(ctx, subscriptionID, preferredTime)
+	err := s.repo.UpdateSubscriptionPreferences(ctx, subscriptionID, frequency, preferredTime)
 	if err != nil {
 		return fmt.Errorf("updating preferences: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateBulletinPreferences atomically updates all bulletin preferences for a profile.
+// It upserts subscriptions for selected channels and soft-deletes unselected ones.
+func (s *Service) UpdateBulletinPreferences(
+	ctx context.Context,
+	profileID string,
+	frequency DigestFrequency,
+	preferredTime int,
+	channels []ChannelKind,
+) error {
+	// If no channels selected, soft-delete all subscriptions ("Don't send")
+	if len(channels) == 0 {
+		err := s.repo.DeleteSubscriptionsByProfileID(ctx, profileID)
+		if err != nil {
+			return fmt.Errorf("deleting all subscriptions: %w", err)
+		}
+
+		return nil
+	}
+
+	// Build a set of requested channels for fast lookup
+	requested := make(map[ChannelKind]bool, len(channels))
+	for _, ch := range channels {
+		requested[ch] = true
+	}
+
+	// Get existing subscriptions
+	existing, err := s.repo.GetSubscriptionsByProfileID(ctx, profileID)
+	if err != nil {
+		return fmt.Errorf("getting existing subscriptions: %w", err)
+	}
+
+	// Upsert requested channels
+	for _, ch := range channels {
+		sub := &Subscription{
+			ID:            s.idGen(),
+			ProfileID:     profileID,
+			Channel:       ch,
+			Frequency:     frequency,
+			PreferredTime: preferredTime,
+		}
+
+		upsertErr := s.repo.UpsertSubscription(ctx, sub)
+		if upsertErr != nil {
+			return fmt.Errorf("upserting subscription for %s: %w", ch, upsertErr)
+		}
+	}
+
+	// Soft-delete channels that are no longer selected
+	for _, sub := range existing {
+		if !requested[sub.Channel] {
+			delErr := s.repo.DeleteSubscription(ctx, sub.ID)
+			if delErr != nil {
+				return fmt.Errorf("deleting subscription %s: %w", sub.ID, delErr)
+			}
+		}
 	}
 
 	return nil

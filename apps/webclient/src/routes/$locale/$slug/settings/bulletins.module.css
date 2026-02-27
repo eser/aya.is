@@ -1,0 +1,69 @@
+@reference "@/theme.css";
+
+.card {
+  @apply p-6;
+}
+
+.header {
+  @apply flex items-center justify-between;
+}
+
+.title {
+  @apply font-serif text-xl font-semibold text-foreground;
+}
+
+.description {
+  @apply text-muted-foreground text-sm mt-1;
+}
+
+.formSection {
+  @apply space-y-3;
+}
+
+.sectionLabel {
+  @apply text-sm font-medium text-foreground;
+}
+
+.radioOption {
+  @apply flex items-center gap-2;
+}
+
+.radioLabel {
+  @apply text-sm text-foreground cursor-pointer;
+}
+
+.checkboxOption {
+  @apply flex items-center gap-2;
+}
+
+.checkboxLabel {
+  @apply text-sm text-foreground cursor-pointer;
+}
+
+.checkboxHint {
+  @apply text-xs text-muted-foreground ml-6;
+}
+
+.infoBox {
+  @apply rounded-md border border-border bg-muted/50 p-4 text-sm text-muted-foreground space-y-2;
+}
+
+.infoBoxWarning {
+  @apply rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 space-y-2;
+}
+
+:global(.dark) .infoBoxWarning {
+  @apply border-amber-800 bg-amber-950/40 text-amber-300;
+}
+
+.footer {
+  @apply flex items-center justify-between pt-4 border-t;
+}
+
+.lastSent {
+  @apply text-xs text-muted-foreground;
+}
+
+.disabledOverlay {
+  @apply opacity-50 pointer-events-none;
+}

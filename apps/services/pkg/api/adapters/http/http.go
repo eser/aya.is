@@ -281,12 +281,18 @@ func Run(
 	)
 
 	if bulletinService != nil {
+		var telegramServiceForBulletin *telegrambiz.Service
+		if telegramProviders != nil {
+			telegramServiceForBulletin = telegramProviders.Service
+		}
+
 		RegisterHTTPRoutesForBulletin( //nolint:contextcheck
 			routes,
 			logger,
 			authService,
 			userService,
 			bulletinService,
+			telegramServiceForBulletin,
 		)
 	}
 

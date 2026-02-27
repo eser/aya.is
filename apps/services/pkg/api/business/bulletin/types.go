@@ -10,6 +10,15 @@ const (
 	ChannelEmail    ChannelKind = "email"
 )
 
+// DigestFrequency identifies how often bulletins are sent.
+type DigestFrequency string
+
+const (
+	FrequencyDaily   DigestFrequency = "daily"
+	FrequencyBiDaily DigestFrequency = "bidaily"
+	FrequencyWeekly  DigestFrequency = "weekly"
+)
+
 // Subscription represents a user's bulletin subscription for a specific channel.
 type Subscription struct {
 	CreatedAt      time.Time
@@ -19,6 +28,7 @@ type Subscription struct {
 	ProfileID      string
 	ProfileSlug    string
 	Channel        ChannelKind
+	Frequency      DigestFrequency
 	DefaultLocale  string
 	PreferredTime  int // UTC hour (0-23)
 }

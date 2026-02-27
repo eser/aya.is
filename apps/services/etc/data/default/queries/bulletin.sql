@@ -1,10 +1,11 @@
 -- name: GetActiveSubscriptionsForWindow :many
 -- Returns active bulletin subscriptions whose preferred_time matches the given UTC hour
--- and whose last_bulletin_at is either NULL or older than 20 hours.
+-- and whose last_bulletin_at respects the frequency-based cooldown.
 SELECT
   bs.id,
   bs.profile_id,
   bs.channel,
+  bs.frequency,
   bs.preferred_time,
   bs.last_bulletin_at,
   bs.created_at,
@@ -17,7 +18,12 @@ FROM "bulletin_subscription" bs
     AND p.approved_at IS NOT NULL
 WHERE bs.deleted_at IS NULL
   AND bs.preferred_time = sqlc.arg(utc_hour)::SMALLINT
-  AND (bs.last_bulletin_at IS NULL OR bs.last_bulletin_at < NOW() - INTERVAL '20 hours');
+  AND (
+    bs.last_bulletin_at IS NULL
+    OR (bs.frequency = 'daily'   AND bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+    OR (bs.frequency = 'bidaily' AND bs.last_bulletin_at < NOW() - INTERVAL '44 hours')
+    OR (bs.frequency = 'weekly'  AND bs.last_bulletin_at < NOW() - INTERVAL '164 hours')
+  );
 
 -- name: GetFollowedProfileStoriesSince :many
 -- Returns published stories from profiles that the given subscriber follows,
@@ -93,6 +99,7 @@ SELECT
   bs.id,
   bs.profile_id,
   bs.channel,
+  bs.frequency,
   bs.preferred_time,
   bs.last_bulletin_at,
   bs.created_at,
@@ -108,6 +115,7 @@ SELECT
   bs.id,
   bs.profile_id,
   bs.channel,
+  bs.frequency,
   bs.preferred_time,
   bs.last_bulletin_at,
   bs.created_at,
@@ -119,25 +127,28 @@ WHERE bs.id = sqlc.arg(id)
 -- name: UpsertBulletinSubscription :one
 -- Creates or reactivates a subscription for a profile+channel combination.
 INSERT INTO "bulletin_subscription" (
-  "id", "profile_id", "channel", "preferred_time", "created_at"
+  "id", "profile_id", "channel", "frequency", "preferred_time", "created_at"
 ) VALUES (
   sqlc.arg(id),
   sqlc.arg(profile_id),
   sqlc.arg(channel),
+  sqlc.arg(frequency),
   sqlc.arg(preferred_time),
   NOW()
 )
 ON CONFLICT ("profile_id", "channel") WHERE "deleted_at" IS NULL
 DO UPDATE SET
+  frequency = EXCLUDED.frequency,
   preferred_time = EXCLUDED.preferred_time,
   deleted_at = NULL,
   updated_at = NOW()
 RETURNING *;
 
 -- name: UpdateBulletinSubscriptionPreferences :exec
--- Updates the preferred time for a subscription.
+-- Updates the frequency and preferred time for a subscription.
 UPDATE "bulletin_subscription"
-SET preferred_time = sqlc.arg(preferred_time),
+SET frequency = sqlc.arg(frequency),
+    preferred_time = sqlc.arg(preferred_time),
     updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
@@ -163,6 +174,13 @@ FROM "user" u
 WHERE u.individual_profile_id = sqlc.arg(profile_id)
   AND u.deleted_at IS NULL
 LIMIT 1;
+
+-- name: DeleteBulletinSubscriptionsByProfileID :exec
+-- Soft-deletes all subscriptions for a profile (used for "Don't send").
+UPDATE "bulletin_subscription"
+SET deleted_at = NOW()
+WHERE profile_id = sqlc.arg(profile_id)
+  AND deleted_at IS NULL;
 
 -- name: CreateBulletinLog :exec
 -- Records a bulletin send attempt.

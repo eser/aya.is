@@ -77,11 +77,34 @@ func (q *Queries) DeleteBulletinSubscription(ctx context.Context, arg DeleteBull
 	return err
 }
 
+const deleteBulletinSubscriptionsByProfileID = `-- name: DeleteBulletinSubscriptionsByProfileID :exec
+UPDATE "bulletin_subscription"
+SET deleted_at = NOW()
+WHERE profile_id = $1
+  AND deleted_at IS NULL
+`
+
+type DeleteBulletinSubscriptionsByProfileIDParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
+}
+
+// Soft-deletes all subscriptions for a profile (used for "Don't send").
+//
+//	UPDATE "bulletin_subscription"
+//	SET deleted_at = NOW()
+//	WHERE profile_id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) DeleteBulletinSubscriptionsByProfileID(ctx context.Context, arg DeleteBulletinSubscriptionsByProfileIDParams) error {
+	_, err := q.db.ExecContext(ctx, deleteBulletinSubscriptionsByProfileID, arg.ProfileID)
+	return err
+}
+
 const getActiveSubscriptionsForWindow = `-- name: GetActiveSubscriptionsForWindow :many
 SELECT
   bs.id,
   bs.profile_id,
   bs.channel,
+  bs.frequency,
   bs.preferred_time,
   bs.last_bulletin_at,
   bs.created_at,
@@ -94,7 +117,12 @@ FROM "bulletin_subscription" bs
     AND p.approved_at IS NOT NULL
 WHERE bs.deleted_at IS NULL
   AND bs.preferred_time = $1::SMALLINT
-  AND (bs.last_bulletin_at IS NULL OR bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+  AND (
+    bs.last_bulletin_at IS NULL
+    OR (bs.frequency = 'daily'   AND bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+    OR (bs.frequency = 'bidaily' AND bs.last_bulletin_at < NOW() - INTERVAL '44 hours')
+    OR (bs.frequency = 'weekly'  AND bs.last_bulletin_at < NOW() - INTERVAL '164 hours')
+  )
 `
 
 type GetActiveSubscriptionsForWindowParams struct {
@@ -105,6 +133,7 @@ type GetActiveSubscriptionsForWindowRow struct {
 	ID             string       `db:"id" json:"id"`
 	ProfileID      string       `db:"profile_id" json:"profile_id"`
 	Channel        string       `db:"channel" json:"channel"`
+	Frequency      string       `db:"frequency" json:"frequency"`
 	PreferredTime  int16        `db:"preferred_time" json:"preferred_time"`
 	LastBulletinAt sql.NullTime `db:"last_bulletin_at" json:"last_bulletin_at"`
 	CreatedAt      time.Time    `db:"created_at" json:"created_at"`
@@ -114,12 +143,13 @@ type GetActiveSubscriptionsForWindowRow struct {
 }
 
 // Returns active bulletin subscriptions whose preferred_time matches the given UTC hour
-// and whose last_bulletin_at is either NULL or older than 20 hours.
+// and whose last_bulletin_at respects the frequency-based cooldown.
 //
 //	SELECT
 //	  bs.id,
 //	  bs.profile_id,
 //	  bs.channel,
+//	  bs.frequency,
 //	  bs.preferred_time,
 //	  bs.last_bulletin_at,
 //	  bs.created_at,
@@ -132,7 +162,12 @@ type GetActiveSubscriptionsForWindowRow struct {
 //	    AND p.approved_at IS NOT NULL
 //	WHERE bs.deleted_at IS NULL
 //	  AND bs.preferred_time = $1::SMALLINT
-//	  AND (bs.last_bulletin_at IS NULL OR bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+//	  AND (
+//	    bs.last_bulletin_at IS NULL
+//	    OR (bs.frequency = 'daily'   AND bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+//	    OR (bs.frequency = 'bidaily' AND bs.last_bulletin_at < NOW() - INTERVAL '44 hours')
+//	    OR (bs.frequency = 'weekly'  AND bs.last_bulletin_at < NOW() - INTERVAL '164 hours')
+//	  )
 func (q *Queries) GetActiveSubscriptionsForWindow(ctx context.Context, arg GetActiveSubscriptionsForWindowParams) ([]*GetActiveSubscriptionsForWindowRow, error) {
 	rows, err := q.db.QueryContext(ctx, getActiveSubscriptionsForWindow, arg.UtcHour)
 	if err != nil {
@@ -146,6 +181,7 @@ func (q *Queries) GetActiveSubscriptionsForWindow(ctx context.Context, arg GetAc
 			&i.ID,
 			&i.ProfileID,
 			&i.Channel,
+			&i.Frequency,
 			&i.PreferredTime,
 			&i.LastBulletinAt,
 			&i.CreatedAt,
@@ -171,6 +207,7 @@ SELECT
   bs.id,
   bs.profile_id,
   bs.channel,
+  bs.frequency,
   bs.preferred_time,
   bs.last_bulletin_at,
   bs.created_at,
@@ -188,6 +225,7 @@ type GetBulletinSubscriptionRow struct {
 	ID             string       `db:"id" json:"id"`
 	ProfileID      string       `db:"profile_id" json:"profile_id"`
 	Channel        string       `db:"channel" json:"channel"`
+	Frequency      string       `db:"frequency" json:"frequency"`
 	PreferredTime  int16        `db:"preferred_time" json:"preferred_time"`
 	LastBulletinAt sql.NullTime `db:"last_bulletin_at" json:"last_bulletin_at"`
 	CreatedAt      time.Time    `db:"created_at" json:"created_at"`
@@ -200,6 +238,7 @@ type GetBulletinSubscriptionRow struct {
 //	  bs.id,
 //	  bs.profile_id,
 //	  bs.channel,
+//	  bs.frequency,
 //	  bs.preferred_time,
 //	  bs.last_bulletin_at,
 //	  bs.created_at,
@@ -214,6 +253,7 @@ func (q *Queries) GetBulletinSubscription(ctx context.Context, arg GetBulletinSu
 		&i.ID,
 		&i.ProfileID,
 		&i.Channel,
+		&i.Frequency,
 		&i.PreferredTime,
 		&i.LastBulletinAt,
 		&i.CreatedAt,
@@ -227,6 +267,7 @@ SELECT
   bs.id,
   bs.profile_id,
   bs.channel,
+  bs.frequency,
   bs.preferred_time,
   bs.last_bulletin_at,
   bs.created_at,
@@ -245,6 +286,7 @@ type GetBulletinSubscriptionsByProfileIDRow struct {
 	ID             string       `db:"id" json:"id"`
 	ProfileID      string       `db:"profile_id" json:"profile_id"`
 	Channel        string       `db:"channel" json:"channel"`
+	Frequency      string       `db:"frequency" json:"frequency"`
 	PreferredTime  int16        `db:"preferred_time" json:"preferred_time"`
 	LastBulletinAt sql.NullTime `db:"last_bulletin_at" json:"last_bulletin_at"`
 	CreatedAt      time.Time    `db:"created_at" json:"created_at"`
@@ -257,6 +299,7 @@ type GetBulletinSubscriptionsByProfileIDRow struct {
 //	  bs.id,
 //	  bs.profile_id,
 //	  bs.channel,
+//	  bs.frequency,
 //	  bs.preferred_time,
 //	  bs.last_bulletin_at,
 //	  bs.created_at,
@@ -278,6 +321,7 @@ func (q *Queries) GetBulletinSubscriptionsByProfileID(ctx context.Context, arg G
 			&i.ID,
 			&i.ProfileID,
 			&i.Channel,
+			&i.Frequency,
 			&i.PreferredTime,
 			&i.LastBulletinAt,
 			&i.CreatedAt,
@@ -528,76 +572,85 @@ func (q *Queries) UpdateBulletinSubscriptionLastSentAt(ctx context.Context, arg 
 
 const updateBulletinSubscriptionPreferences = `-- name: UpdateBulletinSubscriptionPreferences :exec
 UPDATE "bulletin_subscription"
-SET preferred_time = $1,
+SET frequency = $1,
+    preferred_time = $2,
     updated_at = NOW()
-WHERE id = $2
+WHERE id = $3
   AND deleted_at IS NULL
 `
 
 type UpdateBulletinSubscriptionPreferencesParams struct {
+	Frequency     string `db:"frequency" json:"frequency"`
 	PreferredTime int16  `db:"preferred_time" json:"preferred_time"`
 	ID            string `db:"id" json:"id"`
 }
 
-// Updates the preferred time for a subscription.
+// Updates the frequency and preferred time for a subscription.
 //
 //	UPDATE "bulletin_subscription"
-//	SET preferred_time = $1,
+//	SET frequency = $1,
+//	    preferred_time = $2,
 //	    updated_at = NOW()
-//	WHERE id = $2
+//	WHERE id = $3
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateBulletinSubscriptionPreferences(ctx context.Context, arg UpdateBulletinSubscriptionPreferencesParams) error {
-	_, err := q.db.ExecContext(ctx, updateBulletinSubscriptionPreferences, arg.PreferredTime, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateBulletinSubscriptionPreferences, arg.Frequency, arg.PreferredTime, arg.ID)
 	return err
 }
 
 const upsertBulletinSubscription = `-- name: UpsertBulletinSubscription :one
 INSERT INTO "bulletin_subscription" (
-  "id", "profile_id", "channel", "preferred_time", "created_at"
+  "id", "profile_id", "channel", "frequency", "preferred_time", "created_at"
 ) VALUES (
   $1,
   $2,
   $3,
   $4,
+  $5,
   NOW()
 )
 ON CONFLICT ("profile_id", "channel") WHERE "deleted_at" IS NULL
 DO UPDATE SET
+  frequency = EXCLUDED.frequency,
   preferred_time = EXCLUDED.preferred_time,
   deleted_at = NULL,
   updated_at = NOW()
-RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at
+RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at, frequency
 `
 
 type UpsertBulletinSubscriptionParams struct {
 	ID            string `db:"id" json:"id"`
 	ProfileID     string `db:"profile_id" json:"profile_id"`
 	Channel       string `db:"channel" json:"channel"`
+	Frequency     string `db:"frequency" json:"frequency"`
 	PreferredTime int16  `db:"preferred_time" json:"preferred_time"`
 }
 
 // Creates or reactivates a subscription for a profile+channel combination.
 //
 //	INSERT INTO "bulletin_subscription" (
-//	  "id", "profile_id", "channel", "preferred_time", "created_at"
+//	  "id", "profile_id", "channel", "frequency", "preferred_time", "created_at"
 //	) VALUES (
 //	  $1,
 //	  $2,
 //	  $3,
 //	  $4,
+//	  $5,
 //	  NOW()
 //	)
 //	ON CONFLICT ("profile_id", "channel") WHERE "deleted_at" IS NULL
 //	DO UPDATE SET
+//	  frequency = EXCLUDED.frequency,
 //	  preferred_time = EXCLUDED.preferred_time,
 //	  deleted_at = NULL,
 //	  updated_at = NOW()
-//	RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at
+//	RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at, frequency
 func (q *Queries) UpsertBulletinSubscription(ctx context.Context, arg UpsertBulletinSubscriptionParams) (*BulletinSubscription, error) {
 	row := q.db.QueryRowContext(ctx, upsertBulletinSubscription,
 		arg.ID,
 		arg.ProfileID,
 		arg.Channel,
+		arg.Frequency,
 		arg.PreferredTime,
 	)
 	var i BulletinSubscription
@@ -610,6 +663,7 @@ func (q *Queries) UpsertBulletinSubscription(ctx context.Context, arg UpsertBull
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.Frequency,
 	)
 	return &i, err
 }

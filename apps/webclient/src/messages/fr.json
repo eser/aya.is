@@ -57,7 +57,8 @@
     "This field is required": "Ce champ est obligatoire",
     "All": "Tout",
     "Skip": "Passer",
-    "Close": "Fermer"
+    "Close": "Fermer",
+    "Bulletins": "Bulletins"
   },
   "Layout": {
     "Homepage": "Page d'accueil",
@@ -1076,5 +1077,25 @@
     "ru": "Russe",
     "zh-CN": "Chinois",
     "ar": "Arabe"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "Gérez vos préférences de livraison des résumés.",
+    "Sending Frequency": "Fréquence d'envoi",
+    "Dont send": "Ne pas envoyer",
+    "Daily": "Quotidien",
+    "Every 2 days": "Tous les 2 jours",
+    "Weekly": "Hebdomadaire",
+    "Channels": "Canaux",
+    "Email": "E-mail",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "Heure d'envoi préférée (UTC)",
+    "Emails delivered to": "Vos e-mails seront envoyés à {{email}}.",
+    "Email not specified": "Votre adresse e-mail n'est pas spécifiée.",
+    "Email help": "Si vous pensez qu'il y a un problème avec votre adresse e-mail, veuillez nous en informer.",
+    "Telegram not connected": "Connectez Telegram dans les liens sociaux pour activer ce canal.",
+    "Last digest sent at": "Dernier résumé envoyé le {{date}}.",
+    "No digest sent yet": "Aucun résumé n'a encore été envoyé.",
+    "Preferences saved": "Préférences de bulletin enregistrées avec succès.",
+    "Failed to save": "Échec de l'enregistrement des préférences du bulletin."
   }
 }

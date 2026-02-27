@@ -57,7 +57,8 @@
     "This field is required": "Dieses Feld ist erforderlich",
     "All": "Alle",
     "Skip": "Überspringen",
-    "Close": "Schließen"
+    "Close": "Schließen",
+    "Bulletins": "Bulletins"
   },
   "Layout": {
     "Homepage": "Startseite",
@@ -1076,5 +1077,25 @@
     "ru": "Russisch",
     "zh-CN": "Chinesisch",
     "ar": "Arabisch"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "Verwalten Sie Ihre Digest-Zustellungseinstellungen.",
+    "Sending Frequency": "Sendefrequenz",
+    "Dont send": "Nicht senden",
+    "Daily": "Täglich",
+    "Every 2 days": "Alle 2 Tage",
+    "Weekly": "Wöchentlich",
+    "Channels": "Kanäle",
+    "Email": "E-Mail",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "Bevorzugte Sendezeit (UTC)",
+    "Emails delivered to": "Ihre E-Mails werden an {{email}} zugestellt.",
+    "Email not specified": "Ihre E-Mail-Adresse ist nicht angegeben.",
+    "Email help": "Wenn Sie glauben, dass etwas mit Ihrer E-Mail-Adresse nicht stimmt, lassen Sie es uns bitte wissen.",
+    "Telegram not connected": "Verbinden Sie Telegram in den sozialen Links, um diesen Kanal zu aktivieren.",
+    "Last digest sent at": "Letzter Digest gesendet am {{date}}.",
+    "No digest sent yet": "Es wurde noch kein Digest gesendet.",
+    "Preferences saved": "Bulletin-Einstellungen erfolgreich gespeichert.",
+    "Failed to save": "Bulletin-Einstellungen konnten nicht gespeichert werden."
   }
 }

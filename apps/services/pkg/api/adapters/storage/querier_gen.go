@@ -699,6 +699,13 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	DeleteBulletinSubscription(ctx context.Context, arg DeleteBulletinSubscriptionParams) error
+	// Soft-deletes all subscriptions for a profile (used for "Don't send").
+	//
+	//  UPDATE "bulletin_subscription"
+	//  SET deleted_at = NOW()
+	//  WHERE profile_id = $1
+	//    AND deleted_at IS NULL
+	DeleteBulletinSubscriptionsByProfileID(ctx context.Context, arg DeleteBulletinSubscriptionsByProfileIDParams) error
 	//DeleteConversation
 	//
 	//  DELETE FROM "mailbox_conversation"
@@ -877,12 +884,13 @@ type Querier interface {
 	//  LIMIT 1
 	FindProfileLinkProfileByKindAndRemoteID(ctx context.Context, arg FindProfileLinkProfileByKindAndRemoteIDParams) (string, error)
 	// Returns active bulletin subscriptions whose preferred_time matches the given UTC hour
-	// and whose last_bulletin_at is either NULL or older than 20 hours.
+	// and whose last_bulletin_at respects the frequency-based cooldown.
 	//
 	//  SELECT
 	//    bs.id,
 	//    bs.profile_id,
 	//    bs.channel,
+	//    bs.frequency,
 	//    bs.preferred_time,
 	//    bs.last_bulletin_at,
 	//    bs.created_at,
@@ -895,7 +903,12 @@ type Querier interface {
 	//      AND p.approved_at IS NOT NULL
 	//  WHERE bs.deleted_at IS NULL
 	//    AND bs.preferred_time = $1::SMALLINT
-	//    AND (bs.last_bulletin_at IS NULL OR bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+	//    AND (
+	//      bs.last_bulletin_at IS NULL
+	//      OR (bs.frequency = 'daily'   AND bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+	//      OR (bs.frequency = 'bidaily' AND bs.last_bulletin_at < NOW() - INTERVAL '44 hours')
+	//      OR (bs.frequency = 'weekly'  AND bs.last_bulletin_at < NOW() - INTERVAL '164 hours')
+	//    )
 	GetActiveSubscriptionsForWindow(ctx context.Context, arg GetActiveSubscriptionsForWindowParams) ([]*GetActiveSubscriptionsForWindowRow, error)
 	//GetAdminProfileBySlug
 	//
@@ -934,6 +947,7 @@ type Querier interface {
 	//    bs.id,
 	//    bs.profile_id,
 	//    bs.channel,
+	//    bs.frequency,
 	//    bs.preferred_time,
 	//    bs.last_bulletin_at,
 	//    bs.created_at,
@@ -948,6 +962,7 @@ type Querier interface {
 	//    bs.id,
 	//    bs.profile_id,
 	//    bs.channel,
+	//    bs.frequency,
 	//    bs.preferred_time,
 	//    bs.last_bulletin_at,
 	//    bs.created_at,
@@ -4016,12 +4031,13 @@ type Querier interface {
 	//      updated_at = NOW()
 	//  WHERE id = $1
 	UpdateBulletinSubscriptionLastSentAt(ctx context.Context, arg UpdateBulletinSubscriptionLastSentAtParams) error
-	// Updates the preferred time for a subscription.
+	// Updates the frequency and preferred time for a subscription.
 	//
 	//  UPDATE "bulletin_subscription"
-	//  SET preferred_time = $1,
+	//  SET frequency = $1,
+	//      preferred_time = $2,
 	//      updated_at = NOW()
-	//  WHERE id = $2
+	//  WHERE id = $3
 	//    AND deleted_at IS NULL
 	UpdateBulletinSubscriptionPreferences(ctx context.Context, arg UpdateBulletinSubscriptionPreferencesParams) error
 	//UpdateConversationTimestamp
@@ -4437,20 +4453,22 @@ type Querier interface {
 	// Creates or reactivates a subscription for a profile+channel combination.
 	//
 	//  INSERT INTO "bulletin_subscription" (
-	//    "id", "profile_id", "channel", "preferred_time", "created_at"
+	//    "id", "profile_id", "channel", "frequency", "preferred_time", "created_at"
 	//  ) VALUES (
 	//    $1,
 	//    $2,
 	//    $3,
 	//    $4,
+	//    $5,
 	//    NOW()
 	//  )
 	//  ON CONFLICT ("profile_id", "channel") WHERE "deleted_at" IS NULL
 	//  DO UPDATE SET
+	//    frequency = EXCLUDED.frequency,
 	//    preferred_time = EXCLUDED.preferred_time,
 	//    deleted_at = NULL,
 	//    updated_at = NOW()
-	//  RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at
+	//  RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at, frequency
 	UpsertBulletinSubscription(ctx context.Context, arg UpsertBulletinSubscriptionParams) (*BulletinSubscription, error)
 	//UpsertProfileLinkTx
 	//

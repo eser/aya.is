@@ -57,7 +57,8 @@
     "This field is required": "이 항목은 필수입니다",
     "All": "전체",
     "Skip": "건너뛰기",
-    "Close": "닫기"
+    "Close": "닫기",
+    "Bulletins": "뉴스레터"
   },
   "Layout": {
     "Homepage": "홈페이지",
@@ -1076,5 +1077,25 @@
     "ru": "러시아어",
     "zh-CN": "중국어",
     "ar": "아랍어"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "다이제스트 배달 설정을 관리하세요.",
+    "Sending Frequency": "발송 빈도",
+    "Dont send": "보내지 않기",
+    "Daily": "매일",
+    "Every 2 days": "2일마다",
+    "Weekly": "매주",
+    "Channels": "채널",
+    "Email": "이메일",
+    "Telegram": "텔레그램",
+    "Preferred Sending Hour": "선호 발송 시간 (UTC)",
+    "Emails delivered to": "이메일은 {{email}}로 전송됩니다.",
+    "Email not specified": "이메일 주소가 지정되지 않았습니다.",
+    "Email help": "이메일 주소에 문제가 있다고 생각되시면 알려주세요.",
+    "Telegram not connected": "이 채널을 활성화하려면 소셜 링크에서 텔레그램을 연결하세요.",
+    "Last digest sent at": "마지막 다이제스트 발송: {{date}}.",
+    "No digest sent yet": "아직 다이제스트가 발송되지 않았습니다.",
+    "Preferences saved": "뉴스레터 설정이 성공적으로 저장되었습니다.",
+    "Failed to save": "뉴스레터 설정 저장에 실패했습니다."
   }
 }

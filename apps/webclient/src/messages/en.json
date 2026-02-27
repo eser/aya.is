@@ -57,7 +57,8 @@
     "This field is required": "This field is required",
     "All": "All",
     "Skip": "Skip",
-    "Close": "Close"
+    "Close": "Close",
+    "Bulletins": "Bulletins"
   },
   "Layout": {
     "Homepage": "Homepage",
@@ -1092,5 +1093,25 @@
     "ru": "Russian",
     "zh-CN": "Chinese",
     "ar": "Arabic"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "Manage your digest delivery preferences.",
+    "Sending Frequency": "Sending Frequency",
+    "Dont send": "Don't send",
+    "Daily": "Daily",
+    "Every 2 days": "Every 2 days",
+    "Weekly": "Weekly",
+    "Channels": "Channels",
+    "Email": "E-mail",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "Preferred Sending Hour (UTC)",
+    "Emails delivered to": "Your e-mails will be delivered to {{email}}.",
+    "Email not specified": "Your e-mail is not specified.",
+    "Email help": "If you believe there's something wrong with your e-mail address, please let us know.",
+    "Telegram not connected": "Connect Telegram in Social Links to enable this channel.",
+    "Last digest sent at": "Last digest sent at {{date}}.",
+    "No digest sent yet": "No digest has been sent yet.",
+    "Preferences saved": "Bulletin preferences saved successfully.",
+    "Failed to save": "Failed to save bulletin preferences."
   }
 }

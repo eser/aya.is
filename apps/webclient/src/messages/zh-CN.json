@@ -57,7 +57,8 @@
     "This field is required": "此字段为必填项",
     "All": "全部",
     "Skip": "跳过",
-    "Close": "关闭"
+    "Close": "关闭",
+    "Bulletins": "通讯"
   },
   "Layout": {
     "Homepage": "首页",
@@ -1076,5 +1077,25 @@
     "ru": "俄语",
     "zh-CN": "中文",
     "ar": "阿拉伯语"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "管理您的摘要投递偏好。",
+    "Sending Frequency": "发送频率",
+    "Dont send": "不发送",
+    "Daily": "每天",
+    "Every 2 days": "每2天",
+    "Weekly": "每周",
+    "Channels": "渠道",
+    "Email": "电子邮件",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "首选发送时间（UTC）",
+    "Emails delivered to": "您的邮件将发送至 {{email}}。",
+    "Email not specified": "您的电子邮件地址未指定。",
+    "Email help": "如果您认为您的电子邮件地址有问题，请告知我们。",
+    "Telegram not connected": "请在社交链接中连接 Telegram 以启用此渠道。",
+    "Last digest sent at": "上次摘要发送时间：{{date}}。",
+    "No digest sent yet": "尚未发送过摘要。",
+    "Preferences saved": "通讯偏好已成功保存。",
+    "Failed to save": "保存通讯偏好失败。"
   }
 }

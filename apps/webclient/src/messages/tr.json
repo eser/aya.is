@@ -57,7 +57,8 @@
     "This field is required": "Bu alan zorunludur",
     "All": "Tümü",
     "Skip": "Atla",
-    "Close": "Kapat"
+    "Close": "Kapat",
+    "Bulletins": "Bültenler"
   },
   "Layout": {
     "Homepage": "Ana Sayfa",
@@ -1085,5 +1086,25 @@
     "ru": "Rusça",
     "zh-CN": "Çince",
     "ar": "Arapça"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "Özet gönderim tercihlerinizi yönetin.",
+    "Sending Frequency": "Gönderim Sıklığı",
+    "Dont send": "Gönderme",
+    "Daily": "Günlük",
+    "Every 2 days": "2 günde bir",
+    "Weekly": "Haftalık",
+    "Channels": "Kanallar",
+    "Email": "E-posta",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "Tercih Edilen Gönderim Saati (UTC)",
+    "Emails delivered to": "E-postalarınız {{email}} adresine gönderilecektir.",
+    "Email not specified": "E-posta adresiniz belirtilmemiş.",
+    "Email help": "E-posta adresinizle ilgili bir sorun olduğunu düşünüyorsanız lütfen bize bildirin.",
+    "Telegram not connected": "Bu kanalı etkinleştirmek için Sosyal Bağlantılar'dan Telegram'ı bağlayın.",
+    "Last digest sent at": "Son özet gönderim zamanı: {{date}}.",
+    "No digest sent yet": "Henüz özet gönderilmedi.",
+    "Preferences saved": "Bülten tercihleri başarıyla kaydedildi.",
+    "Failed to save": "Bülten tercihleri kaydedilemedi."
   }
 }

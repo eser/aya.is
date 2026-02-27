@@ -57,7 +57,8 @@
     "This field is required": "Dit veld is verplicht",
     "All": "Alle",
     "Skip": "Overslaan",
-    "Close": "Sluiten"
+    "Close": "Sluiten",
+    "Bulletins": "Bulletins"
   },
   "Layout": {
     "Homepage": "Startpagina",
@@ -1076,5 +1077,25 @@
     "ru": "Russisch",
     "zh-CN": "Chinees",
     "ar": "Arabisch"
+  },
+  "Bulletin": {
+    "Manage your digest delivery preferences.": "Beheer uw digest-bezorgingsvoorkeuren.",
+    "Sending Frequency": "Verzendfrequentie",
+    "Dont send": "Niet verzenden",
+    "Daily": "Dagelijks",
+    "Every 2 days": "Elke 2 dagen",
+    "Weekly": "Wekelijks",
+    "Channels": "Kanalen",
+    "Email": "E-mail",
+    "Telegram": "Telegram",
+    "Preferred Sending Hour": "Voorkeurstijd voor verzending (UTC)",
+    "Emails delivered to": "Uw e-mails worden bezorgd op {{email}}.",
+    "Email not specified": "Uw e-mailadres is niet opgegeven.",
+    "Email help": "Als u denkt dat er iets mis is met uw e-mailadres, laat het ons dan weten.",
+    "Telegram not connected": "Verbind Telegram via Sociale Links om dit kanaal te activeren.",
+    "Last digest sent at": "Laatste digest verzonden op {{date}}.",
+    "No digest sent yet": "Er is nog geen digest verzonden.",
+    "Preferences saved": "Bulletinvoorkeuren succesvol opgeslagen.",
+    "Failed to save": "Kan bulletinvoorkeuren niet opslaan."
   }
 }

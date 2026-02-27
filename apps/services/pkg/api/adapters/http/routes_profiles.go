@@ -731,6 +731,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 						ctx.Request.Context(),
 						profile.ID,
 						bulletinbiz.ChannelEmail,
+						bulletinbiz.FrequencyDaily,
 						defaultBulletinHourUTC,
 					)
 					if bulletinErr != nil {
