@@ -68,6 +68,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			appContext.RuntimeStateService,
 			appContext.WorkerRegistry,
 			appContext.AuditService,
+			appContext.BulletinService,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(
@@ -269,6 +270,24 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("telegram-bot-poll-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// Bulletin digest worker
+	if appContext.Config.Workers.Bulletin.Enabled {
+		bulletinWorker := workers.NewBulletinWorker(
+			&appContext.Config.Workers.Bulletin,
+			appContext.Logger,
+			appContext.BulletinService,
+			appContext.RuntimeStateService,
+		)
+
+		runner := workerfx.NewRunner(bulletinWorker, appContext.Logger)
+		runner.SetStateKey("bulletin.worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("bulletin-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}

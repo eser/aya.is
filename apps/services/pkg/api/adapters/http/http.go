@@ -15,6 +15,7 @@ import (
 	telegramadapter "github.com/eser/aya.is/services/pkg/api/adapters/telegram"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	bulletinbiz "github.com/eser/aya.is/services/pkg/api/business/bulletin"
 	"github.com/eser/aya.is/services/pkg/api/business/discussions"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
@@ -63,6 +64,7 @@ func Run(
 	runtimeStatesService *runtime_states.Service,
 	workerRegistry *workerfx.Registry,
 	auditService *events.AuditService,
+	bulletinService *bulletinbiz.Service,
 ) (func(), error) {
 	httpfx.SetDiscloseErrors(discloseErrors)
 
@@ -276,6 +278,16 @@ func Run(
 		runtimeStatesService,
 		workerRegistry,
 	)
+
+	if bulletinService != nil {
+		RegisterHTTPRoutesForBulletin( //nolint:contextcheck
+			routes,
+			logger,
+			authService,
+			userService,
+			bulletinService,
+		)
+	}
 
 	if telegramProviders != nil {
 		RegisterHTTPRoutesForTelegram( //nolint:contextcheck

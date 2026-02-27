@@ -64,7 +64,7 @@ func (q *Queries) DeleteStoryTx(ctx context.Context, arg DeleteStoryTxParams) (i
 const getStoryByID = `-- name: GetStoryByID :one
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
   p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
   pb.publications,
@@ -135,7 +135,7 @@ type GetStoryByIDRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 //	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 //	  pb.publications,
@@ -214,6 +214,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.StoryTx.Content,
 		&i.StoryTx.SearchVector,
 		&i.StoryTx.IsManaged,
+		&i.StoryTx.SummaryAi,
 		&i.Profile.ID,
 		&i.Profile.Slug,
 		&i.Profile.Kind,
@@ -894,7 +895,7 @@ func (q *Queries) IsStoryTxManaged(ctx context.Context, arg IsStoryTxManagedPara
 const listActivityStories = `-- name: ListActivityStories :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -966,7 +967,7 @@ type ListActivityStoriesRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -1048,6 +1049,7 @@ func (q *Queries) ListActivityStories(ctx context.Context, arg ListActivityStori
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
 			&i.StoryTx.IsManaged,
+			&i.StoryTx.SummaryAi,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1090,7 +1092,7 @@ func (q *Queries) ListActivityStories(ctx context.Context, arg ListActivityStori
 const listStoriesByAuthorProfileID = `-- name: ListStoriesByAuthorProfileID :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -1162,7 +1164,7 @@ type ListStoriesByAuthorProfileIDRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -1242,6 +1244,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
 			&i.StoryTx.IsManaged,
+			&i.StoryTx.SummaryAi,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1284,7 +1287,7 @@ func (q *Queries) ListStoriesByAuthorProfileID(ctx context.Context, arg ListStor
 const listStoriesByAuthorProfileIDForViewer = `-- name: ListStoriesByAuthorProfileIDForViewer :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -1369,7 +1372,7 @@ type ListStoriesByAuthorProfileIDForViewerRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -1466,6 +1469,7 @@ func (q *Queries) ListStoriesByAuthorProfileIDForViewer(ctx context.Context, arg
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
 			&i.StoryTx.IsManaged,
+			&i.StoryTx.SummaryAi,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1508,7 +1512,7 @@ func (q *Queries) ListStoriesByAuthorProfileIDForViewer(ctx context.Context, arg
 const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -1583,7 +1587,7 @@ type ListStoriesOfPublicationRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -1672,6 +1676,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
 			&i.StoryTx.IsManaged,
+			&i.StoryTx.SummaryAi,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
@@ -1714,7 +1719,7 @@ func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesO
 const listStoriesOfPublicationForViewer = `-- name: ListStoriesOfPublicationForViewer :many
 SELECT
   s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
   p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
   pb.publications,
@@ -1803,7 +1808,7 @@ type ListStoriesOfPublicationForViewerRow struct {
 //
 //	SELECT
 //	  s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 //	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 //	  pb.publications,
@@ -1904,6 +1909,7 @@ func (q *Queries) ListStoriesOfPublicationForViewer(ctx context.Context, arg Lis
 			&i.StoryTx.Content,
 			&i.StoryTx.SearchVector,
 			&i.StoryTx.IsManaged,
+			&i.StoryTx.SummaryAi,
 			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,

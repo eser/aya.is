@@ -50,6 +50,26 @@ type ActivitySeries struct {
 	DeletedAt          sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 }
 
+type BulletinLog struct {
+	ID             string         `db:"id" json:"id"`
+	SubscriptionID string         `db:"subscription_id" json:"subscription_id"`
+	StoryCount     int32          `db:"story_count" json:"story_count"`
+	Status         string         `db:"status" json:"status"`
+	ErrorMessage   sql.NullString `db:"error_message" json:"error_message"`
+	CreatedAt      time.Time      `db:"created_at" json:"created_at"`
+}
+
+type BulletinSubscription struct {
+	ID             string       `db:"id" json:"id"`
+	ProfileID      string       `db:"profile_id" json:"profile_id"`
+	Channel        string       `db:"channel" json:"channel"`
+	PreferredTime  int16        `db:"preferred_time" json:"preferred_time"`
+	LastBulletinAt sql.NullTime `db:"last_bulletin_at" json:"last_bulletin_at"`
+	CreatedAt      time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt      sql.NullTime `db:"updated_at" json:"updated_at"`
+	DeletedAt      sql.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
 type Cache struct {
 	Key       string                `db:"key" json:"key"`
 	Value     pqtype.NullRawMessage `db:"value" json:"value"`
@@ -550,13 +570,14 @@ type StorySeries struct {
 }
 
 type StoryTx struct {
-	StoryID      string      `db:"story_id" json:"story_id"`
-	LocaleCode   string      `db:"locale_code" json:"locale_code"`
-	Title        string      `db:"title" json:"title"`
-	Summary      string      `db:"summary" json:"summary"`
-	Content      string      `db:"content" json:"content"`
-	SearchVector interface{} `db:"search_vector" json:"search_vector"`
-	IsManaged    bool        `db:"is_managed" json:"is_managed"`
+	StoryID      string         `db:"story_id" json:"story_id"`
+	LocaleCode   string         `db:"locale_code" json:"locale_code"`
+	Title        string         `db:"title" json:"title"`
+	Summary      string         `db:"summary" json:"summary"`
+	Content      string         `db:"content" json:"content"`
+	SearchVector interface{}    `db:"search_vector" json:"search_vector"`
+	IsManaged    bool           `db:"is_managed" json:"is_managed"`
+	SummaryAi    sql.NullString `db:"summary_ai" json:"summary_ai"`
 }
 
 type User struct {

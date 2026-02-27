@@ -1,0 +1,65 @@
+package bulletin
+
+import "time"
+
+// ChannelKind identifies the delivery channel for a bulletin.
+type ChannelKind string
+
+const (
+	ChannelTelegram ChannelKind = "telegram"
+	ChannelEmail    ChannelKind = "email"
+)
+
+// Subscription represents a user's bulletin subscription for a specific channel.
+type Subscription struct {
+	CreatedAt      time.Time
+	LastBulletinAt *time.Time
+	UpdatedAt      *time.Time
+	ID             string
+	ProfileID      string
+	Channel        ChannelKind
+	DefaultLocale  string
+	PreferredTime  int // UTC hour (0-23)
+}
+
+// DigestStory holds the data needed to render a single story in the digest.
+type DigestStory struct {
+	PublishedAt     *time.Time
+	StoryPictureURI *string
+	SummaryAI       *string
+	StoryID         string
+	Slug            string
+	Kind            string
+	LocaleCode      string
+	Title           string
+	Summary         string
+	AuthorProfileID string
+	AuthorSlug      string
+	AuthorTitle     string
+}
+
+// DigestGroup groups stories by the followed profile (author).
+type DigestGroup struct {
+	ProfileID string
+	Slug      string
+	Title     string
+	Stories   []*DigestStory
+}
+
+// Digest is the fully composed bulletin ready for delivery.
+type Digest struct {
+	GeneratedAt        time.Time
+	RecipientProfileID string
+	Locale             string
+	Groups             []*DigestGroup
+}
+
+// BulletinLog records a bulletin delivery attempt.
+type BulletinLog struct {
+	CreatedAt      time.Time
+	ErrorMessage   *string
+	ID             string
+	SubscriptionID string
+	Status         string // "sent" or "failed"
+	StoryCount     int
+}

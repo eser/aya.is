@@ -311,10 +311,13 @@ func (r *Repository) UpdateCustomDomainWebserverSynced(
 	id string,
 	synced bool,
 ) error {
-	_, err := r.queries.UpdateCustomDomainWebserverSynced(ctx, UpdateCustomDomainWebserverSyncedParams{
-		ID:              id,
-		WebserverSynced: synced,
-	})
+	_, err := r.queries.UpdateCustomDomainWebserverSynced(
+		ctx,
+		UpdateCustomDomainWebserverSyncedParams{
+			ID:              id,
+			WebserverSynced: synced,
+		},
+	)
 
 	return err
 }

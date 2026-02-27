@@ -186,7 +186,13 @@ type Repository interface { //nolint:interfacebloat
 		defaultLocale *string,
 	) error
 	UpdateCustomDomain(ctx context.Context, id string, domain string, defaultLocale *string) error
-	UpdateCustomDomainVerification(ctx context.Context, id string, status string, dnsVerifiedAt *time.Time, expiredAt *time.Time) error
+	UpdateCustomDomainVerification(
+		ctx context.Context,
+		id string,
+		status string,
+		dnsVerifiedAt *time.Time,
+		expiredAt *time.Time,
+	) error
 	UpdateCustomDomainWebserverSynced(ctx context.Context, id string, synced bool) error
 	DeleteCustomDomain(ctx context.Context, id string) error
 	CheckProfileSlugExists(ctx context.Context, slug string) (bool, error)

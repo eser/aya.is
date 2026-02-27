@@ -40,6 +40,12 @@ type DomainSyncConfig struct {
 	BaseDomains  string        `conf:"base_domains"`
 }
 
+// BulletinConfig holds configuration for the bulletin digest worker.
+type BulletinConfig struct {
+	Enabled       bool          `conf:"enabled"        default:"false"`
+	CheckInterval time.Duration `conf:"check_interval" default:"5m"`
+}
+
 // Config holds all worker configurations.
 type Config struct {
 	YouTubeSync      YouTubeSyncConfig        `conf:"youtube_sync"`
@@ -49,4 +55,5 @@ type Config struct {
 	DomainSync       DomainSyncConfig         `conf:"domain_sync"`
 	Queue            QueueWorkerConfig        `conf:"queue"`
 	TelegramBot      TelegramBotPollingConfig `conf:"telegram_bot"`
+	Bulletin         BulletinConfig           `conf:"bulletin"`
 }

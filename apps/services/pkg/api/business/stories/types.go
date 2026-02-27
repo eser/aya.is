@@ -67,6 +67,7 @@ type Story struct {
 	LocaleCode      string     `json:"locale_code"`
 	Title           string     `json:"title"`
 	Summary         string     `json:"summary"`
+	SummaryAI       *string    `json:"summary_ai"`
 	Content         string     `json:"content"`
 	Visibility      string     `json:"visibility"`
 	IsManaged       bool       `json:"is_managed"`

@@ -13,6 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
+	aiadapter "github.com/eser/aya.is/services/pkg/api/adapters/ai"
 	appleadapter "github.com/eser/aya.is/services/pkg/api/adapters/apple"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
@@ -20,6 +21,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/externalsite"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
+	"github.com/eser/aya.is/services/pkg/api/adapters/resend"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/speakerdeck"
 	"github.com/eser/aya.is/services/pkg/api/adapters/storage"
@@ -29,6 +31,7 @@ import (
 	xadapter "github.com/eser/aya.is/services/pkg/api/adapters/x"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	bulletinbiz "github.com/eser/aya.is/services/pkg/api/business/bulletin"
 	"github.com/eser/aya.is/services/pkg/api/business/discussions"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
@@ -110,6 +113,7 @@ type AppContext struct {
 	QueueRegistry              *events.HandlerRegistry
 	RuntimeStateService        *runtime_states.Service
 	WorkerRegistry             *workerfx.Registry
+	BulletinService            *bulletinbiz.Service
 
 	// Infrastructure
 	WebserverSyncer profiles.WebserverSyncer
@@ -539,6 +543,78 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 		a.Logger.DebugContext(ctx, "[AppContext] Telegram bot initialized",
 			slog.String("module", "appcontext"),
 			slog.String("bot_username", a.Config.Telegram.BotUsername))
+	}
+
+	// ----------------------------------------------------
+	// Bulletin Service (optional — requires at least one channel)
+	// ----------------------------------------------------
+	{
+		bulletinRepo := storage.NewBulletinRepository(a.Repository)
+
+		var bulletinChannels []bulletinbiz.Channel
+
+		// Telegram channel (if Telegram is configured)
+		if a.TelegramClient != nil && a.TelegramService != nil {
+			telegramChannel := telegramadapter.NewBulletinSender(
+				a.TelegramClient,
+				a.TelegramService,
+				a.Logger,
+				a.Config.SiteURI,
+			)
+			bulletinChannels = append(bulletinChannels, telegramChannel)
+		}
+
+		// Email channel via Resend API (if configured)
+		if a.Config.Externals.Resend.IsConfigured() {
+			resendClient := resend.NewClient(
+				a.Config.Externals.Resend.APIKey,
+			)
+
+			emailResolver := storage.NewBulletinEmailResolver(a.Repository)
+
+			templatePath := "etc/templates/bulletin_email.html.tmpl"
+
+			emailChannel, emailErr := resend.NewBulletinSender(
+				resendClient,
+				emailResolver,
+				a.Logger,
+				&a.Config.Externals.Resend,
+				a.Config.SiteURI,
+				templatePath,
+			)
+			if emailErr != nil {
+				a.Logger.WarnContext(
+					ctx,
+					"[AppContext] Failed to initialize email bulletin channel",
+					slog.String("module", "appcontext"),
+					slog.String("error", emailErr.Error()),
+				)
+			} else {
+				bulletinChannels = append(bulletinChannels, emailChannel)
+			}
+		}
+
+		// AI summarizer (optional — uses default AI model if available)
+		var summarizer bulletinbiz.StorySummarizer
+
+		defaultModel := a.AIModels.GetDefault()
+		if defaultModel != nil {
+			summarizer = aiadapter.NewBulletinSummarizer(defaultModel, a.Logger)
+		}
+
+		a.BulletinService = bulletinbiz.NewService(
+			a.Logger,
+			&a.Config.Bulletin,
+			bulletinRepo,
+			bulletinChannels,
+			summarizer,
+			idGen,
+		)
+
+		a.Logger.DebugContext(ctx, "[AppContext] Bulletin service initialized",
+			slog.String("module", "appcontext"),
+			slog.Int("channels", len(bulletinChannels)),
+			slog.Bool("ai_summarizer", summarizer != nil))
 	}
 
 	// ----------------------------------------------------

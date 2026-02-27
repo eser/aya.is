@@ -22,7 +22,11 @@ type DNSVerificationConfig struct {
 //  3. Resolved IP match — domain resolves to the same IPs as the CNAME target.
 //     This handles Cloudflare CNAME flattening at zone apex and proxied setups
 //     where the target itself resolves to CDN edge IPs rather than the origin.
-func VerifyDomainDNS(ctx context.Context, domain string, config *DNSVerificationConfig) (bool, string) {
+func VerifyDomainDNS(
+	ctx context.Context,
+	domain string,
+	config *DNSVerificationConfig,
+) (bool, string) {
 	// Phase 1: Check A/AAAA records against expected origin IPs
 	ips, err := net.DefaultResolver.LookupHost(ctx, domain)
 	if err == nil {
@@ -62,7 +66,10 @@ func VerifyDomainDNS(ctx context.Context, domain string, config *DNSVerification
 
 	// None of the phases matched
 	if len(ips) > 0 {
-		return false, "DNS resolves to " + strings.Join(ips, ", ") + " but expected " + config.ExpectedIPv4 + " or " + config.ExpectedIPv6
+		return false, "DNS resolves to " + strings.Join(
+			ips,
+			", ",
+		) + " but expected " + config.ExpectedIPv4 + " or " + config.ExpectedIPv6
 	}
 
 	return false, "DNS lookup failed or no matching records found for " + domain

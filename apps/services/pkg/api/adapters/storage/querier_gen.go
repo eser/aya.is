@@ -294,6 +294,19 @@ type Querier interface {
 	//      AND (mp.last_read_at IS NULL OR me.created_at > mp.last_read_at)
 	//  )
 	CountUnreadConversations(ctx context.Context, arg CountUnreadConversationsParams) (int32, error)
+	// Records a bulletin send attempt.
+	//
+	//  INSERT INTO "bulletin_log" (
+	//    "id", "subscription_id", "story_count", "status", "error_message", "created_at"
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    NOW()
+	//  )
+	CreateBulletinLog(ctx context.Context, arg CreateBulletinLogParams) error
 	//CreateCustomDomain
 	//
 	//  INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
@@ -679,6 +692,13 @@ type Querier interface {
 	//  WHERE
 	//    session_id = $1
 	DeleteAllSessionPreferences(ctx context.Context, arg DeleteAllSessionPreferencesParams) error
+	// Soft-deletes a subscription.
+	//
+	//  UPDATE "bulletin_subscription"
+	//  SET deleted_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	DeleteBulletinSubscription(ctx context.Context, arg DeleteBulletinSubscriptionParams) error
 	//DeleteConversation
 	//
 	//  DELETE FROM "mailbox_conversation"
@@ -856,6 +876,26 @@ type Querier interface {
 	//    AND pl.deleted_at IS NULL
 	//  LIMIT 1
 	FindProfileLinkProfileByKindAndRemoteID(ctx context.Context, arg FindProfileLinkProfileByKindAndRemoteIDParams) (string, error)
+	// Returns active bulletin subscriptions whose preferred_time matches the given UTC hour
+	// and whose last_bulletin_at is either NULL or older than 20 hours.
+	//
+	//  SELECT
+	//    bs.id,
+	//    bs.profile_id,
+	//    bs.channel,
+	//    bs.preferred_time,
+	//    bs.last_bulletin_at,
+	//    bs.created_at,
+	//    bs.updated_at,
+	//    p.default_locale
+	//  FROM "bulletin_subscription" bs
+	//    INNER JOIN "profile" p ON p.id = bs.profile_id
+	//      AND p.deleted_at IS NULL
+	//      AND p.approved_at IS NOT NULL
+	//  WHERE bs.deleted_at IS NULL
+	//    AND bs.preferred_time = $1::SMALLINT
+	//    AND (bs.last_bulletin_at IS NULL OR bs.last_bulletin_at < NOW() - INTERVAL '20 hours')
+	GetActiveSubscriptionsForWindow(ctx context.Context, arg GetActiveSubscriptionsForWindowParams) ([]*GetActiveSubscriptionsForWindowRow, error)
 	//GetAdminProfileBySlug
 	//
 	//  SELECT
@@ -887,6 +927,35 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfileBySlugParams) (*GetAdminProfileBySlugRow, error)
+	// Returns a single subscription by ID.
+	//
+	//  SELECT
+	//    bs.id,
+	//    bs.profile_id,
+	//    bs.channel,
+	//    bs.preferred_time,
+	//    bs.last_bulletin_at,
+	//    bs.created_at,
+	//    bs.updated_at
+	//  FROM "bulletin_subscription" bs
+	//  WHERE bs.id = $1
+	//    AND bs.deleted_at IS NULL
+	GetBulletinSubscription(ctx context.Context, arg GetBulletinSubscriptionParams) (*GetBulletinSubscriptionRow, error)
+	// Returns all active subscriptions for a given profile.
+	//
+	//  SELECT
+	//    bs.id,
+	//    bs.profile_id,
+	//    bs.channel,
+	//    bs.preferred_time,
+	//    bs.last_bulletin_at,
+	//    bs.created_at,
+	//    bs.updated_at
+	//  FROM "bulletin_subscription" bs
+	//  WHERE bs.profile_id = $1
+	//    AND bs.deleted_at IS NULL
+	//  ORDER BY bs.created_at
+	GetBulletinSubscriptionsByProfileID(ctx context.Context, arg GetBulletinSubscriptionsByProfileIDParams) ([]*GetBulletinSubscriptionsByProfileIDRow, error)
 	//GetCustomDomainByDomain
 	//
 	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
@@ -1002,6 +1071,67 @@ type Querier interface {
 	//    AND expires_at > NOW()
 	//  LIMIT 1
 	GetExternalCodeByCode(ctx context.Context, arg GetExternalCodeByCodeParams) (*ExternalCode, error)
+	// Returns published stories from profiles that the given subscriber follows,
+	// published since the given timestamp, with 3-tier locale fallback on both
+	// story_tx and author profile_tx.
+	//
+	//  SELECT
+	//    s.id AS story_id,
+	//    s.slug AS story_slug,
+	//    s.kind AS story_kind,
+	//    s.story_picture_uri,
+	//    st.locale_code AS story_locale_code,
+	//    st.title AS story_title,
+	//    st.summary AS story_summary,
+	//    st.summary_ai AS story_summary_ai,
+	//    ap.id AS author_profile_id,
+	//    ap.slug AS author_profile_slug,
+	//    apt.title AS author_profile_title,
+	//    (SELECT MIN(sp2.published_at) FROM story_publication sp2 WHERE sp2.story_id = s.id AND sp2.deleted_at IS NULL) AS published_at
+	//  FROM "profile_membership" pm
+	//    INNER JOIN "story" s ON s.author_profile_id = pm.profile_id
+	//      AND s.deleted_at IS NULL
+	//      AND s.kind IN ('article', 'news', 'content')
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
+	//      AND st.locale_code = (
+	//        SELECT stx.locale_code FROM "story_tx" stx
+	//        WHERE stx.story_id = s.id
+	//        ORDER BY CASE
+	//          WHEN stx.locale_code = $1 THEN 0
+	//          WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
+	//    INNER JOIN "profile" ap ON ap.id = s.author_profile_id
+	//      AND ap.deleted_at IS NULL
+	//      AND ap.approved_at IS NOT NULL
+	//    INNER JOIN "profile_tx" apt ON apt.profile_id = ap.id
+	//      AND apt.locale_code = (
+	//        SELECT aptf.locale_code FROM "profile_tx" aptf
+	//        WHERE aptf.profile_id = ap.id
+	//        ORDER BY CASE
+	//          WHEN aptf.locale_code = $1 THEN 0
+	//          WHEN aptf.locale_code = ap.default_locale THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
+	//  WHERE pm.member_profile_id = $2
+	//    AND pm.kind = 'follower'
+	//    AND pm.deleted_at IS NULL
+	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
+	//    AND EXISTS (
+	//      SELECT 1 FROM story_publication sp
+	//      WHERE sp.story_id = s.id
+	//        AND sp.published_at IS NOT NULL
+	//        AND sp.published_at > $3
+	//        AND sp.deleted_at IS NULL
+	//    )
+	//    AND s.visibility = 'public'
+	//  ORDER BY published_at DESC
+	//  LIMIT $4
+	GetFollowedProfileStoriesSince(ctx context.Context, arg GetFollowedProfileStoriesSinceParams) ([]*GetFollowedProfileStoriesSinceRow, error)
 	//GetFromCache
 	//
 	//  SELECT value, updated_at
@@ -1640,7 +1770,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications,
@@ -1858,6 +1988,14 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetUserByID(ctx context.Context, arg GetUserByIDParams) (*User, error)
+	// Returns the user's email for a given individual profile ID.
+	//
+	//  SELECT u.email
+	//  FROM "user" u
+	//  WHERE u.individual_profile_id = $1
+	//    AND u.deleted_at IS NULL
+	//  LIMIT 1
+	GetUserEmailByIndividualProfileID(ctx context.Context, arg GetUserEmailByIndividualProfileIDParams) (sql.NullString, error)
 	// Returns the membership kind a user has for a specific profile.
 	// Used to verify a user has access to publish to a target profile.
 	// Returns:
@@ -2147,7 +2285,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -3100,7 +3238,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -3156,7 +3294,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -3222,7 +3360,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -3282,7 +3420,7 @@ type Querier interface {
 	//
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
-	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
@@ -3870,6 +4008,21 @@ type Querier interface {
 	//
 	//  SELECT pg_try_advisory_lock($1::BIGINT) AS acquired
 	TryAdvisoryLock(ctx context.Context, arg TryAdvisoryLockParams) (bool, error)
+	// Updates the last_bulletin_at timestamp after successfully sending a bulletin.
+	//
+	//  UPDATE "bulletin_subscription"
+	//  SET last_bulletin_at = NOW(),
+	//      updated_at = NOW()
+	//  WHERE id = $1
+	UpdateBulletinSubscriptionLastSentAt(ctx context.Context, arg UpdateBulletinSubscriptionLastSentAtParams) error
+	// Updates the preferred time for a subscription.
+	//
+	//  UPDATE "bulletin_subscription"
+	//  SET preferred_time = $1,
+	//      updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateBulletinSubscriptionPreferences(ctx context.Context, arg UpdateBulletinSubscriptionPreferencesParams) error
 	//UpdateConversationTimestamp
 	//
 	//  UPDATE "mailbox_conversation"
@@ -4280,6 +4433,24 @@ type Querier interface {
 	//  WHERE id = $14
 	//    AND deleted_at IS NULL
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
+	// Creates or reactivates a subscription for a profile+channel combination.
+	//
+	//  INSERT INTO "bulletin_subscription" (
+	//    "id", "profile_id", "channel", "preferred_time", "created_at"
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    NOW()
+	//  )
+	//  ON CONFLICT ("profile_id", "channel") WHERE "deleted_at" IS NULL
+	//  DO UPDATE SET
+	//    preferred_time = EXCLUDED.preferred_time,
+	//    deleted_at = NULL,
+	//    updated_at = NOW()
+	//  RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at
+	UpsertBulletinSubscription(ctx context.Context, arg UpsertBulletinSubscriptionParams) (*BulletinSubscription, error)
 	//UpsertProfileLinkTx
 	//
 	//  INSERT INTO "profile_link_tx" (
@@ -4382,6 +4553,13 @@ type Querier interface {
 	//  DO UPDATE SET updated_at = NOW()
 	//  RETURNING id, story_id, profile_id, kind, created_at, updated_at, deleted_at
 	UpsertStoryInteraction(ctx context.Context, arg UpsertStoryInteractionParams) (*StoryInteraction, error)
+	// Updates the AI-generated summary for a specific story translation.
+	//
+	//  UPDATE "story_tx"
+	//  SET summary_ai = $1
+	//  WHERE story_id = $2
+	//    AND locale_code = $3
+	UpsertStorySummaryAI(ctx context.Context, arg UpsertStorySummaryAIParams) error
 	//UpsertStoryTx
 	//
 	//  INSERT INTO "story_tx" (
