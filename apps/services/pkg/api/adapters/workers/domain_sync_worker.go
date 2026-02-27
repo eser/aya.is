@@ -80,7 +80,7 @@ func (w *DomainSyncWorker) Execute(ctx context.Context) error {
 	}
 
 	// Check if it's time to run based on persisted schedule
-	nextRunKey := "domain.sync.next_run_at"
+	nextRunKey := "domain.sync.domain_sync_worker.next_run_at"
 
 	nextRunAt, err := w.runtimeStates.GetTime(ctx, nextRunKey)
 	if err == nil && time.Now().Before(nextRunAt) {
