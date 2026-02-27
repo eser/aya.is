@@ -296,10 +296,11 @@ func (s *Service) buildDigest(
 		group, exists := groupMap[story.AuthorProfileID]
 		if !exists {
 			group = &DigestGroup{
-				ProfileID: story.AuthorProfileID,
-				Slug:      story.AuthorSlug,
-				Title:     story.AuthorTitle,
-				Stories:   make([]*DigestStory, 0),
+				ProfileID:         story.AuthorProfileID,
+				ProfilePictureURI: story.AuthorProfilePictureURI,
+				Slug:              story.AuthorSlug,
+				Title:             story.AuthorTitle,
+				Stories:           make([]*DigestStory, 0),
 			}
 
 			groupMap[story.AuthorProfileID] = group

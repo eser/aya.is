@@ -352,6 +352,7 @@ SELECT
   st.summary_ai AS story_summary_ai,
   ap.id AS author_profile_id,
   ap.slug AS author_profile_slug,
+  ap.profile_picture_uri AS author_profile_picture_uri,
   apt.title AS author_profile_title,
   (SELECT MIN(sp2.published_at) FROM story_publication sp2 WHERE sp2.story_id = s.id AND sp2.deleted_at IS NULL) AS published_at
 FROM "profile_membership" pm
@@ -407,18 +408,19 @@ type GetFollowedProfileStoriesSinceParams struct {
 }
 
 type GetFollowedProfileStoriesSinceRow struct {
-	StoryID            string         `db:"story_id" json:"story_id"`
-	StorySlug          string         `db:"story_slug" json:"story_slug"`
-	StoryKind          string         `db:"story_kind" json:"story_kind"`
-	StoryPictureURI    sql.NullString `db:"story_picture_uri" json:"story_picture_uri"`
-	StoryLocaleCode    string         `db:"story_locale_code" json:"story_locale_code"`
-	StoryTitle         string         `db:"story_title" json:"story_title"`
-	StorySummary       string         `db:"story_summary" json:"story_summary"`
-	StorySummaryAi     sql.NullString `db:"story_summary_ai" json:"story_summary_ai"`
-	AuthorProfileID    string         `db:"author_profile_id" json:"author_profile_id"`
-	AuthorProfileSlug  string         `db:"author_profile_slug" json:"author_profile_slug"`
-	AuthorProfileTitle string         `db:"author_profile_title" json:"author_profile_title"`
-	PublishedAt        interface{}    `db:"published_at" json:"published_at"`
+	StoryID                 string         `db:"story_id" json:"story_id"`
+	StorySlug               string         `db:"story_slug" json:"story_slug"`
+	StoryKind               string         `db:"story_kind" json:"story_kind"`
+	StoryPictureURI         sql.NullString `db:"story_picture_uri" json:"story_picture_uri"`
+	StoryLocaleCode         string         `db:"story_locale_code" json:"story_locale_code"`
+	StoryTitle              string         `db:"story_title" json:"story_title"`
+	StorySummary            string         `db:"story_summary" json:"story_summary"`
+	StorySummaryAi          sql.NullString `db:"story_summary_ai" json:"story_summary_ai"`
+	AuthorProfileID         string         `db:"author_profile_id" json:"author_profile_id"`
+	AuthorProfileSlug       string         `db:"author_profile_slug" json:"author_profile_slug"`
+	AuthorProfilePictureURI sql.NullString `db:"author_profile_picture_uri" json:"author_profile_picture_uri"`
+	AuthorProfileTitle      string         `db:"author_profile_title" json:"author_profile_title"`
+	PublishedAt             interface{}    `db:"published_at" json:"published_at"`
 }
 
 // Returns published stories from profiles that the given subscriber follows,
@@ -436,6 +438,7 @@ type GetFollowedProfileStoriesSinceRow struct {
 //	  st.summary_ai AS story_summary_ai,
 //	  ap.id AS author_profile_id,
 //	  ap.slug AS author_profile_slug,
+//	  ap.profile_picture_uri AS author_profile_picture_uri,
 //	  apt.title AS author_profile_title,
 //	  (SELECT MIN(sp2.published_at) FROM story_publication sp2 WHERE sp2.story_id = s.id AND sp2.deleted_at IS NULL) AS published_at
 //	FROM "profile_membership" pm
@@ -506,6 +509,7 @@ func (q *Queries) GetFollowedProfileStoriesSince(ctx context.Context, arg GetFol
 			&i.StorySummaryAi,
 			&i.AuthorProfileID,
 			&i.AuthorProfileSlug,
+			&i.AuthorProfilePictureURI,
 			&i.AuthorProfileTitle,
 			&i.PublishedAt,
 		); err != nil {

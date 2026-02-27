@@ -35,26 +35,28 @@ type Subscription struct {
 
 // DigestStory holds the data needed to render a single story in the digest.
 type DigestStory struct {
-	PublishedAt     *time.Time
-	StoryPictureURI *string
-	SummaryAI       *string
-	StoryID         string
-	Slug            string
-	Kind            string
-	LocaleCode      string
-	Title           string
-	Summary         string
-	AuthorProfileID string
-	AuthorSlug      string
-	AuthorTitle     string
+	PublishedAt             *time.Time
+	StoryPictureURI         *string
+	SummaryAI               *string
+	StoryID                 string
+	Slug                    string
+	Kind                    string
+	LocaleCode              string
+	Title                   string
+	Summary                 string
+	AuthorProfileID         string
+	AuthorSlug              string
+	AuthorTitle             string
+	AuthorProfilePictureURI *string
 }
 
 // DigestGroup groups stories by the followed profile (author).
 type DigestGroup struct {
-	ProfileID string
-	Slug      string
-	Title     string
-	Stories   []*DigestStory
+	ProfilePictureURI *string
+	ProfileID         string
+	Slug              string
+	Title             string
+	Stories           []*DigestStory
 }
 
 // Digest is the fully composed bulletin ready for delivery.

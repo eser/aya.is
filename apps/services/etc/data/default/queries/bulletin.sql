@@ -40,6 +40,7 @@ SELECT
   st.summary_ai AS story_summary_ai,
   ap.id AS author_profile_id,
   ap.slug AS author_profile_slug,
+  ap.profile_picture_uri AS author_profile_picture_uri,
   apt.title AS author_profile_title,
   (SELECT MIN(sp2.published_at) FROM story_publication sp2 WHERE sp2.story_id = s.id AND sp2.deleted_at IS NULL) AS published_at
 FROM "profile_membership" pm

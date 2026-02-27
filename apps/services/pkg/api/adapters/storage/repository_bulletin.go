@@ -105,15 +105,16 @@ func (a *bulletinAdapter) GetFollowedProfileStoriesSince(
 
 	for _, row := range rows {
 		story := &bulletinbiz.DigestStory{
-			StoryID:         row.StoryID,
-			Slug:            row.StorySlug,
-			Kind:            row.StoryKind,
-			LocaleCode:      strings.TrimRight(row.StoryLocaleCode, " "),
-			Title:           row.StoryTitle,
-			Summary:         row.StorySummary,
-			AuthorProfileID: row.AuthorProfileID,
-			AuthorSlug:      row.AuthorProfileSlug,
-			AuthorTitle:     row.AuthorProfileTitle,
+			StoryID:                 row.StoryID,
+			Slug:                    row.StorySlug,
+			Kind:                    row.StoryKind,
+			LocaleCode:              strings.TrimRight(row.StoryLocaleCode, " "),
+			Title:                   row.StoryTitle,
+			Summary:                 row.StorySummary,
+			AuthorProfileID:         row.AuthorProfileID,
+			AuthorSlug:              row.AuthorProfileSlug,
+			AuthorTitle:             row.AuthorProfileTitle,
+			AuthorProfilePictureURI: ptrFromNullString(row.AuthorProfilePictureURI),
 		}
 
 		story.StoryPictureURI = ptrFromNullString(row.StoryPictureURI)

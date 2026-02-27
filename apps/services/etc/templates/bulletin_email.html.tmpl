@@ -27,9 +27,18 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="padding-bottom:12px;border-bottom:1px solid #e4e4e7;">
-                    <span style="font-size:13px;color:#71717a;text-transform:uppercase;letter-spacing:0.5px;">{{t $.Locale "BulletinEmailFrom"}}</span>
-                    <br />
-                    <a href="{{$.FrontendURI}}/{{$.Locale}}/{{.Slug}}" style="color:#18181b;font-size:16px;font-weight:600;text-decoration:none;">{{.Title}}</a>
+                    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                      {{if .ProfilePictureURI}}<td style="vertical-align:middle;padding-{{if eq (dir $.Locale) "rtl"}}left{{else}}right{{end}}:12px;">
+                        <a href="{{$.FrontendURI}}/{{$.Locale}}/{{.Slug}}" style="text-decoration:none;">
+                          <img src="{{derefStr .ProfilePictureURI}}" alt="" width="48" height="48" style="display:block;border-radius:50%;object-fit:cover;" />
+                        </a>
+                      </td>{{end}}
+                      <td style="vertical-align:middle;">
+                        <span style="font-size:13px;color:#71717a;text-transform:uppercase;letter-spacing:0.5px;">{{t $.Locale "BulletinEmailFrom"}}</span>
+                        <br />
+                        <a href="{{$.FrontendURI}}/{{$.Locale}}/{{.Slug}}" style="color:#18181b;font-size:16px;font-weight:600;text-decoration:none;">{{.Title}}</a>
+                      </td>
+                    </tr></table>
                   </td>
                 </tr>
                 {{range .Stories}}
