@@ -18,3 +18,78 @@ other = "환경설정 관리"
 
 [BulletinEmailSubject]
 other = "aya.is 일일 요약"
+
+[LocaleTr]
+other = "터키어"
+
+[LocaleEn]
+other = "영어"
+
+[LocaleFr]
+other = "프랑스어"
+
+[LocaleDe]
+other = "독일어"
+
+[LocaleEs]
+other = "스페인어"
+
+[LocalePtPT]
+other = "포르투갈어"
+
+[LocaleIt]
+other = "이탈리아어"
+
+[LocaleNl]
+other = "네덜란드어"
+
+[LocaleJa]
+other = "일본어"
+
+[LocaleKo]
+other = "한국어"
+
+[LocaleRu]
+other = "러시아어"
+
+[LocaleZhCN]
+other = "중국어"
+
+[LocaleAr]
+other = "아랍어"
+
+[MonthShort1]
+other = "1월"
+
+[MonthShort2]
+other = "2월"
+
+[MonthShort3]
+other = "3월"
+
+[MonthShort4]
+other = "4월"
+
+[MonthShort5]
+other = "5월"
+
+[MonthShort6]
+other = "6월"
+
+[MonthShort7]
+other = "7월"
+
+[MonthShort8]
+other = "8월"
+
+[MonthShort9]
+other = "9월"
+
+[MonthShort10]
+other = "10월"
+
+[MonthShort11]
+other = "11월"
+
+[MonthShort12]
+other = "12월"

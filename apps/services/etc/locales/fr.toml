@@ -18,3 +18,78 @@ other = "Gérer les préférences"
 
 [BulletinEmailSubject]
 other = "Votre résumé quotidien de aya.is"
+
+[LocaleTr]
+other = "Turc"
+
+[LocaleEn]
+other = "Anglais"
+
+[LocaleFr]
+other = "Français"
+
+[LocaleDe]
+other = "Allemand"
+
+[LocaleEs]
+other = "Espagnol"
+
+[LocalePtPT]
+other = "Portugais"
+
+[LocaleIt]
+other = "Italien"
+
+[LocaleNl]
+other = "Néerlandais"
+
+[LocaleJa]
+other = "Japonais"
+
+[LocaleKo]
+other = "Coréen"
+
+[LocaleRu]
+other = "Russe"
+
+[LocaleZhCN]
+other = "Chinois"
+
+[LocaleAr]
+other = "Arabe"
+
+[MonthShort1]
+other = "janv"
+
+[MonthShort2]
+other = "févr"
+
+[MonthShort3]
+other = "mars"
+
+[MonthShort4]
+other = "avr"
+
+[MonthShort5]
+other = "mai"
+
+[MonthShort6]
+other = "juin"
+
+[MonthShort7]
+other = "juil"
+
+[MonthShort8]
+other = "août"
+
+[MonthShort9]
+other = "sept"
+
+[MonthShort10]
+other = "oct"
+
+[MonthShort11]
+other = "nov"
+
+[MonthShort12]
+other = "déc"

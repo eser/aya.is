@@ -18,3 +18,78 @@ other = "Einstellungen verwalten"
 
 [BulletinEmailSubject]
 other = "Deine tägliche Zusammenfassung von aya.is"
+
+[LocaleTr]
+other = "Türkisch"
+
+[LocaleEn]
+other = "Englisch"
+
+[LocaleFr]
+other = "Französisch"
+
+[LocaleDe]
+other = "Deutsch"
+
+[LocaleEs]
+other = "Spanisch"
+
+[LocalePtPT]
+other = "Portugiesisch"
+
+[LocaleIt]
+other = "Italienisch"
+
+[LocaleNl]
+other = "Niederländisch"
+
+[LocaleJa]
+other = "Japanisch"
+
+[LocaleKo]
+other = "Koreanisch"
+
+[LocaleRu]
+other = "Russisch"
+
+[LocaleZhCN]
+other = "Chinesisch"
+
+[LocaleAr]
+other = "Arabisch"
+
+[MonthShort1]
+other = "Jan"
+
+[MonthShort2]
+other = "Feb"
+
+[MonthShort3]
+other = "Mär"
+
+[MonthShort4]
+other = "Apr"
+
+[MonthShort5]
+other = "Mai"
+
+[MonthShort6]
+other = "Jun"
+
+[MonthShort7]
+other = "Jul"
+
+[MonthShort8]
+other = "Aug"
+
+[MonthShort9]
+other = "Sep"
+
+[MonthShort10]
+other = "Okt"
+
+[MonthShort11]
+other = "Nov"
+
+[MonthShort12]
+other = "Dez"

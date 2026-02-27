@@ -36,9 +36,18 @@
                 <tr>
                   <td style="padding:16px 0;border-bottom:1px solid #f4f4f5;">
                     {{if .StoryPictureURI}}<img src="{{derefStr .StoryPictureURI}}" alt="" width="100%" style="display:block;border-radius:8px;margin-bottom:12px;max-height:200px;object-fit:cover;" />
-                    {{end}}<a href="{{$.FrontendURI}}/{{$.Locale}}/stories/{{.Slug}}" style="color:#18181b;font-size:15px;font-weight:500;text-decoration:none;line-height:1.4;">{{.Title}}</a>
-                    <p style="color:#52525b;font-size:14px;line-height:1.5;margin:8px 0 12px 0;">{{pickSummary .}}</p>
-                    <a href="{{$.FrontendURI}}/{{$.Locale}}/stories/{{.Slug}}" style="display:inline-block;background-color:#18181b;color:#ffffff;font-size:13px;font-weight:500;padding:8px 16px;border-radius:6px;text-decoration:none;">{{t $.Locale "BulletinEmailReadMore"}} {{if eq (dir $.Locale) "rtl"}}&larr;{{else}}&rarr;{{end}}</a>
+                    {{end}}<a href="{{$.FrontendURI}}/{{$.Locale}}/stories/{{.Slug}}" style="color:#18181b;font-size:15px;font-weight:500;text-decoration:none;line-height:1.4;">{{.Title}}</a>{{$badge := localeBadge $.Locale .LocaleCode}}{{if $badge}} <span style="display:inline-block;background-color:#dcfce7;color:#166534;font-size:11px;font-weight:500;padding:2px 8px;border-radius:9999px;vertical-align:middle;">{{$badge}}</span>{{end}}
+                    <div style="color:#52525b;font-size:14px;line-height:1.5;margin:8px 0 12px 0;">{{pickSummary . | mdToHTML}}</div>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:4px;">
+                      <tr>
+                        <td style="padding-right:12px;">
+                          <a href="{{$.FrontendURI}}/{{$.Locale}}/stories/{{.Slug}}" style="display:inline-block;background-color:#18181b;color:#ffffff;font-size:13px;font-weight:500;padding:8px 16px;border-radius:6px;text-decoration:none;">{{t $.Locale "BulletinEmailReadMore"}} {{if eq (dir $.Locale) "rtl"}}&larr;{{else}}&rarr;{{end}}</a>
+                        </td>
+                        <td style="color:#71717a;font-size:12px;vertical-align:middle;">
+                          {{kindIcon .Kind}} {{formatDate $.Locale .PublishedAt}}
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
                 {{end}}

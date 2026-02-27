@@ -18,3 +18,78 @@ other = "管理偏好设置"
 
 [BulletinEmailSubject]
 other = "来自 aya.is 的每日摘要"
+
+[LocaleTr]
+other = "土耳其语"
+
+[LocaleEn]
+other = "英语"
+
+[LocaleFr]
+other = "法语"
+
+[LocaleDe]
+other = "德语"
+
+[LocaleEs]
+other = "西班牙语"
+
+[LocalePtPT]
+other = "葡萄牙语"
+
+[LocaleIt]
+other = "意大利语"
+
+[LocaleNl]
+other = "荷兰语"
+
+[LocaleJa]
+other = "日语"
+
+[LocaleKo]
+other = "韩语"
+
+[LocaleRu]
+other = "俄语"
+
+[LocaleZhCN]
+other = "中文"
+
+[LocaleAr]
+other = "阿拉伯语"
+
+[MonthShort1]
+other = "1月"
+
+[MonthShort2]
+other = "2月"
+
+[MonthShort3]
+other = "3月"
+
+[MonthShort4]
+other = "4月"
+
+[MonthShort5]
+other = "5月"
+
+[MonthShort6]
+other = "6月"
+
+[MonthShort7]
+other = "7月"
+
+[MonthShort8]
+other = "8月"
+
+[MonthShort9]
+other = "9月"
+
+[MonthShort10]
+other = "10月"
+
+[MonthShort11]
+other = "11月"
+
+[MonthShort12]
+other = "12月"

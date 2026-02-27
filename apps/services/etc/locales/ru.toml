@@ -18,3 +18,78 @@ other = "Управление настройками"
 
 [BulletinEmailSubject]
 other = "Ваш ежедневный дайджест от aya.is"
+
+[LocaleTr]
+other = "Турецкий"
+
+[LocaleEn]
+other = "Английский"
+
+[LocaleFr]
+other = "Французский"
+
+[LocaleDe]
+other = "Немецкий"
+
+[LocaleEs]
+other = "Испанский"
+
+[LocalePtPT]
+other = "Португальский"
+
+[LocaleIt]
+other = "Итальянский"
+
+[LocaleNl]
+other = "Нидерландский"
+
+[LocaleJa]
+other = "Японский"
+
+[LocaleKo]
+other = "Корейский"
+
+[LocaleRu]
+other = "Русский"
+
+[LocaleZhCN]
+other = "Китайский"
+
+[LocaleAr]
+other = "Арабский"
+
+[MonthShort1]
+other = "янв"
+
+[MonthShort2]
+other = "фев"
+
+[MonthShort3]
+other = "мар"
+
+[MonthShort4]
+other = "апр"
+
+[MonthShort5]
+other = "май"
+
+[MonthShort6]
+other = "июн"
+
+[MonthShort7]
+other = "июл"
+
+[MonthShort8]
+other = "авг"
+
+[MonthShort9]
+other = "сен"
+
+[MonthShort10]
+other = "окт"
+
+[MonthShort11]
+other = "ноя"
+
+[MonthShort12]
+other = "дек"

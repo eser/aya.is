@@ -18,3 +18,78 @@ other = "Tercihleri yönet"
 
 [BulletinEmailSubject]
 other = "aya.is Günlük Özetiniz"
+
+[LocaleTr]
+other = "Türkçe"
+
+[LocaleEn]
+other = "İngilizce"
+
+[LocaleFr]
+other = "Fransızca"
+
+[LocaleDe]
+other = "Almanca"
+
+[LocaleEs]
+other = "İspanyolca"
+
+[LocalePtPT]
+other = "Portekizce"
+
+[LocaleIt]
+other = "İtalyanca"
+
+[LocaleNl]
+other = "Felemenkçe"
+
+[LocaleJa]
+other = "Japonca"
+
+[LocaleKo]
+other = "Korece"
+
+[LocaleRu]
+other = "Rusça"
+
+[LocaleZhCN]
+other = "Çince"
+
+[LocaleAr]
+other = "Arapça"
+
+[MonthShort1]
+other = "Oca"
+
+[MonthShort2]
+other = "Şub"
+
+[MonthShort3]
+other = "Mar"
+
+[MonthShort4]
+other = "Nis"
+
+[MonthShort5]
+other = "May"
+
+[MonthShort6]
+other = "Haz"
+
+[MonthShort7]
+other = "Tem"
+
+[MonthShort8]
+other = "Ağu"
+
+[MonthShort9]
+other = "Eyl"
+
+[MonthShort10]
+other = "Eki"
+
+[MonthShort11]
+other = "Kas"
+
+[MonthShort12]
+other = "Ara"

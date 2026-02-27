@@ -56,6 +56,7 @@ linters:
             - go.opentelemetry.io/otel
             - golang.org/x/net/http/httpguts
             - golang.org/x/text
+            - github.com/yuin/goldmark
             - google.golang.org/genai
             - gopkg.in/yaml.v3
             - modernc.org/sqlite

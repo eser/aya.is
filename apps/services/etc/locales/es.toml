@@ -18,3 +18,78 @@ other = "Gestionar preferencias"
 
 [BulletinEmailSubject]
 other = "Tu resumen diario de aya.is"
+
+[LocaleTr]
+other = "Turco"
+
+[LocaleEn]
+other = "Inglés"
+
+[LocaleFr]
+other = "Francés"
+
+[LocaleDe]
+other = "Alemán"
+
+[LocaleEs]
+other = "Español"
+
+[LocalePtPT]
+other = "Portugués"
+
+[LocaleIt]
+other = "Italiano"
+
+[LocaleNl]
+other = "Neerlandés"
+
+[LocaleJa]
+other = "Japonés"
+
+[LocaleKo]
+other = "Coreano"
+
+[LocaleRu]
+other = "Ruso"
+
+[LocaleZhCN]
+other = "Chino"
+
+[LocaleAr]
+other = "Árabe"
+
+[MonthShort1]
+other = "ene"
+
+[MonthShort2]
+other = "feb"
+
+[MonthShort3]
+other = "mar"
+
+[MonthShort4]
+other = "abr"
+
+[MonthShort5]
+other = "may"
+
+[MonthShort6]
+other = "jun"
+
+[MonthShort7]
+other = "jul"
+
+[MonthShort8]
+other = "ago"
+
+[MonthShort9]
+other = "sept"
+
+[MonthShort10]
+other = "oct"
+
+[MonthShort11]
+other = "nov"
+
+[MonthShort12]
+other = "dic"

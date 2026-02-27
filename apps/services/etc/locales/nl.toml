@@ -18,3 +18,78 @@ other = "Voorkeuren beheren"
 
 [BulletinEmailSubject]
 other = "Je dagelijkse samenvatting van aya.is"
+
+[LocaleTr]
+other = "Turks"
+
+[LocaleEn]
+other = "Engels"
+
+[LocaleFr]
+other = "Frans"
+
+[LocaleDe]
+other = "Duits"
+
+[LocaleEs]
+other = "Spaans"
+
+[LocalePtPT]
+other = "Portugees"
+
+[LocaleIt]
+other = "Italiaans"
+
+[LocaleNl]
+other = "Nederlands"
+
+[LocaleJa]
+other = "Japans"
+
+[LocaleKo]
+other = "Koreaans"
+
+[LocaleRu]
+other = "Russisch"
+
+[LocaleZhCN]
+other = "Chinees"
+
+[LocaleAr]
+other = "Arabisch"
+
+[MonthShort1]
+other = "jan"
+
+[MonthShort2]
+other = "feb"
+
+[MonthShort3]
+other = "mrt"
+
+[MonthShort4]
+other = "apr"
+
+[MonthShort5]
+other = "mei"
+
+[MonthShort6]
+other = "jun"
+
+[MonthShort7]
+other = "jul"
+
+[MonthShort8]
+other = "aug"
+
+[MonthShort9]
+other = "sep"
+
+[MonthShort10]
+other = "okt"
+
+[MonthShort11]
+other = "nov"
+
+[MonthShort12]
+other = "dec"

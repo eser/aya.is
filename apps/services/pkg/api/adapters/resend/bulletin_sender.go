@@ -7,11 +7,42 @@ import (
 	"html/template"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/i18nfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	bulletinbiz "github.com/eser/aya.is/services/pkg/api/business/bulletin"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/renderer/html"
 )
+
+// localeToMessageID maps a locale code to a go-i18n message ID (e.g. "en" → "LocaleEn").
+var localeToMessageID = map[string]string{ //nolint:gochecknoglobals
+	"tr":    "LocaleTr",
+	"en":    "LocaleEn",
+	"fr":    "LocaleFr",
+	"de":    "LocaleDe",
+	"es":    "LocaleEs",
+	"pt-PT": "LocalePtPT",
+	"it":    "LocaleIt",
+	"nl":    "LocaleNl",
+	"ja":    "LocaleJa",
+	"ko":    "LocaleKo",
+	"ru":    "LocaleRu",
+	"zh-CN": "LocaleZhCN",
+	"ar":    "LocaleAr",
+}
+
+// kindEmoji maps story kinds to Unicode symbols for email rendering.
+var kindEmoji = map[string]string{ //nolint:gochecknoglobals
+	"news":         "📰",
+	"article":      "✏️",
+	"announcement": "📢",
+	"status":       "ℹ️",
+	"content":      "🖼️",
+	"presentation": "📊",
+	"activity":     "📅",
+}
 
 // BulletinSender sends bulletin digests via email using the Resend API.
 type BulletinSender struct {
@@ -27,7 +58,7 @@ type BulletinSender struct {
 }
 
 // NewBulletinSender creates a new email bulletin channel adapter.
-func NewBulletinSender(
+func NewBulletinSender( //nolint:funlen
 	client *Client,
 	emailResolver bulletinbiz.UserEmailResolver,
 	logger *logfx.Logger,
@@ -36,11 +67,62 @@ func NewBulletinSender(
 	frontendURI string,
 	templatePath string,
 ) (*BulletinSender, error) {
+	md := goldmark.New(
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithUnsafe(),
+		),
+	)
+
 	funcMap := template.FuncMap{
 		"t": func(locale string, messageID string) string {
 			return localizer.T(locale, messageID)
 		},
 		"dir": i18nfx.Dir,
+		"mdToHTML": func(text string) template.HTML {
+			var buf bytes.Buffer
+
+			err := md.Convert([]byte(text), &buf)
+			if err != nil {
+				return template.HTML(template.HTMLEscapeString(text)) //nolint:gosec
+			}
+
+			return template.HTML(buf.String()) //nolint:gosec
+		},
+		"localeBadge": func(emailLocale string, storyLocale string) string {
+			trimmed := strings.TrimRight(storyLocale, " ")
+			if trimmed == emailLocale {
+				return ""
+			}
+
+			msgID, ok := localeToMessageID[trimmed]
+			if !ok {
+				return ""
+			}
+
+			return localizer.T(emailLocale, msgID)
+		},
+		"kindIcon": func(kind string) string {
+			if emoji, ok := kindEmoji[kind]; ok {
+				return emoji
+			}
+
+			return ""
+		},
+		"formatDate": func(locale string, t *time.Time) string {
+			if t == nil {
+				return ""
+			}
+
+			month := localizer.T(locale, fmt.Sprintf("MonthShort%d", t.Month()))
+
+			// English: "Dec 22, 2025" — all others: "22 Ara 2025"
+			if locale == "en" {
+				return fmt.Sprintf("%s %d, %d", month, t.Day(), t.Year())
+			}
+
+			return fmt.Sprintf("%d %s %d", t.Day(), month, t.Year())
+		},
 		"pickSummary": func(story *bulletinbiz.DigestStory) string {
 			if story.SummaryAI != nil && *story.SummaryAI != "" {
 				return *story.SummaryAI

@@ -18,3 +18,78 @@ other = "設定を管理"
 
 [BulletinEmailSubject]
 other = "aya.is デイリーダイジェスト"
+
+[LocaleTr]
+other = "トルコ語"
+
+[LocaleEn]
+other = "英語"
+
+[LocaleFr]
+other = "フランス語"
+
+[LocaleDe]
+other = "ドイツ語"
+
+[LocaleEs]
+other = "スペイン語"
+
+[LocalePtPT]
+other = "ポルトガル語"
+
+[LocaleIt]
+other = "イタリア語"
+
+[LocaleNl]
+other = "オランダ語"
+
+[LocaleJa]
+other = "日本語"
+
+[LocaleKo]
+other = "韓国語"
+
+[LocaleRu]
+other = "ロシア語"
+
+[LocaleZhCN]
+other = "中国語"
+
+[LocaleAr]
+other = "アラビア語"
+
+[MonthShort1]
+other = "1月"
+
+[MonthShort2]
+other = "2月"
+
+[MonthShort3]
+other = "3月"
+
+[MonthShort4]
+other = "4月"
+
+[MonthShort5]
+other = "5月"
+
+[MonthShort6]
+other = "6月"
+
+[MonthShort7]
+other = "7月"
+
+[MonthShort8]
+other = "8月"
+
+[MonthShort9]
+other = "9月"
+
+[MonthShort10]
+other = "10月"
+
+[MonthShort11]
+other = "11月"
+
+[MonthShort12]
+other = "12月"

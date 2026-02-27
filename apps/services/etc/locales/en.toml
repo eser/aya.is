@@ -18,3 +18,78 @@ other = "Manage preferences"
 
 [BulletinEmailSubject]
 other = "Your Daily Digest from aya.is"
+
+[LocaleTr]
+other = "Turkish"
+
+[LocaleEn]
+other = "English"
+
+[LocaleFr]
+other = "French"
+
+[LocaleDe]
+other = "German"
+
+[LocaleEs]
+other = "Spanish"
+
+[LocalePtPT]
+other = "Portuguese"
+
+[LocaleIt]
+other = "Italian"
+
+[LocaleNl]
+other = "Dutch"
+
+[LocaleJa]
+other = "Japanese"
+
+[LocaleKo]
+other = "Korean"
+
+[LocaleRu]
+other = "Russian"
+
+[LocaleZhCN]
+other = "Chinese"
+
+[LocaleAr]
+other = "Arabic"
+
+[MonthShort1]
+other = "Jan"
+
+[MonthShort2]
+other = "Feb"
+
+[MonthShort3]
+other = "Mar"
+
+[MonthShort4]
+other = "Apr"
+
+[MonthShort5]
+other = "May"
+
+[MonthShort6]
+other = "Jun"
+
+[MonthShort7]
+other = "Jul"
+
+[MonthShort8]
+other = "Aug"
+
+[MonthShort9]
+other = "Sep"
+
+[MonthShort10]
+other = "Oct"
+
+[MonthShort11]
+other = "Nov"
+
+[MonthShort12]
+other = "Dec"

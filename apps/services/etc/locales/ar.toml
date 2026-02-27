@@ -18,3 +18,78 @@ other = "إدارة التفضيلات"
 
 [BulletinEmailSubject]
 other = "ملخصك اليومي من aya.is"
+
+[LocaleTr]
+other = "التركية"
+
+[LocaleEn]
+other = "الإنجليزية"
+
+[LocaleFr]
+other = "الفرنسية"
+
+[LocaleDe]
+other = "الألمانية"
+
+[LocaleEs]
+other = "الإسبانية"
+
+[LocalePtPT]
+other = "البرتغالية"
+
+[LocaleIt]
+other = "الإيطالية"
+
+[LocaleNl]
+other = "الهولندية"
+
+[LocaleJa]
+other = "اليابانية"
+
+[LocaleKo]
+other = "الكورية"
+
+[LocaleRu]
+other = "الروسية"
+
+[LocaleZhCN]
+other = "الصينية"
+
+[LocaleAr]
+other = "العربية"
+
+[MonthShort1]
+other = "يناير"
+
+[MonthShort2]
+other = "فبراير"
+
+[MonthShort3]
+other = "مارس"
+
+[MonthShort4]
+other = "أبريل"
+
+[MonthShort5]
+other = "مايو"
+
+[MonthShort6]
+other = "يونيو"
+
+[MonthShort7]
+other = "يوليو"
+
+[MonthShort8]
+other = "أغسطس"
+
+[MonthShort9]
+other = "سبتمبر"
+
+[MonthShort10]
+other = "أكتوبر"
+
+[MonthShort11]
+other = "نوفمبر"
+
+[MonthShort12]
+other = "ديسمبر"
