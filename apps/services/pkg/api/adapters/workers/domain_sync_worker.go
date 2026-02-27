@@ -112,12 +112,14 @@ func (w *DomainSyncWorker) executeSync(ctx context.Context) error {
 	w.logger.WarnContext(ctx, "Starting domain sync cycle")
 
 	// Phase 1: DNS Verification
-	if err := w.verifyDNS(ctx); err != nil {
+	err := w.verifyDNS(ctx)
+	if err != nil {
 		return fmt.Errorf("%w: dns verification: %w", ErrSyncFailed, err)
 	}
 
 	// Phase 2: Webserver Sync
-	if err := w.syncWebserver(ctx); err != nil {
+	err = w.syncWebserver(ctx)
+	if err != nil {
 		return fmt.Errorf("%w: webserver sync: %w", ErrSyncFailed, err)
 	}
 
@@ -222,7 +224,8 @@ func (w *DomainSyncWorker) computeNewStatus(
 
 	case profiles.DomainStatusExpired:
 		// Already in grace period — check if grace period has elapsed
-		if domain.ExpiredAt != nil && now.Sub(*domain.ExpiredAt) >= profiles.DomainExpiredGracePeriod {
+		if domain.ExpiredAt != nil &&
+			now.Sub(*domain.ExpiredAt) >= profiles.DomainExpiredGracePeriod {
 			return profiles.DomainStatusFailed, domain.DnsVerifiedAt, domain.ExpiredAt
 		}
 
