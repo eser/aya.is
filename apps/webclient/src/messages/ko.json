@@ -1088,7 +1088,7 @@
     "Channels": "채널",
     "Email": "이메일",
     "Telegram": "텔레그램",
-    "Preferred Sending Hour": "선호 발송 시간 (UTC)",
+    "Preferred Sending Hour": "선호 발송 시간",
     "Emails delivered to": "이메일은 {{email}}로 전송됩니다.",
     "Email not specified": "이메일 주소가 지정되지 않았습니다.",
     "Email help": "이메일 주소에 문제가 있다고 생각되시면 알려주세요.",

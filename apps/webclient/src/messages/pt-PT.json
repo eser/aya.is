@@ -1088,7 +1088,7 @@
     "Channels": "Canais",
     "Email": "E-mail",
     "Telegram": "Telegram",
-    "Preferred Sending Hour": "Hora de envio preferida (UTC)",
+    "Preferred Sending Hour": "Hora de envio preferida",
     "Emails delivered to": "Os seus e-mails serão entregues em {{email}}.",
     "Email not specified": "O seu endereço de e-mail não está especificado.",
     "Email help": "Se acredita que há algo errado com o seu endereço de e-mail, por favor informe-nos.",

@@ -37,13 +37,37 @@ const FREQUENCY_OPTIONS: FrequencyOption[] = [
   { value: "weekly", labelKey: "Bulletin.Weekly" },
 ];
 
-function formatHourLabel(hour: number): string {
-  return `${String(hour).padStart(2, "0")}:00 UTC`;
+// Convert a UTC hour (0-23) to the user's local hour.
+function utcHourToLocal(utcHour: number): number {
+  const now = new Date();
+  // Create a date at the given UTC hour today
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), utcHour));
+  return d.getHours();
 }
 
-const HOUR_LABELS = new Map<string, string>(
-  Array.from({ length: 24 }, (_, i) => [String(i), formatHourLabel(i)]),
-);
+function formatHourLabel(utcHour: number): string {
+  const localHour = utcHourToLocal(utcHour);
+  return `${String(localHour).padStart(2, "0")}:00`;
+}
+
+function buildHourLabels(): Map<string, string> {
+  return new Map(
+    Array.from({ length: 24 }, (_, i) => [String(i), formatHourLabel(i)]),
+  );
+}
+
+function formatLastBulletinDate(isoDate: string, locale: string): string {
+  const date = new Date(isoDate);
+  const intlLocale = locale === "zh-CN" ? "zh-Hans-CN" : locale;
+
+  return new Intl.DateTimeFormat(intlLocale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
 function BulletinsSettingsPage() {
   const { t } = useTranslation();
@@ -129,6 +153,7 @@ function BulletinsSettingsPage() {
   };
 
   const isDontSend = frequency === "none";
+  const hourLabels = React.useMemo(() => buildHourLabels(), []);
 
   if (isLoading) {
     return (
@@ -159,7 +184,7 @@ function BulletinsSettingsPage() {
         </div>
       </div>
 
-      <div className="space-y-6 mt-6">
+      <div className="space-y-6">
         {/* Sending Frequency */}
         <div className={styles.formSection}>
           <p className={styles.sectionLabel}>{t("Bulletin.Sending Frequency")}</p>
@@ -214,7 +239,7 @@ function BulletinsSettingsPage() {
             >
               <SelectTrigger className="w-48">
                 <SelectValue>
-                  {(value: string) => HOUR_LABELS.get(value) ?? value}
+                  {(value: string) => hourLabels.get(value) ?? value}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -247,7 +272,7 @@ function BulletinsSettingsPage() {
         <div className={styles.lastSent}>
           {lastBulletinAt !== null
             ? t("Bulletin.Last digest sent at", {
-                date: new Date(lastBulletinAt).toLocaleString(),
+                date: formatLastBulletinDate(lastBulletinAt, params.locale),
               })
             : t("Bulletin.No digest sent yet")}
         </div>

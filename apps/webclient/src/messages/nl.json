@@ -1088,7 +1088,7 @@
     "Channels": "Kanalen",
     "Email": "E-mail",
     "Telegram": "Telegram",
-    "Preferred Sending Hour": "Voorkeurstijd voor verzending (UTC)",
+    "Preferred Sending Hour": "Voorkeurstijd voor verzending",
     "Emails delivered to": "Uw e-mails worden bezorgd op {{email}}.",
     "Email not specified": "Uw e-mailadres is niet opgegeven.",
     "Email help": "Als u denkt dat er iets mis is met uw e-mailadres, laat het ons dan weten.",

@@ -1104,7 +1104,7 @@
     "Channels": "Channels",
     "Email": "E-mail",
     "Telegram": "Telegram",
-    "Preferred Sending Hour": "Preferred Sending Hour (UTC)",
+    "Preferred Sending Hour": "Preferred Sending Hour",
     "Emails delivered to": "Your e-mails will be delivered to {{email}}.",
     "Email not specified": "Your e-mail is not specified.",
     "Email help": "If you believe there's something wrong with your e-mail address, please let us know.",

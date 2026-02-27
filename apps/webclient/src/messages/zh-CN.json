@@ -1088,7 +1088,7 @@
     "Channels": "渠道",
     "Email": "电子邮件",
     "Telegram": "Telegram",
-    "Preferred Sending Hour": "首选发送时间（UTC）",
+    "Preferred Sending Hour": "首选发送时间",
     "Emails delivered to": "您的邮件将发送至 {{email}}。",
     "Email not specified": "您的电子邮件地址未指定。",
     "Email help": "如果您认为您的电子邮件地址有问题，请告知我们。",

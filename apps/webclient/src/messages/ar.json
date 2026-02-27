@@ -1088,7 +1088,7 @@
     "Channels": "القنوات",
     "Email": "البريد الإلكتروني",
     "Telegram": "تيليجرام",
-    "Preferred Sending Hour": "وقت الإرسال المفضل (UTC)",
+    "Preferred Sending Hour": "وقت الإرسال المفضل",
     "Emails delivered to": "سيتم تسليم رسائلك الإلكترونية إلى {{email}}.",
     "Email not specified": "لم يتم تحديد عنوان بريدك الإلكتروني.",
     "Email help": "إذا كنت تعتقد أن هناك خطأ في عنوان بريدك الإلكتروني، يرجى إبلاغنا.",

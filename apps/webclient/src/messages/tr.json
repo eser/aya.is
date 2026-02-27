@@ -1097,7 +1097,7 @@
     "Channels": "Kanallar",
     "Email": "E-posta",
     "Telegram": "Telegram",
-    "Preferred Sending Hour": "Tercih Edilen Gönderim Saati (UTC)",
+    "Preferred Sending Hour": "Tercih Edilen Gönderim Saati",
     "Emails delivered to": "E-postalarınız {{email}} adresine gönderilecektir.",
     "Email not specified": "E-posta adresiniz belirtilmemiş.",
     "Email help": "E-posta adresinizle ilgili bir sorun olduğunu düşünüyorsanız lütfen bize bildirin.",

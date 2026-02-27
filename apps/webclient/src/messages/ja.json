@@ -1088,7 +1088,7 @@
     "Channels": "チャンネル",
     "Email": "メール",
     "Telegram": "Telegram",
-    "Preferred Sending Hour": "希望送信時刻（UTC）",
+    "Preferred Sending Hour": "希望送信時刻",
     "Emails delivered to": "メールは {{email}} に配信されます。",
     "Email not specified": "メールアドレスが指定されていません。",
     "Email help": "メールアドレスに問題があると思われる場合は、お知らせください。",
