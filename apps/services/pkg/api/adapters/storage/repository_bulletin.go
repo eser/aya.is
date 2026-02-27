@@ -57,6 +57,7 @@ func (a *bulletinAdapter) GetActiveSubscriptionsForWindow(
 		sub := &bulletinbiz.Subscription{
 			ID:            row.ID,
 			ProfileID:     row.ProfileID,
+			ProfileSlug:   row.ProfileSlug,
 			Channel:       bulletinbiz.ChannelKind(row.Channel),
 			PreferredTime: int(row.PreferredTime),
 			DefaultLocale: strings.TrimRight(row.DefaultLocale, " "),

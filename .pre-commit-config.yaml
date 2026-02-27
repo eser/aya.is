@@ -128,6 +128,8 @@ repos:
             apps/services/pkg/ajan/processfx/README.md|
             apps/services/pkg/ajan/results/README.md|
             apps/services/pkg/ajan/types/README.md|
+            apps/services/etc/locales/pt-PT.toml|
+            apps/services/etc/locales/zh-CN.toml|
             apps/services/Dockerfile|
             apps/services/Makefile|
             .pre-commit-config.yaml|

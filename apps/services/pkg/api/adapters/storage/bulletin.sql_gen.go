@@ -86,7 +86,8 @@ SELECT
   bs.last_bulletin_at,
   bs.created_at,
   bs.updated_at,
-  p.default_locale
+  p.default_locale,
+  p.slug AS profile_slug
 FROM "bulletin_subscription" bs
   INNER JOIN "profile" p ON p.id = bs.profile_id
     AND p.deleted_at IS NULL
@@ -109,6 +110,7 @@ type GetActiveSubscriptionsForWindowRow struct {
 	CreatedAt      time.Time    `db:"created_at" json:"created_at"`
 	UpdatedAt      sql.NullTime `db:"updated_at" json:"updated_at"`
 	DefaultLocale  string       `db:"default_locale" json:"default_locale"`
+	ProfileSlug    string       `db:"profile_slug" json:"profile_slug"`
 }
 
 // Returns active bulletin subscriptions whose preferred_time matches the given UTC hour
@@ -122,7 +124,8 @@ type GetActiveSubscriptionsForWindowRow struct {
 //	  bs.last_bulletin_at,
 //	  bs.created_at,
 //	  bs.updated_at,
-//	  p.default_locale
+//	  p.default_locale,
+//	  p.slug AS profile_slug
 //	FROM "bulletin_subscription" bs
 //	  INNER JOIN "profile" p ON p.id = bs.profile_id
 //	    AND p.deleted_at IS NULL
@@ -148,6 +151,7 @@ func (q *Queries) GetActiveSubscriptionsForWindow(ctx context.Context, arg GetAc
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DefaultLocale,
+			&i.ProfileSlug,
 		); err != nil {
 			return nil, err
 		}

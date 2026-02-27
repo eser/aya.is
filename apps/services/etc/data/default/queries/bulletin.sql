@@ -9,7 +9,8 @@ SELECT
   bs.last_bulletin_at,
   bs.created_at,
   bs.updated_at,
-  p.default_locale
+  p.default_locale,
+  p.slug AS profile_slug
 FROM "bulletin_subscription" bs
   INNER JOIN "profile" p ON p.id = bs.profile_id
     AND p.deleted_at IS NULL

@@ -1,0 +1,20 @@
+[BulletinEmailTitle]
+other = "aya.is 일일 요약"
+
+[BulletinEmailHeading]
+other = "일일 요약"
+
+[BulletinEmailFrom]
+other = "보낸 사람"
+
+[BulletinEmailReadMore]
+other = "더 읽기"
+
+[BulletinEmailFooter]
+other = "이 이메일은 aya.is에서 일일 요약을 구독하셨기 때문에 발송되었습니다."
+
+[BulletinEmailManagePrefs]
+other = "환경설정 관리"
+
+[BulletinEmailSubject]
+other = "aya.is 일일 요약"

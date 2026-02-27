@@ -11,6 +11,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/connfx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is/services/pkg/ajan/i18nfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	aiadapter "github.com/eser/aya.is/services/pkg/api/adapters/ai"
@@ -68,6 +69,7 @@ type AppContext struct {
 
 	Connections *connfx.Registry
 	AIModels    *aifx.Registry
+	Localizer   *i18nfx.Localizer
 
 	Arcade *arcade.Arcade
 
@@ -546,6 +548,14 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 	}
 
 	// ----------------------------------------------------
+	// Localizer (i18nfx)
+	// ----------------------------------------------------
+	a.Localizer, err = i18nfx.NewLocalizer(&a.Config.I18n)
+	if err != nil {
+		return fmt.Errorf("%w: initializing localizer: %w", ErrInitFailed, err)
+	}
+
+	// ----------------------------------------------------
 	// Bulletin Service (optional — requires at least one channel)
 	// ----------------------------------------------------
 	{
@@ -559,7 +569,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 				a.TelegramClient,
 				a.TelegramService,
 				a.Logger,
-				a.Config.SiteURI,
+				a.Config.Bulletin.FrontendURI,
 			)
 			bulletinChannels = append(bulletinChannels, telegramChannel)
 		}
@@ -578,8 +588,9 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 				resendClient,
 				emailResolver,
 				a.Logger,
+				a.Localizer,
 				&a.Config.Externals.Resend,
-				a.Config.SiteURI,
+				a.Config.Bulletin.FrontendURI,
 				templatePath,
 			)
 			if emailErr != nil {

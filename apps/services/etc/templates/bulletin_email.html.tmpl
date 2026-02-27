@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{.Locale}}">
+<html lang="{{.Locale}}" dir="{{dir .Locale}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Daily Digest from AYA</title>
+  <title>{{t .Locale "BulletinEmailTitle"}}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;">
@@ -14,8 +14,8 @@
           <!-- Header -->
           <tr>
             <td style="background-color:#18181b;padding:32px 40px;text-align:center;">
-              <img src="{{.SiteURI}}/assets/site-logo.svg" alt="AYA" width="80" style="display:inline-block;" />
-              <h1 style="color:#ffffff;font-size:20px;font-weight:600;margin:16px 0 0 0;letter-spacing:0.5px;">Your Daily Digest</h1>
+              <img src="https://aya.is/logo192.png" alt="aya.is" width="80" style="display:inline-block;border-radius:12px;" />
+              <h1 style="color:#ffffff;font-size:20px;font-weight:600;margin:16px 0 0 0;letter-spacing:0.5px;">{{t .Locale "BulletinEmailHeading"}}</h1>
             </td>
           </tr>
 
@@ -27,17 +27,18 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td style="padding-bottom:12px;border-bottom:1px solid #e4e4e7;">
-                    <span style="font-size:13px;color:#71717a;text-transform:uppercase;letter-spacing:0.5px;">From</span>
+                    <span style="font-size:13px;color:#71717a;text-transform:uppercase;letter-spacing:0.5px;">{{t $.Locale "BulletinEmailFrom"}}</span>
                     <br />
-                    <a href="{{$.SiteURI}}/{{$.Locale}}/{{.Slug}}" style="color:#18181b;font-size:16px;font-weight:600;text-decoration:none;">{{.Title}}</a>
+                    <a href="{{$.FrontendURI}}/{{$.Locale}}/{{.Slug}}" style="color:#18181b;font-size:16px;font-weight:600;text-decoration:none;">{{.Title}}</a>
                   </td>
                 </tr>
                 {{range .Stories}}
                 <tr>
                   <td style="padding:16px 0;border-bottom:1px solid #f4f4f5;">
-                    <a href="{{$.SiteURI}}/{{$.Locale}}/stories/{{.Slug}}" style="color:#18181b;font-size:15px;font-weight:500;text-decoration:none;line-height:1.4;">{{.Title}}</a>
+                    {{if .StoryPictureURI}}<img src="{{derefStr .StoryPictureURI}}" alt="" width="100%" style="display:block;border-radius:8px;margin-bottom:12px;max-height:200px;object-fit:cover;" />
+                    {{end}}<a href="{{$.FrontendURI}}/{{$.Locale}}/stories/{{.Slug}}" style="color:#18181b;font-size:15px;font-weight:500;text-decoration:none;line-height:1.4;">{{.Title}}</a>
                     <p style="color:#52525b;font-size:14px;line-height:1.5;margin:8px 0 12px 0;">{{pickSummary .}}</p>
-                    <a href="{{$.SiteURI}}/{{$.Locale}}/stories/{{.Slug}}" style="display:inline-block;background-color:#18181b;color:#ffffff;font-size:13px;font-weight:500;padding:8px 16px;border-radius:6px;text-decoration:none;">Read more &rarr;</a>
+                    <a href="{{$.FrontendURI}}/{{$.Locale}}/stories/{{.Slug}}" style="display:inline-block;background-color:#18181b;color:#ffffff;font-size:13px;font-weight:500;padding:8px 16px;border-radius:6px;text-decoration:none;">{{t $.Locale "BulletinEmailReadMore"}} {{if eq (dir $.Locale) "rtl"}}&larr;{{else}}&rarr;{{end}}</a>
                   </td>
                 </tr>
                 {{end}}
@@ -50,9 +51,9 @@
           <tr>
             <td style="background-color:#fafafa;padding:24px 40px;text-align:center;border-top:1px solid #e4e4e7;">
               <p style="color:#a1a1aa;font-size:12px;margin:0 0 8px 0;">
-                You received this because you subscribed to daily digests on <a href="{{.SiteURI}}" style="color:#71717a;">AYA</a>.
+                {{t .Locale "BulletinEmailFooter"}}
               </p>
-              <a href="{{.SiteURI}}/{{.Locale}}/settings" style="color:#71717a;font-size:12px;text-decoration:underline;">Manage preferences</a>
+              <a href="{{.FrontendURI}}/{{.Locale}}/{{.RecipientSlug}}/settings" style="color:#71717a;font-size:12px;text-decoration:underline;">{{t .Locale "BulletinEmailManagePrefs"}}</a>
             </td>
           </tr>
 

@@ -39,6 +39,7 @@ linters:
             - github.com/eser/aya.is/services
             - github.com/getkin/kin-openapi
             - github.com/mmcdole/gofeed
+            - github.com/nicksnyder/go-i18n/v2
             - github.com/go-faker/faker/v4
             - github.com/go-rod/rod
             - github.com/golang-jwt/jwt/v5
@@ -54,6 +55,7 @@ linters:
             - github.com/stretchr/testify
             - go.opentelemetry.io/otel
             - golang.org/x/net/http/httpguts
+            - golang.org/x/text
             - google.golang.org/genai
             - gopkg.in/yaml.v3
             - modernc.org/sqlite

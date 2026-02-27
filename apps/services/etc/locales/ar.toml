@@ -1,0 +1,20 @@
+[BulletinEmailTitle]
+other = "ملخصك اليومي من aya.is"
+
+[BulletinEmailHeading]
+other = "الملخص اليومي"
+
+[BulletinEmailFrom]
+other = "من"
+
+[BulletinEmailReadMore]
+other = "اقرأ المزيد"
+
+[BulletinEmailFooter]
+other = "لقد تلقيت هذه الرسالة لأنك مشترك في الملخصات اليومية على aya.is."
+
+[BulletinEmailManagePrefs]
+other = "إدارة التفضيلات"
+
+[BulletinEmailSubject]
+other = "ملخصك اليومي من aya.is"

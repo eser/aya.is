@@ -1,0 +1,20 @@
+[BulletinEmailTitle]
+other = "O seu resumo diário do aya.is"
+
+[BulletinEmailHeading]
+other = "Resumo diário"
+
+[BulletinEmailFrom]
+other = "De"
+
+[BulletinEmailReadMore]
+other = "Ler mais"
+
+[BulletinEmailFooter]
+other = "Recebeu este e-mail porque subscreveu os resumos diários no aya.is."
+
+[BulletinEmailManagePrefs]
+other = "Gerir preferências"
+
+[BulletinEmailSubject]
+other = "O seu resumo diário do aya.is"

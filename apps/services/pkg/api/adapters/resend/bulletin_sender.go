@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/eser/aya.is/services/pkg/ajan/i18nfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	bulletinbiz "github.com/eser/aya.is/services/pkg/api/business/bulletin"
 )
@@ -17,8 +18,9 @@ type BulletinSender struct {
 	client         *Client
 	emailResolver  bulletinbiz.UserEmailResolver
 	logger         *logfx.Logger
+	localizer      *i18nfx.Localizer
 	fromAddress    string
-	siteURI        string
+	frontendURI    string
 	tmpl           *template.Template
 	sandboxMode    bool
 	sandboxAllowed map[string]bool
@@ -29,17 +31,29 @@ func NewBulletinSender(
 	client *Client,
 	emailResolver bulletinbiz.UserEmailResolver,
 	logger *logfx.Logger,
+	localizer *i18nfx.Localizer,
 	config *Config,
-	siteURI string,
+	frontendURI string,
 	templatePath string,
 ) (*BulletinSender, error) {
 	funcMap := template.FuncMap{
+		"t": func(locale string, messageID string) string {
+			return localizer.T(locale, messageID)
+		},
+		"dir": i18nfx.Dir,
 		"pickSummary": func(story *bulletinbiz.DigestStory) string {
 			if story.SummaryAI != nil && *story.SummaryAI != "" {
 				return *story.SummaryAI
 			}
 
 			return story.Summary
+		},
+		"derefStr": func(s *string) string {
+			if s == nil {
+				return ""
+			}
+
+			return *s
 		},
 	}
 
@@ -52,8 +66,9 @@ func NewBulletinSender(
 		client:         client,
 		emailResolver:  emailResolver,
 		logger:         logger,
+		localizer:      localizer,
 		fromAddress:    config.FromAddress,
-		siteURI:        siteURI,
+		frontendURI:    frontendURI,
 		tmpl:           tmpl,
 		sandboxMode:    config.SandboxMode,
 		sandboxAllowed: config.SandboxAllowedEmails(),
@@ -94,7 +109,7 @@ func (s *BulletinSender) Send(
 		return fmt.Errorf("rendering email template: %w", renderErr)
 	}
 
-	subject := "Your Daily Digest from AYA"
+	subject := s.localizer.T(digest.Locale, "BulletinEmailSubject")
 
 	sendErr := s.client.SendEmail(ctx, s.fromAddress, email, subject, htmlBody)
 	if sendErr != nil {
@@ -109,16 +124,18 @@ func (s *BulletinSender) Send(
 }
 
 type templateData struct {
-	SiteURI string
-	Locale  string
-	Groups  []*bulletinbiz.DigestGroup
+	FrontendURI   string
+	Locale        string
+	RecipientSlug string
+	Groups        []*bulletinbiz.DigestGroup
 }
 
 func (s *BulletinSender) renderHTML(digest *bulletinbiz.Digest) (string, error) {
 	data := templateData{
-		SiteURI: s.siteURI,
-		Locale:  digest.Locale,
-		Groups:  digest.Groups,
+		FrontendURI:   s.frontendURI,
+		Locale:        digest.Locale,
+		RecipientSlug: digest.RecipientSlug,
+		Groups:        digest.Groups,
 	}
 
 	var buf bytes.Buffer

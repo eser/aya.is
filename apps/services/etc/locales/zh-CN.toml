@@ -1,0 +1,20 @@
+[BulletinEmailTitle]
+other = "来自 aya.is 的每日摘要"
+
+[BulletinEmailHeading]
+other = "每日摘要"
+
+[BulletinEmailFrom]
+other = "来自"
+
+[BulletinEmailReadMore]
+other = "阅读更多"
+
+[BulletinEmailFooter]
+other = "您收到此邮件是因为您订阅了 aya.is 的每日摘要。"
+
+[BulletinEmailManagePrefs]
+other = "管理偏好设置"
+
+[BulletinEmailSubject]
+other = "来自 aya.is 的每日摘要"

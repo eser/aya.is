@@ -17,6 +17,7 @@ type Subscription struct {
 	UpdatedAt      *time.Time
 	ID             string
 	ProfileID      string
+	ProfileSlug    string
 	Channel        ChannelKind
 	DefaultLocale  string
 	PreferredTime  int // UTC hour (0-23)
@@ -50,6 +51,7 @@ type DigestGroup struct {
 type Digest struct {
 	GeneratedAt        time.Time
 	RecipientProfileID string
+	RecipientSlug      string
 	Locale             string
 	Groups             []*DigestGroup
 }

@@ -1,0 +1,20 @@
+[BulletinEmailTitle]
+other = "Ваш ежедневный дайджест от aya.is"
+
+[BulletinEmailHeading]
+other = "Ежедневный дайджест"
+
+[BulletinEmailFrom]
+other = "От"
+
+[BulletinEmailReadMore]
+other = "Читать далее"
+
+[BulletinEmailFooter]
+other = "Вы получили это письмо, потому что подписались на ежедневные дайджесты на aya.is."
+
+[BulletinEmailManagePrefs]
+other = "Управление настройками"
+
+[BulletinEmailSubject]
+other = "Ваш ежедневный дайджест от aya.is"

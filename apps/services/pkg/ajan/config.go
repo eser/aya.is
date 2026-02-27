@@ -5,6 +5,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/connfx"
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is/services/pkg/ajan/i18nfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 )
 
@@ -21,4 +22,5 @@ type BaseConfig struct {
 	Log        logfx.Config      `conf:"log"`
 	HTTP       httpfx.Config     `conf:"http"`
 	HTTPClient httpclient.Config `conf:"http_client"`
+	I18n       i18nfx.Config     `conf:"i18n"`
 }

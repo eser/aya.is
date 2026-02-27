@@ -105,6 +105,9 @@ COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/servic
 # Copy email templates
 COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/etc/templates ./etc/templates
 
+# Copy locale message files
+COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/etc/locales ./etc/locales
+
 # Run as a non-root user
 USER nonroot
 

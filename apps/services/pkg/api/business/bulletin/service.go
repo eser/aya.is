@@ -202,7 +202,7 @@ func (s *Service) processSubscription(
 	}
 
 	// Group stories by author profile
-	digest := s.buildDigest(sub.ProfileID, locale, stories, now)
+	digest := s.buildDigest(sub.ProfileID, sub.ProfileSlug, locale, stories, now)
 
 	// Look up the channel adapter
 	channel, ok := s.channels[sub.Channel]
@@ -267,6 +267,7 @@ func (s *Service) processSubscription(
 // buildDigest groups stories by author profile into a Digest.
 func (s *Service) buildDigest(
 	recipientProfileID string,
+	recipientSlug string,
 	locale string,
 	stories []*DigestStory,
 	now time.Time,
@@ -300,6 +301,7 @@ func (s *Service) buildDigest(
 
 	return &Digest{
 		RecipientProfileID: recipientProfileID,
+		RecipientSlug:      recipientSlug,
 		Locale:             locale,
 		Groups:             groups,
 		GeneratedAt:        now,

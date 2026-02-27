@@ -1,0 +1,20 @@
+[BulletinEmailTitle]
+other = "Your Daily Digest from aya.is"
+
+[BulletinEmailHeading]
+other = "Your Daily Digest"
+
+[BulletinEmailFrom]
+other = "From"
+
+[BulletinEmailReadMore]
+other = "Read more"
+
+[BulletinEmailFooter]
+other = "You received this because you subscribed to daily digests on aya.is."
+
+[BulletinEmailManagePrefs]
+other = "Manage preferences"
+
+[BulletinEmailSubject]
+other = "Your Daily Digest from aya.is"
