@@ -73,7 +73,11 @@ func (s *BulletinSender) Send(
 ) error {
 	email, err := s.emailResolver.GetUserEmailByProfileID(ctx, recipientProfileID)
 	if err != nil {
-		return fmt.Errorf("resolving email for profile %s: %w", recipientProfileID, err)
+		s.logger.InfoContext(ctx, "Skipping bulletin email (no email found)",
+			slog.String("profile_id", recipientProfileID),
+			slog.String("error", err.Error()))
+
+		return nil
 	}
 
 	// Sandbox mode: only send to explicitly allowed recipients

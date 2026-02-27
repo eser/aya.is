@@ -139,6 +139,7 @@ func Run(
 		storyService,
 		profilePointsService,
 		aiModels,
+		bulletinService,
 	)
 	RegisterHTTPRoutesForProfilePoints( //nolint:contextcheck
 		routes,

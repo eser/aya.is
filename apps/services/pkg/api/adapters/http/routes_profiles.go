@@ -13,6 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
+	bulletinbiz "github.com/eser/aya.is/services/pkg/api/business/bulletin"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
@@ -32,6 +33,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 	storyService *stories.Service,
 	profilePointsService *profile_points.Service,
 	aiModels *aifx.Registry,
+	bulletinService *bulletinbiz.Service,
 ) {
 	routes.
 		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
@@ -719,6 +721,26 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 						*session.OAuthAccessToken,
 						tokenScope,
 					)
+				}
+
+				// Auto-subscribe to email bulletin with morning schedule
+				if bulletinService != nil {
+					const defaultBulletinHourUTC = 5 // ~08:00 EET
+
+					_, bulletinErr := bulletinService.Subscribe(
+						ctx.Request.Context(),
+						profile.ID,
+						bulletinbiz.ChannelEmail,
+						defaultBulletinHourUTC,
+					)
+					if bulletinErr != nil {
+						logger.WarnContext(
+							ctx.Request.Context(),
+							"Failed to auto-subscribe profile to bulletin",
+							slog.String("profile_id", profile.ID),
+							slog.String("error", bulletinErr.Error()),
+						)
+					}
 				}
 			} else {
 				// For org/product profiles, create membership with creator's individual profile as owner
