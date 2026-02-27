@@ -102,6 +102,9 @@ COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/servic
 COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/etc/data/default/migrations ./etc/data/default/migrations
 COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/etc/data/default/seed/seed.sql ./etc/data/default/seed/seed.sql
 
+# Copy email templates
+COPY --from=production-builder --chown=nonroot:nonroot /srv/monorepo/apps/services/etc/templates ./etc/templates
+
 # Run as a non-root user
 USER nonroot
 
