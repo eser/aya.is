@@ -21,7 +21,7 @@ SELECT EXISTS(
 -- name: GetCustomDomainByDomain :one
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.domain = sqlc.arg(domain)
 LIMIT 1;
@@ -29,7 +29,7 @@ LIMIT 1;
 -- name: ListCustomDomainsByProfileID :many
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.profile_id = sqlc.arg(profile_id)
 ORDER BY pcd.created_at;
@@ -53,14 +53,14 @@ WHERE id = sqlc.arg(id);
 -- name: ListAllCustomDomains :many
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 ORDER BY pcd.created_at;
 
 -- name: ListVerifiedCustomDomains :many
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.verification_status IN ('verified', 'expired')
 ORDER BY pcd.created_at;

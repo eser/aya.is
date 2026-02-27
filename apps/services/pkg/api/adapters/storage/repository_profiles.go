@@ -188,6 +188,7 @@ func (r *Repository) GetCustomDomainByDomain(
 				LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 				ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 				WebserverSynced:    row.WebserverSynced,
+				WwwPrefix:          row.WwwPrefix,
 				CreatedAt:          row.CreatedAt,
 				UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
 			}, nil
@@ -221,6 +222,7 @@ func (r *Repository) ListCustomDomainsByProfileID(
 			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 			WebserverSynced:    row.WebserverSynced,
+			WwwPrefix:          row.WwwPrefix,
 			CreatedAt:          row.CreatedAt,
 			UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
 		})
@@ -249,6 +251,7 @@ func (r *Repository) ListAllCustomDomains(
 			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 			WebserverSynced:    row.WebserverSynced,
+			WwwPrefix:          row.WwwPrefix,
 			CreatedAt:          row.CreatedAt,
 			UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
 		})
@@ -277,6 +280,7 @@ func (r *Repository) ListVerifiedCustomDomains(
 			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 			WebserverSynced:    row.WebserverSynced,
+			WwwPrefix:          row.WwwPrefix,
 			CreatedAt:          row.CreatedAt,
 			UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
 		})

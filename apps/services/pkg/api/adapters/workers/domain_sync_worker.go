@@ -25,6 +25,7 @@ type DomainSyncWorker struct {
 	webserverSyncer profiles.WebserverSyncer
 	dnsConfig       *profiles.DNSVerificationConfig
 	runtimeStates   *runtime_states.Service
+	baseDomains     []string
 }
 
 // NewDomainSyncWorker creates a new domain sync worker.
@@ -36,6 +37,17 @@ func NewDomainSyncWorker(
 	dnsConfig *profiles.DNSVerificationConfig,
 	runtimeStates *runtime_states.Service,
 ) *DomainSyncWorker {
+	baseDomains := make([]string, 0)
+
+	if config.BaseDomains != "" {
+		for _, d := range strings.Split(config.BaseDomains, ",") {
+			trimmed := strings.TrimSpace(d)
+			if trimmed != "" {
+				baseDomains = append(baseDomains, trimmed)
+			}
+		}
+	}
+
 	return &DomainSyncWorker{
 		config:          config,
 		logger:          logger,
@@ -43,6 +55,7 @@ func NewDomainSyncWorker(
 		webserverSyncer: webserverSyncer,
 		dnsConfig:       dnsConfig,
 		runtimeStates:   runtimeStates,
+		baseDomains:     baseDomains,
 	}
 }
 
@@ -240,22 +253,31 @@ func (w *DomainSyncWorker) computeNewStatus(
 
 // syncWebserver syncs verified domains to the webserver infrastructure.
 func (w *DomainSyncWorker) syncWebserver(ctx context.Context) error {
+	if len(w.baseDomains) == 0 {
+		w.logger.WarnContext(ctx, "No base domains configured, skipping webserver sync")
+
+		return nil
+	}
+
 	// Get domains that should be active (verified + expired within grace period)
 	activeDomains, err := w.profileRepo.ListVerifiedCustomDomains(ctx)
 	if err != nil {
 		return fmt.Errorf("listing verified domains: %w", err)
 	}
 
-	// Build desired domain set: base domains + active custom domains
-	baseDomains := w.webserverSyncer.BaseDomains()
-	desired := make([]string, 0, len(baseDomains)+len(activeDomains))
-	desired = append(desired, baseDomains...)
+	// Build desired domain set: base domains + active custom domains (all bare)
+	desired := make([]string, 0, len(w.baseDomains)+len(activeDomains)*2)
+	desired = append(desired, w.baseDomains...)
 
 	for _, d := range activeDomains {
-		desired = append(desired, "https://"+d.Domain)
+		desired = append(desired, d.Domain)
+
+		if d.WwwPrefix {
+			desired = append(desired, "www."+d.Domain)
+		}
 	}
 
-	// Get current domains from webserver
+	// Get current domains from webserver (returned as bare domains)
 	current, err := w.webserverSyncer.GetCurrentDomains(ctx)
 	if err != nil {
 		return fmt.Errorf("getting current domains: %w", err)
@@ -274,8 +296,9 @@ func (w *DomainSyncWorker) syncWebserver(ctx context.Context) error {
 		slog.Int("desired_count", len(desired)))
 
 	// Update webserver
-	if err := w.webserverSyncer.UpdateDomains(ctx, desired); err != nil {
-		return fmt.Errorf("updating webserver domains: %w", err)
+	updateErr := w.webserverSyncer.UpdateDomains(ctx, desired)
+	if updateErr != nil {
+		return fmt.Errorf("updating webserver domains: %w", updateErr)
 	}
 
 	// Update webserver_synced flags for active domains

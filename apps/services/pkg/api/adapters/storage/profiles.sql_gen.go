@@ -999,7 +999,7 @@ func (q *Queries) GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfile
 const getCustomDomainByDomain = `-- name: GetCustomDomainByDomain :one
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.domain = $1
 LIMIT 1
@@ -1019,6 +1019,7 @@ type GetCustomDomainByDomainRow struct {
 	LastDnsCheckAt     sql.NullTime   `db:"last_dns_check_at" json:"last_dns_check_at"`
 	ExpiredAt          sql.NullTime   `db:"expired_at" json:"expired_at"`
 	WebserverSynced    bool           `db:"webserver_synced" json:"webserver_synced"`
+	WwwPrefix          bool           `db:"www_prefix" json:"www_prefix"`
 	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
@@ -1027,7 +1028,7 @@ type GetCustomDomainByDomainRow struct {
 //
 //	SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 //	       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-//	       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+//	       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 //	FROM "profile_custom_domain" pcd
 //	WHERE pcd.domain = $1
 //	LIMIT 1
@@ -1044,6 +1045,7 @@ func (q *Queries) GetCustomDomainByDomain(ctx context.Context, arg GetCustomDoma
 		&i.LastDnsCheckAt,
 		&i.ExpiredAt,
 		&i.WebserverSynced,
+		&i.WwwPrefix,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -2575,7 +2577,7 @@ func (q *Queries) GetUserProfilePermissions(ctx context.Context, arg GetUserProf
 const listAllCustomDomains = `-- name: ListAllCustomDomains :many
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 ORDER BY pcd.created_at
 `
@@ -2590,6 +2592,7 @@ type ListAllCustomDomainsRow struct {
 	LastDnsCheckAt     sql.NullTime   `db:"last_dns_check_at" json:"last_dns_check_at"`
 	ExpiredAt          sql.NullTime   `db:"expired_at" json:"expired_at"`
 	WebserverSynced    bool           `db:"webserver_synced" json:"webserver_synced"`
+	WwwPrefix          bool           `db:"www_prefix" json:"www_prefix"`
 	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
@@ -2598,7 +2601,7 @@ type ListAllCustomDomainsRow struct {
 //
 //	SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 //	       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-//	       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+//	       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 //	FROM "profile_custom_domain" pcd
 //	ORDER BY pcd.created_at
 func (q *Queries) ListAllCustomDomains(ctx context.Context) ([]*ListAllCustomDomainsRow, error) {
@@ -2620,6 +2623,7 @@ func (q *Queries) ListAllCustomDomains(ctx context.Context) ([]*ListAllCustomDom
 			&i.LastDnsCheckAt,
 			&i.ExpiredAt,
 			&i.WebserverSynced,
+			&i.WwwPrefix,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -2890,7 +2894,7 @@ func (q *Queries) ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfil
 const listCustomDomainsByProfileID = `-- name: ListCustomDomainsByProfileID :many
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.profile_id = $1
 ORDER BY pcd.created_at
@@ -2910,6 +2914,7 @@ type ListCustomDomainsByProfileIDRow struct {
 	LastDnsCheckAt     sql.NullTime   `db:"last_dns_check_at" json:"last_dns_check_at"`
 	ExpiredAt          sql.NullTime   `db:"expired_at" json:"expired_at"`
 	WebserverSynced    bool           `db:"webserver_synced" json:"webserver_synced"`
+	WwwPrefix          bool           `db:"www_prefix" json:"www_prefix"`
 	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
@@ -2918,7 +2923,7 @@ type ListCustomDomainsByProfileIDRow struct {
 //
 //	SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 //	       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-//	       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+//	       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 //	FROM "profile_custom_domain" pcd
 //	WHERE pcd.profile_id = $1
 //	ORDER BY pcd.created_at
@@ -2941,6 +2946,7 @@ func (q *Queries) ListCustomDomainsByProfileID(ctx context.Context, arg ListCust
 			&i.LastDnsCheckAt,
 			&i.ExpiredAt,
 			&i.WebserverSynced,
+			&i.WwwPrefix,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -4344,7 +4350,7 @@ func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*
 const listVerifiedCustomDomains = `-- name: ListVerifiedCustomDomains :many
 SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
        pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.verification_status IN ('verified', 'expired')
 ORDER BY pcd.created_at
@@ -4360,6 +4366,7 @@ type ListVerifiedCustomDomainsRow struct {
 	LastDnsCheckAt     sql.NullTime   `db:"last_dns_check_at" json:"last_dns_check_at"`
 	ExpiredAt          sql.NullTime   `db:"expired_at" json:"expired_at"`
 	WebserverSynced    bool           `db:"webserver_synced" json:"webserver_synced"`
+	WwwPrefix          bool           `db:"www_prefix" json:"www_prefix"`
 	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
@@ -4368,7 +4375,7 @@ type ListVerifiedCustomDomainsRow struct {
 //
 //	SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 //	       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-//	       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+//	       pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 //	FROM "profile_custom_domain" pcd
 //	WHERE pcd.verification_status IN ('verified', 'expired')
 //	ORDER BY pcd.created_at
@@ -4391,6 +4398,7 @@ func (q *Queries) ListVerifiedCustomDomains(ctx context.Context) ([]*ListVerifie
 			&i.LastDnsCheckAt,
 			&i.ExpiredAt,
 			&i.WebserverSynced,
+			&i.WwwPrefix,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

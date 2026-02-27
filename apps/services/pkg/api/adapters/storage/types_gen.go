@@ -213,6 +213,7 @@ type ProfileCustomDomain struct {
 	LastDnsCheckAt     sql.NullTime   `db:"last_dns_check_at" json:"last_dns_check_at"`
 	ExpiredAt          sql.NullTime   `db:"expired_at" json:"expired_at"`
 	WebserverSynced    bool           `db:"webserver_synced" json:"webserver_synced"`
+	WwwPrefix          bool           `db:"www_prefix" json:"www_prefix"`
 }
 
 type ProfileLink struct {

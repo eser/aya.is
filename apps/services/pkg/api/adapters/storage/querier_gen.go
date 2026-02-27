@@ -891,7 +891,7 @@ type Querier interface {
 	//
 	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+	//         pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 	//  FROM "profile_custom_domain" pcd
 	//  WHERE pcd.domain = $1
 	//  LIMIT 1
@@ -2203,7 +2203,7 @@ type Querier interface {
 	//
 	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+	//         pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 	//  FROM "profile_custom_domain" pcd
 	//  ORDER BY pcd.created_at
 	ListAllCustomDomains(ctx context.Context) ([]*ListAllCustomDomainsRow, error)
@@ -2362,7 +2362,7 @@ type Querier interface {
 	//
 	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+	//         pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 	//  FROM "profile_custom_domain" pcd
 	//  WHERE pcd.profile_id = $1
 	//  ORDER BY pcd.created_at
@@ -3475,7 +3475,7 @@ type Querier interface {
 	//
 	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
 	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
-	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+	//         pcd.expired_at, pcd.webserver_synced, pcd.www_prefix, pcd.created_at, pcd.updated_at
 	//  FROM "profile_custom_domain" pcd
 	//  WHERE pcd.verification_status IN ('verified', 'expired')
 	//  ORDER BY pcd.created_at

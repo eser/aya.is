@@ -16,54 +16,34 @@ import (
 )
 
 var (
-	ErrBaseDomainMissing = errors.New("base domain missing from update set")
-	ErrNotConfigured     = errors.New("coolify adapter not configured")
-	ErrAPIRequestFailed  = errors.New("coolify API request failed")
+	ErrNotConfigured    = errors.New("coolify adapter not configured")
+	ErrAPIRequestFailed = errors.New("coolify API request failed")
 )
 
 // Config holds configuration for the Coolify HTTP API adapter.
 type Config struct {
-	APIURL           string        `conf:"api_url"             default:"https://cool.acikyazilim.com/api/v1"`
+	APIURL           string        `conf:"api_url"            default:"https://cool.acikyazilim.com/api/v1"`
 	APIToken         string        `conf:"api_token"`
-	WebclientAppUUID string        `conf:"webclient_app_uuid"  default:"xkgccwc8sggsw0s44g04oo0k"`
-	RequestTimeout   time.Duration `conf:"request_timeout"     default:"30s"`
-	BaseDomains      string        `conf:"base_domains"`
+	WebclientAppUUID string        `conf:"webclient_app_uuid" default:"xkgccwc8sggsw0s44g04oo0k"`
+	RequestTimeout   time.Duration `conf:"request_timeout"    default:"30s"`
 }
 
 // Client implements profiles.WebserverSyncer for Coolify infrastructure.
 type Client struct {
-	config      *Config
-	logger      *logfx.Logger
-	httpClient  *http.Client
-	baseDomains []string
+	config     *Config
+	logger     *logfx.Logger
+	httpClient *http.Client
 }
 
 // NewClient creates a new Coolify API client.
 func NewClient(config *Config, logger *logfx.Logger) *Client {
-	baseDomains := make([]string, 0)
-
-	if config.BaseDomains != "" {
-		for _, d := range strings.Split(config.BaseDomains, ",") {
-			trimmed := strings.TrimSpace(d)
-			if trimmed != "" {
-				baseDomains = append(baseDomains, trimmed)
-			}
-		}
-	}
-
 	return &Client{
 		config: config,
 		logger: logger,
 		httpClient: &http.Client{
 			Timeout: config.RequestTimeout,
 		},
-		baseDomains: baseDomains,
 	}
-}
-
-// BaseDomains returns the configured base domains that must always be present.
-func (c *Client) BaseDomains() []string {
-	return c.baseDomains
 }
 
 // applicationResponse is the partial response from GET /applications/{uuid}.
@@ -72,6 +52,7 @@ type applicationResponse struct {
 }
 
 // GetCurrentDomains retrieves the current domain list from the Coolify API.
+// Returns bare domains (without https:// prefix).
 func (c *Client) GetCurrentDomains(ctx context.Context) ([]string, error) {
 	if c.config.APIToken == "" {
 		return nil, ErrNotConfigured
@@ -97,7 +78,12 @@ func (c *Client) GetCurrentDomains(ctx context.Context) ([]string, error) {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 
-		return nil, fmt.Errorf("%w: status %d, body: %s", ErrAPIRequestFailed, resp.StatusCode, string(body))
+		return nil, fmt.Errorf(
+			"%w: status %d, body: %s",
+			ErrAPIRequestFailed,
+			resp.StatusCode,
+			string(body),
+		)
 	}
 
 	var appResp applicationResponse
@@ -110,10 +96,15 @@ func (c *Client) GetCurrentDomains(ctx context.Context) ([]string, error) {
 		return []string{}, nil
 	}
 
+	// Coolify stores domains as "https://domain1,https://domain2"
+	// Strip the protocol prefix to return bare domains
 	domains := make([]string, 0)
+
 	for _, d := range strings.Split(appResp.FQDN, ",") {
 		trimmed := strings.TrimSpace(d)
 		if trimmed != "" {
+			trimmed = strings.TrimPrefix(trimmed, "https://")
+			trimmed = strings.TrimPrefix(trimmed, "http://")
 			domains = append(domains, trimmed)
 		}
 	}
@@ -127,29 +118,24 @@ type updateRequest struct {
 }
 
 // UpdateDomains updates the domain list on the Coolify webclient app.
-// It refuses to execute if any base domain is missing from the provided list.
+// Accepts bare domains (e.g. "aya.is") and adds https:// prefix for the Coolify API.
 func (c *Client) UpdateDomains(ctx context.Context, domains []string) error {
 	if c.config.APIToken == "" {
 		return ErrNotConfigured
 	}
 
-	// Safety: verify all base domains are present
-	domainSet := make(map[string]bool, len(domains))
+	// Add https:// prefix for Coolify API
+	fqdns := make([]string, 0, len(domains))
+
 	for _, d := range domains {
-		domainSet[d] = true
+		fqdns = append(fqdns, "https://"+d)
 	}
 
-	for _, base := range c.baseDomains {
-		if !domainSet[base] {
-			return fmt.Errorf("%w: %s", ErrBaseDomainMissing, base)
-		}
-	}
-
-	domainStr := strings.Join(domains, ",")
+	domainStr := strings.Join(fqdns, ",")
 
 	c.logger.WarnContext(ctx, "Updating Coolify domains",
 		slog.String("app_uuid", c.config.WebclientAppUUID),
-		slog.Int("domain_count", len(domains)),
+		slog.Int("domain_count", len(fqdns)),
 		slog.String("domains", domainStr))
 
 	body, err := json.Marshal(updateRequest{Domains: domainStr})
@@ -178,11 +164,16 @@ func (c *Client) UpdateDomains(ctx context.Context, domains []string) error {
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
 
-		return fmt.Errorf("%w: status %d, body: %s", ErrAPIRequestFailed, resp.StatusCode, string(respBody))
+		return fmt.Errorf(
+			"%w: status %d, body: %s",
+			ErrAPIRequestFailed,
+			resp.StatusCode,
+			string(respBody),
+		)
 	}
 
 	c.logger.WarnContext(ctx, "Successfully updated Coolify domains",
-		slog.Int("domain_count", len(domains)))
+		slog.Int("domain_count", len(fqdns)))
 
 	return nil
 }

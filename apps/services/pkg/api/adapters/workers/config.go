@@ -38,6 +38,7 @@ type DomainSyncConfig struct {
 	Enabled       bool          `conf:"enabled"        default:"false"`
 	SyncInterval  time.Duration `conf:"sync_interval"  default:"5m"`
 	CheckInterval time.Duration `conf:"check_interval" default:"1m"`
+	BaseDomains   string        `conf:"base_domains"`
 }
 
 // Config holds all worker configurations.

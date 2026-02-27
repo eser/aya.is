@@ -129,6 +129,7 @@ type ProfileCustomDomain struct {
 	Domain             string     `json:"domain"`
 	VerificationStatus string     `json:"verification_status"`
 	WebserverSynced    bool       `json:"webserver_synced"`
+	WwwPrefix          bool       `json:"www_prefix"`
 }
 
 type ProfileWithChildren struct {
