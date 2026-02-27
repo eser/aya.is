@@ -696,6 +696,7 @@ type Repository interface { //nolint:interfacebloat
 type WebserverSyncer interface {
 	GetCurrentDomains(ctx context.Context) ([]string, error)
 	UpdateDomains(ctx context.Context, domains []string) error
+	RestartApplication(ctx context.Context) error
 }
 
 type Service struct {

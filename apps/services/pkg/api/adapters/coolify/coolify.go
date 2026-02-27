@@ -177,3 +177,44 @@ func (c *Client) UpdateDomains(ctx context.Context, domains []string) error {
 
 	return nil
 }
+
+// RestartApplication triggers a container restart on Coolify to apply domain changes.
+// This regenerates Traefik labels without a full rebuild/redeploy.
+func (c *Client) RestartApplication(ctx context.Context) error {
+	if c.config.APIToken == "" {
+		return ErrNotConfigured
+	}
+
+	url := fmt.Sprintf("%s/applications/%s/restart", c.config.APIURL, c.config.WebclientAppUUID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.config.APIToken)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+
+		return fmt.Errorf(
+			"%w: restart status %d, body: %s",
+			ErrAPIRequestFailed,
+			resp.StatusCode,
+			string(respBody),
+		)
+	}
+
+	c.logger.WarnContext(ctx, "Triggered Coolify application restart to apply domain changes",
+		slog.String("app_uuid", c.config.WebclientAppUUID))
+
+	return nil
+}

@@ -64,26 +64,18 @@ func (w *DomainSyncWorker) Name() string {
 	return "domain-sync"
 }
 
-// Interval returns the check interval.
+// Interval returns the sync interval (how often the worker runs).
 func (w *DomainSyncWorker) Interval() time.Duration {
-	return w.config.CheckInterval
+	return w.config.SyncInterval
 }
 
-// Execute checks the distributed schedule and runs a sync cycle if it's time.
+// Execute runs a DNS verification + webserver sync cycle.
 func (w *DomainSyncWorker) Execute(ctx context.Context) error {
 	// Check if worker is disabled by admin
 	disabledKey := "worker." + w.Name() + ".disabled"
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
 	if err == nil && disabled == "true" {
-		return workerfx.ErrWorkerSkipped
-	}
-
-	// Check if it's time to run based on persisted schedule
-	nextRunKey := "domain.sync.domain_sync_worker.next_run_at"
-
-	nextRunAt, err := w.runtimeStates.GetTime(ctx, nextRunKey)
-	if err == nil && time.Now().Before(nextRunAt) {
 		return workerfx.ErrWorkerSkipped
 	}
 
@@ -109,13 +101,6 @@ func (w *DomainSyncWorker) Execute(ctx context.Context) error {
 				slog.String("error", releaseErr.Error()))
 		}
 	}()
-
-	// Claim the next slot before executing
-	setErr := w.runtimeStates.SetTime(ctx, nextRunKey, time.Now().Add(w.config.SyncInterval))
-	if setErr != nil {
-		w.logger.WarnContext(ctx, "Failed to set next run time for domain sync",
-			slog.String("error", setErr.Error()))
-	}
 
 	return w.executeSync(ctx)
 }
@@ -299,6 +284,13 @@ func (w *DomainSyncWorker) syncWebserver(ctx context.Context) error {
 	updateErr := w.webserverSyncer.UpdateDomains(ctx, desired)
 	if updateErr != nil {
 		return fmt.Errorf("updating webserver domains: %w", updateErr)
+	}
+
+	// Restart application to apply the new domain configuration
+	restartErr := w.webserverSyncer.RestartApplication(ctx)
+	if restartErr != nil {
+		w.logger.ErrorContext(ctx, "Failed to restart application after domain update",
+			slog.Any("error", restartErr))
 	}
 
 	// Update webserver_synced flags for active domains
