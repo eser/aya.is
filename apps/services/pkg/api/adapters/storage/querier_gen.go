@@ -889,11 +889,13 @@ type Querier interface {
 	GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfileBySlugParams) (*GetAdminProfileBySlugRow, error)
 	//GetCustomDomainByDomain
 	//
-	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
 	//  FROM "profile_custom_domain" pcd
 	//  WHERE pcd.domain = $1
 	//  LIMIT 1
-	GetCustomDomainByDomain(ctx context.Context, arg GetCustomDomainByDomainParams) (*ProfileCustomDomain, error)
+	GetCustomDomainByDomain(ctx context.Context, arg GetCustomDomainByDomainParams) (*GetCustomDomainByDomainRow, error)
 	//GetDiscussionComment
 	//
 	//  SELECT
@@ -2197,6 +2199,14 @@ type Querier interface {
 	//    AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
 	//  ORDER BY (s.properties->>'activity_time_start') DESC NULLS LAST
 	ListActivityStories(ctx context.Context, arg ListActivityStoriesParams) ([]*ListActivityStoriesRow, error)
+	//ListAllCustomDomains
+	//
+	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+	//  FROM "profile_custom_domain" pcd
+	//  ORDER BY pcd.created_at
+	ListAllCustomDomains(ctx context.Context) ([]*ListAllCustomDomainsRow, error)
 	//ListAllProfileLinksByProfileID
 	//
 	//  SELECT
@@ -2350,11 +2360,13 @@ type Querier interface {
 	ListConversationsForProfile(ctx context.Context, arg ListConversationsForProfileParams) ([]*ListConversationsForProfileRow, error)
 	//ListCustomDomainsByProfileID
 	//
-	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
 	//  FROM "profile_custom_domain" pcd
 	//  WHERE pcd.profile_id = $1
 	//  ORDER BY pcd.created_at
-	ListCustomDomainsByProfileID(ctx context.Context, arg ListCustomDomainsByProfileIDParams) ([]*ProfileCustomDomain, error)
+	ListCustomDomainsByProfileID(ctx context.Context, arg ListCustomDomainsByProfileIDParams) ([]*ListCustomDomainsByProfileIDRow, error)
 	//ListEnvelopesByConversation
 	//
 	//  SELECT
@@ -3459,6 +3471,15 @@ type Querier interface {
 	//  WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND deleted_at IS NULL
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, error)
+	//ListVerifiedCustomDomains
+	//
+	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+	//         pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+	//         pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+	//  FROM "profile_custom_domain" pcd
+	//  WHERE pcd.verification_status IN ('verified', 'expired')
+	//  ORDER BY pcd.created_at
+	ListVerifiedCustomDomains(ctx context.Context) ([]*ListVerifiedCustomDomainsRow, error)
 	//MarkLinkImportsDeletedExcept
 	//
 	//  UPDATE "profile_link_import"
@@ -3864,6 +3885,23 @@ type Querier interface {
 	//    updated_at = NOW()
 	//  WHERE id = $3
 	UpdateCustomDomain(ctx context.Context, arg UpdateCustomDomainParams) (int64, error)
+	//UpdateCustomDomainVerification
+	//
+	//  UPDATE "profile_custom_domain"
+	//  SET verification_status = $1,
+	//      dns_verified_at = $2,
+	//      last_dns_check_at = NOW(),
+	//      expired_at = $3,
+	//      updated_at = NOW()
+	//  WHERE id = $4
+	UpdateCustomDomainVerification(ctx context.Context, arg UpdateCustomDomainVerificationParams) (int64, error)
+	//UpdateCustomDomainWebserverSynced
+	//
+	//  UPDATE "profile_custom_domain"
+	//  SET webserver_synced = $1,
+	//      updated_at = NOW()
+	//  WHERE id = $2
+	UpdateCustomDomainWebserverSynced(ctx context.Context, arg UpdateCustomDomainWebserverSyncedParams) (int64, error)
 	//UpdateDiscussionCommentContent
 	//
 	//  UPDATE "discussion_comment"

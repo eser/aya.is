@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -178,12 +179,17 @@ func (r *Repository) GetCustomDomainByDomain(
 			}
 
 			return &profiles.ProfileCustomDomain{
-				ID:            row.ID,
-				ProfileID:     row.ProfileID,
-				Domain:        row.Domain,
-				DefaultLocale: vars.ToStringPtr(row.DefaultLocale),
-				CreatedAt:     row.CreatedAt,
-				UpdatedAt:     vars.ToTimePtr(row.UpdatedAt),
+				ID:                 row.ID,
+				ProfileID:          row.ProfileID,
+				Domain:             row.Domain,
+				DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
+				VerificationStatus: row.VerificationStatus,
+				DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+				LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+				ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
+				WebserverSynced:    row.WebserverSynced,
+				CreatedAt:          row.CreatedAt,
+				UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
 			}, nil
 		},
 	)
@@ -206,16 +212,107 @@ func (r *Repository) ListCustomDomainsByProfileID(
 	result := make([]*profiles.ProfileCustomDomain, 0, len(rows))
 	for _, row := range rows {
 		result = append(result, &profiles.ProfileCustomDomain{
-			ID:            row.ID,
-			ProfileID:     row.ProfileID,
-			Domain:        row.Domain,
-			DefaultLocale: vars.ToStringPtr(row.DefaultLocale),
-			CreatedAt:     row.CreatedAt,
-			UpdatedAt:     vars.ToTimePtr(row.UpdatedAt),
+			ID:                 row.ID,
+			ProfileID:          row.ProfileID,
+			Domain:             row.Domain,
+			DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
+			VerificationStatus: row.VerificationStatus,
+			DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
+			WebserverSynced:    row.WebserverSynced,
+			CreatedAt:          row.CreatedAt,
+			UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
 		})
 	}
 
 	return result, nil
+}
+
+func (r *Repository) ListAllCustomDomains(
+	ctx context.Context,
+) ([]*profiles.ProfileCustomDomain, error) {
+	rows, err := r.queries.ListAllCustomDomains(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.ProfileCustomDomain, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &profiles.ProfileCustomDomain{
+			ID:                 row.ID,
+			ProfileID:          row.ProfileID,
+			Domain:             row.Domain,
+			DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
+			VerificationStatus: row.VerificationStatus,
+			DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
+			WebserverSynced:    row.WebserverSynced,
+			CreatedAt:          row.CreatedAt,
+			UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) ListVerifiedCustomDomains(
+	ctx context.Context,
+) ([]*profiles.ProfileCustomDomain, error) {
+	rows, err := r.queries.ListVerifiedCustomDomains(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*profiles.ProfileCustomDomain, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, &profiles.ProfileCustomDomain{
+			ID:                 row.ID,
+			ProfileID:          row.ProfileID,
+			Domain:             row.Domain,
+			DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
+			VerificationStatus: row.VerificationStatus,
+			DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
+			WebserverSynced:    row.WebserverSynced,
+			CreatedAt:          row.CreatedAt,
+			UpdatedAt:          vars.ToTimePtr(row.UpdatedAt),
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) UpdateCustomDomainVerification(
+	ctx context.Context,
+	id string,
+	status string,
+	dnsVerifiedAt *time.Time,
+	expiredAt *time.Time,
+) error {
+	_, err := r.queries.UpdateCustomDomainVerification(ctx, UpdateCustomDomainVerificationParams{
+		ID:                 id,
+		VerificationStatus: status,
+		DnsVerifiedAt:      vars.ToSQLNullTime(dnsVerifiedAt),
+		ExpiredAt:          vars.ToSQLNullTime(expiredAt),
+	})
+
+	return err
+}
+
+func (r *Repository) UpdateCustomDomainWebserverSynced(
+	ctx context.Context,
+	id string,
+	synced bool,
+) error {
+	_, err := r.queries.UpdateCustomDomainWebserverSynced(ctx, UpdateCustomDomainWebserverSyncedParams{
+		ID:              id,
+		WebserverSynced: synced,
+	})
+
+	return err
 }
 
 func (r *Repository) CreateCustomDomain(

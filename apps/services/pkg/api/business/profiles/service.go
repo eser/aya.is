@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
@@ -76,6 +77,9 @@ type Config struct {
 
 	// ForbiddenSlugs is a comma-separated list of reserved slugs that cannot be used as profile slugs.
 	ForbiddenSlugs string `conf:"forbidden_slugs" default:"about,admin,api,auth,communities,community,config,contact,contributions,dashboard,element,elements,events,faq,feed,guide,help,home,impressum,imprint,jobs,legal,login,logout,mailbox,new,news,null,organizations,orgs,people,policies,policy,privacy,product,products,profile,profiles,projects,register,root,search,services,settings,signin,signout,signup,site,stories,story,support,tag,tags,terms,tos,undefined,user,users,verify,wiki"`
+
+	// DNSVerification holds the expected DNS targets for custom domain verification.
+	DNSVerification DNSVerificationConfig `conf:"dns_verification"`
 }
 
 // GetAllowedURIPrefixes returns the allowed URI prefixes as a slice.
@@ -172,6 +176,8 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		profileID string,
 	) ([]*ProfileCustomDomain, error)
+	ListAllCustomDomains(ctx context.Context) ([]*ProfileCustomDomain, error)
+	ListVerifiedCustomDomains(ctx context.Context) ([]*ProfileCustomDomain, error)
 	CreateCustomDomain(
 		ctx context.Context,
 		id string,
@@ -180,6 +186,8 @@ type Repository interface { //nolint:interfacebloat
 		defaultLocale *string,
 	) error
 	UpdateCustomDomain(ctx context.Context, id string, domain string, defaultLocale *string) error
+	UpdateCustomDomainVerification(ctx context.Context, id string, status string, dnsVerifiedAt *time.Time, expiredAt *time.Time) error
+	UpdateCustomDomainWebserverSynced(ctx context.Context, id string, synced bool) error
 	DeleteCustomDomain(ctx context.Context, id string) error
 	CheckProfileSlugExists(ctx context.Context, slug string) (bool, error)
 	CheckProfileSlugExistsIncludingDeleted(ctx context.Context, slug string) (bool, error)
@@ -681,6 +689,14 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		referralID string,
 	) (map[int]int, error)
+}
+
+// WebserverSyncer is the port for syncing custom domains to webserver infrastructure.
+// Implementations: Coolify adapter (current), nginx, Vercel, etc.
+type WebserverSyncer interface {
+	GetCurrentDomains(ctx context.Context) ([]string, error)
+	UpdateDomains(ctx context.Context, domains []string) error
+	BaseDomains() []string
 }
 
 type Service struct {

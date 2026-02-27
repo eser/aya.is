@@ -272,4 +272,24 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 			return runner.Run(ctx)
 		})
 	}
+
+	// Custom domain sync worker (DNS verification + webserver sync)
+	if appContext.Config.Workers.DomainSync.Enabled {
+		domainSyncWorker := workers.NewDomainSyncWorker(
+			&appContext.Config.Workers.DomainSync,
+			appContext.Logger,
+			appContext.Repository,
+			appContext.WebserverSyncer,
+			&appContext.Config.Profiles.DNSVerification,
+			appContext.RuntimeStateService,
+		)
+
+		runner := workerfx.NewRunner(domainSyncWorker, appContext.Logger)
+		runner.SetStateKey("domain.sync.domain_sync_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("domain-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
 }

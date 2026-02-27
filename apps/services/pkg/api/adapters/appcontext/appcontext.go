@@ -16,6 +16,7 @@ import (
 	appleadapter "github.com/eser/aya.is/services/pkg/api/adapters/apple"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
+	"github.com/eser/aya.is/services/pkg/api/adapters/coolify"
 	"github.com/eser/aya.is/services/pkg/api/adapters/externalsite"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
@@ -109,6 +110,9 @@ type AppContext struct {
 	QueueRegistry              *events.HandlerRegistry
 	RuntimeStateService        *runtime_states.Service
 	WorkerRegistry             *workerfx.Registry
+
+	// Infrastructure
+	WebserverSyncer profiles.WebserverSyncer
 }
 
 func New() *AppContext {
@@ -536,6 +540,11 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			slog.String("module", "appcontext"),
 			slog.String("bot_username", a.Config.Telegram.BotUsername))
 	}
+
+	// ----------------------------------------------------
+	// Infrastructure: Webserver Syncer (Coolify)
+	// ----------------------------------------------------
+	a.WebserverSyncer = coolify.NewClient(&a.Config.Coolify, a.Logger)
 
 	// ----------------------------------------------------
 	// Auth Providers (adapters)

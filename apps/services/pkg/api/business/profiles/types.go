@@ -107,13 +107,28 @@ type Profile struct {
 	OptionStoryDiscussionsByDefault bool       `json:"option_story_discussions_by_default"`
 }
 
+// Domain verification status constants.
+const (
+	DomainStatusPending  = "pending"
+	DomainStatusVerified = "verified"
+	DomainStatusExpired  = "expired"
+	DomainStatusFailed   = "failed"
+
+	DomainExpiredGracePeriod = 24 * time.Hour
+)
+
 type ProfileCustomDomain struct {
-	CreatedAt     time.Time  `json:"created_at"`
-	UpdatedAt     *time.Time `json:"updated_at"`
-	DefaultLocale *string    `json:"default_locale"`
-	ID            string     `json:"id"`
-	ProfileID     string     `json:"profile_id"`
-	Domain        string     `json:"domain"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          *time.Time `json:"updated_at"`
+	DnsVerifiedAt      *time.Time `json:"dns_verified_at"`
+	LastDnsCheckAt     *time.Time `json:"last_dns_check_at"`
+	ExpiredAt          *time.Time `json:"expired_at"`
+	DefaultLocale      *string    `json:"default_locale"`
+	ID                 string     `json:"id"`
+	ProfileID          string     `json:"profile_id"`
+	Domain             string     `json:"domain"`
+	VerificationStatus string     `json:"verification_status"`
+	WebserverSynced    bool       `json:"webserver_synced"`
 }
 
 type ProfileWithChildren struct {

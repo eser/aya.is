@@ -3,6 +3,7 @@ package appcontext
 import (
 	"github.com/eser/aya.is/services/pkg/ajan"
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
+	"github.com/eser/aya.is/services/pkg/api/adapters/coolify"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	telegramadapter "github.com/eser/aya.is/services/pkg/api/adapters/telegram"
 	"github.com/eser/aya.is/services/pkg/api/adapters/unsplash"
@@ -38,6 +39,7 @@ type AppConfig struct {
 	S3         s3client.Config        `conf:"s3"`
 	Externals  ExternalsConfig        `conf:"externals"`
 	Workers    workers.Config         `conf:"workers"`
+	Coolify    coolify.Config         `conf:"coolify"`
 	Telegram   telegramadapter.Config `conf:"telegram"`
 	SiteURI    string                 `conf:"site_uri"   default:"http://localhost:8080"`
 	ajan.BaseConfig

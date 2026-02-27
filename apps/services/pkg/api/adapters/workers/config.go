@@ -33,12 +33,20 @@ type ExternalSiteSyncConfig struct {
 	BatchSize        int           `conf:"batch_size"         default:"10"`
 }
 
+// DomainSyncConfig holds configuration for the custom domain sync worker.
+type DomainSyncConfig struct {
+	Enabled       bool          `conf:"enabled"        default:"false"`
+	SyncInterval  time.Duration `conf:"sync_interval"  default:"5m"`
+	CheckInterval time.Duration `conf:"check_interval" default:"1m"`
+}
+
 // Config holds all worker configurations.
 type Config struct {
 	YouTubeSync      YouTubeSyncConfig        `conf:"youtube_sync"`
 	GitHubSync       GitHubSyncConfig         `conf:"github_sync"`
 	SpeakerDeckSync  SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
 	ExternalSiteSync ExternalSiteSyncConfig   `conf:"external_site_sync"`
+	DomainSync       DomainSyncConfig         `conf:"domain_sync"`
 	Queue            QueueWorkerConfig        `conf:"queue"`
 	TelegramBot      TelegramBotPollingConfig `conf:"telegram_bot"`
 }

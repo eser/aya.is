@@ -202,12 +202,17 @@ type Profile struct {
 }
 
 type ProfileCustomDomain struct {
-	ID            string         `db:"id" json:"id"`
-	ProfileID     string         `db:"profile_id" json:"profile_id"`
-	Domain        string         `db:"domain" json:"domain"`
-	DefaultLocale sql.NullString `db:"default_locale" json:"default_locale"`
-	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt     sql.NullTime   `db:"updated_at" json:"updated_at"`
+	ID                 string         `db:"id" json:"id"`
+	ProfileID          string         `db:"profile_id" json:"profile_id"`
+	Domain             string         `db:"domain" json:"domain"`
+	DefaultLocale      sql.NullString `db:"default_locale" json:"default_locale"`
+	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt          sql.NullTime   `db:"updated_at" json:"updated_at"`
+	VerificationStatus string         `db:"verification_status" json:"verification_status"`
+	DnsVerifiedAt      sql.NullTime   `db:"dns_verified_at" json:"dns_verified_at"`
+	LastDnsCheckAt     sql.NullTime   `db:"last_dns_check_at" json:"last_dns_check_at"`
+	ExpiredAt          sql.NullTime   `db:"expired_at" json:"expired_at"`
+	WebserverSynced    bool           `db:"webserver_synced" json:"webserver_synced"`
 }
 
 type ProfileLink struct {

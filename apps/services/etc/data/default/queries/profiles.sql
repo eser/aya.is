@@ -19,13 +19,17 @@ SELECT EXISTS(
 ) AS exists;
 
 -- name: GetCustomDomainByDomain :one
-SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.domain = sqlc.arg(domain)
 LIMIT 1;
 
 -- name: ListCustomDomainsByProfileID :many
-SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale, pcd.created_at, pcd.updated_at
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
 FROM "profile_custom_domain" pcd
 WHERE pcd.profile_id = sqlc.arg(profile_id)
 ORDER BY pcd.created_at;
@@ -44,6 +48,36 @@ WHERE id = sqlc.arg(id);
 
 -- name: DeleteCustomDomain :execrows
 DELETE FROM "profile_custom_domain"
+WHERE id = sqlc.arg(id);
+
+-- name: ListAllCustomDomains :many
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+FROM "profile_custom_domain" pcd
+ORDER BY pcd.created_at;
+
+-- name: ListVerifiedCustomDomains :many
+SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
+       pcd.verification_status, pcd.dns_verified_at, pcd.last_dns_check_at,
+       pcd.expired_at, pcd.webserver_synced, pcd.created_at, pcd.updated_at
+FROM "profile_custom_domain" pcd
+WHERE pcd.verification_status IN ('verified', 'expired')
+ORDER BY pcd.created_at;
+
+-- name: UpdateCustomDomainVerification :execrows
+UPDATE "profile_custom_domain"
+SET verification_status = sqlc.arg(verification_status),
+    dns_verified_at = sqlc.narg(dns_verified_at),
+    last_dns_check_at = NOW(),
+    expired_at = sqlc.narg(expired_at),
+    updated_at = NOW()
+WHERE id = sqlc.arg(id);
+
+-- name: UpdateCustomDomainWebserverSynced :execrows
+UPDATE "profile_custom_domain"
+SET webserver_synced = sqlc.arg(webserver_synced),
+    updated_at = NOW()
 WHERE id = sqlc.arg(id);
 
 -- name: GetProfileIdentifierByID :one
