@@ -59,6 +59,9 @@ FROM deps AS builder
 # Copy source code
 COPY ./apps/webclient/ ./
 
+# Give Vite/Rolldown enough heap for SSR transform on memory-constrained builders
+ENV NODE_OPTIONS=--max-old-space-size=4096
+
 # Build the application (with Deno cache)
 RUN --mount=type=cache,target=/root/.cache/deno \
     deno task build

@@ -64,6 +64,7 @@ import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/
 import { Route as LocaleSlugSettingsResourcesRouteImport } from './routes/$locale/$slug/settings/resources'
 import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$slug/settings/points'
 import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
+import { Route as LocaleSlugSettingsBulletinsRouteImport } from './routes/$locale/$slug/settings/bulletins'
 import { Route as LocaleSlugSettingsAccessRouteImport } from './routes/$locale/$slug/settings/access'
 import { Route as LocaleSlugMembersReferralsRouteImport } from './routes/$locale/$slug/members/referrals'
 import { Route as LocaleSlugPageslugEditRouteImport } from './routes/$locale/$slug/$pageslug/edit'
@@ -361,6 +362,12 @@ const LocaleSlugSettingsLinksRoute = LocaleSlugSettingsLinksRouteImport.update({
   path: '/links',
   getParentRoute: () => LocaleSlugSettingsRouteRoute,
 } as any)
+const LocaleSlugSettingsBulletinsRoute =
+  LocaleSlugSettingsBulletinsRouteImport.update({
+    id: '/bulletins',
+    path: '/bulletins',
+    getParentRoute: () => LocaleSlugSettingsRouteRoute,
+  } as any)
 const LocaleSlugSettingsAccessRoute =
   LocaleSlugSettingsAccessRouteImport.update({
     id: '/access',
@@ -472,6 +479,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/members/referrals': typeof LocaleSlugMembersReferralsRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
+  '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
@@ -524,6 +532,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/members/referrals': typeof LocaleSlugMembersReferralsRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
+  '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
@@ -593,6 +602,7 @@ export interface FileRoutesById {
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/members/referrals': typeof LocaleSlugMembersReferralsRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
+  '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
@@ -663,6 +673,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/members/referrals'
     | '/$locale/$slug/settings/access'
+    | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/resources'
@@ -715,6 +726,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/members/referrals'
     | '/$locale/$slug/settings/access'
+    | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/resources'
@@ -783,6 +795,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/members/referrals'
     | '/$locale/$slug/settings/access'
+    | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
     | '/$locale/$slug/settings/resources'
@@ -1201,6 +1214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsLinksRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
+    '/$locale/$slug/settings/bulletins': {
+      id: '/$locale/$slug/settings/bulletins'
+      path: '/bulletins'
+      fullPath: '/$locale/$slug/settings/bulletins'
+      preLoaderRoute: typeof LocaleSlugSettingsBulletinsRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
     '/$locale/$slug/settings/access': {
       id: '/$locale/$slug/settings/access'
       path: '/access'
@@ -1326,6 +1346,7 @@ const LocaleSlugQaRouteRouteWithChildren =
 
 interface LocaleSlugSettingsRouteRouteChildren {
   LocaleSlugSettingsAccessRoute: typeof LocaleSlugSettingsAccessRoute
+  LocaleSlugSettingsBulletinsRoute: typeof LocaleSlugSettingsBulletinsRoute
   LocaleSlugSettingsLinksRoute: typeof LocaleSlugSettingsLinksRoute
   LocaleSlugSettingsPointsRoute: typeof LocaleSlugSettingsPointsRoute
   LocaleSlugSettingsResourcesRoute: typeof LocaleSlugSettingsResourcesRoute
@@ -1338,6 +1359,7 @@ interface LocaleSlugSettingsRouteRouteChildren {
 const LocaleSlugSettingsRouteRouteChildren: LocaleSlugSettingsRouteRouteChildren =
   {
     LocaleSlugSettingsAccessRoute: LocaleSlugSettingsAccessRoute,
+    LocaleSlugSettingsBulletinsRoute: LocaleSlugSettingsBulletinsRoute,
     LocaleSlugSettingsLinksRoute: LocaleSlugSettingsLinksRoute,
     LocaleSlugSettingsPointsRoute: LocaleSlugSettingsPointsRoute,
     LocaleSlugSettingsResourcesRoute: LocaleSlugSettingsResourcesRoute,
