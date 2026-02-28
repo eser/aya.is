@@ -98,10 +98,10 @@ func buildTelegramProviders(appContext *appcontext.AppContext) *http.TelegramPro
 	}
 }
 
-func startWorkers(
+func startWorkers( //nolint:cyclop,funlen
 	process *processfx.Process,
 	appContext *appcontext.AppContext,
-) { //nolint:funlen,cyclop
+) {
 	idGen := func() string {
 		return string(users.DefaultIDGenerator())
 	}

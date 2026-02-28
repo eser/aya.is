@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/aifx"
@@ -109,6 +110,8 @@ Content:
 		MaxTokens: 8192,
 	})
 	if err != nil {
+		logAIErrorClassification(ctx, "translation", err)
+
 		return "", "", "", fmt.Errorf("%w: %w", ErrAIGenerationFailed, err)
 	}
 
@@ -248,6 +251,8 @@ The "content" field should contain the full markdown CV.`,
 		MaxTokens: 8192,
 	})
 	if err != nil {
+		logAIErrorClassification(ctx, "content generation", err)
+
 		return "", "", "", fmt.Errorf("%w: %w", ErrAIGenerationFailed, err)
 	}
 
@@ -261,6 +266,21 @@ The "content" field should contain the full markdown CV.`,
 	}
 
 	return generated.Title, generated.Summary, generated.Content, nil
+}
+
+// logAIErrorClassification emits a structured warning when an AI call fails,
+// tagging the log with the classified error category for observability.
+func logAIErrorClassification(ctx context.Context, operation string, err error) {
+	switch {
+	case errors.Is(err, aifx.ErrRateLimited):
+		slog.WarnContext(ctx, "AI rate limited", slog.String("operation", operation))
+	case errors.Is(err, aifx.ErrAuthFailed):
+		slog.ErrorContext(ctx, "AI authentication failed", slog.String("operation", operation))
+	case errors.Is(err, aifx.ErrInsufficientCredits):
+		slog.ErrorContext(ctx, "AI insufficient credits", slog.String("operation", operation))
+	case errors.Is(err, aifx.ErrServiceUnavailable):
+		slog.WarnContext(ctx, "AI service unavailable", slog.String("operation", operation))
+	}
 }
 
 // extractJSON strips markdown code fences from AI responses.

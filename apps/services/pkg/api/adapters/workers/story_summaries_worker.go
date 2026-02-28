@@ -3,6 +3,7 @@ package workers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -117,7 +118,7 @@ func (w *StorySummariesWorker) Execute(ctx context.Context) error {
 
 // processCompletedBatches checks all tracked batch jobs, persists results for completed ones,
 // and cleans up finished/stale entries. Returns true if any batches are still pending.
-func (w *StorySummariesWorker) processCompletedBatches( //nolint:funlen
+func (w *StorySummariesWorker) processCompletedBatches( //nolint:funlen,cyclop
 	ctx context.Context,
 ) (bool, error) {
 	tracked, err := w.runtimeStates.ListByPrefix(ctx, storySummariesBatchPrefix)
@@ -159,6 +160,18 @@ func (w *StorySummariesWorker) processCompletedBatches( //nolint:funlen
 		// Poll batch status
 		job, jobErr := w.summarizer.GetBatchJob(ctx, batch.JobID)
 		if jobErr != nil {
+			// Fatal configuration errors — stop retrying this batch
+			if errors.Is(jobErr, aifx.ErrAuthFailed) ||
+				errors.Is(jobErr, aifx.ErrInsufficientCredits) {
+				w.logger.ErrorContext(ctx, "AI configuration error, removing batch tracking",
+					slog.String("job_id", batch.JobID),
+					slog.String("error", jobErr.Error()))
+
+				_ = w.runtimeStates.Remove(ctx, state.Key)
+
+				continue
+			}
+
 			w.logger.WarnContext(ctx, "Failed to get batch job status",
 				slog.String("job_id", batch.JobID),
 				slog.String("error", jobErr.Error()))
@@ -273,6 +286,13 @@ func (w *StorySummariesWorker) submitNewBatch(ctx context.Context) error {
 
 	jobID, submitErr := w.summarizer.SubmitSummarizeBatch(ctx, unsummarized)
 	if submitErr != nil {
+		// Rate limited — silently skip this cycle, retry next interval
+		if errors.Is(submitErr, aifx.ErrRateLimited) {
+			w.logger.WarnContext(ctx, "AI rate limited, will retry next cycle")
+
+			return nil
+		}
+
 		return fmt.Errorf("submitting summarize batch: %w", submitErr)
 	}
 

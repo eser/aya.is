@@ -19,6 +19,23 @@ var (
 
 const vertexAIProviderName = "vertexai"
 
+// classifyVertexAIError wraps err with the provider sentinel and, when the
+// underlying error is a GenAI API error, inserts a provider-agnostic
+// classification sentinel so callers can use errors.Is without importing the SDK.
+func classifyVertexAIError(providerSentinel error, err error) error {
+	ctxErr := classifyContextError(providerSentinel, err)
+	if ctxErr != nil {
+		return ctxErr
+	}
+
+	var apiErr genai.APIError
+	if errors.As(err, &apiErr) {
+		return classifyAndWrap(providerSentinel, apiErr.Code, err)
+	}
+
+	return fmt.Errorf("%w: %w", providerSentinel, err)
+}
+
 // vertexAICapabilities lists the capabilities supported by the Vertex AI adapter.
 var vertexAICapabilities = []ProviderCapability{
 	CapabilityTextGeneration,
@@ -118,12 +135,12 @@ func (m *VertexAIModel) GenerateText(
 
 	resp, err := m.client.Models.GenerateContent(ctx, m.modelID, contents, config)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrVertexAIGenerationFailed, err)
+		return nil, classifyVertexAIError(ErrVertexAIGenerationFailed, err)
 	}
 
 	result, err := mapGenAIResponse(resp)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrVertexAIGenerationFailed, err)
+		return nil, classifyVertexAIError(ErrVertexAIGenerationFailed, err)
 	}
 
 	result.ModelID = m.modelID
@@ -149,7 +166,7 @@ func (m *VertexAIModel) StreamText(
 			if err != nil {
 				sendStreamEvent(streamCtx, eventCh, StreamEvent{
 					Type:  StreamEventError,
-					Error: fmt.Errorf("%w: %w", ErrVertexAIStreamFailed, err),
+					Error: classifyVertexAIError(ErrVertexAIStreamFailed, err),
 				})
 
 				return

@@ -25,6 +25,23 @@ var (
 
 const openaiProviderName = "openai"
 
+// classifyOpenAIError wraps err with the provider sentinel and, when the underlying
+// error is an OpenAI API error, inserts a provider-agnostic classification sentinel
+// (e.g. ErrRateLimited) so callers can use errors.Is without importing the SDK.
+func classifyOpenAIError(providerSentinel error, err error) error {
+	ctxErr := classifyContextError(providerSentinel, err)
+	if ctxErr != nil {
+		return ctxErr
+	}
+
+	var apiErr *openai.Error
+	if errors.As(err, &apiErr) {
+		return classifyAndWrap(providerSentinel, apiErr.StatusCode, err)
+	}
+
+	return fmt.Errorf("%w: %w", providerSentinel, err)
+}
+
 // openAIModelFactory creates OpenAI language models.
 type openAIModelFactory struct{}
 
@@ -111,12 +128,12 @@ func (m *OpenAIModel) GenerateText(
 ) (*GenerateTextResult, error) {
 	params, err := m.buildParams(opts)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrOpenAIGenerationFailed, err)
+		return nil, classifyOpenAIError(ErrOpenAIGenerationFailed, err)
 	}
 
 	completion, err := m.client.Chat.Completions.New(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrOpenAIGenerationFailed, err)
+		return nil, classifyOpenAIError(ErrOpenAIGenerationFailed, err)
 	}
 
 	result := m.mapCompletionToResult(completion)
@@ -133,7 +150,7 @@ func (m *OpenAIModel) StreamText(
 ) (*StreamIterator, error) {
 	params, err := m.buildParams(opts)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrOpenAIStreamFailed, err)
+		return nil, classifyOpenAIError(ErrOpenAIStreamFailed, err)
 	}
 
 	streamCtx, cancel := context.WithCancel(ctx)
@@ -187,7 +204,7 @@ func (m *OpenAIModel) processStream(
 	if err != nil {
 		eventCh <- StreamEvent{
 			Type:  StreamEventError,
-			Error: fmt.Errorf("%w: %w", ErrOpenAIStreamFailed, err),
+			Error: classifyOpenAIError(ErrOpenAIStreamFailed, err),
 		}
 
 		return
@@ -223,7 +240,7 @@ func (m *OpenAIModel) SubmitBatch(
 	// Build JSONL payload for the batch.
 	jsonlData, err := m.buildBatchJSONL(req)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrOpenAIBatchFailed, err)
+		return nil, classifyOpenAIError(ErrOpenAIBatchFailed, err)
 	}
 
 	// Upload the JSONL file.
@@ -232,7 +249,7 @@ func (m *OpenAIModel) SubmitBatch(
 		Purpose: openai.FilePurposeBatch,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%w: file upload: %w", ErrOpenAIBatchFailed, err)
+		return nil, fmt.Errorf("file upload: %w", classifyOpenAIError(ErrOpenAIBatchFailed, err))
 	}
 
 	// Create the batch.
@@ -242,7 +259,7 @@ func (m *OpenAIModel) SubmitBatch(
 		CompletionWindow: openai.BatchNewParamsCompletionWindow24h,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%w: batch create: %w", ErrOpenAIBatchFailed, err)
+		return nil, fmt.Errorf("batch create: %w", classifyOpenAIError(ErrOpenAIBatchFailed, err))
 	}
 
 	return mapOpenAIBatchToJob(batch), nil
@@ -255,7 +272,7 @@ func (m *OpenAIModel) GetBatchJob(
 ) (*BatchJob, error) {
 	batch, err := m.client.Batches.Get(ctx, jobID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrOpenAIBatchFailed, err)
+		return nil, classifyOpenAIError(ErrOpenAIBatchFailed, err)
 	}
 
 	return mapOpenAIBatchToJob(batch), nil
@@ -280,7 +297,7 @@ func (m *OpenAIModel) ListBatchJobs(
 
 	page, err := m.client.Batches.List(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrOpenAIBatchFailed, err)
+		return nil, classifyOpenAIError(ErrOpenAIBatchFailed, err)
 	}
 
 	jobs := make([]*BatchJob, 0, len(page.Data))
@@ -302,13 +319,16 @@ func (m *OpenAIModel) DownloadBatchResults(
 
 	content, err := m.client.Files.Content(ctx, job.Storage.OutputRef)
 	if err != nil {
-		return nil, fmt.Errorf("%w: download output: %w", ErrOpenAIBatchFailed, err)
+		return nil, fmt.Errorf(
+			"download output: %w",
+			classifyOpenAIError(ErrOpenAIBatchFailed, err),
+		)
 	}
 	defer content.Body.Close()
 
 	body, err := io.ReadAll(content.Body)
 	if err != nil {
-		return nil, fmt.Errorf("%w: read output: %w", ErrOpenAIBatchFailed, err)
+		return nil, fmt.Errorf("read output: %w", classifyOpenAIError(ErrOpenAIBatchFailed, err))
 	}
 
 	return m.parseBatchResults(body)
@@ -321,7 +341,7 @@ func (m *OpenAIModel) CancelBatchJob(
 ) error {
 	_, err := m.client.Batches.Cancel(ctx, jobID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrOpenAIBatchFailed, err)
+		return classifyOpenAIError(ErrOpenAIBatchFailed, err)
 	}
 
 	return nil

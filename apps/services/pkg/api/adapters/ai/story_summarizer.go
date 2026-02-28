@@ -69,7 +69,7 @@ func (s *StorySummarizer) SubmitSummarizeBatch(
 	items := make([]aifx.BatchRequestItem, 0, len(storiesToSummarize))
 
 	for _, story := range storiesToSummarize {
-		customID := story.StoryID + ":" + story.LocaleCode
+		customID := story.StoryID + "_" + story.LocaleCode
 		language := languageNameForLocale(story.LocaleCode)
 
 		items = append(items, aifx.BatchRequestItem{
@@ -116,9 +116,9 @@ func (s *StorySummarizer) DownloadBatchResults(
 }
 
 // ParseCustomID extracts storyID and localeCode from a batch result's CustomID.
-// Format: "{storyID}:{localeCode}".
+// Format: "{storyID}_{localeCode}".
 func (s *StorySummarizer) ParseCustomID(customID string) (string, string, error) {
-	parts := strings.SplitN(customID, ":", 2) //nolint:mnd
+	parts := strings.SplitN(customID, "_", 2) //nolint:mnd
 	if len(parts) != 2 {                      //nolint:mnd
 		return "", "", fmt.Errorf("%w: %q", errInvalidCustomID, customID)
 	}

@@ -17,6 +17,23 @@ var (
 
 const geminiProviderName = "gemini"
 
+// classifyGeminiError wraps err with the provider sentinel and, when the
+// underlying error is a GenAI API error, inserts a provider-agnostic
+// classification sentinel so callers can use errors.Is without importing the SDK.
+func classifyGeminiError(providerSentinel error, err error) error {
+	ctxErr := classifyContextError(providerSentinel, err)
+	if ctxErr != nil {
+		return ctxErr
+	}
+
+	var apiErr genai.APIError
+	if errors.As(err, &apiErr) {
+		return classifyAndWrap(providerSentinel, apiErr.Code, err)
+	}
+
+	return fmt.Errorf("%w: %w", providerSentinel, err)
+}
+
 // geminiCapabilities lists the capabilities supported by the Gemini adapter.
 var geminiCapabilities = []ProviderCapability{
 	CapabilityTextGeneration,
@@ -103,12 +120,12 @@ func (m *GeminiModel) GenerateText(
 
 	resp, err := m.client.Models.GenerateContent(ctx, m.modelID, contents, config)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrGeminiGenerationFailed, err)
+		return nil, classifyGeminiError(ErrGeminiGenerationFailed, err)
 	}
 
 	result, err := mapGenAIResponse(resp)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrGeminiGenerationFailed, err)
+		return nil, classifyGeminiError(ErrGeminiGenerationFailed, err)
 	}
 
 	result.ModelID = m.modelID
@@ -134,7 +151,7 @@ func (m *GeminiModel) StreamText(
 			if err != nil {
 				sendStreamEvent(streamCtx, eventCh, StreamEvent{
 					Type:  StreamEventError,
-					Error: fmt.Errorf("%w: %w", ErrGeminiStreamFailed, err),
+					Error: classifyGeminiError(ErrGeminiStreamFailed, err),
 				})
 
 				return

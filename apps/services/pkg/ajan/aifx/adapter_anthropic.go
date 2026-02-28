@@ -21,6 +21,23 @@ var (
 
 const anthropicProviderName = "anthropic"
 
+// classifyAnthropicError wraps err with the provider sentinel and, when the
+// underlying error is an Anthropic API error, inserts a provider-agnostic
+// classification sentinel so callers can use errors.Is without importing the SDK.
+func classifyAnthropicError(providerSentinel error, err error) error {
+	ctxErr := classifyContextError(providerSentinel, err)
+	if ctxErr != nil {
+		return ctxErr
+	}
+
+	var apiErr *anthropic.Error
+	if errors.As(err, &apiErr) {
+		return classifyAndWrap(providerSentinel, apiErr.StatusCode, err)
+	}
+
+	return fmt.Errorf("%w: %w", providerSentinel, err)
+}
+
 // anthropicModelFactory creates Anthropic language models.
 type anthropicModelFactory struct{}
 
@@ -104,12 +121,12 @@ func (m *AnthropicModel) GenerateText(
 ) (*GenerateTextResult, error) {
 	params, err := m.buildMessageParams(opts)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAnthropicGenerationFailed, err)
+		return nil, classifyAnthropicError(ErrAnthropicGenerationFailed, err)
 	}
 
 	message, err := m.client.Messages.New(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAnthropicGenerationFailed, err)
+		return nil, classifyAnthropicError(ErrAnthropicGenerationFailed, err)
 	}
 
 	result := m.mapResponse(message)
@@ -126,7 +143,7 @@ func (m *AnthropicModel) StreamText(
 ) (*StreamIterator, error) {
 	params, err := m.buildMessageParams(opts)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAnthropicStreamFailed, err)
+		return nil, classifyAnthropicError(ErrAnthropicStreamFailed, err)
 	}
 
 	streamCtx, cancel := context.WithCancel(ctx)
@@ -158,7 +175,7 @@ func (m *AnthropicModel) runStreamReader(
 		if accErr != nil {
 			eventCh <- StreamEvent{
 				Type:  StreamEventError,
-				Error: fmt.Errorf("%w: %w", ErrAnthropicStreamFailed, accErr),
+				Error: classifyAnthropicError(ErrAnthropicStreamFailed, accErr),
 			}
 
 			return
@@ -175,7 +192,7 @@ func (m *AnthropicModel) runStreamReader(
 	if stream.Err() != nil {
 		eventCh <- StreamEvent{
 			Type:  StreamEventError,
-			Error: fmt.Errorf("%w: %w", ErrAnthropicStreamFailed, stream.Err()),
+			Error: classifyAnthropicError(ErrAnthropicStreamFailed, stream.Err()),
 		}
 
 		return
@@ -257,7 +274,7 @@ func (m *AnthropicModel) SubmitBatch(
 	for _, item := range req.Items {
 		params, err := m.buildMessageParams(&item.Options)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrAnthropicBatchFailed, err)
+			return nil, classifyAnthropicError(ErrAnthropicBatchFailed, err)
 		}
 
 		batchRequests = append(batchRequests, anthropic.MessageBatchNewParamsRequest{
@@ -281,7 +298,7 @@ func (m *AnthropicModel) SubmitBatch(
 		Requests: batchRequests,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAnthropicBatchFailed, err)
+		return nil, classifyAnthropicError(ErrAnthropicBatchFailed, err)
 	}
 
 	return mapAnthropicBatchJob(batch), nil
@@ -294,7 +311,7 @@ func (m *AnthropicModel) GetBatchJob(
 ) (*BatchJob, error) {
 	batch, err := m.client.Messages.Batches.Get(ctx, jobID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAnthropicBatchFailed, err)
+		return nil, classifyAnthropicError(ErrAnthropicBatchFailed, err)
 	}
 
 	return mapAnthropicBatchJob(batch), nil
@@ -319,7 +336,7 @@ func (m *AnthropicModel) ListBatchJobs(
 
 	page, err := m.client.Messages.Batches.List(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAnthropicBatchFailed, err)
+		return nil, classifyAnthropicError(ErrAnthropicBatchFailed, err)
 	}
 
 	jobs := make([]*BatchJob, 0, len(page.Data))
@@ -356,7 +373,7 @@ func (m *AnthropicModel) DownloadBatchResults(
 	}
 
 	if stream.Err() != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAnthropicBatchFailed, stream.Err())
+		return nil, classifyAnthropicError(ErrAnthropicBatchFailed, stream.Err())
 	}
 
 	return results, nil
@@ -369,7 +386,7 @@ func (m *AnthropicModel) CancelBatchJob(
 ) error {
 	_, err := m.client.Messages.Batches.Cancel(ctx, jobID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAnthropicBatchFailed, err)
+		return classifyAnthropicError(ErrAnthropicBatchFailed, err)
 	}
 
 	return nil
@@ -563,7 +580,7 @@ func (m *AnthropicModel) mapImageBlock(img *ImagePart) (*anthropic.ContentBlockP
 
 		mimeType, imageData, err = DecodeDataURL(img.URL)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrAnthropicGenerationFailed, err)
+			return nil, classifyAnthropicError(ErrAnthropicGenerationFailed, err)
 		}
 
 	default:
