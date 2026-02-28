@@ -998,3 +998,45 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 
 	return storyWithChildren, nil
 }
+
+func (r *Repository) GetUnsummarizedPublishedStories(
+	ctx context.Context,
+	maxItems int,
+) ([]*stories.UnsummarizedStory, error) {
+	rows, err := r.queries.GetUnsummarizedPublishedStories(
+		ctx,
+		GetUnsummarizedPublishedStoriesParams{
+			MaxItems: int32(maxItems),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*stories.UnsummarizedStory, 0, len(rows))
+
+	for _, row := range rows {
+		result = append(result, &stories.UnsummarizedStory{
+			StoryID:    row.StoryID,
+			LocaleCode: strings.TrimRight(row.LocaleCode, " "),
+			Title:      row.Title,
+			Summary:    row.Summary,
+			Content:    row.Content,
+		})
+	}
+
+	return result, nil
+}
+
+func (r *Repository) UpsertStorySummaryAI(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+	summaryAI string,
+) error {
+	return r.queries.UpsertStorySummaryAI(ctx, UpsertStorySummaryAIParams{
+		StoryID:    storyID,
+		LocaleCode: localeCode,
+		SummaryAi:  sql.NullString{String: summaryAI, Valid: true},
+	})
+}

@@ -671,27 +671,3 @@ func (q *Queries) UpsertBulletinSubscription(ctx context.Context, arg UpsertBull
 	)
 	return &i, err
 }
-
-const upsertStorySummaryAI = `-- name: UpsertStorySummaryAI :exec
-UPDATE "story_tx"
-SET summary_ai = $1
-WHERE story_id = $2
-  AND locale_code = $3
-`
-
-type UpsertStorySummaryAIParams struct {
-	SummaryAi  sql.NullString `db:"summary_ai" json:"summary_ai"`
-	StoryID    string         `db:"story_id" json:"story_id"`
-	LocaleCode string         `db:"locale_code" json:"locale_code"`
-}
-
-// Updates the AI-generated summary for a specific story translation.
-//
-//	UPDATE "story_tx"
-//	SET summary_ai = $1
-//	WHERE story_id = $2
-//	  AND locale_code = $3
-func (q *Queries) UpsertStorySummaryAI(ctx context.Context, arg UpsertStorySummaryAIParams) error {
-	_, err := q.db.ExecContext(ctx, upsertStorySummaryAI, arg.SummaryAi, arg.StoryID, arg.LocaleCode)
-	return err
-}

@@ -21,12 +21,6 @@ type Repository interface {
 	) ([]*DigestStory, error)
 	UpdateLastBulletinAt(ctx context.Context, subscriptionID string) error
 	CreateBulletinLog(ctx context.Context, log *BulletinLog) error
-	UpsertStorySummaryAI(
-		ctx context.Context,
-		storyID string,
-		localeCode string,
-		summaryAI string,
-	) error
 
 	GetSubscriptionsByProfileID(ctx context.Context, profileID string) ([]*Subscription, error)
 	GetSubscription(ctx context.Context, id string) (*Subscription, error)
@@ -47,17 +41,6 @@ type Channel interface {
 	Send(ctx context.Context, recipientProfileID string, digest *Digest) error
 }
 
-// StorySummarizer defines the AI summarization port.
-type StorySummarizer interface {
-	// SummarizeBatch generates AI summaries for the given stories in the target locale.
-	// Returns a map of storyID → AI summary text.
-	SummarizeBatch(
-		ctx context.Context,
-		stories []*DigestStory,
-		localeCode string,
-	) (map[string]string, error)
-}
-
 // UserEmailResolver resolves a profile ID to a user email address.
 type UserEmailResolver interface {
 	GetUserEmailByProfileID(ctx context.Context, profileID string) (string, error)
@@ -68,12 +51,11 @@ type RecordIDGenerator func() string
 
 // Service orchestrates bulletin digest creation and delivery.
 type Service struct {
-	logger     *logfx.Logger
-	config     *Config
-	repo       Repository
-	channels   map[ChannelKind]Channel
-	summarizer StorySummarizer // optional — nil means skip AI summaries
-	idGen      RecordIDGenerator
+	logger   *logfx.Logger
+	config   *Config
+	repo     Repository
+	channels map[ChannelKind]Channel
+	idGen    RecordIDGenerator
 }
 
 // NewService creates a new bulletin Service.
@@ -82,7 +64,6 @@ func NewService(
 	config *Config,
 	repo Repository,
 	channels []Channel,
-	summarizer StorySummarizer,
 	idGen RecordIDGenerator,
 ) *Service {
 	channelMap := make(map[ChannelKind]Channel, len(channels))
@@ -91,17 +72,16 @@ func NewService(
 	}
 
 	return &Service{
-		logger:     logger,
-		config:     config,
-		repo:       repo,
-		channels:   channelMap,
-		summarizer: summarizer,
-		idGen:      idGen,
+		logger:   logger,
+		config:   config,
+		repo:     repo,
+		channels: channelMap,
+		idGen:    idGen,
 	}
 }
 
 // ProcessDigestWindow processes all active subscriptions for the current UTC hour window.
-func (s *Service) ProcessDigestWindow(ctx context.Context) error { //nolint:cyclop,funlen
+func (s *Service) ProcessDigestWindow(ctx context.Context) error {
 	now := time.Now().UTC()
 	utcHour := now.Hour()
 
@@ -141,7 +121,7 @@ func (s *Service) processSubscription(
 	ctx context.Context,
 	sub *Subscription,
 	now time.Time,
-) error { //nolint:cyclop,funlen
+) error {
 	locale := sub.DefaultLocale
 	if locale == "" {
 		locale = "en"
@@ -180,42 +160,6 @@ func (s *Service) processSubscription(
 			slog.Int("threshold", s.config.MinStoryThreshold))
 
 		return nil
-	}
-
-	// AI summarization for stories missing summary_ai
-	if s.summarizer != nil {
-		storiesNeedingSummary := make([]*DigestStory, 0)
-
-		for _, story := range stories {
-			if story.SummaryAI == nil || *story.SummaryAI == "" {
-				storiesNeedingSummary = append(storiesNeedingSummary, story)
-			}
-		}
-
-		if len(storiesNeedingSummary) > 0 {
-			summaries, sumErr := s.summarizer.SummarizeBatch(ctx, storiesNeedingSummary, locale)
-			if sumErr != nil {
-				s.logger.WarnContext(
-					ctx,
-					"AI summarization failed, proceeding without AI summaries",
-					slog.String("error", sumErr.Error()),
-				)
-			} else {
-				// Persist summaries and update the in-memory story objects
-				for _, story := range storiesNeedingSummary {
-					if summary, ok := summaries[story.StoryID]; ok {
-						persistErr := s.repo.UpsertStorySummaryAI(ctx, story.StoryID, story.LocaleCode, summary)
-						if persistErr != nil {
-							s.logger.WarnContext(ctx, "Failed to persist AI summary",
-								slog.String("story_id", story.StoryID),
-								slog.String("error", persistErr.Error()))
-						}
-
-						story.SummaryAI = &summary
-					}
-				}
-			}
-		}
 	}
 
 	// Group stories by author profile

@@ -98,7 +98,10 @@ func buildTelegramProviders(appContext *appcontext.AppContext) *http.TelegramPro
 	}
 }
 
-func startWorkers(process *processfx.Process, appContext *appcontext.AppContext) { //nolint:funlen
+func startWorkers(
+	process *processfx.Process,
+	appContext *appcontext.AppContext,
+) { //nolint:funlen,cyclop
 	idGen := func() string {
 		return string(users.DefaultIDGenerator())
 	}
@@ -288,6 +291,25 @@ func startWorkers(process *processfx.Process, appContext *appcontext.AppContext)
 		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("bulletin-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// Story AI summarization worker (batch API)
+	if appContext.Config.Workers.StorySummaries.Enabled && appContext.StorySummarizer != nil {
+		storySummariesWorker := workers.NewStorySummariesWorker(
+			&appContext.Config.Workers.StorySummaries,
+			appContext.Logger,
+			appContext.StoryService,
+			appContext.StorySummarizer,
+			appContext.RuntimeStateService,
+		)
+
+		runner := workerfx.NewRunner(storySummariesWorker, appContext.Logger)
+		runner.SetStateKey("story-summaries.worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("story-summaries-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}

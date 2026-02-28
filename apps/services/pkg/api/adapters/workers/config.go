@@ -46,6 +46,14 @@ type BulletinConfig struct {
 	CheckInterval time.Duration `conf:"check_interval" default:"5m"`
 }
 
+// StorySummariesConfig holds configuration for the AI story summarization worker.
+type StorySummariesConfig struct {
+	Enabled       bool          `conf:"enabled"        default:"false"`
+	CheckInterval time.Duration `conf:"check_interval" default:"15m"`
+	MaxRetryAge   time.Duration `conf:"max_retry_age"  default:"24h"`
+	MaxBatchSize  int           `conf:"max_batch_size" default:"200"`
+}
+
 // Config holds all worker configurations.
 type Config struct {
 	YouTubeSync      YouTubeSyncConfig        `conf:"youtube_sync"`
@@ -56,4 +64,5 @@ type Config struct {
 	Queue            QueueWorkerConfig        `conf:"queue"`
 	TelegramBot      TelegramBotPollingConfig `conf:"telegram_bot"`
 	Bulletin         BulletinConfig           `conf:"bulletin"`
+	StorySummaries   StorySummariesConfig     `conf:"story_summaries"`
 }

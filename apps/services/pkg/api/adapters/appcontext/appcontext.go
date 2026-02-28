@@ -116,6 +116,7 @@ type AppContext struct {
 	RuntimeStateService        *runtime_states.Service
 	WorkerRegistry             *workerfx.Registry
 	BulletinService            *bulletinbiz.Service
+	StorySummarizer            *aiadapter.StorySummarizer
 
 	// Infrastructure
 	WebserverSyncer profiles.WebserverSyncer
@@ -605,27 +606,32 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
 			}
 		}
 
-		// AI summarizer (optional — uses default AI model if available)
-		var summarizer bulletinbiz.StorySummarizer
-
-		defaultModel := a.AIModels.GetDefault()
-		if defaultModel != nil {
-			summarizer = aiadapter.NewBulletinSummarizer(defaultModel, a.Logger)
-		}
-
 		a.BulletinService = bulletinbiz.NewService(
 			a.Logger,
 			&a.Config.Bulletin,
 			bulletinRepo,
 			bulletinChannels,
-			summarizer,
 			idGen,
 		)
 
 		a.Logger.DebugContext(ctx, "[AppContext] Bulletin service initialized",
 			slog.String("module", "appcontext"),
-			slog.Int("channels", len(bulletinChannels)),
-			slog.Bool("ai_summarizer", summarizer != nil))
+			slog.Int("channels", len(bulletinChannels)))
+	}
+
+	// ----------------------------------------------------
+	// AI: Story Summarizer (optional — batch API)
+	// ----------------------------------------------------
+	{
+		defaultModel := a.AIModels.GetDefault()
+		if defaultModel != nil {
+			if batchModel, ok := defaultModel.(aifx.BatchCapableModel); ok {
+				a.StorySummarizer = aiadapter.NewStorySummarizer(batchModel, a.Logger)
+
+				a.Logger.DebugContext(ctx, "[AppContext] Story summarizer initialized",
+					slog.String("module", "appcontext"))
+			}
+		}
 	}
 
 	// ----------------------------------------------------

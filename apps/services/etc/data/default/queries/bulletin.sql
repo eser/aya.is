@@ -87,13 +87,6 @@ WHERE pm.member_profile_id = sqlc.arg(subscriber_profile_id)
 ORDER BY published_at DESC
 LIMIT sqlc.arg(max_stories);
 
--- name: UpsertStorySummaryAI :exec
--- Updates the AI-generated summary for a specific story translation.
-UPDATE "story_tx"
-SET summary_ai = sqlc.arg(summary_ai)
-WHERE story_id = sqlc.arg(story_id)
-  AND locale_code = sqlc.arg(locale_code);
-
 -- name: GetBulletinSubscriptionsByProfileID :many
 -- Returns all active subscriptions for a given profile.
 SELECT

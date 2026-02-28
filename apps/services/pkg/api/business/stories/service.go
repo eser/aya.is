@@ -310,6 +310,17 @@ type Repository interface {
 		localeCode string,
 		filterAuthorProfileID *string,
 	) ([]*StoryWithChildren, error)
+	// AI summarization methods
+	GetUnsummarizedPublishedStories(
+		ctx context.Context,
+		maxItems int,
+	) ([]*UnsummarizedStory, error)
+	UpsertStorySummaryAI(
+		ctx context.Context,
+		storyID string,
+		localeCode string,
+		summaryAI string,
+	) error
 }
 
 type Service struct {
@@ -1527,4 +1538,38 @@ func (s *Service) ListPublications(
 	}
 
 	return publications, nil
+}
+
+// GetUnsummarizedStories returns published story translations that have no AI summary.
+func (s *Service) GetUnsummarizedStories(
+	ctx context.Context,
+	maxItems int,
+) ([]*UnsummarizedStory, error) {
+	stories, err := s.repo.GetUnsummarizedPublishedStories(ctx, maxItems)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return stories, nil
+}
+
+// PersistSummaryAI updates the AI-generated summary for a story translation.
+func (s *Service) PersistSummaryAI(
+	ctx context.Context,
+	storyID string,
+	localeCode string,
+	summaryAI string,
+) error {
+	err := s.repo.UpsertStorySummaryAI(ctx, storyID, localeCode, summaryAI)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(storyID: %s, locale: %s): %w",
+			ErrFailedToUpdateRecord,
+			storyID,
+			localeCode,
+			err,
+		)
+	}
+
+	return nil
 }

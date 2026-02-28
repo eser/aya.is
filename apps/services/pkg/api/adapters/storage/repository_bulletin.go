@@ -155,19 +155,6 @@ func (a *bulletinAdapter) CreateBulletinLog(
 	})
 }
 
-func (a *bulletinAdapter) UpsertStorySummaryAI(
-	ctx context.Context,
-	storyID string,
-	localeCode string,
-	summaryAI string,
-) error {
-	return a.repo.queries.UpsertStorySummaryAI(ctx, UpsertStorySummaryAIParams{
-		StoryID:    storyID,
-		LocaleCode: localeCode,
-		SummaryAi:  sql.NullString{String: summaryAI, Valid: true},
-	})
-}
-
 func (a *bulletinAdapter) GetSubscriptionsByProfileID(
 	ctx context.Context,
 	profileID string,

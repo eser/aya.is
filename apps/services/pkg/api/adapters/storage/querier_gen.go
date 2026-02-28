@@ -1965,6 +1965,30 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*StorySeries, error)
+	// Returns published story translations that have no AI summary yet.
+	//
+	//  SELECT
+	//    st.story_id,
+	//    RTRIM(st.locale_code) AS locale_code,
+	//    st.title,
+	//    st.summary,
+	//    st.content
+	//  FROM "story_tx" st
+	//  WHERE (st.summary_ai IS NULL OR st.summary_ai = '')
+	//    AND EXISTS (
+	//      SELECT 1 FROM "story_publication" sp
+	//      WHERE sp.story_id = st.story_id
+	//        AND sp.published_at IS NOT NULL
+	//        AND sp.deleted_at IS NULL
+	//    )
+	//    AND EXISTS (
+	//      SELECT 1 FROM "story" s
+	//      WHERE s.id = st.story_id
+	//        AND s.deleted_at IS NULL
+	//    )
+	//  ORDER BY st.story_id, st.locale_code
+	//  LIMIT $1
+	GetUnsummarizedPublishedStories(ctx context.Context, arg GetUnsummarizedPublishedStoriesParams) ([]*GetUnsummarizedPublishedStoriesRow, error)
 	//GetUserBriefInfoByID
 	//
 	//  SELECT kind, individual_profile_id

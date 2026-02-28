@@ -133,3 +133,12 @@ type StoryOwnership struct {
 	UserKind        string  `json:"user_kind"`
 	CanEdit         bool    `json:"can_edit"`
 }
+
+// UnsummarizedStory holds the data needed for AI summarization.
+type UnsummarizedStory struct {
+	StoryID    string
+	LocaleCode string
+	Title      string
+	Summary    string
+	Content    string
+}
