@@ -320,3 +320,10 @@ strong {
 [role="dialog"] {
   @apply top-10 translate-y-0;
 }
+
+/* View Transition: circular reveal for theme toggle */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

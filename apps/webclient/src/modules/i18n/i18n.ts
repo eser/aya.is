@@ -41,7 +41,8 @@ i18n
   .init({
     fallbackLng: FALLBACK_LOCALE,
     supportedLngs: [...SUPPORTED_LOCALES],
-    debug: (import.meta.env.MODE ?? "development") === "development",
+    debug: false,
+    showSupportNotice: false,
     lng: DEFAULT_LOCALE, // Default language
 
     interpolation: {
