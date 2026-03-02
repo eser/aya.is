@@ -1,11 +1,12 @@
 import { useEffect } from "react";
-import { useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import "./types.ts"; // Side-effect import: augments Navigator with modelContext
 import { buildContextualTools, buildGlobalTools, parseRouteContext } from "./tools.ts";
 
-export function useWebMCP(locale: string): void {
+export function useWebMCP(locale: string, isCustomDomain: boolean): void {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Feature detection: no-op if WebMCP API is unavailable
@@ -14,7 +15,7 @@ export function useWebMCP(locale: string): void {
     }
 
     const context = parseRouteContext(pathname);
-    const globalTools = buildGlobalTools(locale);
+    const globalTools = buildGlobalTools(locale, isCustomDomain, navigate);
     const contextualTools = buildContextualTools(locale, context);
 
     // provideContext clears previous tools and registers the new set atomically,
@@ -26,5 +27,5 @@ export function useWebMCP(locale: string): void {
     return () => {
       navigator.modelContext?.clearContext();
     };
-  }, [locale, pathname]);
+  }, [locale, isCustomDomain, pathname, navigate]);
 }

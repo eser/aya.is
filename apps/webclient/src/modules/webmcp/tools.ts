@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import type { ModelContextTool } from "./types.ts";
 import { backend } from "@/modules/backend/backend.ts";
 import { changeLocale } from "@/modules/i18n/i18n.ts";
@@ -68,7 +69,11 @@ export function parseRouteContext(pathname: string): RouteContext {
 
 // --- Global tools (always available) ---
 
-export function buildGlobalTools(locale: string): ModelContextTool[] {
+export function buildGlobalTools(
+  locale: string,
+  isCustomDomain: boolean,
+  navigate: ReturnType<typeof useNavigate>,
+): ModelContextTool[] {
   return [
     {
       name: "search",
@@ -248,7 +253,7 @@ export function buildGlobalTools(locale: string): ModelContextTool[] {
             ),
           );
         }
-        globalThis.location.href = path;
+        navigate({ to: path });
         return Promise.resolve({ navigated: true, path });
       },
     },
@@ -268,15 +273,17 @@ export function buildGlobalTools(locale: string): ModelContextTool[] {
         required: ["locale"],
       },
       annotations: { readOnlyHint: false },
-      execute: async (input: Record<string, unknown>) => {
+      execute: (input: Record<string, unknown>) => {
         const targetLocale = input.locale as string;
         if (!isValidLocale(targetLocale)) {
-          throw new Error(
-            `Unsupported locale: ${targetLocale}. Supported: ${SUPPORTED_LOCALES.join(", ")}`,
+          return Promise.reject(
+            new Error(
+              `Unsupported locale: ${targetLocale}. Supported: ${SUPPORTED_LOCALES.join(", ")}`,
+            ),
           );
         }
-        await changeLocale(targetLocale);
-        return { switched: true, locale: targetLocale };
+        changeLocale(targetLocale, isCustomDomain, navigate);
+        return Promise.resolve({ switched: true, locale: targetLocale });
       },
     },
 

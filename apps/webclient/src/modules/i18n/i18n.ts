@@ -1,6 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import resourcesToBackend from "i18next-resources-to-backend";
+import { useNavigate } from "@tanstack/react-router";
+import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
 
 import { DEFAULT_LOCALE, FALLBACK_LOCALE, isValidLocale, SUPPORTED_LOCALES, supportedLocales } from "@/config";
 
@@ -110,12 +112,12 @@ i18n
 export default i18n;
 
 // Helper to change locale: updates i18n language, document dir/lang, and persistence cookie
-export async function changeLocale(locale: string): Promise<void> {
+export function changeLocale(locale: string, isCustomDomain: boolean, navigate: ReturnType<typeof useNavigate>): void {
   if (!isValidLocale(locale)) {
     return;
   }
 
-  await i18n.changeLanguage(locale);
+  // await i18n.changeLanguage(locale);
 
   if (typeof document !== "undefined") {
     const localeData = supportedLocales[locale];
@@ -123,9 +125,22 @@ export async function changeLocale(locale: string): Promise<void> {
     document.documentElement.lang = locale;
     document.cookie = `SITE_LOCALE=${locale};path=/;max-age=${60 * 60 * 24 * 365}`;
   }
+
+  // Get the current path without locale prefix
+  const { restPath } = parseLocaleFromPath(location.pathname);
+
+  // Build new URL with the new locale
+  const newPath = localizedUrl(restPath ?? "/", {
+    locale: locale,
+    isCustomDomain,
+    currentLocale: locale,
+  });
+
+  // Navigate to the new localized URL
+  navigate({ to: newPath });
 }
 
-// Get current language
-export function getCurrentLanguage(): string {
+// Get current locale
+export function getCurrentLocale(): string {
   return i18n.language ?? DEFAULT_LOCALE;
 }

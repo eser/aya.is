@@ -2,7 +2,7 @@ import * as React from "react";
 import { getSessionCurrent } from "@/modules/backend/backend";
 import type { SessionPreferences } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/backend";
-import { getCurrentLanguage } from "@/modules/i18n/i18n";
+import { getCurrentLocale } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
 import { clearAuthData, isTokenExpiringSoon, refreshTokenRequest, setAuthToken } from "@/modules/backend/fetcher";
 
@@ -67,7 +67,7 @@ export function AuthProvider(props: AuthProviderProps) {
       return;
     }
 
-    const locale = getCurrentLanguage();
+    const locale = getCurrentLocale();
 
     // Single consolidated call: validates session cookie, returns auth + preferences
     const result = await getSessionCurrent(locale);
@@ -139,7 +139,7 @@ export function AuthProvider(props: AuthProviderProps) {
 
     const checkAndRefresh = async () => {
       if (isTokenExpiringSoon()) {
-        const locale = getCurrentLanguage();
+        const locale = getCurrentLocale();
         const result = await refreshTokenRequest(locale);
         if (result !== null) {
           setState((prev) => ({
@@ -156,7 +156,7 @@ export function AuthProvider(props: AuthProviderProps) {
   }, [state.isAuthenticated, state.token]);
 
   const login = React.useCallback((redirectUri?: string, provider: string = "github") => {
-    const locale = getCurrentLanguage();
+    const locale = getCurrentLocale();
     const backendUri = getBackendUri();
 
     // Build the callback URL using URL API to avoid double-encoding
@@ -173,7 +173,7 @@ export function AuthProvider(props: AuthProviderProps) {
   }, []);
 
   const logout = React.useCallback(async () => {
-    const locale = getCurrentLanguage();
+    const locale = getCurrentLocale();
     const backendUri = getBackendUri();
 
     // Call backend logout endpoint

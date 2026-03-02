@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SiteAvatar } from "@/components/userland";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getCurrentLanguage } from "@/modules/i18n/i18n";
+import { getCurrentLocale } from "@/modules/i18n/i18n";
 import { useNavigation } from "@/modules/navigation/navigation-context";
 
 type ProfileMenuProps = {
@@ -27,7 +27,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const locale = getCurrentLanguage();
+  const locale = getCurrentLocale();
   const { isCustomDomain } = useNavigation();
 
   if (!isAuthenticated || user === null) {

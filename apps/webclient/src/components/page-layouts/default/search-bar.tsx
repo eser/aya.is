@@ -16,9 +16,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config";
+import { siteConfig, supportedLocales } from "@/config";
 import { useNavigation } from "@/modules/navigation/navigation-context";
-import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
 import { changeLocale } from "@/modules/i18n/i18n";
 import { getSpotlight, search } from "@/modules/backend/backend";
 import type { SearchResult, SpotlightItem } from "@/modules/backend/types";
@@ -99,18 +98,15 @@ export function SearchBar() {
   const [searchResults, setSearchResults] = React.useState<SearchResult[] | null>(null);
   const [isSearching, setIsSearching] = React.useState(false);
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
   const { theme, setTheme } = useTheme();
-  const { isCustomDomain, customDomainProfileSlug } = useNavigation();
-
-  const localeCode = i18n.language as SupportedLocaleCode;
+  const { isCustomDomain, customDomainProfileSlug, locale } = useNavigation();
 
   // Fetch spotlight data on mount
   React.useEffect(() => {
-    getSpotlight(localeCode).then(setSpotlight);
-  }, [localeCode]);
+    getSpotlight(locale).then(setSpotlight);
+  }, [locale]);
 
   // Debounced search effect
   React.useEffect(() => {
@@ -121,7 +117,7 @@ export function SearchBar() {
 
     setIsSearching(true);
     const timeoutId = setTimeout(() => {
-      search(localeCode, searchQuery.trim(), customDomainProfileSlug ?? undefined, 10)
+      search(locale, searchQuery.trim(), customDomainProfileSlug ?? undefined, 10)
         .then((results) => {
           setSearchResults(results);
         })
@@ -131,7 +127,7 @@ export function SearchBar() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, localeCode, customDomainProfileSlug]);
+  }, [searchQuery, locale, customDomainProfileSlug]);
 
   // Reset search when dialog closes
   React.useEffect(() => {
@@ -207,15 +203,15 @@ export function SearchBar() {
   const getSearchResultLink = (result: SearchResult) => {
     switch (result.type) {
       case "profile":
-        return `/${localeCode}/${result.slug}`;
+        return `/${locale}/${result.slug}`;
       case "story":
         return result.profile_slug !== null
-          ? `/${localeCode}/${result.profile_slug}/stories/${result.slug}`
-          : `/${localeCode}/stories/${result.slug}`;
+          ? `/${locale}/${result.profile_slug}/stories/${result.slug}`
+          : `/${locale}/stories/${result.slug}`;
       case "page":
         return result.profile_slug !== null
-          ? `/${localeCode}/${result.profile_slug}/${result.slug}`
-          : `/${localeCode}/${result.slug}`;
+          ? `/${locale}/${result.profile_slug}/${result.slug}`
+          : `/${locale}/${result.slug}`;
       default:
         return "#";
     }
@@ -232,21 +228,9 @@ export function SearchBar() {
     localStorage.setItem("backendUri", newBackendUri);
   };
 
-  const handleLocaleChange = async (newLocaleCode: SupportedLocaleCode) => {
-    await changeLocale(newLocaleCode);
+  const handleLocaleChange = (newLocaleCode: string) => {
+    changeLocale(newLocaleCode, isCustomDomain, navigate);
 
-    // Get the current path without locale prefix
-    const { restPath } = parseLocaleFromPath(location.pathname);
-
-    // Build new URL with the new locale
-    const newPath = localizedUrl(restPath ?? "/", {
-      locale: newLocaleCode,
-      isCustomDomain,
-      currentLocale: newLocaleCode,
-    });
-
-    // Navigate to the new localized URL
-    navigate({ to: newPath });
     setOpen(false);
   };
 
@@ -380,7 +364,7 @@ export function SearchBar() {
                     <CommandItem
                       key={item.key}
                       onSelect={() => {
-                        navigate({ to: `/${localeCode}${item.href}` });
+                        navigate({ to: `/${locale}${item.href}` });
                         setOpen(false);
                       }}
                     >
@@ -427,15 +411,15 @@ export function SearchBar() {
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading={t("Search.Localization")}>
-            {Object.values(supportedLocales).map((locale) => (
+            {Object.values(supportedLocales).map((supportedLocale) => (
               <CommandItem
-                key={`locale-${locale.code}`}
-                keywords={[locale.asciiName, locale.englishName]}
-                onSelect={() => handleLocaleChange(locale.code as SupportedLocaleCode)}
-                disabled={locale.code === localeCode}
+                key={`locale-${supportedLocale.code}`}
+                keywords={[supportedLocale.asciiName, supportedLocale.englishName]}
+                onSelect={() => handleLocaleChange(supportedLocale.code)}
+                disabled={supportedLocale.code === locale}
               >
-                <span className="w-4 h-4 mr-2">{locale.flag}</span>
-                <span>{locale.name}</span>
+                <span className="w-4 h-4 mr-2">{supportedLocale.flag}</span>
+                <span>{supportedLocale.name}</span>
               </CommandItem>
             ))}
           </CommandGroup>

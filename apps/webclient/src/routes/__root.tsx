@@ -103,7 +103,7 @@ function RootComponent() {
   const navigationState = detectNavigationState(pathname, requestContext, host);
 
   // Register WebMCP tools for AI agents (no-op if API unavailable)
-  useWebMCP(navigationState.locale);
+  useWebMCP(navigationState.locale, navigationState.isCustomDomain);
 
   // SSR uses the per-request clone; client uses the singleton
   const i18nInstance = import.meta.env.SSR && ssrI18nInstance !== null ? ssrI18nInstance : i18n;

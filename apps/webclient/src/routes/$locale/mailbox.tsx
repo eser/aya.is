@@ -60,7 +60,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatDateShort, formatDateString, formatTimeString } from "@/lib/date";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getCurrentLanguage } from "@/modules/i18n/i18n";
+import { getCurrentLocale } from "@/modules/i18n/i18n";
 import styles from "./mailbox.module.css";
 
 const ALLOWED_REACTIONS = ["❤️", "🔥", "🎉", "👍🏻", "👋🏻", "🙌🏻", "🖖🏻", "😂", "😮", "😢", "😱", "🙈", "👀"] as const;
@@ -647,7 +647,7 @@ function NewConversationForm(props: {
 // --- Main Page ---
 function MailboxPage() {
   const { t } = useTranslation();
-  const locale = getCurrentLanguage();
+  const locale = getCurrentLocale();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, user, refreshAuth } = useAuth();
 

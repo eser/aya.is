@@ -5,7 +5,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
-import { getCurrentLanguage } from "@/modules/i18n/i18n";
+import { getCurrentLocale } from "@/modules/i18n/i18n";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -45,7 +45,7 @@ function AuthCallbackPage() {
   const [status, setStatus] = React.useState<Status>("processing");
   const [errorMessage, setErrorMessage] = React.useState<string>("");
   const { t } = useTranslation();
-  const localeCode = getCurrentLanguage();
+  const localeCode = getCurrentLocale();
   const processedRef = React.useRef(false);
 
   React.useEffect(() => {
