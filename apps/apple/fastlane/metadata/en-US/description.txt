@@ -1,0 +1,24 @@
+AYA is an open-source community platform that connects developers and organizations building technology for social good.
+
+Born from the 2023 Turkey-Syria earthquake relief effort, AYA (Açık Yazılım Ağı — Open Source Network) grew out of a grassroots movement where over 24,000 volunteers came together to build tools that saved lives. Today it serves as a hub for the open-source community, bringing together people who believe technology should be accessible, inclusive, and purpose-driven.
+
+DISCOVER STORIES & ARTICLES
+Read community-written stories, technical articles, and project updates from developers and organizations across the network. Stay informed about open-source initiatives that are making a real difference.
+
+FIND COMMUNITY EVENTS
+Browse upcoming meetups, conferences, hackathons, and workshops. Discover events near you or join online gatherings hosted by the community.
+
+EXPLORE DEVELOPER PROFILES
+Learn about the people behind the projects. Browse developer profiles to find collaborators, mentors, and contributors who share your interests.
+
+BUILT FOR EVERYONE
+- Available in 13 languages including right-to-left Arabic support
+- Dark and light mode for comfortable reading
+- Responsive grid layout optimized for iPhone, iPad, and Mac
+- Fast search across all content
+- No account required to browse
+
+OPEN SOURCE & COMMUNITY-DRIVEN
+AYA is licensed under Apache 2.0 and built entirely by the community. The source code is publicly available, and contributions are welcome from developers of all skill levels.
+
+No login required. No ads. No tracking. Just a community working together to build a better world through open source.

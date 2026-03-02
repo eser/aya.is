@@ -1,0 +1,163 @@
+name: AYA
+options:
+  bundleIdPrefix: is.aya
+  deploymentTarget:
+    iOS: "18.0"
+    macOS: "15.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  createIntermediateGroups: true
+
+packages:
+  AYA:
+    path: .
+  swift-snapshot-testing:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: "1.17.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+
+schemes:
+  AYA-iOS:
+    build:
+      targets:
+        AYA-iOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - AYA-Tests
+    archive:
+      config: Release
+  AYA-macOS:
+    build:
+      targets:
+        AYA-macOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - AYA-macOS-Tests
+    archive:
+      config: Release
+
+targets:
+  AYA-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/App/iOS
+      - path: Resources/iOS
+        buildPhase: resources
+    dependencies:
+      - package: AYA
+        product: AYAKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.ios
+        PRODUCT_NAME: AYA
+        MARKETING_VERSION: "0.2.1"
+        CURRENT_PROJECT_VERSION: "3"
+        INFOPLIST_KEY_CFBundleDisplayName: AYA
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_STRICT_CONCURRENCY: complete
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+
+  AYA-macOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/App/macOS
+      - path: Resources/macOS
+        buildPhase: resources
+    dependencies:
+      - package: AYA
+        product: AYAKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.mac
+        PRODUCT_NAME: AYA
+        MARKETING_VERSION: "0.2.1"
+        CURRENT_PROJECT_VERSION: "3"
+        INFOPLIST_KEY_CFBundleDisplayName: AYA
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.developer-tools"
+        INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright 2026 AYA. MIT License. Implemented by Alp Özcan using Agentic Engineering for AYA community."
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_ENTITLEMENTS: Resources/macOS/AYA.entitlements
+        SWIFT_STRICT_CONCURRENCY: complete
+
+  AYA-Tests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - package: AYA
+        product: AYAKit
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: ""
+        SWIFT_STRICT_CONCURRENCY: complete
+
+  AYA-macOS-Tests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - package: AYA
+        product: AYAKit
+      - package: swift-snapshot-testing
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.mac.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: ""
+        SWIFT_STRICT_CONCURRENCY: complete
+
+  AYA-iOS-UITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: AYA-iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: AYA-iOS
+        SWIFT_STRICT_CONCURRENCY: complete
+
+  AYA-macOS-UITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: AYA-macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: is.aya.mac.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: AYA-macOS
+        SWIFT_STRICT_CONCURRENCY: complete
