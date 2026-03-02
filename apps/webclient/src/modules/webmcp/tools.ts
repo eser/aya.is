@@ -1,4 +1,4 @@
-import type { ModelContextClient, ModelContextTool } from "./types.ts";
+import type { ModelContextTool } from "./types.ts";
 import { backend } from "@/modules/backend/backend.ts";
 import { changeLanguage } from "@/modules/i18n/i18n.ts";
 import { isValidLocale, SUPPORTED_LOCALES } from "@/config.ts";
@@ -239,21 +239,17 @@ export function buildGlobalTools(locale: string): ModelContextTool[] {
         required: ["path"],
       },
       annotations: { readOnlyHint: false },
-      execute: async (
-        input: Record<string, unknown>,
-        client: ModelContextClient,
-      ) => {
+      execute: (input: Record<string, unknown>) => {
         const path = input.path as string;
         if (!path.startsWith("/")) {
-          throw new Error(
-            "Path must start with '/' to prevent external navigation.",
+          return Promise.reject(
+            new Error(
+              "Path must start with '/' to prevent external navigation.",
+            ),
           );
         }
-        await client.requestUserInteraction(() => {
-          globalThis.location.href = path;
-          return Promise.resolve();
-        });
-        return { navigated: true, path };
+        globalThis.location.href = path;
+        return Promise.resolve({ navigated: true, path });
       },
     },
 
@@ -272,19 +268,14 @@ export function buildGlobalTools(locale: string): ModelContextTool[] {
         required: ["locale"],
       },
       annotations: { readOnlyHint: false },
-      execute: async (
-        input: Record<string, unknown>,
-        client: ModelContextClient,
-      ) => {
+      execute: async (input: Record<string, unknown>) => {
         const targetLocale = input.locale as string;
         if (!isValidLocale(targetLocale)) {
           throw new Error(
             `Unsupported locale: ${targetLocale}. Supported: ${SUPPORTED_LOCALES.join(", ")}`,
           );
         }
-        await client.requestUserInteraction(async () => {
-          await changeLanguage(targetLocale);
-        });
+        await changeLanguage(targetLocale);
         return { switched: true, locale: targetLocale };
       },
     },
@@ -300,19 +291,14 @@ export function buildGlobalTools(locale: string): ModelContextTool[] {
         required: ["slug"],
       },
       annotations: { readOnlyHint: false },
-      execute: async (
-        input: Record<string, unknown>,
-        client: ModelContextClient,
-      ) => {
+      execute: async (input: Record<string, unknown>) => {
         const slug = input.slug as string;
         const response = await fetch(`/${locale}/stories/${slug}.md`);
         if (!response.ok) {
           throw new Error(`Story not found: ${slug}`);
         }
         const markdown = await response.text();
-        await client.requestUserInteraction(async () => {
-          await navigator.clipboard.writeText(markdown);
-        });
+        await navigator.clipboard.writeText(markdown);
         return { copied: true, slug, length: markdown.length };
       },
     },
@@ -357,10 +343,7 @@ export function buildContextualTools(
         description: `Copy the current story (${slug}) as markdown to the clipboard.`,
         inputSchema: { type: "object", properties: {} },
         annotations: { readOnlyHint: false },
-        execute: async (
-          _input: Record<string, unknown>,
-          client: ModelContextClient,
-        ) => {
+        execute: async () => {
           const response = await fetch(
             `/${locale}/stories/${slug}.md`,
           );
@@ -368,9 +351,7 @@ export function buildContextualTools(
             throw new Error(`Story not found: ${slug}`);
           }
           const markdown = await response.text();
-          await client.requestUserInteraction(async () => {
-            await navigator.clipboard.writeText(markdown);
-          });
+          await navigator.clipboard.writeText(markdown);
           return { copied: true, slug, length: markdown.length };
         },
       },
