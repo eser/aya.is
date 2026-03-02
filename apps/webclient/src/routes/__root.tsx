@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import { NavigationProvider, type NavigationState } from "@/modules/navigation/navigation-context";
+import { useWebMCP } from "@/modules/webmcp/use-webmcp";
 import { EasterEgg, ResponsiveIndicator } from "@/components/page-layouts/default";
 import {
   DEFAULT_LOCALE,
@@ -106,6 +107,9 @@ function RootComponent() {
 
   // Detect navigation state from URL, context, and host
   const navigationState = detectNavigationState(pathname, requestContext, host);
+
+  // Register WebMCP tools for AI agents (no-op if API unavailable)
+  useWebMCP(navigationState.locale);
 
   // SSR uses the per-request clone; client uses the singleton
   const i18nInstance = import.meta.env.SSR && ssrI18nInstance !== null ? ssrI18nInstance : i18n;
