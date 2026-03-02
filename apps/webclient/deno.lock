@@ -1,12 +1,6 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@std/assert@*": "1.0.19",
-    "jsr:@std/assert@^1.0.17": "1.0.19",
-    "jsr:@std/fs@^1.0.22": "1.0.23",
-    "jsr:@std/internal@^1.0.12": "1.0.12",
-    "jsr:@std/path@^1.1.4": "1.1.4",
-    "jsr:@std/testing@*": "1.0.17",
     "npm:@base-ui/react@^1.2.0": "1.2.0_@types+react@19.2.14_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:@fontsource-variable/nunito-sans@^5.2.7": "5.2.7",
     "npm:@fontsource/bree-serif@^5.2.8": "5.2.8",
@@ -73,38 +67,6 @@
     "npm:vite-tsconfig-paths@^6.1.1": "6.1.1_vite@7.3.1__@types+node@25.3.0__picomatch@4.0.3_typescript@5.9.3_@types+node@25.3.0",
     "npm:web-vitals@^5.1.0": "5.1.0",
     "npm:zod@^4.3.6": "4.3.6"
-  },
-  "jsr": {
-    "@std/assert@1.0.19": {
-      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
-      "dependencies": [
-        "jsr:@std/internal"
-      ]
-    },
-    "@std/fs@1.0.23": {
-      "integrity": "3ecbae4ce4fee03b180fa710caff36bb5adb66631c46a6460aaad49515565a37",
-      "dependencies": [
-        "jsr:@std/path"
-      ]
-    },
-    "@std/internal@1.0.12": {
-      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
-    },
-    "@std/path@1.1.4": {
-      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
-      "dependencies": [
-        "jsr:@std/internal"
-      ]
-    },
-    "@std/testing@1.0.17": {
-      "integrity": "87bdc2700fa98249d48a17cd72413352d3d3680dcfbdb64947fd0982d6bbf681",
-      "dependencies": [
-        "jsr:@std/assert@^1.0.17",
-        "jsr:@std/fs",
-        "jsr:@std/internal",
-        "jsr:@std/path"
-      ]
-    }
   },
   "npm": {
     "@antfu/ni@25.0.0": {

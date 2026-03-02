@@ -13,7 +13,9 @@
     "test:ci": "deno test --no-check --allow-read src/"
   },
   "dependencies": {
+    "@base-ui/react": "^1.2.0",
     "@fontsource/bree-serif": "^5.2.8",
+    "@fontsource-variable/nunito-sans": "^5.2.7",
     "@mdx-js/mdx": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@modelcontextprotocol/sdk": "^1.26.0",
@@ -23,9 +25,6 @@
     "@tanstack/react-router": "^1.162.2",
     "@tanstack/react-router-ssr-query": "^1.162.2",
     "@tanstack/react-start": "^1.162.2",
-    "@tanstack/router-plugin": "^1.162.2",
-    "@tanstack/virtual-file-routes": "^1.161.4",
-    "@types/mdast": "^4.0.4",
     "better-auth": "^1.4.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -58,12 +57,15 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@base-ui/react": "^1.2.0",
-    "@fontsource-variable/nunito-sans": "^5.2.7",
+    "@std/assert": "npm:@jsr/std__assert@^1.0.19",
+    "@std/testing": "npm:@jsr/std__testing@^1.0.17",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/devtools-vite": "^0.5.1",
     "@tanstack/react-devtools": "^0.9.6",
     "@tanstack/react-router-devtools": "^1.162.2",
+    "@tanstack/router-plugin": "^1.162.2",
+    "@tanstack/virtual-file-routes": "^1.161.4",
+    "@types/mdast": "^4.0.4",
     "@types/negotiator": "^0.6.4",
     "@types/node": "^25.3.0",
     "@types/picomatch": "^4.0.2",
@@ -78,8 +80,6 @@
     "typescript": "^5.9.3",
     "vite": "npm:rolldown-vite@^7.3.1",
     "vite-tsconfig-paths": "^6.1.1",
-    "web-vitals": "^5.1.0",
-    "@std/testing": "npm:@jsr/std__testing@^1.0.17",
-    "@std/assert": "npm:@jsr/std__assert@^1.0.19"
+    "web-vitals": "^5.1.0"
   }
 }

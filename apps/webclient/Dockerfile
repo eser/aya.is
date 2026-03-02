@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/root/.cache/deno \
 WORKDIR /monorepo/apps/webclient
 
 # Copy webclient package files (no lock file - let Deno resolve all transitive deps)
-COPY ./apps/webclient/package.json ./apps/webclient/deno.json ./
+COPY ./apps/webclient/.npmrc ./apps/webclient/package.json ./apps/webclient/deno.json ./
 
 # Install webclient dependencies (cached across builds)
 RUN --mount=type=cache,target=/root/.cache/deno \
