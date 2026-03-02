@@ -97,7 +97,25 @@ function groupStoriesByMonth(
 function LocaleHomePage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
-  const { compiledIntro, allStories } = Route.useLoaderData();
+  const { compiledIntro: loaderIntro, allStories, locale: loaderLocale } = Route.useLoaderData();
+
+  // Loader compiles introText at request time for the URL locale.
+  // When language changes client-side (e.g. via WebMCP switch-language),
+  // the loader doesn't re-run, so we recompile the intro text reactively.
+  const [compiledIntro, setCompiledIntro] = React.useState(loaderIntro);
+
+  React.useEffect(() => {
+    if (locale === loaderLocale) {
+      setCompiledIntro(loaderIntro);
+      return;
+    }
+
+    const introText = t("Home.IntroText");
+    import("@/lib/mdx").then(async ({ compileMdxLite }) => {
+      const compiled = await compileMdxLite(introText);
+      setCompiledIntro(compiled);
+    });
+  }, [locale, loaderLocale, loaderIntro, t]);
 
   React.useEffect(() => {
     document.documentElement.classList.add("scroll-smooth");

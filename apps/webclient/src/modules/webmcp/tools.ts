@@ -1,6 +1,6 @@
 import type { ModelContextTool } from "./types.ts";
 import { backend } from "@/modules/backend/backend.ts";
-import { changeLanguage } from "@/modules/i18n/i18n.ts";
+import { changeLocale } from "@/modules/i18n/i18n.ts";
 import { isValidLocale, SUPPORTED_LOCALES } from "@/config.ts";
 
 // --- Route context for contextual tools ---
@@ -275,7 +275,7 @@ export function buildGlobalTools(locale: string): ModelContextTool[] {
             `Unsupported locale: ${targetLocale}. Supported: ${SUPPORTED_LOCALES.join(", ")}`,
           );
         }
-        await changeLanguage(targetLocale);
+        await changeLocale(targetLocale);
         return { switched: true, locale: targetLocale };
       },
     },

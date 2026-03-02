@@ -2,7 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import resourcesToBackend from "i18next-resources-to-backend";
 
-import { DEFAULT_LOCALE, FALLBACK_LOCALE, SUPPORTED_LOCALES } from "@/config";
+import { DEFAULT_LOCALE, FALLBACK_LOCALE, isValidLocale, SUPPORTED_LOCALES, supportedLocales } from "@/config";
 
 // Helper function to format relative time using Intl.RelativeTimeFormat
 function formatRelativeTime(date: Date, locale: string): string {
@@ -109,16 +109,19 @@ i18n
 
 export default i18n;
 
-// Helper to change language and update cookie
-export async function changeLanguage(locale: string): Promise<void> {
-  if (
-    SUPPORTED_LOCALES.includes(locale as (typeof SUPPORTED_LOCALES)[number])
-  ) {
-    await i18n.changeLanguage(locale);
-    // Set cookie for persistence
-    if (typeof document !== "undefined") {
-      document.cookie = `SITE_LOCALE=${locale};path=/;max-age=${60 * 60 * 24 * 365}`;
-    }
+// Helper to change locale: updates i18n language, document dir/lang, and persistence cookie
+export async function changeLocale(locale: string): Promise<void> {
+  if (!isValidLocale(locale)) {
+    return;
+  }
+
+  await i18n.changeLanguage(locale);
+
+  if (typeof document !== "undefined") {
+    const localeData = supportedLocales[locale];
+    document.documentElement.dir = localeData.dir;
+    document.documentElement.lang = locale;
+    document.cookie = `SITE_LOCALE=${locale};path=/;max-age=${60 * 60 * 24 * 365}`;
   }
 }
 

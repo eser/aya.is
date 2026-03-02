@@ -19,6 +19,7 @@ import {
 import { siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config";
 import { useNavigation } from "@/modules/navigation/navigation-context";
 import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
+import { changeLocale } from "@/modules/i18n/i18n";
 import { getSpotlight, search } from "@/modules/backend/backend";
 import type { SearchResult, SpotlightItem } from "@/modules/backend/types";
 import {
@@ -231,9 +232,8 @@ export function SearchBar() {
     localStorage.setItem("backendUri", newBackendUri);
   };
 
-  const handleLocaleChange = (newLocaleCode: SupportedLocaleCode) => {
-    // Change i18next language
-    i18n.changeLanguage(newLocaleCode);
+  const handleLocaleChange = async (newLocaleCode: SupportedLocaleCode) => {
+    await changeLocale(newLocaleCode);
 
     // Get the current path without locale prefix
     const { restPath } = parseLocaleFromPath(location.pathname);
