@@ -58,7 +58,7 @@ type BulletinSender struct {
 }
 
 // NewBulletinSender creates a new email bulletin channel adapter.
-func NewBulletinSender( //nolint:funlen
+func NewBulletinSender( //nolint:funlen,cyclop
 	client *Client,
 	emailResolver bulletinbiz.UserEmailResolver,
 	logger *logfx.Logger,
@@ -67,7 +67,7 @@ func NewBulletinSender( //nolint:funlen
 	frontendURI string,
 	templatePath string,
 ) (*BulletinSender, error) {
-	md := goldmark.New(
+	markdown := goldmark.New(
 		goldmark.WithRendererOptions(
 			html.WithHardWraps(),
 			html.WithUnsafe(),
@@ -82,7 +82,7 @@ func NewBulletinSender( //nolint:funlen
 		"mdToHTML": func(text string) template.HTML {
 			var buf bytes.Buffer
 
-			err := md.Convert([]byte(text), &buf)
+			err := markdown.Convert([]byte(text), &buf)
 			if err != nil {
 				return template.HTML(template.HTMLEscapeString(text)) //nolint:gosec
 			}
@@ -109,19 +109,19 @@ func NewBulletinSender( //nolint:funlen
 
 			return ""
 		},
-		"formatDate": func(locale string, t *time.Time) string {
-			if t == nil {
+		"formatDate": func(locale string, timestamp *time.Time) string {
+			if timestamp == nil {
 				return ""
 			}
 
-			month := localizer.T(locale, fmt.Sprintf("MonthShort%d", t.Month()))
+			month := localizer.T(locale, fmt.Sprintf("MonthShort%d", timestamp.Month()))
 
 			// English: "Dec 22, 2025" — all others: "22 Ara 2025"
 			if locale == "en" {
-				return fmt.Sprintf("%s %d, %d", month, t.Day(), t.Year())
+				return fmt.Sprintf("%s %d, %d", month, timestamp.Day(), timestamp.Year())
 			}
 
-			return fmt.Sprintf("%d %s %d", t.Day(), month, t.Year())
+			return fmt.Sprintf("%d %s %d", timestamp.Day(), month, timestamp.Year())
 		},
 		"pickSummary": func(story *bulletinbiz.DigestStory) string {
 			if story.SummaryAI != nil && *story.SummaryAI != "" {
@@ -224,7 +224,7 @@ func (s *BulletinSender) renderHTML(digest *bulletinbiz.Digest) (string, error) 
 
 	err := s.tmpl.Execute(&buf, data)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("executing email template: %w", err)
 	}
 
 	return buf.String(), nil

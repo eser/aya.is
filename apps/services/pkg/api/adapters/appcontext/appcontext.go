@@ -126,7 +126,7 @@ func New() *AppContext {
 	return &AppContext{} //nolint:exhaustruct
 }
 
-func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen
+func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,cyclop,maintidx
 	// ----------------------------------------------------
 	// Adapter: Config
 	// ----------------------------------------------------

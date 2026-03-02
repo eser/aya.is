@@ -60,9 +60,7 @@ export function AskQuestionForm(props: AskQuestionFormProps) {
         maxLength={2000}
       />
 
-      {error !== null && (
-        <p className={styles.error}>{error}</p>
-      )}
+      {error !== null && <p className={styles.error}>{error}</p>}
 
       <div className={styles.footer}>
         <label className={styles.anonymousLabel}>

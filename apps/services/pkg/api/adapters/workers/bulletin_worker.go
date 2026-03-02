@@ -2,6 +2,7 @@ package workers
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -52,7 +53,7 @@ func (w *BulletinWorker) Execute(ctx context.Context) error {
 	disabledKey := "worker." + w.Name() + ".disabled"
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
-	if err == nil && disabled == "true" {
+	if err == nil && disabled == disabledStateValue {
 		return workerfx.ErrWorkerSkipped
 	}
 
@@ -79,5 +80,10 @@ func (w *BulletinWorker) Execute(ctx context.Context) error {
 		}
 	}()
 
-	return w.service.ProcessDigestWindow(ctx)
+	err = w.service.ProcessDigestWindow(ctx)
+	if err != nil {
+		return fmt.Errorf("processing digest window: %w", err)
+	}
+
+	return nil
 }

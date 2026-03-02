@@ -57,14 +57,14 @@ func (r *Repository) ListSeries(ctx context.Context) ([]*story_series.StorySerie
 
 func (r *Repository) InsertSeries(
 	ctx context.Context,
-	id string,
+	seriesID string,
 	slug string,
 	seriesPictureURI *string,
 	title string,
 	description string,
 ) (*story_series.StorySeries, error) {
 	row, err := r.queries.InsertStorySeries(ctx, InsertStorySeriesParams{
-		ID:               id,
+		ID:               seriesID,
 		Slug:             slug,
 		SeriesPictureURI: vars.ToSQLNullString(seriesPictureURI),
 		Title:            title,
@@ -79,14 +79,14 @@ func (r *Repository) InsertSeries(
 
 func (r *Repository) UpdateSeries(
 	ctx context.Context,
-	id string,
+	seriesID string,
 	slug string,
 	seriesPictureURI *string,
 	title string,
 	description string,
 ) (int64, error) {
 	return r.queries.UpdateStorySeries(ctx, UpdateStorySeriesParams{
-		ID:               id,
+		ID:               seriesID,
 		Slug:             slug,
 		SeriesPictureURI: vars.ToSQLNullString(seriesPictureURI),
 		Title:            title,

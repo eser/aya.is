@@ -60,28 +60,43 @@ const (
 	MembershipKindOwner       MembershipKind = "owner"
 )
 
-// MembershipKindLevel returns the privilege level of a membership kind.
+// Membership privilege levels.
+const (
+	levelFollower    = 1
+	levelSponsor     = 2
+	levelMember      = 3
+	levelContributor = 4
+	levelMaintainer  = 5
+	levelLead        = 6
+	levelOwner       = 7
+)
+
+// GetMembershipKindLevel returns the privilege level of a membership kind.
 // Higher values mean more privileges.
-var MembershipKindLevel = map[MembershipKind]int{
-	MembershipKindFollower:    1,
-	MembershipKindSponsor:     2,
-	MembershipKindMember:      3,
-	MembershipKindContributor: 4,
-	MembershipKindMaintainer:  5,
-	MembershipKindLead:        6,
-	MembershipKindOwner:       7,
+func GetMembershipKindLevel() map[MembershipKind]int {
+	return map[MembershipKind]int{
+		MembershipKindFollower:    levelFollower,
+		MembershipKindSponsor:     levelSponsor,
+		MembershipKindMember:      levelMember,
+		MembershipKindContributor: levelContributor,
+		MembershipKindMaintainer:  levelMaintainer,
+		MembershipKindLead:        levelLead,
+		MembershipKindOwner:       levelOwner,
+	}
 }
 
-// MinMembershipForVisibility maps visibility levels to minimum membership required.
-var MinMembershipForVisibility = map[LinkVisibility]MembershipKind{
-	LinkVisibilityPublic:       "",                        // no membership required
-	LinkVisibilityFollowers:    MembershipKindFollower,    // followers+
-	LinkVisibilitySponsors:     MembershipKindSponsor,     // sponsors+
-	LinkVisibilityMembers:      MembershipKindMember,      // members+
-	LinkVisibilityContributors: MembershipKindContributor, // contributors+
-	LinkVisibilityMaintainers:  MembershipKindMaintainer,  // maintainers+
-	LinkVisibilityLeads:        MembershipKindLead,        // leads+
-	LinkVisibilityOwners:       MembershipKindOwner,       // owners only
+// GetMinMembershipForVisibility maps visibility levels to minimum membership required.
+func GetMinMembershipForVisibility() map[LinkVisibility]MembershipKind {
+	return map[LinkVisibility]MembershipKind{
+		LinkVisibilityPublic:       "",                        // no membership required
+		LinkVisibilityFollowers:    MembershipKindFollower,    // followers+
+		LinkVisibilitySponsors:     MembershipKindSponsor,     // sponsors+
+		LinkVisibilityMembers:      MembershipKindMember,      // members+
+		LinkVisibilityContributors: MembershipKindContributor, // contributors+
+		LinkVisibilityMaintainers:  MembershipKindMaintainer,  // maintainers+
+		LinkVisibilityLeads:        MembershipKindLead,        // leads+
+		LinkVisibilityOwners:       MembershipKindOwner,       // owners only
+	}
 }
 
 type Profile struct {
@@ -120,8 +135,8 @@ const (
 type ProfileCustomDomain struct {
 	CreatedAt          time.Time  `json:"created_at"`
 	UpdatedAt          *time.Time `json:"updated_at"`
-	DnsVerifiedAt      *time.Time `json:"dns_verified_at"`
-	LastDnsCheckAt     *time.Time `json:"last_dns_check_at"`
+	DNSVerifiedAt      *time.Time `json:"dns_verified_at"`
+	LastDNSCheckAt     *time.Time `json:"last_dns_check_at"`
 	ExpiredAt          *time.Time `json:"expired_at"`
 	DefaultLocale      *string    `json:"default_locale"`
 	ID                 string     `json:"id"`

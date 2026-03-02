@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 
 	"github.com/eser/aya.is/services/pkg/api/business/events"
@@ -13,7 +14,7 @@ import (
 // InsertAudit persists an audit entry to the database.
 func (r *Repository) InsertAudit(
 	ctx context.Context,
-	id string,
+	auditID string,
 	params events.AuditParams,
 ) error {
 	var payloadJSON pqtype.NullRawMessage
@@ -21,14 +22,14 @@ func (r *Repository) InsertAudit(
 	if params.Payload != nil {
 		data, err := json.Marshal(params.Payload)
 		if err != nil {
-			return err
+			return fmt.Errorf("marshaling audit payload: %w", err)
 		}
 
 		payloadJSON = pqtype.NullRawMessage{RawMessage: data, Valid: true}
 	}
 
 	return r.queries.InsertEventAudit(ctx, InsertEventAuditParams{
-		ID:         id,
+		ID:         auditID,
 		EventType:  string(params.EventType),
 		EntityType: params.EntityType,
 		EntityID:   sql.NullString{String: params.EntityID, Valid: params.EntityID != ""},

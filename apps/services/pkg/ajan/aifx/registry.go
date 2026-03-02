@@ -217,7 +217,8 @@ func (registry *Registry) RemoveModel(ctx context.Context, name string) error {
 // LoadFromConfig creates models from configuration.
 func (registry *Registry) LoadFromConfig(ctx context.Context, config *Config) error {
 	for name, target := range config.Targets {
-		if _, err := registry.AddModel(ctx, name, &target); err != nil {
+		_, err := registry.AddModel(ctx, name, &target)
+		if err != nil {
 			return fmt.Errorf("%w (name=%q): %w", ErrFailedToAddModel, name, err)
 		}
 	}

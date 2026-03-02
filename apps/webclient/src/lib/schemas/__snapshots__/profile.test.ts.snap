@@ -1,0 +1,79 @@
+export const snapshot = {};
+
+snapshot[`createProfileSchema - shape snapshot 1`] = `
+[
+  "slug",
+  "title",
+  "description",
+  "kind",
+]
+`;
+
+snapshot[`updateProfileSchema - shape snapshot 1`] = `
+[
+  "title",
+  "description",
+  "pronouns",
+]
+`;
+
+snapshot[`checkSlugSchema - shape snapshot 1`] = `
+[
+  "slug",
+]
+`;
+
+snapshot[`createProfileSchema - slug too short 1`] = `
+[
+  {
+    message: "Slug must be at least 2 characters",
+    path: [
+      "slug",
+    ],
+  },
+]
+`;
+
+snapshot[`createProfileSchema - slug with special chars 1`] = `
+[
+  {
+    message: "Slug can only contain lowercase letters, numbers, and hyphens",
+    path: [
+      "slug",
+    ],
+  },
+]
+`;
+
+snapshot[`createProfileSchema - missing title 1`] = `
+[
+  {
+    message: "Title is required",
+    path: [
+      "title",
+    ],
+  },
+]
+`;
+
+snapshot[`createProfileSchema - invalid kind 1`] = `
+[
+  {
+    message: 'Invalid option: expected one of "individual"|"organization"|"product"',
+    path: [
+      "kind",
+    ],
+  },
+]
+`;
+
+snapshot[`updateProfileSchema - title too long 1`] = `
+[
+  {
+    message: "Too big: expected string to have <=100 characters",
+    path: [
+      "title",
+    ],
+  },
+]
+`;

@@ -10,6 +10,10 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 )
 
+// heartbeatChannelBuffer is the buffer size for the heartbeat channel.
+// Buffered to prevent blocking the worker when heartbeats are sent.
+const heartbeatChannelBuffer = 10
+
 // SupervisorMetrics defines the interface for recording supervisor metrics.
 type SupervisorMetrics interface {
 	RecordWorkerHeartbeat(workerName string)
@@ -57,13 +61,16 @@ func NewSupervisor(
 
 	return &Supervisor{
 		config:     config,
-		heartbeats: make(chan Heartbeat, 10), // Buffered to prevent blocking
-		status: WorkerStatus{
+		heartbeats: make(chan Heartbeat, heartbeatChannelBuffer),
+		status: WorkerStatus{ //nolint:exhaustruct
 			Name:  config.Name,
 			State: WorkerStateIdle,
 		},
-		logger:  logger,
-		metrics: metrics,
+		statusMux: sync.RWMutex{},
+		logger:    logger,
+		metrics:   metrics,
+		workerFn:  nil,
+		cancelFn:  nil,
 	}
 }
 
@@ -72,7 +79,7 @@ func NewSupervisor(
 // worker is considered stuck and will be restarted.
 //
 // Run blocks until the context is cancelled or the worker exceeds max restarts.
-func (s *Supervisor) Run(ctx context.Context, workerFn WorkerFunc) error {
+func (s *Supervisor) Run(ctx context.Context, workerFn WorkerFunc) error { //nolint:cyclop,funlen
 	err := s.config.Validate()
 	if err != nil {
 		return fmt.Errorf("invalid supervisor config: %w", err)
@@ -95,7 +102,7 @@ func (s *Supervisor) Run(ctx context.Context, workerFn WorkerFunc) error {
 		case <-ctx.Done():
 			s.stopWorker()
 
-			return ctx.Err()
+			return fmt.Errorf("supervisor context canceled: %w", ctx.Err())
 
 		case hb := <-s.heartbeats:
 			// Worker is alive.
@@ -166,7 +173,7 @@ func (s *Supervisor) Run(ctx context.Context, workerFn WorkerFunc) error {
 			// Wait for backoff duration.
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
+				return fmt.Errorf("supervisor backoff canceled: %w", ctx.Err())
 			case <-time.After(backoff):
 			}
 
@@ -194,15 +201,15 @@ func (s *Supervisor) startWorker(ctx context.Context) {
 
 	go func() {
 		defer func() {
-			if r := recover(); r != nil {
+			if recovered := recover(); recovered != nil {
 				s.statusMux.Lock()
-				s.status.LastError = fmt.Errorf("%w: %v", ErrWorkerPanicked, r)
+				s.status.LastError = fmt.Errorf("%w: %v", ErrWorkerPanicked, recovered)
 				s.statusMux.Unlock()
 
 				if s.logger != nil {
 					s.logger.ErrorContext(ctx, "Worker panicked",
 						"worker", s.config.Name,
-						"panic", r,
+						"panic", recovered,
 					)
 				}
 			}

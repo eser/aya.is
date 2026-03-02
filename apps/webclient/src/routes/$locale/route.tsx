@@ -1,5 +1,5 @@
 // Locale layout - handles locale validation and i18n sync
-import { CatchNotFound, createFileRoute, Outlet, redirect, notFound } from "@tanstack/react-router";
+import { CatchNotFound, createFileRoute, notFound, Outlet, redirect } from "@tanstack/react-router";
 import { isValidLocale, type SupportedLocaleCode } from "@/config";
 import { getPreferredLocale } from "@/lib/get-locale";
 import { setServerResponseHeader } from "@/lib/server-headers";

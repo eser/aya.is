@@ -63,6 +63,15 @@ const (
 	SeverityWarning = "warning"
 )
 
+// String constants used across the service.
+const (
+	UserKindAdmin         = "admin"
+	ProfileKindIndividual = "individual"
+)
+
+// minSlugLength is the minimum allowed length for slugs.
+const minSlugLength = 2
+
 // SlugAvailabilityResult holds the result of a slug availability check.
 type SlugAvailabilityResult struct {
 	Available bool   `json:"available"`
@@ -73,10 +82,11 @@ type SlugAvailabilityResult struct {
 // Config holds the profiles service configuration.
 type Config struct {
 	// AllowedURIPrefixes is a comma-separated list of allowed URI prefixes.
-	AllowedURIPrefixes string `conf:"allowed_uri_prefixes" default:"https://objects.aya.is/,https://avatars.githubusercontent.com/"`
+	AllowedURIPrefixes string `conf:"allowed_uri_prefixes" default:"https://objects.aya.is/,https://avatars.githubusercontent.com/"` //nolint:lll
 
-	// ForbiddenSlugs is a comma-separated list of reserved slugs that cannot be used as profile slugs.
-	ForbiddenSlugs string `conf:"forbidden_slugs" default:"about,admin,api,auth,communities,community,config,contact,contributions,dashboard,element,elements,events,faq,feed,guide,help,home,impressum,imprint,jobs,legal,login,logout,mailbox,new,news,null,organizations,orgs,people,policies,policy,privacy,product,products,profile,profiles,projects,register,root,search,services,settings,signin,signout,signup,site,stories,story,support,tag,tags,terms,tos,undefined,user,users,verify,wiki"`
+	// ForbiddenSlugs is a comma-separated list of reserved slugs
+	// that cannot be used as profile slugs.
+	ForbiddenSlugs string `conf:"forbidden_slugs" default:"about,admin,api,auth,communities,community,config,contact,contributions,dashboard,element,elements,events,faq,feed,guide,help,home,impressum,imprint,jobs,legal,login,logout,mailbox,new,news,null,organizations,orgs,people,policies,policy,privacy,product,products,profile,profiles,projects,register,root,search,services,settings,signin,signout,signup,site,stories,story,support,tag,tags,terms,tos,undefined,user,users,verify,wiki"` //nolint:lll
 
 	// DNSVerification holds the expected DNS targets for custom domain verification.
 	DNSVerification DNSVerificationConfig `conf:"dns_verification"`
@@ -772,14 +782,14 @@ func (s *Service) CanViewLink(
 	}
 
 	// Check if membership level is sufficient
-	minRequired := MinMembershipForVisibility[link.Visibility]
+	minRequired := GetMinMembershipForVisibility()[link.Visibility]
 	if minRequired == "" {
 		// No minimum required (shouldn't happen for non-public)
 		return true
 	}
 
-	viewerLevel := MembershipKindLevel[membershipKind]
-	requiredLevel := MembershipKindLevel[minRequired]
+	viewerLevel := GetMembershipKindLevel()[membershipKind]
+	requiredLevel := GetMembershipKindLevel()[minRequired]
 
 	return viewerLevel >= requiredLevel
 }
@@ -811,7 +821,11 @@ func (s *Service) GetIdentifierByID(ctx context.Context, id string) (*ProfileBri
 	return record, nil
 }
 
-func (s *Service) GetByID(ctx context.Context, localeCode string, id string) (*Profile, error) {
+func (s *Service) GetByID(
+	ctx context.Context,
+	localeCode string,
+	id string, //nolint:varnamelen
+) (*Profile, error) {
 	record, err := s.repo.GetProfileByID(ctx, localeCode, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
@@ -851,7 +865,7 @@ func (s *Service) GetBySlugEx(
 }
 
 // GetBySlugExWithViewer returns a profile with children, filtering links based on viewer's membership.
-func (s *Service) GetBySlugExWithViewer(
+func (s *Service) GetBySlugExWithViewer( //nolint:cyclop
 	ctx context.Context,
 	localeCode string,
 	slug string,
@@ -1112,7 +1126,7 @@ func (s *Service) GetPageBySlugForViewer(
 
 // GetBySlugExWithViewerUser returns a profile with children, filtering pages by viewer's access
 // and links based on viewer's membership. Takes viewerUserID instead of viewerProfileID.
-func (s *Service) GetBySlugExWithViewerUser( //nolint:cyclop
+func (s *Service) GetBySlugExWithViewerUser( //nolint:cyclop,funlen
 	ctx context.Context,
 	localeCode string,
 	slug string,
@@ -1181,6 +1195,32 @@ func (s *Service) GetBySlugExWithViewerUser( //nolint:cyclop
 	return result, nil
 }
 
+// checkDeletedPageSlug checks whether a page slug was previously used by a deleted page.
+func (s *Service) checkDeletedPageSlug(
+	ctx context.Context,
+	profileID string,
+	pageSlug string,
+) (*SlugAvailabilityResult, error) {
+	existsDeleted, delErr := s.repo.CheckPageSlugExistsIncludingDeleted(
+		ctx,
+		profileID,
+		pageSlug,
+	)
+	if delErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, delErr)
+	}
+
+	if existsDeleted {
+		return &SlugAvailabilityResult{
+			Available: false,
+			Message:   "This slug was previously used",
+			Severity:  SeverityError,
+		}, nil
+	}
+
+	return nil, nil //nolint:nilnil
+}
+
 // CheckPageSlugAvailability checks if a page slug is available within a profile.
 // It optionally excludes a specific page ID (for edit scenarios).
 func (s *Service) CheckPageSlugAvailability(
@@ -1192,7 +1232,7 @@ func (s *Service) CheckPageSlugAvailability(
 	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
 	// Check minimum length
-	if len(pageSlug) < 2 {
+	if len(pageSlug) < minSlugLength {
 		return &SlugAvailabilityResult{
 			Available: false,
 			Message:   "Slug must be at least 2 characters",
@@ -1211,37 +1251,20 @@ func (s *Service) CheckPageSlugAvailability(
 		profileID,
 		pageSlug,
 	)
-	if err != nil || page == nil {
-		// Page not found in active records, check deleted if requested
-		if includeDeleted {
-			existsDeleted, delErr := s.repo.CheckPageSlugExistsIncludingDeleted(
-				ctx,
-				profileID,
-				pageSlug,
-			)
-			if delErr != nil {
-				return nil, delErr
-			}
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
 
-			if existsDeleted {
-				return &SlugAvailabilityResult{
-					Available: false,
-					Message:   "This slug was previously used",
-					Severity:  SeverityError,
-				}, nil
-			}
-		}
-
-		// Slug is available
-		return &SlugAvailabilityResult{
-			Available: true,
-		}, nil
+	if page == nil {
+		return s.resolvePageSlugForMissingPage(ctx, profileID, pageSlug, includeDeleted)
 	}
 
 	// If we're editing and the slug belongs to the same page, it's available
 	if excludePageID != nil && page.ID == *excludePageID {
 		return &SlugAvailabilityResult{
 			Available: true,
+			Message:   "",
+			Severity:  "",
 		}, nil
 	}
 
@@ -1249,6 +1272,32 @@ func (s *Service) CheckPageSlugAvailability(
 		Available: false,
 		Message:   "This slug is already taken",
 		Severity:  SeverityError,
+	}, nil
+}
+
+// resolvePageSlugForMissingPage handles slug availability when no active page exists.
+func (s *Service) resolvePageSlugForMissingPage(
+	ctx context.Context,
+	profileID string,
+	pageSlug string,
+	includeDeleted bool,
+) (*SlugAvailabilityResult, error) {
+	if includeDeleted {
+		result, err := s.checkDeletedPageSlug(ctx, profileID, pageSlug)
+		if err != nil {
+			return nil, err
+		}
+
+		if result != nil {
+			return result, nil
+		}
+	}
+
+	// Slug is available
+	return &SlugAvailabilityResult{
+		Available: true,
+		Message:   "",
+		Severity:  "",
 	}, nil
 }
 
@@ -1270,33 +1319,38 @@ func (s *Service) ListLinksBySlug(
 	return links, nil
 }
 
+// resolveProfileIDWithRelationsCheck resolves a profile slug to an ID and
+// verifies that the relations feature is enabled.
+func (s *Service) resolveProfileIDWithRelationsCheck(
+	ctx context.Context,
+	slug string,
+) (string, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	if err != nil {
+		return "", fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	visibility, err := s.repo.GetFeatureRelationsVisibility(ctx, profileID)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if visibility == string(ModuleVisibilityDisabled) {
+		return "", ErrRelationsNotEnabled
+	}
+
+	return profileID, nil
+}
+
 func (s *Service) ListProfileContributionsBySlug(
 	ctx context.Context,
 	localeCode string,
 	slug string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*ProfileMembership], error) {
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	profileID, err := s.resolveProfileIDWithRelationsCheck(ctx, slug)
 	if err != nil {
-		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
-			"%w(slug: %s): %w",
-			ErrFailedToGetRecord,
-			slug,
-			err,
-		)
-	}
-
-	visibility, err := s.repo.GetFeatureRelationsVisibility(ctx, profileID)
-	if err != nil {
-		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
-			"%w: %w",
-			ErrFailedToGetRecord,
-			err,
-		)
-	}
-
-	if visibility == "disabled" {
-		return cursors.Cursored[[]*ProfileMembership]{}, ErrRelationsNotEnabled
+		return cursors.Cursored[[]*ProfileMembership]{}, err
 	}
 
 	memberships, err := s.repo.ListProfileContributions(
@@ -1323,34 +1377,16 @@ func (s *Service) ListProfileMembersBySlug(
 	slug string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*ProfileMembership], error) {
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	profileID, err := s.resolveProfileIDWithRelationsCheck(ctx, slug)
 	if err != nil {
-		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
-			"%w(slug: %s): %w",
-			ErrFailedToGetRecord,
-			slug,
-			err,
-		)
-	}
-
-	visibility, err := s.repo.GetFeatureRelationsVisibility(ctx, profileID)
-	if err != nil {
-		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
-			"%w: %w",
-			ErrFailedToGetRecord,
-			err,
-		)
-	}
-
-	if visibility == "disabled" {
-		return cursors.Cursored[[]*ProfileMembership]{}, ErrRelationsNotEnabled
+		return cursors.Cursored[[]*ProfileMembership]{}, err
 	}
 
 	memberships, err := s.repo.ListProfileMembers(
 		ctx,
 		localeCode,
 		profileID,
-		[]string{"organization", "individual"},
+		[]string{"organization", ProfileKindIndividual},
 		cursor,
 	)
 	if err != nil {
@@ -1417,7 +1453,7 @@ func (s *Service) CheckSlugAvailability(
 	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
 	// Check minimum length
-	if len(slug) < 2 {
+	if len(slug) < minSlugLength {
 		return &SlugAvailabilityResult{
 			Available: false,
 			Message:   "Slug must be at least 2 characters",
@@ -1450,9 +1486,9 @@ func (s *Service) CheckSlugAvailability(
 
 	// Check if slug was used by a deleted record (optional)
 	if includeDeleted {
-		existsDeleted, err := s.repo.CheckProfileSlugExistsIncludingDeleted(ctx, slug)
-		if err != nil {
-			return nil, err
+		existsDeleted, delErr := s.repo.CheckProfileSlugExistsIncludingDeleted(ctx, slug)
+		if delErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, delErr)
 		}
 
 		if existsDeleted {
@@ -1466,6 +1502,8 @@ func (s *Service) CheckSlugAvailability(
 
 	return &SlugAvailabilityResult{
 		Available: true,
+		Message:   "",
+		Severity:  "",
 	}, nil
 }
 
@@ -1524,6 +1562,8 @@ func (s *Service) Create(
 		EntityID:   string(profileID),
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return profile, nil
@@ -1563,6 +1603,7 @@ func (s *Service) CreateProfileMembership(
 		EntityID:   string(membershipID),
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    payload,
 	})
 
@@ -1594,7 +1635,7 @@ func (s *Service) ensureProfileCanProfileAccess(
 		return fmt.Errorf("%w: %w", ErrInsufficientAccess, ErrNoMembershipFound)
 	}
 
-	if MembershipKindLevel[membershipKind] < MembershipKindLevel[requiredLevel] {
+	if GetMembershipKindLevel()[membershipKind] < GetMembershipKindLevel()[requiredLevel] {
 		return fmt.Errorf("%w", ErrInsufficientAccess)
 	}
 
@@ -1615,7 +1656,7 @@ func (s *Service) ensureUserCanProfileAccess(
 		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	if userInfo.Kind == "admin" {
+	if userInfo.Kind == UserKindAdmin {
 		return nil
 	}
 
@@ -1662,7 +1703,7 @@ func (s *Service) HasUserAccessToProfile(
 
 // GetProfilePermissions returns the viewer's edit permission and membership kind
 // in a single query chain (slug→profileID, user→individualProfile, membership lookup).
-func (s *Service) GetProfilePermissions(
+func (s *Service) GetProfilePermissions( //nolint:cyclop,nonamedreturns
 	ctx context.Context,
 	userID string,
 	profileSlug string,
@@ -1682,7 +1723,7 @@ func (s *Service) GetProfilePermissions(
 	}
 
 	// Admins can always edit — still look up membership for badge display
-	if userInfo.Kind == "admin" {
+	if userInfo.Kind == UserKindAdmin {
 		if userInfo.IndividualProfileID != nil {
 			kind, mkErr := s.repo.GetMembershipBetweenProfiles(
 				ctx,
@@ -1714,18 +1755,22 @@ func (s *Service) GetProfilePermissions(
 		profileID,
 		*userInfo.IndividualProfileID,
 	)
-	if mkErr != nil || kind == "" {
+	if mkErr != nil {
+		return false, nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, mkErr)
+	}
+
+	if kind == "" {
 		return false, nil, nil
 	}
 
 	kindStr := string(kind)
-	canEdit = MembershipKindLevel[kind] >= MembershipKindLevel[MembershipKindMaintainer]
+	canEdit = GetMembershipKindLevel()[kind] >= GetMembershipKindLevel()[MembershipKindMaintainer]
 
 	return canEdit, &kindStr, nil
 }
 
 // Update updates profile main fields (profile_picture_uri, pronouns, properties).
-func (s *Service) Update(
+func (s *Service) Update( //nolint:cyclop,funlen
 	ctx context.Context,
 	localeCode string,
 	userID string,
@@ -1750,22 +1795,23 @@ func (s *Service) Update(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Validate profile picture URI (empty string means "remove picture")
 	if profilePictureURI == nil || *profilePictureURI != "" {
-		err := validateOptionalURL(profilePictureURI)
-		if err != nil {
-			return nil, err
+		urlErr := validateOptionalURL(profilePictureURI)
+		if urlErr != nil {
+			return nil, urlErr
 		}
 
 		// Non-admin users can only use URIs from allowed prefixes
-		if userKind != "admin" {
-			err := validateURIPrefixes(profilePictureURI, s.config.GetAllowedURIPrefixes())
-			if err != nil {
-				return nil, err
+		if userKind != UserKindAdmin {
+			prefixErr := validateURIPrefixes(profilePictureURI, s.config.GetAllowedURIPrefixes())
+			if prefixErr != nil {
+				return nil, prefixErr
 			}
 		}
 	}
@@ -1810,6 +1856,8 @@ func (s *Service) Update(
 		EntityID:   profileID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return profile, nil
@@ -1836,8 +1884,9 @@ func (s *Service) UpdateTranslation(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	// Update the translation (use upsert to handle new locales)
@@ -1858,6 +1907,7 @@ func (s *Service) UpdateTranslation(
 		EntityID:   profileID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"locale_code": localeCode},
 	})
 
@@ -1900,7 +1950,7 @@ func (s *Service) GetProfileTranslations(
 // Profile Link Management
 
 // CreateProfileLink creates a new profile link with authorization check.
-func (s *Service) CreateProfileLink(
+func (s *Service) CreateProfileLink( //nolint:cyclop,funlen
 	ctx context.Context,
 	localeCode string,
 	userID string,
@@ -1925,8 +1975,9 @@ func (s *Service) CreateProfileLink(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Get the user's individual profile for added_by tracking
@@ -1995,6 +2046,7 @@ func (s *Service) CreateProfileLink(
 		EntityID:   string(linkID),
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"profile_id": profileID},
 	})
 
@@ -2002,7 +2054,7 @@ func (s *Service) CreateProfileLink(
 }
 
 // UpdateProfileLink updates an existing profile link with authorization check.
-func (s *Service) UpdateProfileLink(
+func (s *Service) UpdateProfileLink( //nolint:cyclop,funlen
 	ctx context.Context,
 	localeCode string,
 	userID string,
@@ -2028,8 +2080,9 @@ func (s *Service) UpdateProfileLink(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Verify the link exists and belongs to the profile
@@ -2103,13 +2156,15 @@ func (s *Service) UpdateProfileLink(
 		EntityID:   linkID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return updatedLink, nil
 }
 
 // DeleteProfileLink soft-deletes a profile link with authorization check.
-func (s *Service) DeleteProfileLink(
+func (s *Service) DeleteProfileLink( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	userKind string,
@@ -2145,7 +2200,7 @@ func (s *Service) DeleteProfileLink(
 	}
 
 	// Three-tier authorization: admin > original adder > maintainer+
-	canDelete := userKind == "admin"
+	canDelete := userKind == UserKindAdmin
 
 	if !canDelete && existingLink.AddedByProfileID != nil && userID != "" {
 		userInfo, upErr := s.repo.GetUserBriefInfo(ctx, userID)
@@ -2181,6 +2236,8 @@ func (s *Service) DeleteProfileLink(
 		EntityID:   linkID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return nil
@@ -2231,6 +2288,65 @@ func (s *Service) GetProfileLink(
 	return link, nil
 }
 
+// annotateLinksCanRemove sets the CanRemove flag on each link based on user permissions.
+func (s *Service) annotateLinksCanRemove(
+	ctx context.Context,
+	links []*ProfileLink,
+	profileID string,
+	userID string,
+	userKind string,
+) {
+	if userID == "" {
+		return
+	}
+
+	userInfo, userErr := s.repo.GetUserBriefInfo(ctx, userID)
+
+	for _, link := range links {
+		link.CanRemove = s.canUserRemoveLink(
+			ctx, link, profileID, userKind, userInfo, userErr,
+		)
+	}
+}
+
+// canUserRemoveLink determines if a user can remove a specific profile link.
+func (s *Service) canUserRemoveLink( //nolint:cyclop
+	ctx context.Context,
+	link *ProfileLink,
+	profileID string,
+	userKind string,
+	userInfo *UserBriefInfo,
+	userErr error,
+) bool {
+	// Site admins can always remove
+	if userKind == UserKindAdmin {
+		return true
+	}
+
+	if userErr != nil || userInfo == nil || userInfo.IndividualProfileID == nil {
+		return false
+	}
+
+	// Check membership level
+	membershipKind, mkErr := s.repo.GetMembershipBetweenProfiles(
+		ctx, profileID, *userInfo.IndividualProfileID,
+	)
+	if mkErr == nil && membershipKind != "" {
+		level, ok := GetMembershipKindLevel()[membershipKind]
+		if ok && level >= GetMembershipKindLevel()[MembershipKindMaintainer] {
+			return true
+		}
+	}
+
+	// The original adder can remove their own links
+	if link.AddedByProfileID != nil &&
+		*userInfo.IndividualProfileID == *link.AddedByProfileID {
+		return true
+	}
+
+	return false
+}
+
 // ListProfileLinksBySlug retrieves all profile links for editing (includes hidden links).
 func (s *Service) ListProfileLinksBySlug(
 	ctx context.Context,
@@ -2249,8 +2365,9 @@ func (s *Service) ListProfileLinksBySlug(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Get all links for editing (this is for the settings page)
@@ -2264,9 +2381,14 @@ func (s *Service) ListProfileLinksBySlug(
 	links := make([]*ProfileLink, 0, len(briefLinks))
 
 	for _, briefLink := range briefLinks {
-		fullLink, err := s.repo.GetProfileLink(ctx, localeCode, briefLink.ID)
-		if err != nil {
-			return nil, fmt.Errorf("%w(linkID: %s): %w", ErrFailedToGetRecord, briefLink.ID, err)
+		fullLink, linkErr := s.repo.GetProfileLink(ctx, localeCode, briefLink.ID)
+		if linkErr != nil {
+			return nil, fmt.Errorf(
+				"%w(linkID: %s): %w",
+				ErrFailedToGetRecord,
+				briefLink.ID,
+				linkErr,
+			)
 		}
 
 		if fullLink != nil {
@@ -2274,40 +2396,7 @@ func (s *Service) ListProfileLinksBySlug(
 		}
 	}
 
-	// Determine if the current user can remove each link
-	if userID != "" {
-		userInfo, userErr := s.repo.GetUserBriefInfo(ctx, userID)
-
-		for _, l := range links {
-			canRemove := false
-
-			// Site admins can always remove
-			if userKind == "admin" {
-				canRemove = true
-			} else if userErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
-				// Check membership level
-				membershipKind, mkErr := s.repo.GetMembershipBetweenProfiles(
-					ctx, profileID, *userInfo.IndividualProfileID,
-				)
-				if mkErr == nil && membershipKind != "" {
-					level, ok := MembershipKindLevel[membershipKind]
-					if ok && level >= MembershipKindLevel[MembershipKindMaintainer] {
-						canRemove = true
-					}
-				}
-			}
-
-			// The original adder can remove their own links
-			if !canRemove && userErr == nil && userInfo != nil &&
-				userInfo.IndividualProfileID != nil && l.AddedByProfileID != nil {
-				if *userInfo.IndividualProfileID == *l.AddedByProfileID {
-					canRemove = true
-				}
-			}
-
-			l.CanRemove = canRemove
-		}
-	}
+	s.annotateLinksCanRemove(ctx, links, profileID, userID, userKind)
 
 	return links, nil
 }
@@ -2315,7 +2404,7 @@ func (s *Service) ListProfileLinksBySlug(
 // Profile Page Management
 
 // CreateProfilePage creates a new profile page with authorization check.
-func (s *Service) CreateProfilePage(
+func (s *Service) CreateProfilePage( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	userKind string,
@@ -2339,8 +2428,9 @@ func (s *Service) CreateProfilePage(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Get the user's individual profile for added_by tracking
@@ -2352,12 +2442,13 @@ func (s *Service) CreateProfilePage(
 	}
 
 	// Validate cover picture URI
-	if err := validateOptionalURL(coverPictureURI); err != nil {
-		return nil, err
+	coverErr := validateOptionalURL(coverPictureURI)
+	if coverErr != nil {
+		return nil, coverErr
 	}
 
 	// Non-admin users can only use URIs from allowed prefixes
-	if userKind != "admin" {
+	if userKind != UserKindAdmin {
 		err := validateURIPrefixes(coverPictureURI, s.config.GetAllowedURIPrefixes())
 		if err != nil {
 			return nil, err
@@ -2435,6 +2526,7 @@ func (s *Service) CreateProfilePage(
 		EntityID:   string(pageID),
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"profile_id": profileID, "slug": slug},
 	})
 
@@ -2442,7 +2534,7 @@ func (s *Service) CreateProfilePage(
 }
 
 // UpdateProfilePage updates an existing profile page with authorization check.
-func (s *Service) UpdateProfilePage(
+func (s *Service) UpdateProfilePage( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	userKind string,
@@ -2464,17 +2556,19 @@ func (s *Service) UpdateProfilePage(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Validate cover picture URI
-	if err := validateOptionalURL(coverPictureURI); err != nil {
-		return nil, err
+	coverErr := validateOptionalURL(coverPictureURI)
+	if coverErr != nil {
+		return nil, coverErr
 	}
 
 	// Non-admin users can only use URIs from allowed prefixes
-	if userKind != "admin" {
+	if userKind != UserKindAdmin {
 		err := validateURIPrefixes(coverPictureURI, s.config.GetAllowedURIPrefixes())
 		if err != nil {
 			return nil, err
@@ -2527,6 +2621,8 @@ func (s *Service) UpdateProfilePage(
 		EntityID:   pageID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return updatedPage, nil
@@ -2553,8 +2649,9 @@ func (s *Service) UpdateProfilePageTranslation(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	// Verify the page exists
@@ -2585,6 +2682,7 @@ func (s *Service) UpdateProfilePageTranslation(
 		EntityID:   pageID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"locale_code": localeCode},
 	})
 
@@ -2609,8 +2707,9 @@ func (s *Service) DeleteProfilePageTranslation(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	err = s.repo.DeleteProfilePageTx(ctx, pageID, localeCode)
@@ -2630,6 +2729,7 @@ func (s *Service) DeleteProfilePageTranslation(
 		EntityID:   pageID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"locale_code": localeCode},
 	})
 
@@ -2711,7 +2811,7 @@ func (s *Service) GetProfilePageTranslationContent(
 }
 
 // DeleteProfilePage soft-deletes a profile page with authorization check.
-func (s *Service) DeleteProfilePage(
+func (s *Service) DeleteProfilePage( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	userKind string,
@@ -2738,7 +2838,7 @@ func (s *Service) DeleteProfilePage(
 	}
 
 	// Three-tier authorization: admin > original adder > maintainer+
-	canDelete := userKind == "admin"
+	canDelete := userKind == UserKindAdmin
 
 	if !canDelete && existingPage.AddedByProfileID != nil && userID != "" {
 		userInfo, upErr := s.repo.GetUserBriefInfo(ctx, userID)
@@ -2774,6 +2874,8 @@ func (s *Service) DeleteProfilePage(
 		EntityID:   pageID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return nil
@@ -2797,8 +2899,9 @@ func (s *Service) GetProfilePage(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Get the page
@@ -2857,7 +2960,12 @@ func (s *Service) Search(
 
 // GetProfileIDBySlug returns the profile ID for a given slug.
 func (s *Service) GetProfileIDBySlug(ctx context.Context, slug string) (string, error) {
-	return s.repo.GetProfileIDBySlug(ctx, slug)
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, slug)
+	if err != nil {
+		return "", fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	return profileID, nil
 }
 
 // GetProfileLinkByRemoteID returns a profile link by its remote ID (e.g., YouTube channel ID).
@@ -2867,7 +2975,12 @@ func (s *Service) GetProfileLinkByRemoteID(
 	kind string,
 	remoteID string,
 ) (*ProfileLink, error) {
-	return s.repo.GetProfileLinkByRemoteID(ctx, profileID, kind, remoteID)
+	link, err := s.repo.GetProfileLinkByRemoteID(ctx, profileID, kind, remoteID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	return link, nil
 }
 
 // IsManagedProfileLinkRemoteIDInUse checks if a remote_id is already used by another
@@ -2879,7 +2992,12 @@ func (s *Service) IsManagedProfileLinkRemoteIDInUse(
 	remoteID string,
 	excludeProfileID string,
 ) (bool, error) {
-	return s.repo.IsManagedProfileLinkRemoteIDInUse(ctx, kind, remoteID, excludeProfileID)
+	inUse, err := s.repo.IsManagedProfileLinkRemoteIDInUse(ctx, kind, remoteID, excludeProfileID)
+	if err != nil {
+		return false, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	return inUse, nil
 }
 
 // ClearNonManagedProfileLinkRemoteID nulls out remote_id on non-managed links
@@ -2890,13 +3008,18 @@ func (s *Service) ClearNonManagedProfileLinkRemoteID(
 	kind string,
 	remoteID string,
 ) error {
-	return s.repo.ClearNonManagedProfileLinkRemoteID(ctx, profileID, kind, remoteID)
+	err := s.repo.ClearNonManagedProfileLinkRemoteID(ctx, profileID, kind, remoteID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	return nil
 }
 
 // UpdateProfileLinkOAuthTokens updates the OAuth tokens for an existing profile link.
 func (s *Service) UpdateProfileLinkOAuthTokens(
 	ctx context.Context,
-	id string,
+	linkID string,
 	localeCode string,
 	publicID string,
 	uri string,
@@ -2908,20 +3031,25 @@ func (s *Service) UpdateProfileLinkOAuthTokens(
 ) error {
 	// Update OAuth tokens
 	err := s.repo.UpdateProfileLinkOAuthTokens(
-		ctx, id, publicID, uri, authScope, accessToken, accessTokenExpiresAt, refreshToken,
+		ctx, linkID, publicID, uri, authScope, accessToken, accessTokenExpiresAt, refreshToken,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}
 
 	// Update/create translation for the title (icon, group, description are nil for OAuth links)
-	return s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil, nil)
+	txErr := s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, nil, nil, nil)
+	if txErr != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, txErr)
+	}
+
+	return nil
 }
 
 // CreateOAuthProfileLink creates a new OAuth-connected profile link.
 func (s *Service) CreateOAuthProfileLink(
 	ctx context.Context,
-	id string,
+	linkID string,
 	kind string,
 	profileID string,
 	order int,
@@ -2939,18 +3067,18 @@ func (s *Service) CreateOAuthProfileLink(
 ) (*ProfileLink, error) {
 	// Create the OAuth profile link
 	link, err := s.repo.CreateOAuthProfileLink(
-		ctx, id, kind, profileID, order, remoteID, publicID, uri,
+		ctx, linkID, kind, profileID, order, remoteID, publicID, uri,
 		authProvider, authScope, accessToken, accessTokenExpiresAt, refreshToken,
 		properties,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
 	// Create translation for the title (icon, group, description are nil for OAuth links)
-	err = s.repo.UpsertProfileLinkTx(ctx, id, localeCode, title, nil, nil, nil)
-	if err != nil {
-		return nil, err
+	txErr := s.repo.UpsertProfileLinkTx(ctx, linkID, localeCode, title, nil, nil, nil)
+	if txErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, txErr)
 	}
 
 	return link, nil
@@ -2958,7 +3086,12 @@ func (s *Service) CreateOAuthProfileLink(
 
 // GetMaxProfileLinkOrder returns the maximum order value for profile links.
 func (s *Service) GetMaxProfileLinkOrder(ctx context.Context, profileID string) (int, error) {
-	return s.repo.GetMaxProfileLinkOrder(ctx, profileID)
+	maxOrder, err := s.repo.GetMaxProfileLinkOrder(ctx, profileID)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	return maxOrder, nil
 }
 
 // ListFeaturedLinksBySlug returns featured profile links visible to the viewer.
@@ -3034,8 +3167,9 @@ func (s *Service) UpsertProfileLinkTranslation(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	// Verify the link exists
@@ -3086,16 +3220,18 @@ var (
 	ErrCannotModifyHigherMember = errors.New("cannot modify a member with higher role than yours")
 )
 
-// membershipRoleLevel defines the hierarchy of membership roles.
+// getMembershipRoleLevel returns the hierarchy of membership roles.
 // Higher number = higher privilege level.
-var membershipRoleLevel = map[string]int{
-	"follower":    1,
-	"sponsor":     2,
-	"member":      3,
-	"contributor": 4,
-	"maintainer":  5,
-	"lead":        6,
-	"owner":       7,
+func getMembershipRoleLevel() map[string]int {
+	return map[string]int{
+		string(MembershipKindFollower):    GetMembershipKindLevel()[MembershipKindFollower],
+		string(MembershipKindSponsor):     GetMembershipKindLevel()[MembershipKindSponsor],
+		string(MembershipKindMember):      GetMembershipKindLevel()[MembershipKindMember],
+		string(MembershipKindContributor): GetMembershipKindLevel()[MembershipKindContributor],
+		string(MembershipKindMaintainer):  GetMembershipKindLevel()[MembershipKindMaintainer],
+		string(MembershipKindLead):        GetMembershipKindLevel()[MembershipKindLead],
+		string(MembershipKindOwner):       GetMembershipKindLevel()[MembershipKindOwner],
+	}
 }
 
 // ListMembershipsForSettings lists all memberships for a profile (for settings page).
@@ -3115,8 +3251,9 @@ func (s *Service) ListMembershipsForSettings(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	memberships, err := s.repo.ListProfileMembershipsForSettings(
@@ -3129,17 +3266,17 @@ func (s *Service) ListMembershipsForSettings(
 	}
 
 	// Non-admin users should not see admin-only membership kinds (sponsor, follower)
-	isAdmin := userKind == "admin"
+	isAdmin := userKind == UserKindAdmin
 	if !isAdmin {
 		filtered := make([]*ProfileMembershipWithMember, 0, len(memberships))
 
-		for _, m := range memberships {
-			kind := MembershipKind(m.Kind)
+		for _, membership := range memberships {
+			kind := MembershipKind(membership.Kind)
 			if kind == MembershipKindSponsor || kind == MembershipKindFollower {
 				continue
 			}
 
-			filtered = append(filtered, m)
+			filtered = append(filtered, membership)
 		}
 
 		memberships = filtered
@@ -3149,7 +3286,7 @@ func (s *Service) ListMembershipsForSettings(
 }
 
 // UpdateMembership updates the kind of an existing membership.
-func (s *Service) UpdateMembership( //nolint:cyclop,funlen
+func (s *Service) UpdateMembership( //nolint:cyclop,funlen,gocognit
 	ctx context.Context,
 	userID string,
 	userKind string,
@@ -3158,17 +3295,20 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 	membershipID string,
 	newKind string,
 ) error {
+	roleLevel := getMembershipRoleLevel()
+
 	// Validate kind
 	validKinds := map[string]bool{
-		"owner": true, "lead": true, "maintainer": true,
-		"contributor": true, "member": true, "sponsor": true, "follower": true,
+		string(MembershipKindOwner): true, string(MembershipKindLead): true, string(MembershipKindMaintainer): true,
+		string(MembershipKindContributor): true, string(MembershipKindMember): true,
+		string(MembershipKindSponsor): true, string(MembershipKindFollower): true,
 	}
 	if !validKinds[newKind] {
 		return ErrInvalidMembershipKind
 	}
 
 	// Check authorization
-	isAdmin := userKind == "admin"
+	isAdmin := userKind == UserKindAdmin
 
 	// SECURITY: Only admins can assign sponsor or follower roles
 	if !isAdmin && (newKind == "sponsor" || newKind == "follower") {
@@ -3187,7 +3327,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 
 	// SECURITY: Prevent self-modification (users cannot change their own role)
 	// Exception: Admins can modify anything
-	if userKind != "admin" && userIndividualProfileID != nil {
+	if userKind != UserKindAdmin && userIndividualProfileID != nil {
 		if membership.MemberProfileID != nil &&
 			*membership.MemberProfileID == *userIndividualProfileID {
 			return ErrCannotModifyOwnRole
@@ -3210,7 +3350,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 
 	// SECURITY: Non-admin users can only assign roles at or below their own level
 	// and can only modify members at or below their level
-	if !isAdmin && userIndividualProfileID != nil {
+	if !isAdmin && userIndividualProfileID != nil { //nolint:nestif
 		// Get the requesting user's membership level
 		userMembership, membershipErr := s.repo.GetProfileMembershipByProfileAndMember(
 			ctx,
@@ -3223,28 +3363,28 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 
 		userLevel := 0
 		if userMembership != nil {
-			userLevel = membershipRoleLevel[userMembership.Kind]
+			userLevel = roleLevel[userMembership.Kind]
 		} else if *userIndividualProfileID == membership.ProfileID {
 			// Implicit owner of their own individual profile
-			userLevel = membershipRoleLevel["owner"]
+			userLevel = roleLevel[string(MembershipKindOwner)]
 		}
 
 		// Check: Cannot assign a role higher than your own
-		newRoleLevel := membershipRoleLevel[newKind]
+		newRoleLevel := roleLevel[newKind]
 		if newRoleLevel > userLevel {
 			return ErrCannotAssignHigherRole
 		}
 
 		// Check: Cannot modify a member who has a higher or equal role than you
 		// (except for demoting yourself, which is already blocked above)
-		targetCurrentLevel := membershipRoleLevel[membership.Kind]
+		targetCurrentLevel := roleLevel[membership.Kind]
 		if targetCurrentLevel >= userLevel {
 			return ErrCannotModifyHigherMember
 		}
 	}
 
 	// Check if trying to change to 'owner' on individual profile - not allowed
-	if newKind == "owner" {
+	if newKind == string(MembershipKindOwner) {
 		profile, profileErr := s.repo.GetProfileByID(ctx, "en", membership.ProfileID)
 		if profileErr != nil {
 			return fmt.Errorf(
@@ -3255,7 +3395,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 			)
 		}
 
-		if profile.Kind == "individual" {
+		if profile.Kind == ProfileKindIndividual {
 			return fmt.Errorf(
 				"%w: cannot set 'owner' on individual profiles",
 				ErrInvalidMembershipKind,
@@ -3264,7 +3404,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 	}
 
 	// If changing from owner to something else, check we're not removing the last owner
-	if membership.Kind == "owner" && newKind != "owner" {
+	if membership.Kind == string(MembershipKindOwner) && newKind != string(MembershipKindOwner) {
 		ownerCount, countErr := s.repo.CountProfileOwners(ctx, membership.ProfileID)
 		if countErr != nil {
 			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, countErr)
@@ -3287,6 +3427,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 		EntityID:   membershipID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_id":        membership.ProfileID,
 			"member_profile_id": membership.MemberProfileID,
@@ -3301,7 +3442,7 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen
 }
 
 // DeleteMembership deletes a membership with validation.
-func (s *Service) DeleteMembership(
+func (s *Service) DeleteMembership( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	userKind string,
@@ -3346,7 +3487,7 @@ func (s *Service) DeleteMembership(
 	}
 
 	// Prevent removing self from individual profile if it matches user's individual_profile_id
-	if profile != nil && profile.Kind == "individual" {
+	if profile != nil && profile.Kind == ProfileKindIndividual {
 		if userIndividualProfileID != nil && *userIndividualProfileID == profileID {
 			if membership.MemberProfileID != nil &&
 				*membership.MemberProfileID == *userIndividualProfileID {
@@ -3356,7 +3497,7 @@ func (s *Service) DeleteMembership(
 	}
 
 	// If removing an owner, check we're not removing the last owner
-	if membership.Kind == "owner" {
+	if membership.Kind == string(MembershipKindOwner) {
 		ownerCount, err := s.repo.CountProfileOwners(ctx, membership.ProfileID)
 		if err != nil {
 			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
@@ -3386,6 +3527,7 @@ func (s *Service) DeleteMembership(
 			EntityID:   membershipID,
 			ActorID:    &userID,
 			ActorKind:  events.ActorUser,
+			SessionID:  nil,
 			Payload: map[string]any{
 				"profile_id":        membership.ProfileID,
 				"member_profile_id": membership.MemberProfileID,
@@ -3406,6 +3548,7 @@ func (s *Service) DeleteMembership(
 			EntityID:   membershipID,
 			ActorID:    &userID,
 			ActorKind:  events.ActorUser,
+			SessionID:  nil,
 			Payload: map[string]any{
 				"profile_id":        membership.ProfileID,
 				"member_profile_id": membership.MemberProfileID,
@@ -3438,8 +3581,9 @@ func (s *Service) SearchUsersForMembership(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	results, err := s.repo.SearchUsersForMembership(
@@ -3465,17 +3609,20 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	memberProfileID string,
 	kind string,
 ) error {
+	roleLevel := getMembershipRoleLevel()
+
 	// Validate kind
 	validKinds := map[string]bool{
-		"owner": true, "lead": true, "maintainer": true,
-		"contributor": true, "member": true, "sponsor": true, "follower": true,
+		string(MembershipKindOwner): true, string(MembershipKindLead): true, string(MembershipKindMaintainer): true,
+		string(MembershipKindContributor): true, string(MembershipKindMember): true,
+		string(MembershipKindSponsor): true, string(MembershipKindFollower): true,
 	}
 	if !validKinds[kind] {
 		return ErrInvalidMembershipKind
 	}
 
 	// Check authorization
-	isAdmin := userKind == "admin"
+	isAdmin := userKind == UserKindAdmin
 
 	// SECURITY: Only admins can assign sponsor or follower roles
 	if !isAdmin && (kind == "sponsor" || kind == "follower") {
@@ -3510,14 +3657,14 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 
 		userLevel := 0
 		if userMembership != nil {
-			userLevel = membershipRoleLevel[userMembership.Kind]
+			userLevel = roleLevel[userMembership.Kind]
 		} else if *userIndividualProfileID == profileID {
 			// Implicit owner of their own individual profile
-			userLevel = membershipRoleLevel["owner"]
+			userLevel = roleLevel[string(MembershipKindOwner)]
 		}
 
 		// Check: Cannot assign a role higher than your own
-		newRoleLevel := membershipRoleLevel[kind]
+		newRoleLevel := roleLevel[kind]
 		if newRoleLevel > userLevel {
 			return ErrCannotAssignHigherRole
 		}
@@ -3525,13 +3672,13 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 
 	// Check if trying to add 'owner' to individual profile - not allowed
 	// Individual profiles have implicit ownership through user.individual_profile_id
-	if kind == "owner" {
+	if kind == string(MembershipKindOwner) {
 		profile, profileErr := s.repo.GetProfileByID(ctx, "en", profileID)
 		if profileErr != nil {
 			return fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, profileErr)
 		}
 
-		if profile.Kind == "individual" {
+		if profile.Kind == ProfileKindIndividual {
 			return fmt.Errorf(
 				"%w: cannot add 'owner' to individual profiles",
 				ErrInvalidMembershipKind,
@@ -3562,6 +3709,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 			EntityID:   existing.ID,
 			ActorID:    &userID,
 			ActorKind:  events.ActorUser,
+			SessionID:  nil,
 			Payload: map[string]any{
 				"profile_id":        profileID,
 				"member_profile_id": memberProfileID,
@@ -3596,6 +3744,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		EntityID:   string(membershipID),
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_id":        profileID,
 			"member_profile_id": memberProfileID,
@@ -3662,6 +3811,7 @@ func (s *Service) FollowProfile(
 		EntityID:   string(membershipID),
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_id":        profileID,
 			"member_profile_id": userIndividualProfileID,
@@ -3718,6 +3868,7 @@ func (s *Service) UnfollowProfile(
 		EntityID:   existing.ID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_id":        profileID,
 			"member_profile_id": userIndividualProfileID,
@@ -3728,6 +3879,64 @@ func (s *Service) UnfollowProfile(
 	})
 
 	return nil
+}
+
+// annotateResourcesCanRemove sets the CanRemove flag on each resource based on user permissions.
+func (s *Service) annotateResourcesCanRemove(
+	ctx context.Context,
+	resources []*ProfileResource,
+	profileID string,
+	userID string,
+	userKind string,
+) {
+	if userID == "" {
+		return
+	}
+
+	userInfo, userErr := s.repo.GetUserBriefInfo(ctx, userID)
+
+	for _, resource := range resources {
+		resource.CanRemove = s.canUserRemoveResource(
+			ctx, resource, profileID, userKind, userInfo, userErr,
+		)
+	}
+}
+
+// canUserRemoveResource determines if a user can remove a specific profile resource.
+func (s *Service) canUserRemoveResource(
+	ctx context.Context,
+	resource *ProfileResource,
+	profileID string,
+	userKind string,
+	userInfo *UserBriefInfo,
+	userErr error,
+) bool {
+	// Site admins can always remove
+	if userKind == UserKindAdmin {
+		return true
+	}
+
+	if userErr != nil || userInfo == nil || userInfo.IndividualProfileID == nil {
+		return false
+	}
+
+	// Check membership level
+	membershipKind, mkErr := s.repo.GetMembershipBetweenProfiles(
+		ctx, profileID, *userInfo.IndividualProfileID,
+	)
+	if mkErr == nil && membershipKind != "" {
+		level, ok := GetMembershipKindLevel()[membershipKind]
+		if ok && level >= GetMembershipKindLevel()[MembershipKindMaintainer] {
+			return true
+		}
+	}
+
+	// The original adder can remove their own resources
+	if *userInfo.IndividualProfileID == resource.AddedByProfileID {
+		return true
+	}
+
+	return false
 }
 
 // ListProfileResources returns all resources associated with a profile,
@@ -3754,55 +3963,22 @@ func (s *Service) ListProfileResources(
 	}
 
 	// Populate teams for each resource
-	for _, r := range resources {
-		teams, teamsErr := s.repo.ListResourceTeams(ctx, r.ID)
+	for _, resource := range resources {
+		teams, teamsErr := s.repo.ListResourceTeams(ctx, resource.ID)
 		if teamsErr == nil && teams != nil {
-			r.Teams = teams
+			resource.Teams = teams
 		} else {
-			r.Teams = []*ProfileTeam{}
+			resource.Teams = []*ProfileTeam{}
 		}
 	}
 
-	// Determine if the current user can remove each resource
-	if userID != "" {
-		userInfo, userErr := s.repo.GetUserBriefInfo(ctx, userID)
-
-		for _, r := range resources {
-			canRemove := false
-
-			// Site admins can always remove
-			if userKind == "admin" {
-				canRemove = true
-			} else if userErr == nil && userInfo != nil && userInfo.IndividualProfileID != nil {
-				// Check membership level
-				membershipKind, mkErr := s.repo.GetMembershipBetweenProfiles(
-					ctx, profileID, *userInfo.IndividualProfileID,
-				)
-				if mkErr == nil && membershipKind != "" {
-					level, ok := MembershipKindLevel[membershipKind]
-					if ok && level >= MembershipKindLevel[MembershipKindMaintainer] {
-						canRemove = true
-					}
-				}
-			}
-
-			// The original adder can remove their own resources
-			if !canRemove && userErr == nil && userInfo != nil &&
-				userInfo.IndividualProfileID != nil {
-				if *userInfo.IndividualProfileID == r.AddedByProfileID {
-					canRemove = true
-				}
-			}
-
-			r.CanRemove = canRemove
-		}
-	}
+	s.annotateResourcesCanRemove(ctx, resources, profileID, userID, userKind)
 
 	return resources, nil
 }
 
 // CreateProfileResource creates a new resource linked to a profile.
-func (s *Service) CreateProfileResource(
+func (s *Service) CreateProfileResource( //nolint:cyclop,funlen
 	ctx context.Context,
 	locale string,
 	userID string,
@@ -3827,7 +4003,7 @@ func (s *Service) CreateProfileResource(
 	}
 
 	// Check permission - must be maintainer+ or admin
-	if userKind != "admin" {
+	if userKind != UserKindAdmin {
 		err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
 		if err != nil {
 			return nil, err
@@ -3872,7 +4048,7 @@ func (s *Service) CreateProfileResource(
 }
 
 // DeleteProfileResource soft-deletes a profile resource with authorization check.
-func (s *Service) DeleteProfileResource(
+func (s *Service) DeleteProfileResource( //nolint:cyclop
 	ctx context.Context,
 	locale string,
 	userID string,
@@ -3900,7 +4076,7 @@ func (s *Service) DeleteProfileResource(
 	}
 
 	// Check authorization
-	canDelete := userKind == "admin"
+	canDelete := userKind == UserKindAdmin
 
 	// Site admins can always delete
 
@@ -3962,8 +4138,9 @@ func (s *Service) ListTeams(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	teams, err := s.repo.ListProfileTeamsWithMemberCount(ctx, profileID)
@@ -3991,8 +4168,9 @@ func (s *Service) CreateTeam(
 		return nil, ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return nil, err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	if strings.TrimSpace(name) == "" {
@@ -4027,8 +4205,9 @@ func (s *Service) UpdateTeam(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	if strings.TrimSpace(name) == "" {
@@ -4059,8 +4238,9 @@ func (s *Service) DeleteTeam(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	memberCount, err := s.repo.CountProfileTeamMembers(ctx, teamID)
@@ -4106,8 +4286,9 @@ func (s *Service) SetMembershipTeams(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	idGen := func() string { return string(s.idGenerator()) }
@@ -4137,8 +4318,9 @@ func (s *Service) SetResourceTeams(
 		return ErrProfileNotFound
 	}
 
-	if err := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer); err != nil {
-		return err
+	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	idGen := func() string { return string(s.idGenerator()) }
@@ -4152,7 +4334,7 @@ func (s *Service) SetResourceTeams(
 }
 
 // CreateReferral creates a new membership referral. The referrer must be member+ on the profile.
-func (s *Service) CreateReferral( //nolint:cyclop
+func (s *Service) CreateReferral( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	profileSlug string,
@@ -4198,7 +4380,7 @@ func (s *Service) CreateReferral( //nolint:cyclop
 		ctx, profileID, referredProfileID,
 	)
 	if existingMembership != nil &&
-		MembershipKindLevel[MembershipKind(existingMembership.Kind)] >= MembershipKindLevel[MembershipKindMember] {
+		GetMembershipKindLevel()[MembershipKind(existingMembership.Kind)] >= GetMembershipKindLevel()[MembershipKindMember] {
 		return nil, ErrCannotReferExistingMember
 	}
 
@@ -4258,6 +4440,7 @@ func (s *Service) CreateReferral( //nolint:cyclop
 		EntityID:   referralID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_id":             profileID,
 			"referred_profile":       referredProfileSlug,
@@ -4319,7 +4502,7 @@ func (s *Service) ListReferrals(
 }
 
 // VoteOnReferral casts or updates a vote on a referral. Member+ only.
-func (s *Service) VoteOnReferral(
+func (s *Service) VoteOnReferral( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	profileSlug string,
@@ -4389,6 +4572,7 @@ func (s *Service) VoteOnReferral(
 		EntityID:   referralID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"score":   score,
 			"vote_id": vote.ID,

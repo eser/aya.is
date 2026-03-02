@@ -145,7 +145,9 @@ func (arcade *Arcade) GetRecentPostsByUsername( //nolint:funlen
 	}
 
 	var response ExecuteToolResponse
-	if err := json.Unmarshal(result, &response); err != nil {
+
+	err = json.Unmarshal(result, &response)
+	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}
 

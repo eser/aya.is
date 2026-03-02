@@ -36,15 +36,17 @@ func classifyVertexAIError(providerSentinel error, err error) error {
 	return fmt.Errorf("%w: %w", providerSentinel, err)
 }
 
-// vertexAICapabilities lists the capabilities supported by the Vertex AI adapter.
-var vertexAICapabilities = []ProviderCapability{
-	CapabilityTextGeneration,
-	CapabilityStreaming,
-	CapabilityToolCalling,
-	CapabilityVision,
-	CapabilityAudio,
-	CapabilityStructuredOut,
-	CapabilityReasoning,
+// vertexAICapabilities returns the capabilities supported by the Vertex AI adapter.
+func vertexAICapabilities() []ProviderCapability {
+	return []ProviderCapability{
+		CapabilityTextGeneration,
+		CapabilityStreaming,
+		CapabilityToolCalling,
+		CapabilityVision,
+		CapabilityAudio,
+		CapabilityStructuredOut,
+		CapabilityReasoning,
+	}
 }
 
 // vertexAIModelFactory creates Vertex AI language models.
@@ -75,7 +77,7 @@ func (f *vertexAIModelFactory) CreateModel(
 		return nil, fmt.Errorf("%w: %w", ErrVertexAIClientCreate, ErrInvalidModel)
 	}
 
-	clientConfig := &genai.ClientConfig{
+	clientConfig := &genai.ClientConfig{ //nolint:exhaustruct
 		Backend:  genai.BackendVertexAI,
 		Project:  config.ProjectID,
 		Location: config.Location,
@@ -105,7 +107,7 @@ type VertexAIModel struct {
 }
 
 func (m *VertexAIModel) GetCapabilities() []ProviderCapability {
-	return vertexAICapabilities
+	return vertexAICapabilities()
 }
 
 func (m *VertexAIModel) GetProvider() string {
@@ -164,10 +166,9 @@ func (m *VertexAIModel) StreamText(
 
 		for resp, err := range m.client.Models.GenerateContentStream(streamCtx, m.modelID, contents, config) {
 			if err != nil {
-				sendStreamEvent(streamCtx, eventCh, StreamEvent{
-					Type:  StreamEventError,
-					Error: classifyVertexAIError(ErrVertexAIStreamFailed, err),
-				})
+				sendStreamEvent(streamCtx, eventCh, newStreamEventError(
+					classifyVertexAIError(ErrVertexAIStreamFailed, err),
+				))
 
 				return
 			}
@@ -175,10 +176,8 @@ func (m *VertexAIModel) StreamText(
 			emitStreamEventsFromResponse(streamCtx, eventCh, resp)
 		}
 
-		// Stream completed successfully — send the done event.
-		sendStreamEvent(streamCtx, eventCh, StreamEvent{
-			Type: StreamEventMessageDone,
-		})
+		// Stream completed successfully -- send the done event.
+		sendStreamEvent(streamCtx, eventCh, newStreamEventDone("", nil))
 	}()
 
 	return NewStreamIterator(eventCh, cancel), nil

@@ -24,9 +24,7 @@ export async function generateCVPage(
 
     return { ok: true, data: response };
   } catch (err: unknown) {
-    const message = err instanceof Error
-      ? err.message
-      : "Failed to generate CV page";
+    const message = err instanceof Error ? err.message : "Failed to generate CV page";
 
     return { ok: false, error: message };
   }

@@ -73,8 +73,13 @@ func NewTextMessage(role Role, text string) Message {
 		Role: role,
 		Content: []ContentBlock{
 			{
-				Type: ContentBlockText,
-				Text: text,
+				Type:       ContentBlockText,
+				Text:       text,
+				Image:      nil,
+				Audio:      nil,
+				File:       nil,
+				ToolCall:   nil,
+				ToolResult: nil,
 			},
 		},
 	}
@@ -87,10 +92,17 @@ func NewImageMessage(role Role, imageURL string, detail ImageDetail) Message {
 		Content: []ContentBlock{
 			{
 				Type: ContentBlockImage,
+				Text: "",
 				Image: &ImagePart{
-					URL:    imageURL,
-					Detail: detail,
+					URL:      imageURL,
+					MIMEType: "",
+					Detail:   detail,
+					Data:     nil,
 				},
+				Audio:      nil,
+				File:       nil,
+				ToolCall:   nil,
+				ToolResult: nil,
 			},
 		},
 	}
@@ -102,31 +114,48 @@ func NewAudioMessage(role Role, audioURL string) Message {
 		Role: role,
 		Content: []ContentBlock{
 			{
-				Type: ContentBlockAudio,
+				Type:  ContentBlockAudio,
+				Text:  "",
+				Image: nil,
 				Audio: &AudioPart{
-					URL: audioURL,
+					URL:      audioURL,
+					MIMEType: "",
+					Data:     nil,
 				},
+				File:       nil,
+				ToolCall:   nil,
+				ToolResult: nil,
 			},
 		},
 	}
 }
 
 // NewToolCallBlock creates a tool call content block.
-func NewToolCallBlock(id, name string, arguments json.RawMessage) ContentBlock {
+func NewToolCallBlock(toolCallID, name string, arguments json.RawMessage) ContentBlock {
 	return ContentBlock{
-		Type: ContentBlockToolCall,
+		Type:  ContentBlockToolCall,
+		Text:  "",
+		Image: nil,
+		Audio: nil,
+		File:  nil,
 		ToolCall: &ToolCall{
-			ID:        id,
+			ID:        toolCallID,
 			Name:      name,
 			Arguments: arguments,
 		},
+		ToolResult: nil,
 	}
 }
 
 // NewToolResultBlock creates a tool result content block.
 func NewToolResultBlock(toolCallID, content string, isError bool) ContentBlock {
 	return ContentBlock{
-		Type: ContentBlockToolResult,
+		Type:     ContentBlockToolResult,
+		Text:     "",
+		Image:    nil,
+		Audio:    nil,
+		File:     nil,
+		ToolCall: nil,
 		ToolResult: &ToolResult{
 			ToolCallID: toolCallID,
 			Content:    content,

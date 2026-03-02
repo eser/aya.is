@@ -39,9 +39,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
     ? `https://github.com/${user.github_handle}.png?size=32`
     : null;
 
-  const accessibleProfiles = user.accessible_profiles !== undefined
-    ? user.accessible_profiles
-    : [];
+  const accessibleProfiles = user.accessible_profiles !== undefined ? user.accessible_profiles : [];
 
   const navigateToMain = (path: string) => {
     if (isCustomDomain) {

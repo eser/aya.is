@@ -23,6 +23,8 @@ linters:
     - godox
     - tagliatelle
     - ireturn
+    - wsl
+    - funcorder
 
   settings:
     depguard:
@@ -54,7 +56,9 @@ linters:
             - github.com/sqlc-dev/pqtype
             - github.com/stretchr/testify
             - go.opentelemetry.io/otel
+            - github.com/modelcontextprotocol/go-sdk
             - golang.org/x/net/http/httpguts
+            - golang.org/x/sys
             - golang.org/x/text
             - github.com/yuin/goldmark
             - google.golang.org/genai
@@ -70,6 +74,10 @@ linters:
             - [] # DenyList
             - - upper-case-const: false
                 skip-package-name-checks: true
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
     varnamelen:
       check-receiver: false
       ignore-names:

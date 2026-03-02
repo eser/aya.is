@@ -3,7 +3,7 @@ package discussions
 import "context"
 
 // Repository defines the storage operations for discussions (port).
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	// GetDiscussionVisibility returns the discussions module visibility for a profile.
 	GetDiscussionVisibility(ctx context.Context, profileID string) (string, error)
 

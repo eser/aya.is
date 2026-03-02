@@ -120,6 +120,7 @@ func (p *Provider) HandleOAuthCallback(
 		Name:                 channelInfo.Title,
 		Email:                "", // YouTube channels don't have email
 		URI:                  "https://youtube.com/" + channelInfo.CustomURL,
+		ProfilePictureURI:    "",
 		AccessToken:          tokenResp.AccessToken,
 		RefreshToken:         tokenResp.RefreshToken,
 		AccessTokenExpiresAt: expiresAt,
@@ -182,7 +183,8 @@ func (p *Provider) exchangeCodeForTokens(
 
 	var tokenResp tokenResponse
 
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
+	err = json.Unmarshal(body, &tokenResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToExchangeCode, err)
 	}
 
@@ -245,7 +247,8 @@ func (p *Provider) fetchChannelInfo(
 		} `json:"items"`
 	}
 
-	if err := json.Unmarshal(body, &channelResp); err != nil {
+	err = json.Unmarshal(body, &channelResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetChannelInfo, err)
 	}
 

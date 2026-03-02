@@ -35,7 +35,7 @@ var (
 
 const (
 	appleAuthURL  = "https://appleid.apple.com/auth/authorize"
-	appleTokenURL = "https://appleid.apple.com/auth/token"
+	appleTokenURL = "https://appleid.apple.com/auth/token" //nolint:gosec // not a credential, just a URL
 	appleJWKSURL  = "https://appleid.apple.com/auth/keys"
 )
 
@@ -55,11 +55,12 @@ type TokenResponse struct {
 
 // IDTokenClaims represents the claims in Apple's id_token JWT.
 type IDTokenClaims struct {
+	jwt.RegisteredClaims
+
 	Sub            string `json:"sub"`
 	Email          string `json:"email"`
 	EmailVerified  any    `json:"email_verified"` // Can be bool or string
 	IsPrivateEmail any    `json:"is_private_email"`
-	jwt.RegisteredClaims
 }
 
 // IsEmailVerified returns whether the email is verified.
@@ -110,7 +111,7 @@ func NewClient(
 	logger *logfx.Logger,
 	httpClient HTTPClient,
 ) *Client {
-	client := &Client{
+	client := &Client{ //nolint:exhaustruct // privateKey and firstAuthUserInfo set conditionally below
 		config:     config,
 		logger:     logger,
 		httpClient: httpClient,
@@ -156,7 +157,7 @@ func (c *Client) GenerateClientSecret() (string, error) {
 	}
 
 	now := time.Now()
-	claims := jwt.RegisteredClaims{
+	claims := jwt.RegisteredClaims{ //nolint:exhaustruct // NotBefore and ID not needed for Apple client secret
 		Issuer:    c.config.TeamID,
 		Subject:   c.config.ClientID,
 		Audience:  jwt.ClaimStrings{"https://appleid.apple.com"},
@@ -176,7 +177,7 @@ func (c *Client) GenerateClientSecret() (string, error) {
 }
 
 // ExchangeCodeForToken exchanges an authorization code for tokens.
-func (c *Client) ExchangeCodeForToken(
+func (c *Client) ExchangeCodeForToken( //nolint:funlen
 	ctx context.Context,
 	code string,
 	redirectURI string,
@@ -230,7 +231,8 @@ func (c *Client) ExchangeCodeForToken(
 
 	var tokenResp TokenResponse
 
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
+	err = json.Unmarshal(body, &tokenResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToExchangeCode, err)
 	}
 
@@ -321,7 +323,9 @@ func (c *Client) fetchJWKS(ctx context.Context) (*AppleJWKS, error) {
 	}
 
 	var jwks AppleJWKS
-	if err := json.Unmarshal(body, &jwks); err != nil {
+
+	err = json.Unmarshal(body, &jwks)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchJWKS, err)
 	}
 

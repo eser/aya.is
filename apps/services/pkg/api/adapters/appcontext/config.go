@@ -33,6 +33,8 @@ type ExternalsConfig struct {
 }
 
 type AppConfig struct {
+	ajan.BaseConfig
+
 	Auth       auth.Config            `conf:"auth"`
 	Sessions   sessions.Config        `conf:"sessions"`
 	Protection protection.Config      `conf:"protection"`
@@ -46,7 +48,6 @@ type AppConfig struct {
 	Telegram   telegramadapter.Config `conf:"telegram"`
 	Bulletin   bulletinbiz.Config     `conf:"bulletin"`
 	SiteURI    string                 `conf:"site_uri"   default:"http://localhost:8080"`
-	ajan.BaseConfig
 
 	Features FeatureFlags `conf:"features"`
 }

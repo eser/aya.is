@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -161,7 +161,7 @@ func (c *Client) BuildAuthURL(redirectURI, state, scope string) string {
 }
 
 // ExchangeCodeForToken exchanges an authorization code for an access token.
-func (c *Client) ExchangeCodeForToken(
+func (c *Client) ExchangeCodeForToken( //nolint:funlen // sequential HTTP exchange steps
 	ctx context.Context,
 	code string,
 	redirectURI string,
@@ -211,7 +211,8 @@ func (c *Client) ExchangeCodeForToken(
 	// Try JSON first
 	var tokenResp TokenResponse
 
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
+	unmarshalErr := json.Unmarshal(body, &tokenResp)
+	if unmarshalErr != nil {
 		// Fallback to URL-encoded response (older GitHub behavior)
 		vals, _ := url.ParseQuery(string(body))
 		tokenResp.AccessToken = vals.Get("access_token")
@@ -270,7 +271,8 @@ func (c *Client) FetchUserInfo(
 
 	var userInfo UserInfo
 
-	if err := json.Unmarshal(body, &userInfo); err != nil {
+	err = json.Unmarshal(body, &userInfo)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
 	}
 
@@ -321,7 +323,8 @@ func (c *Client) FetchUserOrganizations(
 
 	var orgs []*OrgInfo
 
-	if err := json.Unmarshal(body, &orgs); err != nil {
+	err = json.Unmarshal(body, &orgs)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
 	}
 
@@ -406,8 +409,9 @@ func (c *Client) FetchUserRepos(
 
 	var repos []*GitHubRepoInfo
 
-	if err := json.Unmarshal(body, &repos); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepos, err)
+	unmarshalErr := json.Unmarshal(body, &repos)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepos, unmarshalErr)
 	}
 
 	return repos, nil
@@ -464,8 +468,9 @@ func (c *Client) FetchRepoContributors(
 
 	var contributors []*GitHubContributorInfo
 
-	if err := json.Unmarshal(body, &contributors); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	unmarshalErr := json.Unmarshal(body, &contributors)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, unmarshalErr)
 	}
 
 	return contributors, nil
@@ -522,8 +527,9 @@ func (c *Client) FetchRepoInfo(
 
 	var repoInfo GitHubRepoInfo
 
-	if err := json.Unmarshal(body, &repoInfo); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, err)
+	unmarshalErr := json.Unmarshal(body, &repoInfo)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchRepoInfo, unmarshalErr)
 	}
 
 	return &repoInfo, nil
@@ -574,8 +580,9 @@ func (c *Client) SearchIssues(
 
 	var searchResult GitHubIssueSearchResult
 
-	if err := json.Unmarshal(body, &searchResult); err != nil {
-		return 0, fmt.Errorf("%w: %w", ErrFailedToSearchIssues, err)
+	unmarshalErr := json.Unmarshal(body, &searchResult)
+	if unmarshalErr != nil {
+		return 0, fmt.Errorf("%w: %w", ErrFailedToSearchIssues, unmarshalErr)
 	}
 
 	return searchResult.TotalCount, nil
@@ -587,20 +594,6 @@ const graphQLMaxAliasesPerRequest = 100
 
 // graphQLEndpoint is the GitHub GraphQL API URL.
 const graphQLEndpoint = "https://api.github.com/graphql"
-
-// aliasCleanerRegex strips characters that are invalid in GraphQL alias names.
-var aliasCleanerRegex = regexp.MustCompile(`[^a-zA-Z0-9_]`)
-
-// sanitizeAlias converts a string to a valid GraphQL alias name.
-// GraphQL aliases must match /[_A-Za-z][_0-9A-Za-z]*/.
-func sanitizeAlias(s string) string {
-	cleaned := aliasCleanerRegex.ReplaceAllString(s, "_")
-	if len(cleaned) == 0 || (cleaned[0] >= '0' && cleaned[0] <= '9') {
-		cleaned = "a_" + cleaned
-	}
-
-	return cleaned
-}
 
 // graphQLResponse represents the top-level GraphQL response.
 type graphQLResponse struct {
@@ -662,16 +655,14 @@ func (c *Client) SearchIssueCountsBatch(
 			return nil, err
 		}
 
-		for alias, count := range batchResult {
-			result[alias] = count
-		}
+		maps.Copy(result, batchResult)
 	}
 
 	return result, nil
 }
 
 // executeGraphQLSearchBatch sends a single GraphQL request with multiple search aliases.
-func (c *Client) executeGraphQLSearchBatch(
+func (c *Client) executeGraphQLSearchBatch( //nolint:funlen // sequential GraphQL request steps
 	ctx context.Context,
 	accessToken string,
 	queries map[string]string,
@@ -731,7 +722,9 @@ func (c *Client) executeGraphQLSearchBatch(
 	}
 
 	var gqlResp graphQLResponse
-	if err := json.Unmarshal(body, &gqlResp); err != nil {
+
+	err = json.Unmarshal(body, &gqlResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGraphQLBatchQuery, err)
 	}
 

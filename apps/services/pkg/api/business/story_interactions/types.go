@@ -1,6 +1,7 @@
 package story_interactions
 
 import (
+	"slices"
 	"time"
 )
 
@@ -14,8 +15,10 @@ const (
 	KindNotAttending InteractionKind = "not_attending"
 )
 
-// RSVPKinds lists all RSVP-related kinds for mutual exclusivity enforcement.
-var RSVPKinds = []InteractionKind{KindAttending, KindInterested, KindNotAttending}
+// GetRSVPKinds returns all RSVP-related kinds for mutual exclusivity enforcement.
+func GetRSVPKinds() []InteractionKind {
+	return []InteractionKind{KindAttending, KindInterested, KindNotAttending}
+}
 
 // RSVPKindsCSV returns RSVP kinds as a comma-separated string for SQL queries.
 func RSVPKindsCSV() string {
@@ -24,13 +27,7 @@ func RSVPKindsCSV() string {
 
 // IsRSVPKind checks whether the given kind is an RSVP kind.
 func IsRSVPKind(kind InteractionKind) bool {
-	for _, rk := range RSVPKinds {
-		if rk == kind {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(GetRSVPKinds(), kind)
 }
 
 // StoryInteraction represents a profile-to-story interaction.

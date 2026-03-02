@@ -14,8 +14,10 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
+const userKindAdmin = "admin"
+
 // RegisterHTTPRoutesForBulletin registers routes for bulletin subscription management.
-func RegisterHTTPRoutesForBulletin( //nolint:funlen
+func RegisterHTTPRoutesForBulletin( //nolint:funlen,cyclop,gocognit,gocyclo,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -449,15 +451,15 @@ func RegisterHTTPRoutesForBulletin( //nolint:funlen
 			}
 
 			channels := make([]bulletinbiz.ChannelKind, 0, len(input.Channels))
-			for _, ch := range input.Channels {
-				if !validChannels[ch] {
+			for _, channel := range input.Channels {
+				if !validChannels[channel] {
 					return ctx.Results.Error(
 						http.StatusBadRequest,
 						httpfx.WithErrorMessage("channels must be a subset of: email, telegram"),
 					)
 				}
 
-				channels = append(channels, bulletinbiz.ChannelKind(ch))
+				channels = append(channels, bulletinbiz.ChannelKind(channel))
 			}
 
 			err = bulletinService.UpdateBulletinPreferences(
@@ -494,7 +496,7 @@ func RegisterHTTPRoutesForBulletin( //nolint:funlen
 				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 			}
 
-			if user.Kind != "admin" {
+			if user.Kind != userKindAdmin {
 				return ctx.Results.Error(
 					http.StatusForbidden,
 					httpfx.WithErrorMessage("Admin access required"),

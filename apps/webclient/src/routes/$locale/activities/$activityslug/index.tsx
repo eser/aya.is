@@ -2,14 +2,20 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Calendar, Clock, ExternalLink, PencilLine, User } from "lucide-react";
+import { Clock, ExternalLink, PencilLine, User } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
 import { compileMdx } from "@/lib/mdx";
 import { MdxContent } from "@/components/userland/mdx-content";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { buildUrl, computeContentLanguage, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import {
+  buildUrl,
+  computeContentLanguage,
+  generateCanonicalLink,
+  generateMetaTags,
+  truncateDescription,
+} from "@/lib/seo";
 import { setServerResponseHeader } from "@/lib/server-headers";
 import { formatDateTimeLong } from "@/lib/date";
 import { LocaleLink } from "@/components/locale-link";
@@ -129,9 +135,7 @@ function ActivityDetailPage() {
   const timeStart = activityProps.activity_time_start !== undefined
     ? new Date(activityProps.activity_time_start)
     : null;
-  const timeEnd = activityProps.activity_time_end !== undefined
-    ? new Date(activityProps.activity_time_end)
-    : null;
+  const timeEnd = activityProps.activity_time_end !== undefined ? new Date(activityProps.activity_time_end) : null;
 
   const activityKindLabels: Record<string, string> = {
     meetup: "Activities.Meetup",
@@ -159,9 +163,7 @@ function ActivityDetailPage() {
               <span className="flex items-center gap-1.5">
                 <Clock className="size-4" />
                 {formatDateTimeLong(timeStart, locale)}
-                {timeEnd !== null && (
-                  <> – {formatDateTimeLong(timeEnd, locale)}</>
-                )}
+                {timeEnd !== null && <>– {formatDateTimeLong(timeEnd, locale)}</>}
               </span>
             )}
 

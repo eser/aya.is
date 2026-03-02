@@ -7,11 +7,11 @@ export type ContentEntityType = "story" | "page";
 
 // Image field configuration
 export interface ImageFieldConfig {
-  key: string;           // Internal state key (e.g., "storyPictureUri")
-  apiField: string;      // Backend API field name (e.g., "story_picture_uri")
-  labelKey: string;      // Translation key (e.g., "Editor.Story Picture URI")
+  key: string; // Internal state key (e.g., "storyPictureUri")
+  apiField: string; // Backend API field name (e.g., "story_picture_uri")
+  labelKey: string; // Translation key (e.g., "Editor.Story Picture URI")
   required: boolean;
-  allowedPrefixes: string[];  // From config.ts
+  allowedPrefixes: string[]; // From config.ts
 }
 
 // Entity-specific configuration
@@ -23,9 +23,9 @@ export interface EntityConfig {
 
   // Entity-specific features
   features: {
-    hasKind: boolean;           // Stories have kind (article, announcement, etc.)
-    hasFeatured: boolean;       // Stories can be featured
-    slugDatePrefix: boolean;    // Stories require YYYYMMDD prefix
+    hasKind: boolean; // Stories have kind (article, announcement, etc.)
+    hasFeatured: boolean; // Stories can be featured
+    slugDatePrefix: boolean; // Stories require YYYYMMDD prefix
   };
 }
 
@@ -53,7 +53,7 @@ export const PAGE_CONFIG: EntityConfig = {
   type: "page",
   imageFields: [
     {
-      key: "storyPictureUri",  // Same internal key for backwards compatibility
+      key: "storyPictureUri", // Same internal key for backwards compatibility
       apiField: "cover_picture_uri",
       labelKey: "ContentEditor.Cover Picture URI",
       required: false,

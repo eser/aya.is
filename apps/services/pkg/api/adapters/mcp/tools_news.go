@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -53,7 +54,7 @@ type getNewsOutput struct {
 func registerNewsTools(server *mcp.Server, storyService *stories.Service) {
 	mcp.AddTool(
 		server,
-		&mcp.Tool{
+		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "list_news",
 			Description: "Get a list of news items on the AYA platform",
 		},
@@ -62,7 +63,7 @@ func registerNewsTools(server *mcp.Server, storyService *stories.Service) {
 
 	mcp.AddTool(
 		server,
-		&mcp.Tool{
+		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "get_news",
 			Description: "Get the full contents of a news item",
 		},
@@ -70,7 +71,7 @@ func registerNewsTools(server *mcp.Server, storyService *stories.Service) {
 	)
 }
 
-func createListNewsHandler(
+func createListNewsHandler( //nolint:funlen // builds complete list response
 	storyService *stories.Service,
 ) func(context.Context, *mcp.CallToolRequest, listNewsInput) (
 	*mcp.CallToolResult,
@@ -116,7 +117,7 @@ func createListNewsHandler(
 		}
 
 		if err != nil {
-			return nil, listNewsOutput{}, err
+			return nil, listNewsOutput{}, fmt.Errorf("listing news: %w", err)
 		}
 
 		output := listNewsOutput{
@@ -130,6 +131,8 @@ func createListNewsHandler(
 				Title:           story.Title,
 				Summary:         story.Summary,
 				StoryPictureURI: story.StoryPictureURI,
+				AuthorName:      nil,
+				AuthorSlug:      nil,
 			}
 
 			if story.AuthorProfile != nil {
@@ -163,7 +166,7 @@ func createGetNewsHandler(
 
 		result, err := storyService.GetBySlug(ctx, locale, input.Slug)
 		if err != nil {
-			return nil, getNewsOutput{}, err
+			return nil, getNewsOutput{}, fmt.Errorf("getting news by slug: %w", err)
 		}
 
 		if result == nil {
@@ -180,6 +183,8 @@ func createGetNewsHandler(
 			Summary:         result.Summary,
 			Content:         result.Content,
 			StoryPictureURI: result.StoryPictureURI,
+			AuthorName:      nil,
+			AuthorSlug:      nil,
 			Publications:    make([]publicationBrief, 0, len(result.Publications)),
 		}
 

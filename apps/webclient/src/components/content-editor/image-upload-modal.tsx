@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Upload, ImageIcon, Loader2, X } from "lucide-react";
+import { ImageIcon, Loader2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -190,68 +190,68 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          {selectedFile === null ? (
-            <div
-              className={cn(
-                styles.uploadDropzone,
-                isDragging && styles.uploadDropzoneActive,
-              )}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mb-2 size-8 text-muted-foreground" />
-              <p className="text-sm font-medium">
-                {t("ContentEditor.Drop an image here or click to browse")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("ContentEditor.JPEG, PNG, GIF, or WebP up to 50MB")}
-              </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept={ALLOWED_TYPES.join(",")}
-                onChange={handleInputChange}
-              />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className={styles.uploadPreview}>
-                <img
-                  src={sanitizeImageSrc(URL.createObjectURL(selectedFile))}
-                  alt="Preview"
-                  className={styles.uploadPreviewImage}
+          {selectedFile === null
+            ? (
+              <div
+                className={cn(
+                  styles.uploadDropzone,
+                  isDragging && styles.uploadDropzoneActive,
+                )}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="mb-2 size-8 text-muted-foreground" />
+                <p className="text-sm font-medium">
+                  {t("ContentEditor.Drop an image here or click to browse")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("ContentEditor.JPEG, PNG, GIF, or WebP up to 50MB")}
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept={ALLOWED_TYPES.join(",")}
+                  onChange={handleInputChange}
                 />
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  className="absolute top-2 right-2 bg-background/80"
-                  onClick={handleRemoveFile}
-                >
-                  <X className="size-3" />
-                </Button>
               </div>
+            )
+            : (
+              <div className="space-y-4">
+                <div className={styles.uploadPreview}>
+                  <img
+                    src={sanitizeImageSrc(URL.createObjectURL(selectedFile))}
+                    alt="Preview"
+                    className={styles.uploadPreviewImage}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    className="absolute top-2 right-2 bg-background/80"
+                    onClick={handleRemoveFile}
+                  >
+                    <X className="size-3" />
+                  </Button>
+                </div>
 
-              <Field>
-                <FieldLabel htmlFor="alt-text">{t("ContentEditor.Alt Text")}</FieldLabel>
-                <Input
-                  id="alt-text"
-                  value={altText}
-                  onChange={(e) => setAltText(e.target.value)}
-                  placeholder={t("ContentEditor.Describe the image...")}
-                />
-                <FieldDescription>
-                  {t("ContentEditor.Alt text helps with accessibility and SEO")}
-                </FieldDescription>
-              </Field>
-            </div>
-          )}
+                <Field>
+                  <FieldLabel htmlFor="alt-text">{t("ContentEditor.Alt Text")}</FieldLabel>
+                  <Input
+                    id="alt-text"
+                    value={altText}
+                    onChange={(e) => setAltText(e.target.value)}
+                    placeholder={t("ContentEditor.Describe the image...")}
+                  />
+                  <FieldDescription>
+                    {t("ContentEditor.Alt text helps with accessibility and SEO")}
+                  </FieldDescription>
+                </Field>
+              </div>
+            )}
 
-          {uploadState.status === "error" && (
-            <p className="text-sm text-destructive">{uploadState.message}</p>
-          )}
+          {uploadState.status === "error" && <p className="text-sm text-destructive">{uploadState.message}</p>}
 
           {uploadState.status === "uploading" && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -272,28 +272,28 @@ export function ImageUploadModal(props: ImageUploadModalProps) {
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             {t("Common.Cancel")}
           </Button>
-          {uploadState.status === "success" ? (
-            <Button onClick={handleInsert}>{t("ContentEditor.Insert")}</Button>
-          ) : (
-            <Button
-              onClick={handleUpload}
-              disabled={
-                selectedFile === null || uploadState.status === "uploading"
-              }
-            >
-              {uploadState.status === "uploading" ? (
-                <>
-                  <Loader2 className="mr-1.5 size-4 animate-spin" />
-                  {t("ContentEditor.Uploading...")}
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-1.5 size-4" />
-                  {t("ContentEditor.Upload")}
-                </>
-              )}
-            </Button>
-          )}
+          {uploadState.status === "success"
+            ? <Button onClick={handleInsert}>{t("ContentEditor.Insert")}</Button>
+            : (
+              <Button
+                onClick={handleUpload}
+                disabled={selectedFile === null || uploadState.status === "uploading"}
+              >
+                {uploadState.status === "uploading"
+                  ? (
+                    <>
+                      <Loader2 className="mr-1.5 size-4 animate-spin" />
+                      {t("ContentEditor.Uploading...")}
+                    </>
+                  )
+                  : (
+                    <>
+                      <Upload className="mr-1.5 size-4" />
+                      {t("ContentEditor.Upload")}
+                    </>
+                  )}
+              </Button>
+            )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

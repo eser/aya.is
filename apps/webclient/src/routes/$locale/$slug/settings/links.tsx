@@ -4,25 +4,31 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
-  LucideIcon,
+  BadgeCheck,
+  ChevronDown,
+  CircleCheck,
+  EyeOff,
   Globe,
+  GripVertical,
   Instagram,
   Linkedin,
-  Youtube,
-  Plus,
-  Pencil,
-  Trash2,
-  EyeOff,
-  GripVertical,
-  ChevronDown,
-  BadgeCheck,
+  LucideIcon,
   MoreHorizontal,
+  Pencil,
+  Plus,
   RefreshCw,
   Star,
-  CircleCheck,
+  Trash2,
+  Youtube,
 } from "lucide-react";
-import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
-import { backend, type ProfileLink, type ProfileLinkKind, type LinkVisibility, type GitHubAccount } from "@/modules/backend/backend";
+import { Bsky, Discord, GitHub, Icon, SpeakerDeck, Telegram, X } from "@/components/icons";
+import {
+  backend,
+  type GitHubAccount,
+  type LinkVisibility,
+  type ProfileLink,
+  type ProfileLinkKind,
+} from "@/modules/backend/backend";
 import type { LinkedInAccount } from "@/modules/backend/profiles/get-linkedin-accounts";
 import { siteConfig } from "@/config";
 import { Spinner } from "@/components/ui/spinner";
@@ -32,13 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -921,132 +921,132 @@ function LinksSettingsPage() {
         </DropdownMenu>
       </div>
 
-      {links.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <Globe className="size-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">{t("Profile.No links added yet.")}</p>
-          <Button variant="outline" onClick={handleOpenAddDialog}>
-            <Plus className="size-4 mr-1" />
-            {t("Profile.Add Your First Link")}
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {groupNames.map((groupName) => (
-            <div key={groupName || "ungrouped"}>
-              {/* Group header - only show for named groups */}
-              {groupName !== "" && (
-                <h4 className="text-sm font-medium text-muted-foreground mb-2 px-1">
-                  {groupName}
-                </h4>
-              )}
-              <div className="space-y-2">
-                {groupedLinks[groupName].map((link) => {
-                  const config = getLinkTypeConfig(link.kind);
-                  const IconComponent = config.icon;
-                  const isDragOver = dragOverId === link.id;
-                  const hasCustomIcon = link.icon !== undefined && link.icon !== null && link.icon !== "";
+      {links.length === 0
+        ? (
+          <div className="text-center py-12 border-2 border-dashed rounded-lg">
+            <Globe className="size-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">{t("Profile.No links added yet.")}</p>
+            <Button variant="outline" onClick={handleOpenAddDialog}>
+              <Plus className="size-4 mr-1" />
+              {t("Profile.Add Your First Link")}
+            </Button>
+          </div>
+        )
+        : (
+          <div className="space-y-6">
+            {groupNames.map((groupName) => (
+              <div key={groupName || "ungrouped"}>
+                {/* Group header - only show for named groups */}
+                {groupName !== "" && (
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2 px-1">
+                    {groupName}
+                  </h4>
+                )}
+                <div className="space-y-2">
+                  {groupedLinks[groupName].map((link) => {
+                    const config = getLinkTypeConfig(link.kind);
+                    const IconComponent = config.icon;
+                    const isDragOver = dragOverId === link.id;
+                    const hasCustomIcon = link.icon !== undefined && link.icon !== null && link.icon !== "";
 
-                  return (
-                    <div
-                      key={link.id}
-                      data-link-id={link.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, link.id, groupName)}
-                      onDragEnd={handleDragEnd}
-                      onDragOver={(e) => handleDragOver(e, link.id, groupName)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, link.id, groupName)}
-                      className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
-                        isDragOver
-                          ? "border-primary bg-primary/5 border-dashed"
-                          : "hover:bg-muted/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
-                        <GripVertical className="size-5" />
-                      </div>
-                      <div className="flex items-center justify-center size-10 rounded-full bg-muted shrink-0">
-                        {hasCustomIcon
-                          ? <span className="text-lg leading-none">{link.icon}</span>
-                          : <IconComponent className="size-5" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium truncate">{link.title}</p>
-                          {link.is_verified && link.is_managed && (
-                            <span className="inline-flex items-center gap-1 text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded">
-                              <BadgeCheck className="size-3" />
-                              {t("Profile.Connected")}
-                            </span>
-                          )}
-                          {link.is_featured && (
-                            <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
-                              <Star className="size-3" />
-                              {t("Profile.Featured")}
-                            </span>
-                          )}
-                          {link.visibility !== undefined && link.visibility !== "public" && (
-                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                              <EyeOff className="size-3" />
-                              {t(`Profile.Visibility.${link.visibility}`)}
-                            </span>
+                    return (
+                      <div
+                        key={link.id}
+                        data-link-id={link.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, link.id, groupName)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => handleDragOver(e, link.id, groupName)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, link.id, groupName)}
+                        className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
+                          isDragOver ? "border-primary bg-primary/5 border-dashed" : "hover:bg-muted/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+                          <GripVertical className="size-5" />
+                        </div>
+                        <div className="flex items-center justify-center size-10 rounded-full bg-muted shrink-0">
+                          {hasCustomIcon
+                            ? <span className="text-lg leading-none">{link.icon}</span>
+                            : <IconComponent className="size-5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium truncate">{link.title}</p>
+                            {link.is_verified && link.is_managed && (
+                              <span className="inline-flex items-center gap-1 text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded">
+                                <BadgeCheck className="size-3" />
+                                {t("Profile.Connected")}
+                              </span>
+                            )}
+                            {link.is_featured && (
+                              <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
+                                <Star className="size-3" />
+                                {t("Profile.Featured")}
+                              </span>
+                            )}
+                            {link.visibility !== undefined && link.visibility !== "public" && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                                <EyeOff className="size-3" />
+                                {t(`Profile.Visibility.${link.visibility}`)}
+                              </span>
+                            )}
+                          </div>
+                          {link.uri !== null && link.uri !== "" && (
+                            <p className="text-sm text-muted-foreground truncate">{link.uri}</p>
                           )}
                         </div>
-                        {link.uri !== null && link.uri !== "" && (
-                          <p className="text-sm text-muted-foreground truncate">{link.uri}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="size-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-auto">
-                            {link.is_managed && (
-                              <>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="size-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-auto">
+                              {link.is_managed && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={() => handleReconnect(link)}
+                                  >
+                                    <RefreshCw className="size-4" />
+                                    {t("Profile.Reconnect")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
+                              {link.can_remove !== false && (
                                 <DropdownMenuItem
-                                  onClick={() => handleReconnect(link)}
+                                  variant="destructive"
+                                  onClick={() => handleOpenDeleteDialog(link)}
                                 >
-                                  <RefreshCw className="size-4" />
-                                  {t("Profile.Reconnect")}
+                                  <Trash2 className="size-4" />
+                                  {t("Profile.Remove Connection")}
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
-                            {link.can_remove !== false && (
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => handleOpenDeleteDialog(link)}
-                              >
-                                <Trash2 className="size-4" />
-                                {t("Profile.Remove Connection")}
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEditDialog(link);
-                          }}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEditDialog(link);
+                            }}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -1208,8 +1208,8 @@ function LinksSettingsPage() {
               {isSaving
                 ? t("Common.Saving...")
                 : editingLink !== null
-                  ? t("Profile.Update Link")
-                  : t("Profile.Add Link")}
+                ? t("Profile.Update Link")
+                : t("Profile.Add Link")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1234,14 +1234,17 @@ function LinksSettingsPage() {
       </AlertDialog>
 
       {/* GitHub Account Selection Dialog */}
-      <Dialog open={isAccountSelectionOpen} onOpenChange={(open) => {
-        if (!open && !isConnectingAccount) {
-          setIsAccountSelectionOpen(false);
-          setPendingGitHubId(null);
-          setGitHubAccounts([]);
-          setPendingProfileKind(null);
-        }
-      }}>
+      <Dialog
+        open={isAccountSelectionOpen}
+        onOpenChange={(open) => {
+          if (!open && !isConnectingAccount) {
+            setIsAccountSelectionOpen(false);
+            setPendingGitHubId(null);
+            setGitHubAccounts([]);
+            setPendingProfileKind(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1254,60 +1257,63 @@ function LinksSettingsPage() {
           </DialogHeader>
 
           <div className="py-4">
-            {isLoadingAccounts ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Skeleton className="size-10 rounded-full" />
-                    <div className="flex-1">
-                      <Skeleton className="h-4 w-32 mb-2" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {gitHubAccounts.map((account) => {
-                  // For organization/product profiles, only allow selecting organizations
-                  const isDisabled = isConnectingAccount ||
-                    ((pendingProfileKind === "organization" || pendingProfileKind === "product") &&
-                      account.type === "User");
-
-                  return (
-                    <button
-                      key={account.id}
-                      type="button"
-                      onClick={() => handleSelectGitHubAccount(account)}
-                      disabled={isDisabled}
-                      className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <img
-                        src={account.avatar_url}
-                        alt={account.login}
-                        className="size-10 rounded-full"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{account.name || account.login}</p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          @{account.login}
-                          {account.type === "Organization" && (
-                            <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">
-                              {t("Profile.Organization")}
-                            </span>
-                          )}
-                          {account.type === "User" && (pendingProfileKind === "organization" || pendingProfileKind === "product") && (
-                            <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">
-                              {t("Profile.Individual profiles not allowed")}
-                            </span>
-                          )}
-                        </p>
+            {isLoadingAccounts
+              ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
+                      <Skeleton className="size-10 rounded-full" />
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-32 mb-2" />
+                        <Skeleton className="h-3 w-24" />
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    </div>
+                  ))}
+                </div>
+              )
+              : (
+                <div className="space-y-2">
+                  {gitHubAccounts.map((account) => {
+                    // For organization/product profiles, only allow selecting organizations
+                    const isDisabled = isConnectingAccount ||
+                      ((pendingProfileKind === "organization" || pendingProfileKind === "product") &&
+                        account.type === "User");
+
+                    return (
+                      <button
+                        key={account.id}
+                        type="button"
+                        onClick={() => handleSelectGitHubAccount(account)}
+                        disabled={isDisabled}
+                        className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <img
+                          src={account.avatar_url}
+                          alt={account.login}
+                          className="size-10 rounded-full"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{account.name || account.login}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            @{account.login}
+                            {account.type === "Organization" && (
+                              <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded">
+                                {t("Profile.Organization")}
+                              </span>
+                            )}
+                            {account.type === "User" &&
+                              (pendingProfileKind === "organization" || pendingProfileKind === "product") && (
+                              <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">
+                                {t("Profile.Individual profiles not allowed")}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
           </div>
 
           <DialogFooter>
@@ -1328,14 +1334,17 @@ function LinksSettingsPage() {
       </Dialog>
 
       {/* LinkedIn Account Selection Dialog */}
-      <Dialog open={isLinkedInAccountSelectionOpen} onOpenChange={(open) => {
-        if (!open && !isConnectingLinkedInAccount) {
-          setIsLinkedInAccountSelectionOpen(false);
-          setPendingLinkedInId(null);
-          setLinkedInAccounts([]);
-          setPendingLinkedInProfileKind(null);
-        }
-      }}>
+      <Dialog
+        open={isLinkedInAccountSelectionOpen}
+        onOpenChange={(open) => {
+          if (!open && !isConnectingLinkedInAccount) {
+            setIsLinkedInAccountSelectionOpen(false);
+            setPendingLinkedInId(null);
+            setLinkedInAccounts([]);
+            setPendingLinkedInProfileKind(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1348,70 +1357,78 @@ function LinksSettingsPage() {
           </DialogHeader>
 
           <div className="py-4">
-            {isLoadingLinkedInAccounts ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Skeleton className="size-10 rounded-full" />
-                    <div className="flex-1">
-                      <Skeleton className="h-4 w-32 mb-2" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {linkedInAccounts.map((account) => {
-                  // For organization/product profiles, only allow selecting organizations
-                  const isDisabled = isConnectingLinkedInAccount ||
-                    ((pendingLinkedInProfileKind === "organization" || pendingLinkedInProfileKind === "product") &&
-                      account.type === "Personal");
-
-                  return (
-                    <button
-                      key={account.id}
-                      type="button"
-                      onClick={() => handleSelectLinkedInAccount(account)}
-                      disabled={isDisabled}
-                      className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {account.logo_url !== undefined && account.logo_url !== "" ? (
-                        <img
-                          src={account.logo_url}
-                          alt={account.name}
-                          className="size-10 rounded-full"
-                        />
-                      ) : (
-                        <div className="size-10 rounded-full bg-muted flex items-center justify-center">
-                          <Linkedin className="size-5 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{account.name}</p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {account.type === "Organization" && (
-                            <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                              {t("Profile.Organization")}
-                            </span>
-                          )}
-                          {account.type === "Personal" && (pendingLinkedInProfileKind === "organization" || pendingLinkedInProfileKind === "product") && (
-                            <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">
-                              {t("Profile.Individual profiles not allowed")}
-                            </span>
-                          )}
-                          {account.type === "Personal" && pendingLinkedInProfileKind !== "organization" && pendingLinkedInProfileKind !== "product" && (
-                            <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                              {t("Profile.Personal")}
-                            </span>
-                          )}
-                        </p>
+            {isLoadingLinkedInAccounts
+              ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
+                      <Skeleton className="size-10 rounded-full" />
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-32 mb-2" />
+                        <Skeleton className="h-3 w-24" />
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    </div>
+                  ))}
+                </div>
+              )
+              : (
+                <div className="space-y-2">
+                  {linkedInAccounts.map((account) => {
+                    // For organization/product profiles, only allow selecting organizations
+                    const isDisabled = isConnectingLinkedInAccount ||
+                      ((pendingLinkedInProfileKind === "organization" || pendingLinkedInProfileKind === "product") &&
+                        account.type === "Personal");
+
+                    return (
+                      <button
+                        key={account.id}
+                        type="button"
+                        onClick={() => handleSelectLinkedInAccount(account)}
+                        disabled={isDisabled}
+                        className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {account.logo_url !== undefined && account.logo_url !== ""
+                          ? (
+                            <img
+                              src={account.logo_url}
+                              alt={account.name}
+                              className="size-10 rounded-full"
+                            />
+                          )
+                          : (
+                            <div className="size-10 rounded-full bg-muted flex items-center justify-center">
+                              <Linkedin className="size-5 text-muted-foreground" />
+                            </div>
+                          )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{account.name}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {account.type === "Organization" && (
+                              <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                                {t("Profile.Organization")}
+                              </span>
+                            )}
+                            {account.type === "Personal" &&
+                              (pendingLinkedInProfileKind === "organization" ||
+                                pendingLinkedInProfileKind === "product") &&
+                              (
+                                <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded">
+                                  {t("Profile.Individual profiles not allowed")}
+                                </span>
+                              )}
+                            {account.type === "Personal" && pendingLinkedInProfileKind !== "organization" &&
+                              pendingLinkedInProfileKind !== "product" && (
+                              <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                                {t("Profile.Personal")}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
           </div>
 
           <DialogFooter>
@@ -1432,12 +1449,15 @@ function LinksSettingsPage() {
       </Dialog>
 
       {/* SpeakerDeck Connect Dialog */}
-      <Dialog open={isSpeakerDeckDialogOpen} onOpenChange={(open) => {
-        if (!open && !isConnectingSpeakerDeck) {
-          setIsSpeakerDeckDialogOpen(false);
-          setSpeakerDeckUrl("");
-        }
-      }}>
+      <Dialog
+        open={isSpeakerDeckDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isConnectingSpeakerDeck) {
+            setIsSpeakerDeckDialogOpen(false);
+            setSpeakerDeckUrl("");
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1484,13 +1504,16 @@ function LinksSettingsPage() {
       </Dialog>
 
       {/* External Site Connect Dialog */}
-      <Dialog open={isExternalSiteDialogOpen} onOpenChange={(open) => {
-        if (!open && !isConnectingExternalSite) {
-          setIsExternalSiteDialogOpen(false);
-          setExternalSiteRepoUrl("");
-          setExternalSiteSiteUrl("");
-        }
-      }}>
+      <Dialog
+        open={isExternalSiteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isConnectingExternalSite) {
+            setIsExternalSiteDialogOpen(false);
+            setExternalSiteRepoUrl("");
+            setExternalSiteSiteUrl("");
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1569,7 +1592,9 @@ function LinksSettingsPage() {
                   disabled={isConnectingExternalSite}
                 />
                 <FieldDescription>
-                  {t("Profile.The folder containing your posts in the repository. Leave empty to import from the root.")}
+                  {t(
+                    "Profile.The folder containing your posts in the repository. Leave empty to import from the root.",
+                  )}
                 </FieldDescription>
               </Field>
             )}
@@ -1590,7 +1615,8 @@ function LinksSettingsPage() {
             </Button>
             <Button
               onClick={handleSubmitExternalSite}
-              disabled={isConnectingExternalSite || externalSiteSiteUrl.trim() === "" || (externalSiteSystem === "jekyll-hugo-zola" && externalSiteRepoUrl.trim() === "")}
+              disabled={isConnectingExternalSite || externalSiteSiteUrl.trim() === "" ||
+                (externalSiteSystem === "jekyll-hugo-zola" && externalSiteRepoUrl.trim() === "")}
             >
               {isConnectingExternalSite ? t("Common.Connecting...") : t("Profile.Connect")}
             </Button>
@@ -1599,11 +1625,14 @@ function LinksSettingsPage() {
       </Dialog>
 
       {/* Telegram Connect Dialog */}
-      <Dialog open={isTelegramDialogOpen} onOpenChange={(open) => {
-        if (!open && !isVerifyingTelegramCode) {
-          handleCloseTelegramDialog();
-        }
-      }}>
+      <Dialog
+        open={isTelegramDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isVerifyingTelegramCode) {
+            handleCloseTelegramDialog();
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1616,156 +1645,158 @@ function LinksSettingsPage() {
           </DialogHeader>
 
           <div className="py-4">
-            {telegramConnectionStatus === "connected" ? (
-              <div className="text-center py-6">
-                <div className="flex items-center justify-center mb-4">
-                  <CircleCheck className="size-12 text-green-600" />
+            {telegramConnectionStatus === "connected"
+              ? (
+                <div className="text-center py-6">
+                  <div className="flex items-center justify-center mb-4">
+                    <CircleCheck className="size-12 text-green-600" />
+                  </div>
+                  <p className="text-lg font-medium text-foreground mb-2">
+                    {t("Profile.Telegram connected!")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("Profile.Your Telegram account has been linked to this profile.")}
+                  </p>
                 </div>
-                <p className="text-lg font-medium text-foreground mb-2">
-                  {t("Profile.Telegram connected!")}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {t("Profile.Your Telegram account has been linked to this profile.")}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Step 1 */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    1
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Open Telegram Bot")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      <a
-                        href={`https://t.me/${siteConfig.telegramBotUsername}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline"
-                      >
-                        @{siteConfig.telegramBotUsername}
-                      </a>
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    2
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Type /start, get the code")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Send /start to the bot and it will reply with a verification code.")}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 3 — Visibility */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    3
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Set link visibility")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Choose who can see this link on your profile.")}
-                    </p>
-                    <div className="mt-3">
-                      <Select
-                        value={telegramVisibility}
-                        onValueChange={(value) => setTelegramVisibility(value as LinkVisibility)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue>
-                            {t(`Profile.Visibility.${telegramVisibility}`)}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {VISIBILITY_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {t(option.labelKey)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+              )
+              : (
+                <div className="space-y-6">
+                  {/* Step 1 */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                      1
                     </div>
-                  </div>
-                </div>
-
-                {/* Step 4 — Verification */}
-                <div className="flex gap-3">
-                  <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    4
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {t("Profile.Paste verification code")}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t("Profile.Paste the code below and click Verify.")}
-                    </p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <Input
-                        value={telegramCode}
-                        onChange={(e) => setTelegramCode(e.target.value)}
-                        placeholder={t("Profile.Enter verification code")}
-                        className="text-sm font-mono uppercase"
-                        maxLength={10}
-                        disabled={isVerifyingTelegramCode}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleVerifyTelegramCode();
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={handleVerifyTelegramCode}
-                        disabled={isVerifyingTelegramCode || telegramCode.trim() === ""}
-                      >
-                        {isVerifyingTelegramCode
-                          ? <Spinner className="size-4" />
-                          : t("Profile.Verify")}
-                      </Button>
-                    </div>
-                    {telegramErrorMessage !== "" && (
-                      <p className="text-sm text-destructive mt-2">
-                        {telegramErrorMessage}
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {t("Profile.Open Telegram Bot")}
                       </p>
-                    )}
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <a
+                          href={`https://t.me/${siteConfig.telegramBotUsername}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline"
+                        >
+                          @{siteConfig.telegramBotUsername}
+                        </a>
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                {/* Expiry notice */}
-                <p className="text-xs text-muted-foreground">
-                  {t("Profile.The code expires in 10 minutes. If it expires, send /start again to get a new one.")}
-                </p>
-              </div>
-            )}
+                  {/* Step 2 */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {t("Profile.Type /start, get the code")}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {t("Profile.Send /start to the bot and it will reply with a verification code.")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 3 — Visibility */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                      3
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {t("Profile.Set link visibility")}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {t("Profile.Choose who can see this link on your profile.")}
+                      </p>
+                      <div className="mt-3">
+                        <Select
+                          value={telegramVisibility}
+                          onValueChange={(value) => setTelegramVisibility(value as LinkVisibility)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue>
+                              {t(`Profile.Visibility.${telegramVisibility}`)}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {VISIBILITY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {t(option.labelKey)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 4 — Verification */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                      4
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">
+                        {t("Profile.Paste verification code")}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {t("Profile.Paste the code below and click Verify.")}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Input
+                          value={telegramCode}
+                          onChange={(e) => setTelegramCode(e.target.value)}
+                          placeholder={t("Profile.Enter verification code")}
+                          className="text-sm font-mono uppercase"
+                          maxLength={10}
+                          disabled={isVerifyingTelegramCode}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleVerifyTelegramCode();
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={handleVerifyTelegramCode}
+                          disabled={isVerifyingTelegramCode || telegramCode.trim() === ""}
+                        >
+                          {isVerifyingTelegramCode ? <Spinner className="size-4" /> : t("Profile.Verify")}
+                        </Button>
+                      </div>
+                      {telegramErrorMessage !== "" && (
+                        <p className="text-sm text-destructive mt-2">
+                          {telegramErrorMessage}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expiry notice */}
+                  <p className="text-xs text-muted-foreground">
+                    {t("Profile.The code expires in 10 minutes. If it expires, send /start again to get a new one.")}
+                  </p>
+                </div>
+              )}
           </div>
 
           <DialogFooter>
-            {telegramConnectionStatus === "connected" ? (
-              <Button onClick={handleCloseTelegramDialog}>
-                {t("Common.Done")}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={handleCloseTelegramDialog}
-                disabled={isVerifyingTelegramCode}
-              >
-                {t("Common.Cancel")}
-              </Button>
-            )}
+            {telegramConnectionStatus === "connected"
+              ? (
+                <Button onClick={handleCloseTelegramDialog}>
+                  {t("Common.Done")}
+                </Button>
+              )
+              : (
+                <Button
+                  variant="outline"
+                  onClick={handleCloseTelegramDialog}
+                  disabled={isVerifyingTelegramCode}
+                >
+                  {t("Common.Cancel")}
+                </Button>
+              )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

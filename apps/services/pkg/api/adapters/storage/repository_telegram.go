@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
@@ -27,7 +28,7 @@ func (a *telegramAdapter) CreateExternalCode(
 ) error {
 	propsJSON, err := json.Marshal(code.Properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling external code properties: %w", err)
 	}
 
 	return a.repo.queries.CreateExternalCode(ctx, CreateExternalCodeParams{
@@ -62,8 +63,14 @@ func (a *telegramAdapter) GetExternalCodeByCode(
 	if row.Properties.Valid && len(row.Properties.RawMessage) > 0 {
 		err = json.Unmarshal(row.Properties.RawMessage, &props)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unmarshaling external code properties: %w", err)
 		}
+	}
+
+	var consumedAt *time.Time
+	if row.ConsumedAt.Valid {
+		consumedAtVal := row.ConsumedAt.Time
+		consumedAt = &consumedAtVal
 	}
 
 	result := &telegrambiz.ExternalCode{
@@ -73,11 +80,7 @@ func (a *telegramAdapter) GetExternalCodeByCode(
 		Properties:     props,
 		CreatedAt:      row.CreatedAt,
 		ExpiresAt:      row.ExpiresAt,
-	}
-
-	if row.ConsumedAt.Valid {
-		t := row.ConsumedAt.Time
-		result.ConsumedAt = &t
+		ConsumedAt:     consumedAt,
 	}
 
 	return result, nil
@@ -191,12 +194,13 @@ func (a *telegramAdapter) CreateTelegramProfileLink(
 			Valid:  params.PublicID != "",
 		},
 		URI:                       vars.ToSQLNullString(uriPtr),
-		AuthProvider:              sql.NullString{Valid: false},
-		AuthAccessTokenScope:      sql.NullString{Valid: false},
-		AuthAccessToken:           sql.NullString{Valid: false},
-		AuthAccessTokenExpiresAt:  sql.NullTime{Valid: false},
-		AuthRefreshToken:          sql.NullString{Valid: false},
-		AuthRefreshTokenExpiresAt: sql.NullTime{Valid: false},
+		Properties:                pqtype.NullRawMessage{RawMessage: nil, Valid: false},
+		AuthProvider:              sql.NullString{String: "", Valid: false},
+		AuthAccessTokenScope:      sql.NullString{String: "", Valid: false},
+		AuthAccessToken:           sql.NullString{String: "", Valid: false},
+		AuthAccessTokenExpiresAt:  sql.NullTime{Time: time.Time{}, Valid: false},
+		AuthRefreshToken:          sql.NullString{String: "", Valid: false},
+		AuthRefreshTokenExpiresAt: sql.NullTime{Time: time.Time{}, Valid: false},
 		AddedByProfileID:          vars.ToSQLNullString(addedByPtr),
 	})
 

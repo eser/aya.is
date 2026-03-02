@@ -84,9 +84,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
                 placeholder={t("Profile.Enter title")}
                 aria-invalid={hasError || undefined}
               />
-              {hasError && (
-                <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
-              )}
+              {hasError && <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>}
             </Field>
           );
         }}
@@ -109,9 +107,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
                 rows={4}
                 aria-invalid={hasError || undefined}
               />
-              {hasError && (
-                <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
-              )}
+              {hasError && <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>}
             </Field>
           );
         }}
@@ -134,9 +130,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
                   placeholder={t("Profile.Enter pronouns")}
                   aria-invalid={hasError || undefined}
                 />
-                {hasError && (
-                  <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>
-                )}
+                {hasError && <FieldError>{getErrorMessage(field.state.meta.errors[0])}</FieldError>}
               </Field>
             );
           }}
@@ -152,12 +146,8 @@ export function EditProfileForm(props: EditProfileFormProps) {
               type="submit"
               disabled={!canSubmit || isSubmitting || props.isSubmitting}
             >
-              {(isSubmitting || props.isSubmitting) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting || props.isSubmitting
-                ? t("Common.Saving...")
-                : t("Profile.Save Changes")}
+              {(isSubmitting || props.isSubmitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting || props.isSubmitting ? t("Common.Saving...") : t("Profile.Save Changes")}
             </Button>
           </div>
         )}

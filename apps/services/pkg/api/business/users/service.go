@@ -18,7 +18,7 @@ var (
 	ErrFailedToUpdateRecord = errors.New("failed to update record")
 )
 
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	GetUserByID(ctx context.Context, id string) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByGitHubRemoteID(ctx context.Context, githubRemoteID string) (*User, error)
@@ -105,7 +105,10 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 		EventType:  events.UserCreated,
 		EntityType: "user",
 		EntityID:   user.ID,
+		ActorID:    nil,
 		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return nil
@@ -187,12 +190,14 @@ func (s *Service) TerminateSession(ctx context.Context, sessionID, userID string
 		EntityID:   sessionID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return nil
 }
 
-func (s *Service) UpsertGitHubUser( //nolint:funlen,cyclop
+func (s *Service) UpsertGitHubUser( //nolint:funlen
 	ctx context.Context,
 	githubRemoteID string,
 	email string,
@@ -234,7 +239,9 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen,cyclop
 			EventType:  events.UserUpdated,
 			EntityType: "user",
 			EntityID:   existingUser.ID,
+			ActorID:    nil,
 			ActorKind:  events.ActorSystem,
+			SessionID:  nil,
 			Payload:    map[string]any{"github_remote_id": githubRemoteID},
 		})
 
@@ -243,42 +250,14 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen,cyclop
 
 	// User not found by GitHub ID, try to find by email
 	if email != "" {
-		existingUser, err = s.repo.GetUserByEmail(ctx, email)
+		existingUser, err = s.findAndLinkGitHubByEmail(
+			ctx, email, name, githubHandle, githubRemoteID, profilePictureURI,
+		)
 		if err != nil {
-			return nil, fmt.Errorf("%w(email: %s): %w", ErrFailedToGetRecord, email, err)
+			return nil, err
 		}
 
 		if existingUser != nil {
-			// User exists with same email, update their GitHub information
-			existingUser.Name = name
-			existingUser.GithubHandle = &githubHandle
-			existingUser.GithubRemoteID = &githubRemoteID
-
-			if profilePictureURI != "" {
-				existingUser.ProfilePictureURI = &profilePictureURI
-			}
-
-			now := time.Now()
-			existingUser.UpdatedAt = &now
-
-			err = s.repo.UpdateUser(ctx, existingUser)
-			if err != nil {
-				return nil, fmt.Errorf(
-					"%w(id: %s): %w",
-					ErrFailedToUpdateRecord,
-					existingUser.ID,
-					err,
-				)
-			}
-
-			s.auditService.Record(ctx, events.AuditParams{
-				EventType:  events.UserUpdated,
-				EntityType: "user",
-				EntityID:   existingUser.ID,
-				ActorKind:  events.ActorSystem,
-				Payload:    map[string]any{"github_remote_id": githubRemoteID},
-			})
-
 			return existingUser, nil
 		}
 	}
@@ -294,12 +273,14 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen,cyclop
 		Kind:                "regular",
 		Name:                name,
 		Email:               &email,
+		Phone:               nil,
 		GithubHandle:        &githubHandle,
 		GithubRemoteID:      &githubRemoteID,
-		ProfilePictureURI:   picturePtr,
 		BskyHandle:          nil,
 		XHandle:             nil,
+		AppleRemoteID:       nil,
 		IndividualProfileID: nil,
+		ProfilePictureURI:   picturePtr,
 		CreatedAt:           time.Now(),
 		UpdatedAt:           nil,
 		DeletedAt:           nil,
@@ -314,7 +295,9 @@ func (s *Service) UpsertGitHubUser( //nolint:funlen,cyclop
 		EventType:  events.UserCreated,
 		EntityType: "user",
 		EntityID:   newUser.ID,
+		ActorID:    nil,
 		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
 		Payload:    map[string]any{"github_remote_id": githubRemoteID},
 	})
 
@@ -368,7 +351,9 @@ func (s *Service) UpsertAppleUser( //nolint:funlen,cyclop
 			EventType:  events.UserUpdated,
 			EntityType: "user",
 			EntityID:   existingUser.ID,
+			ActorID:    nil,
 			ActorKind:  events.ActorSystem,
+			SessionID:  nil,
 			Payload:    map[string]any{"apple_remote_id": appleRemoteID},
 		})
 
@@ -377,44 +362,14 @@ func (s *Service) UpsertAppleUser( //nolint:funlen,cyclop
 
 	// User not found by Apple ID, try to find by email
 	if email != "" {
-		existingUser, err = s.repo.GetUserByEmail(ctx, email)
+		existingUser, err = s.findAndLinkAppleByEmail(
+			ctx, email, name, appleRemoteID, profilePictureURI,
+		)
 		if err != nil {
-			return nil, fmt.Errorf("%w(email: %s): %w", ErrFailedToGetRecord, email, err)
+			return nil, err
 		}
 
 		if existingUser != nil {
-			// User exists with same email, link Apple ID to this account
-			if name != "" {
-				existingUser.Name = name
-			}
-
-			if profilePictureURI != "" {
-				existingUser.ProfilePictureURI = &profilePictureURI
-			}
-
-			existingUser.AppleRemoteID = &appleRemoteID
-
-			now := time.Now()
-			existingUser.UpdatedAt = &now
-
-			err = s.repo.UpdateUser(ctx, existingUser)
-			if err != nil {
-				return nil, fmt.Errorf(
-					"%w(id: %s): %w",
-					ErrFailedToUpdateRecord,
-					existingUser.ID,
-					err,
-				)
-			}
-
-			s.auditService.Record(ctx, events.AuditParams{
-				EventType:  events.UserUpdated,
-				EntityType: "user",
-				EntityID:   existingUser.ID,
-				ActorKind:  events.ActorSystem,
-				Payload:    map[string]any{"apple_remote_id": appleRemoteID},
-			})
-
 			return existingUser, nil
 		}
 	}
@@ -430,9 +385,14 @@ func (s *Service) UpsertAppleUser( //nolint:funlen,cyclop
 		Kind:                "regular",
 		Name:                name,
 		Email:               &email,
+		Phone:               nil,
+		GithubHandle:        nil,
+		GithubRemoteID:      nil,
+		BskyHandle:          nil,
+		XHandle:             nil,
 		AppleRemoteID:       &appleRemoteID,
-		ProfilePictureURI:   picturePtr,
 		IndividualProfileID: nil,
+		ProfilePictureURI:   picturePtr,
 		CreatedAt:           time.Now(),
 		UpdatedAt:           nil,
 		DeletedAt:           nil,
@@ -447,7 +407,9 @@ func (s *Service) UpsertAppleUser( //nolint:funlen,cyclop
 		EventType:  events.UserCreated,
 		EntityType: "user",
 		EntityID:   newUser.ID,
+		ActorID:    nil,
 		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
 		Payload:    map[string]any{"apple_remote_id": appleRemoteID},
 	})
 
@@ -471,4 +433,101 @@ func (s *Service) SetIndividualProfileID(
 	}
 
 	return nil
+}
+
+// findAndLinkGitHubByEmail looks up a user by email and links their GitHub account.
+// Returns (nil, nil) if no user found with that email.
+func (s *Service) findAndLinkGitHubByEmail(
+	ctx context.Context,
+	email string,
+	name string,
+	githubHandle string,
+	githubRemoteID string,
+	profilePictureURI string,
+) (*User, error) {
+	existingUser, err := s.repo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("%w(email: %s): %w", ErrFailedToGetRecord, email, err)
+	}
+
+	if existingUser == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	existingUser.Name = name
+	existingUser.GithubHandle = &githubHandle
+	existingUser.GithubRemoteID = &githubRemoteID
+
+	if profilePictureURI != "" {
+		existingUser.ProfilePictureURI = &profilePictureURI
+	}
+
+	now := time.Now()
+	existingUser.UpdatedAt = &now
+
+	err = s.repo.UpdateUser(ctx, existingUser)
+	if err != nil {
+		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateRecord, existingUser.ID, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.UserUpdated,
+		EntityType: "user",
+		EntityID:   existingUser.ID,
+		ActorID:    nil,
+		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
+		Payload:    map[string]any{"github_remote_id": githubRemoteID},
+	})
+
+	return existingUser, nil
+}
+
+// findAndLinkAppleByEmail looks up a user by email and links their Apple account.
+// Returns (nil, nil) if no user found with that email.
+func (s *Service) findAndLinkAppleByEmail(
+	ctx context.Context,
+	email string,
+	name string,
+	appleRemoteID string,
+	profilePictureURI string,
+) (*User, error) {
+	existingUser, err := s.repo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("%w(email: %s): %w", ErrFailedToGetRecord, email, err)
+	}
+
+	if existingUser == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	if name != "" {
+		existingUser.Name = name
+	}
+
+	if profilePictureURI != "" {
+		existingUser.ProfilePictureURI = &profilePictureURI
+	}
+
+	existingUser.AppleRemoteID = &appleRemoteID
+
+	now := time.Now()
+	existingUser.UpdatedAt = &now
+
+	err = s.repo.UpdateUser(ctx, existingUser)
+	if err != nil {
+		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateRecord, existingUser.ID, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.UserUpdated,
+		EntityType: "user",
+		EntityID:   existingUser.ID,
+		ActorID:    nil,
+		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
+		Payload:    map[string]any{"apple_remote_id": appleRemoteID},
+	})
+
+	return existingUser, nil
 }

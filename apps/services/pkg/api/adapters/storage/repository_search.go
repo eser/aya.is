@@ -20,95 +20,160 @@ func (r *Repository) Search(
 	results := make([]*profiles.SearchResult, 0)
 
 	// Convert profile slug to sql.NullString
-	filterProfileSlug := sql.NullString{}
+	filterProfileSlug := sql.NullString{} //nolint:exhaustruct
 	if profileSlug != nil && *profileSlug != "" {
 		filterProfileSlug = sql.NullString{String: *profileSlug, Valid: true}
 	}
 
-	// Search profiles
-	profileRows, err := r.queries.SearchProfiles(ctx, SearchProfilesParams{
-		Query:             query,
-		LocaleCode:        localeCode,
-		FilterProfileSlug: filterProfileSlug,
-		LimitCount:        limit,
-	})
+	searchParams := searchQueryParams{
+		query:             query,
+		localeCode:        localeCode,
+		filterProfileSlug: filterProfileSlug,
+		limitCount:        limit,
+	}
+
+	profileResults, err := r.searchProfiles(ctx, searchParams)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, p := range profileRows {
-		kind := p.Kind
-		results = append(results, &profiles.SearchResult{
-			Type:     "profile",
-			ID:       p.ID,
-			Slug:     p.Slug,
-			Title:    p.Title,
-			Summary:  &p.Description,
-			ImageURI: vars.ToStringPtr(p.ProfilePictureURI),
-			Kind:     &kind,
-			Rank:     p.Rank,
-		})
-	}
+	results = append(results, profileResults...)
 
-	// Search stories
-	storyRows, err := r.queries.SearchStories(ctx, SearchStoriesParams{
-		Query:             query,
-		LocaleCode:        localeCode,
-		FilterProfileSlug: filterProfileSlug,
-		LimitCount:        limit,
-	})
+	storyResults, err := r.searchStories(ctx, searchParams)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, s := range storyRows {
-		kind := s.Kind
-		results = append(results, &profiles.SearchResult{
-			Type:         "story",
-			ID:           s.ID,
-			Slug:         s.Slug,
-			Title:        s.Title,
-			Summary:      &s.Summary,
-			ImageURI:     vars.ToStringPtr(s.StoryPictureURI),
-			ProfileSlug:  vars.ToStringPtr(s.AuthorSlug),
-			ProfileTitle: vars.ToStringPtr(s.AuthorTitle),
-			Kind:         &kind,
-			Rank:         s.Rank,
-		})
-	}
+	results = append(results, storyResults...)
 
-	// Search profile pages
-	pageRows, err := r.queries.SearchProfilePages(ctx, SearchProfilePagesParams{
-		Query:             query,
-		LocaleCode:        localeCode,
-		FilterProfileSlug: filterProfileSlug,
-		LimitCount:        limit,
-	})
+	pageResults, err := r.searchPages(ctx, searchParams)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, pp := range pageRows {
-		results = append(results, &profiles.SearchResult{
-			Type:         "page",
-			ID:           pp.ID,
-			Slug:         pp.Slug,
-			Title:        pp.Title,
-			Summary:      &pp.Summary,
-			ImageURI:     vars.ToStringPtr(pp.CoverPictureURI),
-			ProfileSlug:  &pp.ProfileSlug,
-			ProfileTitle: &pp.ProfileTitle,
-			Rank:         pp.Rank,
-		})
-	}
+	results = append(results, pageResults...)
 
 	// Sort by rank (descending)
-	// Since each query is already sorted, we merge-sort by rank
 	sortByRank(results)
 
 	// Limit to requested count
 	if int32(len(results)) > limit {
 		results = results[:limit]
+	}
+
+	return results, nil
+}
+
+// searchQueryParams holds common parameters for search sub-queries.
+type searchQueryParams struct {
+	query             string
+	localeCode        string
+	filterProfileSlug sql.NullString
+	limitCount        int32
+}
+
+// searchProfiles searches profiles and returns search results.
+func (r *Repository) searchProfiles(
+	ctx context.Context,
+	params searchQueryParams,
+) ([]*profiles.SearchResult, error) {
+	profileRows, err := r.queries.SearchProfiles(ctx, SearchProfilesParams{
+		Query:             params.query,
+		LocaleCode:        params.localeCode,
+		FilterProfileSlug: params.filterProfileSlug,
+		LimitCount:        params.limitCount,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*profiles.SearchResult, 0, len(profileRows))
+
+	for _, profileRow := range profileRows {
+		kind := profileRow.Kind
+		results = append(results, &profiles.SearchResult{
+			Type:         "profile",
+			ID:           profileRow.ID,
+			Slug:         profileRow.Slug,
+			Title:        profileRow.Title,
+			Summary:      &profileRow.Description,
+			ImageURI:     vars.ToStringPtr(profileRow.ProfilePictureURI),
+			ProfileSlug:  nil,
+			ProfileTitle: nil,
+			Kind:         &kind,
+			Rank:         profileRow.Rank,
+		})
+	}
+
+	return results, nil
+}
+
+// searchStories searches stories and returns search results.
+func (r *Repository) searchStories(
+	ctx context.Context,
+	params searchQueryParams,
+) ([]*profiles.SearchResult, error) {
+	storyRows, err := r.queries.SearchStories(ctx, SearchStoriesParams{
+		Query:             params.query,
+		LocaleCode:        params.localeCode,
+		FilterProfileSlug: params.filterProfileSlug,
+		LimitCount:        params.limitCount,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*profiles.SearchResult, 0, len(storyRows))
+
+	for _, storyRow := range storyRows {
+		kind := storyRow.Kind
+		results = append(results, &profiles.SearchResult{
+			Type:         "story",
+			ID:           storyRow.ID,
+			Slug:         storyRow.Slug,
+			Title:        storyRow.Title,
+			Summary:      &storyRow.Summary,
+			ImageURI:     vars.ToStringPtr(storyRow.StoryPictureURI),
+			ProfileSlug:  vars.ToStringPtr(storyRow.AuthorSlug),
+			ProfileTitle: vars.ToStringPtr(storyRow.AuthorTitle),
+			Kind:         &kind,
+			Rank:         storyRow.Rank,
+		})
+	}
+
+	return results, nil
+}
+
+// searchPages searches profile pages and returns search results.
+func (r *Repository) searchPages(
+	ctx context.Context,
+	params searchQueryParams,
+) ([]*profiles.SearchResult, error) {
+	pageRows, err := r.queries.SearchProfilePages(ctx, SearchProfilePagesParams{
+		Query:             params.query,
+		LocaleCode:        params.localeCode,
+		FilterProfileSlug: params.filterProfileSlug,
+		LimitCount:        params.limitCount,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*profiles.SearchResult, 0, len(pageRows))
+
+	for _, pageRow := range pageRows {
+		results = append(results, &profiles.SearchResult{
+			Type:         "page",
+			ID:           pageRow.ID,
+			Slug:         pageRow.Slug,
+			Title:        pageRow.Title,
+			Summary:      &pageRow.Summary,
+			ImageURI:     vars.ToStringPtr(pageRow.CoverPictureURI),
+			ProfileSlug:  &pageRow.ProfileSlug,
+			ProfileTitle: &pageRow.ProfileTitle,
+			Kind:         nil,
+			Rank:         pageRow.Rank,
+		})
 	}
 
 	return results, nil

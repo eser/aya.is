@@ -18,16 +18,16 @@ import (
 
 // clampInt32 safely converts an int to int32 by clamping to the int32 range,
 // preventing silent overflow on 64-bit platforms.
-func clampInt32(v int) int32 {
-	if v > math.MaxInt32 {
+func clampInt32(value int) int32 {
+	if value > math.MaxInt32 {
 		return math.MaxInt32
 	}
 
-	if v < math.MinInt32 {
+	if value < math.MinInt32 {
 		return math.MinInt32
 	}
 
-	return int32(v)
+	return int32(value)
 }
 
 func (r *Repository) GetProfileIDBySlug(ctx context.Context, slug string) (string, error) {
@@ -67,10 +67,10 @@ func (r *Repository) GetFeatureRelationsVisibility(
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "public", nil
+			return discussionVisibilityPublic, nil
 		}
 
-		return "public", err
+		return discussionVisibilityPublic, err
 	}
 
 	return visibility, nil
@@ -89,10 +89,10 @@ func (r *Repository) GetFeatureLinksVisibility(
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "public", nil
+			return discussionVisibilityPublic, nil
 		}
 
-		return "public", err
+		return discussionVisibilityPublic, err
 	}
 
 	return visibility, nil
@@ -184,8 +184,8 @@ func (r *Repository) GetCustomDomainByDomain(
 				Domain:             row.Domain,
 				DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
 				VerificationStatus: row.VerificationStatus,
-				DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
-				LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+				DNSVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+				LastDNSCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 				ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 				WebserverSynced:    row.WebserverSynced,
 				WwwPrefix:          row.WwwPrefix,
@@ -218,8 +218,8 @@ func (r *Repository) ListCustomDomainsByProfileID(
 			Domain:             row.Domain,
 			DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
 			VerificationStatus: row.VerificationStatus,
-			DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
-			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+			DNSVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+			LastDNSCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 			WebserverSynced:    row.WebserverSynced,
 			WwwPrefix:          row.WwwPrefix,
@@ -231,7 +231,7 @@ func (r *Repository) ListCustomDomainsByProfileID(
 	return result, nil
 }
 
-func (r *Repository) ListAllCustomDomains(
+func (r *Repository) ListAllCustomDomains( //nolint:dupl
 	ctx context.Context,
 ) ([]*profiles.ProfileCustomDomain, error) {
 	rows, err := r.queries.ListAllCustomDomains(ctx)
@@ -247,8 +247,8 @@ func (r *Repository) ListAllCustomDomains(
 			Domain:             row.Domain,
 			DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
 			VerificationStatus: row.VerificationStatus,
-			DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
-			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+			DNSVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+			LastDNSCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 			WebserverSynced:    row.WebserverSynced,
 			WwwPrefix:          row.WwwPrefix,
@@ -260,7 +260,7 @@ func (r *Repository) ListAllCustomDomains(
 	return result, nil
 }
 
-func (r *Repository) ListVerifiedCustomDomains(
+func (r *Repository) ListVerifiedCustomDomains( //nolint:dupl
 	ctx context.Context,
 ) ([]*profiles.ProfileCustomDomain, error) {
 	rows, err := r.queries.ListVerifiedCustomDomains(ctx)
@@ -276,8 +276,8 @@ func (r *Repository) ListVerifiedCustomDomains(
 			Domain:             row.Domain,
 			DefaultLocale:      vars.ToStringPtr(row.DefaultLocale),
 			VerificationStatus: row.VerificationStatus,
-			DnsVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
-			LastDnsCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
+			DNSVerifiedAt:      vars.ToTimePtr(row.DnsVerifiedAt),
+			LastDNSCheckAt:     vars.ToTimePtr(row.LastDnsCheckAt),
 			ExpiredAt:          vars.ToTimePtr(row.ExpiredAt),
 			WebserverSynced:    row.WebserverSynced,
 			WwwPrefix:          row.WwwPrefix,
@@ -291,13 +291,13 @@ func (r *Repository) ListVerifiedCustomDomains(
 
 func (r *Repository) UpdateCustomDomainVerification(
 	ctx context.Context,
-	id string,
+	domainID string,
 	status string,
 	dnsVerifiedAt *time.Time,
 	expiredAt *time.Time,
 ) error {
 	_, err := r.queries.UpdateCustomDomainVerification(ctx, UpdateCustomDomainVerificationParams{
-		ID:                 id,
+		ID:                 domainID,
 		VerificationStatus: status,
 		DnsVerifiedAt:      vars.ToSQLNullTime(dnsVerifiedAt),
 		ExpiredAt:          vars.ToSQLNullTime(expiredAt),
@@ -308,13 +308,13 @@ func (r *Repository) UpdateCustomDomainVerification(
 
 func (r *Repository) UpdateCustomDomainWebserverSynced(
 	ctx context.Context,
-	id string,
+	domainID string,
 	synced bool,
 ) error {
 	_, err := r.queries.UpdateCustomDomainWebserverSynced(
 		ctx,
 		UpdateCustomDomainWebserverSyncedParams{
-			ID:              id,
+			ID:              domainID,
 			WebserverSynced: synced,
 		},
 	)
@@ -324,13 +324,13 @@ func (r *Repository) UpdateCustomDomainWebserverSynced(
 
 func (r *Repository) CreateCustomDomain(
 	ctx context.Context,
-	id string,
+	domainID string,
 	profileID string,
 	domain string,
 	defaultLocale *string,
 ) error {
 	return r.queries.CreateCustomDomain(ctx, CreateCustomDomainParams{
-		ID:            id,
+		ID:            domainID,
 		ProfileID:     profileID,
 		Domain:        domain,
 		DefaultLocale: vars.ToSQLNullString(defaultLocale),
@@ -379,6 +379,8 @@ func (r *Repository) GetProfileIdentifierByID(
 		Slug:              row.Slug,
 		Kind:              row.Kind,
 		ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
+		Title:             "",
+		Description:       "",
 	}
 
 	return result, nil
@@ -387,13 +389,13 @@ func (r *Repository) GetProfileIdentifierByID(
 func (r *Repository) GetProfileByID(
 	ctx context.Context,
 	localeCode string,
-	id string,
+	profileID string,
 ) (*profiles.Profile, error) {
 	row, err := r.queries.GetProfileByID(
 		ctx,
 		GetProfileByIDParams{
 			LocaleCode: localeCode,
-			ID:         id,
+			ID:         profileID,
 		},
 	)
 	if err != nil {
@@ -420,6 +422,7 @@ func (r *Repository) GetProfileByID(
 		UpdatedAt:                       vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:                       vars.ToTimePtr(row.Profile.DeletedAt),
 		Points:                          uint64(row.Profile.Points),
+		HasTranslation:                  false,
 		FeatureRelations:                row.Profile.FeatureRelations,
 		FeatureLinks:                    row.Profile.FeatureLinks,
 		FeatureQA:                       row.Profile.FeatureQa,
@@ -455,20 +458,23 @@ func (r *Repository) ListProfiles(
 			Slug: row.Profile.Slug,
 			Kind: row.Profile.Kind,
 
-			ProfilePictureURI:  vars.ToStringPtr(row.Profile.ProfilePictureURI),
-			Pronouns:           vars.ToStringPtr(row.Profile.Pronouns),
-			LocaleCode:         strings.TrimRight(row.ProfileTx.LocaleCode, " "),
-			Title:              row.ProfileTx.Title,
-			Description:        row.ProfileTx.Description,
-			DefaultLocale:      row.Profile.DefaultLocale,
-			Properties:         vars.ToObject(row.Profile.Properties),
-			CreatedAt:          row.Profile.CreatedAt,
-			UpdatedAt:          vars.ToTimePtr(row.Profile.UpdatedAt),
-			DeletedAt:          vars.ToTimePtr(row.Profile.DeletedAt),
-			FeatureRelations:   row.Profile.FeatureRelations,
-			FeatureLinks:       row.Profile.FeatureLinks,
-			FeatureQA:          row.Profile.FeatureQa,
-			FeatureDiscussions: row.Profile.FeatureDiscussions,
+			ProfilePictureURI:               vars.ToStringPtr(row.Profile.ProfilePictureURI),
+			Pronouns:                        vars.ToStringPtr(row.Profile.Pronouns),
+			LocaleCode:                      strings.TrimRight(row.ProfileTx.LocaleCode, " "),
+			Title:                           row.ProfileTx.Title,
+			Description:                     row.ProfileTx.Description,
+			DefaultLocale:                   row.Profile.DefaultLocale,
+			Properties:                      vars.ToObject(row.Profile.Properties),
+			CreatedAt:                       row.Profile.CreatedAt,
+			UpdatedAt:                       vars.ToTimePtr(row.Profile.UpdatedAt),
+			DeletedAt:                       vars.ToTimePtr(row.Profile.DeletedAt),
+			Points:                          0,
+			HasTranslation:                  false,
+			FeatureRelations:                row.Profile.FeatureRelations,
+			FeatureLinks:                    row.Profile.FeatureLinks,
+			FeatureQA:                       row.Profile.FeatureQa,
+			FeatureDiscussions:              row.Profile.FeatureDiscussions,
+			OptionStoryDiscussionsByDefault: false,
 		}
 	}
 
@@ -546,6 +552,8 @@ func (r *Repository) GetProfilePageByProfileIDAndSlug(
 		Visibility:       profiles.PageVisibility(row.Visibility),
 		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		AddedByProfile:   nil,
+		CanRemove:        false,
 	}
 
 	return result, nil
@@ -636,6 +644,8 @@ func (r *Repository) GetProfilePageByProfileIDAndSlugForViewer(
 		Visibility:       profiles.PageVisibility(row.Visibility),
 		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		AddedByProfile:   nil,
+		CanRemove:        false,
 	}
 
 	return result, nil
@@ -709,43 +719,56 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 	profileMemberships := make([]*profiles.ProfileMembership, len(rows))
 	for i, row := range rows { //nolint:dupl
 		profileMemberships[i] = &profiles.ProfileMembership{
-			ID:         row.ProfileMembership.ID,
-			Kind:       row.ProfileMembership.Kind,
-			StartedAt:  vars.ToTimePtr(row.ProfileMembership.StartedAt),
-			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
-			Properties: vars.ToObject(row.ProfileMembership.Properties),
+			ID:              row.ProfileMembership.ID,
+			ProfileID:       "",
+			MemberProfileID: nil,
+			Kind:            row.ProfileMembership.Kind,
+			StartedAt:       vars.ToTimePtr(row.ProfileMembership.StartedAt),
+			FinishedAt:      vars.ToTimePtr(row.ProfileMembership.FinishedAt),
+			Properties:      vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
-				ID:   row.Profile.ID,
-				Slug: row.Profile.Slug,
-				Kind: row.Profile.Kind,
-
-				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
-				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-				LocaleCode:        strings.TrimRight(row.ProfileTx.LocaleCode, " "),
-				Title:             row.ProfileTx.Title,
-				Description:       row.ProfileTx.Description,
-				DefaultLocale:     row.Profile.DefaultLocale,
-				Properties:        vars.ToObject(row.Profile.Properties),
-				CreatedAt:         row.Profile.CreatedAt,
-				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+				ID:                              row.Profile.ID,
+				Slug:                            row.Profile.Slug,
+				Kind:                            row.Profile.Kind,
+				ProfilePictureURI:               vars.ToStringPtr(row.Profile.ProfilePictureURI),
+				Pronouns:                        vars.ToStringPtr(row.Profile.Pronouns),
+				LocaleCode:                      strings.TrimRight(row.ProfileTx.LocaleCode, " "),
+				Title:                           row.ProfileTx.Title,
+				Description:                     row.ProfileTx.Description,
+				DefaultLocale:                   row.Profile.DefaultLocale,
+				Properties:                      vars.ToObject(row.Profile.Properties),
+				CreatedAt:                       row.Profile.CreatedAt,
+				UpdatedAt:                       vars.ToTimePtr(row.Profile.UpdatedAt),
+				DeletedAt:                       vars.ToTimePtr(row.Profile.DeletedAt),
+				Points:                          0,
+				HasTranslation:                  false,
+				FeatureRelations:                "",
+				FeatureLinks:                    "",
+				FeatureQA:                       "",
+				FeatureDiscussions:              "",
+				OptionStoryDiscussionsByDefault: false,
 			},
 			MemberProfile: &profiles.Profile{
-				ID:   row.Profile_2.ID,
-				Slug: row.Profile_2.Slug,
-				Kind: row.Profile_2.Kind,
-
-				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
-				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
-				LocaleCode:        strings.TrimRight(row.ProfileTx_2.LocaleCode, " "),
-				Title:             row.ProfileTx_2.Title,
-				Description:       row.ProfileTx_2.Description,
-				DefaultLocale:     row.Profile_2.DefaultLocale,
-				Properties:        vars.ToObject(row.Profile_2.Properties),
-				CreatedAt:         row.Profile_2.CreatedAt,
-				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
-				DeletedAt:         vars.ToTimePtr(row.Profile_2.DeletedAt),
-				Points:            uint64(row.Profile_2.Points),
+				ID:                              row.Profile_2.ID,
+				Slug:                            row.Profile_2.Slug,
+				Kind:                            row.Profile_2.Kind,
+				ProfilePictureURI:               vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
+				Pronouns:                        vars.ToStringPtr(row.Profile_2.Pronouns),
+				LocaleCode:                      strings.TrimRight(row.ProfileTx_2.LocaleCode, " "),
+				Title:                           row.ProfileTx_2.Title,
+				Description:                     row.ProfileTx_2.Description,
+				DefaultLocale:                   row.Profile_2.DefaultLocale,
+				Properties:                      vars.ToObject(row.Profile_2.Properties),
+				CreatedAt:                       row.Profile_2.CreatedAt,
+				UpdatedAt:                       vars.ToTimePtr(row.Profile_2.UpdatedAt),
+				DeletedAt:                       vars.ToTimePtr(row.Profile_2.DeletedAt),
+				Points:                          uint64(row.Profile_2.Points),
+				HasTranslation:                  false,
+				FeatureRelations:                "",
+				FeatureLinks:                    "",
+				FeatureQA:                       "",
+				FeatureDiscussions:              "",
+				OptionStoryDiscussionsByDefault: false,
 			},
 		}
 	}
@@ -790,43 +813,56 @@ func (r *Repository) ListProfileMembers(
 	profileMemberships := make([]*profiles.ProfileMembership, len(rows))
 	for i, row := range rows {
 		profileMemberships[i] = &profiles.ProfileMembership{
-			ID:         row.ProfileMembership.ID,
-			Kind:       row.ProfileMembership.Kind,
-			StartedAt:  vars.ToTimePtr(row.ProfileMembership.StartedAt),
-			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
-			Properties: vars.ToObject(row.ProfileMembership.Properties),
+			ID:              row.ProfileMembership.ID,
+			ProfileID:       "",
+			MemberProfileID: nil,
+			Kind:            row.ProfileMembership.Kind,
+			StartedAt:       vars.ToTimePtr(row.ProfileMembership.StartedAt),
+			FinishedAt:      vars.ToTimePtr(row.ProfileMembership.FinishedAt),
+			Properties:      vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
-				ID:   row.Profile.ID,
-				Slug: row.Profile.Slug,
-				Kind: row.Profile.Kind,
-
-				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
-				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-				LocaleCode:        strings.TrimRight(row.ProfileTx.LocaleCode, " "),
-				Title:             row.ProfileTx.Title,
-				Description:       row.ProfileTx.Description,
-				DefaultLocale:     row.Profile.DefaultLocale,
-				Properties:        vars.ToObject(row.Profile.Properties),
-				CreatedAt:         row.Profile.CreatedAt,
-				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+				ID:                              row.Profile.ID,
+				Slug:                            row.Profile.Slug,
+				Kind:                            row.Profile.Kind,
+				ProfilePictureURI:               vars.ToStringPtr(row.Profile.ProfilePictureURI),
+				Pronouns:                        vars.ToStringPtr(row.Profile.Pronouns),
+				LocaleCode:                      strings.TrimRight(row.ProfileTx.LocaleCode, " "),
+				Title:                           row.ProfileTx.Title,
+				Description:                     row.ProfileTx.Description,
+				DefaultLocale:                   row.Profile.DefaultLocale,
+				Properties:                      vars.ToObject(row.Profile.Properties),
+				CreatedAt:                       row.Profile.CreatedAt,
+				UpdatedAt:                       vars.ToTimePtr(row.Profile.UpdatedAt),
+				DeletedAt:                       vars.ToTimePtr(row.Profile.DeletedAt),
+				Points:                          0,
+				HasTranslation:                  false,
+				FeatureRelations:                "",
+				FeatureLinks:                    "",
+				FeatureQA:                       "",
+				FeatureDiscussions:              "",
+				OptionStoryDiscussionsByDefault: false,
 			},
 			MemberProfile: &profiles.Profile{
-				ID:   row.Profile_2.ID,
-				Slug: row.Profile_2.Slug,
-				Kind: row.Profile_2.Kind,
-
-				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
-				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
-				LocaleCode:        strings.TrimRight(row.ProfileTx_2.LocaleCode, " "),
-				Title:             row.ProfileTx_2.Title,
-				Description:       row.ProfileTx_2.Description,
-				DefaultLocale:     row.Profile_2.DefaultLocale,
-				Properties:        vars.ToObject(row.Profile_2.Properties),
-				CreatedAt:         row.Profile_2.CreatedAt,
-				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
-				DeletedAt:         vars.ToTimePtr(row.Profile_2.DeletedAt),
-				Points:            uint64(row.Profile_2.Points),
+				ID:                              row.Profile_2.ID,
+				Slug:                            row.Profile_2.Slug,
+				Kind:                            row.Profile_2.Kind,
+				ProfilePictureURI:               vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
+				Pronouns:                        vars.ToStringPtr(row.Profile_2.Pronouns),
+				LocaleCode:                      strings.TrimRight(row.ProfileTx_2.LocaleCode, " "),
+				Title:                           row.ProfileTx_2.Title,
+				Description:                     row.ProfileTx_2.Description,
+				DefaultLocale:                   row.Profile_2.DefaultLocale,
+				Properties:                      vars.ToObject(row.Profile_2.Properties),
+				CreatedAt:                       row.Profile_2.CreatedAt,
+				UpdatedAt:                       vars.ToTimePtr(row.Profile_2.UpdatedAt),
+				DeletedAt:                       vars.ToTimePtr(row.Profile_2.DeletedAt),
+				Points:                          uint64(row.Profile_2.Points),
+				HasTranslation:                  false,
+				FeatureRelations:                "",
+				FeatureLinks:                    "",
+				FeatureQA:                       "",
+				FeatureDiscussions:              "",
+				OptionStoryDiscussionsByDefault: false,
 			},
 		}
 	}
@@ -859,26 +895,34 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 	memberships := make([]*profiles.ProfileMembership, len(rows))
 	for i, row := range rows {
 		memberships[i] = &profiles.ProfileMembership{
-			ID:         row.MembershipID,
-			Kind:       row.MembershipKind,
-			StartedAt:  vars.ToTimePtr(row.StartedAt),
-			FinishedAt: vars.ToTimePtr(row.FinishedAt),
-			Properties: vars.ToObject(row.MembershipProperties),
+			ID:              row.MembershipID,
+			ProfileID:       "",
+			MemberProfileID: nil,
+			Kind:            row.MembershipKind,
+			StartedAt:       vars.ToTimePtr(row.StartedAt),
+			FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+			Properties:      vars.ToObject(row.MembershipProperties),
 			Profile: &profiles.Profile{
-				ID:   row.Profile.ID,
-				Slug: row.Profile.Slug,
-				Kind: row.Profile.Kind,
-
-				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
-				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-				LocaleCode:        strings.TrimRight(row.ProfileTx.LocaleCode, " "),
-				Title:             row.ProfileTx.Title,
-				Description:       row.ProfileTx.Description,
-				DefaultLocale:     row.Profile.DefaultLocale,
-				Properties:        vars.ToObject(row.Profile.Properties),
-				CreatedAt:         row.Profile.CreatedAt,
-				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+				ID:                              row.Profile.ID,
+				Slug:                            row.Profile.Slug,
+				Kind:                            row.Profile.Kind,
+				ProfilePictureURI:               vars.ToStringPtr(row.Profile.ProfilePictureURI),
+				Pronouns:                        vars.ToStringPtr(row.Profile.Pronouns),
+				LocaleCode:                      strings.TrimRight(row.ProfileTx.LocaleCode, " "),
+				Title:                           row.ProfileTx.Title,
+				Description:                     row.ProfileTx.Description,
+				DefaultLocale:                   row.Profile.DefaultLocale,
+				Properties:                      vars.ToObject(row.Profile.Properties),
+				CreatedAt:                       row.Profile.CreatedAt,
+				UpdatedAt:                       vars.ToTimePtr(row.Profile.UpdatedAt),
+				DeletedAt:                       vars.ToTimePtr(row.Profile.DeletedAt),
+				Points:                          0,
+				HasTranslation:                  false,
+				FeatureRelations:                "",
+				FeatureLinks:                    "",
+				FeatureQA:                       "",
+				FeatureDiscussions:              "",
+				OptionStoryDiscussionsByDefault: false,
 			},
 			// MemberProfile is not needed for this use case since we're filtering by member profile ID
 			MemberProfile: nil,
@@ -890,7 +934,7 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 
 func (r *Repository) CreateProfile(
 	ctx context.Context,
-	id string,
+	profileID string,
 	slug string,
 	kind string,
 	defaultLocale string,
@@ -899,7 +943,7 @@ func (r *Repository) CreateProfile(
 	properties map[string]any,
 ) error {
 	params := CreateProfileParams{
-		ID:                id,
+		ID:                profileID,
 		Slug:              slug,
 		Kind:              kind,
 		DefaultLocale:     defaultLocale,
@@ -932,7 +976,7 @@ func (r *Repository) CreateProfileTx(
 
 func (r *Repository) UpdateProfile(
 	ctx context.Context,
-	id string,
+	profileID string,
 	profilePictureURI *string,
 	pronouns *string,
 	properties map[string]any,
@@ -943,7 +987,7 @@ func (r *Repository) UpdateProfile(
 	optionStoryDiscussionsByDefault *bool,
 ) error {
 	params := UpdateProfileParams{
-		ID:                              id,
+		ID:                              profileID,
 		ProfilePictureURI:               vars.ToSQLNullString(profilePictureURI),
 		Pronouns:                        vars.ToSQLNullString(pronouns),
 		Properties:                      vars.ToSQLNullRawMessage(properties),
@@ -1012,14 +1056,14 @@ func (r *Repository) UpsertProfileTx(
 
 func (r *Repository) CreateProfileMembership(
 	ctx context.Context,
-	id string,
+	membershipID string,
 	profileID string,
 	memberProfileID *string,
 	kind string,
 	properties map[string]any,
 ) error {
 	params := CreateProfileMembershipParams{
-		ID:              id,
+		ID:              membershipID,
 		ProfileID:       profileID,
 		MemberProfileID: vars.ToSQLNullString(memberProfileID),
 		Kind:            kind,
@@ -1105,6 +1149,8 @@ func (r *Repository) GetProfileMembershipByID(
 		Properties:      vars.ToObject(row.Properties),
 		StartedAt:       vars.ToTimePtr(row.StartedAt),
 		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+		Profile:         nil,
+		MemberProfile:   nil,
 	}, nil
 }
 
@@ -1136,6 +1182,8 @@ func (r *Repository) GetProfileMembershipByProfileAndMember(
 		Properties:      vars.ToObject(row.Properties),
 		StartedAt:       vars.ToTimePtr(row.StartedAt),
 		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+		Profile:         nil,
+		MemberProfile:   nil,
 	}, nil
 }
 
@@ -1372,9 +1420,11 @@ func (r *Repository) GetProfileLink(
 		Group:            vars.EmptyToNil(row.Group),
 		Description:      vars.EmptyToNil(row.Description),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		AddedByProfile:   nil,
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+		CanRemove:        false,
 	}
 
 	return result, nil
@@ -1382,7 +1432,7 @@ func (r *Repository) GetProfileLink(
 
 func (r *Repository) CreateProfileLink(
 	ctx context.Context,
-	id string,
+	linkID string,
 	kind string,
 	profileID string,
 	order int,
@@ -1392,7 +1442,7 @@ func (r *Repository) CreateProfileLink(
 	addedByProfileID *string,
 ) (*profiles.ProfileLink, error) {
 	row, err := r.queries.CreateProfileLink(ctx, CreateProfileLinkParams{
-		ID:                        id,
+		ID:                        linkID,
 		Kind:                      kind,
 		ProfileID:                 profileID,
 		LinkOrder:                 int32(order),
@@ -1400,16 +1450,16 @@ func (r *Repository) CreateProfileLink(
 		IsVerified:                false, // Will be verified later if needed
 		IsFeatured:                isFeatured,
 		Visibility:                string(visibility),
-		RemoteID:                  sql.NullString{Valid: false},
-		PublicID:                  sql.NullString{Valid: false},
+		RemoteID:                  sql.NullString{String: "", Valid: false},
+		PublicID:                  sql.NullString{String: "", Valid: false},
 		URI:                       vars.ToSQLNullString(uri),
-		AuthProvider:              sql.NullString{Valid: false},
-		AuthAccessTokenScope:      sql.NullString{Valid: false},
-		AuthAccessToken:           sql.NullString{Valid: false},
-		AuthAccessTokenExpiresAt:  sql.NullTime{Valid: false},
-		AuthRefreshToken:          sql.NullString{Valid: false},
-		AuthRefreshTokenExpiresAt: sql.NullTime{Valid: false},
-		Properties:                pqtype.NullRawMessage{Valid: false},
+		AuthProvider:              sql.NullString{String: "", Valid: false},
+		AuthAccessTokenScope:      sql.NullString{String: "", Valid: false},
+		AuthAccessToken:           sql.NullString{String: "", Valid: false},
+		AuthAccessTokenExpiresAt:  sql.NullTime{Time: time.Time{}, Valid: false},
+		AuthRefreshToken:          sql.NullString{String: "", Valid: false},
+		AuthRefreshTokenExpiresAt: sql.NullTime{Time: time.Time{}, Valid: false},
+		Properties:                pqtype.NullRawMessage{RawMessage: nil, Valid: false},
 		AddedByProfileID:          vars.ToSQLNullString(addedByProfileID),
 	})
 	if err != nil {
@@ -1429,10 +1479,16 @@ func (r *Repository) CreateProfileLink(
 		PublicID:         vars.ToStringPtr(row.PublicID),
 		URI:              vars.ToStringPtr(row.URI),
 		Properties:       unmarshalProperties(row.Properties),
+		Title:            "",
+		Icon:             nil,
+		Group:            nil,
+		Description:      nil,
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		AddedByProfile:   nil,
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+		CanRemove:        false,
 	}
 
 	return result, nil
@@ -1440,7 +1496,7 @@ func (r *Repository) CreateProfileLink(
 
 func (r *Repository) UpdateProfileLink(
 	ctx context.Context,
-	id string,
+	linkID string,
 	kind string,
 	order int,
 	uri *string,
@@ -1448,7 +1504,7 @@ func (r *Repository) UpdateProfileLink(
 	visibility profiles.LinkVisibility,
 ) error {
 	params := UpdateProfileLinkParams{
-		ID:         id,
+		ID:         linkID,
 		Kind:       kind,
 		LinkOrder:  int32(order),
 		URI:        vars.ToSQLNullString(uri),
@@ -1486,11 +1542,17 @@ func (r *Repository) GetProfilePage(
 	result := &profiles.ProfilePage{
 		ID:               row.ID,
 		Slug:             row.Slug,
+		LocaleCode:       "",
 		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		Title:            "",
+		Summary:          "",
+		Content:          "",
+		SortOrder:        0,
 		Visibility:       profiles.PageVisibility(row.Visibility),
 		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
-		// Note: Title, Summary, Content need to be fetched from profile_page_tx table
+		AddedByProfile:   nil,
+		CanRemove:        false,
 	}
 
 	return result, nil
@@ -1498,7 +1560,7 @@ func (r *Repository) GetProfilePage(
 
 func (r *Repository) CreateProfilePage(
 	ctx context.Context,
-	id string,
+	pageID string,
 	slug string,
 	profileID string,
 	order int,
@@ -1510,11 +1572,11 @@ func (r *Repository) CreateProfilePage(
 	var publishedAtTime sql.NullTime
 	if publishedAt != nil {
 		// Convert string to time if needed
-		publishedAtTime = sql.NullTime{Valid: false}
+		publishedAtTime = sql.NullTime{Time: time.Time{}, Valid: false}
 	}
 
 	row, err := r.queries.CreateProfilePage(ctx, CreateProfilePageParams{
-		ID:               id,
+		ID:               pageID,
 		Slug:             slug,
 		ProfileID:        profileID,
 		PageOrder:        int32(order),
@@ -1530,11 +1592,17 @@ func (r *Repository) CreateProfilePage(
 	result := &profiles.ProfilePage{
 		ID:               row.ID,
 		Slug:             row.Slug,
+		LocaleCode:       "",
 		CoverPictureURI:  vars.ToStringPtr(row.CoverPictureURI),
+		Title:            "",
+		Summary:          "",
+		Content:          "",
+		SortOrder:        0,
 		Visibility:       profiles.PageVisibility(row.Visibility),
 		PublishedAt:      vars.ToTimePtr(row.PublishedAt),
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
-		// Note: Title, Summary, Content need to be fetched from profile_page_tx table
+		AddedByProfile:   nil,
+		CanRemove:        false,
 	}
 
 	return result, nil
@@ -1561,7 +1629,7 @@ func (r *Repository) CreateProfilePageTx(
 
 func (r *Repository) UpdateProfilePage(
 	ctx context.Context,
-	id string,
+	pageID string,
 	slug string,
 	order int,
 	coverPictureURI *string,
@@ -1571,11 +1639,11 @@ func (r *Repository) UpdateProfilePage(
 	var publishedAtTime sql.NullTime
 	if publishedAt != nil {
 		// Convert string to time if needed
-		publishedAtTime = sql.NullTime{Valid: false}
+		publishedAtTime = sql.NullTime{Time: time.Time{}, Valid: false}
 	}
 
 	params := UpdateProfilePageParams{
-		ID:              id,
+		ID:              pageID,
 		Slug:            slug,
 		PageOrder:       int32(order),
 		CoverPictureURI: vars.ToSQLNullString(coverPictureURI),
@@ -1697,21 +1765,28 @@ func (r *Repository) GetProfileLinkByRemoteID(
 	}
 
 	result := &profiles.ProfileLink{
-		ID:         row.ID,
-		Kind:       row.Kind,
-		ProfileID:  row.ProfileID,
-		Order:      int(row.Order),
-		IsManaged:  row.IsManaged,
-		IsVerified: row.IsVerified,
-		IsFeatured: row.IsFeatured,
-		Visibility: profiles.LinkVisibility(row.Visibility),
-		RemoteID:   vars.ToStringPtr(row.RemoteID),
-		PublicID:   vars.ToStringPtr(row.PublicID),
-		URI:        vars.ToStringPtr(row.URI),
-		Properties: unmarshalProperties(row.Properties),
-		CreatedAt:  row.CreatedAt,
-		UpdatedAt:  vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:  vars.ToTimePtr(row.DeletedAt),
+		ID:               row.ID,
+		Kind:             row.Kind,
+		ProfileID:        row.ProfileID,
+		Order:            int(row.Order),
+		IsManaged:        row.IsManaged,
+		IsVerified:       row.IsVerified,
+		IsFeatured:       row.IsFeatured,
+		Visibility:       profiles.LinkVisibility(row.Visibility),
+		RemoteID:         vars.ToStringPtr(row.RemoteID),
+		PublicID:         vars.ToStringPtr(row.PublicID),
+		URI:              vars.ToStringPtr(row.URI),
+		Properties:       unmarshalProperties(row.Properties),
+		Title:            "",
+		Icon:             nil,
+		Group:            nil,
+		Description:      nil,
+		AddedByProfileID: nil,
+		AddedByProfile:   nil,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+		CanRemove:        false,
 	}
 
 	return result, nil
@@ -1769,15 +1844,67 @@ func (r *Repository) IsManagedProfileLinkRemoteIDInUse(
 		excludeProfileID,
 	).Scan(&exists)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("scanning profile link remote ID in use: %w", err)
 	}
 
 	return exists, nil
 }
 
-func (r *Repository) CreateOAuthProfileLink(
+// buildOAuthProfileLinkParams prepares the CreateProfileLinkParams for an OAuth link.
+func buildOAuthProfileLinkParams(
+	linkID string,
+	kind string,
+	profileID string,
+	order int,
+	remoteID string,
+	publicID string,
+	uri string,
+	authProvider string,
+	authScope string,
+	accessToken string,
+	accessTokenExpiresAt *sql.NullTime,
+	refreshToken *string,
+	propsJSON pqtype.NullRawMessage,
+) CreateProfileLinkParams {
+	var refreshTokenSQL sql.NullString
+	if refreshToken != nil {
+		refreshTokenSQL = sql.NullString{String: *refreshToken, Valid: true}
+	}
+
+	var expiresAtSQL sql.NullTime
+	if accessTokenExpiresAt != nil {
+		expiresAtSQL = *accessTokenExpiresAt
+	}
+
+	return CreateProfileLinkParams{
+		ID:                       linkID,
+		Kind:                     kind,
+		ProfileID:                profileID,
+		LinkOrder:                int32(order),
+		IsManaged:                true,
+		IsVerified:               true,
+		IsFeatured:               true,
+		Visibility:               string(profiles.LinkVisibilityPublic),
+		RemoteID:                 sql.NullString{String: remoteID, Valid: true},
+		PublicID:                 sql.NullString{String: publicID, Valid: true},
+		URI:                      sql.NullString{String: uri, Valid: true},
+		AuthProvider:             sql.NullString{String: authProvider, Valid: true},
+		AuthAccessTokenScope:     sql.NullString{String: authScope, Valid: true},
+		AuthAccessToken:          sql.NullString{String: accessToken, Valid: true},
+		AuthAccessTokenExpiresAt: expiresAtSQL,
+		AuthRefreshToken:         refreshTokenSQL,
+		AuthRefreshTokenExpiresAt: sql.NullTime{
+			Time:  time.Time{},
+			Valid: false,
+		},
+		Properties:       propsJSON,
+		AddedByProfileID: sql.NullString{String: "", Valid: false},
+	}
+}
+
+func (r *Repository) CreateOAuthProfileLink( //nolint:funlen
 	ctx context.Context,
-	id string,
+	linkID string,
 	kind string,
 	profileID string,
 	order int,
@@ -1791,55 +1918,29 @@ func (r *Repository) CreateOAuthProfileLink(
 	refreshToken *string,
 	properties map[string]any,
 ) (*profiles.ProfileLink, error) {
-	var refreshTokenSQL sql.NullString
-	if refreshToken != nil {
-		refreshTokenSQL = sql.NullString{String: *refreshToken, Valid: true}
-	}
-
-	var expiresAtSQL sql.NullTime
-	if accessTokenExpiresAt != nil {
-		expiresAtSQL = *accessTokenExpiresAt
-	}
-
 	var propsJSON pqtype.NullRawMessage
 
 	if properties != nil {
 		data, err := json.Marshal(properties)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("marshaling OAuth link properties: %w", err)
 		}
 
 		propsJSON = pqtype.NullRawMessage{RawMessage: data, Valid: true}
 	}
 
-	row, err := r.queries.CreateProfileLink(ctx, CreateProfileLinkParams{
-		ID:                       id,
-		Kind:                     kind,
-		ProfileID:                profileID,
-		LinkOrder:                int32(order),
-		IsManaged:                true, // OAuth links are managed
-		IsVerified:               true, // OAuth links are verified
-		IsFeatured:               true, // Featured by default
-		Visibility:               string(profiles.LinkVisibilityPublic),
-		RemoteID:                 sql.NullString{String: remoteID, Valid: true},
-		PublicID:                 sql.NullString{String: publicID, Valid: true},
-		URI:                      sql.NullString{String: uri, Valid: true},
-		AuthProvider:             sql.NullString{String: authProvider, Valid: true},
-		AuthAccessTokenScope:     sql.NullString{String: authScope, Valid: true},
-		AuthAccessToken:          sql.NullString{String: accessToken, Valid: true},
-		AuthAccessTokenExpiresAt: expiresAtSQL,
-		AuthRefreshToken:         refreshTokenSQL,
-		AuthRefreshTokenExpiresAt: sql.NullTime{
-			Valid: false,
-		}, // Google doesn't provide refresh token expiry
-		Properties:       propsJSON,
-		AddedByProfileID: sql.NullString{Valid: false}, // OAuth links don't track added_by
-	})
+	params := buildOAuthProfileLinkParams(
+		linkID, kind, profileID, order, remoteID, publicID, uri,
+		authProvider, authScope, accessToken, accessTokenExpiresAt,
+		refreshToken, propsJSON,
+	)
+
+	row, err := r.queries.CreateProfileLink(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
-	result := &profiles.ProfileLink{
+	return &profiles.ProfileLink{
 		ID:               row.ID,
 		Kind:             row.Kind,
 		ProfileID:        row.ProfileID,
@@ -1852,18 +1953,22 @@ func (r *Repository) CreateOAuthProfileLink(
 		PublicID:         vars.ToStringPtr(row.PublicID),
 		URI:              vars.ToStringPtr(row.URI),
 		Properties:       unmarshalProperties(row.Properties),
+		Title:            "",
+		Icon:             nil,
+		Group:            nil,
+		Description:      nil,
 		AddedByProfileID: vars.ToStringPtr(row.AddedByProfileID),
+		AddedByProfile:   nil,
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
-	}
-
-	return result, nil
+		CanRemove:        false,
+	}, nil
 }
 
 func (r *Repository) UpdateProfileLinkOAuthTokens(
 	ctx context.Context,
-	id string,
+	linkID string,
 	publicID string,
 	uri string,
 	authScope string,
@@ -1882,7 +1987,7 @@ func (r *Repository) UpdateProfileLinkOAuthTokens(
 	}
 
 	_, err := r.queries.UpdateProfileLinkOAuthTokens(ctx, UpdateProfileLinkOAuthTokensParams{
-		ID:                       id,
+		ID:                       linkID,
 		PublicID:                 sql.NullString{String: publicID, Valid: true},
 		URI:                      sql.NullString{String: uri, Valid: true},
 		AuthAccessTokenScope:     sql.NullString{String: authScope, Valid: true},
@@ -1945,18 +2050,26 @@ func (r *Repository) ListAllProfilesForAdmin(
 		}
 
 		profile := &profiles.Profile{
-			ID:                row.ID,
-			Slug:              row.Slug,
-			Kind:              row.Kind,
-			ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
-			Pronouns:          vars.ToStringPtr(row.Pronouns),
-			Title:             row.Title,
-			Description:       row.Description,
-			Properties:        vars.ToObject(row.Properties),
-			Points:            uint64(row.Points),
-			CreatedAt:         row.CreatedAt,
-			UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
-			HasTranslation:    hasTranslation,
+			ID:                              row.ID,
+			Slug:                            row.Slug,
+			Kind:                            row.Kind,
+			ProfilePictureURI:               vars.ToStringPtr(row.ProfilePictureURI),
+			Pronouns:                        vars.ToStringPtr(row.Pronouns),
+			LocaleCode:                      "",
+			Title:                           row.Title,
+			Description:                     row.Description,
+			DefaultLocale:                   "",
+			Properties:                      vars.ToObject(row.Properties),
+			Points:                          uint64(row.Points),
+			HasTranslation:                  hasTranslation,
+			FeatureRelations:                "",
+			FeatureLinks:                    "",
+			FeatureQA:                       "",
+			FeatureDiscussions:              "",
+			OptionStoryDiscussionsByDefault: false,
+			CreatedAt:                       row.CreatedAt,
+			UpdatedAt:                       vars.ToTimePtr(row.UpdatedAt),
+			DeletedAt:                       nil,
 		}
 		result = append(result, profile)
 	}
@@ -2002,18 +2115,26 @@ func (r *Repository) GetAdminProfileBySlug(
 	}
 
 	return &profiles.Profile{
-		ID:                row.ID,
-		Slug:              row.Slug,
-		Kind:              row.Kind,
-		ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
-		Pronouns:          vars.ToStringPtr(row.Pronouns),
-		Title:             row.Title,
-		Description:       row.Description,
-		Properties:        vars.ToObject(row.Properties),
-		Points:            uint64(row.Points),
-		CreatedAt:         row.CreatedAt,
-		UpdatedAt:         vars.ToTimePtr(row.UpdatedAt),
-		HasTranslation:    hasTranslation,
+		ID:                              row.ID,
+		Slug:                            row.Slug,
+		Kind:                            row.Kind,
+		ProfilePictureURI:               vars.ToStringPtr(row.ProfilePictureURI),
+		Pronouns:                        vars.ToStringPtr(row.Pronouns),
+		LocaleCode:                      "",
+		Title:                           row.Title,
+		Description:                     row.Description,
+		DefaultLocale:                   "",
+		Properties:                      vars.ToObject(row.Properties),
+		Points:                          uint64(row.Points),
+		HasTranslation:                  hasTranslation,
+		FeatureRelations:                "",
+		FeatureLinks:                    "",
+		FeatureQA:                       "",
+		FeatureDiscussions:              "",
+		OptionStoryDiscussionsByDefault: false,
+		CreatedAt:                       row.CreatedAt,
+		UpdatedAt:                       vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:                       nil,
 	}, nil
 }
 
@@ -2051,7 +2172,7 @@ func (r *Repository) GetMembershipBetweenProfiles(
 	return profiles.MembershipKind(result), err
 }
 
-func (r *Repository) ListFeaturedProfileLinksByProfileID(
+func (r *Repository) ListFeaturedProfileLinksByProfileID( //nolint:dupl
 	ctx context.Context,
 	localeCode string,
 	profileID string,
@@ -2072,6 +2193,7 @@ func (r *Repository) ListFeaturedProfileLinksByProfileID(
 		profileLinks[i] = &profiles.ProfileLinkBrief{
 			ID:          row.ID,
 			Kind:        row.Kind,
+			Order:       0,
 			IsManaged:   row.IsManaged,
 			IsVerified:  row.IsVerified,
 			IsFeatured:  row.IsFeatured,
@@ -2088,7 +2210,7 @@ func (r *Repository) ListFeaturedProfileLinksByProfileID(
 	return profileLinks, nil
 }
 
-func (r *Repository) ListAllProfileLinksByProfileID(
+func (r *Repository) ListAllProfileLinksByProfileID( //nolint:dupl
 	ctx context.Context,
 	localeCode string,
 	profileID string,
@@ -2109,6 +2231,7 @@ func (r *Repository) ListAllProfileLinksByProfileID(
 		profileLinks[i] = &profiles.ProfileLinkBrief{
 			ID:          row.ID,
 			Kind:        row.Kind,
+			Order:       0,
 			IsManaged:   row.IsManaged,
 			IsVerified:  row.IsVerified,
 			IsFeatured:  row.IsFeatured,
@@ -2174,9 +2297,12 @@ func storageProfileResourceToBusinessResource(
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
 		AddedByProfileID: row.AddedByProfileID,
+		AddedByProfile:   nil,
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+		CanRemove:        false,
+		Teams:            nil,
 	}
 
 	// Populate the AddedByProfile brief if join data is present
@@ -2244,9 +2370,12 @@ func (r *Repository) GetProfileResourceByID(
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
 		AddedByProfileID: row.AddedByProfileID,
+		AddedByProfile:   nil,
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+		CanRemove:        false,
+		Teams:            nil,
 	}, nil
 }
 
@@ -2281,15 +2410,18 @@ func (r *Repository) GetProfileResourceByRemoteID(
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
 		AddedByProfileID: row.AddedByProfileID,
+		AddedByProfile:   nil,
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+		CanRemove:        false,
+		Teams:            nil,
 	}, nil
 }
 
 func (r *Repository) CreateProfileResource(
 	ctx context.Context,
-	id string,
+	resourceID string,
 	profileID string,
 	kind string,
 	isManaged bool,
@@ -2307,7 +2439,7 @@ func (r *Repository) CreateProfileResource(
 	}
 
 	row, err := r.queries.CreateProfileResource(ctx, CreateProfileResourceParams{
-		ID:               id,
+		ID:               resourceID,
 		ProfileID:        profileID,
 		Kind:             kind,
 		IsManaged:        isManaged,
@@ -2335,9 +2467,12 @@ func (r *Repository) CreateProfileResource(
 		Description:      vars.ToStringPtr(row.Description),
 		Properties:       vars.ToObject(row.Properties),
 		AddedByProfileID: row.AddedByProfileID,
+		AddedByProfile:   nil,
 		CreatedAt:        row.CreatedAt,
 		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:        vars.ToTimePtr(row.DeletedAt),
+		CanRemove:        false,
+		Teams:            nil,
 	}, nil
 }
 
@@ -2354,7 +2489,7 @@ func (r *Repository) SoftDeleteProfileResource(
 
 func (r *Repository) UpdateProfileResourceProperties(
 	ctx context.Context,
-	id string,
+	resourceID string,
 	properties any,
 ) error {
 	propertiesJSON, err := json.Marshal(properties)
@@ -2363,7 +2498,7 @@ func (r *Repository) UpdateProfileResourceProperties(
 	}
 
 	_, err = r.queries.UpdateProfileResourceProperties(ctx, UpdateProfileResourcePropertiesParams{
-		ID:         id,
+		ID:         resourceID,
 		Properties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
 	})
 
@@ -2372,7 +2507,7 @@ func (r *Repository) UpdateProfileResourceProperties(
 
 func (r *Repository) UpdateProfileMembershipProperties(
 	ctx context.Context,
-	id string,
+	membershipID string,
 	properties any,
 ) error {
 	propertiesJSON, err := json.Marshal(properties)
@@ -2383,7 +2518,7 @@ func (r *Repository) UpdateProfileMembershipProperties(
 	_, err = r.queries.UpdateProfileMembershipProperties(
 		ctx,
 		UpdateProfileMembershipPropertiesParams{
-			ID:         id,
+			ID:         membershipID,
 			Properties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
 		},
 	)
@@ -2454,13 +2589,13 @@ func (r *Repository) ListProfileTeamsWithMemberCount(
 
 func (r *Repository) CreateProfileTeam(
 	ctx context.Context,
-	id string,
+	teamID string,
 	profileID string,
 	name string,
 	description *string,
 ) (*profiles.ProfileTeam, error) {
 	row, err := r.queries.CreateProfileTeam(ctx, CreateProfileTeamParams{
-		ID:          id,
+		ID:          teamID,
 		ProfileID:   profileID,
 		Name:        name,
 		Description: vars.ToSQLNullString(description),
@@ -2527,10 +2662,12 @@ func (r *Repository) ListMembershipTeams(
 
 	for _, row := range rows {
 		result = append(result, &profiles.ProfileTeam{
-			ID:          row.ID,
-			ProfileID:   row.ProfileID,
-			Name:        row.Name,
-			Description: vars.ToStringPtr(row.Description),
+			ID:            row.ID,
+			ProfileID:     row.ProfileID,
+			Name:          row.Name,
+			Description:   vars.ToStringPtr(row.Description),
+			MemberCount:   0,
+			ResourceCount: 0,
 		})
 	}
 
@@ -2590,10 +2727,12 @@ func (r *Repository) ListResourceTeams(
 
 	for _, row := range rows {
 		result = append(result, &profiles.ProfileTeam{
-			ID:          row.ID,
-			ProfileID:   row.ProfileID,
-			Name:        row.Name,
-			Description: vars.ToStringPtr(row.Description),
+			ID:            row.ID,
+			ProfileID:     row.ProfileID,
+			Name:          row.Name,
+			Description:   vars.ToStringPtr(row.Description),
+			MemberCount:   0,
+			ResourceCount: 0,
 		})
 	}
 

@@ -54,7 +54,7 @@ export function PublishDialog(props: PublishDialogProps) {
     publications,
     accessibleProfiles,
     individualProfile,
-    isNew = false,
+    isNew: _isNew = false,
     onPublicationsChange,
   } = props;
 
@@ -190,7 +190,7 @@ export function PublishDialog(props: PublishDialogProps) {
           );
           if (result !== null) {
             updatedPublications = updatedPublications.map((p) =>
-              p.id === pub.id ? { ...p, is_featured: current.featured } : p,
+              p.id === pub.id ? { ...p, is_featured: current.featured } : p
             );
           } else {
             hadError = true;
@@ -264,28 +264,30 @@ export function PublishDialog(props: PublishDialogProps) {
                   {profile.canFeature && (
                     <button
                       type="button"
-                      onClick={() => setDraft((prev) => ({
-                        ...prev,
-                        [profile.id]: { ...prev[profile.id], featured: !state.featured },
-                      }))}
+                      onClick={() =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          [profile.id]: { ...prev[profile.id], featured: !state.featured },
+                        }))}
                       disabled={isApplying}
                       className="p-1 rounded hover:bg-muted"
-                      title={state.featured
-                        ? t("ContentEditor.Remove featured")
-                        : t("ContentEditor.Mark as featured")}
+                      title={state.featured ? t("ContentEditor.Remove featured") : t("ContentEditor.Mark as featured")}
                     >
                       <Star
-                        className={`size-4 ${state.featured ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                        className={`size-4 ${
+                          state.featured ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
+                        }`}
                       />
                     </button>
                   )}
                   <Switch
                     checked={state.published}
                     disabled={isApplying}
-                    onCheckedChange={(checked) => setDraft((prev) => ({
-                      ...prev,
-                      [profile.id]: { ...prev[profile.id], published: checked },
-                    }))}
+                    onCheckedChange={(checked) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        [profile.id]: { ...prev[profile.id], published: checked },
+                      }))}
                   />
                 </div>
               </div>

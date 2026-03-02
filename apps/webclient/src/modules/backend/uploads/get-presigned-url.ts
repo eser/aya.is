@@ -1,8 +1,5 @@
 import { fetcher } from "@/modules/backend/fetcher";
-import type {
-  GetPresignedURLRequest,
-  GetPresignedURLResponse,
-} from "@/modules/backend/types";
+import type { GetPresignedURLRequest, GetPresignedURLResponse } from "@/modules/backend/types";
 
 export async function getPresignedURL(
   locale: string,

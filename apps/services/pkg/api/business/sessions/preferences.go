@@ -28,7 +28,7 @@ var (
 )
 
 // AllowedPreferenceKeys is the set of valid preference keys.
-var AllowedPreferenceKeys = map[string]bool{
+var AllowedPreferenceKeys = map[string]bool{ //nolint:gochecknoglobals
 	PrefKeyTheme:    true,
 	PrefKeyLocale:   true,
 	PrefKeyTimezone: true,

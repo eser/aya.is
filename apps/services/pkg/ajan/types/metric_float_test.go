@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMetricFloat_UnmarshalText(t *testing.T) {
+func TestMetricFloat_UnmarshalText(t *testing.T) { //nolint:funlen
 	t.Parallel()
 
 	tests := []struct {
@@ -23,21 +23,25 @@ func TestMetricFloat_UnmarshalText(t *testing.T) {
 			name:     "plain number",
 			input:    "1000",
 			expected: 1000,
+			wantErr:  false,
 		},
 		{
 			name:     "decimal number",
 			input:    "1000.5",
 			expected: 1000.5,
+			wantErr:  false,
 		},
 		{
 			name:     "zero",
 			input:    "0",
 			expected: 0,
+			wantErr:  false,
 		},
 		{
 			name:     "empty string",
 			input:    "",
 			expected: 0,
+			wantErr:  false,
 		},
 
 		// K suffix (thousands)
@@ -45,21 +49,25 @@ func TestMetricFloat_UnmarshalText(t *testing.T) {
 			name:     "lowercase k",
 			input:    "100k",
 			expected: 100_000,
+			wantErr:  false,
 		},
 		{
 			name:     "uppercase K",
 			input:    "100K",
 			expected: 100_000,
+			wantErr:  false,
 		},
 		{
 			name:     "decimal with K",
 			input:    "1.5K",
 			expected: 1500,
+			wantErr:  false,
 		},
 		{
 			name:     "3400K",
 			input:    "3400K",
 			expected: 3_400_000,
+			wantErr:  false,
 		},
 
 		// M suffix (millions)
@@ -67,26 +75,31 @@ func TestMetricFloat_UnmarshalText(t *testing.T) {
 			name:     "lowercase m",
 			input:    "1m",
 			expected: 1_000_000,
+			wantErr:  false,
 		},
 		{
 			name:     "uppercase M",
 			input:    "1M",
 			expected: 1_000_000,
+			wantErr:  false,
 		},
 		{
 			name:     "50M",
 			input:    "50M",
 			expected: 50_000_000,
+			wantErr:  false,
 		},
 		{
 			name:     "decimal with M",
 			input:    "1.5M",
 			expected: 1_500_000,
+			wantErr:  false,
 		},
 		{
 			name:     "small decimal with M",
 			input:    "0.5M",
 			expected: 500_000,
+			wantErr:  false,
 		},
 
 		// B suffix (billions)
@@ -94,16 +107,19 @@ func TestMetricFloat_UnmarshalText(t *testing.T) {
 			name:     "lowercase b",
 			input:    "1b",
 			expected: 1_000_000_000,
+			wantErr:  false,
 		},
 		{
 			name:     "uppercase B",
 			input:    "1B",
 			expected: 1_000_000_000,
+			wantErr:  false,
 		},
 		{
 			name:     "decimal with B",
 			input:    "2.5B",
 			expected: 2_500_000_000,
+			wantErr:  false,
 		},
 
 		// Precision tests
@@ -111,42 +127,46 @@ func TestMetricFloat_UnmarshalText(t *testing.T) {
 			name:     "precise decimal",
 			input:    "1.234K",
 			expected: 1234,
+			wantErr:  false,
 		},
 		{
 			name:     "very small decimal with M",
 			input:    "0.001M",
 			expected: 1000,
+			wantErr:  false,
 		},
 
 		// Error cases
 		{
-			name:    "invalid number",
-			input:   "abc",
-			wantErr: true,
+			name:     "invalid number",
+			input:    "abc",
+			expected: 0,
+			wantErr:  true,
 		},
 		{
-			name:    "invalid with suffix",
-			input:   "abcK",
-			wantErr: true,
+			name:     "invalid with suffix",
+			input:    "abcK",
+			expected: 0,
+			wantErr:  true,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			var m types.MetricFloat
+			var metric types.MetricFloat
 
-			err := m.UnmarshalText([]byte(tt.input))
+			err := metric.UnmarshalText([]byte(testCase.input))
 
-			if tt.wantErr {
+			if testCase.wantErr {
 				assert.Error(t, err)
 
 				return
 			}
 
 			require.NoError(t, err)
-			assert.InDelta(t, tt.expected, float64(m), 0.001)
+			assert.InDelta(t, testCase.expected, float64(metric), 0.001)
 		})
 	}
 }
@@ -176,13 +196,13 @@ func TestMetricFloat_MarshalText(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := tt.value.MarshalText()
+			result, err := testCase.value.MarshalText()
 			require.NoError(t, err)
-			assert.Equal(t, tt.expected, string(result))
+			assert.Equal(t, testCase.expected, string(result))
 		})
 	}
 }
@@ -190,14 +210,14 @@ func TestMetricFloat_MarshalText(t *testing.T) {
 func TestMetricFloat_Float64Conversion(t *testing.T) {
 	t.Parallel()
 
-	m := types.MetricFloat(1.5)
+	metric := types.MetricFloat(1.5)
 
 	// Test explicit conversion to float64
-	result := float64(m)
+	result := float64(metric)
 	assert.InDelta(t, 1.5, result, 0.001)
 
 	// Test arithmetic operations
-	doubled := float64(m) * 2
+	doubled := float64(metric) * 2
 	assert.InDelta(t, 3.0, doubled, 0.001)
 }
 
@@ -254,15 +274,15 @@ func TestMetricFloat_PrecisionWithSuffixes(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
 			var m types.MetricFloat
 
-			err := m.UnmarshalText([]byte(tt.input))
+			err := m.UnmarshalText([]byte(testCase.input))
 			require.NoError(t, err)
-			assert.InDelta(t, tt.expected, float64(m), 0.01)
+			assert.InDelta(t, testCase.expected, float64(m), 0.01)
 		})
 	}
 }
@@ -292,15 +312,15 @@ func TestMetricFloat_NegativeValues(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
 			var m types.MetricFloat
 
-			err := m.UnmarshalText([]byte(tt.input))
+			err := m.UnmarshalText([]byte(testCase.input))
 			require.NoError(t, err)
-			assert.InDelta(t, tt.expected, float64(m), 0.001)
+			assert.InDelta(t, testCase.expected, float64(m), 0.001)
 		})
 	}
 }
@@ -330,19 +350,19 @@ func TestMetricFloat_ErrorCases(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			var m types.MetricFloat
+			var metric types.MetricFloat
 
-			err := m.UnmarshalText([]byte(tt.input))
+			err := metric.UnmarshalText([]byte(testCase.input))
 			assert.Error(t, err)
 		})
 	}
 }
 
-func TestMetricFloat_HumanReadable(t *testing.T) {
+func TestMetricFloat_HumanReadable(t *testing.T) { //nolint:funlen
 	t.Parallel()
 
 	tests := []struct {
@@ -433,12 +453,12 @@ func TestMetricFloat_HumanReadable(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := tt.value.HumanReadable()
-			assert.Equal(t, tt.expected, result)
+			result := testCase.value.HumanReadable()
+			assert.Equal(t, testCase.expected, result)
 		})
 	}
 }

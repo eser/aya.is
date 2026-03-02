@@ -39,7 +39,7 @@ type TelegramProviders struct {
 	WebhookSecret string
 }
 
-func Run(
+func Run( //nolint:funlen
 	ctx context.Context,
 	baseURI string,
 	config *httpfx.Config,
@@ -77,9 +77,11 @@ func Run(
 	routes.Use(middlewares.ResolveAddressMiddleware())
 	routes.Use(middlewares.ResponseTimeMiddleware())
 	routes.Use(
-		middlewares.TracingMiddleware(logger, "/health-check"),
+		middlewares.TracingMiddleware(logger, "/health-check"), //nolint:contextcheck
 	)
-	routes.Use(CorsMiddlewareWithCustomDomains(authService.Config, profileService))
+	routes.Use(
+		CorsMiddlewareWithCustomDomains(authService.Config, profileService), //nolint:contextcheck
+	)
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics)) //nolint:contextcheck
 
 	// mcp adapter (must be registered before OPTIONS wildcard to avoid pattern conflict)

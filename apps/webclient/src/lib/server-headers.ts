@@ -14,12 +14,15 @@ export function setServerResponseHeader(name: string, value: string): void {
 
   try {
     const key = Symbol.for("tanstack-start:event-storage");
-    // biome-ignore lint: accessing internal TanStack Start global
-    const storage = (globalThis as any)[key];
+    // Accessing internal TanStack Start global event storage
+    const storage = (globalThis as Record<symbol, unknown>)[key] as
+      | { getStore(): { h3Event?: { res?: { headers?: { set(n: string, v: string): void } } } } }
+      | undefined;
     const event = storage?.getStore();
+    const headers = event?.h3Event?.res?.headers;
 
-    if (event?.h3Event?.res?.headers !== undefined) {
-      event.h3Event.res.headers.set(name, value);
+    if (headers !== undefined) {
+      headers.set(name, value);
     }
   } catch {
     // Content-Language is non-critical — don't crash the page

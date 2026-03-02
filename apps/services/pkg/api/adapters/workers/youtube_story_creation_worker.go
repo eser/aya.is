@@ -18,6 +18,7 @@ const (
 	maxSlugLength     = 80
 	maxSummaryLength  = 500
 	slugDatePrefixLen = 9 // "YYYYMMDD-"
+	localeSplitNParts = 2 // split "en-US" into language and region
 )
 
 // storyCreationRepo defines the minimal repository interface for creating and updating stories.
@@ -141,16 +142,17 @@ func (w *YouTubeStoryProcessor) ProcessStories(ctx context.Context) error {
 	}
 
 	// Always reconcile existing stories with latest import data
-	if err := w.reconcileExistingStories(ctx); err != nil {
+	reconcileErr := w.reconcileExistingStories(ctx)
+	if reconcileErr != nil {
 		w.logger.ErrorContext(ctx, "Failed to reconcile existing stories",
-			slog.Any("error", err))
+			slog.Any("error", reconcileErr))
 	}
 
 	return nil
 }
 
 // createStoryFromImport creates a story + story_tx + story_publication from a link import.
-func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:cyclop,funlen
+func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:funlen // sequential story creation steps
 	ctx context.Context,
 	imp *linksync.LinkImportForStoryCreation,
 ) error {
@@ -212,7 +214,7 @@ func (w *YouTubeStoryProcessor) createStoryFromImport( //nolint:cyclop,funlen
 	content := buildStoryContent(imp.RemoteID, videoMeta.description)
 
 	// Truncate description for summary
-	summary := truncateSummary(videoMeta.description, maxSummaryLength)
+	summary := truncateSummary(videoMeta.description)
 
 	// Create story translation
 	err = w.storyRepo.InsertStoryTx(
@@ -307,9 +309,21 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 	videoMeta := extractVideoMetadata(imp.Properties)
 	nonPublic := isVideoNonPublic(w.logger, imp.RemoteID, imp.Properties)
 
-	// Handle publication based on privacy status
+	err := w.reconcilePublication(ctx, imp, nonPublic)
+	if err != nil {
+		return err
+	}
+
+	return w.updateStoryFields(ctx, imp, videoMeta)
+}
+
+// reconcilePublication handles adding/removing publications based on privacy status.
+func (w *YouTubeStoryProcessor) reconcilePublication(
+	ctx context.Context,
+	imp *linksync.LinkImportWithStory,
+	nonPublic bool,
+) error {
 	if nonPublic && imp.PublicationID != nil {
-		// Video became unlisted/private → remove author publication
 		err := w.storyRepo.RemoveStoryPublication(ctx, *imp.PublicationID)
 		if err != nil {
 			return fmt.Errorf("failed to remove publication: %w", err)
@@ -319,19 +333,12 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 			slog.String("story_id", imp.StoryID),
 			slog.String("remote_id", imp.RemoteID))
 	} else if !nonPublic && imp.PublicationID == nil {
-		// Video is public but has no publication → add one
 		publishedAt := extractPublishedAt(imp.Properties)
 		publicationID := w.idGenerator()
 
 		err := w.storyRepo.InsertStoryPublication(
-			ctx,
-			publicationID,
-			imp.StoryID,
-			imp.ProfileID,
-			"original",
-			false,
-			&publishedAt,
-			nil,
+			ctx, publicationID, imp.StoryID, imp.ProfileID,
+			"original", false, &publishedAt, nil,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to insert publication: %w", err)
@@ -342,7 +349,6 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 			slog.String("remote_id", imp.RemoteID))
 	}
 
-	// Update publication date if publication exists and video is public
 	if !nonPublic && imp.PublicationID != nil {
 		publishedAt := extractPublishedAt(imp.Properties)
 
@@ -354,7 +360,15 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 		}
 	}
 
-	// Update story fields to match YouTube data
+	return nil
+}
+
+// updateStoryFields updates story slug, picture, and translation to match YouTube data.
+func (w *YouTubeStoryProcessor) updateStoryFields(
+	ctx context.Context,
+	imp *linksync.LinkImportWithStory,
+	videoMeta videoMetadata,
+) error {
 	locale := detectLocaleFromYouTubeVideo(videoMeta, imp.ProfileDefaultLocale)
 	publishedAt := extractPublishedAt(imp.Properties)
 	slug := generateSlugFromTitle(publishedAt, videoMeta.title)
@@ -366,24 +380,16 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 		storyPictureURI = &thumbnailURI
 	}
 
-	// Update story (slug + picture)
 	err := w.storyRepo.UpdateStory(ctx, imp.StoryID, slug, storyPictureURI, nil, "public", nil)
 	if err != nil {
 		return fmt.Errorf("failed to update story: %w", err)
 	}
 
-	// Update story translation (upsert handles locale changes)
 	content := buildStoryContent(imp.RemoteID, videoMeta.description)
-	summary := truncateSummary(videoMeta.description, maxSummaryLength)
+	summary := truncateSummary(videoMeta.description)
 
 	err = w.storyRepo.UpsertStoryTx(
-		ctx,
-		imp.StoryID,
-		locale,
-		videoMeta.title,
-		summary,
-		content,
-		true,
+		ctx, imp.StoryID, locale, videoMeta.title, summary, content, true,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to upsert story translation: %w", err)
@@ -396,56 +402,67 @@ func (w *YouTubeStoryProcessor) reconcileStory(
 // It checks both videoMetadata (from Videos API) and playlistItemMetadata (from Playlist Items API).
 func isVideoNonPublic(logger *logfx.Logger, remoteID string, properties map[string]any) bool {
 	// Check videoMetadata first (more authoritative)
-	if videoMeta, ok := properties["videoMetadata"].(map[string]any); ok {
-		if status, ok := videoMeta["status"].(map[string]any); ok {
-			privacyStatus, _ := status["privacyStatus"].(string)
-
-			logger.Warn("Privacy check: videoMetadata.status",
-				slog.String("remote_id", remoteID),
-				slog.String("privacyStatus", privacyStatus))
-
-			if privacyStatus == "unlisted" || privacyStatus == "private" {
-				return true
-			}
-
-			// If we have videoMetadata with a status, trust it
-			if privacyStatus != "" {
-				return false
-			}
-		} else {
-			logger.Warn("Privacy check: videoMetadata exists but no 'status' field",
-				slog.String("remote_id", remoteID))
-		}
-	} else {
-		logger.Warn("Privacy check: no videoMetadata in properties",
-			slog.String("remote_id", remoteID))
+	result, definitive := checkMetadataPrivacy(
+		logger, remoteID, properties, "videoMetadata",
+	)
+	if definitive {
+		return result
 	}
 
-	// Fallback: check playlistItemMetadata (available even when video metadata fetch fails)
-	if playlistMeta, ok := properties["playlistItemMetadata"].(map[string]any); ok {
-		if status, ok := playlistMeta["status"].(map[string]any); ok {
-			privacyStatus, _ := status["privacyStatus"].(string)
-
-			logger.Warn("Privacy check: playlistItemMetadata.status",
-				slog.String("remote_id", remoteID),
-				slog.String("privacyStatus", privacyStatus))
-
-			if privacyStatus == "unlisted" || privacyStatus == "private" {
-				return true
-			}
-		} else {
-			logger.Warn("Privacy check: playlistItemMetadata exists but no 'status' field",
-				slog.String("remote_id", remoteID))
-		}
-	} else {
-		logger.Warn("Privacy check: no playlistItemMetadata in properties",
-			slog.String("remote_id", remoteID))
+	// Fallback: check playlistItemMetadata
+	result, definitive = checkMetadataPrivacy(
+		logger, remoteID, properties, "playlistItemMetadata",
+	)
+	if definitive {
+		return result
 	}
 
 	logger.Warn("Privacy check: treating as public (no privacy status found)",
 		slog.String("remote_id", remoteID))
 
 	return false
+}
+
+// checkMetadataPrivacy inspects a metadata block for privacy status.
+// Returns (isNonPublic, definitive). When definitive is true, the caller can return isNonPublic.
+func checkMetadataPrivacy(
+	logger *logfx.Logger,
+	remoteID string,
+	properties map[string]any,
+	metadataKey string,
+) (bool, bool) {
+	meta, metaExists := properties[metadataKey].(map[string]any)
+	if !metaExists {
+		logger.Warn("Privacy check: no "+metadataKey+" in properties",
+			slog.String("remote_id", remoteID))
+
+		return false, false
+	}
+
+	status, statusExists := meta["status"].(map[string]any)
+	if !statusExists {
+		logger.Warn("Privacy check: "+metadataKey+" exists but no 'status' field",
+			slog.String("remote_id", remoteID))
+
+		return false, false
+	}
+
+	privacyStatus, _ := status["privacyStatus"].(string)
+
+	logger.Warn("Privacy check: "+metadataKey+".status",
+		slog.String("remote_id", remoteID),
+		slog.String("privacyStatus", privacyStatus))
+
+	if privacyStatus == "unlisted" || privacyStatus == "private" {
+		return true, true
+	}
+
+	// For videoMetadata, a non-empty status is authoritative
+	if metadataKey == "videoMetadata" && privacyStatus != "" {
+		return false, true
+	}
+
+	return false, false
 }
 
 // videoMetadata holds extracted metadata from YouTube video properties.
@@ -461,27 +478,27 @@ type videoMetadata struct {
 func extractVideoMetadata(properties map[string]any) videoMetadata {
 	meta := videoMetadata{} //nolint:exhaustruct
 
-	videoMeta, ok := properties["videoMetadata"].(map[string]any)
-	if !ok {
-		// Try playlist item metadata as fallback
-		playlistMeta, ok := properties["playlistItemMetadata"].(map[string]any)
-		if !ok {
-			return meta
-		}
-
-		snippet, _ := playlistMeta["snippet"].(map[string]any)
-		if snippet != nil {
-			meta.title, _ = snippet["title"].(string)
-			meta.description, _ = snippet["description"].(string)
-			meta.thumbnails, _ = snippet["thumbnails"].(map[string]any)
-		}
+	videoMeta, vmExists := properties["videoMetadata"].(map[string]any)
+	if vmExists {
+		populateMetadataFromVideoMeta(&meta, videoMeta)
 
 		return meta
 	}
 
+	// Fallback: try playlist item metadata
+	playlistMeta, pmExists := properties["playlistItemMetadata"].(map[string]any)
+	if pmExists {
+		populateMetadataFromPlaylistMeta(&meta, playlistMeta)
+	}
+
+	return meta
+}
+
+// populateMetadataFromVideoMeta fills metadata from the videoMetadata block (Videos API).
+func populateMetadataFromVideoMeta(meta *videoMetadata, videoMeta map[string]any) {
 	snippet, _ := videoMeta["snippet"].(map[string]any)
 	if snippet == nil {
-		return meta
+		return
 	}
 
 	meta.title, _ = snippet["title"].(string)
@@ -489,35 +506,58 @@ func extractVideoMetadata(properties map[string]any) videoMetadata {
 	meta.defaultLanguage, _ = snippet["defaultLanguage"].(string)
 	meta.defaultAudioLanguage, _ = snippet["defaultAudioLanguage"].(string)
 	meta.thumbnails, _ = snippet["thumbnails"].(map[string]any)
+}
 
-	return meta
+// populateMetadataFromPlaylistMeta fills metadata from the playlistItemMetadata block.
+func populateMetadataFromPlaylistMeta(meta *videoMetadata, playlistMeta map[string]any) {
+	snippet, _ := playlistMeta["snippet"].(map[string]any)
+	if snippet == nil {
+		return
+	}
+
+	meta.title, _ = snippet["title"].(string)
+	meta.description, _ = snippet["description"].(string)
+	meta.thumbnails, _ = snippet["thumbnails"].(map[string]any)
 }
 
 // extractPublishedAt extracts the published timestamp from import properties.
 func extractPublishedAt(properties map[string]any) time.Time {
 	// Try videoMetadata first
-	if videoMeta, ok := properties["videoMetadata"].(map[string]any); ok {
-		if snippet, ok := videoMeta["snippet"].(map[string]any); ok {
-			if publishedStr, ok := snippet["publishedAt"].(string); ok {
-				if t, err := time.Parse(time.RFC3339, publishedStr); err == nil {
-					return t
-				}
-			}
-		}
+	if publishedAt := publishedAtFromMetadataKey(properties, "videoMetadata"); publishedAt != nil {
+		return *publishedAt
 	}
 
 	// Try playlistItemMetadata
-	if playlistMeta, ok := properties["playlistItemMetadata"].(map[string]any); ok {
-		if snippet, ok := playlistMeta["snippet"].(map[string]any); ok {
-			if publishedStr, ok := snippet["publishedAt"].(string); ok {
-				if t, err := time.Parse(time.RFC3339, publishedStr); err == nil {
-					return t
-				}
-			}
-		}
+	if publishedAt := publishedAtFromMetadataKey(properties, "playlistItemMetadata"); publishedAt != nil {
+		return *publishedAt
 	}
 
 	return time.Now()
+}
+
+// publishedAtFromMetadataKey extracts publishedAt from a specific metadata block.
+func publishedAtFromMetadataKey(properties map[string]any, key string) *time.Time {
+	meta, metaExists := properties[key].(map[string]any)
+	if !metaExists {
+		return nil
+	}
+
+	snippet, snippetExists := meta["snippet"].(map[string]any)
+	if !snippetExists {
+		return nil
+	}
+
+	publishedStr, strExists := snippet["publishedAt"].(string)
+	if !strExists {
+		return nil
+	}
+
+	parsed, err := time.Parse(time.RFC3339, publishedStr)
+	if err != nil {
+		return nil
+	}
+
+	return &parsed
 }
 
 // extractThumbnailURI extracts the best available thumbnail URI.
@@ -539,7 +579,7 @@ func extractThumbnailURI(meta videoMetadata) string {
 }
 
 // supportedLocales is the set of locales supported by the platform.
-var supportedLocales = map[string]bool{
+var supportedLocales = map[string]bool{ //nolint:gochecknoglobals
 	"ar": true, "de": true, "en": true, "es": true,
 	"fr": true, "it": true, "ja": true, "ko": true,
 	"nl": true, "pt-PT": true, "ru": true, "tr": true,
@@ -547,7 +587,7 @@ var supportedLocales = map[string]bool{
 }
 
 // youtubeLocaleMap maps YouTube language codes to platform locale codes.
-var youtubeLocaleMap = map[string]string{
+var youtubeLocaleMap = map[string]string{ //nolint:gochecknoglobals
 	"pt":    "pt-PT",
 	"pt-BR": "pt-PT",
 	"zh":    "zh-CN",
@@ -575,7 +615,7 @@ func detectLocaleFromYouTubeVideo(meta videoMetadata, fallback string) string {
 		}
 
 		// Try just the language part (e.g., "en-US" -> "en")
-		parts := strings.SplitN(lang, "-", 2)
+		parts := strings.SplitN(lang, "-", localeSplitNParts)
 		if len(parts) > 0 {
 			baseLang := strings.ToLower(parts[0])
 			if supportedLocales[baseLang] {
@@ -626,91 +666,102 @@ func generateSlugFromTitle(publishedAt time.Time, title string) string {
 }
 
 // transliterateBasic performs basic transliteration for common characters.
-func transliterateBasic(s string) string {
-	var b strings.Builder
+func transliterateBasic(input string) string {
+	var builder strings.Builder
 
-	b.Grow(len(s))
+	builder.Grow(len(input))
 
-	for _, r := range s {
-		if r < unicode.MaxASCII {
-			b.WriteRune(r)
+	for _, char := range input {
+		if char < unicode.MaxASCII {
+			builder.WriteRune(char)
 
 			continue
 		}
 
-		// Replace common characters; others become dashes during sanitization
-		switch r {
-		case 'ı':
-			b.WriteRune('i')
-		case 'ğ':
-			b.WriteRune('g')
-		case 'ü':
-			b.WriteRune('u')
-		case 'ş':
-			b.WriteRune('s')
-		case 'ö':
-			b.WriteRune('o')
-		case 'ç':
-			b.WriteRune('c')
-		case 'İ':
-			b.WriteRune('i')
-		case 'Ğ':
-			b.WriteRune('g')
-		case 'Ü':
-			b.WriteRune('u')
-		case 'Ş':
-			b.WriteRune('s')
-		case 'Ö':
-			b.WriteRune('o')
-		case 'Ç':
-			b.WriteRune('c')
-		case 'ä':
-			b.WriteString("ae")
-		case 'é', 'è', 'ê', 'ë':
-			b.WriteRune('e')
-		case 'á', 'à', 'â':
-			b.WriteRune('a')
-		case 'í', 'ì', 'î':
-			b.WriteRune('i')
-		case 'ó', 'ò', 'ô':
-			b.WriteRune('o')
-		case 'ú', 'ù', 'û':
-			b.WriteRune('u')
-		case 'ñ':
-			b.WriteRune('n')
-		default:
-			b.WriteRune('-')
-		}
+		transliterateRune(&builder, char)
 	}
 
-	return b.String()
+	return builder.String()
+}
+
+// transliterateRune writes the transliterated form of a non-ASCII rune.
+//
+//nolint:cyclop,funlen // switch-based character mapping has many cases but low real complexity
+func transliterateRune(builder *strings.Builder, char rune) {
+	// Replace common characters; others become dashes during sanitization
+	switch char {
+	case '\u0131': // ı
+		builder.WriteRune('i')
+	case '\u011f': // ğ
+		builder.WriteRune('g')
+	case '\u00fc': // ü
+		builder.WriteRune('u')
+	case '\u015f': // ş
+		builder.WriteRune('s')
+	case '\u00f6': // ö
+		builder.WriteRune('o')
+	case '\u00e7': // ç
+		builder.WriteRune('c')
+	case '\u0130': // İ
+		builder.WriteRune('i')
+	case '\u011e': // Ğ
+		builder.WriteRune('g')
+	case '\u00dc': // Ü
+		builder.WriteRune('u')
+	case '\u015e': // Ş
+		builder.WriteRune('s')
+	case '\u00d6': // Ö
+		builder.WriteRune('o')
+	case '\u00c7': // Ç
+		builder.WriteRune('c')
+	case '\u00e4': // ä
+		builder.WriteString("ae")
+	case '\u00e9', '\u00e8', '\u00ea', '\u00eb': // é, è, ê, ë
+		builder.WriteRune('e')
+	case '\u00e1', '\u00e0', '\u00e2': // á, à, â
+		builder.WriteRune('a')
+	case '\u00ed', '\u00ec', '\u00ee': // í, ì, î
+		builder.WriteRune('i')
+	case '\u00f3', '\u00f2', '\u00f4': // ó, ò, ô
+		builder.WriteRune('o')
+	case '\u00fa', '\u00f9', '\u00fb': // ú, ù, û
+		builder.WriteRune('u')
+	case '\u00f1': // ñ
+		builder.WriteRune('n')
+	default:
+		builder.WriteRune('-')
+	}
 }
 
 // buildStoryContent builds the story content from a YouTube video.
 func buildStoryContent(videoID string, description string) string {
-	var b strings.Builder
+	var builder strings.Builder
 
 	// YouTube embed using %[url] syntax
-	b.WriteString("%[https://www.youtube.com/embed/")
-	b.WriteString(videoID)
-	b.WriteString("]")
+	builder.WriteString("%[https://www.youtube.com/embed/")
+	builder.WriteString(videoID)
+	builder.WriteString("]")
 
 	if description != "" {
-		b.WriteString("\n\n```plain\n")
-		b.WriteString(description)
-		b.WriteString("\n```")
+		builder.WriteString("\n\n```plain\n")
+		builder.WriteString(description)
+		builder.WriteString("\n```")
 	}
 
-	return b.String()
+	return builder.String()
 }
 
-// truncateSummary truncates text to maxLen, breaking at word boundaries.
-func truncateSummary(text string, maxLen int) string {
+// truncateSummary truncates text to maxSummaryLength, breaking at word boundaries.
+func truncateSummary(text string) string {
+	return truncateAtWordBoundary(text, maxSummaryLength)
+}
+
+// truncateAtWordBoundary truncates text to maxLen, breaking at word boundaries.
+func truncateAtWordBoundary(text string, maxLen int) string {
 	if len(text) <= maxLen {
 		return text
 	}
 
-	// Find last space before maxLen
 	truncated := text[:maxLen]
 	lastSpace := strings.LastIndex(truncated, " ")
 

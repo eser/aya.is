@@ -41,7 +41,7 @@ type XOAuthConfig struct {
 	ClientID         string `conf:"client_id"`
 	ClientSecret     string `conf:"client_secret"`
 	Scope            string `conf:"scope"              default:"tweet.read users.read offline.access"`
-	ProfileLinkScope string `conf:"profile_link_scope" default:"tweet.read tweet.write users.read media.write offline.access"`
+	ProfileLinkScope string `conf:"profile_link_scope" default:"tweet.read tweet.write users.read media.write offline.access"` //nolint:lll // struct tag
 }
 
 type Config struct {
@@ -59,8 +59,8 @@ type Config struct {
 	SecureCookie bool   `conf:"secure_cookie" default:"true"`
 
 	// CORS settings (comma-separated)
-	CorsAllowedOrigins string `conf:"cors_allowed_origins" default:"https://aya.is,https://www.aya.is,http://localhost:3000,http://localhost:5173,http://localhost:4173"`
-	CorsAllowedHeaders string `conf:"cors_allowed_headers" default:"Accept,Authorization,Content-Type,Origin,X-Requested-With,Traceparent,Tracestate"`
+	CorsAllowedOrigins string `conf:"cors_allowed_origins" default:"https://aya.is,https://www.aya.is,http://localhost:3000,http://localhost:5173,http://localhost:4173"` //nolint:lll // struct tag
+	CorsAllowedHeaders string `conf:"cors_allowed_headers" default:"Accept,Authorization,Content-Type,Origin,X-Requested-With,Traceparent,Tracestate"`                    //nolint:lll // struct tag
 	CorsAllowedMethods string `conf:"cors_allowed_methods" default:"GET,POST,PUT,DELETE,PATCH,HEAD,OPTIONS"`
 }
 

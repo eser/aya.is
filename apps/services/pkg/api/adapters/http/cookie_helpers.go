@@ -13,6 +13,8 @@ import (
 
 var ErrGetSessionCookie = errors.New("failed to get session cookie")
 
+const secondsPerYear = 365 * 24 * 60 * 60 // 1 year in seconds
+
 // SetSessionCookie sets an HttpOnly, Secure, SameSite=None cookie for cross-domain SSO.
 func SetSessionCookie(
 	w http.ResponseWriter,
@@ -20,7 +22,7 @@ func SetSessionCookie(
 	expiresAt time.Time,
 	config *auth.Config,
 ) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct // only relevant cookie fields set
 		Name:     config.CookieName,
 		Value:    sessionID,
 		Path:     "/",
@@ -35,7 +37,7 @@ func SetSessionCookie(
 
 // ClearSessionCookie removes the session cookie.
 func ClearSessionCookie(w http.ResponseWriter, config *auth.Config) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct // only relevant cookie fields set
 		Name:     config.CookieName,
 		Value:    "",
 		Path:     "/",
@@ -109,12 +111,12 @@ func GetViewerUserID(
 // via the same domain as the session cookie (.aya.is), enabling cross-domain
 // theme persistence without extra API calls.
 func SetThemeCookie(w http.ResponseWriter, theme string, config *auth.Config) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct // only relevant cookie fields set
 		Name:     "site_theme",
 		Value:    theme,
 		Path:     "/",
 		Domain:   config.CookieDomain,
-		MaxAge:   365 * 24 * 60 * 60, // 1 year
+		MaxAge:   secondsPerYear,
 		Secure:   config.SecureCookie,
 		HttpOnly: false, // Readable by JavaScript for FOUC prevention
 		SameSite: http.SameSiteNoneMode,
@@ -123,7 +125,7 @@ func SetThemeCookie(w http.ResponseWriter, theme string, config *auth.Config) {
 
 // ClearThemeCookie removes the theme cookie.
 func ClearThemeCookie(w http.ResponseWriter, config *auth.Config) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct // only relevant cookie fields set
 		Name:     "site_theme",
 		Value:    "",
 		Path:     "/",

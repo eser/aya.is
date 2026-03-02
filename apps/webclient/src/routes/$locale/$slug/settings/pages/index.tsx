@@ -1,10 +1,24 @@
 // Profile pages settings
 import * as React from "react";
-import { createFileRoute, Link, useNavigate, useRouter, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { CheckIcon, EyeOff, FileText, GripVertical, ExternalLink, Lock, Loader2, Pencil, Plus, Settings2, Sparkles, Linkedin, ChevronDown } from "lucide-react";
-import { backend, type Profile, type ProfilePage } from "@/modules/backend/backend";
+import {
+  CheckIcon,
+  ChevronDown,
+  ExternalLink,
+  EyeOff,
+  FileText,
+  GripVertical,
+  Linkedin,
+  Loader2,
+  Lock,
+  Pencil,
+  Plus,
+  Settings2,
+  Sparkles,
+} from "lucide-react";
+import { backend, type ProfilePage } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -24,12 +38,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
-import {
-  Select,
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { LocaleLink } from "@/components/locale-link";
 
@@ -50,7 +59,9 @@ function VisibilitySelectItem(props: { option: VisibilityOption }) {
       className="focus:bg-accent focus:text-accent-foreground gap-2 rounded-sm py-2 pr-8 pl-2 text-sm relative flex w-full cursor-default items-start outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
     >
       <SelectPrimitive.ItemIndicator
-        render={<span className="pointer-events-none absolute right-2 top-2.5 flex size-4 items-center justify-center" />}
+        render={
+          <span className="pointer-events-none absolute right-2 top-2.5 flex size-4 items-center justify-center" />
+        }
       >
         <CheckIcon className="size-4 pointer-events-none" />
       </SelectPrimitive.ItemIndicator>
@@ -90,9 +101,7 @@ function VisibilitySelect(props: {
         </SelectValue>
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
-        {props.options.map((option) => (
-          <VisibilitySelectItem key={option.value} option={option} />
-        ))}
+        {props.options.map((option) => <VisibilitySelectItem key={option.value} option={option} />)}
       </SelectContent>
     </Select>
   );
@@ -361,9 +370,7 @@ function PagesSettingsPage() {
                 {/* Contributions / Members */}
                 <Field>
                   <FieldLabel>
-                    {isOrgOrProduct
-                      ? t("Profile.Members Visibility")
-                      : t("Profile.Contributions Visibility")}
+                    {isOrgOrProduct ? t("Profile.Members Visibility") : t("Profile.Contributions Visibility")}
                   </FieldLabel>
                   <VisibilitySelect
                     value={featureRelations}
@@ -409,9 +416,7 @@ function PagesSettingsPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" disabled={isGenerating}>
                 <Sparkles className="mr-1.5 size-4" />
-                {isGenerating
-                  ? t("Profile.Generating...")
-                  : t("Profile.Generate")}
+                {isGenerating ? t("Profile.Generating...") : t("Profile.Generate")}
                 <ChevronDown className="ml-1.5 size-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -435,69 +440,69 @@ function PagesSettingsPage() {
         </div>
       </div>
 
-      {pages.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">{t("Profile.No pages found.")}</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {pages.map((page) => {
-            const isDragOver = dragOverId === page.id;
+      {pages.length === 0
+        ? (
+          <div className="text-center py-12 border-2 border-dashed rounded-lg">
+            <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">{t("Profile.No pages found.")}</p>
+          </div>
+        )
+        : (
+          <div className="space-y-2">
+            {pages.map((page) => {
+              const isDragOver = dragOverId === page.id;
 
-            return (
-              <div
-                key={page.id}
-                data-page-id={page.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, page.id)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleDragOver(e, page.id)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, page.id)}
-                className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
-                  isDragOver
-                    ? "border-primary bg-primary/5 border-dashed"
-                    : "hover:bg-muted/50"
-                }`}
-              >
-                <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
-                  <GripVertical className="size-5" />
-                </div>
-                <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
-                  <FileText className="size-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium truncate">{page.title}</p>
-                    {page.visibility !== "public" && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                        {page.visibility === "unlisted" && <EyeOff className="size-3" />}
-                        {page.visibility === "private" && <Lock className="size-3" />}
-                        {page.visibility === "unlisted" && t("ContentEditor.Unlisted")}
-                        {page.visibility === "private" && t("ContentEditor.Private")}
-                      </span>
-                    )}
+              return (
+                <div
+                  key={page.id}
+                  data-page-id={page.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, page.id)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => handleDragOver(e, page.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, page.id)}
+                  className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
+                    isDragOver ? "border-primary bg-primary/5 border-dashed" : "hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+                    <GripVertical className="size-5" />
                   </div>
-                  <p className="text-sm text-muted-foreground">/{page.slug}</p>
+                  <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
+                    <FileText className="size-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">{page.title}</p>
+                      {page.visibility !== "public" && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                          {page.visibility === "unlisted" && <EyeOff className="size-3" />}
+                          {page.visibility === "private" && <Lock className="size-3" />}
+                          {page.visibility === "unlisted" && t("ContentEditor.Unlisted")}
+                          {page.visibility === "private" && t("ContentEditor.Private")}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">/{page.slug}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <LocaleLink to={`/${params.slug}/${page.slug}/edit`}>
+                      <Button variant="ghost" size="icon">
+                        <Pencil className="size-4" />
+                      </Button>
+                    </LocaleLink>
+                    <LocaleLink to={`/${params.slug}/${page.slug}`}>
+                      <Button variant="ghost" size="icon">
+                        <ExternalLink className="size-4" />
+                      </Button>
+                    </LocaleLink>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <LocaleLink to={`/${params.slug}/${page.slug}/edit`}>
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="size-4" />
-                    </Button>
-                  </LocaleLink>
-                  <LocaleLink to={`/${params.slug}/${page.slug}`}>
-                    <Button variant="ghost" size="icon">
-                      <ExternalLink className="size-4" />
-                    </Button>
-                  </LocaleLink>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
     </Card>
   );
 }

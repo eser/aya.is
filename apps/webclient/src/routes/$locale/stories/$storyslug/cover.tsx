@@ -1,6 +1,6 @@
 // Cover generator page for stories
 import * as React from "react";
-import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend.ts";
 import { CoverGenerator } from "@/components/cover-generator/index.ts";

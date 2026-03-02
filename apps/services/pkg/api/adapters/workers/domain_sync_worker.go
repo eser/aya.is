@@ -40,7 +40,7 @@ func NewDomainSyncWorker(
 	baseDomains := make([]string, 0)
 
 	if config.BaseDomains != "" {
-		for _, d := range strings.Split(config.BaseDomains, ",") {
+		for d := range strings.SplitSeq(config.BaseDomains, ",") {
 			trimmed := strings.TrimSpace(d)
 			if trimmed != "" {
 				baseDomains = append(baseDomains, trimmed)
@@ -75,7 +75,7 @@ func (w *DomainSyncWorker) Execute(ctx context.Context) error {
 	disabledKey := "worker." + w.Name() + ".disabled"
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
-	if err == nil && disabled == "true" {
+	if err == nil && disabled == disabledStateValue {
 		return workerfx.ErrWorkerSkipped
 	}
 
@@ -127,6 +127,8 @@ func (w *DomainSyncWorker) executeSync(ctx context.Context) error {
 }
 
 // verifyDNS checks DNS records for all custom domains and updates their verification status.
+//
+//nolint:funlen // sequential DNS verification steps
 func (w *DomainSyncWorker) verifyDNS(ctx context.Context) error {
 	domains, err := w.profileRepo.ListAllCustomDomains(ctx)
 	if err != nil {
@@ -158,7 +160,7 @@ func (w *DomainSyncWorker) verifyDNS(ctx context.Context) error {
 		if newStatus == domain.VerificationStatus {
 			// Status unchanged, still update last_dns_check_at
 			updateErr := w.profileRepo.UpdateCustomDomainVerification(
-				ctx, domain.ID, domain.VerificationStatus, domain.DnsVerifiedAt, domain.ExpiredAt,
+				ctx, domain.ID, domain.VerificationStatus, domain.DNSVerifiedAt, domain.ExpiredAt,
 			)
 			if updateErr != nil {
 				w.logger.ErrorContext(ctx, "Failed to update DNS check timestamp",
@@ -204,11 +206,11 @@ func (w *DomainSyncWorker) computeNewStatus(
 	domain *profiles.ProfileCustomDomain,
 	dnsVerified bool,
 	now time.Time,
-) (status string, dnsVerifiedAt *time.Time, expiredAt *time.Time) {
+) (string, *time.Time, *time.Time) {
 	if dnsVerified {
 		// DNS resolves correctly — set or keep verified
-		if domain.DnsVerifiedAt != nil {
-			return profiles.DomainStatusVerified, domain.DnsVerifiedAt, nil
+		if domain.DNSVerifiedAt != nil {
+			return profiles.DomainStatusVerified, domain.DNSVerifiedAt, nil
 		}
 
 		return profiles.DomainStatusVerified, &now, nil
@@ -218,25 +220,27 @@ func (w *DomainSyncWorker) computeNewStatus(
 	switch domain.VerificationStatus {
 	case profiles.DomainStatusVerified:
 		// Was verified, now enter grace period
-		return profiles.DomainStatusExpired, domain.DnsVerifiedAt, &now
+		return profiles.DomainStatusExpired, domain.DNSVerifiedAt, &now
 
 	case profiles.DomainStatusExpired:
 		// Already in grace period — check if grace period has elapsed
 		if domain.ExpiredAt != nil &&
 			now.Sub(*domain.ExpiredAt) >= profiles.DomainExpiredGracePeriod {
-			return profiles.DomainStatusFailed, domain.DnsVerifiedAt, domain.ExpiredAt
+			return profiles.DomainStatusFailed, domain.DNSVerifiedAt, domain.ExpiredAt
 		}
 
 		// Still within grace period
-		return profiles.DomainStatusExpired, domain.DnsVerifiedAt, domain.ExpiredAt
+		return profiles.DomainStatusExpired, domain.DNSVerifiedAt, domain.ExpiredAt
 
 	default:
 		// pending or failed — stay/become failed
-		return profiles.DomainStatusFailed, domain.DnsVerifiedAt, nil
+		return profiles.DomainStatusFailed, domain.DNSVerifiedAt, nil
 	}
 }
 
 // syncWebserver syncs verified domains to the webserver infrastructure.
+//
+//nolint:cyclop,funlen // sequential webserver sync steps
 func (w *DomainSyncWorker) syncWebserver(ctx context.Context) error {
 	if len(w.baseDomains) == 0 {
 		w.logger.WarnContext(ctx, "No base domains configured, skipping webserver sync")
@@ -309,21 +313,21 @@ func (w *DomainSyncWorker) syncWebserver(ctx context.Context) error {
 }
 
 // domainsEqual compares two domain slices as sorted sets.
-func domainsEqual(a, b []string) bool {
-	if len(a) != len(b) {
+func domainsEqual(left, right []string) bool {
+	if len(left) != len(right) {
 		return false
 	}
 
-	sortedA := make([]string, len(a))
-	copy(sortedA, a)
-	sort.Strings(sortedA)
+	sortedLeft := make([]string, len(left))
+	copy(sortedLeft, left)
+	sort.Strings(sortedLeft)
 
-	sortedB := make([]string, len(b))
-	copy(sortedB, b)
-	sort.Strings(sortedB)
+	sortedRight := make([]string, len(right))
+	copy(sortedRight, right)
+	sort.Strings(sortedRight)
 
-	for i := range sortedA {
-		if !strings.EqualFold(sortedA[i], sortedB[i]) {
+	for i := range sortedLeft {
+		if !strings.EqualFold(sortedLeft[i], sortedRight[i]) {
 			return false
 		}
 	}

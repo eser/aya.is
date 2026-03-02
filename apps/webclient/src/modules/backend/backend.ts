@@ -68,7 +68,7 @@ import { acceptProfileEnvelope } from "./profile-envelopes/accept-profile-envelo
 import { rejectProfileEnvelope } from "./profile-envelopes/reject-profile-envelope";
 import { sendProfileEnvelope } from "./profile-envelopes/send-profile-envelope";
 import { listMailboxEnvelopes } from "./mailbox/list-mailbox-envelopes";
-import { listConversations, type ListConversationsResult } from "./mailbox/list-conversations";
+import { listConversations } from "./mailbox/list-conversations";
 import { getConversation } from "./mailbox/get-conversation";
 import { markConversationRead } from "./mailbox/mark-conversation-read";
 import { archiveConversation } from "./mailbox/archive-conversation";

@@ -114,6 +114,7 @@ func (p *Provider) HandleOAuthCallback(
 		Name:                 userInfo.Name,
 		Email:                "",
 		URI:                  profileURI,
+		ProfilePictureURI:    userInfo.ProfileImageURL,
 		AccessToken:          tokenResp.AccessToken,
 		RefreshToken:         tokenResp.RefreshToken,
 		AccessTokenExpiresAt: expiresAt,
@@ -206,7 +207,8 @@ func (p *Provider) exchangeCodeForTokens(
 
 	var tokenResp tokenResponse
 
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
+	err = json.Unmarshal(body, &tokenResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToExchangeCode, err)
 	}
 
@@ -257,7 +259,8 @@ func (p *Provider) fetchUserInfo(
 		Data UserInfo `json:"data"`
 	}
 
-	if err := json.Unmarshal(body, &apiResp); err != nil {
+	err = json.Unmarshal(body, &apiResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
 	}
 

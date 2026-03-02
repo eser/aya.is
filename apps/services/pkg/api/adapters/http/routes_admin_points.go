@@ -15,7 +15,7 @@ import (
 
 var ErrUnauthorized = errors.New("unauthorized")
 
-func RegisterHTTPRoutesForAdminPoints(
+func RegisterHTTPRoutesForAdminPoints( //nolint:gocognit,gocyclo,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -34,7 +34,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -87,7 +87,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -132,7 +132,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -146,7 +146,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					)
 				}
 
-				tx, err := profilePointsService.ApprovePendingAward(
+				transaction, err := profilePointsService.ApprovePendingAward(
 					ctx.Request.Context(),
 					awardID,
 					user.ID,
@@ -166,7 +166,7 @@ func RegisterHTTPRoutesForAdminPoints(
 				}
 
 				return ctx.Results.JSON(map[string]any{
-					"data":  tx,
+					"data":  transaction,
 					"error": nil,
 				})
 			},
@@ -186,7 +186,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -205,7 +205,8 @@ func RegisterHTTPRoutesForAdminPoints(
 					Reason string `json:"reason"`
 				}
 
-				if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+				err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+				if err != nil {
 					return ctx.Results.BadRequest(
 						httpfx.WithErrorMessage("invalid request body"),
 					)
@@ -252,7 +253,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -295,7 +296,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -306,7 +307,8 @@ func RegisterHTTPRoutesForAdminPoints(
 					IDs []string `json:"ids"`
 				}
 
-				if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+				err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+				if err != nil {
 					return ctx.Results.BadRequest(
 						httpfx.WithErrorMessage("invalid request body"),
 					)
@@ -378,7 +380,7 @@ func RegisterHTTPRoutesForAdminPoints(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -390,7 +392,8 @@ func RegisterHTTPRoutesForAdminPoints(
 					Reason string   `json:"reason"`
 				}
 
-				if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+				err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+				if err != nil {
 					return ctx.Results.BadRequest(
 						httpfx.WithErrorMessage("invalid request body"),
 					)

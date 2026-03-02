@@ -9,14 +9,15 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
-	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
+const reposPerPage = 100
+
 // RegisterHTTPRoutesForProfileResources registers the routes for managing profile resources.
-func RegisterHTTPRoutesForProfileResources(
+func RegisterHTTPRoutesForProfileResources( //nolint:gocognit,gocyclo,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -175,7 +176,8 @@ func RegisterHTTPRoutesForProfileResources(
 			page := 1
 			pageParam := ctx.Request.URL.Query().Get("page")
 			if pageParam != "" {
-				if p, parseErr := strconv.Atoi(pageParam); parseErr == nil && p > 0 {
+				p, parseErr := strconv.Atoi(pageParam)
+				if parseErr == nil && p > 0 {
 					page = p
 				}
 			}
@@ -185,7 +187,7 @@ func RegisterHTTPRoutesForProfileResources(
 				gitHubLink.AuthAccessToken,
 				"owner,collaborator,organization_member",
 				page,
-				100,
+				reposPerPage,
 			)
 			if err != nil {
 				logger.ErrorContext(ctx.Request.Context(), "Failed to fetch GitHub repos",
@@ -280,7 +282,8 @@ func RegisterHTTPRoutesForProfileResources(
 				Properties  map[string]any `json:"properties"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -372,11 +375,12 @@ func RegisterHTTPRoutesForProfileResources(
 				TeamIDs []string `json:"team_ids"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			err := profileService.SetResourceTeams(
+			err = profileService.SetResourceTeams(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				slugParam,
@@ -468,15 +472,4 @@ func RegisterHTTPRoutesForProfileResources(
 		HasSummary("Delete Profile Resource").
 		HasDescription("Remove a resource from a profile.").
 		HasResponse(http.StatusOK)
-}
-
-// getGitHubRepoInfoForResource is a helper that validates and returns GitHub repo info.
-func getGitHubRepoInfoForResource(
-	ctx *httpfx.Context,
-	githubClient *github.Client,
-	accessToken string,
-	owner string,
-	repo string,
-) (*github.GitHubRepoInfo, error) {
-	return githubClient.FetchRepoInfo(ctx.Request.Context(), accessToken, owner, repo)
 }

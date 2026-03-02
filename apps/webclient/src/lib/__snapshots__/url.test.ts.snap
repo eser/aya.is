@@ -1,0 +1,129 @@
+export const snapshot = {};
+
+snapshot[`sanitizeImageSrc - safe protocols 1`] = `"https://example.com/image.png"`;
+
+snapshot[`sanitizeImageSrc - safe protocols 2`] = `"http://example.com/image.png"`;
+
+snapshot[`sanitizeImageSrc - safe protocols 3`] = `"data:image/png;base64,abc123"`;
+
+snapshot[`sanitizeImageSrc - safe protocols 4`] = `"blob:https://example.com/abc"`;
+
+snapshot[`localizedUrl - basic paths 1`] = `"/en/about"`;
+
+snapshot[`localizedUrl - basic paths 2`] = `"/tr/about"`;
+
+snapshot[`localizedUrl - basic paths 3`] = `"/fr"`;
+
+snapshot[`localizedUrl - basic paths 4`] = `"/de/about"`;
+
+snapshot[`localizedUrl - defaults to en 1`] = `"/en/about"`;
+
+snapshot[`localizedUrl - defaults to en 2`] = `"/en/about"`;
+
+snapshot[`localizedUrl - uses currentLocale as fallback 1`] = `"/ja/about"`;
+
+snapshot[`parseLocaleFromPath - valid locales 1`] = `
+{
+  locale: "en",
+  restPath: "/about",
+}
+`;
+
+snapshot[`parseLocaleFromPath - valid locales 2`] = `
+{
+  locale: "tr",
+  restPath: "/stories/my-story",
+}
+`;
+
+snapshot[`parseLocaleFromPath - valid locales 3`] = `
+{
+  locale: "pt-PT",
+  restPath: "/page",
+}
+`;
+
+snapshot[`parseLocaleFromPath - valid locales 4`] = `
+{
+  locale: "zh-CN",
+  restPath: "/",
+}
+`;
+
+snapshot[`parseLocaleFromPath - invalid locale in path 1`] = `
+{
+  locale: null,
+  restPath: "/xx/about",
+}
+`;
+
+snapshot[`parseLocaleFromPath - invalid locale in path 2`] = `
+{
+  locale: null,
+  restPath: "/about",
+}
+`;
+
+snapshot[`parseLocaleFromPath - invalid locale in path 3`] = `
+{
+  locale: null,
+  restPath: "/",
+}
+`;
+
+snapshot[`getAlternateUrls - generates for all locales 1`] = `
+[
+  {
+    locale: "en",
+    url: "/en/about",
+  },
+  {
+    locale: "tr",
+    url: "/tr/about",
+  },
+  {
+    locale: "fr",
+    url: "/fr/about",
+  },
+  {
+    locale: "de",
+    url: "/de/about",
+  },
+  {
+    locale: "es",
+    url: "/es/about",
+  },
+  {
+    locale: "pt-PT",
+    url: "/pt-PT/about",
+  },
+  {
+    locale: "it",
+    url: "/it/about",
+  },
+  {
+    locale: "nl",
+    url: "/nl/about",
+  },
+  {
+    locale: "ja",
+    url: "/ja/about",
+  },
+  {
+    locale: "ko",
+    url: "/ko/about",
+  },
+  {
+    locale: "ru",
+    url: "/ru/about",
+  },
+  {
+    locale: "zh-CN",
+    url: "/zh-CN/about",
+  },
+  {
+    locale: "ar",
+    url: "/ar/about",
+  },
+]
+`;

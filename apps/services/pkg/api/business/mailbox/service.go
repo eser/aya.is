@@ -74,6 +74,10 @@ func (s *Service) GetOrCreateDirectConversation(
 		Title:              titlePtr,
 		CreatedByProfileID: &senderProfileID,
 		CreatedAt:          time.Now(),
+		UpdatedAt:          nil,
+		Participants:       nil,
+		LastEnvelope:       nil,
+		UnreadCount:        0,
 	}
 
 	err = s.repo.CreateConversation(ctx, conv)
@@ -82,24 +86,18 @@ func (s *Service) GetOrCreateDirectConversation(
 	}
 
 	// Add sender as participant.
-	err = s.repo.AddParticipant(ctx, &Participant{
-		ID:             s.idGenerator(),
-		ConversationID: conv.ID,
-		ProfileID:      senderProfileID,
-		JoinedAt:       conv.CreatedAt,
-	})
+	err = s.repo.AddParticipant(ctx, newParticipant(
+		s.idGenerator(), conv.ID, senderProfileID, conv.CreatedAt,
+	))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
 	}
 
 	// Add target as participant (skip if same as sender — self-conversation).
 	if targetProfileID != senderProfileID {
-		err = s.repo.AddParticipant(ctx, &Participant{
-			ID:             s.idGenerator(),
-			ConversationID: conv.ID,
-			ProfileID:      targetProfileID,
-			JoinedAt:       conv.CreatedAt,
-		})
+		err = s.repo.AddParticipant(ctx, newParticipant(
+			s.idGenerator(), conv.ID, targetProfileID, conv.CreatedAt,
+		))
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
 		}
@@ -183,6 +181,10 @@ func (s *Service) SendSystemEnvelope(
 		Title:              titlePtr,
 		CreatedByProfileID: &params.SenderProfileID,
 		CreatedAt:          now,
+		UpdatedAt:          nil,
+		Participants:       nil,
+		LastEnvelope:       nil,
+		UnreadCount:        0,
 	}
 
 	err := s.repo.CreateConversation(ctx, conv)
@@ -192,12 +194,9 @@ func (s *Service) SendSystemEnvelope(
 
 	// Add both target and sender as participants.
 	for _, profileID := range []string{params.TargetProfileID, params.SenderProfileID} {
-		err = s.repo.AddParticipant(ctx, &Participant{
-			ID:             s.idGenerator(),
-			ConversationID: conv.ID,
-			ProfileID:      profileID,
-			JoinedAt:       now,
-		})
+		err = s.repo.AddParticipant(ctx, newParticipant(
+			s.idGenerator(), conv.ID, profileID, now,
+		))
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToCreate, err)
 		}
@@ -207,6 +206,28 @@ func (s *Service) SendSystemEnvelope(
 }
 
 // createEnvelopeInConversation is the internal helper that creates an envelope.
+// resolveInitialEnvelopeStatus determines the initial status for a new envelope.
+// Follow-up envelopes in accepted/redeemed conversations are auto-accepted (except invitations).
+func (s *Service) resolveInitialEnvelopeStatus(
+	ctx context.Context,
+	conversationID string,
+	kind string,
+) string {
+	if kind == KindInvitation {
+		return StatusPending
+	}
+
+	firstEnvelopes, listErr := s.repo.ListEnvelopesByConversation(ctx, conversationID, 1)
+	if listErr == nil && len(firstEnvelopes) > 0 {
+		if firstEnvelopes[0].Status == StatusAccepted ||
+			firstEnvelopes[0].Status == StatusRedeemed {
+			return StatusAccepted
+		}
+	}
+
+	return StatusPending
+}
+
 func (s *Service) createEnvelopeInConversation(
 	ctx context.Context,
 	conversationID string,
@@ -214,33 +235,32 @@ func (s *Service) createEnvelopeInConversation(
 ) (*Envelope, error) {
 	now := time.Now()
 
-	// Determine initial status: auto-accept follow-up envelopes
-	// in conversations where the first envelope is already accepted or redeemed,
-	// unless the new envelope is an invitation (invitations always require explicit accept/reject).
-	status := StatusPending
-
-	if params.Kind != KindInvitation {
-		firstEnvelopes, listErr := s.repo.ListEnvelopesByConversation(ctx, conversationID, 1)
-		if listErr == nil && len(firstEnvelopes) > 0 {
-			if firstEnvelopes[0].Status == StatusAccepted ||
-				firstEnvelopes[0].Status == StatusRedeemed {
-				status = StatusAccepted
-			}
-		}
-	}
+	// Auto-accept follow-up envelopes in accepted/redeemed conversations (except invitations).
+	status := s.resolveInitialEnvelopeStatus(ctx, conversationID, params.Kind)
 
 	envelope := &Envelope{
-		ID:              s.idGenerator(),
-		ConversationID:  conversationID,
-		TargetProfileID: params.TargetProfileID,
-		SenderProfileID: &params.SenderProfileID,
-		SenderUserID:    params.SenderUserID,
-		Kind:            params.Kind,
-		Status:          status,
-		Message:         params.Message,
-		Properties:      params.Properties,
-		ReplyToID:       params.ReplyToID,
-		CreatedAt:       now,
+		ID:                      s.idGenerator(),
+		ConversationID:          conversationID,
+		TargetProfileID:         params.TargetProfileID,
+		SenderProfileID:         &params.SenderProfileID,
+		SenderUserID:            params.SenderUserID,
+		Kind:                    params.Kind,
+		Status:                  status,
+		Message:                 params.Message,
+		Properties:              params.Properties,
+		ReplyToID:               params.ReplyToID,
+		AcceptedAt:              nil,
+		RejectedAt:              nil,
+		RevokedAt:               nil,
+		RedeemedAt:              nil,
+		CreatedAt:               now,
+		UpdatedAt:               nil,
+		DeletedAt:               nil,
+		SenderProfileSlug:       nil,
+		SenderProfileTitle:      nil,
+		SenderProfilePictureURI: nil,
+		SenderProfileKind:       nil,
+		Reactions:               nil,
 	}
 
 	err := s.repo.CreateEnvelope(ctx, envelope)
@@ -350,7 +370,12 @@ func (s *Service) MarkConversationRead(
 	conversationID string,
 	profileID string,
 ) error {
-	return s.repo.UpdateParticipantReadCursor(ctx, conversationID, profileID)
+	err := s.repo.UpdateParticipantReadCursor(ctx, conversationID, profileID)
+	if err != nil {
+		return fmt.Errorf("updating read cursor: %w", err)
+	}
+
+	return nil
 }
 
 // ArchiveConversation archives a conversation for a participant.
@@ -359,7 +384,12 @@ func (s *Service) ArchiveConversation(
 	conversationID string,
 	profileID string,
 ) error {
-	return s.repo.SetParticipantArchived(ctx, conversationID, profileID, true)
+	err := s.repo.SetParticipantArchived(ctx, conversationID, profileID, true)
+	if err != nil {
+		return fmt.Errorf("archiving conversation: %w", err)
+	}
+
+	return nil
 }
 
 // UnarchiveConversation unarchives a conversation for a participant.
@@ -368,7 +398,12 @@ func (s *Service) UnarchiveConversation(
 	conversationID string,
 	profileID string,
 ) error {
-	return s.repo.SetParticipantArchived(ctx, conversationID, profileID, false)
+	err := s.repo.SetParticipantArchived(ctx, conversationID, profileID, false)
+	if err != nil {
+		return fmt.Errorf("unarchiving conversation: %w", err)
+	}
+
+	return nil
 }
 
 // RemoveConversation hard-deletes a conversation and all related data (admin only).
@@ -376,7 +411,12 @@ func (s *Service) RemoveConversation(
 	ctx context.Context,
 	conversationID string,
 ) error {
-	return s.repo.RemoveConversation(ctx, conversationID)
+	err := s.repo.RemoveConversation(ctx, conversationID)
+	if err != nil {
+		return fmt.Errorf("removing conversation: %w", err)
+	}
+
+	return nil
 }
 
 // AcceptEnvelope transitions an envelope from pending to accepted.
@@ -519,14 +559,21 @@ func (s *Service) AddReaction(
 	}
 
 	reaction := &Reaction{
-		ID:         s.idGenerator(),
-		EnvelopeID: envelopeID,
-		ProfileID:  profileID,
-		Emoji:      emoji,
-		CreatedAt:  time.Now(),
+		ID:           s.idGenerator(),
+		EnvelopeID:   envelopeID,
+		ProfileID:    profileID,
+		Emoji:        emoji,
+		CreatedAt:    time.Now(),
+		ProfileSlug:  nil,
+		ProfileTitle: nil,
 	}
 
-	return s.repo.AddReaction(ctx, reaction)
+	err = s.repo.AddReaction(ctx, reaction)
+	if err != nil {
+		return fmt.Errorf("adding reaction: %w", err)
+	}
+
+	return nil
 }
 
 // RemoveReaction removes an emoji reaction from an envelope.
@@ -536,7 +583,12 @@ func (s *Service) RemoveReaction(
 	profileID string,
 	emoji string,
 ) error {
-	return s.repo.RemoveReaction(ctx, envelopeID, profileID, emoji)
+	err := s.repo.RemoveReaction(ctx, envelopeID, profileID, emoji)
+	if err != nil {
+		return fmt.Errorf("removing reaction: %w", err)
+	}
+
+	return nil
 }
 
 // GetEnvelopeByID returns a single envelope by ID.
@@ -608,4 +660,26 @@ func (s *Service) CountUnreadConversations(
 	}
 
 	return count, nil
+}
+
+// newParticipant creates a Participant with all fields initialized.
+func newParticipant(
+	participantID string,
+	conversationID string,
+	profileID string,
+	joinedAt time.Time,
+) *Participant {
+	return &Participant{
+		ID:                participantID,
+		ConversationID:    conversationID,
+		ProfileID:         profileID,
+		LastReadAt:        nil,
+		IsArchived:        false,
+		JoinedAt:          joinedAt,
+		LeftAt:            nil,
+		ProfileSlug:       nil,
+		ProfileTitle:      nil,
+		ProfilePictureURI: nil,
+		ProfileKind:       nil,
+	}
 }

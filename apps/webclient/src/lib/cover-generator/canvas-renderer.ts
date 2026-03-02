@@ -1,16 +1,8 @@
 // Canvas Renderer for Cover Generator
 // Pure functions for drawing covers on HTML Canvas
 
-import type {
-  StoryData,
-  CoverOptions,
-  BackgroundPattern,
-} from "./types.ts";
-import {
-  COVER_WIDTH,
-  COVER_HEIGHT,
-  fontFamilyMap,
-} from "./types.ts";
+import type { BackgroundPattern, CoverOptions, StoryData } from "./types.ts";
+import { COVER_HEIGHT, COVER_WIDTH, fontFamilyMap } from "./types.ts";
 
 // Scale factor for high DPI rendering
 const SCALE = 2;

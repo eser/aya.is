@@ -7,7 +7,7 @@ import (
 )
 
 // Repository defines the storage operations for profile points (port).
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	// GetBalance returns the current point balance for a profile.
 	GetBalance(ctx context.Context, profileID string) (uint64, error)
 

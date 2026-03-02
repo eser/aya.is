@@ -232,7 +232,8 @@ export function QAPageClient(props: QAPageClientProps) {
                 profileKind={props.profileKind}
                 isAuthenticated={auth.isAuthenticated}
                 canAnswer={canAnswer}
-                canEditAnswer={canModerate || (canAnswer && viewerProfileId !== null && question.answered_by_profile_id === viewerProfileId)}
+                canEditAnswer={canModerate ||
+                  (canAnswer && viewerProfileId !== null && question.answered_by_profile_id === viewerProfileId)}
                 canModerate={canModerate}
                 onVote={handleVoteToggle}
                 onAnswer={handleAnswerSubmitted}

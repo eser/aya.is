@@ -15,6 +15,7 @@ type SupervisorRegistry struct {
 func NewSupervisorRegistry() *SupervisorRegistry {
 	return &SupervisorRegistry{
 		supervisors: make(map[string]*Supervisor),
+		mux:         sync.RWMutex{},
 	}
 }
 
@@ -99,6 +100,10 @@ func (r *SupervisorRegistry) Summary() HealthSummary {
 
 	summary := HealthSummary{
 		Total:       len(r.supervisors),
+		Healthy:     0,
+		Stuck:       0,
+		Restarting:  0,
+		Failed:      0,
 		IsHealthy:   true,
 		Supervisors: make(map[string]WorkerStatus, len(r.supervisors)),
 	}

@@ -92,28 +92,30 @@ export function QuestionCard(props: QuestionCardProps) {
       <div className={styles.contentColumn}>
         <div className={styles.questionHeader}>
           <span className="text-sm text-muted-foreground">
-            {props.question.is_anonymous
-              ? t("QA.Anonymous")
-              : props.question.author_profile_slug !== null
-                ? (
-                  <Link
-                    to={`/${props.locale}/${props.question.author_profile_slug}`}
-                    className="hover:underline"
-                  >
-                    {props.question.author_profile_title ?? props.question.author_profile_slug}
-                  </Link>
-                )
-                : t("QA.Anonymous")}
-            {" "}&middot;{" "}{formattedDate}
+            {props.question.is_anonymous ? t("QA.Anonymous") : props.question.author_profile_slug !== null
+              ? (
+                <Link
+                  to={`/${props.locale}/${props.question.author_profile_slug}`}
+                  className="hover:underline"
+                >
+                  {props.question.author_profile_title ?? props.question.author_profile_slug}
+                </Link>
+              )
+              : t("QA.Anonymous")} &middot; {formattedDate}
           </span>
 
-          {props.question.is_hidden && (
-            <span className={styles.badge}>{t("QA.Hidden")}</span>
-          )}
+          {props.question.is_hidden && <span className={styles.badge}>{t("QA.Hidden")}</span>}
         </div>
 
         {props.question.compiledContent !== undefined && props.question.compiledContent !== null
-          ? <MdxContent compiledSource={props.question.compiledContent} className={styles.questionContent} headingOffset={2} includeUserlandComponents={false} />
+          ? (
+            <MdxContent
+              compiledSource={props.question.compiledContent}
+              className={styles.questionContent}
+              headingOffset={2}
+              includeUserlandComponents={false}
+            />
+          )
           : <QAMarkdown content={props.question.content} className={styles.questionContent} />}
 
         {/* Answer display */}
@@ -137,7 +139,14 @@ export function QuestionCard(props: QuestionCardProps) {
               </span>
             </div>
             {props.question.compiledAnswer !== undefined && props.question.compiledAnswer !== null
-              ? <MdxContent compiledSource={props.question.compiledAnswer} className={styles.answerContent} headingOffset={2} includeUserlandComponents={false} />
+              ? (
+                <MdxContent
+                  compiledSource={props.question.compiledAnswer}
+                  className={styles.answerContent}
+                  headingOffset={2}
+                  includeUserlandComponents={false}
+                />
+              )
               : <QAMarkdown content={props.question.answer_content} className={styles.answerContent} />}
           </div>
         )}
@@ -231,8 +240,16 @@ export function QuestionCard(props: QuestionCardProps) {
               className={styles.actionButton}
             >
               {props.question.is_hidden
-                ? <><Eye className="size-3.5" /> {t("QA.Show")}</>
-                : <><EyeOff className="size-3.5" /> {t("QA.Hide")}</>}
+                ? (
+                  <>
+                    <Eye className="size-3.5" /> {t("QA.Show")}
+                  </>
+                )
+                : (
+                  <>
+                    <EyeOff className="size-3.5" /> {t("QA.Hide")}
+                  </>
+                )}
             </button>
           )}
         </div>

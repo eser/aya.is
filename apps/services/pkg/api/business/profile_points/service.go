@@ -56,11 +56,11 @@ func (s *Service) GainPoints(ctx context.Context, params GainParams) (*Transacti
 		return nil, ErrInvalidAmount
 	}
 
-	id := s.idGenerator()
+	transactionID := s.idGenerator()
 
-	tx, err := s.repo.RecordTransaction(
+	transaction, err := s.repo.RecordTransaction(
 		ctx,
-		id,
+		transactionID,
 		params.TargetProfileID,
 		nil,
 		TransactionTypeGain,
@@ -87,10 +87,11 @@ func (s *Service) GainPoints(ctx context.Context, params GainParams) (*Transacti
 		EntityID:   params.TargetProfileID,
 		ActorID:    actorID,
 		ActorKind:  actorKind,
+		SessionID:  nil,
 		Payload:    map[string]any{"amount": params.Amount, "description": params.Description},
 	})
 
-	return tx, nil
+	return transaction, nil
 }
 
 // TransferPoints transfers points between profiles.
@@ -118,12 +119,12 @@ func (s *Service) TransferPoints(ctx context.Context, params TransferParams) (*T
 		return nil, ErrInsufficientPoints
 	}
 
-	id := s.idGenerator()
+	transactionID := s.idGenerator()
 	originID := params.OriginProfileID
 
-	tx, err := s.repo.RecordTransaction(
+	transaction, err := s.repo.RecordTransaction(
 		ctx,
-		id,
+		transactionID,
 		params.TargetProfileID,
 		&originID,
 		TransactionTypeTransfer,
@@ -141,13 +142,14 @@ func (s *Service) TransferPoints(ctx context.Context, params TransferParams) (*T
 		EntityID:   params.TargetProfileID,
 		ActorID:    &params.ActorID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"amount":            params.Amount,
 			"origin_profile_id": params.OriginProfileID,
 		},
 	})
 
-	return tx, nil
+	return transaction, nil
 }
 
 // SpendPoints deducts points from a profile.
@@ -171,11 +173,11 @@ func (s *Service) SpendPoints(ctx context.Context, params SpendParams) (*Transac
 		return nil, ErrInsufficientPoints
 	}
 
-	id := s.idGenerator()
+	transactionID := s.idGenerator()
 
-	tx, err := s.repo.RecordTransaction(
+	transaction, err := s.repo.RecordTransaction(
 		ctx,
-		id,
+		transactionID,
 		params.TargetProfileID,
 		nil,
 		TransactionTypeSpend,
@@ -193,10 +195,11 @@ func (s *Service) SpendPoints(ctx context.Context, params SpendParams) (*Transac
 		EntityID:   params.TargetProfileID,
 		ActorID:    &params.ActorID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"amount": params.Amount, "description": params.Description},
 	})
 
-	return tx, nil
+	return transaction, nil
 }
 
 // ListTransactions returns transactions for a profile with pagination.
@@ -308,7 +311,7 @@ func (s *Service) ApprovePendingAward(
 
 	transactionID := s.idGenerator()
 
-	tx, err := s.repo.ApprovePendingAward(ctx, awardID, reviewerUserID, transactionID)
+	transaction, err := s.repo.ApprovePendingAward(ctx, awardID, reviewerUserID, transactionID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToApprovePendingAward, err)
 	}
@@ -319,9 +322,11 @@ func (s *Service) ApprovePendingAward(
 		EntityID:   awardID,
 		ActorID:    &reviewerUserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
-	return tx, nil
+	return transaction, nil
 }
 
 // RejectPendingAward rejects a pending award.
@@ -352,6 +357,7 @@ func (s *Service) RejectPendingAward(
 		EntityID:   awardID,
 		ActorID:    &reviewerUserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"reason": reason},
 	})
 

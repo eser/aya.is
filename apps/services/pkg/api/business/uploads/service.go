@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -128,13 +129,5 @@ func generateKey(userID string, purpose Purpose, filename string) string {
 
 // isAllowedContentType checks if a content type is in the allowed list.
 func isAllowedContentType(contentType string, allowed []string) bool {
-	contentType = strings.ToLower(contentType)
-
-	for _, allowedType := range allowed {
-		if contentType == allowedType {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(allowed, strings.ToLower(contentType))
 }

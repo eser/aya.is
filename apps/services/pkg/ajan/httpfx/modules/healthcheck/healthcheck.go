@@ -11,7 +11,7 @@ import (
 // WorkerHealthStatus represents the health status of a single worker.
 type WorkerHealthStatus struct {
 	State          string    `json:"state"`
-	LastHeartbeat  time.Time `json:"last_heartbeat,omitempty"`
+	LastHeartbeat  time.Time `json:"last_heartbeat"`
 	RestartCount   int       `json:"restart_count"`
 	TotalRestarts  int       `json:"total_restarts"`
 	ItemsProcessed int64     `json:"items_processed"`
@@ -62,64 +62,84 @@ func RegisterHTTPRoutes(routes *httpfx.Router, config *httpfx.Config) {
 	// Detailed health check with worker status.
 	routes.
 		Route("GET /health", func(ctx *httpfx.Context) httpfx.Result {
-			response := HealthResponse{
-				Status:  "healthy",
-				Workers: make(map[string]WorkerHealthStatus),
-			}
-
-			// If supervisor registry is available, include worker status.
-			if supervisorRegistry != nil {
-				summary := supervisorRegistry.Summary()
-
-				// Set overall status based on worker health.
-				if !summary.IsHealthy {
-					if summary.Failed > 0 {
-						response.Status = "unhealthy"
-					} else {
-						response.Status = "degraded"
-					}
-				}
-
-				// Build worker status map.
-				for name, status := range summary.Supervisors {
-					workerHealth := WorkerHealthStatus{
-						State:          status.State.String(),
-						RestartCount:   status.RestartCount,
-						TotalRestarts:  status.TotalRestarts,
-						ItemsProcessed: status.ItemsProcessed,
-					}
-
-					if !status.LastHeartbeat.IsZero() {
-						workerHealth.LastHeartbeat = status.LastHeartbeat
-					}
-
-					if !status.StartedAt.IsZero() {
-						workerHealth.Uptime = status.Uptime().Round(time.Second).String()
-					}
-
-					if status.LastError != nil {
-						workerHealth.Error = status.LastError.Error()
-					}
-
-					response.Workers[name] = workerHealth
-				}
-
-				// Include summary.
-				response.Summary = &HealthSummary{
-					Total:      summary.Total,
-					Healthy:    summary.Healthy,
-					Stuck:      summary.Stuck,
-					Restarting: summary.Restarting,
-					Failed:     summary.Failed,
-				}
-			}
-
-			// Return JSON response.
-			// Note: If unhealthy, the "status" field in the response will indicate this.
-			// Kubernetes probes can check the "status" field value.
-			return ctx.Results.JSON(response)
+			return ctx.Results.JSON(buildHealthResponse())
 		}).
 		HasSummary("Detailed Health Check").
 		HasDescription("Returns detailed health status including worker supervision state").
 		HasResponse(http.StatusOK)
+}
+
+// buildHealthResponse constructs the health check response from the supervisor registry.
+func buildHealthResponse() HealthResponse {
+	response := HealthResponse{
+		Status:  "healthy",
+		Workers: make(map[string]WorkerHealthStatus),
+		Summary: nil,
+	}
+
+	if supervisorRegistry == nil {
+		return response
+	}
+
+	summary := supervisorRegistry.Summary()
+
+	response.Status = deriveHealthStatus(summary)
+	response.Workers = buildWorkerStatusMap(summary)
+	response.Summary = &HealthSummary{
+		Total:      summary.Total,
+		Healthy:    summary.Healthy,
+		Stuck:      summary.Stuck,
+		Restarting: summary.Restarting,
+		Failed:     summary.Failed,
+	}
+
+	return response
+}
+
+// deriveHealthStatus determines the overall health status string from the summary.
+func deriveHealthStatus(summary processfx.HealthSummary) string {
+	if summary.IsHealthy {
+		return "healthy"
+	}
+
+	if summary.Failed > 0 {
+		return "unhealthy"
+	}
+
+	return "degraded"
+}
+
+// buildWorkerStatusMap converts supervisor statuses into the API response format.
+func buildWorkerStatusMap(
+	summary processfx.HealthSummary,
+) map[string]WorkerHealthStatus {
+	workers := make(map[string]WorkerHealthStatus, len(summary.Supervisors))
+
+	for name, status := range summary.Supervisors {
+		workerHealth := WorkerHealthStatus{
+			State:          status.State.String(),
+			LastHeartbeat:  time.Time{},
+			RestartCount:   status.RestartCount,
+			TotalRestarts:  status.TotalRestarts,
+			ItemsProcessed: status.ItemsProcessed,
+			Uptime:         "",
+			Error:          "",
+		}
+
+		if !status.LastHeartbeat.IsZero() {
+			workerHealth.LastHeartbeat = status.LastHeartbeat
+		}
+
+		if !status.StartedAt.IsZero() {
+			workerHealth.Uptime = status.Uptime().Round(time.Second).String()
+		}
+
+		if status.LastError != nil {
+			workerHealth.Error = status.LastError.Error()
+		}
+
+		workers[name] = workerHealth
+	}
+
+	return workers
 }

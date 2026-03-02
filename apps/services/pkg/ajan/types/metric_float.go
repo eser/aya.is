@@ -5,6 +5,13 @@ import (
 	"strconv"
 )
 
+// Metric scale thresholds and suffixes.
+const (
+	metricFloatBillion  float64 = 1_000_000_000
+	metricFloatMillion  float64 = 1_000_000
+	metricFloatThousand float64 = 1_000
+)
+
 type MetricFloat float64
 
 func (m *MetricFloat) UnmarshalText(text []byte) error {
@@ -18,56 +25,55 @@ func (m *MetricFloat) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func (m MetricFloat) MarshalText() ([]byte, error) {
-	return fmt.Appendf(nil, "%f", m), nil
+func (m *MetricFloat) MarshalText() ([]byte, error) {
+	return fmt.Appendf(nil, "%f", *m), nil
 }
 
 // HumanReadable returns a human-readable string representation of the metric.
 // Examples: 1000 -> "1K", 1500000 -> "1.5M", 2000000000 -> "2B".
-func (m MetricFloat) HumanReadable() string {
-	v := float64(m)
+func (m *MetricFloat) HumanReadable() string {
+	value := float64(*m)
 
-	if v == 0 {
+	if value == 0 {
 		return "0"
 	}
 
 	sign := ""
 
-	absV := v
-	if v < 0 {
-		absV = -v
+	absValue := value
+	if value < 0 {
+		absValue = -value
 		sign = "-"
 	}
 
+	return formatFloatHumanReadable(sign, absValue)
+}
+
+// formatFloatHumanReadable formats an absolute float value with the given sign prefix.
+func formatFloatHumanReadable(sign string, absValue float64) string {
 	switch {
-	case absV >= 1_000_000_000:
-		val := absV / 1_000_000_000
-		if val == float64(int64(val)) {
-			return fmt.Sprintf("%s%dB", sign, int64(val))
-		}
-
-		return fmt.Sprintf("%s%.1fB", sign, val)
-	case absV >= 1_000_000:
-		val := absV / 1_000_000
-		if val == float64(int64(val)) {
-			return fmt.Sprintf("%s%dM", sign, int64(val))
-		}
-
-		return fmt.Sprintf("%s%.1fM", sign, val)
-	case absV >= 1_000:
-		val := absV / 1_000
-		if val == float64(int64(val)) {
-			return fmt.Sprintf("%s%dK", sign, int64(val))
-		}
-
-		return fmt.Sprintf("%s%.1fK", sign, val)
+	case absValue >= metricFloatBillion:
+		return formatFloatWithSuffix(sign, absValue/metricFloatBillion, "B")
+	case absValue >= metricFloatMillion:
+		return formatFloatWithSuffix(sign, absValue/metricFloatMillion, "M")
+	case absValue >= metricFloatThousand:
+		return formatFloatWithSuffix(sign, absValue/metricFloatThousand, "K")
 	default:
-		if absV == float64(int64(absV)) {
-			return fmt.Sprintf("%s%d", sign, int64(absV))
+		if absValue == float64(int64(absValue)) {
+			return fmt.Sprintf("%s%d", sign, int64(absValue))
 		}
 
-		return fmt.Sprintf("%s%.1f", sign, absV)
+		return fmt.Sprintf("%s%.1f", sign, absValue)
 	}
+}
+
+// formatFloatWithSuffix formats a scaled value with the given suffix (B, M, K).
+func formatFloatWithSuffix(sign string, scaled float64, suffix string) string {
+	if scaled == float64(int64(scaled)) {
+		return fmt.Sprintf("%s%d%s", sign, int64(scaled), suffix)
+	}
+
+	return fmt.Sprintf("%s%.1f%s", sign, scaled, suffix)
 }
 
 func parseMetricFloatString(input string) (float64, error) {
@@ -84,20 +90,20 @@ func parseMetricFloatString(input string) (float64, error) {
 
 	switch last {
 	case 'k', 'K':
-		mul = 1_000
+		mul = metricFloatThousand
 	case 'm', 'M':
-		mul = 1_000_000
+		mul = metricFloatMillion
 	case 'b', 'B':
-		mul = 1_000_000_000
+		mul = metricFloatBillion
 	default:
 		mul = 1
 		base = input
 	}
 
-	n, err := strconv.ParseFloat(base, 64)
+	parsedNumber, err := strconv.ParseFloat(base, 64)
 	if err != nil {
 		return 0, fmt.Errorf("%w (base=%q): %w", ErrFailedToParseFloat, base, err)
 	}
 
-	return n * mul, nil
+	return parsedNumber * mul, nil
 }

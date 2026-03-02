@@ -34,15 +34,17 @@ func classifyGeminiError(providerSentinel error, err error) error {
 	return fmt.Errorf("%w: %w", providerSentinel, err)
 }
 
-// geminiCapabilities lists the capabilities supported by the Gemini adapter.
-var geminiCapabilities = []ProviderCapability{
-	CapabilityTextGeneration,
-	CapabilityStreaming,
-	CapabilityToolCalling,
-	CapabilityVision,
-	CapabilityAudio,
-	CapabilityStructuredOut,
-	CapabilityReasoning,
+// geminiCapabilities returns the capabilities supported by the Gemini adapter.
+func geminiCapabilities() []ProviderCapability {
+	return []ProviderCapability{
+		CapabilityTextGeneration,
+		CapabilityStreaming,
+		CapabilityToolCalling,
+		CapabilityVision,
+		CapabilityAudio,
+		CapabilityStructuredOut,
+		CapabilityReasoning,
+	}
 }
 
 // geminiModelFactory creates Gemini language models.
@@ -69,7 +71,7 @@ func (f *geminiModelFactory) CreateModel(
 		return nil, fmt.Errorf("%w: %w", ErrGeminiClientCreate, ErrInvalidModel)
 	}
 
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{ //nolint:exhaustruct
 		APIKey:  config.APIKey,
 		Backend: genai.BackendGeminiAPI,
 	})
@@ -90,7 +92,7 @@ type GeminiModel struct {
 }
 
 func (m *GeminiModel) GetCapabilities() []ProviderCapability {
-	return geminiCapabilities
+	return geminiCapabilities()
 }
 
 func (m *GeminiModel) GetProvider() string {
@@ -149,10 +151,9 @@ func (m *GeminiModel) StreamText(
 
 		for resp, err := range m.client.Models.GenerateContentStream(streamCtx, m.modelID, contents, config) {
 			if err != nil {
-				sendStreamEvent(streamCtx, eventCh, StreamEvent{
-					Type:  StreamEventError,
-					Error: classifyGeminiError(ErrGeminiStreamFailed, err),
-				})
+				sendStreamEvent(streamCtx, eventCh, newStreamEventError(
+					classifyGeminiError(ErrGeminiStreamFailed, err),
+				))
 
 				return
 			}
@@ -160,10 +161,8 @@ func (m *GeminiModel) StreamText(
 			emitStreamEventsFromResponse(streamCtx, eventCh, resp)
 		}
 
-		// Stream completed successfully — send the done event.
-		sendStreamEvent(streamCtx, eventCh, StreamEvent{
-			Type: StreamEventMessageDone,
-		})
+		// Stream completed successfully -- send the done event.
+		sendStreamEvent(streamCtx, eventCh, newStreamEventDone("", nil))
 	}()
 
 	return NewStreamIterator(eventCh, cancel), nil

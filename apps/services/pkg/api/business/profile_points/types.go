@@ -125,23 +125,30 @@ const (
 	EventGenerateContent   = "GENERATE_CONTENT"
 )
 
+// Award point amounts for each event type.
+const (
+	AwardAmountStoryPublished    = 10
+	AwardAmountProfileVerified   = 50
+	AwardAmountFirstContribution = 25
+)
+
 // AwardCategories defines the point amounts and rules for each event type.
-var AwardCategories = map[string]AwardCategory{
+var AwardCategories = map[string]AwardCategory{ //nolint:gochecknoglobals
 	EventStoryPublished: {
 		Event:       EventStoryPublished,
-		Amount:      10,
+		Amount:      AwardAmountStoryPublished,
 		AutoApprove: false,
 		Description: "Published a new story",
 	},
 	EventProfileVerified: {
 		Event:       EventProfileVerified,
-		Amount:      50,
+		Amount:      AwardAmountProfileVerified,
 		AutoApprove: false,
 		Description: "Verified profile",
 	},
 	EventFirstContribution: {
 		Event:       EventFirstContribution,
-		Amount:      25,
+		Amount:      AwardAmountFirstContribution,
 		AutoApprove: false,
 		Description: "First contribution to a project",
 	},

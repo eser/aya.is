@@ -219,12 +219,67 @@ func (s *Service) AuthHandleCallback(
 	}
 
 	// Create/update user (provider-aware)
+	user, err := s.upsertUserFromOAuth(ctx, providerName, accountInfo)
+	if err != nil {
+		return AuthResult{}, err
+	}
+
+	// Create session and generate JWT
+	session, tokenString, expiresAt, err := s.createSessionAndToken(
+		ctx,
+		user,
+		providerName,
+		state,
+		&accountInfo,
+	)
+	if err != nil {
+		return AuthResult{}, err
+	}
+
+	// Validate redirect URI against allowed origins and custom domains to prevent open redirect
+	validateErr := s.validateRedirectURI(ctx, redirectURI)
+	if validateErr != nil {
+		return AuthResult{}, validateErr
+	}
+
+	authResult := AuthResult{
+		User:        user,
+		Session:     session,
+		SessionID:   session.ID,
+		JWT:         tokenString,
+		ExpiresAt:   expiresAt,
+		RedirectURI: redirectURI,
+	}
+
+	// Append auth_token query parameter to redirect URI
+	authResult.RedirectURI, err = appendAuthToken(authResult.RedirectURI, authResult.JWT)
+	if err != nil {
+		return authResult, err
+	}
+
+	s.logger.DebugContext(ctx, "OAuth callback completed successfully",
+		slog.String("user_id", user.ID),
+		slog.String("session_id", session.ID),
+		slog.String("provider", providerName))
+
+	return authResult, nil
+}
+
+// upsertUserFromOAuth creates or updates the user based on the OAuth provider and account info.
+func (s *Service) upsertUserFromOAuth(
+	ctx context.Context,
+	providerName string,
+	accountInfo OAuthCallbackResult,
+) (*users.User, error) {
 	s.logger.DebugContext(ctx, "Creating/updating user from OAuth",
 		slog.String("provider", providerName),
 		slog.String("remote_id", accountInfo.RemoteID),
 		slog.String("username", accountInfo.Username))
 
-	var user *users.User
+	var (
+		user *users.User
+		err  error
+	)
 
 	switch providerName {
 	case "github":
@@ -245,7 +300,7 @@ func (s *Service) AuthHandleCallback(
 			accountInfo.ProfilePictureURI,
 		)
 	default:
-		return AuthResult{}, ErrProviderNotFound
+		return nil, ErrProviderNotFound
 	}
 
 	if err != nil {
@@ -253,10 +308,20 @@ func (s *Service) AuthHandleCallback(
 			slog.String("remote_id", accountInfo.RemoteID),
 			slog.String("error", err.Error()))
 
-		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
+		return nil, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
 	}
 
-	// Create session
+	return user, nil
+}
+
+// createSessionAndToken creates a new session for the user and generates a JWT token.
+func (s *Service) createSessionAndToken(
+	ctx context.Context,
+	user *users.User,
+	providerName string,
+	state string,
+	accountInfo *OAuthCallbackResult,
+) (*users.Session, string, time.Time, error) {
 	now := time.Now()
 	expiresAt := now.Add(s.Config.TokenTTL)
 
@@ -283,13 +348,13 @@ func (s *Service) AuthHandleCallback(
 		slog.String("session_id", session.ID),
 		slog.String("user_id", user.ID))
 
-	err = s.userService.CreateSession(ctx, &session)
+	err := s.userService.CreateSession(ctx, &session)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "Failed to create session",
 			slog.String("session_id", session.ID),
 			slog.String("error", err.Error()))
 
-		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
+		return nil, "", time.Time{}, fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
 	}
 
 	// Generate JWT — only session_id is stored; user is derived from session
@@ -307,57 +372,53 @@ func (s *Service) AuthHandleCallback(
 			slog.String("user_id", user.ID),
 			slog.String("error", err.Error()))
 
-		return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToGenerateToken, err)
+		return nil, "", time.Time{}, fmt.Errorf("%w: %w", ErrFailedToGenerateToken, err)
 	}
 
-	// Validate redirect URI against allowed origins and custom domains to prevent open redirect
-	if redirectURI != "" {
-		parsedRedirect, parseErr := url.Parse(redirectURI)
-		if parseErr != nil {
-			return AuthResult{}, fmt.Errorf("%w: %w", ErrFailedToParseRedirectURI, parseErr)
-		}
+	return &session, tokenString, expiresAt, nil
+}
 
-		redirectOrigin := parsedRedirect.Scheme + "://" + parsedRedirect.Host
-
-		if !s.isAllowedRedirectOrigin(ctx, redirectOrigin) {
-			s.logger.WarnContext(ctx, "Blocked redirect to disallowed origin",
-				slog.String("redirect_uri", redirectURI),
-				slog.String("origin", redirectOrigin))
-
-			return AuthResult{}, ErrUnsafeRedirectURI
-		}
+// validateRedirectURI checks that the redirect URI origin is in the allowed list.
+func (s *Service) validateRedirectURI(ctx context.Context, redirectURI string) error {
+	if redirectURI == "" {
+		return nil
 	}
 
-	authResult := AuthResult{
-		User:        user,
-		Session:     &session,
-		SessionID:   session.ID,
-		JWT:         tokenString,
-		ExpiresAt:   expiresAt,
-		RedirectURI: redirectURI,
+	parsedRedirect, parseErr := url.Parse(redirectURI)
+	if parseErr != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToParseRedirectURI, parseErr)
 	}
 
-	// Add auth_token to redirect URI
-	if authResult.RedirectURI != "" {
-		finalRedirectURI, err := url.Parse(authResult.RedirectURI)
-		if err != nil {
-			return authResult, fmt.Errorf("%w: %w", ErrFailedToParseRedirectURI, err)
-		}
+	redirectOrigin := parsedRedirect.Scheme + "://" + parsedRedirect.Host
 
-		finalRedirectURIQueryString := finalRedirectURI.Query()
-		finalRedirectURIQueryString.Set("auth_token", authResult.JWT)
+	if !s.isAllowedRedirectOrigin(ctx, redirectOrigin) {
+		s.logger.WarnContext(ctx, "Blocked redirect to disallowed origin",
+			slog.String("redirect_uri", redirectURI),
+			slog.String("origin", redirectOrigin))
 
-		finalRedirectURI.RawQuery = finalRedirectURIQueryString.Encode()
-
-		authResult.RedirectURI = finalRedirectURI.String()
+		return ErrUnsafeRedirectURI
 	}
 
-	s.logger.DebugContext(ctx, "OAuth callback completed successfully",
-		slog.String("user_id", user.ID),
-		slog.String("session_id", session.ID),
-		slog.String("provider", providerName))
+	return nil
+}
 
-	return authResult, nil
+// appendAuthToken adds the auth_token query parameter to the redirect URI.
+func appendAuthToken(redirectURI string, token string) (string, error) {
+	if redirectURI == "" {
+		return "", nil
+	}
+
+	finalRedirectURI, err := url.Parse(redirectURI)
+	if err != nil {
+		return redirectURI, fmt.Errorf("%w: %w", ErrFailedToParseRedirectURI, err)
+	}
+
+	finalRedirectURIQueryString := finalRedirectURI.Query()
+	finalRedirectURIQueryString.Set("auth_token", token)
+
+	finalRedirectURI.RawQuery = finalRedirectURIQueryString.Encode()
+
+	return finalRedirectURI.String(), nil
 }
 
 // GenerateSessionToken creates a new JWT token for a given session.
@@ -453,6 +514,7 @@ func (s *Service) RefreshToken( //nolint:funlen
 
 	return &AuthResult{
 		User:        user,
+		Session:     session,
 		SessionID:   claims.SessionID,
 		JWT:         tokenString,
 		ExpiresAt:   expiresAt,

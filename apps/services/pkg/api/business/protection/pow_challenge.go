@@ -54,10 +54,16 @@ func VerifyPOWChallenge(prefix, nonce string, difficulty int) bool {
 	return hasLeadingZeroBits(hash[:], difficulty)
 }
 
+// Bit manipulation constants for leading-zero-bits check.
+const (
+	bitsPerByte  = 8
+	fullByteMask = 0xFF
+)
+
 // hasLeadingZeroBits checks if the hash has at least n leading zero bits.
 func hasLeadingZeroBits(hash []byte, n int) bool {
-	fullBytes := n / 8
-	remainingBits := n % 8
+	fullBytes := n / bitsPerByte
+	remainingBits := n % bitsPerByte
 
 	// Check full zero bytes
 	for i := range fullBytes {
@@ -72,7 +78,7 @@ func hasLeadingZeroBits(hash []byte, n int) bool {
 
 	// Check remaining bits in the next byte
 	if remainingBits > 0 && fullBytes < len(hash) {
-		mask := byte(0xFF) << (8 - remainingBits)
+		mask := byte(fullByteMask) << (bitsPerByte - remainingBits)
 		if hash[fullBytes]&mask != 0 {
 			return false
 		}

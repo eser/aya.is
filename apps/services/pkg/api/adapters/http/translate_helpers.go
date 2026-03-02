@@ -12,6 +12,8 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 )
 
+const aiMaxTokens = 8192
+
 var (
 	ErrAITranslationNotAvailable = errors.New("AI translation not available")
 	ErrAIGenerationFailed        = errors.New("AI generation failed")
@@ -64,7 +66,7 @@ func NewAIContentTranslator(aiModels *aifx.Registry) *AIContentTranslator {
 }
 
 // Translate implements the ContentTranslator interface.
-func (t *AIContentTranslator) Translate(
+func (t *AIContentTranslator) Translate( //nolint:funlen
 	ctx context.Context,
 	sourceLocale, targetLocale string,
 	title, summary, content string,
@@ -106,8 +108,17 @@ Content:
 		Messages: []aifx.Message{
 			aifx.NewTextMessage(aifx.RoleUser, prompt),
 		},
-		System:    "You are a professional translator. Translate content accurately while preserving formatting.",
-		MaxTokens: 8192,
+		Tools:          nil,
+		System:         "You are a professional translator. Translate content accurately while preserving formatting.",
+		MaxTokens:      aiMaxTokens,
+		Temperature:    nil,
+		TopP:           nil,
+		StopWords:      nil,
+		ToolChoice:     "",
+		ResponseFormat: nil,
+		ThinkingBudget: nil,
+		SafetySettings: nil,
+		Extensions:     nil,
 	})
 	if err != nil {
 		logAIErrorClassification(ctx, "translation", err)
@@ -140,7 +151,7 @@ func NewAIContentGenerator(aiModels *aifx.Registry) *AIContentGenerator {
 
 // GenerateCV implements the ContentGenerator interface.
 // It generates a professional CV page from the user's profile data using AI.
-func (g *AIContentGenerator) GenerateCV(
+func (g *AIContentGenerator) GenerateCV( //nolint:cyclop,funlen
 	ctx context.Context,
 	locale string,
 	profileTitle string,
@@ -245,10 +256,19 @@ The "content" field should contain the full markdown CV.`,
 		Messages: []aifx.Message{
 			aifx.NewTextMessage(aifx.RoleUser, prompt),
 		},
+		Tools: nil,
 		System: "You are a professional CV/resume writer. " +
 			"Generate well-structured, professional CV content based on the provided profile information. " +
 			"Always respond with valid JSON only.",
-		MaxTokens: 8192,
+		MaxTokens:      aiMaxTokens,
+		Temperature:    nil,
+		TopP:           nil,
+		StopWords:      nil,
+		ToolChoice:     "",
+		ResponseFormat: nil,
+		ThinkingBudget: nil,
+		SafetySettings: nil,
+		Extensions:     nil,
 	})
 	if err != nil {
 		logAIErrorClassification(ctx, "content generation", err)

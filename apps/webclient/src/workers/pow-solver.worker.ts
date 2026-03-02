@@ -1,10 +1,7 @@
 // PoW Solver Web Worker
 // Runs in a separate thread to avoid blocking the UI
 
-import type {
-  POWSolverRequest,
-  POWSolverResponse,
-} from "@/modules/backend/types";
+import type { POWSolverRequest, POWSolverResponse } from "@/modules/backend/types";
 
 /**
  * Check if a hash has at least n leading zero bits

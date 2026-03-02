@@ -2,6 +2,7 @@ package processfx
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -52,6 +53,7 @@ func (h *heartbeatSender) Beat(ctx context.Context) {
 		Type:      HeartbeatLiveness,
 		Timestamp: time.Now(),
 		WorkerID:  h.workerID,
+		Progress:  0,
 	})
 }
 
@@ -69,7 +71,7 @@ func (h *heartbeatSender) SendHeartbeat(ctx context.Context, hb Heartbeat) error
 	case h.ch <- hb:
 		return nil
 	case <-ctx.Done():
-		return ctx.Err()
+		return fmt.Errorf("heartbeat send canceled: %w", ctx.Err())
 	default:
 		// Channel full, skip (supervisor will still timeout if truly stuck).
 		// This prevents blocking the worker if heartbeats aren't being consumed.

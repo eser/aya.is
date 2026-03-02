@@ -69,17 +69,24 @@ func NewService(
 
 // GetSessionByID gets a session by ID (delegates to user service).
 func (s *Service) GetSessionByID(ctx context.Context, id string) (*users.Session, error) {
-	return s.userService.GetSessionByID(ctx, id)
+	session, err := s.userService.GetSessionByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetSession, err)
+	}
+
+	return session, nil
 }
 
 // CreateSession creates a new anonymous session.
 func (s *Service) CreateSession(ctx context.Context, ipHash string) (*users.Session, error) {
 	// Check rate limit
+	const rateLimitWindowSeconds = 3600 // 1 hour window
+
 	allowed, err := s.repo.CheckAndIncrementRateLimit(
 		ctx,
 		ipHash,
 		s.config.RateLimit.PerIP,
-		3600, // 1 hour window
+		rateLimitWindowSeconds,
 	)
 	if err != nil {
 		s.logger.WarnContext(ctx, "Rate limit check failed", "error", err.Error())
@@ -97,20 +104,29 @@ func (s *Service) CreateSession(ctx context.Context, ipHash string) (*users.Sess
 		OauthRedirectURI:         nil,
 		LoggedInUserID:           nil,
 		LoggedInAt:               nil,
+		LastActivityAt:           nil,
 		ExpiresAt:                nil, // Anonymous sessions don't expire by default
-		CreatedAt:                now,
 		UpdatedAt:                nil,
+		UserAgent:                nil,
+		OAuthProvider:            nil,
+		OAuthAccessToken:         nil,
+		OAuthTokenScope:          nil,
+		CreatedAt:                now,
 	}
 
-	if err := s.userService.CreateSession(ctx, session); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateSession, err)
+	createErr := s.userService.CreateSession(ctx, session)
+	if createErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateSession, createErr)
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.SessionCreated,
 		EntityType: "session",
 		EntityID:   session.ID,
+		ActorID:    nil,
 		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return session, nil
@@ -131,8 +147,9 @@ func (s *Service) GetPreferences(
 
 // GetPreference gets a single preference for a session.
 func (s *Service) GetPreference(ctx context.Context, sessionID, key string) (string, error) {
-	if err := ValidatePreferenceKey(key); err != nil {
-		return "", err
+	validationErr := ValidatePreferenceKey(key)
+	if validationErr != nil {
+		return "", validationErr
 	}
 
 	pref, err := s.repo.GetPreference(ctx, sessionID, key)
@@ -185,7 +202,12 @@ func (s *Service) DeletePreference(ctx context.Context, sessionID, key string) e
 		return err
 	}
 
-	return s.repo.DeletePreference(ctx, sessionID, key)
+	deleteErr := s.repo.DeletePreference(ctx, sessionID, key)
+	if deleteErr != nil {
+		return fmt.Errorf("deleting preference: %w", deleteErr)
+	}
+
+	return nil
 }
 
 // LogoutResult contains the result of a logout operation.
@@ -206,9 +228,14 @@ func (s *Service) LogoutSession(ctx context.Context, oldSessionID string) (*Logo
 		OauthRedirectURI:         nil,
 		LoggedInUserID:           nil, // Anonymous
 		LoggedInAt:               nil,
+		LastActivityAt:           nil,
 		ExpiresAt:                nil,
-		CreatedAt:                now,
 		UpdatedAt:                nil,
+		UserAgent:                nil,
+		OAuthProvider:            nil,
+		OAuthAccessToken:         nil,
+		OAuthTokenScope:          nil,
+		CreatedAt:                now,
 	}
 
 	err := s.userService.CreateSession(ctx, newSession)
@@ -250,6 +277,7 @@ func (s *Service) LogoutSession(ctx context.Context, oldSessionID string) (*Logo
 		ActorID:    actorID,
 		ActorKind:  events.ActorUser,
 		SessionID:  &oldSessionID,
+		Payload:    nil,
 	})
 
 	return &LogoutResult{NewSession: newSession}, nil

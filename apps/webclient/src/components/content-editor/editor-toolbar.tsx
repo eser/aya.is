@@ -2,26 +2,22 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import {
   Bold,
-  Italic,
+  Code,
   Heading2,
   Heading3,
+  ImageIcon,
+  Italic,
+  Link,
   List,
   ListOrdered,
-  Link,
-  ImageIcon,
-  Code,
-  Quote,
-  SplitSquareVertical,
   PanelLeft,
   PanelRight,
+  Quote,
+  SplitSquareVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import styles from "./content-editor.module.css";
 
 export type ViewMode = "split" | "editor" | "preview";

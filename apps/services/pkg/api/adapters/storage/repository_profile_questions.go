@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -17,10 +18,10 @@ func (r *Repository) GetQAVisibility(ctx context.Context, profileID string) (str
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "public", nil
+			return discussionVisibilityPublic, nil
 		}
 
-		return "public", err
+		return discussionVisibilityPublic, err
 	}
 
 	return visibility, nil
@@ -78,14 +79,14 @@ func (r *Repository) ListQuestions(
 // InsertQuestion creates a new question record.
 func (r *Repository) InsertQuestion(
 	ctx context.Context,
-	id string,
+	questionID string,
 	profileID string,
 	authorUserID string,
 	content string,
 	isAnonymous bool,
 ) (*profile_questions.Question, error) {
 	row, err := r.queries.InsertProfileQuestion(ctx, InsertProfileQuestionParams{
-		ID:           id,
+		ID:           questionID,
 		ProfileID:    profileID,
 		AuthorUserID: authorUserID,
 		Content:      content,
@@ -147,16 +148,16 @@ func (r *Repository) InsertVote(
 	questionID string,
 	userID string,
 ) (*profile_questions.Vote, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	dbTx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("beginning vote insert transaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = dbTx.Rollback()
 	}()
 
-	queriesTx := r.queries.WithTx(tx)
+	queriesTx := r.queries.WithTx(dbTx)
 
 	row, err := queriesTx.InsertProfileQuestionVote(ctx, InsertProfileQuestionVoteParams{
 		ID:         voteID,
@@ -175,8 +176,9 @@ func (r *Repository) InsertVote(
 		return nil, err
 	}
 
-	if err = tx.Commit(); err != nil {
-		return nil, err
+	err = dbTx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("committing vote insert transaction: %w", err)
 	}
 
 	return &profile_questions.Vote{
@@ -190,16 +192,16 @@ func (r *Repository) InsertVote(
 
 // DeleteVote removes a vote record and decrements the question's vote count.
 func (r *Repository) DeleteVote(ctx context.Context, questionID string, userID string) error {
-	tx, err := r.db.BeginTx(ctx, nil)
+	dbTx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("beginning vote delete transaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = dbTx.Rollback()
 	}()
 
-	queriesTx := r.queries.WithTx(tx)
+	queriesTx := r.queries.WithTx(dbTx)
 
 	err = queriesTx.DeleteProfileQuestionVote(ctx, DeleteProfileQuestionVoteParams{
 		QuestionID: questionID,
@@ -216,7 +218,12 @@ func (r *Repository) DeleteVote(ctx context.Context, questionID string, userID s
 		return err
 	}
 
-	return tx.Commit()
+	err = dbTx.Commit()
+	if err != nil {
+		return fmt.Errorf("committing vote delete transaction: %w", err)
+	}
+
+	return nil
 }
 
 // GetVote returns a vote by question and user.
@@ -249,20 +256,25 @@ func (r *Repository) GetVote(
 // rowToQuestion converts a ProfileQuestion SQLC row to a domain Question.
 func (r *Repository) rowToQuestion(row *ProfileQuestion) *profile_questions.Question {
 	return &profile_questions.Question{
-		ID:                  row.ID,
-		ProfileID:           row.ProfileID,
-		Content:             row.Content,
-		AnswerContent:       vars.ToStringPtr(row.AnswerContent),
-		AnswerURI:           vars.ToStringPtr(row.AnswerURI),
-		AnswerKind:          vars.ToStringPtr(row.AnswerKind),
-		AnsweredAt:          vars.ToTimePtr(row.AnsweredAt),
-		AnsweredByProfileID: vars.ToStringPtr(row.AnsweredBy),
-		VoteCount:           int(row.VoteCount),
-		IsAnonymous:         row.IsAnonymous,
-		IsHidden:            row.IsHidden,
-		HasViewerVote:       false,
-		CreatedAt:           row.CreatedAt,
-		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
+		ID:                     row.ID,
+		ProfileID:              row.ProfileID,
+		Content:                row.Content,
+		AuthorProfileID:        nil,
+		AuthorProfileSlug:      nil,
+		AuthorProfileTitle:     nil,
+		AnswerContent:          vars.ToStringPtr(row.AnswerContent),
+		AnswerURI:              vars.ToStringPtr(row.AnswerURI),
+		AnswerKind:             vars.ToStringPtr(row.AnswerKind),
+		AnsweredAt:             vars.ToTimePtr(row.AnsweredAt),
+		AnsweredByProfileID:    vars.ToStringPtr(row.AnsweredBy),
+		AnsweredByProfileSlug:  nil,
+		AnsweredByProfileTitle: nil,
+		VoteCount:              int(row.VoteCount),
+		IsAnonymous:            row.IsAnonymous,
+		IsHidden:               row.IsHidden,
+		HasViewerVote:          false,
+		CreatedAt:              row.CreatedAt,
+		UpdatedAt:              vars.ToTimePtr(row.UpdatedAt),
 	}
 }
 

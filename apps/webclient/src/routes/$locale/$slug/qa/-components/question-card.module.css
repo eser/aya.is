@@ -13,7 +13,8 @@
 }
 
 .voteButton {
-  @apply p-1 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply p-1 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50
+    disabled:cursor-not-allowed;
 }
 
 .voted {
@@ -152,5 +153,6 @@
 }
 
 .submitButton {
-  @apply px-3 py-1.5 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50;
+  @apply px-3 py-1.5 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors
+    disabled:opacity-50;
 }

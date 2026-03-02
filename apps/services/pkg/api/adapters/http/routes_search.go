@@ -1,12 +1,18 @@
 package http
 
 import (
+	"math"
 	"net/http"
 	"strconv"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
+)
+
+const (
+	defaultSearchLimit = 20
+	maxSearchLimit     = 100
 )
 
 func RegisterHTTPRoutesForSearch(
@@ -29,11 +35,13 @@ func RegisterHTTPRoutesForSearch(
 
 			// get limit parameter (default 20, max 100)
 			limitStr := ctx.Request.URL.Query().Get("limit")
-			limit := int32(20)
+			limit := int32(defaultSearchLimit)
 			if limitStr != "" {
 				parsedLimit, err := strconv.Atoi(limitStr)
-				if err == nil && parsedLimit > 0 && parsedLimit <= 100 {
-					limit = int32(parsedLimit)
+				if err == nil && parsedLimit > 0 && parsedLimit <= maxSearchLimit {
+					if parsedLimit <= math.MaxInt32 {
+						limit = int32(parsedLimit) //nolint:gosec
+					}
 				}
 			}
 
@@ -63,6 +71,9 @@ func RegisterHTTPRoutesForSearch(
 			return ctx.Results.JSON(wrappedResponse)
 		}).
 		HasSummary("Search across profiles, stories, and pages").
-		HasDescription("Full-text search using PostgreSQL tsvector. Use 'profile' query param to scope search to a specific profile.").
+		HasDescription(
+			"Full-text search using PostgreSQL tsvector. " +
+				"Use 'profile' query param to scope search to a specific profile.",
+		).
 		HasResponse(http.StatusOK)
 }

@@ -20,7 +20,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
-func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
+func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop,gocognit,gocyclo,maintidx
 	baseURI string,
 	routes *httpfx.Router,
 	logger *logfx.Logger,
@@ -241,7 +241,8 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				authProvider := ctx.Request.PathValue("authProvider")
 
 				// Parse form body (Apple sends application/x-www-form-urlencoded)
-				if err := ctx.Request.ParseForm(); err != nil {
+				err := ctx.Request.ParseForm()
+				if err != nil {
 					return ctx.Results.BadRequest(httpfx.WithErrorMessage("failed to parse form"))
 				}
 
@@ -262,7 +263,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 				// Apple sends user info (name, email) only on first authorization via POST body.
 				// Parse it and pass to the provider before handling the callback.
 				userJSON := ctx.Request.FormValue("user")
-				if userJSON != "" {
+				if userJSON != "" { //nolint:nestif
 					var userData struct {
 						Name struct {
 							FirstName string `json:"firstName"`
@@ -359,7 +360,7 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop
 			}
 
 			// Set new session cookie
-			expiresAt := time.Now().Add(24 * time.Hour)
+			expiresAt := time.Now().Add(defaultSessionExpiryHours * time.Hour)
 			SetSessionCookie(
 				ctx.ResponseWriter,
 				result.NewSession.ID,
@@ -432,44 +433,12 @@ func upsertManagedGitHubLink(
 	uri := "https://github.com/" + githubHandle
 
 	// First check if ANY managed GitHub link already exists for this profile.
-	// This prevents duplicates even when remote_id differs (e.g., manual link vs auto-sync).
 	managedLink, _ := profileService.GetManagedGitHubLink(ctx, profileID)
 	if managedLink != nil {
-		// Don't downgrade scope: if existing link has broader scope, skip token update.
-		// Login tokens may lack public_repo or read:org that the user previously granted.
-		if managedLink.AuthAccessTokenScope != nil &&
-			wouldDowngradeScope(*managedLink.AuthAccessTokenScope, tokenScope) {
-			logger.DebugContext(
-				ctx,
-				"Skipping managed GitHub link update: existing scope is broader",
-				slog.String("profile_id", profileID),
-				slog.String("existing_scope", *managedLink.AuthAccessTokenScope),
-				slog.String("new_scope", tokenScope),
-			)
-
-			return
-		}
-
-		err := profileService.UpdateProfileLinkOAuthTokens(
-			ctx,
-			managedLink.ID,
-			"en",
-			githubHandle,
-			uri,
-			"GitHub",
-			tokenScope,
-			accessToken,
-			nil, // accessTokenExpiresAt — GitHub tokens don't expire
-			nil, // refreshToken
+		updateExistingGitHubLink(
+			ctx, logger, profileService, managedLink.ID, profileID,
+			managedLink.AuthAccessTokenScope, githubHandle, uri, accessToken, tokenScope,
 		)
-		if err != nil {
-			logger.WarnContext(ctx, "Failed to update managed GitHub link tokens",
-				slog.String("profile_id", profileID),
-				slog.String("error", err.Error()))
-		} else {
-			logger.DebugContext(ctx, "Updated managed GitHub link tokens",
-				slog.String("profile_id", profileID))
-		}
 
 		return
 	}
@@ -480,48 +449,72 @@ func upsertManagedGitHubLink(
 	)
 
 	if existingLink != nil {
-		err := profileService.UpdateProfileLinkOAuthTokens(
-			ctx,
-			existingLink.ID,
-			"en",
-			githubHandle,
-			uri,
-			"GitHub",
-			tokenScope,
-			accessToken,
-			nil, // accessTokenExpiresAt — GitHub tokens don't expire
-			nil, // refreshToken
+		updateExistingGitHubLink(
+			ctx, logger, profileService, existingLink.ID, profileID,
+			nil, githubHandle, uri, accessToken, tokenScope,
 		)
-		if err != nil {
-			logger.WarnContext(ctx, "Failed to update managed GitHub link tokens",
-				slog.String("profile_id", profileID),
-				slog.String("error", err.Error()))
-		} else {
-			logger.DebugContext(ctx, "Updated managed GitHub link tokens",
-				slog.String("profile_id", profileID))
-		}
 
 		return
 	}
 
 	// Create new managed GitHub link
+	createNewGitHubLink(
+		ctx, logger, profileService, profileID, githubRemoteID,
+		githubHandle, uri, accessToken, tokenScope,
+	)
+}
+
+// updateExistingGitHubLink updates an existing GitHub link's OAuth tokens.
+// If existingScope is non-nil, it checks whether the update would downgrade scope.
+func updateExistingGitHubLink(
+	ctx context.Context,
+	logger *logfx.Logger,
+	profileService *profiles.Service,
+	linkID, profileID string,
+	existingScope *string,
+	githubHandle, uri, accessToken, tokenScope string,
+) {
+	if existingScope != nil && wouldDowngradeScope(*existingScope, tokenScope) {
+		logger.DebugContext(ctx,
+			"Skipping managed GitHub link update: existing scope is broader",
+			slog.String("profile_id", profileID),
+			slog.String("existing_scope", *existingScope),
+			slog.String("new_scope", tokenScope),
+		)
+
+		return
+	}
+
+	err := profileService.UpdateProfileLinkOAuthTokens(
+		ctx, linkID, "en", githubHandle, uri, "GitHub",
+		tokenScope, accessToken,
+		nil, // accessTokenExpiresAt — GitHub tokens don't expire
+		nil, // refreshToken
+	)
+	if err != nil {
+		logger.WarnContext(ctx, "Failed to update managed GitHub link tokens",
+			slog.String("profile_id", profileID),
+			slog.String("error", err.Error()))
+	} else {
+		logger.DebugContext(ctx, "Updated managed GitHub link tokens",
+			slog.String("profile_id", profileID))
+	}
+}
+
+// createNewGitHubLink creates a brand new managed GitHub profile link.
+func createNewGitHubLink(
+	ctx context.Context,
+	logger *logfx.Logger,
+	profileService *profiles.Service,
+	profileID, githubRemoteID, githubHandle, uri, accessToken, tokenScope string,
+) {
 	maxOrder, _ := profileService.GetMaxProfileLinkOrder(ctx, profileID)
 	linkID := lib.IDsGenerateUnique()
 
 	_, err := profileService.CreateOAuthProfileLink(
-		ctx,
-		linkID,
-		"github",
-		profileID,
-		maxOrder+1,
-		"en",
-		githubRemoteID,
-		githubHandle,
-		uri,
-		"GitHub",
-		"github",
-		tokenScope,
-		accessToken,
+		ctx, linkID, "github", profileID, maxOrder+1, "en",
+		githubRemoteID, githubHandle, uri, "GitHub", "github",
+		tokenScope, accessToken,
 		nil, // accessTokenExpiresAt
 		nil, // refreshToken
 		nil, // properties

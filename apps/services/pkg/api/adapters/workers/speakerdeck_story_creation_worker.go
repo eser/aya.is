@@ -109,7 +109,8 @@ func extractImportMeta(imp *linksync.LinkImportForStoryCreation) *speakerDeckImp
 	publishedAt := time.Now()
 
 	if publishedAtStr != "" {
-		if parsed, err := time.Parse(time.RFC3339, publishedAtStr); err == nil {
+		parsed, parseErr := time.Parse(time.RFC3339, publishedAtStr)
+		if parseErr == nil {
 			publishedAt = parsed
 		}
 	}
@@ -161,7 +162,7 @@ func (w *SpeakerDeckStoryProcessor) createStoryFromImport(
 	}
 
 	content := buildSpeakerDeckStoryContent(meta.pdfURL, meta.link, meta.description)
-	summary := truncateSummary(meta.description, maxSummaryLength)
+	summary := truncateSummary(meta.description)
 
 	err = w.storyRepo.InsertStoryTx(ctx, storyID, locale, meta.title, summary, content, true)
 	if err != nil {

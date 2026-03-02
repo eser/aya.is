@@ -64,9 +64,7 @@ export function CommentForm(props: CommentFormProps) {
         maxLength={maxLength}
       />
 
-      {error !== null && (
-        <p className={styles.error}>{error}</p>
-      )}
+      {error !== null && <p className={styles.error}>{error}</p>}
 
       <div className={styles.footer}>
         {props.onCancel !== undefined && (

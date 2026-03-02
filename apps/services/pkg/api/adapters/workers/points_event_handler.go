@@ -47,7 +47,8 @@ func (h *PointsEventHandler) HandleNewStory(ctx context.Context, item *events.Qu
 		return fmt.Errorf("%w: %w", ErrMarshalPayload, err)
 	}
 
-	if err := json.Unmarshal(payloadBytes, &payload); err != nil {
+	err = json.Unmarshal(payloadBytes, &payload)
+	if err != nil {
 		return fmt.Errorf("%w: %w", ErrUnmarshalPayload, err)
 	}
 

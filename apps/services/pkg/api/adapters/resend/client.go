@@ -4,13 +4,22 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 )
 
-const apiBaseURL = "https://api.resend.com"
+const (
+	apiBaseURL = "https://api.resend.com"
+
+	// httpClientTimeout is the default HTTP client timeout for Resend API requests.
+	httpClientTimeout = 30 * time.Second
+)
+
+// ErrResendAPI indicates an error response from the Resend API.
+var ErrResendAPI = errors.New("resend API error")
 
 // Client is an HTTP client for the Resend email API.
 type Client struct {
@@ -22,8 +31,8 @@ type Client struct {
 func NewClient(apiKey string) *Client {
 	return &Client{
 		apiKey: apiKey,
-		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
+		httpClient: &http.Client{ //nolint:exhaustruct // std lib type
+			Timeout: httpClientTimeout,
 		},
 	}
 }
@@ -33,10 +42,6 @@ type sendEmailRequest struct {
 	To      []string `json:"to"`
 	Subject string   `json:"subject"`
 	HTML    string   `json:"html"`
-}
-
-type sendEmailResponse struct {
-	ID string `json:"id"`
 }
 
 type apiError struct {
@@ -49,13 +54,13 @@ type apiError struct {
 func (c *Client) SendEmail(
 	ctx context.Context,
 	from string,
-	to string,
+	recipient string,
 	subject string,
 	htmlBody string,
 ) error {
 	reqBody := sendEmailRequest{
 		From:    from,
-		To:      []string{to},
+		To:      []string{recipient},
 		Subject: subject,
 		HTML:    htmlBody,
 	}
@@ -82,7 +87,8 @@ func (c *Client) SendEmail(
 	if err != nil {
 		return fmt.Errorf("sending request: %w", err)
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= http.StatusBadRequest {
 		respBody, _ := io.ReadAll(resp.Body)
@@ -91,10 +97,10 @@ func (c *Client) SendEmail(
 
 		jsonErr := json.Unmarshal(respBody, &apiErr)
 		if jsonErr == nil && apiErr.Message != "" {
-			return fmt.Errorf("resend API error (%d): %s", resp.StatusCode, apiErr.Message)
+			return fmt.Errorf("%w (%d): %s", ErrResendAPI, resp.StatusCode, apiErr.Message)
 		}
 
-		return fmt.Errorf("resend API error (%d): %s", resp.StatusCode, string(respBody))
+		return fmt.Errorf("%w (%d): %s", ErrResendAPI, resp.StatusCode, string(respBody))
 	}
 
 	return nil

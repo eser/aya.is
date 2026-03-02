@@ -12,7 +12,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
-func RegisterHTTPRoutesForProfilePoints(
+func RegisterHTTPRoutesForProfilePoints( //nolint:cyclop,funlen
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,

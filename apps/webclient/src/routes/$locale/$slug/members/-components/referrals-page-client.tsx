@@ -226,9 +226,7 @@ type ReferralCardProps = {
 function ReferralCard(props: ReferralCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const initialScore = props.referral.viewer_vote_score !== -1
-    ? props.referral.viewer_vote_score
-    : null;
+  const initialScore = props.referral.viewer_vote_score !== -1 ? props.referral.viewer_vote_score : null;
   const [viewerScore, setViewerScore] = React.useState<number | null>(
     initialScore ?? null,
   );
@@ -270,8 +268,8 @@ function ReferralCard(props: ReferralCardProps) {
     setComment(props.referral.viewer_vote_comment ?? "");
   }, [initialScore, props.referral.viewer_vote_comment]);
 
-  const isDirty = viewerScore !== (initialScore ?? null)
-    || comment !== (props.referral.viewer_vote_comment ?? "");
+  const isDirty = viewerScore !== (initialScore ?? null) ||
+    comment !== (props.referral.viewer_vote_comment ?? "");
 
   const [, saveAction, isSaving] = React.useActionState(
     async (_prev: null): Promise<null> => {
@@ -446,7 +444,8 @@ function ReferralCard(props: ReferralCardProps) {
           >
             <span className="flex items-center gap-1">
               {showVotes ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-              {t("Referrals.View All")} ({totalVotes} {t("Referrals.votes")}, {averageScore.toFixed(1)} {t("Referrals.average")})
+              {t("Referrals.View All")} ({totalVotes} {t("Referrals.votes")}, {averageScore.toFixed(1)}{" "}
+              {t("Referrals.average")})
             </span>
           </button>
 

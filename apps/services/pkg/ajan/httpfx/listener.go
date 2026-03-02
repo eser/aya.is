@@ -2,6 +2,7 @@ package httpfx
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"sync/atomic"
 	"syscall"
@@ -36,26 +37,36 @@ type HighPerfListener struct {
 
 // NewHighPerfListener creates a high-performance TCP listener with optimized socket options.
 // It configures TCP_NODELAY, SO_REUSEADDR, and optionally limits concurrent connections.
-func NewHighPerfListener(
+func NewHighPerfListener( //nolint:funlen
 	ctx context.Context,
 	addr string,
 	config *ListenerConfig,
 ) (*HighPerfListener, error) {
 	// Create listener config with socket options
-	lc := &net.ListenConfig{
+	listenCfg := &net.ListenConfig{ //nolint:exhaustruct
 		Control: func(network, address string, c syscall.RawConn) error {
 			var sockErr error
 
-			err := c.Control(func(fd uintptr) {
+			controlErr := c.Control(func(fileDescriptor uintptr) {
 				// Enable SO_REUSEADDR for faster restarts
-				sockErr = unix.SetsockoptInt(int(fd), unix.SOL_SOCKET, unix.SO_REUSEADDR, 1)
+				sockErr = unix.SetsockoptInt(
+					int(fileDescriptor),
+					unix.SOL_SOCKET,
+					unix.SO_REUSEADDR,
+					1,
+				)
 				if sockErr != nil {
 					return
 				}
 
 				// Enable TCP_NODELAY for lower latency (disable Nagle's algorithm)
 				if config.TCPNoDelay {
-					sockErr = unix.SetsockoptInt(int(fd), unix.IPPROTO_TCP, unix.TCP_NODELAY, 1)
+					sockErr = unix.SetsockoptInt(
+						int(fileDescriptor),
+						unix.IPPROTO_TCP,
+						unix.TCP_NODELAY,
+						1,
+					)
 					if sockErr != nil {
 						return
 					}
@@ -65,24 +76,29 @@ func NewHighPerfListener(
 				// Note: Only enable if you're running multiple server instances
 				// sockErr = unix.SetsockoptInt(int(fd), unix.SOL_SOCKET, unix.SO_REUSEPORT, 1)
 			})
-			if err != nil {
-				return err
+			if controlErr != nil {
+				return fmt.Errorf("listener socket control: %w", controlErr)
 			}
 
-			return sockErr
+			if sockErr != nil {
+				return fmt.Errorf("listener setsockopt: %w", sockErr)
+			}
+
+			return nil
 		},
 		KeepAlive: config.KeepAlivePeriod,
 	}
 
 	// Create the listener
-	ln, err := lc.Listen(ctx, "tcp", addr)
+	listener, err := listenCfg.Listen(ctx, "tcp", addr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("high-perf listener creation: %w", err)
 	}
 
 	hpl := &HighPerfListener{
-		Listener:    ln,
+		Listener:    listener,
 		config:      config,
+		connSem:     nil,
 		activeConns: 0,
 	}
 
@@ -109,7 +125,7 @@ func (l *HighPerfListener) Accept() (net.Conn, error) {
 			<-l.connSem
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("listener accept: %w", err)
 	}
 
 	// Apply TCP optimizations to the connection
@@ -135,6 +151,7 @@ func (l *HighPerfListener) Accept() (net.Conn, error) {
 	return &trackedConn{
 		Conn:     conn,
 		listener: l,
+		closed:   0,
 	}, nil
 }
 
@@ -166,5 +183,10 @@ func (c *trackedConn) Close() error {
 		<-c.listener.connSem
 	}
 
-	return c.Conn.Close()
+	err := c.Conn.Close()
+	if err != nil {
+		return fmt.Errorf("tracked conn close: %w", err)
+	}
+
+	return nil
 }

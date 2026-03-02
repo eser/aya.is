@@ -15,7 +15,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
-func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
+func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -27,40 +27,10 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 	routes.Route(
 		"GET /{locale}/stories/{slug}/_discussions",
 		func(ctx *httpfx.Context) httpfx.Result {
-			localeParam, localeOk := validateLocale(ctx)
-			if !localeOk {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
-			}
-
-			slugParam := ctx.Request.PathValue("slug")
-
-			viewerUserID := resolveViewerUserID(ctx, authService, userService)
-			includeHidden := resolveIncludeHidden(ctx, viewerUserID, slugParam, profileService)
-
-			params := buildListParams(ctx, localeParam, viewerUserID, includeHidden)
-
-			thread, err := discussionsService.GetOrCreateThreadByStorySlug(
-				ctx.Request.Context(),
-				slugParam,
+			return listDiscussionComments(
+				ctx, logger, authService, userService, profileService, discussionsService,
+				"story",
 			)
-			if err != nil {
-				return handleDiscussionError(ctx, logger, err, "story", slugParam)
-			}
-
-			params.ThreadID = thread.ID
-
-			comments, err := discussionsService.ListComments(ctx.Request.Context(), params)
-			if err != nil {
-				return handleDiscussionError(ctx, logger, err, "story", slugParam)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": discussions.ListResponse{
-					Thread:   thread,
-					Comments: comments,
-				},
-				"error": nil,
-			})
 		},
 	).HasDescription("List discussion comments for a story")
 
@@ -68,40 +38,10 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 	routes.Route(
 		"GET /{locale}/profiles/{slug}/_discussions",
 		func(ctx *httpfx.Context) httpfx.Result {
-			localeParam, localeOk := validateLocale(ctx)
-			if !localeOk {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
-			}
-
-			slugParam := ctx.Request.PathValue("slug")
-
-			viewerUserID := resolveViewerUserID(ctx, authService, userService)
-			includeHidden := resolveIncludeHidden(ctx, viewerUserID, slugParam, profileService)
-
-			params := buildListParams(ctx, localeParam, viewerUserID, includeHidden)
-
-			thread, err := discussionsService.GetOrCreateThreadByProfileSlug(
-				ctx.Request.Context(),
-				slugParam,
+			return listDiscussionComments(
+				ctx, logger, authService, userService, profileService, discussionsService,
+				"profile",
 			)
-			if err != nil {
-				return handleDiscussionError(ctx, logger, err, "profile", slugParam)
-			}
-
-			params.ThreadID = thread.ID
-
-			comments, err := discussionsService.ListComments(ctx.Request.Context(), params)
-			if err != nil {
-				return handleDiscussionError(ctx, logger, err, "profile", slugParam)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": discussions.ListResponse{
-					Thread:   thread,
-					Comments: comments,
-				},
-				"error": nil,
-			})
 		},
 	).HasDescription("List discussion comments for a profile")
 
@@ -151,44 +91,9 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 		"POST /{locale}/stories/{slug}/_discussions",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
-			user, err := getUserFromContext(ctx, userService)
-			if err != nil {
-				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
-			}
-
-			localeParam, localeOk := validateLocale(ctx)
-			if !localeOk {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
-			}
-
-			slugParam := ctx.Request.PathValue("slug")
-
-			var body struct {
-				Content  string  `json:"content"`
-				ParentID *string `json:"parent_id"`
-			}
-
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
-			}
-
-			comment, err := discussionsService.CreateComment(
-				ctx.Request.Context(),
-				discussions.CreateCommentParams{
-					StorySlug: &slugParam,
-					Locale:    localeParam,
-					UserID:    user.ID,
-					ParentID:  body.ParentID,
-					Content:   body.Content,
-				},
+			return createDiscussionComment(
+				ctx, logger, userService, discussionsService, "story",
 			)
-			if err != nil {
-				return handleCreateCommentError(ctx, logger, err, "story", slugParam)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": comment,
-			})
 		},
 	).HasDescription("Create a comment on a story discussion")
 
@@ -197,44 +102,9 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 		"POST /{locale}/profiles/{slug}/_discussions",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
-			user, err := getUserFromContext(ctx, userService)
-			if err != nil {
-				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
-			}
-
-			localeParam, localeOk := validateLocale(ctx)
-			if !localeOk {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
-			}
-
-			slugParam := ctx.Request.PathValue("slug")
-
-			var body struct {
-				Content  string  `json:"content"`
-				ParentID *string `json:"parent_id"`
-			}
-
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
-			}
-
-			comment, err := discussionsService.CreateComment(
-				ctx.Request.Context(),
-				discussions.CreateCommentParams{
-					ProfileSlug: &slugParam,
-					Locale:      localeParam,
-					UserID:      user.ID,
-					ParentID:    body.ParentID,
-					Content:     body.Content,
-				},
+			return createDiscussionComment(
+				ctx, logger, userService, discussionsService, "profile",
 			)
-			if err != nil {
-				return handleCreateCommentError(ctx, logger, err, "profile", slugParam)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": comment,
-			})
 		},
 	).HasDescription("Create a comment on a profile discussion")
 
@@ -254,7 +124,8 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 				Content string `json:"content"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+			err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
 			}
 
@@ -325,7 +196,8 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 				Direction int `json:"direction"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+			err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
 			}
 
@@ -352,38 +224,7 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 		"POST /{locale}/discussions/comments/{commentId}/hide",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
-			user, err := getUserFromContext(ctx, userService)
-			if err != nil {
-				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
-			}
-
-			commentID := ctx.Request.PathValue("commentId")
-
-			var body struct {
-				IsHidden    bool   `json:"is_hidden"`
-				ProfileSlug string `json:"profile_slug"`
-			}
-
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
-			}
-
-			err = discussionsService.HideComment(
-				ctx.Request.Context(),
-				discussions.HideCommentParams{
-					CommentID:   commentID,
-					UserID:      user.ID,
-					ProfileSlug: body.ProfileSlug,
-					IsHidden:    body.IsHidden,
-				},
-			)
-			if err != nil {
-				return handleMutationError(ctx, logger, err, "hide", commentID)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": map[string]string{"status": "ok"},
-			})
+			return handleCommentModeration(ctx, logger, userService, discussionsService, "hide")
 		},
 	).HasDescription("Hide or unhide a discussion comment (contributor+)")
 
@@ -392,38 +233,7 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 		"POST /{locale}/discussions/comments/{commentId}/pin",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
-			user, err := getUserFromContext(ctx, userService)
-			if err != nil {
-				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
-			}
-
-			commentID := ctx.Request.PathValue("commentId")
-
-			var body struct {
-				IsPinned    bool   `json:"is_pinned"`
-				ProfileSlug string `json:"profile_slug"`
-			}
-
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
-			}
-
-			err = discussionsService.PinComment(
-				ctx.Request.Context(),
-				discussions.PinCommentParams{
-					CommentID:   commentID,
-					UserID:      user.ID,
-					ProfileSlug: body.ProfileSlug,
-					IsPinned:    body.IsPinned,
-				},
-			)
-			if err != nil {
-				return handleMutationError(ctx, logger, err, "pin", commentID)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": map[string]string{"status": "ok"},
-			})
+			return handleCommentModeration(ctx, logger, userService, discussionsService, "pin")
 		},
 	).HasDescription("Pin or unpin a discussion comment (contributor+)")
 
@@ -444,7 +254,8 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 				ProfileSlug string `json:"profile_slug"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+			err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
 			}
 
@@ -466,6 +277,180 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop
 			})
 		},
 	).HasDescription("Lock or unlock a discussion thread (contributor+)")
+}
+
+// listDiscussionComments is a shared handler for listing discussion comments by story or profile slug.
+func listDiscussionComments(
+	ctx *httpfx.Context,
+	logger *logfx.Logger,
+	authService *auth.Service,
+	userService *users.Service,
+	profileService *profiles.Service,
+	discussionsService *discussions.Service,
+	entityType string, // "story" or "profile"
+) httpfx.Result {
+	localeParam, localeOk := validateLocale(ctx)
+	if !localeOk {
+		return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+	}
+
+	slugParam := ctx.Request.PathValue("slug")
+
+	viewerUserID := resolveViewerUserID(ctx, authService, userService)
+	includeHidden := resolveIncludeHidden(ctx, viewerUserID, slugParam, profileService)
+
+	params := buildListParams(ctx, localeParam, viewerUserID, includeHidden)
+
+	var (
+		thread *discussions.Thread
+		err    error
+	)
+
+	switch entityType {
+	case "story":
+		thread, err = discussionsService.GetOrCreateThreadByStorySlug(
+			ctx.Request.Context(),
+			slugParam,
+		)
+	default:
+		thread, err = discussionsService.GetOrCreateThreadByProfileSlug(
+			ctx.Request.Context(),
+			slugParam,
+		)
+	}
+
+	if err != nil {
+		return handleDiscussionError(ctx, logger, err, entityType, slugParam)
+	}
+
+	params.ThreadID = thread.ID
+
+	comments, err := discussionsService.ListComments(ctx.Request.Context(), params)
+	if err != nil {
+		return handleDiscussionError(ctx, logger, err, entityType, slugParam)
+	}
+
+	return ctx.Results.JSON(map[string]any{
+		"data": discussions.ListResponse{
+			Thread:   thread,
+			Comments: comments,
+		},
+		"error": nil,
+	})
+}
+
+// createDiscussionComment is a shared handler for creating comments on story or profile discussions.
+func createDiscussionComment(
+	ctx *httpfx.Context,
+	logger *logfx.Logger,
+	userService *users.Service,
+	discussionsService *discussions.Service,
+	entityType string, // "story" or "profile"
+) httpfx.Result {
+	user, err := getUserFromContext(ctx, userService)
+	if err != nil {
+		return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
+	}
+
+	localeParam, localeOk := validateLocale(ctx)
+	if !localeOk {
+		return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+	}
+
+	slugParam := ctx.Request.PathValue("slug")
+
+	var body struct {
+		Content  string  `json:"content"`
+		ParentID *string `json:"parent_id"`
+	}
+
+	decodeErr := json.NewDecoder(ctx.Request.Body).Decode(&body)
+	if decodeErr != nil {
+		return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
+	}
+
+	params := discussions.CreateCommentParams{
+		StorySlug:   nil,
+		ProfileSlug: nil,
+		Locale:      localeParam,
+		UserID:      user.ID,
+		ParentID:    body.ParentID,
+		Content:     body.Content,
+	}
+
+	switch entityType {
+	case "story":
+		params.StorySlug = &slugParam
+	default:
+		params.ProfileSlug = &slugParam
+	}
+
+	comment, err := discussionsService.CreateComment(ctx.Request.Context(), params)
+	if err != nil {
+		return handleCreateCommentError(ctx, logger, err, entityType, slugParam)
+	}
+
+	return ctx.Results.JSON(map[string]any{
+		"data": comment,
+	})
+}
+
+// handleCommentModeration is a shared handler for hide/pin comment operations.
+func handleCommentModeration(
+	ctx *httpfx.Context,
+	logger *logfx.Logger,
+	userService *users.Service,
+	discussionsService *discussions.Service,
+	action string, // "hide" or "pin"
+) httpfx.Result {
+	user, err := getUserFromContext(ctx, userService)
+	if err != nil {
+		return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
+	}
+
+	commentID := ctx.Request.PathValue("commentId")
+
+	var body struct {
+		IsHidden    bool   `json:"is_hidden"`
+		IsPinned    bool   `json:"is_pinned"`
+		ProfileSlug string `json:"profile_slug"`
+	}
+
+	decodeErr := json.NewDecoder(ctx.Request.Body).Decode(&body)
+	if decodeErr != nil {
+		return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
+	}
+
+	switch action {
+	case "hide":
+		err = discussionsService.HideComment(
+			ctx.Request.Context(),
+			discussions.HideCommentParams{
+				CommentID:   commentID,
+				UserID:      user.ID,
+				ProfileSlug: body.ProfileSlug,
+				IsHidden:    body.IsHidden,
+			},
+		)
+	case "pin":
+		err = discussionsService.PinComment(
+			ctx.Request.Context(),
+			discussions.PinCommentParams{
+				CommentID:   commentID,
+				UserID:      user.ID,
+				ProfileSlug: body.ProfileSlug,
+				IsPinned:    body.IsPinned,
+			},
+		)
+	}
+
+	if err != nil {
+		return handleMutationError(ctx, logger, err, action, commentID)
+	}
+
+	return ctx.Results.JSON(map[string]any{
+		"data": map[string]string{"status": "ok"},
+	})
 }
 
 // resolveViewerUserID extracts the viewer user ID from the session cookie or Bearer token.
@@ -520,7 +505,8 @@ func buildListParams(
 	limit := discussions.DefaultPageLimit
 
 	if l := query.Get("limit"); l != "" {
-		if n, err := strconv.Atoi(l); err == nil && n > 0 {
+		n, err := strconv.Atoi(l)
+		if err == nil && n > 0 {
 			limit = n
 		}
 	}
@@ -528,7 +514,8 @@ func buildListParams(
 	offset := 0
 
 	if o := query.Get("offset"); o != "" {
-		if n, err := strconv.Atoi(o); err == nil && n >= 0 {
+		n, err := strconv.Atoi(o)
+		if err == nil && n >= 0 {
 			offset = n
 		}
 	}
@@ -536,6 +523,8 @@ func buildListParams(
 	sort := discussions.SortMode(query.Get("sort"))
 
 	return discussions.ListCommentsParams{
+		ThreadID:      "",
+		ParentID:      nil,
 		Locale:        locale,
 		ViewerUserID:  viewerUserID,
 		IncludeHidden: includeHidden,

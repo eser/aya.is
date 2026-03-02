@@ -163,7 +163,7 @@ func (rl *rateLimiter) isAllowed(key string) (bool, int, time.Time) {
 }
 
 // RateLimitMiddleware creates a rate limiting middleware using functional options.
-func RateLimitMiddleware(options ...RateLimitOption) httpfx.Handler {
+func RateLimitMiddleware(options ...RateLimitOption) httpfx.Handler { //nolint:funlen
 	// Start with default configuration
 	cfg := &rateLimitConfig{
 		// 60 requests per minute

@@ -168,9 +168,7 @@ export function CommentCard(props: CommentCardProps) {
                 {props.comment.author_profile_title ?? props.comment.author_profile_slug}
               </Link>
             )
-            : (
-              <span className={styles.metaText}>{t("Discussions.Unknown")}</span>
-            )}
+            : <span className={styles.metaText}>{t("Discussions.Unknown")}</span>}
           <span className={styles.metaText}>&middot;</span>
           <span className={styles.metaText}>{formattedDate}</span>
           {props.comment.is_edited && (
@@ -184,77 +182,69 @@ export function CommentCard(props: CommentCardProps) {
                   <span className="text-xs text-muted-foreground">
                     {props.comment.updated_at !== null
                       ? new Date(props.comment.updated_at).toLocaleString(props.locale, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : ""}
                   </span>
                 </PopoverContent>
               </Popover>
             </>
           )}
-          {props.comment.is_pinned && (
-            <span className={styles.pinnedBadge}>{t("Discussions.Pinned")}</span>
-          )}
-          {isHidden && (
-            <span className={styles.badge}>{t("Discussions.Hidden")}</span>
-          )}
+          {props.comment.is_pinned && <span className={styles.pinnedBadge}>{t("Discussions.Pinned")}</span>}
+          {isHidden && <span className={styles.badge}>{t("Discussions.Hidden")}</span>}
         </div>
 
         {/* Content */}
         {isDeleted
-          ? (
-            <p className={styles.deletedContent}>{t("Discussions.This comment has been deleted")}</p>
-          )
+          ? <p className={styles.deletedContent}>{t("Discussions.This comment has been deleted")}</p>
           : isHidden && !props.canModerate
-            ? (
-              <p className={styles.hiddenContent}>{t("Discussions.Hidden by moderator")}</p>
-            )
-            : showEditForm
-              ? (
-                <form onSubmit={handleEditSubmit} className="mb-2">
-                  <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full p-2 text-sm border rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                    rows={3}
-                    style={{ fieldSizing: "content" } as React.CSSProperties}
-                  />
-                  <div className="flex gap-2 justify-end mt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowEditForm(false)}
-                      className="px-3 py-1 text-xs rounded-md border hover:bg-accent transition-colors"
-                    >
-                      {t("Common.Cancel")}
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isEditSubmitting || editContent.trim().length === 0}
-                      className="px-3 py-1 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-                    >
-                      {t("Discussions.Save")}
-                    </button>
-                  </div>
-                </form>
-              )
-              : props.comment.compiledContent !== undefined && props.comment.compiledContent !== null
-                ? (
-                  <MdxContent
-                    compiledSource={props.comment.compiledContent}
-                    className={styles.commentContent}
-                    headingOffset={3}
-                    includeUserlandComponents={false}
-                  />
-                )
-                : (
-                  <p className={styles.commentContent} style={{ whiteSpace: "pre-wrap" }}>
-                    {props.comment.content}
-                  </p>
-                )}
+          ? <p className={styles.hiddenContent}>{t("Discussions.Hidden by moderator")}</p>
+          : showEditForm
+          ? (
+            <form onSubmit={handleEditSubmit} className="mb-2">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full p-2 text-sm border rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                rows={3}
+                style={{ fieldSizing: "content" } as React.CSSProperties}
+              />
+              <div className="flex gap-2 justify-end mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditForm(false)}
+                  className="px-3 py-1 text-xs rounded-md border hover:bg-accent transition-colors"
+                >
+                  {t("Common.Cancel")}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditSubmitting || editContent.trim().length === 0}
+                  className="px-3 py-1 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {t("Discussions.Save")}
+                </button>
+              </div>
+            </form>
+          )
+          : props.comment.compiledContent !== undefined && props.comment.compiledContent !== null
+          ? (
+            <MdxContent
+              compiledSource={props.comment.compiledContent}
+              className={styles.commentContent}
+              headingOffset={3}
+              includeUserlandComponents={false}
+            />
+          )
+          : (
+            <p className={styles.commentContent} style={{ whiteSpace: "pre-wrap" }}>
+              {props.comment.content}
+            </p>
+          )}
 
         {/* Actions bar */}
         {!isDeleted && (
@@ -297,26 +287,51 @@ export function CommentCard(props: CommentCardProps) {
                   <div className="absolute left-0 top-5 z-10 bg-popover border rounded-md shadow-md py-1 min-w-[140px]">
                     <button
                       type="button"
-                      onClick={() => { handleHideToggle(); setShowMoreActions(false); }}
+                      onClick={() => {
+                        handleHideToggle();
+                        setShowMoreActions(false);
+                      }}
                       className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors"
                     >
                       {isHidden
-                        ? <><Eye className="size-3" /> {t("Discussions.Show")}</>
-                        : <><EyeOff className="size-3" /> {t("Discussions.Hide")}</>}
+                        ? (
+                          <>
+                            <Eye className="size-3" /> {t("Discussions.Show")}
+                          </>
+                        )
+                        : (
+                          <>
+                            <EyeOff className="size-3" /> {t("Discussions.Hide")}
+                          </>
+                        )}
                     </button>
                     <button
                       type="button"
-                      onClick={() => { handlePinToggle(); setShowMoreActions(false); }}
+                      onClick={() => {
+                        handlePinToggle();
+                        setShowMoreActions(false);
+                      }}
                       className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors"
                     >
                       {props.comment.is_pinned
-                        ? <><PinOff className="size-3" /> {t("Discussions.Unpin")}</>
-                        : <><Pin className="size-3" /> {t("Discussions.Pin")}</>}
+                        ? (
+                          <>
+                            <PinOff className="size-3" /> {t("Discussions.Unpin")}
+                          </>
+                        )
+                        : (
+                          <>
+                            <Pin className="size-3" /> {t("Discussions.Pin")}
+                          </>
+                        )}
                     </button>
                     {props.isAdmin && (
                       <button
                         type="button"
-                        onClick={() => { handleDelete(); setShowMoreActions(false); }}
+                        onClick={() => {
+                          handleDelete();
+                          setShowMoreActions(false);
+                        }}
                         className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left text-destructive hover:bg-accent transition-colors"
                       >
                         <Trash2 className="size-3" />

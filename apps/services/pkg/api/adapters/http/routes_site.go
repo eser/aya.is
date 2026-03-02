@@ -15,7 +15,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
-func RegisterHTTPRoutesForSite(
+func RegisterHTTPRoutesForSite( //nolint:gocognit,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -115,7 +115,8 @@ func RegisterHTTPRoutesForSite(
 				Purpose     string `json:"purpose"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 

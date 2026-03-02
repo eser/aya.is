@@ -9,13 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import styles from "./bulletins.module.css";
 
@@ -254,17 +248,19 @@ function BulletinsSettingsPage() {
         </div>
 
         {/* Email info box */}
-        {email !== null && email.length > 0 ? (
-          <div className={styles.infoBox}>
-            <p>{t("Bulletin.Emails delivered to", { email })}</p>
-            <p>{t("Bulletin.Email help")}</p>
-          </div>
-        ) : (
-          <div className={styles.infoBoxWarning}>
-            <p>{t("Bulletin.Email not specified")}</p>
-            <p>{t("Bulletin.Email help")}</p>
-          </div>
-        )}
+        {email !== null && email.length > 0
+          ? (
+            <div className={styles.infoBox}>
+              <p>{t("Bulletin.Emails delivered to", { email })}</p>
+              <p>{t("Bulletin.Email help")}</p>
+            </div>
+          )
+          : (
+            <div className={styles.infoBoxWarning}>
+              <p>{t("Bulletin.Email not specified")}</p>
+              <p>{t("Bulletin.Email help")}</p>
+            </div>
+          )}
       </div>
 
       {/* Footer */}
@@ -272,8 +268,8 @@ function BulletinsSettingsPage() {
         <div className={styles.lastSent}>
           {lastBulletinAt !== null
             ? t("Bulletin.Last digest sent at", {
-                date: formatLastBulletinDate(lastBulletinAt, params.locale),
-              })
+              date: formatLastBulletinDate(lastBulletinAt, params.locale),
+            })
             : t("Bulletin.No digest sent yet")}
         </div>
         <Button onClick={handleSave} disabled={isSaving}>

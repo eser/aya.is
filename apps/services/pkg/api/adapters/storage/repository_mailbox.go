@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
@@ -89,27 +90,33 @@ func (a *mailboxAdapter) ListConversationsForProfile(
 	result := make([]*mailbox.Conversation, 0, len(rows))
 
 	for _, row := range rows {
+		var updatedAt *time.Time
+		if row.UpdatedAt.Valid {
+			updatedAt = &row.UpdatedAt.Time
+		}
+
+		var lastEnvelope *mailbox.EnvelopePreview
+
+		if row.LastEnvelopeKind != "" {
+			senderID := vars.ToStringPtr(row.LastEnvelopeSenderProfileID)
+			lastEnvelope = &mailbox.EnvelopePreview{
+				Message:         vars.ToStringPtr(row.LastEnvelopeMessage),
+				Kind:            row.LastEnvelopeKind,
+				CreatedAt:       row.LastEnvelopeAt.Format(time.RFC3339),
+				SenderProfileID: senderID,
+			}
+		}
+
 		conv := &mailbox.Conversation{
 			ID:                 row.ID,
 			Kind:               row.Kind,
 			Title:              vars.ToStringPtr(row.Title),
 			CreatedByProfileID: vars.ToStringPtr(row.CreatedByProfileID),
 			CreatedAt:          row.CreatedAt,
+			UpdatedAt:          updatedAt,
+			Participants:       nil,
+			LastEnvelope:       lastEnvelope,
 			UnreadCount:        int(row.UnreadCount),
-		}
-
-		if row.UpdatedAt.Valid {
-			conv.UpdatedAt = &row.UpdatedAt.Time
-		}
-
-		if row.LastEnvelopeKind != "" {
-			senderID := vars.ToStringPtr(row.LastEnvelopeSenderProfileID)
-			conv.LastEnvelope = &mailbox.EnvelopePreview{
-				Message:         vars.ToStringPtr(row.LastEnvelopeMessage),
-				Kind:            row.LastEnvelopeKind,
-				CreatedAt:       row.LastEnvelopeAt.Format(time.RFC3339),
-				SenderProfileID: senderID,
-			}
 		}
 
 		result = append(result, conv)
@@ -238,7 +245,7 @@ func (a *mailboxAdapter) CreateEnvelope(ctx context.Context, envelope *mailbox.E
 	if envelope.Properties != nil {
 		data, err := json.Marshal(envelope.Properties)
 		if err != nil {
-			return err
+			return fmt.Errorf("marshaling envelope properties: %w", err)
 		}
 
 		propsJSON = pqtype.NullRawMessage{RawMessage: data, Valid: true}
@@ -329,7 +336,7 @@ func (a *mailboxAdapter) ListEnvelopesByTargetProfileID(
 
 func (a *mailboxAdapter) UpdateEnvelopeStatus(
 	ctx context.Context,
-	id string,
+	envelopeID string,
 	status string,
 	now time.Time,
 ) error {
@@ -342,19 +349,19 @@ func (a *mailboxAdapter) UpdateEnvelopeStatus(
 	switch status {
 	case mailbox.StatusAccepted:
 		rowsAffected, err = a.repo.queries.UpdateMailboxEnvelopeStatusToAccepted(
-			ctx, UpdateMailboxEnvelopeStatusToAcceptedParams{Now: nullNow, ID: id},
+			ctx, UpdateMailboxEnvelopeStatusToAcceptedParams{Now: nullNow, ID: envelopeID},
 		)
 	case mailbox.StatusRejected:
 		rowsAffected, err = a.repo.queries.UpdateMailboxEnvelopeStatusToRejected(
-			ctx, UpdateMailboxEnvelopeStatusToRejectedParams{Now: nullNow, ID: id},
+			ctx, UpdateMailboxEnvelopeStatusToRejectedParams{Now: nullNow, ID: envelopeID},
 		)
 	case mailbox.StatusRevoked:
 		rowsAffected, err = a.repo.queries.UpdateMailboxEnvelopeStatusToRevoked(
-			ctx, UpdateMailboxEnvelopeStatusToRevokedParams{Now: nullNow, ID: id},
+			ctx, UpdateMailboxEnvelopeStatusToRevokedParams{Now: nullNow, ID: envelopeID},
 		)
 	case mailbox.StatusRedeemed:
 		rowsAffected, err = a.repo.queries.UpdateMailboxEnvelopeStatusToRedeemed(
-			ctx, UpdateMailboxEnvelopeStatusToRedeemedParams{Now: nullNow, ID: id},
+			ctx, UpdateMailboxEnvelopeStatusToRedeemedParams{Now: nullNow, ID: envelopeID},
 		)
 	default:
 		return mailbox.ErrInvalidStatus
@@ -373,18 +380,18 @@ func (a *mailboxAdapter) UpdateEnvelopeStatus(
 
 func (a *mailboxAdapter) UpdateEnvelopeProperties(
 	ctx context.Context,
-	id string,
+	envelopeID string,
 	properties any,
 ) error {
 	data, err := json.Marshal(properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling envelope properties: %w", err)
 	}
 
 	return a.repo.queries.UpdateMailboxEnvelopeProperties(
 		ctx,
 		UpdateMailboxEnvelopePropertiesParams{
-			ID:         id,
+			ID:         envelopeID,
 			Properties: pqtype.NullRawMessage{RawMessage: data, Valid: true},
 		},
 	)
@@ -511,19 +518,22 @@ func (a *mailboxAdapter) CountUnreadConversations(
 // ── Row converters ─────────────────────────────────────────────────────
 
 func conversationFromRow(row *MailboxConversation) *mailbox.Conversation {
-	conv := &mailbox.Conversation{
+	var updatedAt *time.Time
+	if row.UpdatedAt.Valid {
+		updatedAt = &row.UpdatedAt.Time
+	}
+
+	return &mailbox.Conversation{
 		ID:                 row.ID,
 		Kind:               row.Kind,
 		Title:              vars.ToStringPtr(row.Title),
 		CreatedByProfileID: vars.ToStringPtr(row.CreatedByProfileID),
 		CreatedAt:          row.CreatedAt,
+		UpdatedAt:          updatedAt,
+		Participants:       nil,
+		LastEnvelope:       nil,
+		UnreadCount:        0,
 	}
-
-	if row.UpdatedAt.Valid {
-		conv.UpdatedAt = &row.UpdatedAt.Time
-	}
-
-	return conv
 }
 
 func participantFromGetRow(row *GetMailboxParticipantRow) *mailbox.Participant {
@@ -531,28 +541,29 @@ func participantFromGetRow(row *GetMailboxParticipantRow) *mailbox.Participant {
 	title := row.ProfileTitle
 	kind := row.ProfileKind
 
-	p := &mailbox.Participant{
-		ID:             row.ID,
-		ConversationID: row.ConversationID,
-		ProfileID:      row.ProfileID,
-		IsArchived:     row.IsArchived,
-		JoinedAt:       row.JoinedAt,
-		ProfileSlug:    &slug,
-		ProfileTitle:   &title,
-		ProfileKind:    &kind,
-	}
-
+	var lastReadAt *time.Time
 	if row.LastReadAt.Valid {
-		p.LastReadAt = &row.LastReadAt.Time
+		lastReadAt = &row.LastReadAt.Time
 	}
 
+	var leftAt *time.Time
 	if row.LeftAt.Valid {
-		p.LeftAt = &row.LeftAt.Time
+		leftAt = &row.LeftAt.Time
 	}
 
-	p.ProfilePictureURI = vars.ToStringPtr(row.ProfilePictureURI)
-
-	return p
+	return &mailbox.Participant{
+		ID:                row.ID,
+		ConversationID:    row.ConversationID,
+		ProfileID:         row.ProfileID,
+		LastReadAt:        lastReadAt,
+		IsArchived:        row.IsArchived,
+		JoinedAt:          row.JoinedAt,
+		LeftAt:            leftAt,
+		ProfileSlug:       &slug,
+		ProfileTitle:      &title,
+		ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
+		ProfileKind:       &kind,
+	}
 }
 
 func participantFromListRow(row *ListMailboxParticipantsRow) *mailbox.Participant {
@@ -560,50 +571,60 @@ func participantFromListRow(row *ListMailboxParticipantsRow) *mailbox.Participan
 	title := row.ProfileTitle
 	kind := row.ProfileKind
 
-	p := &mailbox.Participant{
-		ID:             row.ID,
-		ConversationID: row.ConversationID,
-		ProfileID:      row.ProfileID,
-		IsArchived:     row.IsArchived,
-		JoinedAt:       row.JoinedAt,
-		ProfileSlug:    &slug,
-		ProfileTitle:   &title,
-		ProfileKind:    &kind,
-	}
-
+	var lastReadAt *time.Time
 	if row.LastReadAt.Valid {
-		p.LastReadAt = &row.LastReadAt.Time
+		lastReadAt = &row.LastReadAt.Time
 	}
 
+	var leftAt *time.Time
 	if row.LeftAt.Valid {
-		p.LeftAt = &row.LeftAt.Time
+		leftAt = &row.LeftAt.Time
 	}
 
-	p.ProfilePictureURI = vars.ToStringPtr(row.ProfilePictureURI)
-
-	return p
+	return &mailbox.Participant{
+		ID:                row.ID,
+		ConversationID:    row.ConversationID,
+		ProfileID:         row.ProfileID,
+		LastReadAt:        lastReadAt,
+		IsArchived:        row.IsArchived,
+		JoinedAt:          row.JoinedAt,
+		LeftAt:            leftAt,
+		ProfileSlug:       &slug,
+		ProfileTitle:      &title,
+		ProfilePictureURI: vars.ToStringPtr(row.ProfilePictureURI),
+		ProfileKind:       &kind,
+	}
 }
 
 func envelopeFromRawRow(row *MailboxEnvelope) *mailbox.Envelope {
-	envelope := &mailbox.Envelope{
-		ID:              row.ID,
-		ConversationID:  row.ConversationID,
-		TargetProfileID: row.TargetProfileID,
-		SenderProfileID: vars.ToStringPtr(row.SenderProfileID),
-		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
-		Kind:            row.Kind,
-		Status:          row.Status,
-		Message:         vars.ToStringPtr(row.Message),
-		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
-		CreatedAt:       row.CreatedAt,
+	var props any
+	if row.Properties.Valid {
+		_ = json.Unmarshal(row.Properties.RawMessage, &props)
 	}
 
-	if row.Properties.Valid {
-		var props any
-
-		_ = json.Unmarshal(row.Properties.RawMessage, &props)
-
-		envelope.Properties = props
+	envelope := &mailbox.Envelope{
+		ID:                      row.ID,
+		ConversationID:          row.ConversationID,
+		TargetProfileID:         row.TargetProfileID,
+		SenderProfileID:         vars.ToStringPtr(row.SenderProfileID),
+		SenderUserID:            vars.ToStringPtr(row.SenderUserID),
+		Kind:                    row.Kind,
+		Status:                  row.Status,
+		Message:                 vars.ToStringPtr(row.Message),
+		Properties:              props,
+		ReplyToID:               vars.ToStringPtr(row.ReplyToID),
+		CreatedAt:               row.CreatedAt,
+		AcceptedAt:              nil,
+		RejectedAt:              nil,
+		RevokedAt:               nil,
+		RedeemedAt:              nil,
+		UpdatedAt:               nil,
+		DeletedAt:               nil,
+		SenderProfileSlug:       nil,
+		SenderProfileTitle:      nil,
+		SenderProfilePictureURI: nil,
+		SenderProfileKind:       nil,
+		Reactions:               nil,
 	}
 
 	assignEnvelopeTimestamps(
@@ -619,26 +640,42 @@ func envelopeFromRawRow(row *MailboxEnvelope) *mailbox.Envelope {
 	return envelope
 }
 
-func envelopeFromConversationRow(row *ListEnvelopesByConversationRow) *mailbox.Envelope {
-	envelope := &mailbox.Envelope{
-		ID:              row.ID,
-		ConversationID:  row.ConversationID,
-		TargetProfileID: row.TargetProfileID,
-		SenderProfileID: vars.ToStringPtr(row.SenderProfileID),
-		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
-		Kind:            row.Kind,
-		Status:          row.Status,
-		Message:         vars.ToStringPtr(row.Message),
-		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
-		CreatedAt:       row.CreatedAt,
+func envelopeFromConversationRow( //nolint:dupl
+	row *ListEnvelopesByConversationRow,
+) *mailbox.Envelope {
+	var props any
+	if row.Properties.Valid {
+		_ = json.Unmarshal(row.Properties.RawMessage, &props)
 	}
 
-	if row.Properties.Valid {
-		var props any
+	var senderProfileTitle *string
+	if row.SenderProfileTitle != "" {
+		senderProfileTitle = &row.SenderProfileTitle
+	}
 
-		_ = json.Unmarshal(row.Properties.RawMessage, &props)
-
-		envelope.Properties = props
+	envelope := &mailbox.Envelope{
+		ID:                      row.ID,
+		ConversationID:          row.ConversationID,
+		TargetProfileID:         row.TargetProfileID,
+		SenderProfileID:         vars.ToStringPtr(row.SenderProfileID),
+		SenderUserID:            vars.ToStringPtr(row.SenderUserID),
+		Kind:                    row.Kind,
+		Status:                  row.Status,
+		Message:                 vars.ToStringPtr(row.Message),
+		Properties:              props,
+		ReplyToID:               vars.ToStringPtr(row.ReplyToID),
+		CreatedAt:               row.CreatedAt,
+		AcceptedAt:              nil,
+		RejectedAt:              nil,
+		RevokedAt:               nil,
+		RedeemedAt:              nil,
+		UpdatedAt:               nil,
+		DeletedAt:               nil,
+		SenderProfileSlug:       vars.ToStringPtr(row.SenderProfileSlug),
+		SenderProfileTitle:      senderProfileTitle,
+		SenderProfilePictureURI: vars.ToStringPtr(row.SenderProfilePictureURI),
+		SenderProfileKind:       vars.ToStringPtr(row.SenderProfileKind),
+		Reactions:               nil,
 	}
 
 	assignEnvelopeTimestamps(
@@ -650,39 +687,46 @@ func envelopeFromConversationRow(row *ListEnvelopesByConversationRow) *mailbox.E
 		row.UpdatedAt,
 		row.DeletedAt,
 	)
-
-	// Sender profile info from JOIN.
-	envelope.SenderProfileSlug = vars.ToStringPtr(row.SenderProfileSlug)
-	envelope.SenderProfileKind = vars.ToStringPtr(row.SenderProfileKind)
-	envelope.SenderProfilePictureURI = vars.ToStringPtr(row.SenderProfilePictureURI)
-
-	if row.SenderProfileTitle != "" {
-		envelope.SenderProfileTitle = &row.SenderProfileTitle
-	}
 
 	return envelope
 }
 
-func envelopeFromListRow(row *ListMailboxEnvelopesByTargetProfileIDRow) *mailbox.Envelope {
-	envelope := &mailbox.Envelope{
-		ID:              row.ID,
-		ConversationID:  row.ConversationID,
-		TargetProfileID: row.TargetProfileID,
-		SenderProfileID: vars.ToStringPtr(row.SenderProfileID),
-		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
-		Kind:            row.Kind,
-		Status:          row.Status,
-		Message:         vars.ToStringPtr(row.Message),
-		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
-		CreatedAt:       row.CreatedAt,
+func envelopeFromListRow( //nolint:dupl
+	row *ListMailboxEnvelopesByTargetProfileIDRow,
+) *mailbox.Envelope {
+	var props any
+	if row.Properties.Valid {
+		_ = json.Unmarshal(row.Properties.RawMessage, &props)
 	}
 
-	if row.Properties.Valid {
-		var props any
+	var senderProfileTitle *string
+	if row.SenderProfileTitle != "" {
+		senderProfileTitle = &row.SenderProfileTitle
+	}
 
-		_ = json.Unmarshal(row.Properties.RawMessage, &props)
-
-		envelope.Properties = props
+	envelope := &mailbox.Envelope{
+		ID:                      row.ID,
+		ConversationID:          row.ConversationID,
+		TargetProfileID:         row.TargetProfileID,
+		SenderProfileID:         vars.ToStringPtr(row.SenderProfileID),
+		SenderUserID:            vars.ToStringPtr(row.SenderUserID),
+		Kind:                    row.Kind,
+		Status:                  row.Status,
+		Message:                 vars.ToStringPtr(row.Message),
+		Properties:              props,
+		ReplyToID:               vars.ToStringPtr(row.ReplyToID),
+		CreatedAt:               row.CreatedAt,
+		AcceptedAt:              nil,
+		RejectedAt:              nil,
+		RevokedAt:               nil,
+		RedeemedAt:              nil,
+		UpdatedAt:               nil,
+		DeletedAt:               nil,
+		SenderProfileSlug:       vars.ToStringPtr(row.SenderProfileSlug),
+		SenderProfileTitle:      senderProfileTitle,
+		SenderProfilePictureURI: vars.ToStringPtr(row.SenderProfilePictureURI),
+		SenderProfileKind:       vars.ToStringPtr(row.SenderProfileKind),
+		Reactions:               nil,
 	}
 
 	assignEnvelopeTimestamps(
@@ -694,39 +738,46 @@ func envelopeFromListRow(row *ListMailboxEnvelopesByTargetProfileIDRow) *mailbox
 		row.UpdatedAt,
 		row.DeletedAt,
 	)
-
-	// Sender profile info from JOIN.
-	envelope.SenderProfileSlug = vars.ToStringPtr(row.SenderProfileSlug)
-	envelope.SenderProfileKind = vars.ToStringPtr(row.SenderProfileKind)
-	envelope.SenderProfilePictureURI = vars.ToStringPtr(row.SenderProfilePictureURI)
-
-	if row.SenderProfileTitle != "" {
-		envelope.SenderProfileTitle = &row.SenderProfileTitle
-	}
 
 	return envelope
 }
 
-func envelopeFromInvitationRow(row *ListAcceptedMailboxInvitationsRow) *mailbox.Envelope {
-	envelope := &mailbox.Envelope{
-		ID:              row.ID,
-		ConversationID:  row.ConversationID,
-		TargetProfileID: row.TargetProfileID,
-		SenderProfileID: vars.ToStringPtr(row.SenderProfileID),
-		SenderUserID:    vars.ToStringPtr(row.SenderUserID),
-		Kind:            row.Kind,
-		Status:          row.Status,
-		Message:         vars.ToStringPtr(row.Message),
-		ReplyToID:       vars.ToStringPtr(row.ReplyToID),
-		CreatedAt:       row.CreatedAt,
+func envelopeFromInvitationRow( //nolint:dupl
+	row *ListAcceptedMailboxInvitationsRow,
+) *mailbox.Envelope {
+	var props any
+	if row.Properties.Valid {
+		_ = json.Unmarshal(row.Properties.RawMessage, &props)
 	}
 
-	if row.Properties.Valid {
-		var props any
+	var senderProfileTitle *string
+	if row.SenderProfileTitle != "" {
+		senderProfileTitle = &row.SenderProfileTitle
+	}
 
-		_ = json.Unmarshal(row.Properties.RawMessage, &props)
-
-		envelope.Properties = props
+	envelope := &mailbox.Envelope{
+		ID:                      row.ID,
+		ConversationID:          row.ConversationID,
+		TargetProfileID:         row.TargetProfileID,
+		SenderProfileID:         vars.ToStringPtr(row.SenderProfileID),
+		SenderUserID:            vars.ToStringPtr(row.SenderUserID),
+		Kind:                    row.Kind,
+		Status:                  row.Status,
+		Message:                 vars.ToStringPtr(row.Message),
+		Properties:              props,
+		ReplyToID:               vars.ToStringPtr(row.ReplyToID),
+		CreatedAt:               row.CreatedAt,
+		AcceptedAt:              nil,
+		RejectedAt:              nil,
+		RevokedAt:               nil,
+		RedeemedAt:              nil,
+		UpdatedAt:               nil,
+		DeletedAt:               nil,
+		SenderProfileSlug:       vars.ToStringPtr(row.SenderProfileSlug),
+		SenderProfileTitle:      senderProfileTitle,
+		SenderProfilePictureURI: vars.ToStringPtr(row.SenderProfilePictureURI),
+		SenderProfileKind:       vars.ToStringPtr(row.SenderProfileKind),
+		Reactions:               nil,
 	}
 
 	assignEnvelopeTimestamps(
@@ -738,15 +789,6 @@ func envelopeFromInvitationRow(row *ListAcceptedMailboxInvitationsRow) *mailbox.
 		row.UpdatedAt,
 		row.DeletedAt,
 	)
-
-	// Sender profile info from JOIN.
-	envelope.SenderProfileSlug = vars.ToStringPtr(row.SenderProfileSlug)
-	envelope.SenderProfileKind = vars.ToStringPtr(row.SenderProfileKind)
-	envelope.SenderProfilePictureURI = vars.ToStringPtr(row.SenderProfilePictureURI)
-
-	if row.SenderProfileTitle != "" {
-		envelope.SenderProfileTitle = &row.SenderProfileTitle
-	}
 
 	return envelope
 }

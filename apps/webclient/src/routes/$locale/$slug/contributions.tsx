@@ -16,13 +16,29 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile?.feature_relations === "disabled") {
-      return { contributions: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        contributions: null,
+        locale,
+        slug,
+        profileTitle: slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     const contributions = await backend.getProfileContributions(locale, slug);
 
     if (contributions === null) {
-      return { contributions: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        contributions: null,
+        locale,
+        slug,
+        profileTitle: slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     // Ensure locale translations are loaded before translating
@@ -75,7 +91,12 @@ function ContributionsPage() {
   const { contributions, locale, slug } = loaderData;
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <div className="space-y-6">
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Contributions")}</h2>
@@ -89,9 +110,7 @@ function ContributionsPage() {
         {contributions !== null && contributions.length > 0
           ? (
             <div className="flex flex-col gap-4">
-              {contributions.map((membership) => (
-                <ContributionCard key={membership.id} membership={membership} />
-              ))}
+              {contributions.map((membership) => <ContributionCard key={membership.id} membership={membership} />)}
             </div>
           )
           : (

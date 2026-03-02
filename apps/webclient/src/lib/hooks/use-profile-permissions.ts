@@ -22,8 +22,10 @@ export function useProfilePermissions(profileId: string) {
   // Check membership: owner or lead can edit
   if (user.accessible_profiles !== undefined) {
     const membership = user.accessible_profiles.find((p) => p.id === profileId);
-    if (membership !== undefined &&
-        (membership.membership_kind === "owner" || membership.membership_kind === "lead")) {
+    if (
+      membership !== undefined &&
+      (membership.membership_kind === "owner" || membership.membership_kind === "lead")
+    ) {
       return { canEdit: true };
     }
   }

@@ -14,7 +14,7 @@ import (
 )
 
 // RegisterHTTPRoutesForProfileMemberships registers the routes for managing profile memberships.
-func RegisterHTTPRoutesForProfileMemberships(
+func RegisterHTTPRoutesForProfileMemberships( //nolint:gocognit,gocyclo,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -192,7 +192,8 @@ func RegisterHTTPRoutesForProfileMemberships(
 				Kind            string `json:"kind"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -202,7 +203,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 				)
 			}
 
-			err := profileService.AddMembership(
+			err = profileService.AddMembership(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				user.Kind,
@@ -267,7 +268,8 @@ func RegisterHTTPRoutesForProfileMemberships(
 				Kind string `json:"kind"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -275,7 +277,7 @@ func RegisterHTTPRoutesForProfileMemberships(
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("kind is required"))
 			}
 
-			err := profileService.UpdateMembership(
+			err = profileService.UpdateMembership(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				user.Kind,

@@ -12,6 +12,11 @@ import (
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 )
 
+const (
+	memberStatusAdministrator = "administrator"
+	memberStatusCreator       = "creator"
+)
+
 // Bot handles incoming Telegram updates and routes commands.
 type Bot struct {
 	client          *Client
@@ -202,7 +207,10 @@ func (b *Bot) handleUnlink(ctx context.Context, msg *Message) {
 		"Your Telegram account has been disconnected from AYA.")
 }
 
-func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
+func (b *Bot) handleGroups( //nolint:cyclop,funlen // sequential group command handling
+	ctx context.Context,
+	msg *Message,
+) {
 	info, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
 	if err != nil {
 		_ = b.client.SendMessage(ctx, msg.Chat.ID,
@@ -270,7 +278,7 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 	keyboard := &InlineKeyboardMarkup{
 		InlineKeyboard: [][]InlineKeyboardButton{
 			{
-				{Text: "List invite-only groups I can join", CallbackData: "join"},
+				{Text: "List invite-only groups I can join", URL: "", CallbackData: "join"},
 			},
 		},
 	}
@@ -278,7 +286,10 @@ func (b *Bot) handleGroups(ctx context.Context, msg *Message) {
 	_ = b.client.SendMessageWithKeyboard(ctx, msg.Chat.ID, builder.String(), keyboard)
 }
 
-func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
+func (b *Bot) handleGroupInvite( //nolint:funlen // sequential group invite steps
+	ctx context.Context,
+	msg *Message,
+) {
 	if msg.From == nil || msg.From.IsBot {
 		return
 	}
@@ -297,7 +308,7 @@ func (b *Bot) handleGroupInvite(ctx context.Context, msg *Message) {
 		return
 	}
 
-	if member.Status != "creator" && member.Status != "administrator" {
+	if member.Status != memberStatusCreator && member.Status != memberStatusAdministrator {
 		_ = b.client.SendMessage(ctx, msg.Chat.ID,
 			"Only group administrators can generate invite codes.")
 
@@ -373,7 +384,7 @@ func (b *Bot) handleGroupRegister(ctx context.Context, msg *Message) { //nolint:
 		return
 	}
 
-	if member.Status != "creator" && member.Status != "administrator" {
+	if member.Status != memberStatusCreator && member.Status != memberStatusAdministrator {
 		_ = b.client.SendMessage(ctx, msg.Chat.ID,
 			"Only group administrators can register this group.")
 
@@ -393,7 +404,7 @@ func (b *Bot) handleGroupRegister(ctx context.Context, msg *Message) { //nolint:
 	}
 
 	botMember, botMemberErr := b.client.GetChatMember(ctx, msg.Chat.ID, botUserID)
-	if botMemberErr != nil || botMember.Status != "administrator" {
+	if botMemberErr != nil || botMember.Status != memberStatusAdministrator {
 		_ = b.client.SendMessage(ctx, msg.Chat.ID,
 			"I need to be an <b>administrator</b> in this group to manage invites.\n"+
 				"Please promote me to admin, then try /register again.")
@@ -540,7 +551,7 @@ func (b *Bot) sendJoinableGroups( //nolint:cyclop,funlen
 		member, memberErr := b.client.GetChatMember(ctx, group.ChatID, telegramUserID)
 
 		isJoined := memberErr == nil && member != nil &&
-			(member.Status == "member" || member.Status == "administrator" || member.Status == "creator")
+			(member.Status == "member" || member.Status == memberStatusAdministrator || member.Status == memberStatusCreator)
 
 		label := group.GroupTitle
 		if group.ProfileSlug != "" {
@@ -553,7 +564,7 @@ func (b *Bot) sendJoinableGroups( //nolint:cyclop,funlen
 			textBuilder.WriteString("\u25CB " + label + "\n")
 
 			buttons = append(buttons, []InlineKeyboardButton{
-				{Text: label, CallbackData: "join:" + group.ResourceID},
+				{Text: label, URL: "", CallbackData: "join:" + group.ResourceID},
 			})
 		}
 	}
@@ -616,7 +627,7 @@ func (b *Bot) handleJoinGroup( //nolint:cyclop,funlen
 	// Check if already a member
 	member, memberErr := b.client.GetChatMember(ctx, target.ChatID, cq.From.ID)
 	if memberErr == nil && member != nil &&
-		(member.Status == "member" || member.Status == "administrator" || member.Status == "creator") {
+		(member.Status == "member" || member.Status == memberStatusAdministrator || member.Status == memberStatusCreator) {
 		_ = b.client.SendMessage(ctx, cq.From.ID,
 			fmt.Sprintf("You're already a member of <b>%s</b>.", target.GroupTitle))
 

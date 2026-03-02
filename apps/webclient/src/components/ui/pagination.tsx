@@ -54,13 +54,15 @@ function PaginationLink({
   );
 
   if (render !== undefined) {
-    return render({
-      ...props,
-      className: combinedClassName,
-      "aria-current": isActive ? "page" : undefined,
-      "data-slot": "pagination-link",
-      "data-active": isActive,
-    } as React.ComponentProps<"a"> & { className: string });
+    return render(
+      {
+        ...props,
+        className: combinedClassName,
+        "aria-current": isActive ? "page" : undefined,
+        "data-slot": "pagination-link",
+        "data-active": isActive,
+      } as React.ComponentProps<"a"> & { className: string },
+    );
   }
 
   return (

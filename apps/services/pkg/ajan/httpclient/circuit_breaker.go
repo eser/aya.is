@@ -101,6 +101,9 @@ func (cb *CircuitBreaker) OnSuccess() {
 		}
 	case StateClosed:
 		cb.failureCount = 0
+	case StateOpen:
+		// Success in Open state should not happen (IsAllowed returns false),
+		// but if it does, do nothing and let the timeout handle the transition.
 	}
 }
 

@@ -4,12 +4,7 @@ import type { SessionPreferences } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/backend";
 import { getCurrentLanguage } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
-import {
-  clearAuthData,
-  isTokenExpiringSoon,
-  refreshTokenRequest,
-  setAuthToken,
-} from "@/modules/backend/fetcher";
+import { clearAuthData, isTokenExpiringSoon, refreshTokenRequest, setAuthToken } from "@/modules/backend/fetcher";
 
 export type IndividualProfile = {
   id: string;
@@ -97,16 +92,15 @@ export function AuthProvider(props: AuthProviderProps) {
           }
           : undefined;
 
-      const userData: User | null =
-        result.user !== undefined && result.user !== null
-          ? {
-            ...result.user,
-            individual_profile_slug: result.selected_profile?.slug,
-            individual_profile: individualProfile,
-            accessible_profiles: result.accessible_profiles,
-            total_pending_envelopes: result.total_pending_envelopes,
-          }
-          : null;
+      const userData: User | null = result.user !== undefined && result.user !== null
+        ? {
+          ...result.user,
+          individual_profile_slug: result.selected_profile?.slug,
+          individual_profile: individualProfile,
+          accessible_profiles: result.accessible_profiles,
+          total_pending_envelopes: result.total_pending_envelopes,
+        }
+        : null;
 
       localStorage.setItem(
         "auth_session",
@@ -166,9 +160,7 @@ export function AuthProvider(props: AuthProviderProps) {
     const backendUri = getBackendUri();
 
     // Build the callback URL using URL API to avoid double-encoding
-    const origin = globalThis.location !== undefined
-      ? globalThis.location.origin
-      : "";
+    const origin = globalThis.location !== undefined ? globalThis.location.origin : "";
     const callbackUrlObj = new URL(`${origin}/auth/callback`);
     callbackUrlObj.searchParams.set("redirect", redirectUri ?? `/${locale}`);
 

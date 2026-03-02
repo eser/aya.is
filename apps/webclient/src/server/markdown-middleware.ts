@@ -12,7 +12,7 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { createMarkdownResponse, createNotFoundResponse } from "@/lib/markdown";
 import { DEFAULT_LOCALE } from "@/config";
-import { generateLlmsTxt, generateLlmsFullTxt } from "@/routes/-llms-txt";
+import { generateLlmsFullTxt, generateLlmsTxt } from "@/routes/-llms-txt";
 
 // Type for markdown handlers
 type MarkdownHandler = (

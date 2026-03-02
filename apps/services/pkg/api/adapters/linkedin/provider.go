@@ -128,6 +128,7 @@ func (p *Provider) HandleOAuthCallback(
 		Name:                 userInfo.Name,
 		Email:                userInfo.Email,
 		URI:                  profileURI,
+		ProfilePictureURI:    userInfo.Picture,
 		AccessToken:          tokenResp.AccessToken,
 		RefreshToken:         tokenResp.RefreshToken,
 		AccessTokenExpiresAt: expiresAt,
@@ -225,7 +226,8 @@ func (p *Provider) exchangeCodeForTokens(
 
 	var tokenResp tokenResponse
 
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
+	err = json.Unmarshal(body, &tokenResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToExchangeCode, err)
 	}
 
@@ -274,7 +276,8 @@ func (p *Provider) FetchUserInfo(
 
 	var userInfo UserInfo
 
-	if err := json.Unmarshal(body, &userInfo); err != nil {
+	err = json.Unmarshal(body, &userInfo)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetUserInfo, err)
 	}
 
@@ -318,7 +321,8 @@ func (p *Provider) fetchVanityName(ctx context.Context, accessToken string) stri
 		VanityName string `json:"vanityName"`
 	}
 
-	if err := json.Unmarshal(body, &meResp); err != nil {
+	err = json.Unmarshal(body, &meResp)
+	if err != nil {
 		return ""
 	}
 
@@ -328,14 +332,18 @@ func (p *Provider) fetchVanityName(ctx context.Context, accessToken string) stri
 // FetchOrganizationPages retrieves LinkedIn organization pages the user administers.
 // Requires r_organization_social scope from the Community Management API product.
 // Gracefully returns an empty slice if the scope is not available.
-func (p *Provider) FetchOrganizationPages(
+func (p *Provider) FetchOrganizationPages( //nolint:funlen
 	ctx context.Context,
 	accessToken string,
 ) ([]*OrgPageInfo, error) {
+	orgAclsURL := "https://api.linkedin.com/v2/organizationAcls" +
+		"?q=roleAssignee&role=ADMINISTRATOR" +
+		"&projection=(elements*(organization~(id,localizedName,vanityName,logoV2(original~:playableStreams))))"
+
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
-		"https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&projection=(elements*(organization~(id,localizedName,vanityName,logoV2(original~:playableStreams))))",
+		orgAclsURL,
 		nil,
 	)
 	if err != nil {
@@ -384,7 +392,8 @@ func (p *Provider) FetchOrganizationPages(
 		} `json:"elements"`
 	}
 
-	if err := json.Unmarshal(body, &orgResp); err != nil {
+	err = json.Unmarshal(body, &orgResp)
+	if err != nil {
 		p.logger.ErrorContext(ctx, "Failed to parse LinkedIn organizations response",
 			slog.String("error", err.Error()))
 
@@ -405,6 +414,7 @@ func (p *Provider) FetchOrganizationPages(
 		orgs = append(orgs, &OrgPageInfo{
 			ID:         orgID,
 			Name:       org.LocalizedName,
+			LogoURL:    "",
 			VanityName: org.VanityName,
 			URI:        uri,
 		})

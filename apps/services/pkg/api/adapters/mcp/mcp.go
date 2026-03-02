@@ -20,7 +20,7 @@ func RegisterMCPRoutes(
 	storyService *stories.Service,
 ) {
 	server := mcp.NewServer(
-		&mcp.Implementation{
+		&mcp.Implementation{ //nolint:exhaustruct // external SDK type
 			Name:    serverName,
 			Version: serverVersion,
 		},
@@ -35,7 +35,7 @@ func RegisterMCPRoutes(
 		func(req *http.Request) *mcp.Server {
 			return server
 		},
-		&mcp.StreamableHTTPOptions{
+		&mcp.StreamableHTTPOptions{ //nolint:exhaustruct // external SDK type
 			Stateless: true,
 		},
 	)

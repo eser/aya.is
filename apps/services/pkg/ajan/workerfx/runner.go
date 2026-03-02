@@ -115,7 +115,7 @@ func (r *Runner) Status() WorkerStatus {
 }
 
 // executeWorker runs a single worker cycle with panic recovery.
-func (r *Runner) executeWorker(ctx context.Context) {
+func (r *Runner) executeWorker(ctx context.Context) { //nolint:funlen
 	r.mu.Lock()
 	r.status.IsRunning = true
 	r.mu.Unlock()

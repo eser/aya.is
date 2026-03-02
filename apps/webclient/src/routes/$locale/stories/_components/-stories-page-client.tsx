@@ -53,9 +53,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
         // Fall back to published_at or created_at
         const fallback = story.published_at ?? story.created_at;
         const parsed = new Date(fallback);
-        const fallbackDate = Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 1900
-          ? new Date()
-          : parsed;
+        const fallbackDate = Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 1900 ? new Date() : parsed;
 
         return { story, date: fallbackDate };
       });

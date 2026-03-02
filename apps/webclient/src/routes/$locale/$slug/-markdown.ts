@@ -4,7 +4,7 @@
 import { formatFrontmatter } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { backend } from "@/modules/backend/backend";
-import { supportedLocales, type SupportedLocaleCode, isValidLocale } from "@/config";
+import { isValidLocale, type SupportedLocaleCode, supportedLocales } from "@/config";
 import type { Profile, ProfilePage, Story } from "@/modules/backend/types";
 
 const STORIES_PER_PAGE = 12;
@@ -86,7 +86,9 @@ export function generateProfileMarkdown(
     // Next page link
     if (pagination.currentPage < pagination.totalPages) {
       const nextOffset = pagination.offset + STORIES_PER_PAGE;
-      sections.push(`Next Page: [Page ${pagination.currentPage + 1}](/${locale}/${profile.slug}.md?offset=${nextOffset})`);
+      sections.push(
+        `Next Page: [Page ${pagination.currentPage + 1}](/${locale}/${profile.slug}.md?offset=${nextOffset})`,
+      );
     }
 
     // Previous page link
@@ -95,7 +97,9 @@ export function generateProfileMarkdown(
       if (prevOffset === 0) {
         sections.push(`Previous Page: [Page ${pagination.currentPage - 1}](/${locale}/${profile.slug}.md)`);
       } else {
-        sections.push(`Previous Page: [Page ${pagination.currentPage - 1}](/${locale}/${profile.slug}.md?offset=${prevOffset})`);
+        sections.push(
+          `Previous Page: [Page ${pagination.currentPage - 1}](/${locale}/${profile.slug}.md?offset=${prevOffset})`,
+        );
       }
     }
 

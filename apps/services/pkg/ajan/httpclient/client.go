@@ -21,28 +21,11 @@ type Client struct {
 func NewClient(options ...NewClientOption) *Client {
 	client := &Client{
 		Client:          nil,
+		Config:          defaultConfig(),
+		Transport:       nil,
 		TLSClientConfig: nil,
 		innerTransport:  nil,
-
-		Config: &Config{
-			CircuitBreaker: CircuitBreakerConfig{
-				Enabled:               true,
-				FailureThreshold:      DefaultFailureThreshold,
-				ResetTimeout:          DefaultResetTimeout,
-				HalfOpenSuccessNeeded: DefaultHalfOpenSuccess,
-			},
-			RetryStrategy: RetryStrategyConfig{
-				Enabled:         true,
-				MaxAttempts:     DefaultMaxAttempts,
-				InitialInterval: DefaultInitialInterval,
-				MaxInterval:     DefaultMaxInterval,
-				Multiplier:      DefaultMultiplier,
-				RandomFactor:    DefaultRandomFactor,
-			},
-
-			ServerErrorThreshold: DefaultServerErrorThreshold,
-		},
-		Transport: nil,
+		timeout:         0,
 	}
 
 	for _, option := range options {
@@ -50,34 +33,7 @@ func NewClient(options ...NewClientOption) *Client {
 	}
 
 	if client.Transport == nil {
-		var transport http.RoundTripper
-
-		if client.innerTransport != nil {
-			transport = client.innerTransport
-		} else {
-			// Create a copy of the default transport to avoid race conditions
-			defaultTransport, transportOk := http.DefaultTransport.(*http.Transport)
-			if !transportOk {
-				return nil
-			}
-
-			// Clone the transport to avoid modifying the shared default transport
-			clonedTransport := defaultTransport.Clone()
-
-			// Set TLS config if provided
-			if client.TLSClientConfig != nil {
-				clonedTransport.TLSClientConfig = client.TLSClientConfig
-			}
-
-			transport = clonedTransport
-		}
-
-		resilientTransport := NewResilientTransport(
-			transport,
-			client.Config,
-		)
-
-		client.Transport = resilientTransport
+		client.Transport = buildResilientTransport(client)
 	}
 
 	client.Client = &http.Client{ //nolint:exhaustruct
@@ -86,4 +42,55 @@ func NewClient(options ...NewClientOption) *Client {
 	}
 
 	return client
+}
+
+// defaultConfig returns the default httpclient configuration.
+func defaultConfig() *Config {
+	return &Config{
+		CircuitBreaker: CircuitBreakerConfig{
+			Enabled:               true,
+			FailureThreshold:      DefaultFailureThreshold,
+			ResetTimeout:          DefaultResetTimeout,
+			HalfOpenSuccessNeeded: DefaultHalfOpenSuccess,
+		},
+		RetryStrategy: RetryStrategyConfig{
+			Enabled:         true,
+			MaxAttempts:     DefaultMaxAttempts,
+			InitialInterval: DefaultInitialInterval,
+			MaxInterval:     DefaultMaxInterval,
+			Multiplier:      DefaultMultiplier,
+			RandomFactor:    DefaultRandomFactor,
+		},
+		Transport:            TransportConfig{}, //nolint:exhaustruct
+		ServerErrorThreshold: DefaultServerErrorThreshold,
+	}
+}
+
+// buildResilientTransport creates a ResilientTransport from the client configuration.
+func buildResilientTransport(client *Client) *ResilientTransport {
+	var transport http.RoundTripper
+
+	if client.innerTransport != nil {
+		transport = client.innerTransport
+	} else {
+		transport = cloneDefaultTransport(client.TLSClientConfig)
+	}
+
+	return NewResilientTransport(transport, client.Config)
+}
+
+// cloneDefaultTransport creates a cloned copy of the default HTTP transport.
+func cloneDefaultTransport(tlsConfig *tls.Config) http.RoundTripper {
+	defaultTransport, transportOk := http.DefaultTransport.(*http.Transport)
+	if !transportOk {
+		return http.DefaultTransport
+	}
+
+	clonedTransport := defaultTransport.Clone()
+
+	if tlsConfig != nil {
+		clonedTransport.TLSClientConfig = tlsConfig
+	}
+
+	return clonedTransport
 }

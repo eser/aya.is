@@ -14,7 +14,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
-func RegisterHTTPRoutesForProfileQuestions(
+func RegisterHTTPRoutesForProfileQuestions( //nolint:funlen,gocognit,cyclop,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -114,7 +114,8 @@ func RegisterHTTPRoutesForProfileQuestions(
 				IsAnonymous bool   `json:"is_anonymous"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+			err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
 			}
 
@@ -209,167 +210,23 @@ func RegisterHTTPRoutesForProfileQuestions(
 	).HasDescription("Toggle vote on a Q&A question")
 
 	// Answer a question (requires contributor+ access)
+	answerHandler := questionAnswerHandler(
+		logger, userService, profileQuestionsService, "create",
+	)
 	routes.Route(
 		"POST /{locale}/profiles/{slug}/_questions/{id}/answer",
 		AuthMiddleware(authService, userService),
-		func(ctx *httpfx.Context) httpfx.Result {
-			user, err := getUserFromContext(ctx, userService)
-			if err != nil {
-				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
-			}
-
-			if user.IndividualProfileID == nil {
-				return ctx.Results.BadRequest(
-					httpfx.WithErrorMessage(
-						"you must have an individual profile to answer questions",
-					),
-				)
-			}
-
-			slugParam := ctx.Request.PathValue("slug")
-			questionID := ctx.Request.PathValue("id")
-
-			var body struct {
-				AnswerContent string  `json:"answer_content"`
-				AnswerURI     *string `json:"answer_uri"`
-				AnswerKind    *string `json:"answer_kind"`
-			}
-
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
-			}
-
-			if body.AnswerContent == "" {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("answer_content is required"))
-			}
-
-			err = profileQuestionsService.AnswerQuestion(
-				ctx.Request.Context(),
-				profile_questions.AnswerQuestionParams{
-					ProfileSlug:       slugParam,
-					QuestionID:        questionID,
-					UserID:            user.ID,
-					AnswererProfileID: *user.IndividualProfileID,
-					AnswerContent:     body.AnswerContent,
-					AnswerURI:         body.AnswerURI,
-					AnswerKind:        body.AnswerKind,
-				},
-			)
-			if err != nil {
-				if errors.Is(err, profile_questions.ErrInsufficientPermission) {
-					return ctx.Results.Error(
-						http.StatusForbidden,
-						httpfx.WithErrorMessage("insufficient permission"),
-					)
-				}
-
-				if errors.Is(err, profile_questions.ErrQuestionNotFound) {
-					return ctx.Results.NotFound(httpfx.WithErrorMessage("question not found"))
-				}
-
-				if errors.Is(err, profile_questions.ErrQuestionAlreadyAnswered) {
-					return ctx.Results.Error(
-						http.StatusConflict,
-						httpfx.WithErrorMessage("question has already been answered"),
-					)
-				}
-
-				logger.ErrorContext(ctx.Request.Context(), "Failed to answer question",
-					slog.String("error", err.Error()),
-					slog.String("slug", slugParam),
-					slog.String("questionID", questionID))
-
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithSanitizedError(err),
-				)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": map[string]string{"status": "ok"},
-			})
-		},
+		answerHandler,
 	).HasDescription("Answer a Q&A question (contributor+ access)")
 
 	// Edit an answer (requires contributor+ access)
+	editAnswerHandler := questionAnswerHandler(
+		logger, userService, profileQuestionsService, answerModeEdit,
+	)
 	routes.Route(
 		"PUT /{locale}/profiles/{slug}/_questions/{id}/answer",
 		AuthMiddleware(authService, userService),
-		func(ctx *httpfx.Context) httpfx.Result {
-			user, err := getUserFromContext(ctx, userService)
-			if err != nil {
-				return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
-			}
-
-			if user.IndividualProfileID == nil {
-				return ctx.Results.BadRequest(
-					httpfx.WithErrorMessage("you must have an individual profile to edit answers"),
-				)
-			}
-
-			slugParam := ctx.Request.PathValue("slug")
-			questionID := ctx.Request.PathValue("id")
-
-			var body struct {
-				AnswerContent string  `json:"answer_content"`
-				AnswerURI     *string `json:"answer_uri"`
-				AnswerKind    *string `json:"answer_kind"`
-			}
-
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
-			}
-
-			if body.AnswerContent == "" {
-				return ctx.Results.BadRequest(httpfx.WithErrorMessage("answer_content is required"))
-			}
-
-			err = profileQuestionsService.EditAnswer(
-				ctx.Request.Context(),
-				profile_questions.AnswerQuestionParams{
-					ProfileSlug:       slugParam,
-					QuestionID:        questionID,
-					UserID:            user.ID,
-					AnswererProfileID: *user.IndividualProfileID,
-					AnswerContent:     body.AnswerContent,
-					AnswerURI:         body.AnswerURI,
-					AnswerKind:        body.AnswerKind,
-				},
-			)
-			if err != nil {
-				if errors.Is(err, profile_questions.ErrInsufficientPermission) {
-					return ctx.Results.Error(
-						http.StatusForbidden,
-						httpfx.WithErrorMessage("insufficient permission"),
-					)
-				}
-
-				if errors.Is(err, profile_questions.ErrQuestionNotFound) {
-					return ctx.Results.NotFound(httpfx.WithErrorMessage("question not found"))
-				}
-
-				if errors.Is(err, profile_questions.ErrQuestionNotAnswered) {
-					return ctx.Results.Error(
-						http.StatusConflict,
-						httpfx.WithErrorMessage("question has not been answered yet"),
-					)
-				}
-
-				logger.ErrorContext(ctx.Request.Context(), "Failed to edit answer",
-					slog.String("error", err.Error()),
-					slog.String("slug", slugParam),
-					slog.String("questionID", questionID))
-
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithSanitizedError(err),
-				)
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data": map[string]string{"status": "ok"},
-			})
-		},
+		editAnswerHandler,
 	).HasDescription("Edit an answer on a Q&A question (contributor+ access)")
 
 	// Hide/unhide a question (requires maintainer+ access)
@@ -389,7 +246,8 @@ func RegisterHTTPRoutesForProfileQuestions(
 				IsHidden bool `json:"is_hidden"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+			err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
 			}
 
@@ -426,4 +284,121 @@ func RegisterHTTPRoutesForProfileQuestions(
 			})
 		},
 	).HasDescription("Hide or unhide a Q&A question (maintainer+ access)")
+}
+
+const answerModeEdit = "edit"
+
+// questionAnswerHandler creates a handler for creating or editing answers on Q&A questions.
+// The mode parameter must be "create" or "edit".
+func questionAnswerHandler( //nolint:funlen
+	logger *logfx.Logger,
+	userService *users.Service,
+	profileQuestionsService *profile_questions.Service,
+	mode string,
+) func(ctx *httpfx.Context) httpfx.Result {
+	noProfileMsg := "you must have an individual profile to answer questions"
+	if mode == answerModeEdit {
+		noProfileMsg = "you must have an individual profile to edit answers"
+	}
+
+	return func(ctx *httpfx.Context) httpfx.Result {
+		user, err := getUserFromContext(ctx, userService)
+		if err != nil {
+			return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
+		}
+
+		if user.IndividualProfileID == nil {
+			return ctx.Results.BadRequest(httpfx.WithErrorMessage(noProfileMsg))
+		}
+
+		slugParam := ctx.Request.PathValue("slug")
+		questionID := ctx.Request.PathValue("id")
+
+		var body struct {
+			AnswerContent string  `json:"answer_content"`
+			AnswerURI     *string `json:"answer_uri"`
+			AnswerKind    *string `json:"answer_kind"`
+		}
+
+		decErr := json.NewDecoder(ctx.Request.Body).Decode(&body)
+		if decErr != nil {
+			return ctx.Results.BadRequest(httpfx.WithErrorMessage("invalid request body"))
+		}
+
+		if body.AnswerContent == "" {
+			return ctx.Results.BadRequest(httpfx.WithErrorMessage("answer_content is required"))
+		}
+
+		params := profile_questions.AnswerQuestionParams{
+			ProfileSlug:       slugParam,
+			QuestionID:        questionID,
+			UserID:            user.ID,
+			AnswererProfileID: *user.IndividualProfileID,
+			AnswerContent:     body.AnswerContent,
+			AnswerURI:         body.AnswerURI,
+			AnswerKind:        body.AnswerKind,
+		}
+
+		if mode == answerModeEdit {
+			err = profileQuestionsService.EditAnswer(ctx.Request.Context(), params)
+		} else {
+			err = profileQuestionsService.AnswerQuestion(ctx.Request.Context(), params)
+		}
+
+		if err != nil {
+			return handleQuestionAnswerError(ctx, logger, err, mode, slugParam, questionID)
+		}
+
+		return ctx.Results.JSON(map[string]any{
+			"data": map[string]string{"status": "ok"},
+		})
+	}
+}
+
+// handleQuestionAnswerError maps business errors from answer create/edit to HTTP responses.
+func handleQuestionAnswerError(
+	ctx *httpfx.Context,
+	logger *logfx.Logger,
+	err error,
+	mode, slugParam, questionID string,
+) httpfx.Result {
+	if errors.Is(err, profile_questions.ErrInsufficientPermission) {
+		return ctx.Results.Error(
+			http.StatusForbidden,
+			httpfx.WithErrorMessage("insufficient permission"),
+		)
+	}
+
+	if errors.Is(err, profile_questions.ErrQuestionNotFound) {
+		return ctx.Results.NotFound(httpfx.WithErrorMessage("question not found"))
+	}
+
+	if mode == "create" && errors.Is(err, profile_questions.ErrQuestionAlreadyAnswered) {
+		return ctx.Results.Error(
+			http.StatusConflict,
+			httpfx.WithErrorMessage("question has already been answered"),
+		)
+	}
+
+	if mode == answerModeEdit && errors.Is(err, profile_questions.ErrQuestionNotAnswered) {
+		return ctx.Results.Error(
+			http.StatusConflict,
+			httpfx.WithErrorMessage("question has not been answered yet"),
+		)
+	}
+
+	operation := "Failed to answer question"
+	if mode == answerModeEdit {
+		operation = "Failed to edit answer"
+	}
+
+	logger.ErrorContext(ctx.Request.Context(), operation,
+		slog.String("error", err.Error()),
+		slog.String("slug", slugParam),
+		slog.String("questionID", questionID))
+
+	return ctx.Results.Error(
+		http.StatusInternalServerError,
+		httpfx.WithSanitizedError(err),
+	)
 }

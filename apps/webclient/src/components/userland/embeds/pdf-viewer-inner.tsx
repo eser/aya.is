@@ -135,9 +135,7 @@ function PDFViewerInner(props: PDFViewerInnerProps) {
         <Document
           file={props.src}
           onLoadSuccess={onDocumentLoadSuccess}
-          loading={
-            <div className="p-8 text-center text-muted-foreground">Loading PDF...</div>
-          }
+          loading={<div className="p-8 text-center text-muted-foreground">Loading PDF...</div>}
           error={
             <div className="p-8 text-center text-muted-foreground">
               Failed to load PDF.{" "}

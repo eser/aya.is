@@ -27,7 +27,7 @@ type adminWorkerResponse struct {
 	Interval     string  `json:"interval"`
 }
 
-func RegisterHTTPRoutesForAdminWorkers(
+func RegisterHTTPRoutesForAdminWorkers( //nolint:gocognit,cyclop,funlen
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -46,7 +46,7 @@ func RegisterHTTPRoutesForAdminWorkers(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -61,6 +61,9 @@ func RegisterHTTPRoutesForAdminWorkers(
 						Name:         status.Name,
 						IsRunning:    status.IsRunning,
 						IsEnabled:    true,
+						LastRun:      nil,
+						NextRun:      nil,
+						LastError:    nil,
 						SuccessCount: status.SuccessCount,
 						SkipCount:    status.SkipCount,
 						ErrorCount:   status.ErrorCount,
@@ -124,7 +127,7 @@ func RegisterHTTPRoutesForAdminWorkers(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -189,7 +192,7 @@ func RegisterHTTPRoutesForAdminWorkers(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),

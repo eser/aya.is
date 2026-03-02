@@ -1,5 +1,12 @@
 // Profile route - loads profile data and passes through to children
-import { CatchNotFound, createFileRoute, ErrorComponent, getRouteApi, Outlet, useMatches } from "@tanstack/react-router";
+import {
+  CatchNotFound,
+  createFileRoute,
+  ErrorComponent,
+  getRouteApi,
+  Outlet,
+  useMatches,
+} from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";

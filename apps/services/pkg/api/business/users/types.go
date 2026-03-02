@@ -21,7 +21,7 @@ const (
 )
 
 // ValidSessionStatuses contains all valid session status values.
-var ValidSessionStatuses = map[SessionStatus]bool{
+var ValidSessionStatuses = map[SessionStatus]bool{ //nolint:gochecknoglobals
 	SessionStatusActive:     true,
 	SessionStatusLoggedOut:  true,
 	SessionStatusExpired:    true,

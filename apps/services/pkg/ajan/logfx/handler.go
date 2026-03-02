@@ -245,58 +245,62 @@ func ConvertSlogAttrsToOtelAttr(attrs []any) []attribute.KeyValue {
 	return logAttrs
 }
 
-// ConvertSlogAttrToOtelAttr converts a single slog.Attr to OpenTelemetry attribute.KeyValue.
-func ConvertSlogAttrToOtelAttr(attr slog.Attr) *attribute.KeyValue { //nolint:cyclop
-	key := attr.Key
-	value := attr.Value
-
+// slogAttrParts extracts the typed components of a slog.Attr based on its Kind.
+// Returns (stringVal, int64Val, float64Val, boolVal, kind) for the caller to construct
+// the appropriate target type. This avoids code duplication between OTel attribute and log converters.
+func slogAttrParts(value slog.Value) (string, int64, float64, bool) { //nolint:cyclop
 	switch value.Kind() {
 	case slog.KindString:
-		kv := attribute.String(key, value.String())
-
-		return &kv
+		return value.String(), 0, 0, false
 	case slog.KindInt64:
-		kv := attribute.Int64(key, value.Int64())
-
-		return &kv
+		return "", value.Int64(), 0, false
 	case slog.KindFloat64:
-		kv := attribute.Float64(key, value.Float64())
-
-		return &kv
+		return "", 0, value.Float64(), false
 	case slog.KindBool:
-		kv := attribute.Bool(key, value.Bool())
-
-		return &kv
+		return "", 0, 0, value.Bool()
 	case slog.KindTime:
-		kv := attribute.String(key, value.Time().Format(time.RFC3339Nano))
-
-		return &kv
+		return value.Time().Format(time.RFC3339Nano), 0, 0, false
 	case slog.KindUint64:
-		// Check for potential overflow before conversion
 		if value.Uint64() > math.MaxInt64 {
-			kv := attribute.String(key, value.String())
-
-			return &kv
+			return value.String(), 0, 0, false
 		}
 
-		kv := attribute.Int64(key, int64(value.Uint64()))
-
-		return &kv
+		return "", int64(value.Uint64()), 0, false
 	case slog.KindDuration:
-		kv := attribute.String(key, value.Duration().String())
-
-		return &kv
+		return value.Duration().String(), 0, 0, false
 	case slog.KindAny, slog.KindGroup, slog.KindLogValuer:
-		// For complex types, convert to string
-		kv := attribute.String(key, value.String())
-
-		return &kv
+		return value.String(), 0, 0, false
 	default:
-		// For any other types, convert to string
-		kv := attribute.String(key, value.String())
-
-		return &kv
+		return value.String(), 0, 0, false
 	}
+}
+
+// ConvertSlogAttrToOtelAttr converts a single slog.Attr to OpenTelemetry attribute.KeyValue.
+func ConvertSlogAttrToOtelAttr(attr slog.Attr) *attribute.KeyValue {
+	key := attr.Key
+	value := attr.Value
+	strVal, intVal, floatVal, boolVal := slogAttrParts(value)
+
+	var keyValue attribute.KeyValue
+
+	switch value.Kind() { //nolint:exhaustive
+	case slog.KindInt64:
+		keyValue = attribute.Int64(key, intVal)
+	case slog.KindFloat64:
+		keyValue = attribute.Float64(key, floatVal)
+	case slog.KindBool:
+		keyValue = attribute.Bool(key, boolVal)
+	case slog.KindUint64:
+		if value.Uint64() > math.MaxInt64 {
+			keyValue = attribute.String(key, strVal)
+		} else {
+			keyValue = attribute.Int64(key, intVal)
+		}
+	default:
+		keyValue = attribute.String(key, strVal)
+	}
+
+	return &keyValue
 }
 
 // ConvertSlogAttrsToOtelLog converts slog attributes to OpenTelemetry attributes.
@@ -317,57 +321,31 @@ func ConvertSlogAttrsToOtelLog(attrs []any) []log.KeyValue {
 }
 
 // ConvertSlogAttrToOtelLog converts a single slog.Attr to OpenTelemetry log.KeyValue.
-func ConvertSlogAttrToOtelLog(attr slog.Attr) *log.KeyValue { //nolint:cyclop
+func ConvertSlogAttrToOtelLog(attr slog.Attr) *log.KeyValue {
 	key := attr.Key
 	value := attr.Value
+	strVal, intVal, floatVal, boolVal := slogAttrParts(value)
 
-	switch value.Kind() {
-	case slog.KindString:
-		kv := log.String(key, value.String())
+	var keyValue log.KeyValue
 
-		return &kv
+	switch value.Kind() { //nolint:exhaustive
 	case slog.KindInt64:
-		kv := log.Int64(key, value.Int64())
-
-		return &kv
+		keyValue = log.Int64(key, intVal)
 	case slog.KindFloat64:
-		kv := log.Float64(key, value.Float64())
-
-		return &kv
+		keyValue = log.Float64(key, floatVal)
 	case slog.KindBool:
-		kv := log.Bool(key, value.Bool())
-
-		return &kv
-	case slog.KindTime:
-		kv := log.String(key, value.Time().Format(time.RFC3339Nano))
-
-		return &kv
+		keyValue = log.Bool(key, boolVal)
 	case slog.KindUint64:
-		// Check for potential overflow before conversion
 		if value.Uint64() > math.MaxInt64 {
-			kv := log.String(key, value.String())
-
-			return &kv
+			keyValue = log.String(key, strVal)
+		} else {
+			keyValue = log.Int64(key, intVal)
 		}
-
-		kv := log.Int64(key, int64(value.Uint64()))
-
-		return &kv
-	case slog.KindDuration:
-		kv := log.String(key, value.Duration().String())
-
-		return &kv
-	case slog.KindAny, slog.KindGroup, slog.KindLogValuer:
-		// For complex types, convert to string
-		kv := log.String(key, value.String())
-
-		return &kv
 	default:
-		// For any other types, convert to string
-		kv := log.String(key, value.String())
-
-		return &kv
+		keyValue = log.String(key, strVal)
 	}
+
+	return &keyValue
 }
 
 // isOTLPErrorLog checks if this is an OTLP error log to prevent recursion.

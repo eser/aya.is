@@ -35,7 +35,7 @@ func (r *RetryStrategy) NextBackoff(attempt uint) time.Duration {
 
 	// Apply random factor using fast math/rand (crypto security not needed for jitter)
 	if r.Config.RandomFactor > 0 {
-		random := 1 + r.Config.RandomFactor*(2*rand.Float64()-1)
+		random := 1 + r.Config.RandomFactor*(2*rand.Float64()-1) //nolint:gosec
 		backoff *= random
 	}
 

@@ -43,7 +43,7 @@ type GenerateCVPageParams struct {
 
 // GenerateCVPage orchestrates the full AI CV generation workflow:
 // check permissions, deduct points, gather profile data, generate via AI, and create page.
-func (s *Service) GenerateCVPage(
+func (s *Service) GenerateCVPage( //nolint:cyclop,funlen
 	ctx context.Context,
 	params GenerateCVPageParams,
 	generator ContentGenerator,
@@ -70,7 +70,7 @@ func (s *Service) GenerateCVPage(
 	}
 
 	// Find an available slug: cv, cv-2, cv-3, ...
-	pageSlug := "cv"
+	var pageSlug string
 
 	for i := 1; ; i++ {
 		candidate := "cv"
@@ -182,6 +182,7 @@ func (s *Service) GenerateCVPage(
 		EntityID:   page.ID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"locale":       params.Locale,
 			"generator":    "cv_from_linkedin",

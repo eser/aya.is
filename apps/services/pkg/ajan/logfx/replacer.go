@@ -37,8 +37,11 @@ func ReplacerGenerator(prettyMode bool) func([]string, slog.Attr) slog.Attr {
 		}
 
 		if attr.Value.Kind() == slog.KindAny {
-			if v, ok := attr.Value.Any().(error); ok {
-				attr.Value = fmtErr(v)
+			anyVal := attr.Value.Any()
+
+			errVal, isErr := anyVal.(error)
+			if isErr {
+				attr.Value = fmtErr(errVal)
 			}
 		}
 

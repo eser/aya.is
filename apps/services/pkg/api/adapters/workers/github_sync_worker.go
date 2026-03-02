@@ -105,7 +105,7 @@ func (w *GitHubSyncWorker) Execute(ctx context.Context) error {
 	disabledKey := "worker." + w.Name() + ".disabled"
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
-	if err == nil && disabled == "true" {
+	if err == nil && disabled == disabledStateValue {
 		return workerfx.ErrWorkerSkipped
 	}
 
@@ -190,7 +190,7 @@ type contributorInfo struct {
 //  2. Match: batch DB queries to find profiles and memberships
 //  3. Stats: fetch search stats ONLY for matched contributors
 //  4. Flush: write aggregated stats per membership
-func (w *GitHubSyncWorker) executeSync(ctx context.Context) error { //nolint:cyclop,funlen
+func (w *GitHubSyncWorker) executeSync(ctx context.Context) error {
 	w.logger.WarnContext(ctx, "Starting GitHub resource sync cycle")
 
 	resources, err := w.syncService.GetGitHubResourcesForSync(ctx, w.config.BatchSize)
@@ -298,26 +298,46 @@ func (w *GitHubSyncWorker) collectResourceData(
 		return
 	}
 
-	// Collect each contributor's appearance under this resource's profile
-	for _, c := range contributors {
-		remoteID := strconv.FormatInt(c.ID, 10)
+	collectContributors(
+		contributorMap,
+		contributors,
+		resource.ProfileID,
+		owner,
+		repo,
+		repoInfo.Stars,
+		accessToken,
+	)
+}
+
+// collectContributors adds each contributor's appearance to the contributor map.
+func collectContributors(
+	contributorMap map[string]*contributorInfo,
+	contributors []*GitHubContributorResult,
+	profileID string,
+	owner string,
+	repo string,
+	stars int,
+	accessToken string,
+) {
+	for _, contributor := range contributors {
+		remoteID := strconv.FormatInt(contributor.ID, 10)
 
 		info, exists := contributorMap[remoteID]
 		if !exists {
 			info = &contributorInfo{
-				login:          c.Login,
+				login:          contributor.Login,
 				reposByProfile: make(map[string][]contributorRepoStats),
 			}
 			contributorMap[remoteID] = info
 		}
 
-		info.reposByProfile[resource.ProfileID] = append(
-			info.reposByProfile[resource.ProfileID],
+		info.reposByProfile[profileID] = append(
+			info.reposByProfile[profileID],
 			contributorRepoStats{
 				owner:       owner,
 				repo:        repo,
-				stars:       repoInfo.Stars,
-				commits:     c.Contributions,
+				stars:       stars,
+				commits:     contributor.Contributions,
 				accessToken: accessToken,
 			},
 		)
@@ -416,22 +436,29 @@ func (w *GitHubSyncWorker) batchMatchContributors( //nolint:cyclop,funlen
 
 			acc, exists := membershipStats[membershipID]
 			if !exists {
-				acc = &membershipStatsAccumulator{}
+				acc = &membershipStatsAccumulator{
+					commits:        0,
+					prsTotal:       0,
+					prsResolved:    0,
+					issuesTotal:    0,
+					issuesResolved: 0,
+					stars:          0,
+				}
 				membershipStats[membershipID] = acc
 			}
 
-			for _, r := range repos {
+			for _, repoStats := range repos {
 				// Accumulate commits and stars directly (already fetched from REST).
-				acc.commits += r.commits
-				acc.stars += r.stars
+				acc.commits += repoStats.commits
+				acc.stars += repoStats.stars
 
 				if batchAccessToken == "" {
-					batchAccessToken = r.accessToken
+					batchAccessToken = repoStats.accessToken
 				}
 
 				// Build 4 search queries per (contributor, repo) pair.
-				repoQ := "repo:" + r.owner + "/" + r.repo
-				prefix := sanitizeAlias(remoteID + "_" + r.owner + "_" + r.repo)
+				repoQ := "repo:" + repoStats.owner + "/" + repoStats.repo
+				prefix := sanitizeAlias(remoteID + "_" + repoStats.owner + "_" + repoStats.repo)
 
 				searchQueries[prefix+"_pr"] = repoQ + " type:pr author:" + info.login
 				aliasToMembership[prefix+"_pr"] = membershipID
@@ -464,23 +491,31 @@ func (w *GitHubSyncWorker) batchMatchContributors( //nolint:cyclop,funlen
 
 // sanitizeAlias converts a string to a valid GraphQL alias name.
 // This is a local re-export of the pattern used by the GitHub client.
-func sanitizeAlias(s string) string {
-	var b strings.Builder
+func sanitizeAlias(input string) string {
+	var builder strings.Builder
 
-	for _, c := range s {
-		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' {
-			b.WriteRune(c)
+	for _, char := range input {
+		if isAlphanumericOrUnderscore(char) {
+			builder.WriteRune(char)
 		} else {
-			b.WriteByte('_')
+			builder.WriteByte('_')
 		}
 	}
 
-	cleaned := b.String()
+	cleaned := builder.String()
 	if len(cleaned) == 0 || (cleaned[0] >= '0' && cleaned[0] <= '9') {
 		return "a_" + cleaned
 	}
 
 	return cleaned
+}
+
+// isAlphanumericOrUnderscore checks if a rune is a valid GraphQL alias character.
+func isAlphanumericOrUnderscore(char rune) bool {
+	return (char >= 'a' && char <= 'z') ||
+		(char >= 'A' && char <= 'Z') ||
+		(char >= '0' && char <= '9') ||
+		char == '_'
 }
 
 // executeBatchSearch runs all search queries via GraphQL batch. On failure,
@@ -600,7 +635,12 @@ func (w *GitHubSyncWorker) flushMembershipStats(
 		},
 	}
 
-	return w.syncService.UpdateMembershipProperties(ctx, membershipID, properties)
+	err := w.syncService.UpdateMembershipProperties(ctx, membershipID, properties)
+	if err != nil {
+		return fmt.Errorf("failed to update membership properties: %w", err)
+	}
+
+	return nil
 }
 
 // mapSetToSlice converts a map[string]bool set to a string slice.
@@ -613,10 +653,12 @@ func mapSetToSlice(set map[string]bool) []string {
 	return result
 }
 
+const ownerRepoParts = 2 // expected number of segments in "owner/repo"
+
 // parseOwnerRepo splits "owner/repo" into its parts.
 func parseOwnerRepo(publicID string) (string, string, bool) {
-	parts := strings.SplitN(publicID, "/", 2)
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+	parts := strings.SplitN(publicID, "/", ownerRepoParts)
+	if len(parts) != ownerRepoParts || parts[0] == "" || parts[1] == "" {
 		return "", "", false
 	}
 

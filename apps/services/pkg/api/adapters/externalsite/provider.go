@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	neturl "net/url"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
@@ -125,44 +126,27 @@ func (p *Provider) fetchAndParseFile(
 		return nil, err
 	}
 
-	fm, body, err := ParseMarkdownFile(content, filePath)
+	frontMatter, body, err := ParseMarkdownFile(content, filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse frontmatter: %w", err)
 	}
 
-	// Build properties
-	props := map[string]any{
-		"source_path": filePath,
-	}
-
-	if body != "" {
-		sanitized := SanitizeContent(body)
-		props["content"] = ResolveRelativeImages(sanitized, ownerRepo, branch, filePath)
-	}
-
-	if fm.Slug != "" {
-		props["slug"] = fm.Slug
-	}
-
-	if fm.Language != "" {
-		props["language"] = fm.Language
-	}
-
-	if len(fm.Tags) > 0 {
-		props["tags"] = fm.Tags
-	}
+	props := buildImportProperties(frontMatter, body, ownerRepo, branch, filePath)
 
 	// Build description — strip HTML and markdown for clean plain text
-	description := SanitizeDescription(fm.Description)
+	description := SanitizeDescription(frontMatter.Description)
+
+	const maxDescriptionLen = 200
+
 	if description == "" && len(body) > 0 {
-		description = truncateString(SanitizeDescription(body), 200)
+		description = truncateString(SanitizeDescription(body), maxDescriptionLen)
 	}
 
 	// Determine story kind from directory
 	storyKind := storyKindFromPath(filePath)
 
 	// Build the GitHub blob URL for the file
-	parts := strings.SplitN(ownerRepo, "/", 2)
+	parts := strings.SplitN(ownerRepo, "/", ownerRepoParts)
 	blobURL := fmt.Sprintf(
 		"https://github.com/%s/blob/%s/%s",
 		escapeOwnerRepo(ownerRepo),
@@ -170,21 +154,24 @@ func (p *Provider) fetchAndParseFile(
 		filePath,
 	)
 
-	if len(parts) != 2 {
+	if len(parts) != ownerRepoParts {
 		blobURL = ""
 	}
 
-	item := &siteimporter.ImportItem{
-		RemoteID:    filePath,
-		Title:       fm.Title,
-		Description: description,
-		Link:        blobURL,
-		StoryKind:   storyKind,
-		Properties:  props,
+	var publishedAt time.Time
+	if frontMatter.Date != nil {
+		publishedAt = *frontMatter.Date
 	}
 
-	if fm.Date != nil {
-		item.PublishedAt = *fm.Date
+	item := &siteimporter.ImportItem{
+		RemoteID:     filePath,
+		Title:        frontMatter.Title,
+		Description:  description,
+		Link:         blobURL,
+		ThumbnailURL: "",
+		StoryKind:    storyKind,
+		Properties:   props,
+		PublishedAt:  publishedAt,
 	}
 
 	return item, nil
@@ -203,8 +190,7 @@ func extractOwnerRepo(rawURL string) string {
 	}
 
 	// Handle SSH format: git@github.com:owner/repo.git
-	if strings.HasPrefix(rawURL, "git@github.com:") {
-		path := strings.TrimPrefix(rawURL, "git@github.com:")
+	if path, found := strings.CutPrefix(rawURL, "git@github.com:"); found {
 		path = strings.TrimSuffix(path, ".git")
 
 		return normalizeOwnerRepo(path)
@@ -229,8 +215,10 @@ func extractOwnerRepo(rawURL string) string {
 
 // normalizeOwnerRepo validates and normalizes an "owner/repo" string.
 func normalizeOwnerRepo(path string) string {
-	parts := strings.SplitN(path, "/", 3) //nolint:mnd
-	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+	const maxSplitParts = 3
+
+	parts := strings.SplitN(path, "/", maxSplitParts)
+	if len(parts) < ownerRepoParts || parts[0] == "" || parts[1] == "" {
 		return ""
 	}
 
@@ -251,14 +239,46 @@ func storyKindFromPath(filePath string) string {
 	}
 }
 
+// buildImportProperties constructs the properties map for an import item from frontmatter and body.
+func buildImportProperties(
+	frontMatter *ParsedFrontmatter,
+	body string,
+	ownerRepo string,
+	branch string,
+	filePath string,
+) map[string]any {
+	props := map[string]any{
+		"source_path": filePath,
+	}
+
+	if body != "" {
+		sanitized := SanitizeContent(body)
+		props["content"] = ResolveRelativeImages(sanitized, ownerRepo, branch, filePath)
+	}
+
+	if frontMatter.Slug != "" {
+		props["slug"] = frontMatter.Slug
+	}
+
+	if frontMatter.Language != "" {
+		props["language"] = frontMatter.Language
+	}
+
+	if len(frontMatter.Tags) > 0 {
+		props["tags"] = frontMatter.Tags
+	}
+
+	return props
+}
+
 // truncateString truncates a string to maxLen characters at a word boundary.
-func truncateString(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
+func truncateString(text string, maxLen int) string {
+	if len(text) <= maxLen {
+		return text
 	}
 
 	// Find the last space before maxLen
-	truncated := s[:maxLen]
+	truncated := text[:maxLen]
 	lastSpace := strings.LastIndex(truncated, " ")
 
 	if lastSpace > 0 {

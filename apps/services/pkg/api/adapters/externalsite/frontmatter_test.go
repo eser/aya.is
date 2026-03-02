@@ -1,4 +1,4 @@
-package externalsite
+package externalsite //nolint:testpackage // white-box test uses unexported helpers
 
 import (
 	"testing"
@@ -22,34 +22,34 @@ tags = ["functional", "programming"]
 
 This is the body.`
 
-	fm, body, err := ParseMarkdownFile(content, "content/posts/fp-roadmap.md")
+	frontMatter, body, err := ParseMarkdownFile(content, "content/posts/fp-roadmap.md")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if fm.Title != "FP Roadmap" {
-		t.Errorf("expected title %q, got %q", "FP Roadmap", fm.Title)
+	if frontMatter.Title != "FP Roadmap" {
+		t.Errorf("expected title %q, got %q", "FP Roadmap", frontMatter.Title)
 	}
 
-	if fm.Slug != "fp-roadmap" {
-		t.Errorf("expected slug %q, got %q", "fp-roadmap", fm.Slug)
+	if frontMatter.Slug != "fp-roadmap" {
+		t.Errorf("expected slug %q, got %q", "fp-roadmap", frontMatter.Slug)
 	}
 
-	if fm.Description != "A functional programming roadmap" {
+	if frontMatter.Description != "A functional programming roadmap" {
 		t.Errorf(
 			"expected description %q, got %q",
 			"A functional programming roadmap",
-			fm.Description,
+			frontMatter.Description,
 		)
 	}
 
-	if fm.Date == nil {
+	if frontMatter.Date == nil {
 		t.Fatal("expected date to be set")
 	}
 
 	expectedDate := time.Date(2024, 3, 15, 10, 0, 0, 0, time.UTC)
-	if !fm.Date.Equal(expectedDate) {
-		t.Errorf("expected date %v, got %v", expectedDate, *fm.Date)
+	if !frontMatter.Date.Equal(expectedDate) {
+		t.Errorf("expected date %v, got %v", expectedDate, *frontMatter.Date)
 	}
 
 	if body != "# Hello World\n\nThis is the body." {
@@ -57,11 +57,12 @@ This is the body.`
 	}
 
 	// Check extra fields (taxonomies)
-	if fm.Extra["taxonomies"] == nil {
+	if frontMatter.Extra["taxonomies"] == nil {
 		t.Error("expected taxonomies in extra")
 	}
 }
 
+//nolint:cyclop // thorough frontmatter field assertions
 func TestParseMarkdownFile_YAMLFrontmatter(t *testing.T) {
 	t.Parallel()
 
@@ -77,30 +78,30 @@ description: "A Hugo blog post"
 
 Some markdown content here.`
 
-	fm, body, err := ParseMarkdownFile(content, "content/posts/my-hugo-post.md")
+	frontMatter, body, err := ParseMarkdownFile(content, "content/posts/my-hugo-post.md")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if fm.Title != "My Hugo Post" {
-		t.Errorf("expected title %q, got %q", "My Hugo Post", fm.Title)
+	if frontMatter.Title != "My Hugo Post" {
+		t.Errorf("expected title %q, got %q", "My Hugo Post", frontMatter.Title)
 	}
 
-	if fm.Slug != "my-hugo-post" {
-		t.Errorf("expected slug %q, got %q", "my-hugo-post", fm.Slug)
+	if frontMatter.Slug != "my-hugo-post" {
+		t.Errorf("expected slug %q, got %q", "my-hugo-post", frontMatter.Slug)
 	}
 
-	if fm.Description != "A Hugo blog post" {
-		t.Errorf("expected description %q, got %q", "A Hugo blog post", fm.Description)
+	if frontMatter.Description != "A Hugo blog post" {
+		t.Errorf("expected description %q, got %q", "A Hugo blog post", frontMatter.Description)
 	}
 
 	expectedDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
-	if fm.Date == nil || !fm.Date.Equal(expectedDate) {
-		t.Errorf("expected date %v, got %v", expectedDate, fm.Date)
+	if frontMatter.Date == nil || !frontMatter.Date.Equal(expectedDate) {
+		t.Errorf("expected date %v, got %v", expectedDate, frontMatter.Date)
 	}
 
-	if len(fm.Tags) != 2 || fm.Tags[0] != "go" || fm.Tags[1] != "web" {
-		t.Errorf("expected tags [go, web], got %v", fm.Tags)
+	if len(frontMatter.Tags) != 2 || frontMatter.Tags[0] != "go" || frontMatter.Tags[1] != "web" {
+		t.Errorf("expected tags [go, web], got %v", frontMatter.Tags)
 	}
 
 	if body != "Some markdown content here." {
@@ -115,13 +116,13 @@ func TestParseMarkdownFile_NoFrontmatter(t *testing.T) {
 
 No frontmatter here.`
 
-	fm, body, err := ParseMarkdownFile(content, "content/posts/plain.md")
+	frontMatter, body, err := ParseMarkdownFile(content, "content/posts/plain.md")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if fm.Slug != "plain" {
-		t.Errorf("expected slug %q, got %q", "plain", fm.Slug)
+	if frontMatter.Slug != "plain" {
+		t.Errorf("expected slug %q, got %q", "plain", frontMatter.Slug)
 	}
 
 	if body != content {
@@ -138,17 +139,17 @@ title: "Turkish Post"
 
 İçerik burada.`
 
-	fm, _, err := ParseMarkdownFile(content, "content/posts/my-post.tr.md")
+	frontMatter, _, err := ParseMarkdownFile(content, "content/posts/my-post.tr.md")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if fm.Language != "tr" {
-		t.Errorf("expected language %q, got %q", "tr", fm.Language)
+	if frontMatter.Language != "tr" {
+		t.Errorf("expected language %q, got %q", "tr", frontMatter.Language)
 	}
 
-	if fm.Slug != "my-post.tr" {
-		t.Errorf("expected slug %q, got %q", "my-post.tr", fm.Slug)
+	if frontMatter.Slug != "my-post.tr" {
+		t.Errorf("expected slug %q, got %q", "my-post.tr", frontMatter.Slug)
 	}
 }
 
@@ -162,13 +163,13 @@ language = "de"
 
 Inhalt hier.`
 
-	fm, _, err := ParseMarkdownFile(content, "content/posts/explicit-lang.md")
+	frontMatter, _, err := ParseMarkdownFile(content, "content/posts/explicit-lang.md")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if fm.Language != "de" {
-		t.Errorf("expected language %q, got %q", "de", fm.Language)
+	if frontMatter.Language != "de" {
+		t.Errorf("expected language %q, got %q", "de", frontMatter.Language)
 	}
 }
 
@@ -194,10 +195,10 @@ func TestSlugFromPath(t *testing.T) {
 		{"content/posts/mdx-bundle/index.mdx", "mdx-bundle"},
 	}
 
-	for _, tt := range tests {
-		got := slugFromPath(tt.path)
-		if got != tt.want {
-			t.Errorf("slugFromPath(%q) = %q, want %q", tt.path, got, tt.want)
+	for _, testCase := range tests {
+		got := slugFromPath(testCase.path)
+		if got != testCase.want {
+			t.Errorf("slugFromPath(%q) = %q, want %q", testCase.path, got, testCase.want)
 		}
 	}
 }
@@ -264,10 +265,10 @@ func TestIsMarkdownFile(t *testing.T) {
 		{"noext", false},
 	}
 
-	for _, tt := range tests {
-		got := isMarkdownFile(tt.path)
-		if got != tt.want {
-			t.Errorf("isMarkdownFile(%q) = %v, want %v", tt.path, got, tt.want)
+	for _, testCase := range tests {
+		got := isMarkdownFile(testCase.path)
+		if got != testCase.want {
+			t.Errorf("isMarkdownFile(%q) = %v, want %v", testCase.path, got, testCase.want)
 		}
 	}
 }

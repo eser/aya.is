@@ -56,7 +56,12 @@ function ProfileStoriesIndexPage() {
   }
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <div className="content">
         <StoriesPageClient
           initialStories={stories}

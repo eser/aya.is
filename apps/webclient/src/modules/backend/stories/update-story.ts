@@ -1,5 +1,5 @@
 import { fetcher } from "@/modules/backend/fetcher";
-import type { UpdateStoryInput, Story } from "@/modules/backend/types";
+import type { Story, UpdateStoryInput } from "@/modules/backend/types";
 
 export type UpdateStoryData = Story;
 

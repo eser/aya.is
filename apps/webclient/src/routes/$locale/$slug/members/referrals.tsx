@@ -22,8 +22,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       backend.getProfilePermissions(locale, slug),
     ]);
 
-    const isMemberPlus =
-      permissions?.viewer_membership_kind !== undefined &&
+    const isMemberPlus = permissions?.viewer_membership_kind !== undefined &&
       permissions.viewer_membership_kind !== null &&
       MEMBER_PLUS_KINDS.has(permissions.viewer_membership_kind);
 

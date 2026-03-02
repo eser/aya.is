@@ -10,16 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Coins, Plus, Loader2, CheckCircle } from "lucide-react";
+import { CheckCircle, Coins, Loader2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/profiles/$slug/points")({
   loader: async ({ params }) => {
@@ -158,9 +151,7 @@ function AdminProfilePoints() {
               rows={2}
             />
           </div>
-          {awardError !== null && (
-            <p className="text-sm text-destructive">{awardError}</p>
-          )}
+          {awardError !== null && <p className="text-sm text-destructive">{awardError}</p>}
           {awardSuccess && (
             <p className="text-sm text-green-600 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
@@ -168,11 +159,7 @@ function AdminProfilePoints() {
             </p>
           )}
           <Button onClick={handleAwardPoints} disabled={isAwarding}>
-            {isAwarding ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Plus className="h-4 w-4 mr-2" />
-            )}
+            {isAwarding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
             {t("Admin.Add Points")}
           </Button>
         </CardContent>
@@ -187,58 +174,58 @@ function AdminProfilePoints() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {transactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {t("Admin.No transactions found")}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("Common.Type")}</TableHead>
-                  <TableHead>{t("Common.Description")}</TableHead>
-                  <TableHead className="text-right">{t("Common.Amount")}</TableHead>
-                  <TableHead className="text-right">{t("Admin.Balance After")}</TableHead>
-                  <TableHead>{t("Common.Date")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell>{getTransactionTypeBadge(tx.transaction_type)}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {tx.description}
-                      {tx.triggering_event !== null && (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          ({tx.triggering_event})
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      <span
-                        className={
-                          tx.transaction_type === "GAIN"
+          {transactions.length === 0
+            ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {t("Admin.No transactions found")}
+              </div>
+            )
+            : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("Common.Type")}</TableHead>
+                    <TableHead>{t("Common.Description")}</TableHead>
+                    <TableHead className="text-right">{t("Common.Amount")}</TableHead>
+                    <TableHead className="text-right">{t("Admin.Balance After")}</TableHead>
+                    <TableHead>{t("Common.Date")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((tx) => (
+                    <TableRow key={tx.id}>
+                      <TableCell>{getTransactionTypeBadge(tx.transaction_type)}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {tx.description}
+                        {tx.triggering_event !== null && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            ({tx.triggering_event})
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        <span
+                          className={tx.transaction_type === "GAIN"
                             ? "text-green-600"
                             : tx.transaction_type === "SPEND"
-                              ? "text-red-600"
-                              : ""
-                        }
-                      >
-                        {tx.transaction_type === "GAIN" ? "+" : "-"}
-                        {tx.amount.toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {tx.balance_after.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDateTimeShort(new Date(tx.created_at), locale)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                            ? "text-red-600"
+                            : ""}
+                        >
+                          {tx.transaction_type === "GAIN" ? "+" : "-"}
+                          {tx.amount.toLocaleString()}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {tx.balance_after.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDateTimeShort(new Date(tx.created_at), locale)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
         </CardContent>
       </Card>
     </div>

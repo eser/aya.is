@@ -1,9 +1,4 @@
-import {
-  DEFAULT_LOCALE,
-  isValidLocale,
-  SUPPORTED_LOCALES,
-  type SupportedLocaleCode,
-} from "@/config";
+import { DEFAULT_LOCALE, isValidLocale, SUPPORTED_LOCALES, type SupportedLocaleCode } from "@/lib/locale-utils.ts";
 
 const SAFE_IMAGE_PROTOCOLS = ["https:", "http:", "data:", "blob:"];
 

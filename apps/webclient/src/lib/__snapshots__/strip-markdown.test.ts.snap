@@ -1,0 +1,43 @@
+export const snapshot = {};
+
+snapshot[`stripMarkdown - bold removal 1`] = `"This is bold text"`;
+
+snapshot[`stripMarkdown - bold removal 2`] = `"This is bold text"`;
+
+snapshot[`stripMarkdown - italic removal 1`] = `"This is italic text"`;
+
+snapshot[`stripMarkdown - italic removal 2`] = `"This is italic text"`;
+
+snapshot[`stripMarkdown - strikethrough removal 1`] = `"This is deleted text"`;
+
+snapshot[`stripMarkdown - link removal keeps text 1`] = `"Visit our site today"`;
+
+snapshot[`stripMarkdown - image removal keeps alt text 1`] = `"Look at a cat here"`;
+
+snapshot[`stripMarkdown - code block removal 1`] = `"Before  after"`;
+
+snapshot[`stripMarkdown - inline code removal 1`] = `"Use console.log() for debugging"`;
+
+snapshot[`stripMarkdown - heading markers removal 1`] = `"Heading 1"`;
+
+snapshot[`stripMarkdown - heading markers removal 2`] = `"Heading 2"`;
+
+snapshot[`stripMarkdown - heading markers removal 3`] = `"Heading 3"`;
+
+snapshot[`stripMarkdown - blockquote removal 1`] = `"This is a quote"`;
+
+snapshot[`stripMarkdown - list markers removal 1`] = `"Item one"`;
+
+snapshot[`stripMarkdown - list markers removal 2`] = `"Item two"`;
+
+snapshot[`stripMarkdown - list markers removal 3`] = `"Item three"`;
+
+snapshot[`stripMarkdown - list markers removal 4`] = `"Ordered item"`;
+
+snapshot[`stripMarkdown - combined formatting 1`] = `"Bold heading with a link and code"`;
+
+snapshot[`stripMarkdown - edge cases 1`] = `""`;
+
+snapshot[`stripMarkdown - edge cases 2`] = `"Plain text with no markdown"`;
+
+snapshot[`stripMarkdown - edge cases 3`] = `"leading and trailing whitespace"`;

@@ -13,7 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
-func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
+func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop,gocognit,gocyclo,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -110,7 +110,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 				}
 
 				// Admin or Lead/Owner of the sender profile
-				isAdmin := user.Kind == "admin"
+				isAdmin := user.Kind == userKindAdmin
 
 				if !isAdmin {
 					canSend, permErr := profileService.HasUserAccessToProfile(
@@ -205,13 +205,14 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 				envelope, createErr := mailboxService.SendSystemEnvelope(
 					ctx.Request.Context(),
 					&mailbox.SendMessageParams{
-						TargetProfileID:    body.TargetProfileID,
 						SenderProfileID:    senderProfile.ID,
+						TargetProfileID:    body.TargetProfileID,
 						SenderUserID:       &user.ID,
 						Kind:               body.Kind,
 						ConversationTitle:  body.ConversationTitle,
 						Message:            msgPtr,
 						Properties:         body.Properties,
+						ReplyToID:          nil,
 						SenderProfileTitle: senderProfile.Title,
 						Locale:             localeParam,
 					},
@@ -273,7 +274,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 				}
 
 				// Admin or Lead/Owner of sender profile can revoke
-				isAdmin := user.Kind == "admin"
+				isAdmin := user.Kind == userKindAdmin
 
 				if !isAdmin {
 					canRevoke, permErr := profileService.HasUserAccessToProfile(
@@ -312,7 +313,7 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop
 }
 
 // envelopeActionHandler creates a handler for accept/reject actions on envelopes.
-func envelopeActionHandler(
+func envelopeActionHandler( //nolint:cyclop,funlen
 	logger *logfx.Logger,
 	userService *users.Service,
 	profileService *profiles.Service,

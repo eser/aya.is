@@ -14,8 +14,7 @@ export async function initiateProfileLinkOAuth(
   const token = getAuthToken();
   if (token === null) return null;
 
-  let url =
-    `${getBackendUri()}/${locale}/profiles/${slug}/_links/connect/${provider}`;
+  let url = `${getBackendUri()}/${locale}/profiles/${slug}/_links/connect/${provider}`;
   if (scopeUpgrade !== undefined) {
     url += `?scope_upgrade=${scopeUpgrade}`;
   }

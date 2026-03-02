@@ -54,25 +54,27 @@ func (a *bulletinAdapter) GetActiveSubscriptionsForWindow(
 	result := make([]*bulletinbiz.Subscription, 0, len(rows))
 
 	for _, row := range rows {
-		sub := &bulletinbiz.Subscription{
-			ID:            row.ID,
-			ProfileID:     row.ProfileID,
-			ProfileSlug:   row.ProfileSlug,
-			Channel:       bulletinbiz.ChannelKind(row.Channel),
-			Frequency:     bulletinbiz.DigestFrequency(row.Frequency),
-			PreferredTime: int(row.PreferredTime),
-			DefaultLocale: strings.TrimRight(row.DefaultLocale, " "),
-			CreatedAt:     row.CreatedAt,
-		}
-
+		var lastBulletinAt *time.Time
 		if row.LastBulletinAt.Valid {
-			t := row.LastBulletinAt.Time
-			sub.LastBulletinAt = &t
+			lastBulletinAt = &row.LastBulletinAt.Time
 		}
 
+		var updatedAt *time.Time
 		if row.UpdatedAt.Valid {
-			t := row.UpdatedAt.Time
-			sub.UpdatedAt = &t
+			updatedAt = &row.UpdatedAt.Time
+		}
+
+		sub := &bulletinbiz.Subscription{
+			CreatedAt:      row.CreatedAt,
+			LastBulletinAt: lastBulletinAt,
+			UpdatedAt:      updatedAt,
+			ID:             row.ID,
+			ProfileID:      row.ProfileID,
+			ProfileSlug:    row.ProfileSlug,
+			Channel:        bulletinbiz.ChannelKind(row.Channel),
+			Frequency:      bulletinbiz.DigestFrequency(row.Frequency),
+			DefaultLocale:  strings.TrimRight(row.DefaultLocale, " "),
+			PreferredTime:  int(row.PreferredTime),
 		}
 
 		result = append(result, sub)
@@ -104,7 +106,15 @@ func (a *bulletinAdapter) GetFollowedProfileStoriesSince(
 	result := make([]*bulletinbiz.DigestStory, 0, len(rows))
 
 	for _, row := range rows {
+		var publishedAt *time.Time
+		if t, ok := row.PublishedAt.(time.Time); ok {
+			publishedAt = &t
+		}
+
 		story := &bulletinbiz.DigestStory{
+			PublishedAt:             publishedAt,
+			StoryPictureURI:         ptrFromNullString(row.StoryPictureURI),
+			SummaryAI:               ptrFromNullString(row.StorySummaryAi),
 			StoryID:                 row.StoryID,
 			Slug:                    row.StorySlug,
 			Kind:                    row.StoryKind,
@@ -115,13 +125,6 @@ func (a *bulletinAdapter) GetFollowedProfileStoriesSince(
 			AuthorSlug:              row.AuthorProfileSlug,
 			AuthorTitle:             row.AuthorProfileTitle,
 			AuthorProfilePictureURI: ptrFromNullString(row.AuthorProfilePictureURI),
-		}
-
-		story.StoryPictureURI = ptrFromNullString(row.StoryPictureURI)
-		story.SummaryAI = ptrFromNullString(row.StorySummaryAi)
-
-		if t, ok := row.PublishedAt.(time.Time); ok {
-			story.PublishedAt = &t
 		}
 
 		result = append(result, story)
@@ -172,23 +175,27 @@ func (a *bulletinAdapter) GetSubscriptionsByProfileID(
 	result := make([]*bulletinbiz.Subscription, 0, len(rows))
 
 	for _, row := range rows {
-		sub := &bulletinbiz.Subscription{
-			ID:            row.ID,
-			ProfileID:     row.ProfileID,
-			Channel:       bulletinbiz.ChannelKind(row.Channel),
-			Frequency:     bulletinbiz.DigestFrequency(row.Frequency),
-			PreferredTime: int(row.PreferredTime),
-			CreatedAt:     row.CreatedAt,
-		}
-
+		var lastBulletinAt *time.Time
 		if row.LastBulletinAt.Valid {
-			t := row.LastBulletinAt.Time
-			sub.LastBulletinAt = &t
+			lastBulletinAt = &row.LastBulletinAt.Time
 		}
 
+		var updatedAt *time.Time
 		if row.UpdatedAt.Valid {
-			t := row.UpdatedAt.Time
-			sub.UpdatedAt = &t
+			updatedAt = &row.UpdatedAt.Time
+		}
+
+		sub := &bulletinbiz.Subscription{
+			CreatedAt:      row.CreatedAt,
+			LastBulletinAt: lastBulletinAt,
+			UpdatedAt:      updatedAt,
+			ID:             row.ID,
+			ProfileID:      row.ProfileID,
+			ProfileSlug:    "",
+			Channel:        bulletinbiz.ChannelKind(row.Channel),
+			Frequency:      bulletinbiz.DigestFrequency(row.Frequency),
+			DefaultLocale:  "",
+			PreferredTime:  int(row.PreferredTime),
 		}
 
 		result = append(result, sub)
@@ -212,23 +219,27 @@ func (a *bulletinAdapter) GetSubscription(
 		return nil, err
 	}
 
-	sub := &bulletinbiz.Subscription{
-		ID:            row.ID,
-		ProfileID:     row.ProfileID,
-		Channel:       bulletinbiz.ChannelKind(row.Channel),
-		Frequency:     bulletinbiz.DigestFrequency(row.Frequency),
-		PreferredTime: int(row.PreferredTime),
-		CreatedAt:     row.CreatedAt,
-	}
-
+	var lastBulletinAt *time.Time
 	if row.LastBulletinAt.Valid {
-		t := row.LastBulletinAt.Time
-		sub.LastBulletinAt = &t
+		lastBulletinAt = &row.LastBulletinAt.Time
 	}
 
+	var updatedAt *time.Time
 	if row.UpdatedAt.Valid {
-		t := row.UpdatedAt.Time
-		sub.UpdatedAt = &t
+		updatedAt = &row.UpdatedAt.Time
+	}
+
+	sub := &bulletinbiz.Subscription{
+		CreatedAt:      row.CreatedAt,
+		LastBulletinAt: lastBulletinAt,
+		UpdatedAt:      updatedAt,
+		ID:             row.ID,
+		ProfileID:      row.ProfileID,
+		ProfileSlug:    "",
+		Channel:        bulletinbiz.ChannelKind(row.Channel),
+		Frequency:      bulletinbiz.DigestFrequency(row.Frequency),
+		DefaultLocale:  "",
+		PreferredTime:  int(row.PreferredTime),
 	}
 
 	return sub, nil
@@ -251,14 +262,14 @@ func (a *bulletinAdapter) UpsertSubscription(
 
 func (a *bulletinAdapter) UpdateSubscriptionPreferences(
 	ctx context.Context,
-	id string,
+	subscriptionID string,
 	frequency bulletinbiz.DigestFrequency,
 	preferredTime int,
 ) error {
 	return a.repo.queries.UpdateBulletinSubscriptionPreferences(
 		ctx,
 		UpdateBulletinSubscriptionPreferencesParams{
-			ID:            id,
+			ID:            subscriptionID,
 			Frequency:     string(frequency),
 			PreferredTime: int16(preferredTime),
 		},

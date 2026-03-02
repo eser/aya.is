@@ -7,6 +7,16 @@ import (
 	"strconv"
 )
 
+// Metric scale thresholds for integer metrics.
+const (
+	metricIntBillion   int64   = 1_000_000_000
+	metricIntMillion   int64   = 1_000_000
+	metricIntThousand  int64   = 1_000
+	metricIntBillionF  float64 = 1_000_000_000
+	metricIntMillionF  float64 = 1_000_000
+	metricIntThousandF float64 = 1_000
+)
+
 type MetricInt int64
 
 func (m *MetricInt) UnmarshalText(text []byte) error {
@@ -23,7 +33,9 @@ func (m *MetricInt) UnmarshalText(text []byte) error {
 func (m *MetricInt) UnmarshalJSON(data []byte) error {
 	// First try to unmarshal as a number
 	var num int64
-	if err := json.Unmarshal(data, &num); err == nil {
+
+	numErr := json.Unmarshal(data, &num)
+	if numErr == nil {
 		*m = MetricInt(num)
 
 		return nil
@@ -31,8 +43,10 @@ func (m *MetricInt) UnmarshalJSON(data []byte) error {
 
 	// If not a number, try as a string (e.g., "3400K", "1M")
 	var str string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return fmt.Errorf("MetricInt must be a number or string: %w", err)
+
+	strErr := json.Unmarshal(data, &str)
+	if strErr != nil {
+		return fmt.Errorf("MetricInt must be a number or string: %w", strErr)
 	}
 
 	parsed, err := parseMetricIntString(str)
@@ -45,52 +59,51 @@ func (m *MetricInt) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m MetricInt) MarshalText() ([]byte, error) {
-	return fmt.Appendf(nil, "%d", m), nil
+func (m *MetricInt) MarshalText() ([]byte, error) {
+	return fmt.Appendf(nil, "%d", *m), nil
 }
 
 // HumanReadable returns a human-readable string representation of the metric.
 // Examples: 1000 -> "1K", 1500000 -> "1.5M", 2000000000 -> "2B".
-func (m MetricInt) HumanReadable() string {
-	v := int64(m)
+func (m *MetricInt) HumanReadable() string {
+	value := int64(*m)
 
-	if v == 0 {
+	if value == 0 {
 		return "0"
 	}
 
-	absV := v
+	absValue := value
 	sign := ""
 
-	if v < 0 {
-		absV = -v
+	if value < 0 {
+		absValue = -value
 		sign = "-"
 	}
 
+	return formatIntHumanReadable(sign, absValue)
+}
+
+// formatIntHumanReadable formats an absolute int64 value with the given sign prefix.
+func formatIntHumanReadable(sign string, absValue int64) string {
 	switch {
-	case absV >= 1_000_000_000:
-		val := float64(absV) / 1_000_000_000
-		if val == float64(int64(val)) {
-			return fmt.Sprintf("%s%dB", sign, int64(val))
-		}
-
-		return fmt.Sprintf("%s%.1fB", sign, val)
-	case absV >= 1_000_000:
-		val := float64(absV) / 1_000_000
-		if val == float64(int64(val)) {
-			return fmt.Sprintf("%s%dM", sign, int64(val))
-		}
-
-		return fmt.Sprintf("%s%.1fM", sign, val)
-	case absV >= 1_000:
-		val := float64(absV) / 1_000
-		if val == float64(int64(val)) {
-			return fmt.Sprintf("%s%dK", sign, int64(val))
-		}
-
-		return fmt.Sprintf("%s%.1fK", sign, val)
+	case absValue >= metricIntBillion:
+		return formatIntWithSuffix(sign, float64(absValue)/metricIntBillionF, "B")
+	case absValue >= metricIntMillion:
+		return formatIntWithSuffix(sign, float64(absValue)/metricIntMillionF, "M")
+	case absValue >= metricIntThousand:
+		return formatIntWithSuffix(sign, float64(absValue)/metricIntThousandF, "K")
 	default:
-		return fmt.Sprintf("%s%d", sign, absV)
+		return fmt.Sprintf("%s%d", sign, absValue)
 	}
+}
+
+// formatIntWithSuffix formats a scaled value with the given suffix (B, M, K).
+func formatIntWithSuffix(sign string, scaled float64, suffix string) string {
+	if scaled == float64(int64(scaled)) {
+		return fmt.Sprintf("%s%d%s", sign, int64(scaled), suffix)
+	}
+
+	return fmt.Sprintf("%s%.1f%s", sign, scaled, suffix)
 }
 
 func parseMetricIntString(input string) (int64, error) {
@@ -107,21 +120,21 @@ func parseMetricIntString(input string) (int64, error) {
 
 	switch last {
 	case 'k', 'K':
-		mul = 1_000
+		mul = metricIntThousandF
 	case 'm', 'M':
-		mul = 1_000_000
+		mul = metricIntMillionF
 	case 'b', 'B':
-		mul = 1_000_000_000
+		mul = metricIntBillionF
 	default:
 		mul = 1
 		base = input
 	}
 
-	n, err := strconv.ParseFloat(base, 64) //nolint:varnamelen
+	parsedNumber, err := strconv.ParseFloat(base, 64)
 	if err != nil {
 		return 0, fmt.Errorf("%w (base=%q): %w", ErrFailedToParseFloat, base, err)
 	}
 
 	// FIXME(@eser) this is a hack to round the number to the nearest integer
-	return int64(math.Round(n * mul)), nil
+	return int64(math.Round(parsedNumber * mul)), nil
 }

@@ -3,7 +3,7 @@
  * Implements the llms.txt specification for LLM-friendly content discovery
  * See: https://llmstxt.org/
  */
-import { siteConfig, DEFAULT_LOCALE } from "@/config";
+import { DEFAULT_LOCALE, siteConfig } from "@/config";
 import { backend } from "@/modules/backend/backend";
 
 /**

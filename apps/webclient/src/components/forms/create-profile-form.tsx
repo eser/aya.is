@@ -316,7 +316,8 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
           <form.Field name="slug">
             {(field) => {
               const hasValidationError = showSlugValidation && field.state.meta.errors.length > 0;
-              const isUnavailable = showSlugValidation && !slugAvailability.isChecking && slugAvailability.isAvailable === false;
+              const isUnavailable = showSlugValidation && !slugAvailability.isChecking &&
+                slugAvailability.isAvailable === false;
               const isInvalid = hasValidationError || isUnavailable;
 
               return (

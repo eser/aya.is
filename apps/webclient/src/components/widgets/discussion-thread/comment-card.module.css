@@ -17,7 +17,8 @@
 }
 
 .voteButton {
-  @apply p-0.5 rounded transition-colors text-muted-foreground/50 hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed;
+  @apply p-0.5 rounded transition-colors text-muted-foreground/50 hover:text-foreground disabled:opacity-30
+    disabled:cursor-not-allowed;
 }
 
 .upvoted {
@@ -130,7 +131,8 @@
 }
 
 .loadRepliesButton {
-  @apply flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer mt-1;
+  @apply flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer
+    mt-1;
 }
 
 .continueThread {

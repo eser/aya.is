@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/api/business/resourcesync"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
@@ -53,16 +54,16 @@ func (r *Repository) ListGitHubResourcesForSync(
 // UpdateProfileResourcePropertiesForResourceSync updates the properties JSONB of a profile_resource.
 func (r *Repository) UpdateProfileResourcePropertiesForResourceSync(
 	ctx context.Context,
-	id string,
+	resourceID string,
 	properties map[string]any,
 ) error {
 	propertiesJSON, err := json.Marshal(properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling resource properties: %w", err)
 	}
 
 	_, err = r.queries.UpdateProfileResourceProperties(ctx, UpdateProfileResourcePropertiesParams{
-		ID:         id,
+		ID:         resourceID,
 		Properties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
 	})
 
@@ -74,16 +75,16 @@ func (r *Repository) UpdateProfileResourcePropertiesForResourceSync(
 // preserving keys not present in the update (e.g., "videos" when updating "github").
 func (r *Repository) UpdateProfileMembershipPropertiesForResourceSync(
 	ctx context.Context,
-	id string,
+	membershipID string,
 	properties map[string]any,
 ) error {
 	propertiesJSON, err := json.Marshal(properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling membership properties: %w", err)
 	}
 
 	_, err = r.queries.MergeProfileMembershipProperties(ctx, MergeProfileMembershipPropertiesParams{
-		ID:         id,
+		ID:         membershipID,
 		Properties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
 	})
 
@@ -96,10 +97,13 @@ func (r *Repository) GetMembershipByProfiles(
 	profileID string,
 	memberProfileID string,
 ) (string, error) {
-	id, err := r.queries.GetMembershipIDBetweenProfiles(ctx, GetMembershipIDBetweenProfilesParams{
-		ProfileID:       profileID,
-		MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
-	})
+	membershipID, err := r.queries.GetMembershipIDBetweenProfiles(
+		ctx,
+		GetMembershipIDBetweenProfilesParams{
+			ProfileID:       profileID,
+			MemberProfileID: sql.NullString{String: memberProfileID, Valid: true},
+		},
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", nil
@@ -108,7 +112,7 @@ func (r *Repository) GetMembershipByProfiles(
 		return "", err
 	}
 
-	return id, nil
+	return membershipID, nil
 }
 
 // GetProfileLinkByRemoteIDForResourceSync finds a profile_link by kind and remote_id (globally, not per-profile).

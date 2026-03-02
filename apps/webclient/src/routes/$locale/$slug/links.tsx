@@ -2,20 +2,12 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ChildNotFound } from "./route";
-import {
-  Globe,
-  Instagram,
-  Linkedin,
-  Youtube,
-  ExternalLink,
-  EyeOff,
-  type LucideIcon,
-} from "lucide-react";
+import { ExternalLink, EyeOff, Globe, Instagram, Linkedin, type LucideIcon, Youtube } from "lucide-react";
 import i18next from "i18next";
 import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
-import { Icon, Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
+import { Bsky, Discord, GitHub, Icon, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 
 const parentRoute = getRouteApi("/$locale/$slug");
@@ -50,13 +42,29 @@ export const Route = createFileRoute("/$locale/$slug/links")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile?.feature_links === "disabled") {
-      return { links: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        links: null,
+        locale,
+        slug,
+        profileTitle: slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     const links = await backend.getProfileLinks(locale, slug);
 
     if (links === null) {
-      return { links: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        links: null,
+        locale,
+        slug,
+        profileTitle: slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     // Ensure locale translations are loaded before translating
@@ -118,7 +126,12 @@ function LinksPage() {
   });
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <div className="space-y-6">
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Links")}</h2>
@@ -133,13 +146,9 @@ function LinksPage() {
               {groupNames.map((groupName) => (
                 <div key={groupName || "ungrouped"}>
                   {/* Only show header for named groups, not for ungrouped */}
-                  {groupName !== "" && (
-                    <h3 className="text-lg font-semibold mb-4">{groupName}</h3>
-                  )}
+                  {groupName !== "" && <h3 className="text-lg font-semibold mb-4">{groupName}</h3>}
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
-                    {groupedLinks[groupName].map((link) => (
-                      <LinkCard key={link.id} link={link} t={t} />
-                    ))}
+                    {groupedLinks[groupName].map((link) => <LinkCard key={link.id} link={link} t={t} />)}
                   </div>
                 </div>
               ))}
@@ -203,9 +212,7 @@ function LinkCard(props: LinkCardProps) {
           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{link.description}</p>
         )}
       </div>
-      {link.uri !== null && link.uri !== "" && (
-        <ExternalLink className="size-4 text-muted-foreground shrink-0" />
-      )}
+      {link.uri !== null && link.uri !== "" && <ExternalLink className="size-4 text-muted-foreground shrink-0" />}
     </div>
   );
 

@@ -10,20 +10,9 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/vars"
 )
 
-func (r *Repository) GetUserByID(
-	ctx context.Context,
-	id string,
-) (*users.User, error) {
-	row, err := r.queries.GetUserByID(ctx, GetUserByIDParams{ID: id})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil //nolint:nilnil
-		}
-
-		return nil, err
-	}
-
-	result := &users.User{
+// userFromRow converts a sqlc User row to a domain User.
+func userFromRow(row *User) *users.User {
+	return &users.User{
 		ID:                  row.ID,
 		Kind:                row.Kind,
 		Name:                row.Name,
@@ -40,8 +29,22 @@ func (r *Repository) GetUserByID(
 		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
 		DeletedAt:           vars.ToTimePtr(row.DeletedAt),
 	}
+}
 
-	return result, nil
+func (r *Repository) GetUserByID(
+	ctx context.Context,
+	id string,
+) (*users.User, error) {
+	row, err := r.queries.GetUserByID(ctx, GetUserByIDParams{ID: id})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
+		return nil, err
+	}
+
+	return userFromRow(row), nil
 }
 
 func (r *Repository) GetUserByEmail(
@@ -60,25 +63,7 @@ func (r *Repository) GetUserByEmail(
 		return nil, err
 	}
 
-	result := &users.User{
-		ID:                  row.ID,
-		Kind:                row.Kind,
-		Name:                row.Name,
-		Email:               vars.ToStringPtr(row.Email),
-		Phone:               vars.ToStringPtr(row.Phone),
-		GithubHandle:        vars.ToStringPtr(row.GithubHandle),
-		GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
-		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
-		XHandle:             vars.ToStringPtr(row.XHandle),
-		AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
-		IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
-		ProfilePictureURI:   vars.ToStringPtr(row.ProfilePictureURI),
-		CreatedAt:           row.CreatedAt,
-		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:           vars.ToTimePtr(row.DeletedAt),
-	}
-
-	return result, nil
+	return userFromRow(row), nil
 }
 
 func (r *Repository) GetUserByGitHubRemoteID(
@@ -99,25 +84,7 @@ func (r *Repository) GetUserByGitHubRemoteID(
 		return nil, err
 	}
 
-	result := &users.User{
-		ID:                  row.ID,
-		Kind:                row.Kind,
-		Name:                row.Name,
-		Email:               vars.ToStringPtr(row.Email),
-		Phone:               vars.ToStringPtr(row.Phone),
-		GithubHandle:        vars.ToStringPtr(row.GithubHandle),
-		GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
-		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
-		XHandle:             vars.ToStringPtr(row.XHandle),
-		AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
-		IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
-		ProfilePictureURI:   vars.ToStringPtr(row.ProfilePictureURI),
-		CreatedAt:           row.CreatedAt,
-		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:           vars.ToTimePtr(row.DeletedAt),
-	}
-
-	return result, nil
+	return userFromRow(row), nil
 }
 
 func (r *Repository) GetUserByAppleRemoteID(
@@ -138,25 +105,7 @@ func (r *Repository) GetUserByAppleRemoteID(
 		return nil, err
 	}
 
-	result := &users.User{
-		ID:                  row.ID,
-		Kind:                row.Kind,
-		Name:                row.Name,
-		Email:               vars.ToStringPtr(row.Email),
-		Phone:               vars.ToStringPtr(row.Phone),
-		GithubHandle:        vars.ToStringPtr(row.GithubHandle),
-		GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
-		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
-		XHandle:             vars.ToStringPtr(row.XHandle),
-		AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
-		IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
-		ProfilePictureURI:   vars.ToStringPtr(row.ProfilePictureURI),
-		CreatedAt:           row.CreatedAt,
-		UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
-		DeletedAt:           vars.ToTimePtr(row.DeletedAt),
-	}
-
-	return result, nil
+	return userFromRow(row), nil
 }
 
 func (r *Repository) ListUsers(
@@ -177,23 +126,7 @@ func (r *Repository) ListUsers(
 
 	result := make([]*users.User, len(rows))
 	for i, row := range rows {
-		result[i] = &users.User{
-			ID:                  row.ID,
-			Kind:                row.Kind,
-			Name:                row.Name,
-			Email:               vars.ToStringPtr(row.Email),
-			Phone:               vars.ToStringPtr(row.Phone),
-			GithubHandle:        vars.ToStringPtr(row.GithubHandle),
-			GithubRemoteID:      vars.ToStringPtr(row.GithubRemoteID),
-			BskyHandle:          vars.ToStringPtr(row.BskyHandle),
-			XHandle:             vars.ToStringPtr(row.XHandle),
-			AppleRemoteID:       vars.ToStringPtr(row.AppleRemoteID),
-			IndividualProfileID: vars.ToStringPtr(row.IndividualProfileID),
-			ProfilePictureURI:   vars.ToStringPtr(row.ProfilePictureURI),
-			CreatedAt:           row.CreatedAt,
-			UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
-			DeletedAt:           vars.ToTimePtr(row.DeletedAt),
-		}
+		result[i] = userFromRow(row)
 	}
 
 	wrappedResponse.Data = result

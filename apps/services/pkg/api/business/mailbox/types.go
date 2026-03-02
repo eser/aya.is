@@ -34,7 +34,7 @@ const (
 )
 
 // AllowedReactions is the curated set of emoji reactions.
-var AllowedReactions = map[string]bool{
+var AllowedReactions = map[string]bool{ //nolint:gochecknoglobals
 	"❤️": true,
 	"🔥":  true,
 	"🎉":  true,

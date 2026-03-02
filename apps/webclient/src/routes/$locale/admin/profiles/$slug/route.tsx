@@ -1,5 +1,5 @@
 // Admin profile edit layout with tabs
-import { createFileRoute, Outlet, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { backend } from "@/modules/backend/backend";
@@ -44,10 +44,7 @@ function AdminProfileLayout() {
     }
   };
 
-  const displayTitle =
-    profile.has_translation === false
-      ? t("Admin.no translation found")
-      : profile.title;
+  const displayTitle = profile.has_translation === false ? t("Admin.no translation found") : profile.title;
 
   return (
     <div className="space-y-6">
@@ -63,7 +60,9 @@ function AdminProfileLayout() {
           <div>
             <div className="flex items-center gap-2">
               <h2
-                className={`font-serif text-2xl font-bold ${profile.has_translation === false ? "italic text-muted-foreground" : ""}`}
+                className={`font-serif text-2xl font-bold ${
+                  profile.has_translation === false ? "italic text-muted-foreground" : ""
+                }`}
               >
                 {displayTitle}
               </h2>

@@ -14,7 +14,7 @@ import (
 )
 
 // RegisterHTTPRoutesForProfileReferrals registers routes for managing profile membership referrals.
-func RegisterHTTPRoutesForProfileReferrals(
+func RegisterHTTPRoutesForProfileReferrals( //nolint:gocognit,gocyclo,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -110,7 +110,8 @@ func RegisterHTTPRoutesForProfileReferrals(
 				TeamIDs             []string `json:"team_ids"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
+			if err != nil {
 				return ctx.Results.Error(
 					http.StatusBadRequest,
 					httpfx.WithErrorMessage("Invalid request body"),
@@ -258,7 +259,8 @@ func RegisterHTTPRoutesForProfileReferrals(
 				Comment *string `json:"comment"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
+			if err != nil {
 				return ctx.Results.Error(
 					http.StatusBadRequest,
 					httpfx.WithErrorMessage("Invalid request body"),

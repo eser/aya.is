@@ -1,15 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import {
-  Newspaper,
-  PencilLine,
-  Megaphone,
-  Info,
-  Images,
-  Presentation,
-  Calendar,
-} from "lucide-react";
+import { Calendar, Images, Info, Megaphone, Newspaper, PencilLine, Presentation } from "lucide-react";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import { cn } from "@/lib/utils";

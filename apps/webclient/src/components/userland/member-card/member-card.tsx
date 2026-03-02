@@ -39,9 +39,8 @@ export function MemberCard(props: MemberCardProps) {
             </span>
           </div>
           {memberProfile.description !== null &&
-            memberProfile.description !== undefined && (
-            <p className={styles.description}>{memberProfile.description}</p>
-          )}
+            memberProfile.description !== undefined && <p className={styles.description}>{memberProfile.description}
+          </p>}
         </div>
 
         {githubStats !== undefined && (

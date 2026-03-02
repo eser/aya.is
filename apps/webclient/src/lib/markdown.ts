@@ -2,7 +2,7 @@
  * Shared markdown utilities for .md routes
  */
 import { formatDateShort, parseDateFromSlug } from "@/lib/date";
-import { isValidLocale, type SupportedLocaleCode, supportedLocales } from "@/config";
+import { isValidLocale, type SupportedLocaleCode, supportedLocales } from "@/lib/locale-utils.ts";
 
 /**
  * Format data as YAML frontmatter

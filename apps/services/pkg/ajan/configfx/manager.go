@@ -90,7 +90,9 @@ func (cl *ConfigManager) LoadDefaults(i any) error {
 	)
 }
 
-func reflectMeta(r reflect.Value) ([]ConfigItemMeta, error) { //nolint:varnamelen
+func reflectMeta( //nolint:cyclop,funlen
+	r reflect.Value, //nolint:varnamelen
+) ([]ConfigItemMeta, error) {
 	result := make([]ConfigItemMeta, 0)
 
 	// Ensure we are working with the struct value, handling pointers
@@ -135,8 +137,8 @@ func reflectMeta(r reflect.Value) ([]ConfigItemMeta, error) { //nolint:varnamele
 
 		structFieldTypeKind := structFieldType.Type.Kind()
 
-		// Check if we have a struct
-		if structFieldTypeKind == reflect.Struct {
+		switch {
+		case structFieldTypeKind == reflect.Struct:
 			// Pass the struct value directly
 			var err error
 
@@ -144,12 +146,8 @@ func reflectMeta(r reflect.Value) ([]ConfigItemMeta, error) { //nolint:varnamele
 			if err != nil {
 				return nil, err
 			}
-		} else if structFieldTypeKind == reflect.Ptr && structFieldType.Type.Elem().Kind() == reflect.Struct {
+		case structFieldTypeKind == reflect.Ptr && structFieldType.Type.Elem().Kind() == reflect.Struct:
 			// If it's a pointer to a struct, reflectMeta's check (Ptr -> Elem) will handle dereferencing.
-			// But we must create a value if it's nil?
-			// Actually reflectMeta (as updated) handles Ptr by doing r.Elem().
-			// If structField is a Ptr, we can pass it directly.
-			// But if structField is nil Ptr?
 			// Create a zero value of the struct type (the element type)
 			// Because we want metadata about the TYPE, not necessarily the value (which might be nil)
 			elemType := structFieldType.Type.Elem()
@@ -161,7 +159,7 @@ func reflectMeta(r reflect.Value) ([]ConfigItemMeta, error) { //nolint:varnamele
 			if err != nil {
 				return nil, err
 			}
-		} else if structFieldTypeKind == reflect.Slice && structFieldType.Type.Elem().Kind() == reflect.Struct {
+		case structFieldTypeKind == reflect.Slice && structFieldType.Type.Elem().Kind() == reflect.Struct:
 			// Special handling for slice of structs to pre-calculate meta for elements
 			// We create a dummy zero value of the element type to reflect on it
 			elemType := structFieldType.Type.Elem()
@@ -190,7 +188,7 @@ func reflectMeta(r reflect.Value) ([]ConfigItemMeta, error) { //nolint:varnamele
 	return result, nil
 }
 
-func reflectSet( //nolint:cyclop,gocognit,funlen
+func reflectSet( //nolint:cyclop,gocognit,gocyclo,funlen,maintidx
 	meta ConfigItemMeta,
 	prefix string,
 	target *map[string]any,
@@ -297,7 +295,7 @@ func reflectSet( //nolint:cyclop,gocognit,funlen
 			continue
 		}
 
-		if child.Type.Kind() == reflect.Slice {
+		if child.Type.Kind() == reflect.Slice { //nolint:nestif
 			// Slice support
 			// We look for keys like ARR__0, ARR__1, etc.
 			// Or ARR__0__FIELD for struct slices.
@@ -316,13 +314,7 @@ func reflectSet( //nolint:cyclop,gocognit,funlen
 				// extract index
 				rest := targetKey[len(prefix):]
 				// find next separator if any
-				idxEnd := strings.Index(rest, Separator)
-
-				idxStr := rest
-
-				if idxEnd != -1 {
-					idxStr = rest[:idxEnd]
-				}
+				idxStr, _, _ := strings.Cut(rest, Separator)
 
 				idx, err := strconv.Atoi(idxStr)
 				if err == nil && idx >= 0 {

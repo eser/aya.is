@@ -428,7 +428,7 @@ func (r *Repository) ListActivityStories(
 
 func (r *Repository) InsertStory(
 	ctx context.Context,
-	id string,
+	storyID string,
 	authorProfileID string,
 	slug string,
 	kind string,
@@ -440,7 +440,7 @@ func (r *Repository) InsertStory(
 	featDiscussions bool,
 ) (*stories.Story, error) {
 	params := InsertStoryParams{
-		ID:              id,
+		ID:              storyID,
 		AuthorProfileID: sql.NullString{String: authorProfileID, Valid: true},
 		Slug:            slug,
 		Kind:            kind,
@@ -465,10 +465,18 @@ func (r *Repository) InsertStory(
 		IsManaged:       row.IsManaged,
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
 		SeriesID:        vars.ToStringPtr(row.SeriesID),
+		PublishedAt:     nil,
+		Properties:      nil,
+		LocaleCode:      "",
+		Title:           "",
+		Summary:         "",
+		SummaryAI:       nil,
+		Content:         "",
 		Visibility:      row.Visibility,
 		FeatDiscussions: row.FeatDiscussions,
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       vars.ToTimePtr(row.UpdatedAt),
+		DeletedAt:       nil,
 	}, nil
 }
 
@@ -495,7 +503,7 @@ func (r *Repository) InsertStoryTx(
 
 func (r *Repository) InsertStoryPublication(
 	ctx context.Context,
-	id string,
+	publicationID string,
 	storyID string,
 	profileID string,
 	kind string,
@@ -504,7 +512,7 @@ func (r *Repository) InsertStoryPublication(
 	properties map[string]any,
 ) error {
 	params := InsertStoryPublicationParams{
-		ID:          id,
+		ID:          publicationID,
 		StoryID:     storyID,
 		ProfileID:   profileID,
 		Kind:        kind,
@@ -520,7 +528,7 @@ func (r *Repository) InsertStoryPublication(
 
 func (r *Repository) UpdateStory(
 	ctx context.Context,
-	id string,
+	storyID string,
 	slug string,
 	storyPictureURI *string,
 	properties map[string]any,
@@ -528,7 +536,7 @@ func (r *Repository) UpdateStory(
 	featDiscussions *bool,
 ) error {
 	params := UpdateStoryParams{
-		ID:              id,
+		ID:              storyID,
 		Slug:            slug,
 		StoryPictureURI: vars.ToSQLNullString(storyPictureURI),
 		Properties:      vars.ToSQLNullRawMessage(properties),
@@ -843,7 +851,12 @@ func (r *Repository) GetUserMembershipForProfile(
 }
 
 func (r *Repository) InvalidateStorySlugCache(ctx context.Context, slug string) error {
-	return r.cache.Invalidate(ctx, "story_id_by_slug:"+slug)
+	err := r.cache.Invalidate(ctx, "story_id_by_slug:"+slug)
+	if err != nil {
+		return fmt.Errorf("invalidating story slug cache: %w", err)
+	}
+
+	return nil
 }
 
 func (r *Repository) parseStoryWithChildrenOptionalPublications(
@@ -863,8 +876,10 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Kind:            story.Kind,
 				StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
 				SeriesID:        vars.ToStringPtr(story.SeriesID),
+				PublishedAt:     nil,
 				Title:           storyTx.Title,
 				Summary:         storyTx.Summary,
+				SummaryAI:       vars.ToStringPtr(storyTx.SummaryAi),
 				Content:         storyTx.Content,
 				LocaleCode:      strings.TrimRight(storyTx.LocaleCode, " "),
 				Properties:      vars.ToObject(story.Properties),
@@ -876,19 +891,26 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				DeletedAt:       vars.ToTimePtr(story.DeletedAt),
 			},
 			AuthorProfile: &profiles.Profile{
-				ID:                profile.ID,
-				Slug:              profile.Slug,
-				Kind:              profile.Kind,
-				ProfilePictureURI: vars.ToStringPtr(profile.ProfilePictureURI),
-				Pronouns:          vars.ToStringPtr(profile.Pronouns),
-				Title:             profileTx.Title,
-				Description:       profileTx.Description,
-				LocaleCode:        strings.TrimRight(profileTx.LocaleCode, " "),
-				Properties:        vars.ToObject(profile.Properties),
-				CreatedAt:         profile.CreatedAt,
-				UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
-				DeletedAt:         vars.ToTimePtr(profile.DeletedAt),
-				Points:            uint64(profile.Points),
+				ID:                              profile.ID,
+				Slug:                            profile.Slug,
+				Kind:                            profile.Kind,
+				ProfilePictureURI:               vars.ToStringPtr(profile.ProfilePictureURI),
+				Pronouns:                        vars.ToStringPtr(profile.Pronouns),
+				Title:                           profileTx.Title,
+				Description:                     profileTx.Description,
+				LocaleCode:                      strings.TrimRight(profileTx.LocaleCode, " "),
+				DefaultLocale:                   "",
+				Properties:                      vars.ToObject(profile.Properties),
+				Points:                          uint64(profile.Points),
+				HasTranslation:                  false,
+				FeatureRelations:                "",
+				FeatureLinks:                    "",
+				FeatureQA:                       "",
+				FeatureDiscussions:              "",
+				OptionStoryDiscussionsByDefault: false,
+				CreatedAt:                       profile.CreatedAt,
+				UpdatedAt:                       vars.ToTimePtr(profile.UpdatedAt),
+				DeletedAt:                       vars.ToTimePtr(profile.DeletedAt),
 			},
 			Publications: []*profiles.Profile{},
 		}, nil
@@ -912,8 +934,10 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Kind:            story.Kind,
 			StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
 			SeriesID:        vars.ToStringPtr(story.SeriesID),
+			PublishedAt:     nil,
 			Title:           storyTx.Title,
 			Summary:         storyTx.Summary,
+			SummaryAI:       vars.ToStringPtr(storyTx.SummaryAi),
 			Content:         storyTx.Content,
 			LocaleCode:      strings.TrimRight(storyTx.LocaleCode, " "),
 			Properties:      vars.ToObject(story.Properties),
@@ -925,19 +949,26 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			DeletedAt:       vars.ToTimePtr(story.DeletedAt),
 		},
 		AuthorProfile: &profiles.Profile{
-			ID:                profile.ID,
-			Slug:              profile.Slug,
-			Kind:              profile.Kind,
-			ProfilePictureURI: vars.ToStringPtr(profile.ProfilePictureURI),
-			Pronouns:          vars.ToStringPtr(profile.Pronouns),
-			Title:             profileTx.Title,
-			Description:       profileTx.Description,
-			LocaleCode:        strings.TrimRight(profileTx.LocaleCode, " "),
-			Properties:        vars.ToObject(profile.Properties),
-			CreatedAt:         profile.CreatedAt,
-			UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
-			DeletedAt:         vars.ToTimePtr(profile.DeletedAt),
-			Points:            uint64(profile.Points),
+			ID:                              profile.ID,
+			Slug:                            profile.Slug,
+			Kind:                            profile.Kind,
+			ProfilePictureURI:               vars.ToStringPtr(profile.ProfilePictureURI),
+			Pronouns:                        vars.ToStringPtr(profile.Pronouns),
+			Title:                           profileTx.Title,
+			Description:                     profileTx.Description,
+			LocaleCode:                      strings.TrimRight(profileTx.LocaleCode, " "),
+			DefaultLocale:                   "",
+			Properties:                      vars.ToObject(profile.Properties),
+			Points:                          uint64(profile.Points),
+			HasTranslation:                  false,
+			FeatureRelations:                "",
+			FeatureLinks:                    "",
+			FeatureQA:                       "",
+			FeatureDiscussions:              "",
+			OptionStoryDiscussionsByDefault: false,
+			CreatedAt:                       profile.CreatedAt,
+			UpdatedAt:                       vars.ToTimePtr(profile.UpdatedAt),
+			DeletedAt:                       vars.ToTimePtr(profile.DeletedAt),
 		},
 		Publications: nil,
 	}
@@ -987,12 +1018,22 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Pronouns:          publicationProfile.Profile.Pronouns,
 			Title:             publicationProfile.ProfileTx.Title,
 			Description:       publicationProfile.ProfileTx.Description,
-			LocaleCode:        strings.TrimRight(publicationProfile.ProfileTx.LocaleCode, " "),
-			Properties:        publicationProfile.Profile.Properties,
-			CreatedAt:         publicationProfile.Profile.CreatedAt,
-			UpdatedAt:         publicationProfile.Profile.UpdatedAt,
-			DeletedAt:         publicationProfile.Profile.DeletedAt,
-			Points:            publicationProfile.Profile.Points,
+			LocaleCode: strings.TrimRight(
+				publicationProfile.ProfileTx.LocaleCode,
+				" ",
+			),
+			DefaultLocale:                   "",
+			Properties:                      publicationProfile.Profile.Properties,
+			Points:                          publicationProfile.Profile.Points,
+			HasTranslation:                  false,
+			FeatureRelations:                "",
+			FeatureLinks:                    "",
+			FeatureQA:                       "",
+			FeatureDiscussions:              "",
+			OptionStoryDiscussionsByDefault: false,
+			CreatedAt:                       publicationProfile.Profile.CreatedAt,
+			UpdatedAt:                       publicationProfile.Profile.UpdatedAt,
+			DeletedAt:                       publicationProfile.Profile.DeletedAt,
 		}
 	}
 

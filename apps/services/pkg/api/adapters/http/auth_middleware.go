@@ -36,7 +36,8 @@ func AuthMiddleware(authService *auth.Service, userService *users.Service) httpf
 		// Update last activity and user agent
 		userAgent := ctx.Request.Header.Get("User-Agent")
 
-		if err := userService.UpdateSessionActivity(ctx.Request.Context(), sessionID, &userAgent); err != nil {
+		err = userService.UpdateSessionActivity(ctx.Request.Context(), sessionID, &userAgent)
+		if err != nil {
 			slog.Warn(
 				"failed to update session activity",
 				slog.String("error", err.Error()),

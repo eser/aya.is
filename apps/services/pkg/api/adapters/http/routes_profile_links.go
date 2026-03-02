@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
@@ -24,6 +25,16 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
+// Provider name and profile kind constants.
+const (
+	providerYouTube       = "youtube"
+	providerGitHub        = "github"
+	providerLinkedIn      = "linkedin"
+	providerX             = "x"
+	profileKindIndividual = "individual"
+	pendingConnectionTTL  = 10 * time.Minute
+)
+
 // ProfileLinkProviders contains all external service providers.
 type ProfileLinkProviders struct {
 	YouTube                *youtube.Provider
@@ -36,7 +47,7 @@ type ProfileLinkProviders struct {
 }
 
 // RegisterHTTPRoutesForProfileLinks registers the OAuth routes for profile links.
-func RegisterHTTPRoutesForProfileLinks(
+func RegisterHTTPRoutesForProfileLinks( //nolint:funlen,cyclop,gocognit,gocyclo,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -70,8 +81,8 @@ func RegisterHTTPRoutesForProfileLinks(
 			providerParam := ctx.Request.PathValue("provider")
 
 			// Validate provider
-			if providerParam != "youtube" && providerParam != "github" &&
-				providerParam != "linkedin" && providerParam != "x" {
+			if providerParam != providerYouTube && providerParam != providerGitHub &&
+				providerParam != providerLinkedIn && providerParam != providerX {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage(
 						"Unsupported provider. Supported: 'youtube', 'github', 'linkedin', 'x'.",
@@ -125,7 +136,8 @@ func RegisterHTTPRoutesForProfileLinks(
 			referer := ctx.Request.Header.Get("Referer")
 			redirectOrigin := ""
 			if referer != "" {
-				if parsedURL, parseErr := url.Parse(referer); parseErr == nil {
+				parsedURL, parseErr := url.Parse(referer)
+				if parseErr == nil {
 					redirectOrigin = fmt.Sprintf("%s://%s", parsedURL.Scheme, parsedURL.Host)
 				}
 			}
@@ -151,65 +163,23 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Initiate OAuth flow based on provider
 			var authURL string
 			switch providerParam {
-			case "youtube":
+			case providerYouTube:
 				authURL, err = providers.YouTube.InitiateOAuth(
 					ctx.Request.Context(),
 					redirectURI,
 					encodedState,
 				)
-			case "github":
-				// Three-tier scope selection:
-				// 1. NonOrganizationScope (read:org + public_repo) for org/product profiles
-				// 2. ResourceScope (public_repo) when scope_upgrade=resource or existing token has public_repo
-				// 3. InitialScope (read:user + user:email only) for basic individual link
-				scopeUpgrade := ctx.Request.URL.Query().Get("scope_upgrade")
-				useExpandedScope := profile.Kind != "individual"
-				useResourceScope := false
-
-				if !useExpandedScope {
-					if scopeUpgrade == "resource" {
-						useResourceScope = true
-					} else {
-						// Check existing link scope for retention
-						existingLink, linkErr := profileService.GetManagedGitHubLink(
-							ctx.Request.Context(), profile.ID)
-						if linkErr == nil && existingLink != nil &&
-							existingLink.AuthAccessTokenScope != nil {
-							if strings.Contains(*existingLink.AuthAccessTokenScope, "read:org") {
-								useExpandedScope = true
-							} else if strings.Contains(*existingLink.AuthAccessTokenScope, "public_repo") {
-								useResourceScope = true
-							}
-						}
-					}
-				}
-
-				if useExpandedScope {
-					authURL, err = providers.GitHub.InitiateProfileLinkOAuth(
-						ctx.Request.Context(),
-						redirectURI,
-						encodedState,
-					)
-				} else if useResourceScope {
-					authURL, err = providers.GitHub.InitiateResourceScopeOAuth(
-						ctx.Request.Context(),
-						redirectURI,
-						encodedState,
-					)
-				} else {
-					authURL, err = providers.GitHub.InitiateOAuth(
-						ctx.Request.Context(),
-						redirectURI,
-						encodedState,
-					)
-				}
-			case "linkedin":
+			case providerGitHub:
+				authURL, err = initiateGitHubOAuth(
+					ctx, profileService, providers, profile, redirectURI, encodedState,
+				)
+			case providerLinkedIn:
 				authURL, err = providers.LinkedIn.InitiateProfileLinkOAuth(
 					ctx.Request.Context(),
 					redirectURI,
 					encodedState,
 				)
-			case "x":
+			case providerX:
 				authURL, err = providers.X.InitiateProfileLinkOAuth(
 					ctx.Request.Context(),
 					redirectURI,
@@ -244,7 +214,10 @@ func RegisterHTTPRoutesForProfileLinks(
 			})
 		}).
 		HasSummary("Initiate Profile Link OAuth").
-		HasDescription("Start the OAuth flow to connect a social media account to a profile. Returns auth_url for frontend redirect.").
+		HasDescription(
+			"Start the OAuth flow to connect a social media account to a profile." +
+				" Returns auth_url for frontend redirect.",
+		).
 		HasResponse(http.StatusOK)
 
 	// OAuth callback handler (no locale in path - simpler for OAuth app config)
@@ -267,8 +240,8 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Validate provider
-			if providerParam != "youtube" && providerParam != "github" &&
-				providerParam != "linkedin" && providerParam != "x" {
+			if providerParam != providerYouTube && providerParam != providerGitHub &&
+				providerParam != providerLinkedIn && providerParam != providerX {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Unsupported provider"),
 				)
@@ -320,25 +293,25 @@ func RegisterHTTPRoutesForProfileLinks(
 			var err error
 
 			switch providerParam {
-			case "youtube":
+			case providerYouTube:
 				result, err = providers.YouTube.HandleOAuthCallback(
 					ctx.Request.Context(),
 					code,
 					redirectURI,
 				)
-			case "github":
+			case providerGitHub:
 				result, err = providers.GitHub.HandleOAuthCallback(
 					ctx.Request.Context(),
 					code,
 					redirectURI,
 				)
-			case "linkedin":
+			case providerLinkedIn:
 				result, err = providers.LinkedIn.HandleOAuthCallback(
 					ctx.Request.Context(),
 					code,
 					redirectURI,
 				)
-			case "x":
+			case providerX:
 				result, err = providers.X.HandleOAuthCallback(
 					ctx.Request.Context(),
 					code,
@@ -384,7 +357,9 @@ func RegisterHTTPRoutesForProfileLinks(
 				EventType:  events.OAuthScopeGranted,
 				EntityType: "profile",
 				EntityID:   stateObj.ProfileSlug,
+				ActorID:    nil,
 				ActorKind:  events.ActorUser,
+				SessionID:  nil,
 				Payload: map[string]any{
 					"provider":      providerParam,
 					"scope_granted": result.Scope,
@@ -395,7 +370,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			})
 
 			// For GitHub/LinkedIn, store pending connection for account selection
-			if providerParam == "github" || providerParam == "linkedin" {
+			if providerParam == providerGitHub || providerParam == providerLinkedIn {
 				pendingConn := &profiles.PendingOAuthConnection{
 					Provider:    providerParam,
 					AccessToken: result.AccessToken,
@@ -403,6 +378,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					ProfileSlug: stateObj.ProfileSlug,
 					ProfileKind: stateObj.ProfileKind,
 					Locale:      stateObj.Locale,
+					ExpiresAt:   time.Now().Add(pendingConnectionTTL),
 				}
 
 				pendingID := providers.PendingConnectionStore.Store(pendingConn)
@@ -447,7 +423,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			}
 
 			// Determine link kind from provider
-			linkKind := providerParam // "youtube", "github", or "linkedin"
+			linkKind := providerParam // youtube, github, or linkedin
 
 			// Check if a link with this remote ID already exists
 			existingLink, err := profileService.GetProfileLinkByRemoteID(
@@ -638,17 +614,18 @@ func RegisterHTTPRoutesForProfileLinks(
 
 			accounts := []profiles.GitHubAccount{
 				{
-					ID:        strconv.FormatInt(userInfo.ID, 10),
-					Login:     userInfo.Login,
-					Name:      userInfo.Name,
-					AvatarURL: userInfo.Avatar,
-					HTMLURL:   userHTMLURL,
-					Type:      "User",
+					ID:          strconv.FormatInt(userInfo.ID, 10),
+					Login:       userInfo.Login,
+					Name:        userInfo.Name,
+					AvatarURL:   userInfo.Avatar,
+					HTMLURL:     userHTMLURL,
+					Type:        "User",
+					Description: "",
 				},
 			}
 
 			// Only fetch organizations for non-individual profiles (requires read:org scope)
-			if pendingConn.ProfileKind != "individual" {
+			if pendingConn.ProfileKind != profileKindIndividual {
 				orgs, err := providers.GitHub.Client().FetchUserOrganizations(
 					ctx.Request.Context(),
 					pendingConn.AccessToken,
@@ -716,7 +693,8 @@ func RegisterHTTPRoutesForProfileLinks(
 				Type      string `json:"type"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)
+			if err != nil {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Invalid request body"),
 				)
@@ -759,7 +737,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			existingLink, err := profileService.GetProfileLinkByRemoteID(
 				ctx.Request.Context(),
 				profileID,
-				"github",
+				providerGitHub,
 				reqBody.AccountID,
 			)
 			if err != nil {
@@ -775,7 +753,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Check if this remote_id is already used by another profile
 			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
 				ctx.Request.Context(),
-				"github",
+				providerGitHub,
 				reqBody.AccountID,
 				profileID,
 			)
@@ -829,7 +807,7 @@ func RegisterHTTPRoutesForProfileLinks(
 				_, err = profileService.CreateOAuthProfileLink(
 					ctx.Request.Context(),
 					linkID,
-					"github",
+					providerGitHub,
 					profileID,
 					maxOrder+1,
 					pendingConn.Locale,
@@ -837,7 +815,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					reqBody.Login,
 					reqBody.HTMLURL,
 					reqBody.Name,
-					"github",
+					providerGitHub,
 					pendingConn.Scope,
 					pendingConn.AccessToken,
 					nil,
@@ -924,21 +902,25 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Build response with personal account and organization pages
 			accounts := []profiles.LinkedInAccount{
 				{
-					ID:   userInfo.Sub,
-					Name: userInfo.Name,
-					URI:  "", // LinkedIn does not expose vanity name via userinfo
-					Type: "Personal",
+					ID:          userInfo.Sub,
+					Name:        userInfo.Name,
+					VanityName:  "",
+					LogoURL:     "",
+					URI:         "", // LinkedIn does not expose vanity name via userinfo
+					Type:        "Personal",
+					Description: "",
 				},
 			}
 
 			for _, org := range orgPages {
 				accounts = append(accounts, profiles.LinkedInAccount{
-					ID:         org.ID,
-					Name:       org.Name,
-					VanityName: org.VanityName,
-					LogoURL:    org.LogoURL,
-					URI:        org.URI,
-					Type:       "Organization",
+					ID:          org.ID,
+					Name:        org.Name,
+					VanityName:  org.VanityName,
+					LogoURL:     org.LogoURL,
+					URI:         org.URI,
+					Type:        "Organization",
+					Description: "",
 				})
 			}
 
@@ -971,7 +953,8 @@ func RegisterHTTPRoutesForProfileLinks(
 				Type       string `json:"type"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)
+			if err != nil {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Invalid request body"),
 				)
@@ -1014,7 +997,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			existingLink, err := profileService.GetProfileLinkByRemoteID(
 				ctx.Request.Context(),
 				profileID,
-				"linkedin",
+				providerLinkedIn,
 				reqBody.AccountID,
 			)
 			if err != nil {
@@ -1030,7 +1013,7 @@ func RegisterHTTPRoutesForProfileLinks(
 			// Check if this remote_id is already used by another profile
 			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
 				ctx.Request.Context(),
-				"linkedin",
+				providerLinkedIn,
 				reqBody.AccountID,
 				profileID,
 			)
@@ -1088,7 +1071,7 @@ func RegisterHTTPRoutesForProfileLinks(
 				_, err = profileService.CreateOAuthProfileLink(
 					ctx.Request.Context(),
 					linkID,
-					"linkedin",
+					providerLinkedIn,
 					profileID,
 					maxOrder+1,
 					pendingConn.Locale,
@@ -1096,7 +1079,7 @@ func RegisterHTTPRoutesForProfileLinks(
 					publicID,
 					uri,
 					reqBody.Name,
-					"linkedin",
+					providerLinkedIn,
 					pendingConn.Scope,
 					pendingConn.AccessToken,
 					nil,
@@ -1188,7 +1171,8 @@ func RegisterHTTPRoutesForProfileLinks(
 				URL string `json:"url"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)
+			if err != nil {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Invalid request body"),
 				)
@@ -1388,7 +1372,8 @@ func RegisterHTTPRoutesForProfileLinks(
 				ContentFolder string `json:"content_folder"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)
+			if err != nil {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Invalid request body"),
 				)
@@ -1560,4 +1545,85 @@ func RegisterHTTPRoutesForProfileLinks(
 		HasSummary("Connect External Site").
 		HasDescription("Connect an external site (Jekyll/Hugo/Zola) GitHub repo to a profile.").
 		HasResponse(http.StatusOK)
+}
+
+// initiateGitHubOAuth selects the appropriate GitHub OAuth scope and initiates the flow.
+// Three-tier scope selection:
+//  1. NonOrganizationScope (read:org + public_repo) for org/product profiles
+//  2. ResourceScope (public_repo) when scope_upgrade=resource or existing token has public_repo
+//  3. InitialScope (read:user + user:email only) for basic individual link
+func initiateGitHubOAuth(
+	ctx *httpfx.Context,
+	profileService *profiles.Service,
+	providers *ProfileLinkProviders,
+	profile *profiles.Profile,
+	redirectURI string,
+	encodedState string,
+) (string, error) {
+	scopeUpgrade := ctx.Request.URL.Query().Get("scope_upgrade")
+	expanded := profile.Kind != profileKindIndividual
+	resource := false
+
+	if !expanded {
+		expanded, resource = resolveGitHubScope(ctx, profileService, profile.ID, scopeUpgrade)
+	}
+
+	switch {
+	case expanded:
+		authURL, oauthErr := providers.GitHub.InitiateProfileLinkOAuth(
+			ctx.Request.Context(), redirectURI, encodedState,
+		)
+		if oauthErr != nil {
+			return "", fmt.Errorf("github profile link oauth: %w", oauthErr)
+		}
+
+		return authURL, nil
+	case resource:
+		authURL, oauthErr := providers.GitHub.InitiateResourceScopeOAuth(
+			ctx.Request.Context(), redirectURI, encodedState,
+		)
+		if oauthErr != nil {
+			return "", fmt.Errorf("github resource scope oauth: %w", oauthErr)
+		}
+
+		return authURL, nil
+	default:
+		authURL, oauthErr := providers.GitHub.InitiateOAuth(
+			ctx.Request.Context(), redirectURI, encodedState,
+		)
+		if oauthErr != nil {
+			return "", fmt.Errorf("github initial oauth: %w", oauthErr)
+		}
+
+		return authURL, nil
+	}
+}
+
+// resolveGitHubScope determines whether expanded or resource scope should be used
+// based on scope_upgrade query param or existing link scope.
+func resolveGitHubScope(
+	ctx *httpfx.Context,
+	profileService *profiles.Service,
+	profileID string,
+	scopeUpgrade string,
+) (bool, bool) {
+	if scopeUpgrade == "resource" {
+		return false, true
+	}
+
+	existingLink, linkErr := profileService.GetManagedGitHubLink(
+		ctx.Request.Context(), profileID)
+	if linkErr != nil || existingLink == nil || existingLink.AuthAccessTokenScope == nil {
+		return false, false
+	}
+
+	if strings.Contains(*existingLink.AuthAccessTokenScope, "read:org") {
+		return true, false
+	}
+
+	if strings.Contains(*existingLink.AuthAccessTokenScope, "public_repo") {
+		return false, true
+	}
+
+	return false, false
 }

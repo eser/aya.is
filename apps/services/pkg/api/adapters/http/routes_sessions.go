@@ -18,6 +18,8 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
+const defaultSessionExpiryHours = 24
+
 // CreateSessionRequest is the request body for creating a new session.
 type CreateSessionRequest struct {
 	POWChallengeID string                      `json:"pow_challenge_id"`
@@ -32,7 +34,7 @@ type UpdatePreferencesRequest struct {
 	Timezone *string `json:"timezone,omitempty"`
 }
 
-func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
+func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop,gocognit,gocyclo,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -111,7 +113,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			}
 
 			// If user has an individual profile, fetch it and their accessible profiles
-			if user != nil && user.IndividualProfileID != nil {
+			if user != nil && user.IndividualProfileID != nil { //nolint:nestif
 				locale := ctx.Request.PathValue("locale")
 				profile, profileErr := profileService.GetByID(
 					ctx.Request.Context(),
@@ -138,18 +140,18 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 				)
 				if membershipErr == nil && len(memberships) > 0 {
 					accessibleProfiles := make([]map[string]any, 0, len(memberships))
-					for _, m := range memberships {
-						if m.Profile == nil {
+					for _, membership := range memberships {
+						if membership.Profile == nil {
 							continue
 						}
 
 						accessibleProfiles = append(accessibleProfiles, map[string]any{
-							"id":                  m.Profile.ID,
-							"slug":                m.Profile.Slug,
-							"kind":                m.Profile.Kind,
-							"title":               m.Profile.Title,
-							"profile_picture_uri": m.Profile.ProfilePictureURI,
-							"membership_kind":     m.Kind,
+							"id":                  membership.Profile.ID,
+							"slug":                membership.Profile.Slug,
+							"kind":                membership.Profile.Kind,
+							"title":               membership.Profile.Title,
+							"profile_picture_uri": membership.Profile.ProfilePictureURI,
+							"membership_kind":     membership.Kind,
 						})
 					}
 
@@ -171,18 +173,20 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 					// Count for each accessible profile with maintainer+ membership
 					if membershipErr == nil {
-						for _, m := range memberships {
-							if m.Profile == nil {
+						for _, membership := range memberships {
+							if membership.Profile == nil {
 								continue
 							}
 
-							if m.Kind != "maintainer" && m.Kind != "lead" && m.Kind != "owner" {
+							if membership.Kind != "maintainer" &&
+								membership.Kind != "lead" &&
+								membership.Kind != "owner" {
 								continue
 							}
 
 							mCount, mCountErr := envelopeService.CountPendingEnvelopes(
 								ctx.Request.Context(),
-								m.Profile.ID,
+								membership.Profile.ID,
 							)
 							if mCountErr == nil {
 								totalPending += mCount
@@ -313,7 +317,8 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 		func(ctx *httpfx.Context) httpfx.Result {
 			// Parse request body
 			var req CreateSessionRequest
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&req)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -328,7 +333,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 					)
 				}
 
-				err := protectionService.VerifyAndConsumePOWChallenge(
+				err = protectionService.VerifyAndConsumePOWChallenge(
 					ctx.Request.Context(),
 					req.POWChallengeID,
 					req.Nonce,
@@ -405,7 +410,7 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 			}
 
 			// Set session cookie
-			expiresAt := time.Now().Add(24 * time.Hour) // Default 24 hours
+			expiresAt := time.Now().Add(defaultSessionExpiryHours * time.Hour) // Default 24 hours
 			SetSessionCookie(ctx.ResponseWriter, session.ID, expiresAt, authService.Config)
 
 			// Get preferences for response
@@ -447,7 +452,8 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 			// Parse request body
 			var req UpdatePreferencesRequest
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
+			err = json.NewDecoder(ctx.Request.Body).Decode(&req)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -584,15 +590,15 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop
 
 			// Map sessions to response format (hide sensitive fields)
 			sessionList := make([]map[string]any, 0, len(sessions))
-			for _, s := range sessions {
+			for _, sess := range sessions {
 				sessionList = append(sessionList, map[string]any{
-					"id":               s.ID,
-					"status":           s.Status,
-					"user_agent":       s.UserAgent,
-					"last_activity_at": s.LastActivityAt,
-					"logged_in_at":     s.LoggedInAt,
-					"created_at":       s.CreatedAt,
-					"is_current":       s.ID == sessionID,
+					"id":               sess.ID,
+					"status":           sess.Status,
+					"user_agent":       sess.UserAgent,
+					"last_activity_at": sess.LastActivityAt,
+					"logged_in_at":     sess.LoggedInAt,
+					"created_at":       sess.CreatedAt,
+					"is_current":       sess.ID == sessionID,
 				})
 			}
 

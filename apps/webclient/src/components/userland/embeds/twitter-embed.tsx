@@ -2,6 +2,12 @@
 
 import * as React from "react";
 
+interface TwitterWidgets {
+  widgets: { load(el: HTMLElement): void };
+}
+
+declare const window: Window & { twttr?: TwitterWidgets };
+
 export type TwitterEmbedProps = {
   tweetId: string;
   username?: string;
@@ -28,14 +34,14 @@ export function TwitterEmbed(props: TwitterEmbedProps) {
         document.body.appendChild(script);
       } else {
         // If script exists, trigger re-render of widgets
-        if ((window as any).twttr?.widgets !== undefined) {
-          (window as any).twttr.widgets.load(containerRef.current);
+        if (window.twttr?.widgets !== undefined) {
+          window.twttr.widgets.load(containerRef.current);
         }
       }
 
       script.onload = () => {
-        if ((window as any).twttr?.widgets !== undefined && containerRef.current !== null) {
-          (window as any).twttr.widgets.load(containerRef.current);
+        if (window.twttr?.widgets !== undefined && containerRef.current !== null) {
+          window.twttr.widgets.load(containerRef.current);
         }
       };
     }

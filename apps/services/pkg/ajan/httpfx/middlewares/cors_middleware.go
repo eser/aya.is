@@ -61,7 +61,7 @@ func WithAllowMethods(methods []string) CorsOption {
 }
 
 // CorsMiddleware creates a CORS middleware using functional options.
-func CorsMiddleware(options ...CorsOption) httpfx.Handler { //nolint:cyclop
+func CorsMiddleware(options ...CorsOption) httpfx.Handler { //nolint:cyclop,funlen
 	// Start with default configuration
 	cfg := &corsConfig{
 		allowOrigin:      "*", // Default to allow all origins

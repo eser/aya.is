@@ -2,6 +2,7 @@ package aifx
 
 import (
 	"encoding/base64"
+	"fmt"
 	"path"
 	"strings"
 )
@@ -42,38 +43,35 @@ func IsDataURL(url string) bool {
 }
 
 // DecodeDataURL decodes a data: URI and returns MIME type and raw bytes.
-func DecodeDataURL(dataURL string) (mimeType string, data []byte, err error) {
+func DecodeDataURL(dataURL string) (string, []byte, error) {
 	// Format: data:[<mediatype>][;base64],<data>
 	rest := strings.TrimPrefix(dataURL, "data:")
 
-	commaIdx := strings.Index(rest, ",")
-	if commaIdx < 0 {
+	meta, encoded, found := strings.Cut(rest, ",")
+	if !found {
 		return "", nil, ErrInvalidDataURL
 	}
-
-	meta := rest[:commaIdx]
-	encoded := rest[commaIdx+1:]
 
 	isBase64 := strings.HasSuffix(meta, ";base64")
 	if isBase64 {
 		meta = strings.TrimSuffix(meta, ";base64")
 	}
 
-	mimeType = meta
+	mimeType := meta
 	if mimeType == "" {
 		mimeType = "application/octet-stream"
 	}
 
 	if isBase64 {
-		data, err = base64.StdEncoding.DecodeString(encoded)
+		data, err := base64.StdEncoding.DecodeString(encoded)
 		if err != nil {
-			return "", nil, err
+			return "", nil, fmt.Errorf("decode base64 data URL: %w", err)
 		}
-	} else {
-		data = []byte(encoded)
+
+		return mimeType, data, nil
 	}
 
-	return mimeType, data, nil
+	return mimeType, []byte(encoded), nil
 }
 
 // DetectMIMEFromURL guesses MIME type from a URL's file extension.

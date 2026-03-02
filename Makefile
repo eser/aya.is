@@ -21,6 +21,7 @@ ok: ## Checks if the code is ok.
   cd ../../apps/webclient && \
   deno lint && \
   deno fmt --check && \
+  deno task test:ci && \
   cd ../../
 
 .PHONY: build

@@ -13,9 +13,7 @@ export function generateProfileStoryMarkdown(
   locale: string,
 ): string {
   // Try to get date from slug first, fall back to created_at
-  const publishDate = story.slug !== null
-    ? parseDateFromSlug(story.slug)
-    : null;
+  const publishDate = story.slug !== null ? parseDateFromSlug(story.slug) : null;
   const dateToFormat = publishDate ?? new Date(story.created_at);
 
   const frontmatter = formatFrontmatter({

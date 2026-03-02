@@ -33,8 +33,7 @@ export function PreviewPanel(props: PreviewPanelProps) {
         setCompiledSource(compiled);
         setError(null);
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to compile MDX";
+        const errorMessage = err instanceof Error ? err.message : "Failed to compile MDX";
         setError(errorMessage);
         setCompiledSource(null);
       } finally {

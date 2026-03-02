@@ -1,12 +1,18 @@
 package externalsite
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
 	"gopkg.in/yaml.v3"
+)
+
+const (
+	// localePartCount is the minimum number of dot-separated parts for locale detection in filenames.
+	localePartCount = 2
 )
 
 // ParsedFrontmatter holds metadata extracted from a markdown file's frontmatter.
@@ -24,19 +30,21 @@ type ParsedFrontmatter struct {
 // Supports TOML (+++) and YAML (---) delimiters.
 // filePath is used for slug/language inference when frontmatter lacks them.
 func ParseMarkdownFile(content string, filePath string) (*ParsedFrontmatter, string, error) {
-	fm, body, err := splitFrontmatter(content)
+	frontmatter, body, err := splitFrontmatter(content)
 	if err != nil {
 		return nil, "", err
 	}
 
-	if fm == nil {
+	if frontmatter == nil {
 		// No frontmatter — return empty metadata with full content as body
 		slug := slugFromPath(filePath)
 
-		return &ParsedFrontmatter{Slug: slug}, strings.TrimSpace(content), nil
+		return &ParsedFrontmatter{ //nolint:exhaustruct
+			Slug: slug,
+		}, strings.TrimSpace(content), nil
 	}
 
-	result := mapToFrontmatter(fm)
+	result := mapToFrontmatter(frontmatter)
 
 	// Infer slug from file path if not set in frontmatter
 	if result.Slug == "" {
@@ -70,17 +78,16 @@ func parseTOMLFrontmatter(content string) (map[string]any, string, error) {
 	// Remove opening +++
 	rest := content[3:]
 
-	idx := strings.Index(rest, "\n+++")
-	if idx < 0 {
+	fmBlock, body, found := strings.Cut(rest, "\n+++")
+	if !found {
 		return nil, content, nil
 	}
 
-	fmBlock := rest[:idx]
-	body := rest[idx+4:] // skip \n+++
-
 	var raw map[string]any
-	if _, err := toml.Decode(fmBlock, &raw); err != nil {
-		return nil, "", err
+
+	_, decodeErr := toml.Decode(fmBlock, &raw)
+	if decodeErr != nil {
+		return nil, "", fmt.Errorf("failed to decode TOML frontmatter: %w", decodeErr)
 	}
 
 	return raw, body, nil
@@ -90,19 +97,16 @@ func parseYAMLFrontmatter(content string) (map[string]any, string, error) {
 	// Remove opening ---
 	rest := content[3:]
 
-	idx := strings.Index(rest, "\n---")
-	if idx < 0 {
+	fmBlock, body, found := strings.Cut(rest, "\n---")
+	if !found {
 		return nil, content, nil
 	}
-
-	fmBlock := rest[:idx]
-	body := rest[idx+4:] // skip \n---
 
 	var raw map[string]any
 
 	err := yaml.Unmarshal([]byte(fmBlock), &raw)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to decode YAML frontmatter: %w", err)
 	}
 
 	return raw, body, nil
@@ -110,68 +114,103 @@ func parseYAMLFrontmatter(content string) (map[string]any, string, error) {
 
 // mapToFrontmatter extracts well-known fields from a raw frontmatter map.
 func mapToFrontmatter(raw map[string]any) *ParsedFrontmatter {
-	fm := &ParsedFrontmatter{
+	parsed := &ParsedFrontmatter{ //nolint:exhaustruct
 		Extra: make(map[string]any),
 	}
 
 	for key, val := range raw {
-		switch strings.ToLower(key) {
-		case "title":
-			fm.Title = toString(val)
-		case "date":
-			fm.Date = toTime(val)
-		case "slug":
-			fm.Slug = toString(val)
-		case "description", "summary":
-			fm.Description = toString(val)
-		case "tags", "categories":
-			fm.Tags = toStringSlice(val)
-		case "language", "lang":
-			fm.Language = toString(val)
-		default:
-			fm.Extra[key] = val
-		}
+		assignFrontmatterField(parsed, key, val)
 	}
 
-	// Check Zola's [extra] section for language if not found at top level
-	if fm.Language == "" {
-		if extra, ok := fm.Extra["extra"].(map[string]any); ok {
-			if lang := toString(extra["language"]); lang != "" {
-				fm.Language = lang
-			} else if lang := toString(extra["lang"]); lang != "" {
-				fm.Language = lang
-			}
-		}
-	}
-
-	// Check Zola's [taxonomies] section for language and tags
-	if taxonomies, ok := fm.Extra["taxonomies"].(map[string]any); ok {
-		if fm.Language == "" {
-			// [taxonomies] language can be a string or array: language = ["tr"]
-			if lang := toString(taxonomies["language"]); lang != "" {
-				fm.Language = lang
-			} else if langs := toStringSlice(taxonomies["language"]); len(langs) > 0 {
-				fm.Language = langs[0]
-			}
-		}
-
-		// Merge taxonomies tags if top-level tags were not found
-		if len(fm.Tags) == 0 {
-			if tags := toStringSlice(taxonomies["tags"]); len(tags) > 0 {
-				fm.Tags = tags
-			} else if tags := toStringSlice(taxonomies["categories"]); len(tags) > 0 {
-				fm.Tags = tags
-			}
-		}
-	}
+	inferLanguageFromExtra(parsed)
+	inferFromTaxonomies(parsed)
 
 	// Infer language from tags when no explicit language field is set.
-	// Common in Hugo blogs that don't use multilingual mode.
-	if fm.Language == "" {
-		fm.Language = languageFromTags(fm.Tags)
+	if parsed.Language == "" {
+		parsed.Language = languageFromTags(parsed.Tags)
 	}
 
-	return fm
+	return parsed
+}
+
+// assignFrontmatterField assigns a single key-value pair to the appropriate frontmatter field.
+func assignFrontmatterField(parsed *ParsedFrontmatter, key string, val any) {
+	switch strings.ToLower(key) {
+	case "title":
+		parsed.Title = toString(val)
+	case "date":
+		parsed.Date = toTime(val)
+	case "slug":
+		parsed.Slug = toString(val)
+	case "description", "summary":
+		parsed.Description = toString(val)
+	case "tags", "categories":
+		parsed.Tags = toStringSlice(val)
+	case "language", "lang":
+		parsed.Language = toString(val)
+	default:
+		parsed.Extra[key] = val
+	}
+}
+
+// inferLanguageFromExtra checks Zola's [extra] section for language.
+func inferLanguageFromExtra(parsed *ParsedFrontmatter) {
+	if parsed.Language != "" {
+		return
+	}
+
+	extra, ok := parsed.Extra["extra"].(map[string]any)
+	if !ok {
+		return
+	}
+
+	if lang := toString(extra["language"]); lang != "" {
+		parsed.Language = lang
+	} else if lang := toString(extra["lang"]); lang != "" {
+		parsed.Language = lang
+	}
+}
+
+// inferFromTaxonomies checks Zola's [taxonomies] section for language and tags.
+func inferFromTaxonomies(parsed *ParsedFrontmatter) {
+	taxonomies, ok := parsed.Extra["taxonomies"].(map[string]any)
+	if !ok {
+		return
+	}
+
+	if parsed.Language == "" {
+		parsed.Language = languageFromTaxonomyField(taxonomies["language"])
+	}
+
+	if len(parsed.Tags) == 0 {
+		parsed.Tags = tagsFromTaxonomies(taxonomies)
+	}
+}
+
+// languageFromTaxonomyField extracts a language from a taxonomy value (string or array).
+func languageFromTaxonomyField(val any) string {
+	if lang := toString(val); lang != "" {
+		return lang
+	}
+
+	if langs := toStringSlice(val); len(langs) > 0 {
+		return langs[0]
+	}
+
+	return ""
+}
+
+// tagsFromTaxonomies extracts tags from taxonomy "tags" or "categories" fields.
+func tagsFromTaxonomies(taxonomies map[string]any) []string {
+	if tags := toStringSlice(taxonomies["tags"]); len(tags) > 0 {
+		return tags
+	}
+
+	if tags := toStringSlice(taxonomies["categories"]); len(tags) > 0 {
+		return tags
+	}
+
+	return nil
 }
 
 // toString converts an interface value to string.
@@ -194,8 +233,9 @@ func toTime(v any) *time.Time {
 			"2006-01-02T15:04:05",
 			"2006-01-02",
 		} {
-			if t, err := time.Parse(layout, val); err == nil {
-				return &t
+			parsed, parseErr := time.Parse(layout, val)
+			if parseErr == nil {
+				return &parsed
 			}
 		}
 	}
@@ -255,9 +295,9 @@ func languageFromPath(filePath string) string {
 
 	// Check for locale suffix like ".tr", ".en", ".de"
 	parts := strings.Split(nameWithoutExt, ".")
-	if len(parts) >= 2 {
+	if len(parts) >= localePartCount {
 		candidate := parts[len(parts)-1]
-		if len(candidate) == 2 || len(candidate) == 5 { // "tr" or "pt-BR"
+		if len(candidate) == 2 || len(candidate) == 5 {
 			return candidate
 		}
 	}
@@ -267,7 +307,7 @@ func languageFromPath(filePath string) string {
 
 // tagLanguageMap maps common tag values to ISO 639-1 locale codes.
 // Keys must be lowercase.
-var tagLanguageMap = map[string]string{
+var tagLanguageMap = map[string]string{ //nolint:gochecknoglobals
 	"turkce":   "tr",
 	"türkçe":   "tr",
 	"turkish":  "tr",

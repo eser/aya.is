@@ -121,13 +121,13 @@ func ToSQLNullRawMessage(m map[string]any) pqtype.NullRawMessage {
 	if m != nil {
 		bytes, err := json.Marshal(m)
 		if err != nil {
-			return pqtype.NullRawMessage{Valid: false}
+			return pqtype.NullRawMessage{RawMessage: nil, Valid: false}
 		}
 
 		return pqtype.NullRawMessage{RawMessage: bytes, Valid: true}
 	}
 
-	return pqtype.NullRawMessage{Valid: false}
+	return pqtype.NullRawMessage{RawMessage: nil, Valid: false}
 }
 
 func SetValue(dest any, src any) error {

@@ -82,35 +82,35 @@ func (s *Service) Create(ctx context.Context, params CreateParams) (*StorySeries
 }
 
 // Update updates an existing series.
-func (s *Service) Update(ctx context.Context, id string, params UpdateParams) error {
+func (s *Service) Update(ctx context.Context, seriesID string, params UpdateParams) error {
 	rows, err := s.repo.UpdateSeries(
 		ctx,
-		id,
+		seriesID,
 		params.Slug,
 		params.SeriesPictureURI,
 		params.Title,
 		params.Description,
 	)
 	if err != nil {
-		return fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateSeries, id, err)
+		return fmt.Errorf("%w(id: %s): %w", ErrFailedToUpdateSeries, seriesID, err)
 	}
 
 	if rows == 0 {
-		return fmt.Errorf("%w: %s", ErrSeriesNotFound, id)
+		return fmt.Errorf("%w: %s", ErrSeriesNotFound, seriesID)
 	}
 
 	return nil
 }
 
 // Delete soft-deletes a series.
-func (s *Service) Delete(ctx context.Context, id string) error {
-	rows, err := s.repo.RemoveSeries(ctx, id)
+func (s *Service) Delete(ctx context.Context, seriesID string) error {
+	rows, err := s.repo.RemoveSeries(ctx, seriesID)
 	if err != nil {
-		return fmt.Errorf("%w(id: %s): %w", ErrFailedToRemoveSeries, id, err)
+		return fmt.Errorf("%w(id: %s): %w", ErrFailedToRemoveSeries, seriesID, err)
 	}
 
 	if rows == 0 {
-		return fmt.Errorf("%w: %s", ErrSeriesNotFound, id)
+		return fmt.Errorf("%w: %s", ErrSeriesNotFound, seriesID)
 	}
 
 	return nil

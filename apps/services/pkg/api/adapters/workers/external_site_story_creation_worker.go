@@ -140,8 +140,8 @@ func extractExternalSiteImportMeta(
 	publishedAt := time.Now()
 
 	if publishedAtStr != "" {
-		if parsed, parseErr := time.Parse(time.RFC3339, publishedAtStr); parseErr == nil &&
-			!parsed.IsZero() {
+		parsed, parseErr := time.Parse(time.RFC3339, publishedAtStr)
+		if parseErr == nil && !parsed.IsZero() {
 			publishedAt = parsed
 		}
 	}
@@ -258,7 +258,7 @@ func (w *ExternalSiteStoryProcessor) reconcileStory(
 		locale = "en"
 	}
 
-	summary := truncateSummary(description, maxSummaryLength)
+	summary := truncateSummary(description)
 
 	err := w.storyRepo.UpsertStoryTx(ctx, imp.StoryID, locale, title, summary, content, true)
 	if err != nil {
@@ -269,7 +269,7 @@ func (w *ExternalSiteStoryProcessor) reconcileStory(
 }
 
 // createStoryFromImport creates a story from an external site import.
-func (w *ExternalSiteStoryProcessor) createStoryFromImport(
+func (w *ExternalSiteStoryProcessor) createStoryFromImport( //nolint:funlen
 	ctx context.Context,
 	imp *linksync.LinkImportForStoryCreation,
 ) error {
@@ -317,7 +317,7 @@ func (w *ExternalSiteStoryProcessor) createStoryFromImport(
 		return fmt.Errorf("failed to insert story: %w", err)
 	}
 
-	summary := truncateSummary(meta.description, maxSummaryLength)
+	summary := truncateSummary(meta.description)
 
 	err = w.storyRepo.InsertStoryTx(ctx, storyID, locale, meta.title, summary, meta.content, true)
 	if err != nil {

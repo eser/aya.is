@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { ImagePlus, PencilLine } from "lucide-react";
+import { PencilLine } from "lucide-react";
 import type { StoryEx } from "@/modules/backend/types";
 import { calculateReadingTime } from "@/lib/reading-time";
 
@@ -11,7 +11,7 @@ export type StoryMetadataProps = {
 };
 
 export function StoryMetadata(props: StoryMetadataProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const readingTime = calculateReadingTime(props.story.content);
   const publishedDate = new Date(props.story.published_at ?? props.story.created_at);

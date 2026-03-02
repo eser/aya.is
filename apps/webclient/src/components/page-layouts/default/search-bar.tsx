@@ -20,7 +20,7 @@ import { siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config
 import { useNavigation } from "@/modules/navigation/navigation-context";
 import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
 import { getSpotlight, search } from "@/modules/backend/backend";
-import type { SpotlightItem, SearchResult } from "@/modules/backend/types";
+import type { SearchResult, SpotlightItem } from "@/modules/backend/types";
 import {
   BookOpenIcon,
   BoxesIcon,
@@ -318,32 +318,32 @@ export function SearchBar() {
                     </>
                   )
                   : searchResults !== null && searchResults.length > 0
-                    ? searchResults.map((result) => {
-                      const Icon = getSearchResultIcon(result);
-                      return (
-                        <CommandItem
-                          key={`${result.type}-${result.id}`}
-                          value={`search-${result.type}-${result.slug}-${result.title}`}
-                          onSelect={() => {
-                            navigate({ to: getSearchResultLink(result) });
-                            setOpen(false);
-                          }}
-                        >
-                          <Icon className="w-4 h-4 mr-2" />
-                          <span className="truncate">{getSearchResultTitle(result)}</span>
-                          <span className="ml-auto text-xs text-muted-foreground">
-                            {getSearchResultTypeLabel(result)}
-                          </span>
-                        </CommandItem>
-                      );
-                    })
-                    : !isSearching && (
-                      <CommandItem disabled>
-                        <span className="text-muted-foreground">
-                          {t("Search.No results found.")}
+                  ? searchResults.map((result) => {
+                    const Icon = getSearchResultIcon(result);
+                    return (
+                      <CommandItem
+                        key={`${result.type}-${result.id}`}
+                        value={`search-${result.type}-${result.slug}-${result.title}`}
+                        onSelect={() => {
+                          navigate({ to: getSearchResultLink(result) });
+                          setOpen(false);
+                        }}
+                      >
+                        <Icon className="w-4 h-4 mr-2" />
+                        <span className="truncate">{getSearchResultTitle(result)}</span>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {getSearchResultTypeLabel(result)}
                         </span>
                       </CommandItem>
-                    )}
+                    );
+                  })
+                  : !isSearching && (
+                    <CommandItem disabled>
+                      <span className="text-muted-foreground">
+                        {t("Search.No results found.")}
+                      </span>
+                    </CommandItem>
+                  )}
               </CommandGroup>
               <CommandSeparator />
             </>

@@ -166,16 +166,10 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 
 	remoteID := strconv.FormatInt(telegramUserID, 10)
 
-	// Check if this Telegram user is already linked to any profile
-	existing, err := s.repo.GetProfileLinkByTelegramRemoteID(ctx, remoteID)
-	if err == nil && existing != nil {
-		return nil, ErrAlreadyLinked
-	}
-
-	// Check if the target profile already has a managed telegram link
-	existingForProfile, err := s.repo.GetProfileLinkByProfileIDAndTelegram(ctx, profileID)
-	if err == nil && existingForProfile != nil {
-		return nil, ErrProfileAlreadyHasTelegram
+	// Validate linking preconditions
+	err = s.validateLinkPreconditions(ctx, remoteID, profileID)
+	if err != nil {
+		return nil, err
 	}
 
 	// Get the next order value for this profile's links
@@ -229,6 +223,28 @@ func (s *Service) VerifyCodeAndLink( //nolint:funlen
 		TelegramUserID:   telegramUserID,
 		TelegramUsername: telegramUsername,
 	}, nil
+}
+
+// validateLinkPreconditions checks that neither the Telegram user nor the profile
+// already has an active link.
+func (s *Service) validateLinkPreconditions(
+	ctx context.Context,
+	remoteID string,
+	profileID string,
+) error {
+	// Check if this Telegram user is already linked to any profile
+	existing, err := s.repo.GetProfileLinkByTelegramRemoteID(ctx, remoteID)
+	if err == nil && existing != nil {
+		return ErrAlreadyLinked
+	}
+
+	// Check if the target profile already has a managed telegram link
+	existingForProfile, err := s.repo.GetProfileLinkByProfileIDAndTelegram(ctx, profileID)
+	if err == nil && existingForProfile != nil {
+		return ErrProfileAlreadyHasTelegram
+	}
+
+	return nil
 }
 
 // GetLinkedProfile returns the profile link for a Telegram user, or nil if not linked.
@@ -314,9 +330,9 @@ func (s *Service) GetGroupTelegramLinks(
 	result := make([]GroupTelegramLink, 0, len(rawLinks))
 
 	for _, raw := range rawLinks {
-		memberLevel := profiles.MembershipKindLevel[profiles.MembershipKind(raw.MembershipKind)]
-		requiredMembership := profiles.MinMembershipForVisibility[profiles.LinkVisibility(raw.LinkVisibility)]
-		requiredLevel := profiles.MembershipKindLevel[requiredMembership]
+		memberLevel := profiles.GetMembershipKindLevel()[profiles.MembershipKind(raw.MembershipKind)]
+		requiredMembership := profiles.GetMinMembershipForVisibility()[profiles.LinkVisibility(raw.LinkVisibility)]
+		requiredLevel := profiles.GetMembershipKindLevel()[requiredMembership]
 
 		// Public links (requiredMembership == "") are always visible
 		if requiredMembership != "" && memberLevel < requiredLevel {
@@ -344,39 +360,7 @@ func (s *Service) GenerateGroupInviteCode(
 	chatTitle string,
 	telegramUserID int64,
 ) (string, error) {
-	code, err := generateCode()
-	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
-	}
-
-	now := time.Now()
-
-	externalCode := &ExternalCode{
-		ID:             s.idGenerator(),
-		Code:           code,
-		ExternalSystem: "telegram",
-		Properties: map[string]any{
-			"kind":                        "group_invite",
-			"telegram_chat_id":            chatID,
-			"telegram_chat_title":         chatTitle,
-			"created_by_telegram_user_id": telegramUserID,
-		},
-		CreatedAt:  now,
-		ExpiresAt:  now.Add(CodeExpiryMinutes * time.Minute),
-		ConsumedAt: nil,
-	}
-
-	err = s.repo.CreateExternalCode(ctx, externalCode)
-	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
-	}
-
-	s.logger.DebugContext(ctx, "Group invite code generated",
-		slog.Int64("chat_id", chatID),
-		slog.String("chat_title", chatTitle),
-		slog.Int64("telegram_user_id", telegramUserID))
-
-	return code, nil
+	return s.generateGroupCode(ctx, "group_invite", chatID, chatTitle, telegramUserID)
 }
 
 // ResolveGroupInviteCode looks up a group invite code and returns its data if valid.
@@ -411,6 +395,17 @@ func (s *Service) GenerateGroupRegisterCode(
 	chatTitle string,
 	telegramUserID int64,
 ) (string, error) {
+	return s.generateGroupCode(ctx, "group_register", chatID, chatTitle, telegramUserID)
+}
+
+// generateGroupCode is the shared implementation for generating group invite/register codes.
+func (s *Service) generateGroupCode(
+	ctx context.Context,
+	kind string,
+	chatID int64,
+	chatTitle string,
+	telegramUserID int64,
+) (string, error) {
 	code, err := generateCode()
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
@@ -423,7 +418,7 @@ func (s *Service) GenerateGroupRegisterCode(
 		Code:           code,
 		ExternalSystem: "telegram",
 		Properties: map[string]any{
-			"kind":                        "group_register",
+			"kind":                        kind,
 			"telegram_chat_id":            chatID,
 			"telegram_chat_title":         chatTitle,
 			"created_by_telegram_user_id": telegramUserID,
@@ -438,7 +433,8 @@ func (s *Service) GenerateGroupRegisterCode(
 		return "", fmt.Errorf("%w: %w", ErrFailedToCreateCode, err)
 	}
 
-	s.logger.DebugContext(ctx, "Group register code generated",
+	s.logger.DebugContext(ctx, "Group code generated",
+		slog.String("kind", kind),
 		slog.Int64("chat_id", chatID),
 		slog.String("chat_title", chatTitle),
 		slog.Int64("telegram_user_id", telegramUserID))
@@ -498,6 +494,7 @@ func (s *Service) RecordInviteLinkGenerated(
 		EntityID:   strconv.FormatInt(chatID, 10),
 		ActorID:    &profileID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"telegram_user_id": telegramUserID,
 			"chat_id":          chatID,
@@ -542,13 +539,13 @@ func getStringProp(props map[string]any, key string) string {
 		return ""
 	}
 
-	val, ok := props[key]
-	if !ok {
+	val, found := props[key]
+	if !found {
 		return ""
 	}
 
-	str, ok := val.(string)
-	if !ok {
+	str, isString := val.(string)
+	if !isString {
 		return ""
 	}
 
@@ -567,15 +564,15 @@ func getInt64Prop(props map[string]any, key string) int64 {
 		return 0
 	}
 
-	switch v := val.(type) {
+	switch typedVal := val.(type) {
 	case float64:
-		return int64(v)
+		return int64(typedVal)
 	case int64:
-		return v
+		return typedVal
 	case json.Number:
-		n, _ := v.Int64()
+		parsed, _ := typedVal.Int64()
 
-		return n
+		return parsed
 	default:
 		return 0
 	}

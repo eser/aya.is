@@ -32,12 +32,8 @@ export function TextContent(props: TextContentProps) {
     <>
       {title !== undefined && <h2>{title}</h2>}
 
-      {compiledContent !== null ? (
-        <MdxContent compiledSource={compiledContent} headingOffset={headingOffset} />
-      ) : (
-        rawContent !== null && (
-          <div dangerouslySetInnerHTML={{ __html: rawContent }} />
-        )
+      {compiledContent !== null ? <MdxContent compiledSource={compiledContent} headingOffset={headingOffset} /> : (
+        rawContent !== null && <div dangerouslySetInnerHTML={{ __html: rawContent }} />
       )}
 
       {shareOptions !== undefined && (

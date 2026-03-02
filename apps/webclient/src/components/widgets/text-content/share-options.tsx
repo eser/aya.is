@@ -26,37 +26,32 @@ export function ShareOptions(props: ShareOptionsProps) {
     }
   };
 
-  const shareText = summary !== null && summary !== undefined
-    ? `${title} - ${summary}`
-    : title;
+  const shareText = summary !== null && summary !== undefined ? `${title} - ${summary}` : title;
 
   const handleWhatsAppShare = () => {
-    const url =
-      `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleTelegramShare = () => {
-    const url =
-      `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareText)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleLinkedInShare = () => {
-    const url =
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleRedditShare = () => {
-    const url =
-      `https://reddit.com/submit?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}`;
+    const url = `https://reddit.com/submit?url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(title)}`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleXShare = () => {
-    const url =
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${
+      encodeURIComponent(currentUrl)
+    }`;
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
 

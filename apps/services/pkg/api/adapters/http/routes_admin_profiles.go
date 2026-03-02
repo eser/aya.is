@@ -13,7 +13,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
-func RegisterHTTPRoutesForAdminProfiles(
+func RegisterHTTPRoutesForAdminProfiles( //nolint:gocognit,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -33,7 +33,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -52,8 +52,8 @@ func RegisterHTTPRoutesForAdminProfiles(
 				limitStr := query.Get("limit")
 				limit := 50
 				if limitStr != "" {
-					if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 &&
-						parsed <= 100 {
+					parsed, parseErr := strconv.Atoi(limitStr)
+					if parseErr == nil && parsed > 0 && parsed <= 100 {
 						limit = parsed
 					}
 				}
@@ -61,7 +61,8 @@ func RegisterHTTPRoutesForAdminProfiles(
 				offsetStr := query.Get("offset")
 				offset := 0
 				if offsetStr != "" {
-					if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+					parsed, parseErr := strconv.Atoi(offsetStr)
+					if parseErr == nil && parsed >= 0 {
 						offset = parsed
 					}
 				}
@@ -104,7 +105,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -162,7 +163,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(err))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("Admin access required"),
@@ -182,7 +183,8 @@ func RegisterHTTPRoutesForAdminProfiles(
 					Description string `json:"description"`
 				}
 
-				if err := json.NewDecoder(ctx.Request.Body).Decode(&body); err != nil {
+				err = json.NewDecoder(ctx.Request.Body).Decode(&body)
+				if err != nil {
 					return ctx.Results.BadRequest(
 						httpfx.WithErrorMessage("invalid request body"),
 					)
@@ -226,7 +228,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 
 				// Add points using GainPoints (direct admin award)
 				triggeringEvent := "ADMIN_AWARD"
-				tx, err := profilePointsService.GainPoints(
+				transaction, err := profilePointsService.GainPoints(
 					ctx.Request.Context(),
 					profile_points.GainParams{
 						ActorID:         user.ID,
@@ -251,7 +253,7 @@ func RegisterHTTPRoutesForAdminProfiles(
 				}
 
 				return ctx.Results.JSON(map[string]any{
-					"data":  tx,
+					"data":  transaction,
 					"error": nil,
 				})
 			},

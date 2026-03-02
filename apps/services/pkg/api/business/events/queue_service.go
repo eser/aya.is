@@ -35,7 +35,7 @@ func NewQueueService(
 
 // Enqueue adds a new item to the event queue for later processing.
 func (s *QueueService) Enqueue(ctx context.Context, params QueueEnqueueParams) (string, error) {
-	id := s.idGenerator()
+	eventID := s.idGenerator()
 
 	maxRetries := params.MaxRetries
 	if maxRetries == 0 {
@@ -54,7 +54,7 @@ func (s *QueueService) Enqueue(ctx context.Context, params QueueEnqueueParams) (
 
 	err := s.repo.Enqueue(
 		ctx,
-		id,
+		eventID,
 		params.Type,
 		params.Payload,
 		maxRetries,
@@ -65,7 +65,7 @@ func (s *QueueService) Enqueue(ctx context.Context, params QueueEnqueueParams) (
 		return "", fmt.Errorf("%w: %w", ErrFailedToEnqueue, err)
 	}
 
-	return id, nil
+	return eventID, nil
 }
 
 // CalculateBackoff returns the delay in seconds for exponential backoff.

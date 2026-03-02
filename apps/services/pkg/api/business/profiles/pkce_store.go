@@ -12,6 +12,11 @@ import (
 
 var ErrPKCEVerifierNotFound = errors.New("PKCE verifier not found or expired")
 
+const (
+	pkceVerifierBytes         = 32
+	pkceVerifierExpiryMinutes = 10
+)
+
 // pkceEntry holds a code verifier with an expiry time.
 type pkceEntry struct {
 	CodeVerifier string
@@ -26,7 +31,7 @@ type PKCEStore struct {
 
 // NewPKCEStore creates a new PKCE store with automatic cleanup.
 func NewPKCEStore() *PKCEStore {
-	store := &PKCEStore{
+	store := &PKCEStore{ //nolint:exhaustruct // mu zero value is valid
 		verifiers: make(map[string]*pkceEntry),
 	}
 
@@ -38,12 +43,14 @@ func NewPKCEStore() *PKCEStore {
 // GeneratePKCE generates a code_verifier, stores it keyed by stateKey,
 // and returns the corresponding code_challenge (S256).
 func (s *PKCEStore) GeneratePKCE(stateKey string) (string, error) {
-	verifierBytes := make([]byte, 32)
-	if _, err := rand.Read(verifierBytes); err != nil {
+	verifierBuf := make([]byte, pkceVerifierBytes)
+
+	_, err := rand.Read(verifierBuf)
+	if err != nil {
 		return "", fmt.Errorf("failed to generate PKCE verifier: %w", err)
 	}
 
-	codeVerifier := base64.RawURLEncoding.EncodeToString(verifierBytes)
+	codeVerifier := base64.RawURLEncoding.EncodeToString(verifierBuf)
 
 	hash := sha256.Sum256([]byte(codeVerifier))
 	codeChallenge := base64.RawURLEncoding.EncodeToString(hash[:])
@@ -53,7 +60,7 @@ func (s *PKCEStore) GeneratePKCE(stateKey string) (string, error) {
 
 	s.verifiers[stateKey] = &pkceEntry{
 		CodeVerifier: codeVerifier,
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		ExpiresAt:    time.Now().Add(pkceVerifierExpiryMinutes * time.Minute),
 	}
 
 	return codeChallenge, nil

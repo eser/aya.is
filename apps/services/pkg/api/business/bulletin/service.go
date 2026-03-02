@@ -128,16 +128,7 @@ func (s *Service) processSubscription(
 	}
 
 	// Determine the "since" cutoff — frequency-aware lookback, or last bulletin time
-	var lookback time.Duration
-
-	switch sub.Frequency {
-	case FrequencyBiDaily:
-		lookback = 48 * time.Hour
-	case FrequencyWeekly:
-		lookback = 7 * 24 * time.Hour //nolint:mnd
-	default: // daily
-		lookback = 24 * time.Hour
-	}
+	lookback := frequencyToLookback(sub.Frequency)
 
 	since := now.Add(-lookback)
 	if sub.LastBulletinAt != nil {
@@ -165,41 +156,34 @@ func (s *Service) processSubscription(
 	// Group stories by author profile
 	digest := s.buildDigest(sub.ProfileID, sub.ProfileSlug, locale, stories, now)
 
-	// Look up the channel adapter
+	// Deliver and log result
+	return s.deliverAndLog(ctx, sub, digest, len(stories), now)
+}
+
+// deliverAndLog sends the digest through the channel adapter and records the result.
+func (s *Service) deliverAndLog(
+	ctx context.Context,
+	sub *Subscription,
+	digest *Digest,
+	storyCount int,
+	now time.Time,
+) error {
 	channel, ok := s.channels[sub.Channel]
 	if !ok {
-		logEntry := &BulletinLog{
-			ID:             s.idGen(),
-			SubscriptionID: sub.ID,
-			StoryCount:     len(stories),
-			Status:         "failed",
-			ErrorMessage:   strPtr(fmt.Sprintf("channel %q not available", sub.Channel)),
-			CreatedAt:      now,
-		}
-
-		_ = s.repo.CreateBulletinLog(ctx, logEntry)
+		s.recordBulletinLog(ctx, sub.ID, storyCount, "failed",
+			strPtr(fmt.Sprintf("channel %q not available", sub.Channel)), now)
 
 		return fmt.Errorf("%w: %s", ErrChannelNotAvailable, sub.Channel)
 	}
 
-	// Deliver
 	sendErr := channel.Send(ctx, sub.ProfileID, digest)
 	if sendErr != nil {
-		logEntry := &BulletinLog{
-			ID:             s.idGen(),
-			SubscriptionID: sub.ID,
-			StoryCount:     len(stories),
-			Status:         "failed",
-			ErrorMessage:   strPtr(sendErr.Error()),
-			CreatedAt:      now,
-		}
-
-		_ = s.repo.CreateBulletinLog(ctx, logEntry)
+		s.recordBulletinLog(ctx, sub.ID, storyCount, "failed",
+			strPtr(sendErr.Error()), now)
 
 		return fmt.Errorf("sending bulletin via %s: %w", sub.Channel, sendErr)
 	}
 
-	// Success — update last_bulletin_at and log
 	updateErr := s.repo.UpdateLastBulletinAt(ctx, sub.ID)
 	if updateErr != nil {
 		s.logger.WarnContext(ctx, "Failed to update last_bulletin_at",
@@ -207,22 +191,35 @@ func (s *Service) processSubscription(
 			slog.String("error", updateErr.Error()))
 	}
 
-	logEntry := &BulletinLog{
-		ID:             s.idGen(),
-		SubscriptionID: sub.ID,
-		StoryCount:     len(stories),
-		Status:         "sent",
-		CreatedAt:      now,
-	}
-
-	_ = s.repo.CreateBulletinLog(ctx, logEntry)
+	s.recordBulletinLog(ctx, sub.ID, storyCount, "sent", nil, now)
 
 	s.logger.InfoContext(ctx, "Bulletin sent successfully",
 		slog.String("profile_id", sub.ProfileID),
 		slog.String("channel", string(sub.Channel)),
-		slog.Int("story_count", len(stories)))
+		slog.Int("story_count", storyCount))
 
 	return nil
+}
+
+// recordBulletinLog creates a bulletin log entry (best-effort).
+func (s *Service) recordBulletinLog(
+	ctx context.Context,
+	subscriptionID string,
+	storyCount int,
+	status string,
+	errorMessage *string,
+	now time.Time,
+) {
+	logEntry := &BulletinLog{
+		ID:             s.idGen(),
+		SubscriptionID: subscriptionID,
+		StoryCount:     storyCount,
+		Status:         status,
+		ErrorMessage:   errorMessage,
+		CreatedAt:      now,
+	}
+
+	_ = s.repo.CreateBulletinLog(ctx, logEntry)
 }
 
 // buildDigest groups stories by author profile into a Digest.
@@ -289,11 +286,16 @@ func (s *Service) Subscribe(
 	preferredTime int,
 ) (*Subscription, error) {
 	sub := &Subscription{
-		ID:            s.idGen(),
-		ProfileID:     profileID,
-		Channel:       channel,
-		Frequency:     frequency,
-		PreferredTime: preferredTime,
+		ID:             s.idGen(),
+		ProfileID:      profileID,
+		Channel:        channel,
+		Frequency:      frequency,
+		PreferredTime:  preferredTime,
+		CreatedAt:      time.Now(),
+		LastBulletinAt: nil,
+		UpdatedAt:      nil,
+		ProfileSlug:    "",
+		DefaultLocale:  "",
 	}
 
 	err := s.repo.UpsertSubscription(ctx, sub)
@@ -340,8 +342,8 @@ func (s *Service) UpdateBulletinPreferences(
 
 	// Build a set of requested channels for fast lookup
 	requested := make(map[ChannelKind]bool, len(channels))
-	for _, ch := range channels {
-		requested[ch] = true
+	for _, channel := range channels {
+		requested[channel] = true
 	}
 
 	// Get existing subscriptions
@@ -351,18 +353,23 @@ func (s *Service) UpdateBulletinPreferences(
 	}
 
 	// Upsert requested channels
-	for _, ch := range channels {
+	for _, channel := range channels {
 		sub := &Subscription{
-			ID:            s.idGen(),
-			ProfileID:     profileID,
-			Channel:       ch,
-			Frequency:     frequency,
-			PreferredTime: preferredTime,
+			ID:             s.idGen(),
+			ProfileID:      profileID,
+			Channel:        channel,
+			Frequency:      frequency,
+			PreferredTime:  preferredTime,
+			CreatedAt:      time.Now(),
+			LastBulletinAt: nil,
+			UpdatedAt:      nil,
+			ProfileSlug:    "",
+			DefaultLocale:  "",
 		}
 
 		upsertErr := s.repo.UpsertSubscription(ctx, sub)
 		if upsertErr != nil {
-			return fmt.Errorf("upserting subscription for %s: %w", ch, upsertErr)
+			return fmt.Errorf("upserting subscription for %s: %w", channel, upsertErr)
 		}
 	}
 
@@ -387,6 +394,27 @@ func (s *Service) Unsubscribe(ctx context.Context, subscriptionID string) error 
 	}
 
 	return nil
+}
+
+// Lookback duration constants for digest frequencies.
+const (
+	lookbackBiDaily = 48 * time.Hour
+	lookbackDaily   = 24 * time.Hour
+	lookbackWeekly  = 7 * lookbackDaily
+)
+
+// frequencyToLookback returns the lookback duration for a digest frequency.
+func frequencyToLookback(freq DigestFrequency) time.Duration {
+	switch freq {
+	case FrequencyBiDaily:
+		return lookbackBiDaily
+	case FrequencyWeekly:
+		return lookbackWeekly
+	case FrequencyDaily:
+		return lookbackDaily
+	default:
+		return lookbackDaily
+	}
 }
 
 func strPtr(s string) *string {

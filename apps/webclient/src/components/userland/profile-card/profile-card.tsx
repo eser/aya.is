@@ -79,7 +79,7 @@ export function ProfileCard(props: ProfileCardProps) {
           </h3>
           {profile.description !== null &&
             profile.description !== undefined && (
-              <InlineMarkdown content={profile.description} className={styles.description} />
+            <InlineMarkdown content={profile.description} className={styles.description} />
           )}
         </div>
       </div>

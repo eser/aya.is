@@ -5,12 +5,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { StoryEx } from "@/modules/backend/types.ts";
-import type { StoryData, CoverOptions, TemplateId } from "@/lib/cover-generator/types.ts";
+import type { CoverOptions, StoryData, TemplateId } from "@/lib/cover-generator/types.ts";
 import { defaultCoverOptions } from "@/lib/cover-generator/types.ts";
 import { getTemplate } from "@/lib/cover-generator/templates.ts";
 import { downloadCanvas } from "@/lib/cover-generator/canvas-renderer.ts";
-import { renderCoverSvg, downloadSvg } from "@/lib/cover-generator/svg-renderer.ts";
-import { uploadCoverImage, loadImage } from "@/lib/cover-generator/upload.ts";
+import { downloadSvg, renderCoverSvg } from "@/lib/cover-generator/svg-renderer.ts";
+import { loadImage, uploadCoverImage } from "@/lib/cover-generator/upload.ts";
 import { backend } from "@/modules/backend/backend.ts";
 import { Button } from "@/components/ui/button.tsx";
 import {
@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.tsx";
-import { Download, FileCode, FileImage, ImagePlus, Loader2, ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, Download, FileCode, FileImage, ImagePlus, Loader2 } from "lucide-react";
 import { CanvasPreview } from "./canvas-preview.tsx";
 import { TemplateSelector } from "./template-selector.tsx";
 import { CustomizationPanel } from "./customization-panel.tsx";
@@ -42,7 +42,9 @@ export function CoverGenerator(props: CoverGeneratorProps) {
   // Load author image as data URL for SVG export
   React.useEffect(() => {
     const loadAuthorImage = async () => {
-      if (story.author_profile?.profile_picture_uri === null || story.author_profile?.profile_picture_uri === undefined) {
+      if (
+        story.author_profile?.profile_picture_uri === null || story.author_profile?.profile_picture_uri === undefined
+      ) {
         setAuthorImageDataUrl(null);
         return;
       }
@@ -209,11 +211,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button onClick={handleSetAsCover} disabled={isUploading}>
-            {isUploading ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <ImagePlus className="mr-2 size-4" />
-            )}
+            {isUploading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <ImagePlus className="mr-2 size-4" />}
             {t("CoverDesigner.Set as Cover")}
           </Button>
         </div>

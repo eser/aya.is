@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 // Enqueue inserts a new item into the event queue.
 func (r *Repository) Enqueue(
 	ctx context.Context,
-	id string,
+	itemID string,
 	itemType events.QueueItemType,
 	payload map[string]any,
 	maxRetries int,
@@ -25,11 +26,11 @@ func (r *Repository) Enqueue(
 ) error {
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling event queue payload: %w", err)
 	}
 
 	return r.queries.EnqueueQueueItem(ctx, EnqueueQueueItemParams{
-		ID:                    id,
+		ID:                    itemID,
 		Type:                  string(itemType),
 		Payload:               pqtype.NullRawMessage{RawMessage: payloadJSON, Valid: true},
 		MaxRetries:            int32(maxRetries),
@@ -45,7 +46,7 @@ func (r *Repository) ClaimNext(ctx context.Context, workerID string) (*events.Qu
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil, nil //nolint:nilnil // no item available is not an error
 		}
 
 		return nil, err
@@ -67,13 +68,13 @@ func (r *Repository) Complete(ctx context.Context, id string, workerID string) e
 // Fail marks an item as failed with error message and backoff.
 func (r *Repository) Fail(
 	ctx context.Context,
-	id string,
+	itemID string,
 	workerID string,
 	errorMessage string,
 	backoffSeconds int,
 ) error {
 	_, err := r.queries.FailQueueItem(ctx, FailQueueItemParams{
-		ID:             id,
+		ID:             itemID,
 		WorkerID:       sql.NullString{String: workerID, Valid: true},
 		ErrorMessage:   sql.NullString{String: errorMessage, Valid: true},
 		BackoffSeconds: int32(backoffSeconds),

@@ -160,7 +160,8 @@ func (ac *AMQPConnection) GetRawConnection() any {
 
 // QueueRepository interface implementation.
 func (aa *AMQPAdapter) QueueDeclare(ctx context.Context, name string) (string, error) {
-	if err := aa.ensureConnection(); err != nil {
+	err := aa.ensureConnection()
+	if err != nil {
 		return "", fmt.Errorf("%w (queue=%q): %w", ErrAMQPClientNotInitialized, name, err)
 	}
 
@@ -184,7 +185,8 @@ func (aa *AMQPAdapter) QueueDeclareWithConfig(
 	name string,
 	config QueueConfig,
 ) (string, error) {
-	if err := aa.ensureConnection(); err != nil {
+	err := aa.ensureConnection()
+	if err != nil {
 		return "", fmt.Errorf("%w (queue=%q): %w", ErrAMQPClientNotInitialized, name, err)
 	}
 
@@ -247,7 +249,8 @@ func (aa *AMQPAdapter) PublishWithHeaders(
 	body []byte,
 	headers map[string]any,
 ) error {
-	if err := aa.ensureConnection(); err != nil {
+	err := aa.ensureConnection()
+	if err != nil {
 		return fmt.Errorf("%w (queue=%q): %w", ErrAMQPClientNotInitialized, queueName, err)
 	}
 
@@ -260,7 +263,7 @@ func (aa *AMQPAdapter) PublishWithHeaders(
 		publishing.Headers = amqp.Table(headers)
 	}
 
-	err := aa.channel.PublishWithContext(
+	err = aa.channel.PublishWithContext(
 		ctx,
 		"",        // exchange
 		queueName, // routing key
@@ -379,7 +382,8 @@ func (aa *AMQPAdapter) consumeLoop(
 	messages chan<- Message,
 	errors chan<- error,
 ) {
-	if err := aa.ensureConnection(); err != nil {
+	err := aa.ensureConnection()
+	if err != nil {
 		select {
 		case errors <- fmt.Errorf("%w (queue=%q): %w", ErrAMQPClientNotInitialized, queueName, err):
 		case <-ctx.Done():

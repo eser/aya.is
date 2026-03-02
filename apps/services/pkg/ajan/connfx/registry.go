@@ -233,8 +233,9 @@ func (registry *Registry) RemoveConnection(ctx context.Context, name string) err
 
 func (registry *Registry) LoadFromConfig(ctx context.Context, config *Config) error {
 	for name, target := range config.Targets {
-		if _, err := registry.AddConnection(ctx, name, &target); err != nil {
-			return fmt.Errorf("%w (name=%q): %w", ErrFailedToAddConnection, name, err)
+		_, addErr := registry.AddConnection(ctx, name, &target)
+		if addErr != nil {
+			return fmt.Errorf("%w (name=%q): %w", ErrFailedToAddConnection, name, addErr)
 		}
 	}
 

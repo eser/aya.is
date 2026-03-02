@@ -44,8 +44,24 @@ func (s *Service) AutoTranslateStory(
 	translator ContentTranslator,
 	pointsService *profile_points.Service,
 ) error {
-	// Check authorization
-	canEdit, err := s.CanUserEditStory(ctx, params.UserID, params.StoryID)
+	authErr := s.authorizeStoryEdit(ctx, params.UserID, params.StoryID)
+	if authErr != nil {
+		return authErr
+	}
+
+	// Deduct points for auto-translation
+	spendErr := s.deductTranslationPoints(ctx, pointsService, params)
+	if spendErr != nil {
+		return spendErr
+	}
+
+	// Translate and save
+	return s.translateAndSave(ctx, translator, params)
+}
+
+// authorizeStoryEdit checks that a user can edit the given story.
+func (s *Service) authorizeStoryEdit(ctx context.Context, userID string, storyID string) error {
+	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrUnauthorized, err)
 	}
@@ -54,26 +70,39 @@ func (s *Service) AutoTranslateStory(
 		return fmt.Errorf(
 			"%w: user %s cannot edit story %s",
 			ErrUnauthorized,
-			params.UserID,
-			params.StoryID,
+			userID,
+			storyID,
 		)
 	}
 
-	// Deduct points for auto-translation
+	return nil
+}
+
+// deductTranslationPoints deducts points for auto-translation.
+func (s *Service) deductTranslationPoints(
+	ctx context.Context,
+	pointsService *profile_points.Service,
+	params AutoTranslateStoryParams,
+) error {
 	eventAutoTranslate := profile_points.EventAutoTranslate
 
-	_, spendErr := pointsService.SpendPoints(ctx, profile_points.SpendParams{
+	_, err := pointsService.SpendPoints(ctx, profile_points.SpendParams{
 		ActorID:         params.UserID,
 		TargetProfileID: params.IndividualProfileID,
 		Amount:          profile_points.CostAutoTranslate,
 		TriggeringEvent: &eventAutoTranslate,
 		Description:     "Auto-translate content",
 	})
-	if spendErr != nil {
-		return spendErr //nolint:wrapcheck
-	}
 
-	// Get source content
+	return err //nolint:wrapcheck
+}
+
+// translateAndSave gets source content, translates via AI, and saves the result.
+func (s *Service) translateAndSave(
+	ctx context.Context,
+	translator ContentTranslator,
+	params AutoTranslateStoryParams,
+) error {
 	title, summary, content, err := s.GetTranslationContent(
 		ctx,
 		params.StoryID,
@@ -83,7 +112,6 @@ func (s *Service) AutoTranslateStory(
 		return fmt.Errorf("%w: %w", ErrFailedToGetSourceContent, err)
 	}
 
-	// Translate via AI
 	translatedTitle, translatedSummary, translatedContent, err := translator.Translate(
 		ctx,
 		params.SourceLocale,
@@ -96,7 +124,6 @@ func (s *Service) AutoTranslateStory(
 		return err //nolint:wrapcheck
 	}
 
-	// Save translated content
 	err = s.UpdateTranslation(
 		ctx,
 		params.UserID,
@@ -116,6 +143,7 @@ func (s *Service) AutoTranslateStory(
 		EntityID:   params.StoryID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"source_locale": params.SourceLocale,
 			"target_locale": params.TargetLocale,

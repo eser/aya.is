@@ -1,5 +1,5 @@
 import { visit } from "unist-util-visit";
-import type { Root, Paragraph, Text, Link } from "mdast";
+import type { Link, Node, Paragraph, Root, Text } from "mdast";
 
 /**
  * A remark plugin that transforms %[url] syntax into <Embed url="..." /> components.
@@ -84,7 +84,7 @@ export function remarkEmbed() {
         ],
         children: [],
         data: { _mdxExplicitJsx: true },
-      } as any;
+      } as unknown as Node;
     });
   };
 }

@@ -15,13 +15,18 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/users"
 )
 
+const (
+	boolTrue                    = "true"
+	defaultMailboxConversations = 50
+)
+
 var (
 	ErrMailboxSessionNotFound = errors.New("session ID not found")
 	ErrMailboxInvalidSession  = errors.New("invalid session")
 	ErrMailboxUserNotFound    = errors.New("could not resolve user profile")
 )
 
-func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
+func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop,gocognit,gocyclo,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -48,7 +53,7 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				_ = user
 				archivedParam := ctx.Request.URL.Query().Get("archived")
-				includeArchived := archivedParam == "true"
+				includeArchived := archivedParam == boolTrue
 
 				var allConversations []*mailbox.Conversation
 
@@ -56,7 +61,10 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 
 				for _, profileID := range profileIDs {
 					convs, listErr := mailboxService.ListConversations(
-						ctx.Request.Context(), profileID, includeArchived, 50,
+						ctx.Request.Context(),
+						profileID,
+						includeArchived,
+						defaultMailboxConversations,
 					)
 					if listErr != nil {
 						logger.ErrorContext(ctx.Request.Context(), "failed to list conversations",
@@ -267,7 +275,7 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 					return ctx.Results.Unauthorized(httpfx.WithSanitizedError(userErr))
 				}
 
-				if user.Kind != "admin" {
+				if user.Kind != userKindAdmin {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("admin access required"),
@@ -383,6 +391,7 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 						Kind:               body.Kind,
 						ConversationTitle:  body.ConversationTitle,
 						Message:            body.Message,
+						Properties:         nil,
 						ReplyToID:          body.ReplyToID,
 						SenderProfileTitle: senderProfile.Title,
 						Locale:             localeParam,
@@ -590,7 +599,7 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop
 }
 
 // resolveMailboxProfileIDs returns the user and all profile IDs where the user has maintainer+ access.
-func resolveMailboxProfileIDs(
+func resolveMailboxProfileIDs( //nolint:cyclop
 	ctx *httpfx.Context,
 	userService *users.Service,
 	profileService *profiles.Service,
@@ -618,19 +627,19 @@ func resolveMailboxProfileIDs(
 		*user.IndividualProfileID,
 	)
 	if membershipErr == nil {
-		for _, m := range memberships {
-			if m.Profile == nil {
+		for _, membership := range memberships {
+			if membership.Profile == nil {
 				continue
 			}
 
-			level := profiles.MembershipKindLevel[profiles.MembershipKind(m.Kind)]
-			minLevel := profiles.MembershipKindLevel[profiles.MembershipKindMaintainer]
+			level := profiles.GetMembershipKindLevel()[profiles.MembershipKind(membership.Kind)]
+			minLevel := profiles.GetMembershipKindLevel()[profiles.MembershipKindMaintainer]
 
 			if level < minLevel {
 				continue
 			}
 
-			profileIDs = append(profileIDs, m.Profile.ID)
+			profileIDs = append(profileIDs, membership.Profile.ID)
 		}
 	}
 

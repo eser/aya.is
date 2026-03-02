@@ -180,8 +180,6 @@ export function ContentEditor(props: ContentEditorProps) {
   const [isPublishDialogOpen, setIsPublishDialogOpen] = React.useState(false);
   const [isLocalizationsDialogOpen, setIsLocalizationsDialogOpen] = React.useState(false);
 
-  // Derive published state from publications
-  const isPublished = publications.length > 0;
   const earliestPublishedAt = React.useMemo(() => {
     let earliest: string | null = null;
     for (const pub of publications) {
@@ -678,7 +676,9 @@ export function ContentEditor(props: ContentEditorProps) {
           <Info className="size-4 shrink-0" />
           <span>
             {txIsManaged
-              ? t("ContentEditor.This translation is synced from an external source and cannot be edited. You can add translations in other languages.")
+              ? t(
+                "ContentEditor.This translation is synced from an external source and cannot be edited. You can add translations in other languages.",
+              )
               : t("ContentEditor.This story is synced from an external source. Some fields cannot be edited.")}
           </span>
         </div>
@@ -1103,9 +1103,7 @@ export function ContentEditor(props: ContentEditorProps) {
                         {featDiscussions
                           ? <MessageSquare className="size-4" />
                           : <MessageSquareOff className="size-4" />}
-                        {featDiscussions
-                          ? t("ContentEditor.Enabled")
-                          : t("ContentEditor.Disabled")}
+                        {featDiscussions ? t("ContentEditor.Enabled") : t("ContentEditor.Disabled")}
                       </span>
                     </SelectTrigger>
                     <SelectContent>

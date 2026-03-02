@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
@@ -28,9 +29,9 @@ func (r *Repository) GetBalance(ctx context.Context, profileID string) (uint64, 
 }
 
 // RecordTransaction inserts a new transaction and updates the profile's points atomically.
-func (r *Repository) RecordTransaction(
+func (r *Repository) RecordTransaction( //nolint:cyclop,funlen
 	ctx context.Context,
-	id string,
+	transactionID string,
 	targetProfileID string,
 	originProfileID *string,
 	transactionType profile_points.TransactionType,
@@ -39,16 +40,16 @@ func (r *Repository) RecordTransaction(
 	amount uint64,
 ) (*profile_points.Transaction, error) {
 	// Start a database transaction
-	tx, err := r.db.BeginTx(ctx, nil)
+	dbTx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("beginning transaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = dbTx.Rollback()
 	}()
 
-	queriesTx := r.queries.WithTx(tx)
+	queriesTx := r.queries.WithTx(dbTx)
 
 	// Handle balance updates based on transaction type
 	switch transactionType {
@@ -114,7 +115,7 @@ func (r *Repository) RecordTransaction(
 
 	// Record the transaction
 	row, err := queriesTx.RecordProfilePointTransaction(ctx, RecordProfilePointTransactionParams{
-		ID:              id,
+		ID:              transactionID,
 		TargetProfileID: targetProfileID,
 		OriginProfileID: vars.ToSQLNullString(originProfileID),
 		TransactionType: string(transactionType),
@@ -128,8 +129,9 @@ func (r *Repository) RecordTransaction(
 	}
 
 	// Commit the transaction
-	if err = tx.Commit(); err != nil {
-		return nil, err
+	err = dbTx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("committing transaction: %w", err)
 	}
 
 	return r.rowToProfilePointTransaction(row), nil
@@ -216,7 +218,7 @@ func (r *Repository) rowToProfilePointTransaction(
 // CreatePendingAward creates a new pending award record.
 func (r *Repository) CreatePendingAward(
 	ctx context.Context,
-	id string,
+	awardID string,
 	targetProfileID string,
 	triggeringEvent string,
 	description string,
@@ -224,7 +226,7 @@ func (r *Repository) CreatePendingAward(
 	metadata map[string]any,
 ) (*profile_points.PendingAward, error) {
 	row, err := r.queries.CreatePendingAward(ctx, CreatePendingAwardParams{
-		ID:              id,
+		ID:              awardID,
 		TargetProfileID: targetProfileID,
 		TriggeringEvent: triggeringEvent,
 		Description:     description,
@@ -258,7 +260,7 @@ func (r *Repository) GetPendingAwardByID(
 }
 
 // ListPendingAwards returns pending awards with optional status filter.
-func (r *Repository) ListPendingAwards(
+func (r *Repository) ListPendingAwards( //nolint:cyclop,funlen
 	ctx context.Context,
 	status *profile_points.PendingAwardStatus,
 	cursor *cursors.Cursor,
@@ -280,7 +282,7 @@ func (r *Repository) ListPendingAwards(
 		})
 	} else {
 		rows, err = r.queries.ListPendingAwards(ctx, ListPendingAwardsParams{
-			Status:     sql.NullString{Valid: false},
+			Status:     sql.NullString{String: "", Valid: false},
 			LimitCount: int32(limit + 1),
 		})
 	}
@@ -346,23 +348,23 @@ func (r *Repository) ListPendingAwards(
 }
 
 // ApprovePendingAward marks a pending award as approved and awards the points.
-func (r *Repository) ApprovePendingAward(
+func (r *Repository) ApprovePendingAward( //nolint:funlen
 	ctx context.Context,
 	awardID string,
 	reviewerUserID string,
 	transactionID string,
 ) (*profile_points.Transaction, error) {
 	// Start a database transaction
-	tx, err := r.db.BeginTx(ctx, nil)
+	dbTx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("beginning transaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = dbTx.Rollback()
 	}()
 
-	queriesTx := r.queries.WithTx(tx)
+	queriesTx := r.queries.WithTx(dbTx)
 
 	// Get the pending award
 	award, err := queriesTx.GetPendingAwardByID(ctx, GetPendingAwardByIDParams{
@@ -404,7 +406,7 @@ func (r *Repository) ApprovePendingAward(
 	txRow, err := queriesTx.RecordProfilePointTransaction(ctx, RecordProfilePointTransactionParams{
 		ID:              transactionID,
 		TargetProfileID: award.TargetProfileID,
-		OriginProfileID: sql.NullString{Valid: false},
+		OriginProfileID: sql.NullString{Valid: false}, //nolint:exhaustruct
 		TransactionType: string(profile_points.TransactionTypeGain),
 		TriggeringEvent: sql.NullString{String: triggeringEvent, Valid: true},
 		Description:     award.Description,
@@ -416,8 +418,9 @@ func (r *Repository) ApprovePendingAward(
 	}
 
 	// Commit the transaction
-	if err = tx.Commit(); err != nil {
-		return nil, err
+	err = dbTx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("committing transaction: %w", err)
 	}
 
 	return r.rowToProfilePointTransaction(txRow), nil
@@ -479,7 +482,7 @@ func (r *Repository) GetPendingAwardsStats(
 }
 
 // BulkApprovePendingAwards approves multiple pending awards in a single transaction.
-func (r *Repository) BulkApprovePendingAwards(
+func (r *Repository) BulkApprovePendingAwards( //nolint:cyclop,funlen
 	ctx context.Context,
 	awardIDs []string,
 	reviewerUserID string,
@@ -490,16 +493,16 @@ func (r *Repository) BulkApprovePendingAwards(
 	}
 
 	// Start a database transaction
-	tx, err := r.db.BeginTx(ctx, nil)
+	dbTx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("beginning transaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = dbTx.Rollback()
 	}()
 
-	queriesTx := r.queries.WithTx(tx)
+	queriesTx := r.queries.WithTx(dbTx)
 
 	// Get all pending awards that are still pending
 	awards, err := queriesTx.GetPendingAwardsByIDs(ctx, GetPendingAwardsByIDsParams{
@@ -548,12 +551,12 @@ func (r *Repository) BulkApprovePendingAwards(
 
 		triggeringEvent := award.TriggeringEvent
 
-		_, txErr := queriesTx.RecordProfilePointTransaction(
+		_, recordErr := queriesTx.RecordProfilePointTransaction(
 			ctx,
 			RecordProfilePointTransactionParams{
 				ID:              idGenerator(),
 				TargetProfileID: award.TargetProfileID,
-				OriginProfileID: sql.NullString{Valid: false},
+				OriginProfileID: sql.NullString{Valid: false}, //nolint:exhaustruct
 				TransactionType: string(profile_points.TransactionTypeGain),
 				TriggeringEvent: sql.NullString{String: triggeringEvent, Valid: true},
 				Description:     award.Description,
@@ -561,14 +564,15 @@ func (r *Repository) BulkApprovePendingAwards(
 				BalanceAfter:    newBalance,
 			},
 		)
-		if txErr != nil {
-			return nil, txErr
+		if recordErr != nil {
+			return nil, recordErr
 		}
 	}
 
 	// Commit the transaction
-	if err = tx.Commit(); err != nil {
-		return nil, err
+	err = dbTx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("committing transaction: %w", err)
 	}
 
 	return pendingIDs, nil
@@ -586,16 +590,16 @@ func (r *Repository) BulkRejectPendingAwards(
 	}
 
 	// Start a database transaction
-	tx, err := r.db.BeginTx(ctx, nil)
+	dbTx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("beginning transaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback()
+		_ = dbTx.Rollback()
 	}()
 
-	queriesTx := r.queries.WithTx(tx)
+	queriesTx := r.queries.WithTx(dbTx)
 
 	// Get all pending awards that are still pending
 	awards, err := queriesTx.GetPendingAwardsByIDs(ctx, GetPendingAwardsByIDsParams{
@@ -626,8 +630,9 @@ func (r *Repository) BulkRejectPendingAwards(
 	}
 
 	// Commit the transaction
-	if err = tx.Commit(); err != nil {
-		return nil, err
+	err = dbTx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("committing transaction: %w", err)
 	}
 
 	return pendingIDs, nil
@@ -658,6 +663,7 @@ func (r *Repository) rowToPendingAward(
 	return &profile_points.PendingAward{
 		ID:              row.ID,
 		TargetProfileID: row.TargetProfileID,
+		TargetProfile:   nil,
 		TriggeringEvent: row.TriggeringEvent,
 		Description:     row.Description,
 		Amount:          uint64(row.Amount),

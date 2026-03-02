@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -79,7 +80,7 @@ type getProfilePageOutput struct {
 func registerProfileTools(server *mcp.Server, profileService *profiles.Service) {
 	mcp.AddTool(
 		server,
-		&mcp.Tool{
+		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "list_profiles",
 			Description: "Get a list of profiles (people, organizations, products) on the AYA platform",
 		},
@@ -88,7 +89,7 @@ func registerProfileTools(server *mcp.Server, profileService *profiles.Service) 
 
 	mcp.AddTool(
 		server,
-		&mcp.Tool{
+		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "get_profile",
 			Description: "Get detailed information about a specific profile including their pages and links",
 		},
@@ -97,7 +98,7 @@ func registerProfileTools(server *mcp.Server, profileService *profiles.Service) 
 
 	mcp.AddTool(
 		server,
-		&mcp.Tool{
+		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "get_profile_page",
 			Description: "Get the full contents of a profile page",
 		},
@@ -138,7 +139,7 @@ func createListProfilesHandler(
 
 		result, err := profileService.List(ctx, locale, cursor)
 		if err != nil {
-			return nil, listProfilesOutput{}, err
+			return nil, listProfilesOutput{}, fmt.Errorf("listing profiles: %w", err)
 		}
 
 		output := listProfilesOutput{
@@ -179,7 +180,7 @@ func createGetProfileHandler(
 
 		result, err := profileService.GetBySlugEx(ctx, locale, input.Slug)
 		if err != nil {
-			return nil, getProfileOutput{}, err
+			return nil, getProfileOutput{}, fmt.Errorf("getting profile: %w", err)
 		}
 
 		if result == nil {
@@ -236,7 +237,7 @@ func createGetProfilePageHandler(
 
 		result, err := profileService.GetPageBySlug(ctx, locale, input.ProfileSlug, input.PageSlug)
 		if err != nil {
-			return nil, getProfilePageOutput{}, err
+			return nil, getProfilePageOutput{}, fmt.Errorf("getting profile page: %w", err)
 		}
 
 		if result == nil {

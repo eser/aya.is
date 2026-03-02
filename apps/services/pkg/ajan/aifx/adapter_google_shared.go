@@ -25,7 +25,7 @@ func mapMessagesToGenAI(messages []Message) []*genai.Content {
 	contents := make([]*genai.Content, 0, len(messages))
 
 	for _, msg := range messages {
-		// Skip system messages — they are handled separately via SystemInstruction.
+		// Skip system messages -- they are handled separately via SystemInstruction.
 		if msg.Role == RoleSystem {
 			continue
 		}
@@ -46,7 +46,7 @@ func mapMessagesToGenAI(messages []Message) []*genai.Content {
 
 // mapRoleToGenAI converts a unified role to the genai role string.
 func mapRoleToGenAI(role Role) string {
-	switch role {
+	switch role { //nolint:exhaustive
 	case RoleUser, RoleTool:
 		return genaiRoleUser
 	case RoleAssistant:
@@ -63,40 +63,50 @@ func mapContentBlocksToGenAIParts(blocks []ContentBlock) []*genai.Part {
 	for idx := range blocks {
 		block := &blocks[idx]
 
-		switch block.Type {
-		case ContentBlockText:
-			parts = append(parts, &genai.Part{
-				Text: block.Text,
-			})
-
-		case ContentBlockImage:
-			if block.Image != nil {
-				parts = append(parts, mapImagePartToGenAI(block.Image))
-			}
-
-		case ContentBlockAudio:
-			if block.Audio != nil {
-				parts = append(parts, mapAudioPartToGenAI(block.Audio))
-			}
-
-		case ContentBlockFile:
-			if block.File != nil {
-				parts = append(parts, mapFilePartToGenAI(block.File))
-			}
-
-		case ContentBlockToolCall:
-			if block.ToolCall != nil {
-				parts = append(parts, mapToolCallToGenAIPart(block.ToolCall))
-			}
-
-		case ContentBlockToolResult:
-			if block.ToolResult != nil {
-				parts = append(parts, mapToolResultToGenAIPart(block.ToolResult))
-			}
+		mapped := mapSingleBlockToGenAIPart(block)
+		if mapped != nil {
+			parts = append(parts, mapped)
 		}
 	}
 
 	return parts
+}
+
+// mapSingleBlockToGenAIPart converts a single content block to a genai Part.
+func mapSingleBlockToGenAIPart(block *ContentBlock) *genai.Part { //nolint:cyclop
+	switch block.Type {
+	case ContentBlockText:
+		return &genai.Part{ //nolint:exhaustruct
+			Text: block.Text,
+		}
+
+	case ContentBlockImage:
+		if block.Image != nil {
+			return mapImagePartToGenAI(block.Image)
+		}
+
+	case ContentBlockAudio:
+		if block.Audio != nil {
+			return mapAudioPartToGenAI(block.Audio)
+		}
+
+	case ContentBlockFile:
+		if block.File != nil {
+			return mapFilePartToGenAI(block.File)
+		}
+
+	case ContentBlockToolCall:
+		if block.ToolCall != nil {
+			return mapToolCallToGenAIPart(block.ToolCall)
+		}
+
+	case ContentBlockToolResult:
+		if block.ToolResult != nil {
+			return mapToolResultToGenAIPart(block.ToolResult)
+		}
+	}
+
+	return nil
 }
 
 // mapImagePartToGenAI converts an ImagePart to a genai Part.
@@ -109,8 +119,8 @@ func mapImagePartToGenAI(img *ImagePart) *genai.Part {
 			mimeType = "image/png"
 		}
 
-		return &genai.Part{
-			InlineData: &genai.Blob{
+		return &genai.Part{ //nolint:exhaustruct
+			InlineData: &genai.Blob{ //nolint:exhaustruct
 				MIMEType: mimeType,
 				Data:     img.Data,
 			},
@@ -121,8 +131,8 @@ func mapImagePartToGenAI(img *ImagePart) *genai.Part {
 	if IsDataURL(img.URL) {
 		mimeType, data, err := DecodeDataURL(img.URL)
 		if err == nil {
-			return &genai.Part{
-				InlineData: &genai.Blob{
+			return &genai.Part{ //nolint:exhaustruct
+				InlineData: &genai.Blob{ //nolint:exhaustruct
 					MIMEType: mimeType,
 					Data:     data,
 				},
@@ -136,8 +146,8 @@ func mapImagePartToGenAI(img *ImagePart) *genai.Part {
 		mimeType = DetectMIMEFromURL(img.URL)
 	}
 
-	return &genai.Part{
-		FileData: &genai.FileData{
+	return &genai.Part{ //nolint:exhaustruct
+		FileData: &genai.FileData{ //nolint:exhaustruct
 			MIMEType: mimeType,
 			FileURI:  img.URL,
 		},
@@ -152,8 +162,8 @@ func mapAudioPartToGenAI(audio *AudioPart) *genai.Part {
 			mimeType = "audio/mpeg"
 		}
 
-		return &genai.Part{
-			InlineData: &genai.Blob{
+		return &genai.Part{ //nolint:exhaustruct
+			InlineData: &genai.Blob{ //nolint:exhaustruct
 				MIMEType: mimeType,
 				Data:     audio.Data,
 			},
@@ -163,8 +173,8 @@ func mapAudioPartToGenAI(audio *AudioPart) *genai.Part {
 	if IsDataURL(audio.URL) {
 		mimeType, data, err := DecodeDataURL(audio.URL)
 		if err == nil {
-			return &genai.Part{
-				InlineData: &genai.Blob{
+			return &genai.Part{ //nolint:exhaustruct
+				InlineData: &genai.Blob{ //nolint:exhaustruct
 					MIMEType: mimeType,
 					Data:     data,
 				},
@@ -177,8 +187,8 @@ func mapAudioPartToGenAI(audio *AudioPart) *genai.Part {
 		mimeType = DetectMIMEFromURL(audio.URL)
 	}
 
-	return &genai.Part{
-		FileData: &genai.FileData{
+	return &genai.Part{ //nolint:exhaustruct
+		FileData: &genai.FileData{ //nolint:exhaustruct
 			MIMEType: mimeType,
 			FileURI:  audio.URL,
 		},
@@ -192,8 +202,8 @@ func mapFilePartToGenAI(file *FilePart) *genai.Part {
 		mimeType = DetectMIMEFromURL(file.URI)
 	}
 
-	return &genai.Part{
-		FileData: &genai.FileData{
+	return &genai.Part{ //nolint:exhaustruct
+		FileData: &genai.FileData{ //nolint:exhaustruct
 			MIMEType: mimeType,
 			FileURI:  file.URI,
 		},
@@ -201,33 +211,33 @@ func mapFilePartToGenAI(file *FilePart) *genai.Part {
 }
 
 // mapToolCallToGenAIPart converts a ToolCall to a genai FunctionCall Part.
-func mapToolCallToGenAIPart(tc *ToolCall) *genai.Part {
+func mapToolCallToGenAIPart(toolCall *ToolCall) *genai.Part {
 	var args map[string]any
-	if len(tc.Arguments) > 0 {
-		_ = json.Unmarshal(tc.Arguments, &args)
+	if len(toolCall.Arguments) > 0 {
+		_ = json.Unmarshal(toolCall.Arguments, &args)
 	}
 
-	return &genai.Part{
-		FunctionCall: &genai.FunctionCall{
-			Name: tc.Name,
+	return &genai.Part{ //nolint:exhaustruct
+		FunctionCall: &genai.FunctionCall{ //nolint:exhaustruct
+			Name: toolCall.Name,
 			Args: args,
 		},
 	}
 }
 
 // mapToolResultToGenAIPart converts a ToolResult to a genai FunctionResponse Part.
-func mapToolResultToGenAIPart(tr *ToolResult) *genai.Part {
+func mapToolResultToGenAIPart(toolResult *ToolResult) *genai.Part {
 	response := map[string]any{
-		"result": tr.Content,
+		"result": toolResult.Content,
 	}
 
-	if tr.IsError {
-		response["error"] = tr.Content
+	if toolResult.IsError {
+		response["error"] = toolResult.Content
 	}
 
-	return &genai.Part{
-		FunctionResponse: &genai.FunctionResponse{
-			Name:     tr.ToolCallID,
+	return &genai.Part{ //nolint:exhaustruct
+		FunctionResponse: &genai.FunctionResponse{ //nolint:exhaustruct
+			Name:     toolResult.ToolCallID,
 			Response: response,
 		},
 	}
@@ -244,7 +254,7 @@ func mapToolsToGenAI(tools []ToolDefinition) []*genai.Tool {
 
 	for idx := range tools {
 		tool := &tools[idx]
-		decl := &genai.FunctionDeclaration{
+		decl := &genai.FunctionDeclaration{ //nolint:exhaustruct
 			Name:        tool.Name,
 			Description: tool.Description,
 		}
@@ -281,7 +291,7 @@ func mapSafetySettings(settings []SafetySetting) []*genai.SafetySetting {
 	for idx := range settings {
 		setting := &settings[idx]
 
-		genaiSettings = append(genaiSettings, &genai.SafetySetting{
+		genaiSettings = append(genaiSettings, &genai.SafetySetting{ //nolint:exhaustruct
 			Category:  genai.HarmCategory(setting.Category),
 			Threshold: genai.HarmBlockThreshold(setting.Threshold),
 		})
@@ -296,7 +306,7 @@ func buildSystemInstruction(system string) *genai.Content {
 		return nil
 	}
 
-	return &genai.Content{
+	return &genai.Content{ //nolint:exhaustruct
 		Parts: []*genai.Part{
 			{Text: system},
 		},
@@ -304,13 +314,27 @@ func buildSystemInstruction(system string) *genai.Content {
 }
 
 // buildGenerateContentConfig constructs the genai.GenerateContentConfig from unified options.
-func buildGenerateContentConfig(opts *GenerateTextOptions) *genai.GenerateContentConfig {
-	config := &genai.GenerateContentConfig{}
+func buildGenerateContentConfig(
+	opts *GenerateTextOptions,
+) *genai.GenerateContentConfig {
+	config := &genai.GenerateContentConfig{} //nolint:exhaustruct
 
 	// System instruction.
 	config.SystemInstruction = buildSystemInstruction(opts.System)
 
-	// Generation parameters.
+	applyGenAIGenerationParams(config, opts)
+	applyGenAITools(config, opts)
+	applyGenAISafetySettings(config, opts)
+	applyGenAIResponseFormat(config, opts)
+	applyGenAIThinkingConfig(config, opts)
+
+	return config
+}
+
+func applyGenAIGenerationParams(
+	config *genai.GenerateContentConfig,
+	opts *GenerateTextOptions,
+) {
 	if opts.MaxTokens > 0 {
 		config.MaxOutputTokens = int32(opts.MaxTokens)
 	}
@@ -326,63 +350,87 @@ func buildGenerateContentConfig(opts *GenerateTextOptions) *genai.GenerateConten
 	if len(opts.StopWords) > 0 {
 		config.StopSequences = opts.StopWords
 	}
+}
 
-	// Tools.
+func applyGenAITools(
+	config *genai.GenerateContentConfig,
+	opts *GenerateTextOptions,
+) {
 	if len(opts.Tools) > 0 {
 		config.Tools = mapToolsToGenAI(opts.Tools)
 	}
+}
 
-	// Safety settings.
+func applyGenAISafetySettings(
+	config *genai.GenerateContentConfig,
+	opts *GenerateTextOptions,
+) {
 	if len(opts.SafetySettings) > 0 {
 		config.SafetySettings = mapSafetySettings(opts.SafetySettings)
 	}
+}
 
-	// Structured output (JSON schema).
-	if opts.ResponseFormat != nil {
-		switch opts.ResponseFormat.Type {
-		case "json_schema", "json_object":
-			config.ResponseMIMEType = "application/json"
-
-			if len(opts.ResponseFormat.JSONSchema) > 0 {
-				var schemaMap map[string]any
-
-				err := json.Unmarshal(opts.ResponseFormat.JSONSchema, &schemaMap)
-				if err == nil {
-					config.ResponseSchema = &genai.Schema{}
-					config.ResponseJsonSchema = schemaMap
-				}
-			}
-		case "text":
-			config.ResponseMIMEType = "text/plain"
-		}
+func applyGenAIResponseFormat(
+	config *genai.GenerateContentConfig,
+	opts *GenerateTextOptions,
+) {
+	if opts.ResponseFormat == nil {
+		return
 	}
 
-	// Thinking budget (reasoning).
+	switch opts.ResponseFormat.Type {
+	case "json_schema", "json_object":
+		config.ResponseMIMEType = "application/json"
+
+		if len(opts.ResponseFormat.JSONSchema) > 0 {
+			var schemaMap map[string]any
+
+			err := json.Unmarshal(opts.ResponseFormat.JSONSchema, &schemaMap)
+			if err == nil {
+				config.ResponseSchema = &genai.Schema{} //nolint:exhaustruct
+				config.ResponseJsonSchema = schemaMap
+			}
+		}
+	case "text":
+		config.ResponseMIMEType = "text/plain"
+	}
+}
+
+func applyGenAIThinkingConfig(
+	config *genai.GenerateContentConfig,
+	opts *GenerateTextOptions,
+) {
 	if opts.ThinkingBudget != nil {
-		config.ThinkingConfig = &genai.ThinkingConfig{
+		config.ThinkingConfig = &genai.ThinkingConfig{ //nolint:exhaustruct
 			ThinkingBudget: genai.Ptr(int32(*opts.ThinkingBudget)),
 		}
 	}
-
-	return config
 }
 
 // mapGenAIResponse converts a genai GenerateContentResponse to the unified GenerateTextResult.
-func mapGenAIResponse(resp *genai.GenerateContentResponse) (*GenerateTextResult, error) {
+func mapGenAIResponse(
+	resp *genai.GenerateContentResponse,
+) (*GenerateTextResult, error) {
 	if resp == nil {
 		return nil, ErrGenAINilResponse
 	}
 
 	result := &GenerateTextResult{
+		Content:     nil,
+		StopReason:  "",
+		Usage:       Usage{}, //nolint:exhaustruct
+		ModelID:     "",
+		RawRequest:  nil,
 		RawResponse: resp,
 	}
 
 	// Map usage metadata.
 	if resp.UsageMetadata != nil {
 		result.Usage = Usage{
-			InputTokens:  int(resp.UsageMetadata.PromptTokenCount),
-			OutputTokens: int(resp.UsageMetadata.CandidatesTokenCount),
-			TotalTokens:  int(resp.UsageMetadata.TotalTokenCount),
+			InputTokens:    int(resp.UsageMetadata.PromptTokenCount),
+			OutputTokens:   int(resp.UsageMetadata.CandidatesTokenCount),
+			TotalTokens:    int(resp.UsageMetadata.TotalTokenCount),
+			ThinkingTokens: 0,
 		}
 
 		if resp.UsageMetadata.ThoughtsTokenCount > 0 {
@@ -410,7 +458,7 @@ func mapGenAIResponse(resp *genai.GenerateContentResponse) (*GenerateTextResult,
 
 // mapGenAIFinishReason converts a genai FinishReason to unified StopReason.
 func mapGenAIFinishReason(reason genai.FinishReason) StopReason {
-	switch reason {
+	switch reason { //nolint:exhaustive
 	case genai.FinishReasonStop:
 		return StopReasonEndTurn
 	case genai.FinishReasonMaxTokens:
@@ -431,8 +479,13 @@ func mapGenAIPartsToContentBlocks(parts []*genai.Part) []ContentBlock {
 
 		if part.Text != "" {
 			blocks = append(blocks, ContentBlock{
-				Type: ContentBlockText,
-				Text: part.Text,
+				Type:       ContentBlockText,
+				Text:       part.Text,
+				Image:      nil,
+				Audio:      nil,
+				File:       nil,
+				ToolCall:   nil,
+				ToolResult: nil,
 			})
 		}
 
@@ -443,22 +496,34 @@ func mapGenAIPartsToContentBlocks(parts []*genai.Part) []ContentBlock {
 			}
 
 			blocks = append(blocks, ContentBlock{
-				Type: ContentBlockToolCall,
+				Type:  ContentBlockToolCall,
+				Text:  "",
+				Image: nil,
+				Audio: nil,
+				File:  nil,
 				ToolCall: &ToolCall{
 					ID:        "call_" + part.FunctionCall.Name,
 					Name:      part.FunctionCall.Name,
 					Arguments: argsJSON,
 				},
+				ToolResult: nil,
 			})
 		}
 
 		if part.InlineData != nil {
 			blocks = append(blocks, ContentBlock{
 				Type: ContentBlockImage,
+				Text: "",
 				Image: &ImagePart{
+					URL:      "",
 					MIMEType: part.InlineData.MIMEType,
+					Detail:   "",
 					Data:     part.InlineData.Data,
 				},
+				Audio:      nil,
+				File:       nil,
+				ToolCall:   nil,
+				ToolResult: nil,
 			})
 		}
 	}
@@ -486,16 +551,22 @@ func emitStreamEventsFromResponse(
 		return
 	}
 
-	for _, part := range candidate.Content.Parts {
+	emitGenAIContentParts(ctx, eventCh, candidate.Content.Parts)
+	emitGenAIUsageMetadata(ctx, eventCh, resp.UsageMetadata, candidate.FinishReason)
+}
+
+func emitGenAIContentParts(
+	ctx context.Context,
+	eventCh chan<- StreamEvent,
+	parts []*genai.Part,
+) {
+	for _, part := range parts {
 		if part == nil {
 			continue
 		}
 
 		if part.Text != "" {
-			sendStreamEvent(ctx, eventCh, StreamEvent{
-				Type:      StreamEventContentDelta,
-				TextDelta: part.Text,
-			})
+			sendStreamEvent(ctx, eventCh, newStreamEventContentDelta(part.Text))
 		}
 
 		if part.FunctionCall != nil {
@@ -504,35 +575,40 @@ func emitStreamEventsFromResponse(
 				argsJSON = []byte("{}")
 			}
 
-			sendStreamEvent(ctx, eventCh, StreamEvent{
-				Type: StreamEventToolCallDelta,
-				ToolCall: &ToolCall{
-					ID:        "call_" + part.FunctionCall.Name,
-					Name:      part.FunctionCall.Name,
-					Arguments: argsJSON,
-				},
-			})
+			sendStreamEvent(ctx, eventCh, newStreamEventToolCall(&ToolCall{
+				ID:        "call_" + part.FunctionCall.Name,
+				Name:      part.FunctionCall.Name,
+				Arguments: argsJSON,
+			}))
 		}
 	}
+}
 
-	// If usage metadata is present in this chunk, attach it.
-	if resp.UsageMetadata != nil && candidate.FinishReason != "" {
-		usage := &Usage{
-			InputTokens:  int(resp.UsageMetadata.PromptTokenCount),
-			OutputTokens: int(resp.UsageMetadata.CandidatesTokenCount),
-			TotalTokens:  int(resp.UsageMetadata.TotalTokenCount),
-		}
-
-		if resp.UsageMetadata.ThoughtsTokenCount > 0 {
-			usage.ThinkingTokens = int(resp.UsageMetadata.ThoughtsTokenCount)
-		}
-
-		sendStreamEvent(ctx, eventCh, StreamEvent{
-			Type:       StreamEventMessageDone,
-			StopReason: mapGenAIFinishReason(candidate.FinishReason),
-			Usage:      usage,
-		})
+func emitGenAIUsageMetadata(
+	ctx context.Context,
+	eventCh chan<- StreamEvent,
+	usageMetadata *genai.GenerateContentResponseUsageMetadata,
+	finishReason genai.FinishReason,
+) {
+	if usageMetadata == nil || finishReason == "" {
+		return
 	}
+
+	usage := &Usage{
+		InputTokens:    int(usageMetadata.PromptTokenCount),
+		OutputTokens:   int(usageMetadata.CandidatesTokenCount),
+		TotalTokens:    int(usageMetadata.TotalTokenCount),
+		ThinkingTokens: 0,
+	}
+
+	if usageMetadata.ThoughtsTokenCount > 0 {
+		usage.ThinkingTokens = int(usageMetadata.ThoughtsTokenCount)
+	}
+
+	sendStreamEvent(ctx, eventCh, newStreamEventDone(
+		mapGenAIFinishReason(finishReason),
+		usage,
+	))
 }
 
 // sendStreamEvent sends an event to the channel, respecting context cancellation.

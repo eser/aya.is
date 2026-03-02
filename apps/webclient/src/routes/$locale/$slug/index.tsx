@@ -1,5 +1,5 @@
 // Profile index - shows profile stories/timeline with date grouping and pagination
-import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
@@ -41,7 +41,12 @@ function ProfileIndexPage() {
   }
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <div className="content relative">
         {canEdit && (
           <Link

@@ -7,6 +7,8 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 )
 
+const pendingConnectionExpiryMinutes = 10
+
 // PendingConnectionStore stores temporary OAuth connections awaiting account selection.
 type PendingConnectionStore struct {
 	mu          sync.RWMutex
@@ -15,7 +17,7 @@ type PendingConnectionStore struct {
 
 // NewPendingConnectionStore creates a new pending connection store.
 func NewPendingConnectionStore() *PendingConnectionStore {
-	store := &PendingConnectionStore{
+	store := &PendingConnectionStore{ //nolint:exhaustruct // mu zero value is valid
 		connections: make(map[string]*PendingOAuthConnection),
 	}
 
@@ -31,7 +33,7 @@ func (s *PendingConnectionStore) Store(conn *PendingOAuthConnection) string {
 	defer s.mu.Unlock()
 
 	id := lib.IDsGenerateUnique()
-	conn.ExpiresAt = time.Now().Add(10 * time.Minute)
+	conn.ExpiresAt = time.Now().Add(pendingConnectionExpiryMinutes * time.Minute)
 	s.connections[id] = conn
 
 	return id

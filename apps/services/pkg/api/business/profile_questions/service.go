@@ -11,6 +11,9 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
+// visibilityDisabled is the visibility value that disables Q&A on a profile.
+const visibilityDisabled = "disabled"
+
 func DefaultIDGenerator() string {
 	return lib.IDsGenerateUnique()
 }
@@ -65,7 +68,7 @@ func (s *Service) ListQuestions(
 		return cursors.Cursored[[]*Question]{}, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	if visibility == "disabled" {
+	if visibility == visibilityDisabled {
 		return cursors.Cursored[[]*Question]{}, ErrQANotEnabled
 	}
 
@@ -117,15 +120,15 @@ func (s *Service) CreateQuestion(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	if visibility == "disabled" {
+	if visibility == visibilityDisabled {
 		return nil, ErrQANotEnabled
 	}
 
-	id := s.idGenerator()
+	questionID := s.idGenerator()
 
 	question, err := s.repo.InsertQuestion(
 		ctx,
-		id,
+		questionID,
 		profileID,
 		params.UserID,
 		params.Content,
@@ -143,9 +146,10 @@ func (s *Service) CreateQuestion(
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.ProfileQuestionCreated,
 		EntityType: "profile_question",
-		EntityID:   id,
+		EntityID:   questionID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_id":   profileID,
 			"is_anonymous": params.IsAnonymous,
@@ -198,6 +202,7 @@ func (s *Service) AnswerQuestion(ctx context.Context, params AnswerQuestionParam
 		EntityID:   params.QuestionID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_slug": params.ProfileSlug,
 		},
@@ -209,7 +214,42 @@ func (s *Service) AnswerQuestion(ctx context.Context, params AnswerQuestionParam
 // EditAnswer updates an existing answer on a question.
 // Contributors can only edit answers they authored. Maintainers can edit all answers.
 func (s *Service) EditAnswer(ctx context.Context, params AnswerQuestionParams) error {
-	// Check minimum access: contributor+
+	accessErr := s.validateEditAnswerAccess(ctx, params)
+	if accessErr != nil {
+		return accessErr
+	}
+
+	err := s.repo.EditAnswer(
+		ctx,
+		params.QuestionID,
+		params.AnswerContent,
+		params.AnswerURI,
+		params.AnswerKind,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileQuestionAnswerEdited,
+		EntityType: "profile_question",
+		EntityID:   params.QuestionID,
+		ActorID:    &params.UserID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_slug": params.ProfileSlug,
+		},
+	})
+
+	return nil
+}
+
+// validateEditAnswerAccess checks contributor/maintainer access and answer ownership.
+func (s *Service) validateEditAnswerAccess(
+	ctx context.Context,
+	params AnswerQuestionParams,
+) error {
 	hasContributorAccess, err := s.profileService.HasUserAccessToProfile(
 		ctx,
 		params.UserID,
@@ -236,65 +276,40 @@ func (s *Service) EditAnswer(ctx context.Context, params AnswerQuestionParams) e
 	// Contributors can only edit their own answers; maintainers can edit all
 	if question.AnsweredByProfileID == nil ||
 		*question.AnsweredByProfileID != params.AnswererProfileID {
-		hasMaintainerAccess, maintainerErr := s.profileService.HasUserAccessToProfile(
-			ctx,
-			params.UserID,
-			params.ProfileSlug,
-			profiles.MembershipKindMaintainer,
-		)
-		if maintainerErr != nil {
-			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, maintainerErr)
-		}
-
-		if !hasMaintainerAccess {
-			return ErrInsufficientPermission
-		}
+		return s.requireMaintainerAccess(ctx, params.UserID, params.ProfileSlug)
 	}
 
-	err = s.repo.EditAnswer(
+	return nil
+}
+
+// requireMaintainerAccess checks if the user has maintainer-level access to the profile.
+func (s *Service) requireMaintainerAccess(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+) error {
+	hasMaintainerAccess, err := s.profileService.HasUserAccessToProfile(
 		ctx,
-		params.QuestionID,
-		params.AnswerContent,
-		params.AnswerURI,
-		params.AnswerKind,
+		userID,
+		profileSlug,
+		profiles.MembershipKindMaintainer,
 	)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.ProfileQuestionAnswerEdited,
-		EntityType: "profile_question",
-		EntityID:   params.QuestionID,
-		ActorID:    &params.UserID,
-		ActorKind:  events.ActorUser,
-		Payload: map[string]any{
-			"profile_slug": params.ProfileSlug,
-		},
-	})
+	if !hasMaintainerAccess {
+		return ErrInsufficientPermission
+	}
 
 	return nil
 }
 
 // ToggleVote toggles a vote on a question. Returns true if a vote was added, false if removed.
 func (s *Service) ToggleVote(ctx context.Context, params VoteParams) (bool, error) {
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, params.ProfileSlug)
-	if err != nil {
-		return false, fmt.Errorf("%w (slug: %s): %w", ErrFailedToGetRecord, params.ProfileSlug, err)
-	}
-
-	visibility, err := s.repo.GetQAVisibility(ctx, profileID)
-	if err != nil {
-		return false, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
-	}
-
-	if visibility == "disabled" {
-		return false, ErrQANotEnabled
-	}
-
-	_, err = s.repo.GetQuestion(ctx, params.QuestionID)
-	if err != nil {
-		return false, fmt.Errorf("%w: %w", ErrQuestionNotFound, err)
+	validateErr := s.validateQuestionForVoting(ctx, params)
+	if validateErr != nil {
+		return false, validateErr
 	}
 
 	existing, err := s.repo.GetVote(ctx, params.QuestionID, params.UserID)
@@ -314,6 +329,7 @@ func (s *Service) ToggleVote(ctx context.Context, params VoteParams) (bool, erro
 			EntityID:   params.QuestionID,
 			ActorID:    &params.UserID,
 			ActorKind:  events.ActorUser,
+			SessionID:  nil,
 			Payload:    map[string]any{"action": "unvote"},
 		})
 
@@ -333,10 +349,35 @@ func (s *Service) ToggleVote(ctx context.Context, params VoteParams) (bool, erro
 		EntityID:   params.QuestionID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"action": "vote"},
 	})
 
 	return true, nil
+}
+
+// validateQuestionForVoting checks that Q&A is enabled and the question exists.
+func (s *Service) validateQuestionForVoting(ctx context.Context, params VoteParams) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, params.ProfileSlug)
+	if err != nil {
+		return fmt.Errorf("%w (slug: %s): %w", ErrFailedToGetRecord, params.ProfileSlug, err)
+	}
+
+	visibility, err := s.repo.GetQAVisibility(ctx, profileID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if visibility == visibilityDisabled {
+		return ErrQANotEnabled
+	}
+
+	_, err = s.repo.GetQuestion(ctx, params.QuestionID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrQuestionNotFound, err)
+	}
+
+	return nil
 }
 
 // HideQuestion toggles the hidden state of a question (requires maintainer+ access).
@@ -366,6 +407,7 @@ func (s *Service) HideQuestion(ctx context.Context, params HideQuestionParams) e
 		EntityID:   params.QuestionID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_slug": params.ProfileSlug,
 			"is_hidden":    params.IsHidden,

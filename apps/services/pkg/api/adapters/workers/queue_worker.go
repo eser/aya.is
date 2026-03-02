@@ -63,12 +63,14 @@ func (w *QueueWorker) Interval() time.Duration {
 }
 
 // Execute runs a single poll cycle: claim an item, dispatch to handler, complete/fail.
+//
+//nolint:funlen // sequential poll-dispatch-complete flow
 func (w *QueueWorker) Execute(ctx context.Context) error {
 	// Check if worker is disabled by admin
 	disabledKey := "worker." + w.Name() + ".disabled"
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
-	if err == nil && disabled == "true" {
+	if err == nil && disabled == disabledStateValue {
 		return workerfx.ErrWorkerSkipped
 	}
 

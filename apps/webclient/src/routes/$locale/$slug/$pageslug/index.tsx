@@ -1,5 +1,5 @@
 // Profile custom page
-import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { SquarePen } from "lucide-react";
 import { backend } from "@/modules/backend/backend";
@@ -8,7 +8,13 @@ import { compileMdx } from "@/lib/mdx";
 import { Button } from "@/components/ui/button";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { buildUrl, computeContentLanguage, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import {
+  buildUrl,
+  computeContentLanguage,
+  generateCanonicalLink,
+  generateMetaTags,
+  truncateDescription,
+} from "@/lib/seo";
 import { setServerResponseHeader } from "@/lib/server-headers";
 import { ChildNotFound } from "../route";
 
@@ -85,7 +91,12 @@ function ProfileCustomPage() {
   const { page, compiledContent, locale, slug } = loaderData;
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <div className="relative">
         {canEdit && (
           <Link

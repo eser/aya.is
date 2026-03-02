@@ -14,7 +14,7 @@ import (
 )
 
 // RegisterHTTPRoutesForProfileTeams registers routes for managing profile teams.
-func RegisterHTTPRoutesForProfileTeams(
+func RegisterHTTPRoutesForProfileTeams( //nolint:gocognit,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -101,7 +101,8 @@ func RegisterHTTPRoutesForProfileTeams(
 				Description *string `json:"description"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -165,7 +166,8 @@ func RegisterHTTPRoutesForProfileTeams(
 				Description *string `json:"description"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -173,7 +175,7 @@ func RegisterHTTPRoutesForProfileTeams(
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("name is required"))
 			}
 
-			err := profileService.UpdateTeam(
+			err = profileService.UpdateTeam(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				slugParam,
@@ -280,11 +282,12 @@ func RegisterHTTPRoutesForProfileTeams(
 				TeamIDs []string `json:"team_ids"`
 			}
 
-			if err := json.NewDecoder(ctx.Request.Body).Decode(&input); err != nil {
+			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
-			err := profileService.SetMembershipTeams(
+			err = profileService.SetMembershipTeams(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				slugParam,

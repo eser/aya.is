@@ -96,7 +96,7 @@ func (c *Client) Config() *Config {
 }
 
 // SearchPhotos searches for photos on Unsplash.
-func (c *Client) SearchPhotos(
+func (c *Client) SearchPhotos( //nolint:funlen
 	ctx context.Context,
 	query string,
 	page int,
@@ -156,7 +156,8 @@ func (c *Client) SearchPhotos(
 
 	var result SearchResult
 
-	if err := json.Unmarshal(body, &result); err != nil {
+	err = json.Unmarshal(body, &result)
+	if err != nil {
 		c.logger.ErrorContext(ctx, "Failed to parse Unsplash response",
 			slog.String("error", err.Error()))
 

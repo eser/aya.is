@@ -19,10 +19,18 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
+const (
+	storyMinSlugLength  = 2
+	storyMaxSlugLength  = 100
+	storyMaxTitleLength = 200
+	storyULIDLength     = 26
+	aiCallDeadlineSec   = 90
+)
+
 // Slug validation regex for stories.
 var storySlugRegex = regexp.MustCompile(`^[a-z0-9-]+$`)
 
-func RegisterHTTPRoutesForStories( //nolint:funlen
+func RegisterHTTPRoutesForStories( //nolint:funlen,cyclop,gocognit,gocyclo,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -54,7 +62,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 		HasDescription("List stories.").
 		HasResponse(http.StatusOK)
 
-	routes.
+	routes. //nolint:dupl
 		Route("GET /{locale}/stories/{slug}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			localeParam, localeOk := validateLocale(ctx)
@@ -120,12 +128,13 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 			var publishedAt *time.Time
 			if publishedAtParam != "" {
-				if parsed, parseErr := time.Parse(time.RFC3339, publishedAtParam); parseErr == nil {
+				parsed, parseErr := time.Parse(time.RFC3339, publishedAtParam)
+				if parseErr == nil {
 					publishedAt = &parsed
 				}
 			}
 
-			includeDeleted := includeDeletedParam == "true"
+			includeDeleted := includeDeletedParam == boolTrue
 
 			availability, err := storyService.CheckSlugAvailability(
 				ctx.Request.Context(),
@@ -190,7 +199,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				FeatDiscussions   *bool          `json:"feat_discussions"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -214,12 +224,12 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			}
 
 			// Validate slug
-			if len(requestBody.Slug) < 2 {
+			if len(requestBody.Slug) < storyMinSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
 			}
-			if len(requestBody.Slug) > 100 {
+			if len(requestBody.Slug) > storyMaxSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
 				)
@@ -236,7 +246,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			if len(requestBody.Title) == 0 {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
 			}
-			if len(requestBody.Title) > 200 {
+			if len(requestBody.Title) > storyMaxTitleLength {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
 			}
 
@@ -335,7 +345,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			}
 
 			// If storyId looks like a slug (not 26-char ULID), resolve it
-			if len(storyIDParam) != 26 {
+			if len(storyIDParam) != storyULIDLength {
 				resolvedID, resolveErr := storyService.ResolveStorySlug(
 					ctx.Request.Context(),
 					storyIDParam,
@@ -427,7 +437,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				FeatDiscussions *bool          `json:"feat_discussions"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -439,12 +450,12 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 			}
 
 			// Validate slug
-			if len(requestBody.Slug) < 2 {
+			if len(requestBody.Slug) < storyMinSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
 			}
-			if len(requestBody.Slug) > 100 {
+			if len(requestBody.Slug) > storyMaxSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
 				)
@@ -548,7 +559,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				Content string `json:"content"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -564,7 +576,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			err := storyService.UpdateTranslation(
+			err = storyService.UpdateTranslation(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				storyIDParam,
@@ -804,7 +816,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				IsFeatured bool   `json:"is_featured"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -891,7 +904,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				IsFeatured bool `json:"is_featured"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -903,7 +917,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				)
 			}
 
-			err := storyService.UpdatePublication(
+			err = storyService.UpdatePublication(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				storyIDParam,
@@ -1157,7 +1171,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 				SourceLocale string `json:"source_locale"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -1191,9 +1206,9 @@ func RegisterHTTPRoutesForStories( //nolint:funlen
 
 			// Extend HTTP write deadline for long-running AI call
 			rc := http.NewResponseController(ctx.ResponseWriter)
-			_ = rc.SetWriteDeadline(time.Now().Add(90 * time.Second))
+			_ = rc.SetWriteDeadline(time.Now().Add(aiCallDeadlineSec * time.Second))
 
-			err := storyService.AutoTranslateStory(
+			err = storyService.AutoTranslateStory(
 				ctx.Request.Context(),
 				stories.AutoTranslateStoryParams{
 					UserID:              *session.LoggedInUserID,

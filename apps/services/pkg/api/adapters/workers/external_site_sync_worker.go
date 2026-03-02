@@ -1,3 +1,4 @@
+//nolint:dupl // structural similarity with speakerdeck_sync_worker is intentional
 package workers
 
 import (
@@ -63,7 +64,7 @@ func (w *ExternalSiteSyncWorker) Execute(ctx context.Context) error {
 	disabledKey := "worker." + w.Name() + ".disabled"
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
-	if err == nil && disabled == "true" {
+	if err == nil && disabled == disabledStateValue {
 		return workerfx.ErrWorkerSkipped
 	}
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/url"
 	"strings"
@@ -106,15 +107,24 @@ func (p *Provider) RefreshAccessToken(
 
 	var tokenResp tokenResponse
 
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToRefreshToken, err)
+	unmarshalErr := json.Unmarshal(body, &tokenResp)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToRefreshToken, unmarshalErr)
 	}
 
 	if tokenResp.AccessToken == "" {
 		return nil, ErrFailedToRefreshToken
 	}
 
-	// Calculate token expiry
+	result := buildTokenRefreshResult(&tokenResp)
+
+	p.logger.DebugContext(ctx, "Successfully refreshed YouTube access token")
+
+	return result, nil
+}
+
+// buildTokenRefreshResult constructs a TokenRefreshResult from a token response.
+func buildTokenRefreshResult(tokenResp *tokenResponse) *linksync.TokenRefreshResult {
 	var expiresAt *time.Time
 
 	if tokenResp.ExpiresIn > 0 {
@@ -122,20 +132,16 @@ func (p *Provider) RefreshAccessToken(
 		expiresAt = &expiry
 	}
 
-	// Google doesn't return a new refresh token on refresh
-	// Only return new refresh token if one was provided
 	var newRefreshToken *string
 	if tokenResp.RefreshToken != "" {
 		newRefreshToken = &tokenResp.RefreshToken
 	}
 
-	p.logger.DebugContext(ctx, "Successfully refreshed YouTube access token")
-
 	return &linksync.TokenRefreshResult{
 		AccessToken:          tokenResp.AccessToken,
 		AccessTokenExpiresAt: expiresAt,
 		RefreshToken:         newRefreshToken,
-	}, nil
+	}
 }
 
 // getUploadsPlaylistID fetches the uploads playlist ID for a channel.
@@ -181,7 +187,8 @@ func (p *Provider) getUploadsPlaylistID(
 		} `json:"items"`
 	}
 
-	if err := json.Unmarshal(body, &channelResp); err != nil {
+	err = json.Unmarshal(body, &channelResp)
+	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 	}
 
@@ -193,7 +200,7 @@ func (p *Provider) getUploadsPlaylistID(
 }
 
 // fetchPlaylistVideos fetches videos from a playlist.
-func (p *Provider) fetchPlaylistVideos(
+func (p *Provider) fetchPlaylistVideos( //nolint:cyclop,funlen // paginated API fetch loop
 	ctx context.Context,
 	accessToken string,
 	playlistID string,
@@ -203,12 +210,14 @@ func (p *Provider) fetchPlaylistVideos(
 	videos := make([]*linksync.RemoteStoryItem, 0, maxResults)
 	pageToken := ""
 
+	const youtubeAPIMaxResults = 50
+
 	for len(videos) < maxResults {
 		// Build request URL
 		reqURL := fmt.Sprintf(
 			"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails,status&playlistId=%s&maxResults=%d",
 			url.QueryEscape(playlistID),
-			min(50, maxResults-len(videos)), // YouTube API max is 50
+			min(youtubeAPIMaxResults, maxResults-len(videos)),
 		)
 
 		if pageToken != "" {
@@ -246,7 +255,8 @@ func (p *Provider) fetchPlaylistVideos(
 
 		var playlistResp playlistItemsResponse
 
-		if err := json.Unmarshal(body, &playlistResp); err != nil {
+		err = json.Unmarshal(body, &playlistResp)
+		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 		}
 
@@ -292,52 +302,66 @@ func (p *Provider) fetchPlaylistVideos(
 		pageToken = playlistResp.NextPageToken
 	}
 
-	// Fetch video metadata for the videos we have
+	// Fetch and attach video metadata for the videos we have
 	if len(videos) > 0 {
-		videoIDs := make([]string, len(videos))
-		for i, v := range videos {
-			videoIDs[i] = v.RemoteID
-		}
-
-		videoMetadata, err := p.fetchVideoMetadata(ctx, accessToken, videoIDs)
-		if err != nil {
-			// Log but don't fail - video metadata is optional
-			p.logger.WarnContext(ctx, "Failed to fetch video metadata",
-				slog.String("error", err.Error()))
-		} else {
-			for _, video := range videos {
-				if meta, ok := videoMetadata[video.RemoteID]; ok {
-					video.Properties["videoMetadata"] = meta
-				}
-			}
-		}
-
-		// Diagnostic: log property keys for first video to verify status is present
-		if len(videos) > 0 {
-			first := videos[0]
-
-			var vmKeys, pmKeys []string
-
-			if vm, ok := first.Properties["videoMetadata"].(map[string]any); ok {
-				for k := range vm {
-					vmKeys = append(vmKeys, k)
-				}
-			}
-
-			if pm, ok := first.Properties["playlistItemMetadata"].(map[string]any); ok {
-				for k := range pm {
-					pmKeys = append(pmKeys, k)
-				}
-			}
-
-			p.logger.WarnContext(ctx, "YouTube API response diagnostic",
-				slog.String("remote_id", first.RemoteID),
-				slog.Any("videoMetadata_keys", vmKeys),
-				slog.Any("playlistItemMetadata_keys", pmKeys))
-		}
+		p.enrichWithVideoMetadata(ctx, accessToken, videos)
+		p.logDiagnosticKeys(ctx, videos)
 	}
 
 	return videos, nil
+}
+
+// enrichWithVideoMetadata fetches full video metadata and attaches it to each video's properties.
+func (p *Provider) enrichWithVideoMetadata(
+	ctx context.Context,
+	accessToken string,
+	videos []*linksync.RemoteStoryItem,
+) {
+	videoIDs := make([]string, len(videos))
+	for index, video := range videos {
+		videoIDs[index] = video.RemoteID
+	}
+
+	videoMetadata, err := p.fetchVideoMetadata(ctx, accessToken, videoIDs)
+	if err != nil {
+		p.logger.WarnContext(ctx, "Failed to fetch video metadata",
+			slog.String("error", err.Error()))
+
+		return
+	}
+
+	for _, video := range videos {
+		if meta, ok := videoMetadata[video.RemoteID]; ok {
+			video.Properties["videoMetadata"] = meta
+		}
+	}
+}
+
+// logDiagnosticKeys logs property keys of the first video for debugging.
+func (p *Provider) logDiagnosticKeys(
+	ctx context.Context,
+	videos []*linksync.RemoteStoryItem,
+) {
+	first := videos[0]
+
+	var vmKeys, pmKeys []string
+
+	if videoMeta, ok := first.Properties["videoMetadata"].(map[string]any); ok {
+		for key := range videoMeta {
+			vmKeys = append(vmKeys, key)
+		}
+	}
+
+	if playlistMeta, ok := first.Properties["playlistItemMetadata"].(map[string]any); ok {
+		for key := range playlistMeta {
+			pmKeys = append(pmKeys, key)
+		}
+	}
+
+	p.logger.WarnContext(ctx, "YouTube API response diagnostic",
+		slog.String("remote_id", first.RemoteID),
+		slog.Any("videoMetadata_keys", vmKeys),
+		slog.Any("playlistItemMetadata_keys", pmKeys))
 }
 
 // playlistItemsResponse represents the YouTube playlist items API response.
@@ -368,22 +392,25 @@ func (r *playlistItemsResponse) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &alias)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal playlist items: %w", err)
 	}
 
 	r.NextPageToken = alias.NextPageToken
 	r.RawItems = alias.RawItems
 	r.Items = make([]playlistItem, len(alias.RawItems))
 
-	for i, raw := range alias.RawItems {
-		err := json.Unmarshal(raw, &r.Items[i])
-		if err != nil {
-			return err
+	for index, raw := range alias.RawItems {
+		itemErr := json.Unmarshal(raw, &r.Items[index])
+		if itemErr != nil {
+			return fmt.Errorf("failed to unmarshal playlist item: %w", itemErr)
 		}
 	}
 
 	return nil
 }
+
+// youtubeAPIMaxBatchSize is the maximum number of video IDs per YouTube API request.
+const youtubeAPIMaxBatchSize = 50
 
 // fetchVideoMetadata fetches full metadata for multiple videos.
 func (p *Provider) fetchVideoMetadata(
@@ -394,64 +421,80 @@ func (p *Provider) fetchVideoMetadata(
 	result := make(map[string]map[string]any)
 
 	// YouTube API allows up to 50 video IDs per request
-	for i := 0; i < len(videoIDs); i += 50 {
-		end := i + 50
-		if end > len(videoIDs) {
-			end = len(videoIDs)
-		}
+	for i := 0; i < len(videoIDs); i += youtubeAPIMaxBatchSize {
+		end := min(i+youtubeAPIMaxBatchSize, len(videoIDs))
 
 		batch := videoIDs[i:end]
 		ids := strings.Join(batch, ",")
 
-		reqURL := "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics,status&id=" + url.QueryEscape(
-			ids,
-		)
+		videosURL := "https://www.googleapis.com/youtube/v3/videos" +
+			"?part=snippet,contentDetails,statistics,status&id=" +
+			url.QueryEscape(ids)
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+		batchResult, batchErr := p.fetchVideoBatch(ctx, accessToken, videosURL)
+		if batchErr != nil {
+			return nil, batchErr
+		}
+
+		maps.Copy(result, batchResult)
+	}
+
+	return result, nil
+}
+
+// fetchVideoBatch fetches a single batch of video metadata from the given URL.
+func (p *Provider) fetchVideoBatch(
+	ctx context.Context,
+	accessToken string,
+	videosURL string,
+) (map[string]map[string]any, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, videosURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
+	}
+
+	body, readErr := func() ([]byte, error) {
+		defer resp.Body.Close() //nolint:errcheck
+
+		return io.ReadAll(resp.Body)
+	}()
+	if readErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, readErr)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: status %d", ErrFailedToFetchVideos, resp.StatusCode)
+	}
+
+	var videosResp struct {
+		Items []json.RawMessage `json:"items"`
+	}
+
+	err = json.Unmarshal(body, &videosResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
+	}
+
+	result := make(map[string]map[string]any, len(videosResp.Items))
+
+	for _, rawItem := range videosResp.Items {
+		var item map[string]any
+
+		err = json.Unmarshal(rawItem, &item)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
 		}
 
-		req.Header.Set("Authorization", "Bearer "+accessToken)
-
-		resp, err := p.httpClient.Do(req)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
-		}
-
-		body, readErr := func() ([]byte, error) {
-			defer resp.Body.Close() //nolint:errcheck
-
-			return io.ReadAll(resp.Body)
-		}()
-		if readErr != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, readErr)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("%w: status %d", ErrFailedToFetchVideos, resp.StatusCode)
-		}
-
-		var videosResp struct {
-			Items []json.RawMessage `json:"items"`
-		}
-
-		if err := json.Unmarshal(body, &videosResp); err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
-		}
-
-		for _, rawItem := range videosResp.Items {
-			var item map[string]any
-
-			err := json.Unmarshal(rawItem, &item)
-			if err != nil {
-				return nil, fmt.Errorf("%w: %w", ErrFailedToFetchVideos, err)
-			}
-
-			id, _ := item["id"].(string)
-			if id != "" {
-				result[id] = item
-			}
+		id, _ := item["id"].(string)
+		if id != "" {
+			result[id] = item
 		}
 	}
 

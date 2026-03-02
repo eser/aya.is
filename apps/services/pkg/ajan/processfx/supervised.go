@@ -5,6 +5,24 @@ import (
 	"time"
 )
 
+// Default supervision configuration values.
+const (
+	defaultHeartbeatTimeoutSeconds = 30
+	defaultMaxRestarts             = 5
+	defaultBackoffMaxSeconds       = 60
+	defaultBackoffMultiplier       = 2.0
+)
+
+// Sentinel validation errors.
+var (
+	ErrWorkerNameRequired       = errors.New("worker name is required")
+	ErrHeartbeatTimeoutPositive = errors.New("heartbeat timeout must be positive")
+	ErrMaxRestartsNonNegative   = errors.New("max restarts cannot be negative")
+	ErrBackoffInitialPositive   = errors.New("backoff initial must be positive")
+	ErrBackoffMaxTooSmall       = errors.New("backoff max must be >= backoff initial")
+	ErrBackoffMultiplierTooLow  = errors.New("backoff multiplier must be >= 1.0")
+)
+
 // Supervision errors.
 var (
 	ErrMaxRestartsExceeded = errors.New("worker exceeded maximum restart attempts")
@@ -38,38 +56,38 @@ type SupervisedWorkerConfig struct {
 func DefaultSupervisedConfig(name string) SupervisedWorkerConfig {
 	return SupervisedWorkerConfig{
 		Name:              name,
-		HeartbeatTimeout:  30 * time.Second,
-		MaxRestarts:       5,
+		HeartbeatTimeout:  defaultHeartbeatTimeoutSeconds * time.Second,
+		MaxRestarts:       defaultMaxRestarts,
 		BackoffInitial:    1 * time.Second,
-		BackoffMax:        60 * time.Second,
-		BackoffMultiplier: 2.0,
+		BackoffMax:        defaultBackoffMaxSeconds * time.Second,
+		BackoffMultiplier: defaultBackoffMultiplier,
 	}
 }
 
 // Validate checks the configuration for errors.
 func (c SupervisedWorkerConfig) Validate() error {
 	if c.Name == "" {
-		return errors.New("worker name is required")
+		return ErrWorkerNameRequired
 	}
 
 	if c.HeartbeatTimeout <= 0 {
-		return errors.New("heartbeat timeout must be positive")
+		return ErrHeartbeatTimeoutPositive
 	}
 
 	if c.MaxRestarts < 0 {
-		return errors.New("max restarts cannot be negative")
+		return ErrMaxRestartsNonNegative
 	}
 
 	if c.BackoffInitial <= 0 {
-		return errors.New("backoff initial must be positive")
+		return ErrBackoffInitialPositive
 	}
 
 	if c.BackoffMax < c.BackoffInitial {
-		return errors.New("backoff max must be >= backoff initial")
+		return ErrBackoffMaxTooSmall
 	}
 
 	if c.BackoffMultiplier < 1.0 {
-		return errors.New("backoff multiplier must be >= 1.0")
+		return ErrBackoffMultiplierTooLow
 	}
 
 	return nil

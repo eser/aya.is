@@ -1,6 +1,6 @@
 // Profile settings index (general settings)
 import * as React from "react";
-import { createFileRoute, useRouter, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { backend, type Profile } from "@/modules/backend/backend";
@@ -107,14 +107,18 @@ function SettingsIndexPage() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-serif text-xl font-semibold text-foreground">{t("Common.General")}</h3>
-          {/* <p className="text-muted-foreground text-sm mt-1">
+          {
+            /* <p className="text-muted-foreground text-sm mt-1">
             {t("Profile.Manage your social media links and external websites.")}
-          </p> */}
+          </p> */
+          }
         </div>
-        {/* <Button onClick={handleOpenAddDialog}>
+        {
+          /* <Button onClick={handleOpenAddDialog}>
           <Plus className="size-4 mr-2" />
           {t("Profile.Add Link")}
-        </Button> */}
+        </Button> */
+        }
       </div>
 
       <div className="space-y-8">

@@ -157,113 +157,6 @@ func (m *AnthropicModel) StreamText(
 	return NewStreamIterator(eventCh, cancel), nil
 }
 
-// runStreamReader reads from the Anthropic stream and pushes events to the channel.
-func (m *AnthropicModel) runStreamReader(
-	stream *ssestream.Stream[anthropic.MessageStreamEventUnion],
-	eventCh chan<- StreamEvent,
-	cancel context.CancelFunc,
-) {
-	defer close(eventCh)
-	defer cancel()
-
-	accumulated := anthropic.Message{}
-
-	for stream.Next() {
-		event := stream.Current()
-
-		accErr := accumulated.Accumulate(event)
-		if accErr != nil {
-			eventCh <- StreamEvent{
-				Type:  StreamEventError,
-				Error: classifyAnthropicError(ErrAnthropicStreamFailed, accErr),
-			}
-
-			return
-		}
-
-		switch variant := event.AsAny().(type) {
-		case anthropic.ContentBlockDeltaEvent:
-			m.handleContentBlockDelta(variant, eventCh)
-		case anthropic.MessageDeltaEvent:
-			m.handleMessageDelta(variant, &accumulated, eventCh)
-		}
-	}
-
-	if stream.Err() != nil {
-		eventCh <- StreamEvent{
-			Type:  StreamEventError,
-			Error: classifyAnthropicError(ErrAnthropicStreamFailed, stream.Err()),
-		}
-
-		return
-	}
-
-	// Send final message-done event if not already sent via MessageDeltaEvent.
-	eventCh <- StreamEvent{
-		Type:       StreamEventMessageDone,
-		StopReason: mapAnthropicStopReason(accumulated.StopReason),
-		Usage: &Usage{
-			InputTokens:  int(accumulated.Usage.InputTokens),
-			OutputTokens: int(accumulated.Usage.OutputTokens),
-			TotalTokens:  int(accumulated.Usage.InputTokens) + int(accumulated.Usage.OutputTokens),
-		},
-	}
-}
-
-func (m *AnthropicModel) handleContentBlockDelta(
-	variant anthropic.ContentBlockDeltaEvent,
-	eventCh chan<- StreamEvent,
-) {
-	switch delta := variant.Delta.AsAny().(type) {
-	case anthropic.TextDelta:
-		eventCh <- StreamEvent{
-			Type:      StreamEventContentDelta,
-			TextDelta: delta.Text,
-		}
-	case anthropic.InputJSONDelta:
-		// Partial JSON for tool call arguments; accumulate and emit as delta.
-		eventCh <- StreamEvent{
-			Type:      StreamEventToolCallDelta,
-			TextDelta: delta.PartialJSON,
-		}
-	}
-}
-
-func (m *AnthropicModel) handleMessageDelta(
-	variant anthropic.MessageDeltaEvent,
-	accumulated *anthropic.Message,
-	eventCh chan<- StreamEvent,
-) {
-	// Extract completed tool calls from the accumulated message.
-	for _, block := range accumulated.Content {
-		if toolUse, ok := block.AsAny().(anthropic.ToolUseBlock); ok {
-			inputJSON, marshalErr := json.Marshal(toolUse.Input)
-			if marshalErr != nil {
-				continue
-			}
-
-			eventCh <- StreamEvent{
-				Type: StreamEventToolCallDelta,
-				ToolCall: &ToolCall{
-					ID:        toolUse.ID,
-					Name:      toolUse.Name,
-					Arguments: inputJSON,
-				},
-			}
-		}
-	}
-
-	eventCh <- StreamEvent{
-		Type:       StreamEventMessageDone,
-		StopReason: mapAnthropicStopReason(variant.Delta.StopReason),
-		Usage: &Usage{
-			InputTokens:  int(accumulated.Usage.InputTokens),
-			OutputTokens: int(accumulated.Usage.OutputTokens + variant.Usage.OutputTokens),
-			TotalTokens:  int(accumulated.Usage.InputTokens) + int(accumulated.Usage.OutputTokens+variant.Usage.OutputTokens),
-		},
-	}
-}
-
 // SubmitBatch submits a batch of generation requests via the Anthropic Message Batches API.
 func (m *AnthropicModel) SubmitBatch(
 	ctx context.Context,
@@ -277,21 +170,10 @@ func (m *AnthropicModel) SubmitBatch(
 			return nil, classifyAnthropicError(ErrAnthropicBatchFailed, err)
 		}
 
-		batchRequests = append(batchRequests, anthropic.MessageBatchNewParamsRequest{
-			CustomID: item.CustomID,
-			Params: anthropic.MessageBatchNewParamsRequestParams{
-				MaxTokens:     params.MaxTokens,
-				Messages:      params.Messages,
-				Model:         params.Model,
-				System:        params.System,
-				Temperature:   params.Temperature,
-				TopP:          params.TopP,
-				StopSequences: params.StopSequences,
-				Tools:         params.Tools,
-				ToolChoice:    params.ToolChoice,
-				Thinking:      params.Thinking,
-			},
-		})
+		batchRequests = append(
+			batchRequests,
+			newAnthropicBatchRequest(item.CustomID, params),
+		)
 	}
 
 	batch, err := m.client.Messages.Batches.New(ctx, anthropic.MessageBatchNewParams{
@@ -322,7 +204,7 @@ func (m *AnthropicModel) ListBatchJobs(
 	ctx context.Context,
 	opts *ListBatchOptions,
 ) ([]*BatchJob, error) {
-	params := anthropic.MessageBatchListParams{}
+	params := anthropic.MessageBatchListParams{} //nolint:exhaustruct
 
 	if opts != nil {
 		if opts.Limit > 0 {
@@ -361,12 +243,14 @@ func (m *AnthropicModel) DownloadBatchResults(
 
 		batchResult := &BatchResult{
 			CustomID: entry.CustomID,
+			Result:   nil,
+			Error:    "",
 		}
 
 		if entry.Result.Type == "succeeded" {
 			batchResult.Result = m.mapResponse(&entry.Result.Message)
 		} else {
-			batchResult.Error = string(entry.Result.Type)
+			batchResult.Error = entry.Result.Type
 		}
 
 		results = append(results, batchResult)
@@ -392,6 +276,94 @@ func (m *AnthropicModel) CancelBatchJob(
 	return nil
 }
 
+// runStreamReader reads from the Anthropic stream and pushes events to the channel.
+func (m *AnthropicModel) runStreamReader(
+	stream *ssestream.Stream[anthropic.MessageStreamEventUnion],
+	eventCh chan<- StreamEvent,
+	cancel context.CancelFunc,
+) {
+	defer close(eventCh)
+	defer cancel()
+
+	accumulated := newEmptyAnthropicMessage()
+
+	for stream.Next() {
+		event := stream.Current()
+
+		accErr := accumulated.Accumulate(event)
+		if accErr != nil {
+			eventCh <- newStreamEventError(
+				classifyAnthropicError(ErrAnthropicStreamFailed, accErr),
+			)
+
+			return
+		}
+
+		switch variant := event.AsAny().(type) {
+		case anthropic.ContentBlockDeltaEvent:
+			m.handleContentBlockDelta(variant, eventCh)
+		case anthropic.MessageDeltaEvent:
+			m.handleMessageDelta(variant, &accumulated, eventCh)
+		}
+	}
+
+	if stream.Err() != nil {
+		eventCh <- newStreamEventError(
+			classifyAnthropicError(ErrAnthropicStreamFailed, stream.Err()),
+		)
+
+		return
+	}
+
+	// Send final message-done event if not already sent via MessageDeltaEvent.
+	eventCh <- newStreamEventDone(
+		mapAnthropicStopReason(accumulated.StopReason),
+		newAnthropicUsage(accumulated.Usage.InputTokens, accumulated.Usage.OutputTokens),
+	)
+}
+
+func (m *AnthropicModel) handleContentBlockDelta(
+	variant anthropic.ContentBlockDeltaEvent,
+	eventCh chan<- StreamEvent,
+) {
+	switch delta := variant.Delta.AsAny().(type) {
+	case anthropic.TextDelta:
+		eventCh <- newStreamEventContentDelta(delta.Text)
+	case anthropic.InputJSONDelta:
+		// Partial JSON for tool call arguments; accumulate and emit as delta.
+		eventCh <- newStreamEventToolCallTextDelta(delta.PartialJSON)
+	}
+}
+
+func (m *AnthropicModel) handleMessageDelta(
+	variant anthropic.MessageDeltaEvent,
+	accumulated *anthropic.Message,
+	eventCh chan<- StreamEvent,
+) {
+	// Extract completed tool calls from the accumulated message.
+	for _, block := range accumulated.Content {
+		if toolUse, ok := block.AsAny().(anthropic.ToolUseBlock); ok {
+			inputJSON, marshalErr := json.Marshal(toolUse.Input)
+			if marshalErr != nil {
+				continue
+			}
+
+			eventCh <- newStreamEventToolCall(&ToolCall{
+				ID:        toolUse.ID,
+				Name:      toolUse.Name,
+				Arguments: inputJSON,
+			})
+		}
+	}
+
+	outputTokens := accumulated.Usage.OutputTokens + variant.Usage.OutputTokens
+
+	eventCh <- newStreamEventDone(
+		mapAnthropicStopReason(variant.Delta.StopReason),
+		newAnthropicUsage(accumulated.Usage.InputTokens, outputTokens),
+	)
+}
+
 // buildMessageParams maps unified GenerateTextOptions to Anthropic MessageNewParams.
 func (m *AnthropicModel) buildMessageParams(
 	opts *GenerateTextOptions,
@@ -406,53 +378,89 @@ func (m *AnthropicModel) buildMessageParams(
 		maxTokens = int64(opts.MaxTokens)
 	}
 
-	params := anthropic.MessageNewParams{
+	params := anthropic.MessageNewParams{ //nolint:exhaustruct
 		Model:     anthropic.Model(m.config.Model),
 		Messages:  messages,
 		MaxTokens: maxTokens,
 	}
 
-	// System prompt goes as a dedicated parameter, not a message.
+	m.applySystemPrompt(&params, opts)
+	m.applyTemperature(&params, opts)
+	m.applyTopP(&params, opts)
+	m.applyStopSequences(&params, opts)
+	m.applyTools(&params, opts)
+	m.applyToolChoice(&params, opts)
+	m.applyThinkingBudget(&params, opts)
+
+	return params, nil
+}
+
+func (m *AnthropicModel) applySystemPrompt(
+	params *anthropic.MessageNewParams,
+	opts *GenerateTextOptions,
+) {
 	if opts.System != "" {
 		params.System = []anthropic.TextBlockParam{
-			{Text: opts.System},
+			{Text: opts.System}, //nolint:exhaustruct
 		}
 	}
+}
 
-	// Temperature
+func (m *AnthropicModel) applyTemperature(
+	params *anthropic.MessageNewParams,
+	opts *GenerateTextOptions,
+) {
 	if opts.Temperature != nil {
 		params.Temperature = anthropic.Float(*opts.Temperature)
 	} else if m.config.Temperature > 0 {
 		params.Temperature = anthropic.Float(m.config.Temperature)
 	}
+}
 
-	// TopP
+func (m *AnthropicModel) applyTopP(
+	params *anthropic.MessageNewParams,
+	opts *GenerateTextOptions,
+) {
 	if opts.TopP != nil {
 		params.TopP = anthropic.Float(*opts.TopP)
 	}
+}
 
-	// Stop sequences
+func (m *AnthropicModel) applyStopSequences(
+	params *anthropic.MessageNewParams,
+	opts *GenerateTextOptions,
+) {
 	if len(opts.StopWords) > 0 {
 		params.StopSequences = opts.StopWords
 	}
+}
 
-	// Tools
+func (m *AnthropicModel) applyTools(
+	params *anthropic.MessageNewParams,
+	opts *GenerateTextOptions,
+) {
 	if len(opts.Tools) > 0 {
 		params.Tools = m.mapToolDefinitions(opts.Tools)
 	}
+}
 
-	// Tool choice
+func (m *AnthropicModel) applyToolChoice(
+	params *anthropic.MessageNewParams,
+	opts *GenerateTextOptions,
+) {
 	if opts.ToolChoice != "" {
 		params.ToolChoice = mapAnthropicToolChoice(opts.ToolChoice)
 	}
+}
 
-	// Thinking budget (extended thinking)
+func (m *AnthropicModel) applyThinkingBudget(
+	params *anthropic.MessageNewParams,
+	opts *GenerateTextOptions,
+) {
 	if opts.ThinkingBudget != nil {
 		params.Temperature = anthropic.Float(1.0) // required for thinking
 		params.Thinking = anthropic.ThinkingConfigParamOfEnabled(int64(*opts.ThinkingBudget))
 	}
-
-	return params, nil
 }
 
 // mapMessages converts unified messages to Anthropic message params.
@@ -506,59 +514,73 @@ func (m *AnthropicModel) mapContentBlocks(msg Message) ([]anthropic.ContentBlock
 func (m *AnthropicModel) mapSingleContentBlock(
 	block ContentBlock,
 ) (*anthropic.ContentBlockParamUnion, error) {
-	switch block.Type {
+	switch block.Type { //nolint:exhaustive
 	case ContentBlockText:
-		return &anthropic.ContentBlockParamUnion{
-			OfText: &anthropic.TextBlockParam{
+		textBlock := &anthropic.ContentBlockParamUnion{ //nolint:exhaustruct
+			OfText: &anthropic.TextBlockParam{ //nolint:exhaustruct
 				Text: block.Text,
 			},
-		}, nil
+		}
+
+		return textBlock, nil
 
 	case ContentBlockImage:
 		return m.mapImageBlock(block.Image)
 
 	case ContentBlockToolCall:
-		if block.ToolCall == nil {
-			return nil, nil
-		}
-
-		return &anthropic.ContentBlockParamUnion{
-			OfToolUse: &anthropic.ToolUseBlockParam{
-				ID:    block.ToolCall.ID,
-				Name:  block.ToolCall.Name,
-				Input: json.RawMessage(block.ToolCall.Arguments),
-			},
-		}, nil
+		return m.mapToolCallBlock(block.ToolCall)
 
 	case ContentBlockToolResult:
-		if block.ToolResult == nil {
-			return nil, nil
-		}
-
-		return &anthropic.ContentBlockParamUnion{
-			OfToolResult: &anthropic.ToolResultBlockParam{
-				ToolUseID: block.ToolResult.ToolCallID,
-				Content: []anthropic.ToolResultBlockParamContentUnion{
-					{
-						OfText: &anthropic.TextBlockParam{
-							Text: block.ToolResult.Content,
-						},
-					},
-				},
-				IsError: anthropic.Bool(block.ToolResult.IsError),
-			},
-		}, nil
+		return m.mapToolResultBlock(block.ToolResult)
 
 	default:
 		// Unsupported block types (audio, file) are silently skipped.
-		return nil, nil
+		return nil, nil //nolint:nilnil
 	}
+}
+
+func (m *AnthropicModel) mapToolCallBlock(
+	toolCall *ToolCall,
+) (*anthropic.ContentBlockParamUnion, error) {
+	if toolCall == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	return &anthropic.ContentBlockParamUnion{ //nolint:exhaustruct
+		OfToolUse: &anthropic.ToolUseBlockParam{ //nolint:exhaustruct
+			ID:    toolCall.ID,
+			Name:  toolCall.Name,
+			Input: toolCall.Arguments,
+		},
+	}, nil
+}
+
+func (m *AnthropicModel) mapToolResultBlock(
+	toolResult *ToolResult,
+) (*anthropic.ContentBlockParamUnion, error) {
+	if toolResult == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	return &anthropic.ContentBlockParamUnion{ //nolint:exhaustruct
+		OfToolResult: &anthropic.ToolResultBlockParam{ //nolint:exhaustruct
+			ToolUseID: toolResult.ToolCallID,
+			Content: []anthropic.ToolResultBlockParamContentUnion{
+				{ //nolint:exhaustruct
+					OfText: &anthropic.TextBlockParam{ //nolint:exhaustruct
+						Text: toolResult.Content,
+					},
+				},
+			},
+			IsError: anthropic.Bool(toolResult.IsError),
+		},
+	}, nil
 }
 
 // mapImageBlock converts a unified ImagePart to an Anthropic image content block.
 func (m *AnthropicModel) mapImageBlock(img *ImagePart) (*anthropic.ContentBlockParamUnion, error) {
 	if img == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil
 	}
 
 	var (
@@ -585,10 +607,10 @@ func (m *AnthropicModel) mapImageBlock(img *ImagePart) (*anthropic.ContentBlockP
 
 	default:
 		// Anthropic supports URL-based images via the URL source type.
-		return &anthropic.ContentBlockParamUnion{
-			OfImage: &anthropic.ImageBlockParam{
-				Source: anthropic.ImageBlockParamSourceUnion{
-					OfURL: &anthropic.URLImageSourceParam{
+		return &anthropic.ContentBlockParamUnion{ //nolint:exhaustruct
+			OfImage: &anthropic.ImageBlockParam{ //nolint:exhaustruct
+				Source: anthropic.ImageBlockParamSourceUnion{ //nolint:exhaustruct
+					OfURL: &anthropic.URLImageSourceParam{ //nolint:exhaustruct
 						URL: img.URL,
 					},
 				},
@@ -598,10 +620,10 @@ func (m *AnthropicModel) mapImageBlock(img *ImagePart) (*anthropic.ContentBlockP
 
 	encoded := base64.StdEncoding.EncodeToString(imageData)
 
-	return &anthropic.ContentBlockParamUnion{
-		OfImage: &anthropic.ImageBlockParam{
-			Source: anthropic.ImageBlockParamSourceUnion{
-				OfBase64: &anthropic.Base64ImageSourceParam{
+	return &anthropic.ContentBlockParamUnion{ //nolint:exhaustruct
+		OfImage: &anthropic.ImageBlockParam{ //nolint:exhaustruct
+			Source: anthropic.ImageBlockParamSourceUnion{ //nolint:exhaustruct
+				OfBase64: &anthropic.Base64ImageSourceParam{ //nolint:exhaustruct
 					Data:      encoded,
 					MediaType: anthropic.Base64ImageSourceMediaType(mimeType),
 				},
@@ -615,7 +637,7 @@ func (m *AnthropicModel) mapToolDefinitions(tools []ToolDefinition) []anthropic.
 	result := make([]anthropic.ToolUnionParam, 0, len(tools))
 
 	for _, tool := range tools {
-		inputSchema := anthropic.ToolInputSchemaParam{}
+		inputSchema := anthropic.ToolInputSchemaParam{} //nolint:exhaustruct
 
 		if len(tool.Parameters) > 0 {
 			var schema map[string]any
@@ -626,8 +648,8 @@ func (m *AnthropicModel) mapToolDefinitions(tools []ToolDefinition) []anthropic.
 			}
 		}
 
-		result = append(result, anthropic.ToolUnionParam{
-			OfTool: &anthropic.ToolParam{
+		result = append(result, anthropic.ToolUnionParam{ //nolint:exhaustruct
+			OfTool: &anthropic.ToolParam{ //nolint:exhaustruct
 				Name:        tool.Name,
 				Description: anthropic.String(tool.Description),
 				InputSchema: inputSchema,
@@ -642,20 +664,20 @@ func (m *AnthropicModel) mapToolDefinitions(tools []ToolDefinition) []anthropic.
 func mapAnthropicToolChoice(choice ToolChoice) anthropic.ToolChoiceUnionParam {
 	switch choice {
 	case ToolChoiceAuto:
-		return anthropic.ToolChoiceUnionParam{
-			OfAuto: &anthropic.ToolChoiceAutoParam{},
+		return anthropic.ToolChoiceUnionParam{ //nolint:exhaustruct
+			OfAuto: &anthropic.ToolChoiceAutoParam{}, //nolint:exhaustruct
 		}
 	case ToolChoiceNone:
-		return anthropic.ToolChoiceUnionParam{
-			OfNone: &anthropic.ToolChoiceNoneParam{},
+		return anthropic.ToolChoiceUnionParam{ //nolint:exhaustruct
+			OfNone: &anthropic.ToolChoiceNoneParam{}, //nolint:exhaustruct
 		}
 	case ToolChoiceRequired:
-		return anthropic.ToolChoiceUnionParam{
-			OfAny: &anthropic.ToolChoiceAnyParam{},
+		return anthropic.ToolChoiceUnionParam{ //nolint:exhaustruct
+			OfAny: &anthropic.ToolChoiceAnyParam{}, //nolint:exhaustruct
 		}
 	default:
-		return anthropic.ToolChoiceUnionParam{
-			OfAuto: &anthropic.ToolChoiceAutoParam{},
+		return anthropic.ToolChoiceUnionParam{ //nolint:exhaustruct
+			OfAuto: &anthropic.ToolChoiceAutoParam{}, //nolint:exhaustruct
 		}
 	}
 }
@@ -668,8 +690,13 @@ func (m *AnthropicModel) mapResponse(msg *anthropic.Message) *GenerateTextResult
 		switch variant := block.AsAny().(type) {
 		case anthropic.TextBlock:
 			content = append(content, ContentBlock{
-				Type: ContentBlockText,
-				Text: variant.Text,
+				Type:       ContentBlockText,
+				Text:       variant.Text,
+				Image:      nil,
+				Audio:      nil,
+				File:       nil,
+				ToolCall:   nil,
+				ToolResult: nil,
 			})
 		case anthropic.ToolUseBlock:
 			inputJSON, marshalErr := json.Marshal(variant.Input)
@@ -679,18 +706,28 @@ func (m *AnthropicModel) mapResponse(msg *anthropic.Message) *GenerateTextResult
 			}
 
 			content = append(content, ContentBlock{
-				Type: ContentBlockToolCall,
+				Type:  ContentBlockToolCall,
+				Text:  "",
+				Image: nil,
+				Audio: nil,
+				File:  nil,
 				ToolCall: &ToolCall{
 					ID:        variant.ID,
 					Name:      variant.Name,
 					Arguments: inputJSON,
 				},
+				ToolResult: nil,
 			})
 		case anthropic.ThinkingBlock:
 			// Thinking blocks are internal reasoning; include as text with a marker.
 			content = append(content, ContentBlock{
-				Type: ContentBlockText,
-				Text: variant.Thinking,
+				Type:       ContentBlockText,
+				Text:       variant.Thinking,
+				Image:      nil,
+				Audio:      nil,
+				File:       nil,
+				ToolCall:   nil,
+				ToolResult: nil,
 			})
 		}
 	}
@@ -699,17 +736,20 @@ func (m *AnthropicModel) mapResponse(msg *anthropic.Message) *GenerateTextResult
 		Content:    content,
 		StopReason: mapAnthropicStopReason(msg.StopReason),
 		Usage: Usage{
-			InputTokens:  int(msg.Usage.InputTokens),
-			OutputTokens: int(msg.Usage.OutputTokens),
-			TotalTokens:  int(msg.Usage.InputTokens) + int(msg.Usage.OutputTokens),
+			InputTokens:    int(msg.Usage.InputTokens),
+			OutputTokens:   int(msg.Usage.OutputTokens),
+			TotalTokens:    int(msg.Usage.InputTokens) + int(msg.Usage.OutputTokens),
+			ThinkingTokens: 0,
 		},
-		ModelID: string(msg.Model),
+		ModelID:     string(msg.Model),
+		RawRequest:  nil,
+		RawResponse: nil,
 	}
 }
 
 // mapAnthropicStopReason converts an Anthropic stop reason to the unified type.
 func mapAnthropicStopReason(reason anthropic.StopReason) StopReason {
-	switch reason {
+	switch reason { //nolint:exhaustive
 	case anthropic.StopReasonEndTurn:
 		return StopReasonEndTurn
 	case anthropic.StopReasonMaxTokens:
@@ -726,9 +766,24 @@ func mapAnthropicStopReason(reason anthropic.StopReason) StopReason {
 // mapAnthropicBatchJob converts an Anthropic batch response to the unified BatchJob type.
 func mapAnthropicBatchJob(batch *anthropic.MessageBatch) *BatchJob {
 	job := &BatchJob{
-		ID:        batch.ID,
-		Status:    mapAnthropicBatchStatus(batch.ProcessingStatus),
-		CreatedAt: batch.CreatedAt.UTC(),
+		ID:          batch.ID,
+		Status:      mapAnthropicBatchStatus(batch.ProcessingStatus),
+		CreatedAt:   batch.CreatedAt.UTC(),
+		CompletedAt: nil,
+		TotalCount: int(batch.RequestCounts.Processing +
+			batch.RequestCounts.Succeeded +
+			batch.RequestCounts.Errored +
+			batch.RequestCounts.Canceled +
+			batch.RequestCounts.Expired),
+		DoneCount:   int(batch.RequestCounts.Succeeded),
+		FailedCount: int(batch.RequestCounts.Errored),
+		Storage: &BatchStorage{
+			Type:       "anthropic_batch",
+			InputRef:   "",
+			OutputRef:  batch.ResultsURL,
+			Properties: map[string]any{"batch_id": batch.ID},
+		},
+		Error: "",
 	}
 
 	if !batch.EndedAt.IsZero() {
@@ -736,34 +791,58 @@ func mapAnthropicBatchJob(batch *anthropic.MessageBatch) *BatchJob {
 		job.CompletedAt = &endedAt
 	}
 
-	job.TotalCount = int(batch.RequestCounts.Processing +
-		batch.RequestCounts.Succeeded +
-		batch.RequestCounts.Errored +
-		batch.RequestCounts.Canceled +
-		batch.RequestCounts.Expired)
-	job.DoneCount = int(batch.RequestCounts.Succeeded)
-	job.FailedCount = int(batch.RequestCounts.Errored)
-
-	job.Storage = &BatchStorage{
-		Type:       "anthropic_batch",
-		OutputRef:  batch.ResultsURL,
-		Properties: map[string]any{"batch_id": batch.ID},
-	}
-
 	return job
 }
 
 // mapAnthropicBatchStatus converts an Anthropic batch processing status to the unified type.
-func mapAnthropicBatchStatus(status anthropic.MessageBatchProcessingStatus) BatchStatus {
+func mapAnthropicBatchStatus(
+	status anthropic.MessageBatchProcessingStatus,
+) BatchStatus {
 	switch status {
-	case "in_progress":
+	case anthropic.MessageBatchProcessingStatusInProgress,
+		anthropic.MessageBatchProcessingStatusCanceling:
 		return BatchStatusProcessing
-	case "ended":
+	case anthropic.MessageBatchProcessingStatusEnded:
 		return BatchStatusCompleted
-	case "canceling":
-		return BatchStatusProcessing
 	default:
 		return BatchStatusPending
+	}
+}
+
+// newEmptyAnthropicMessage creates a zero-value Anthropic Message for accumulation.
+func newEmptyAnthropicMessage() anthropic.Message {
+	return anthropic.Message{} //nolint:exhaustruct
+}
+
+// newAnthropicBatchRequest creates a new Anthropic batch request line.
+func newAnthropicBatchRequest(
+	customID string,
+	params anthropic.MessageNewParams,
+) anthropic.MessageBatchNewParamsRequest {
+	return anthropic.MessageBatchNewParamsRequest{
+		CustomID: customID,
+		Params: anthropic.MessageBatchNewParamsRequestParams{ //nolint:exhaustruct
+			MaxTokens:     params.MaxTokens,
+			Messages:      params.Messages,
+			Model:         params.Model,
+			System:        params.System,
+			Temperature:   params.Temperature,
+			TopP:          params.TopP,
+			StopSequences: params.StopSequences,
+			Tools:         params.Tools,
+			ToolChoice:    params.ToolChoice,
+			Thinking:      params.Thinking,
+		},
+	}
+}
+
+// newAnthropicUsage creates a Usage from Anthropic token counts.
+func newAnthropicUsage(inputTokens, outputTokens int64) *Usage {
+	return &Usage{
+		InputTokens:    int(inputTokens),
+		OutputTokens:   int(outputTokens),
+		TotalTokens:    int(inputTokens) + int(outputTokens),
+		ThinkingTokens: 0,
 	}
 }
 

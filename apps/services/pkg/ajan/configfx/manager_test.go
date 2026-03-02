@@ -31,7 +31,7 @@ type TestConfigNested struct {
 	Array      []TestConfigNestedKV `conf:"arr"`
 }
 
-func TestLoad(t *testing.T) {
+func TestLoad(t *testing.T) { //nolint:funlen
 	t.Parallel()
 
 	t.Run("should load config", func(t *testing.T) {
@@ -136,7 +136,7 @@ type TestDeepConfig struct {
 	AI      TestAIConfig `conf:"ai"`
 }
 
-func TestLoad_DeepNestedUppercaseKeys(t *testing.T) {
+func TestLoad_DeepNestedUppercaseKeys(t *testing.T) { //nolint:funlen
 	t.Parallel()
 
 	t.Run("should load struct-in-map-in-struct from ALL UPPERCASE env keys", func(t *testing.T) {
@@ -225,19 +225,19 @@ func TestLoad_DeepNestedUppercaseKeys(t *testing.T) {
 
 		require.NoError(t, err)
 
-		defaultTarget, ok := config.AI.Targets["default"]
-		require.True(t, ok, "Map key 'default' should exist")
+		defaultTarget, targetFound := config.AI.Targets["default"]
+		require.True(t, targetFound, "Map key 'default' should exist")
 		assert.Equal(t, "anthropic", defaultTarget.Provider)
 		assert.Equal(t, "sk-ant-xxx", defaultTarget.APIKey)
 
-		fallbackTarget, ok := config.AI.Targets["fallback"]
-		require.True(t, ok, "Map key 'fallback' should exist")
+		fallbackTarget, targetFound := config.AI.Targets["fallback"]
+		require.True(t, targetFound, "Map key 'fallback' should exist")
 		assert.Equal(t, "openai", fallbackTarget.Provider)
 		assert.Equal(t, "sk-openai-xxx", fallbackTarget.APIKey)
 	})
 }
 
-func TestLoad_CaseInsensitiveEnvOverride(t *testing.T) {
+func TestLoad_CaseInsensitiveEnvOverride(t *testing.T) { //nolint:funlen
 	t.Parallel()
 
 	t.Run("should override JSON config with ALL UPPERCASE env vars", func(t *testing.T) {
@@ -300,14 +300,14 @@ func TestLoad_CaseInsensitiveEnvOverride(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, "envapp", config.AppName)
 
-			defaultTarget, ok := config.AI.Targets["default"]
-			require.True(t, ok)
+			defaultTarget, targetFound := config.AI.Targets["default"]
+			require.True(t, targetFound)
 			assert.Equal(t, "openai", defaultTarget.Provider)
 			assert.Equal(t, "sk-openai-xxx", defaultTarget.APIKey)
 			assert.Equal(t, "gpt-4", defaultTarget.Model)
 
-			backupTarget, ok := config.AI.Targets["backup"]
-			require.True(t, ok)
+			backupTarget, targetFound := config.AI.Targets["backup"]
+			require.True(t, targetFound)
 			assert.Equal(t, "anthropic", backupTarget.Provider)
 			assert.Equal(t, "sk-ant-xxx", backupTarget.APIKey)
 		},
@@ -415,8 +415,8 @@ func TestLoad_RealBaseConfigUppercase(t *testing.T) {
 			assert.Equal(t, "development", config.AppEnv) // default
 
 			// Verify default target
-			defaultTarget, ok := config.AI.Targets["default"]
-			require.True(t, ok, "Map key 'default' should exist")
+			defaultTarget, targetFound := config.AI.Targets["default"]
+			require.True(t, targetFound, "Map key 'default' should exist")
 			assert.Equal(t, "anthropic", defaultTarget.Provider)
 			assert.Equal(t, "sk-ant-test-123", defaultTarget.APIKey)
 			assert.Equal(t, "claude-sonnet-4-20250514", defaultTarget.Model)
@@ -430,8 +430,8 @@ func TestLoad_RealBaseConfigUppercase(t *testing.T) {
 			assert.Equal(t, "base64data", propVal)
 
 			// Verify vertexai target
-			vertexTarget, ok := config.AI.Targets["vertexai"]
-			require.True(t, ok, "Map key 'vertexai' should exist")
+			vertexTarget, targetFound := config.AI.Targets["vertexai"]
+			require.True(t, targetFound, "Map key 'vertexai' should exist")
 			assert.Equal(t, "vertexai", vertexTarget.Provider)
 			assert.Equal(t, "my-project", vertexTarget.ProjectID)
 			assert.Equal(t, "us-central1", vertexTarget.Location)
@@ -565,13 +565,13 @@ type TestConfigWithNestedLimits struct {
 	Limits TestConfigResourceLimits `conf:"limits"`
 }
 
-func TestLoad_MetricInt(t *testing.T) {
+func TestLoad_MetricInt(t *testing.T) { //nolint:funlen
 	t.Parallel()
 
 	t.Run("should parse MetricInt with K suffix", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"MAX_TOKENS":            "100K",
@@ -597,7 +597,7 @@ func TestLoad_MetricInt(t *testing.T) {
 	t.Run("should parse MetricInt with M suffix", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"MAX_TOKENS": "1M",
@@ -621,7 +621,7 @@ func TestLoad_MetricInt(t *testing.T) {
 	t.Run("should parse MetricInt with B suffix", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"MAX_TOKENS": "1B",
@@ -643,7 +643,7 @@ func TestLoad_MetricInt(t *testing.T) {
 	t.Run("should parse plain numeric MetricInt", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"MAX_TOKENS": "50000",
@@ -665,7 +665,7 @@ func TestLoad_MetricInt(t *testing.T) {
 	t.Run("should parse decimal with suffix", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"MAX_TOKENS": "1.5M",
@@ -691,7 +691,7 @@ func TestLoad_MetricFloat(t *testing.T) {
 	t.Run("should parse MetricFloat with suffix", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"RATE_MULTIPLIER": "1.5K",
@@ -713,7 +713,7 @@ func TestLoad_MetricFloat(t *testing.T) {
 	t.Run("should parse plain numeric MetricFloat", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"RATE_MULTIPLIER": "2.5",
@@ -739,7 +739,7 @@ func TestLoad_NestedMetricInt(t *testing.T) {
 	t.Run("should parse nested struct with MetricInt fields", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithNestedLimits{}
+		config := TestConfigWithNestedLimits{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"NAME":                                "test-resource",
@@ -775,7 +775,7 @@ func TestLoad_TimeDuration(t *testing.T) {
 	t.Run("should parse time.Duration from string", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{
 			"TIMEOUT": "5m",
@@ -797,7 +797,7 @@ func TestLoad_TimeDuration(t *testing.T) {
 	t.Run("should use default time.Duration when not specified", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		envData := map[string]any{}
 
@@ -821,7 +821,7 @@ func TestLoad_MixedMetrics(t *testing.T) {
 	t.Run("should parse mixed metric values in real-world config scenario", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		// Simulating config.json-like values
 		envData := map[string]any{
@@ -856,7 +856,7 @@ func TestLoadMeta_MetricTypes(t *testing.T) {
 	t.Run("should get config meta for MetricInt fields", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		cl := configfx.NewConfigManager()
 		meta, err := cl.LoadMeta(&config)
@@ -882,7 +882,7 @@ func TestLoadMeta_MetricTypes(t *testing.T) {
 	t.Run("should get config meta for MetricFloat fields", func(t *testing.T) {
 		t.Parallel()
 
-		config := TestConfigWithMetrics{}
+		config := TestConfigWithMetrics{} //nolint:exhaustruct
 
 		cl := configfx.NewConfigManager()
 		meta, err := cl.LoadMeta(&config)

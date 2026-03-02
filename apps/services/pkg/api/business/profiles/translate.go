@@ -39,7 +39,7 @@ type AutoTranslatePageParams struct {
 
 // AutoTranslateProfilePage orchestrates the full auto-translate workflow for profile pages:
 // check permissions, deduct points, get source content, translate via AI, and save.
-func (s *Service) AutoTranslateProfilePage(
+func (s *Service) AutoTranslateProfilePage( //nolint:funlen
 	ctx context.Context,
 	params AutoTranslatePageParams,
 	translator ContentTranslator,
@@ -125,6 +125,7 @@ func (s *Service) AutoTranslateProfilePage(
 		EntityID:   params.PageID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"source_locale": params.SourceLocale,
 			"target_locale": params.TargetLocale,

@@ -60,11 +60,11 @@ func (a *PgxAdapter) QueryContext(
 		return nil, fmt.Errorf("%w: %w", ErrPgxQueryFailed, err)
 	}
 
+	rows.Close()
+
 	// Convert pgx.Rows to *sql.Rows using stdlib
 	conn, err := a.pool.Acquire(ctx)
 	if err != nil {
-		rows.Close()
-
 		return nil, fmt.Errorf("%w: %w", ErrPgxAcquireFailed, err)
 	}
 	defer conn.Release()
@@ -76,7 +76,12 @@ func (a *PgxAdapter) QueryContext(
 
 	defer func() { _ = db.Close() }()
 
-	return db.QueryContext(ctx, query, args...)
+	result, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck // caller closes rows
+	if err != nil {
+		return nil, fmt.Errorf("pgx query context: %w", err)
+	}
+
+	return result, nil
 }
 
 // QueryRowContext implements DBTX.

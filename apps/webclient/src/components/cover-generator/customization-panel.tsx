@@ -4,11 +4,11 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type {
+  BackgroundPattern,
   CoverOptions,
-  ThemePreset,
   FontFamily,
   LogoPosition,
-  BackgroundPattern,
+  ThemePreset,
 } from "@/lib/cover-generator/types.ts";
 import { themePresets } from "@/lib/cover-generator/types.ts";
 import { BackgroundImagePicker } from "./background-image-picker.tsx";
@@ -16,19 +16,8 @@ import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Switch } from "@/components/ui/switch.tsx";
 import { Slider } from "@/components/ui/slider.tsx";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select.tsx";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion.tsx";
 import styles from "./cover-generator.module.css";
 
 interface CustomizationPanelProps {
@@ -428,7 +417,8 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
                   <Slider
                     className="w-full"
                     value={[options.backgroundImageOpacity]}
-                    onValueChange={(value) => onChange({ backgroundImageOpacity: Array.isArray(value) ? value[0] : value })}
+                    onValueChange={(value) =>
+                      onChange({ backgroundImageOpacity: Array.isArray(value) ? value[0] : value })}
                     min={10}
                     max={100}
                     step={5}

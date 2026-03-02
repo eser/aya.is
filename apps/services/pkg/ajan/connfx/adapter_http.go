@@ -189,6 +189,7 @@ func (f *HTTPConnectionFactory) buildClientConfig(config *ConfigTarget) *httpcli
 			Multiplier:      DefaultRetryMultiplier,
 			RandomFactor:    DefaultRetryRandomFactor,
 		},
+		Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 		ServerErrorThreshold: DefaultServerErrorThreshold,
 	}
 

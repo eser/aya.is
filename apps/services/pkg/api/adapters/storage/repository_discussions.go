@@ -5,23 +5,27 @@ import (
 	"database/sql"
 	"errors"
 	"math"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/discussions"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
 )
 
+// discussionVisibilityPublic is the default visibility for discussions.
+const discussionVisibilityPublic = "public"
+
 // safeInt32 clamps an int to the int32 range before conversion,
 // preventing silent overflow on 64-bit platforms.
-func safeInt32(v int) int32 {
-	if v > math.MaxInt32 {
+func safeInt32(value int) int32 {
+	if value > math.MaxInt32 {
 		return math.MaxInt32
 	}
 
-	if v < math.MinInt32 {
+	if value < math.MinInt32 {
 		return math.MinInt32
 	}
 
-	return int32(v)
+	return int32(value)
 }
 
 // GetDiscussionVisibility returns the discussions module visibility for a profile.
@@ -34,10 +38,10 @@ func (r *Repository) GetDiscussionVisibility(
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "public", nil
+			return discussionVisibilityPublic, nil
 		}
 
-		return "public", err
+		return discussionVisibilityPublic, err
 	}
 
 	return visibility, nil
@@ -234,13 +238,13 @@ func (r *Repository) ListChildComments(
 // InsertComment creates a new comment.
 func (r *Repository) InsertComment(
 	ctx context.Context,
-	id, threadID string,
+	commentID, threadID string,
 	parentID *string,
 	authorUserID, content string,
 	depth int,
 ) (*discussions.Comment, error) {
 	row, err := r.queries.InsertDiscussionComment(ctx, InsertDiscussionCommentParams{
-		ID:           id,
+		ID:           commentID,
 		ThreadID:     threadID,
 		ParentID:     vars.ToSQLNullString(parentID),
 		AuthorUserID: authorUserID,
@@ -434,21 +438,26 @@ func (r *Repository) rowToThread(row *DiscussionThread) *discussions.Thread {
 // rawCommentRowToComment converts a DiscussionComment (raw, no JOINs) to a domain Comment.
 func (r *Repository) rawCommentRowToComment(row *DiscussionComment) *discussions.Comment {
 	return &discussions.Comment{
-		ID:            row.ID,
-		ThreadID:      row.ThreadID,
-		ParentID:      vars.ToStringPtr(row.ParentID),
-		AuthorUserID:  row.AuthorUserID,
-		Content:       row.Content,
-		Depth:         int(row.Depth),
-		VoteScore:     int(row.VoteScore),
-		UpvoteCount:   int(row.UpvoteCount),
-		DownvoteCount: int(row.DownvoteCount),
-		ReplyCount:    int(row.ReplyCount),
-		IsPinned:      row.IsPinned,
-		IsHidden:      row.IsHidden,
-		IsEdited:      row.IsEdited,
-		CreatedAt:     row.CreatedAt,
-		UpdatedAt:     vars.ToTimePtr(row.UpdatedAt),
+		ID:                      row.ID,
+		ThreadID:                row.ThreadID,
+		ParentID:                vars.ToStringPtr(row.ParentID),
+		AuthorUserID:            row.AuthorUserID,
+		AuthorProfileID:         nil,
+		AuthorProfileSlug:       nil,
+		AuthorProfileTitle:      nil,
+		AuthorProfilePictureURI: nil,
+		Content:                 row.Content,
+		Depth:                   int(row.Depth),
+		VoteScore:               int(row.VoteScore),
+		UpvoteCount:             int(row.UpvoteCount),
+		DownvoteCount:           int(row.DownvoteCount),
+		ReplyCount:              int(row.ReplyCount),
+		IsPinned:                row.IsPinned,
+		IsHidden:                row.IsHidden,
+		IsEdited:                row.IsEdited,
+		ViewerVoteDirection:     0,
+		CreatedAt:               row.CreatedAt,
+		UpdatedAt:               vars.ToTimePtr(row.UpdatedAt),
 	}
 }
 
@@ -472,8 +481,59 @@ func (r *Repository) commentRowToComment(row *GetDiscussionCommentRow) *discussi
 		IsPinned:                row.IsPinned,
 		IsHidden:                row.IsHidden,
 		IsEdited:                row.IsEdited,
+		ViewerVoteDirection:     0,
 		CreatedAt:               row.CreatedAt,
 		UpdatedAt:               vars.ToTimePtr(row.UpdatedAt),
+	}
+}
+
+// commentFieldSet holds the common fields extracted from various discussion comment row types.
+type commentFieldSet struct {
+	ID                      string
+	ThreadID                string
+	ParentID                sql.NullString
+	AuthorUserID            string
+	AuthorProfileID         sql.NullString
+	AuthorProfileSlug       sql.NullString
+	AuthorProfileTitle      sql.NullString
+	AuthorProfilePictureURI sql.NullString
+	Content                 string
+	Depth                   int32
+	VoteScore               int32
+	UpvoteCount             int32
+	DownvoteCount           int32
+	ReplyCount              int32
+	IsPinned                bool
+	IsHidden                bool
+	IsEdited                bool
+	ViewerVoteDirection     int64
+	CreatedAt               time.Time
+	UpdatedAt               sql.NullTime
+}
+
+// commentFieldSetToComment converts a commentFieldSet to a domain Comment.
+func commentFieldSetToComment(fields commentFieldSet) *discussions.Comment {
+	return &discussions.Comment{
+		ID:                      fields.ID,
+		ThreadID:                fields.ThreadID,
+		ParentID:                vars.ToStringPtr(fields.ParentID),
+		AuthorUserID:            fields.AuthorUserID,
+		AuthorProfileID:         vars.ToStringPtr(fields.AuthorProfileID),
+		AuthorProfileSlug:       vars.ToStringPtr(fields.AuthorProfileSlug),
+		AuthorProfileTitle:      vars.ToStringPtr(fields.AuthorProfileTitle),
+		AuthorProfilePictureURI: vars.ToStringPtr(fields.AuthorProfilePictureURI),
+		Content:                 fields.Content,
+		Depth:                   int(fields.Depth),
+		VoteScore:               int(fields.VoteScore),
+		UpvoteCount:             int(fields.UpvoteCount),
+		DownvoteCount:           int(fields.DownvoteCount),
+		ReplyCount:              int(fields.ReplyCount),
+		IsPinned:                fields.IsPinned,
+		IsHidden:                fields.IsHidden,
+		IsEdited:                fields.IsEdited,
+		ViewerVoteDirection:     int(fields.ViewerVoteDirection),
+		CreatedAt:               fields.CreatedAt,
+		UpdatedAt:               vars.ToTimePtr(fields.UpdatedAt),
 	}
 }
 
@@ -481,52 +541,52 @@ func (r *Repository) commentRowToComment(row *GetDiscussionCommentRow) *discussi
 func (r *Repository) topLevelRowToComment(
 	row *ListTopLevelDiscussionCommentsRow,
 ) *discussions.Comment {
-	return &discussions.Comment{
+	return commentFieldSetToComment(commentFieldSet{
 		ID:                      row.ID,
 		ThreadID:                row.ThreadID,
-		ParentID:                vars.ToStringPtr(row.ParentID),
+		ParentID:                row.ParentID,
 		AuthorUserID:            row.AuthorUserID,
-		AuthorProfileID:         vars.ToStringPtr(row.AuthorProfileID),
-		AuthorProfileSlug:       vars.ToStringPtr(row.AuthorProfileSlug),
-		AuthorProfileTitle:      vars.ToStringPtr(row.AuthorProfileTitle),
-		AuthorProfilePictureURI: vars.ToStringPtr(row.AuthorProfilePictureURI),
+		AuthorProfileID:         row.AuthorProfileID,
+		AuthorProfileSlug:       row.AuthorProfileSlug,
+		AuthorProfileTitle:      row.AuthorProfileTitle,
+		AuthorProfilePictureURI: row.AuthorProfilePictureURI,
 		Content:                 row.Content,
-		Depth:                   int(row.Depth),
-		VoteScore:               int(row.VoteScore),
-		UpvoteCount:             int(row.UpvoteCount),
-		DownvoteCount:           int(row.DownvoteCount),
-		ReplyCount:              int(row.ReplyCount),
+		Depth:                   row.Depth,
+		VoteScore:               row.VoteScore,
+		UpvoteCount:             row.UpvoteCount,
+		DownvoteCount:           row.DownvoteCount,
+		ReplyCount:              row.ReplyCount,
 		IsPinned:                row.IsPinned,
 		IsHidden:                row.IsHidden,
 		IsEdited:                row.IsEdited,
-		ViewerVoteDirection:     int(row.ViewerVoteDirection),
+		ViewerVoteDirection:     int64(row.ViewerVoteDirection),
 		CreatedAt:               row.CreatedAt,
-		UpdatedAt:               vars.ToTimePtr(row.UpdatedAt),
-	}
+		UpdatedAt:               row.UpdatedAt,
+	})
 }
 
 // childRowToComment converts a ListChildDiscussionCommentsRow to a domain Comment.
 func (r *Repository) childRowToComment(row *ListChildDiscussionCommentsRow) *discussions.Comment {
-	return &discussions.Comment{
+	return commentFieldSetToComment(commentFieldSet{
 		ID:                      row.ID,
 		ThreadID:                row.ThreadID,
-		ParentID:                vars.ToStringPtr(row.ParentID),
+		ParentID:                row.ParentID,
 		AuthorUserID:            row.AuthorUserID,
-		AuthorProfileID:         vars.ToStringPtr(row.AuthorProfileID),
-		AuthorProfileSlug:       vars.ToStringPtr(row.AuthorProfileSlug),
-		AuthorProfileTitle:      vars.ToStringPtr(row.AuthorProfileTitle),
-		AuthorProfilePictureURI: vars.ToStringPtr(row.AuthorProfilePictureURI),
+		AuthorProfileID:         row.AuthorProfileID,
+		AuthorProfileSlug:       row.AuthorProfileSlug,
+		AuthorProfileTitle:      row.AuthorProfileTitle,
+		AuthorProfilePictureURI: row.AuthorProfilePictureURI,
 		Content:                 row.Content,
-		Depth:                   int(row.Depth),
-		VoteScore:               int(row.VoteScore),
-		UpvoteCount:             int(row.UpvoteCount),
-		DownvoteCount:           int(row.DownvoteCount),
-		ReplyCount:              int(row.ReplyCount),
+		Depth:                   row.Depth,
+		VoteScore:               row.VoteScore,
+		UpvoteCount:             row.UpvoteCount,
+		DownvoteCount:           row.DownvoteCount,
+		ReplyCount:              row.ReplyCount,
 		IsPinned:                row.IsPinned,
 		IsHidden:                row.IsHidden,
 		IsEdited:                row.IsEdited,
-		ViewerVoteDirection:     int(row.ViewerVoteDirection),
+		ViewerVoteDirection:     int64(row.ViewerVoteDirection),
 		CreatedAt:               row.CreatedAt,
-		UpdatedAt:               vars.ToTimePtr(row.UpdatedAt),
-	}
+		UpdatedAt:               row.UpdatedAt,
+	})
 }

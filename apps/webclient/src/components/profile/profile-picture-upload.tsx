@@ -170,25 +170,23 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
             isBusy && "cursor-not-allowed opacity-50",
           )}
         >
-          {hasImage ? (
-            <img
-              src={sanitizeImageSrc(displayImageUri)}
-              alt={props.profileTitle}
-              className="size-full object-cover"
-            />
-          ) : (
-            <div className="size-full flex items-center justify-center bg-muted">
-              <User className="size-12 text-muted-foreground" />
-            </div>
-          )}
+          {hasImage
+            ? (
+              <img
+                src={sanitizeImageSrc(displayImageUri)}
+                alt={props.profileTitle}
+                className="size-full object-cover"
+              />
+            )
+            : (
+              <div className="size-full flex items-center justify-center bg-muted">
+                <User className="size-12 text-muted-foreground" />
+              </div>
+            )}
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {isBusy ? (
-              <Loader2 className="size-8 text-white animate-spin" />
-            ) : (
-              <Camera className="size-8 text-white" />
-            )}
+            {isBusy ? <Loader2 className="size-8 text-white animate-spin" /> : <Camera className="size-8 text-white" />}
           </div>
         </button>
 
@@ -212,17 +210,19 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
           onClick={handleClick}
           disabled={isBusy}
         >
-          {isUploading ? (
-            <>
-              <Loader2 className="size-4 mr-2 animate-spin" />
-              {t("Profile.Uploading...")}
-            </>
-          ) : (
-            <>
-              <Camera className="size-4 mr-2" />
-              {t("Profile.Change Picture")}
-            </>
-          )}
+          {isUploading
+            ? (
+              <>
+                <Loader2 className="size-4 mr-2 animate-spin" />
+                {t("Profile.Uploading...")}
+              </>
+            )
+            : (
+              <>
+                <Camera className="size-4 mr-2" />
+                {t("Profile.Change Picture")}
+              </>
+            )}
         </Button>
 
         {hasImage && (
@@ -234,17 +234,19 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
                 size="sm"
                 disabled={isBusy}
               >
-                {isRemoving ? (
-                  <>
-                    <Loader2 className="size-4 mr-2 animate-spin" />
-                    {t("Profile.Removing...")}
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="size-4 mr-2" />
-                    {t("Profile.Remove Picture")}
-                  </>
-                )}
+                {isRemoving
+                  ? (
+                    <>
+                      <Loader2 className="size-4 mr-2 animate-spin" />
+                      {t("Profile.Removing...")}
+                    </>
+                  )
+                  : (
+                    <>
+                      <Trash2 className="size-4 mr-2" />
+                      {t("Profile.Remove Picture")}
+                    </>
+                  )}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>

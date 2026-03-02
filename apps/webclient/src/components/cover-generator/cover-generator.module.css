@@ -65,7 +65,8 @@
 }
 
 .templateCard {
-  @apply flex flex-col items-center gap-2 p-2 rounded-lg border-2 border-transparent bg-muted/50 hover:bg-muted transition-colors cursor-pointer;
+  @apply flex flex-col items-center gap-2 p-2 rounded-lg border-2 border-transparent bg-muted/50 hover:bg-muted
+    transition-colors cursor-pointer;
 }
 
 .templateCard:focus-visible {
@@ -233,7 +234,8 @@
 }
 
 .imageGridItem {
-  @apply relative aspect-video rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-primary transition-colors;
+  @apply relative aspect-video rounded-lg overflow-hidden cursor-pointer border-2 border-transparent
+    hover:border-primary transition-colors;
 }
 
 .imageGridItemSelected {

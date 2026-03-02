@@ -2,12 +2,7 @@
 import * as React from "react";
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import {
-  Coins,
-  TrendingUp,
-  TrendingDown,
-  ArrowRightLeft,
-} from "lucide-react";
+import { ArrowRightLeft, Coins, TrendingDown, TrendingUp } from "lucide-react";
 import { backend, type ProfilePointTransaction, type ProfilePointTransactionType } from "@/modules/backend/backend";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -113,51 +108,54 @@ function PointsSettingsPage() {
       <div>
         <h4 className="font-medium text-foreground mb-3">{t("Profile.Transaction History")}</h4>
 
-        {transactions.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <Coins className="size-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">{t("Profile.No transactions yet.")}</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {transactions.map((transaction) => {
-              const TypeIcon = transactionTypeIcons[transaction.transaction_type];
-              const typeColor = transactionTypeColors[transaction.transaction_type];
-              const isPositive = transaction.transaction_type === "GAIN" ||
-                (transaction.transaction_type === "TRANSFER" && transaction.amount > 0);
+        {transactions.length === 0
+          ? (
+            <div className="text-center py-12 border-2 border-dashed rounded-lg">
+              <Coins className="size-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">{t("Profile.No transactions yet.")}</p>
+            </div>
+          )
+          : (
+            <div className="space-y-2">
+              {transactions.map((transaction) => {
+                const TypeIcon = transactionTypeIcons[transaction.transaction_type];
+                const typeColor = transactionTypeColors[transaction.transaction_type];
+                const isPositive = transaction.transaction_type === "GAIN" ||
+                  (transaction.transaction_type === "TRANSFER" && transaction.amount > 0);
 
-              return (
-                <div
-                  key={transaction.id}
-                  className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className={`flex items-center justify-center size-10 rounded ${typeColor}`}>
-                    {TypeIcon !== undefined ? <TypeIcon className="size-5" /> : <Coins className="size-5" />}
+                return (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className={`flex items-center justify-center size-10 rounded ${typeColor}`}>
+                      {TypeIcon !== undefined ? <TypeIcon className="size-5" /> : <Coins className="size-5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{transaction.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDateString(transaction.created_at, locale)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="outline" className={typeColor}>
+                        {t(`Profile.TransactionType.${transaction.transaction_type}`)}
+                      </Badge>
+                    </div>
+                    <div className="text-right min-w-[80px]">
+                      <p className={`font-medium ${isPositive ? "text-green-600" : "text-red-600"}`}>
+                        {isPositive ? "+" : "-"}
+                        {Math.abs(transaction.amount).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("Profile.Balance")}: {transaction.balance_after.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{transaction.description}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateString(transaction.created_at, locale)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className={typeColor}>
-                      {t(`Profile.TransactionType.${transaction.transaction_type}`)}
-                    </Badge>
-                  </div>
-                  <div className="text-right min-w-[80px]">
-                    <p className={`font-medium ${isPositive ? "text-green-600" : "text-red-600"}`}>
-                      {isPositive ? "+" : "-"}{Math.abs(transaction.amount).toLocaleString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("Profile.Balance")}: {transaction.balance_after.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
       </div>
     </Card>
   );

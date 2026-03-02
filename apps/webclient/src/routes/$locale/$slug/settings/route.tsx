@@ -51,7 +51,12 @@ function SettingsLayout() {
   }
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <div className="space-y-6">
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">{t("Common.Settings")}</h2>

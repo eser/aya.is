@@ -71,10 +71,11 @@ func (f *SQLConnectionFactory) CreateConnection( //nolint:ireturn
 	}
 
 	// Initial ping to verify connection
-	if err := db.PingContext(ctx); err != nil {
+	pingErr := db.PingContext(ctx)
+	if pingErr != nil {
 		_ = db.Close() // Ignore close error if ping fails
 
-		return nil, fmt.Errorf("%w: %w", ErrFailedToPingSQL, err)
+		return nil, fmt.Errorf("%w: %w", ErrFailedToPingSQL, pingErr)
 	}
 
 	conn := &SQLConnection{

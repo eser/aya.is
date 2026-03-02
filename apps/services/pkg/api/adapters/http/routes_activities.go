@@ -11,7 +11,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
-func RegisterHTTPRoutesForActivities(
+func RegisterHTTPRoutesForActivities( //nolint:cyclop,funlen
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,

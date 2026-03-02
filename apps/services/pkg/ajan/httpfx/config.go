@@ -13,9 +13,9 @@ type Config struct {
 	SkipAuthPaths     []string      `conf:"skip_auth_paths"     default:"/health,/metrics,/docs,/openapi.json"`
 	ReadHeaderTimeout time.Duration `conf:"read_header_timeout" default:"5s"`
 	// C10K optimized timeouts: allow longer processing for high concurrency
-	ReadTimeout  time.Duration `conf:"read_timeout"        default:"30s"`
-	WriteTimeout time.Duration `conf:"write_timeout"       default:"30s"`
-	IdleTimeout  time.Duration `conf:"idle_timeout"        default:"300s"`
+	ReadTimeout  time.Duration `conf:"read_timeout"        default:"30s"`  //nolint:tagalign // golines conflict
+	WriteTimeout time.Duration `conf:"write_timeout"       default:"30s"`  //nolint:tagalign // golines conflict
+	IdleTimeout  time.Duration `conf:"idle_timeout"        default:"300s"` //nolint:tagalign // golines conflict
 
 	InitializationTimeout   time.Duration `conf:"init_timeout"     default:"25s"`
 	GracefulShutdownTimeout time.Duration `conf:"shutdown_timeout" default:"5s"`

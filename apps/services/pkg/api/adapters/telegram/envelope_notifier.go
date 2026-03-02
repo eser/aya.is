@@ -13,7 +13,7 @@ import (
 
 // NewEnvelopeNotifier returns a callback that sends a Telegram DM to the
 // envelope recipient when they have a linked Telegram account.
-func NewEnvelopeNotifier(
+func NewEnvelopeNotifier( //nolint:funlen // sequential notification flow steps
 	client *Client,
 	telegramService *telegrambiz.Service,
 	logger *logfx.Logger,

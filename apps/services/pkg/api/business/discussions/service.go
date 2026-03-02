@@ -159,59 +159,9 @@ func (s *Service) CreateComment(ctx context.Context, params CreateCommentParams)
 	}
 
 	// Resolve the thread anchor.
-	var (
-		thread           *Thread
-		ownerProfileSlug string
-	)
-
-	if params.StorySlug != nil {
-		storyID, err := s.repo.GetStoryIDBySlug(ctx, *params.StorySlug)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"%w (story slug: %s): %w",
-				ErrFailedToGetRecord,
-				*params.StorySlug,
-				err,
-			)
-		}
-
-		thread, err = s.GetOrCreateThreadByStory(ctx, storyID)
-		if err != nil {
-			return nil, err
-		}
-
-		// Resolve owner profile for visibility check.
-		authorProfileID, aErr := s.repo.GetStoryAuthorProfileID(ctx, storyID)
-		if aErr != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, aErr)
-		}
-
-		if authorProfileID != nil {
-			ownerProfileSlug = s.resolveProfileSlug(ctx, *authorProfileID)
-		}
-	} else if params.ProfileSlug != nil {
-		profileID, err := s.repo.GetProfileIDBySlug(ctx, *params.ProfileSlug)
-		if err != nil {
-			return nil, fmt.Errorf("%w (profile slug: %s): %w", ErrFailedToGetRecord, *params.ProfileSlug, err)
-		}
-
-		visibility, vErr := s.repo.GetDiscussionVisibility(ctx, profileID)
-		if vErr != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, vErr)
-		}
-
-		if visibility == "disabled" {
-			return nil, ErrDiscussionsNotEnabled
-		}
-
-		thread, err = s.GetOrCreateThreadByProfile(ctx, profileID)
-		if err != nil {
-			return nil, err
-		}
-
-		ownerProfileSlug = *params.ProfileSlug
-	} else {
-		return nil, ErrThreadNotFound
+	thread, ownerProfileSlug, err := s.resolveThreadAnchor(ctx, params)
+	if err != nil {
+		return nil, err
 	}
 
 	if thread.IsLocked {
@@ -219,30 +169,16 @@ func (s *Service) CreateComment(ctx context.Context, params CreateCommentParams)
 	}
 
 	// Validate depth if replying to a parent.
-	depth := 0
-
-	if params.ParentID != nil {
-		parent, err := s.repo.GetCommentRaw(ctx, *params.ParentID)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrCommentNotFound, err)
-		}
-
-		if parent == nil {
-			return nil, ErrCommentNotFound
-		}
-
-		if parent.Depth >= MaxNestingDepth {
-			return nil, ErrMaxNestingDepth
-		}
-
-		depth = parent.Depth + 1
+	depth, err := s.resolveCommentDepth(ctx, params.ParentID)
+	if err != nil {
+		return nil, err
 	}
 
-	id := s.idGenerator()
+	commentID := s.idGenerator()
 
 	comment, err := s.repo.InsertComment(
 		ctx,
-		id,
+		commentID,
 		thread.ID,
 		params.ParentID,
 		params.UserID,
@@ -263,9 +199,10 @@ func (s *Service) CreateComment(ctx context.Context, params CreateCommentParams)
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.DiscussionCommentCreated,
 		EntityType: "discussion_comment",
-		EntityID:   id,
+		EntityID:   commentID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"thread_id":          thread.ID,
 			"owner_profile_slug": ownerProfileSlug,
@@ -273,6 +210,112 @@ func (s *Service) CreateComment(ctx context.Context, params CreateCommentParams)
 	})
 
 	return comment, nil
+}
+
+// resolveThreadAnchor resolves the story or profile slug to a thread, creating one if needed.
+func (s *Service) resolveThreadAnchor(
+	ctx context.Context,
+	params CreateCommentParams,
+) (*Thread, string, error) {
+	switch {
+	case params.StorySlug != nil:
+		return s.resolveStoryThread(ctx, *params.StorySlug)
+	case params.ProfileSlug != nil:
+		return s.resolveProfileThread(ctx, *params.ProfileSlug)
+	default:
+		return nil, "", ErrThreadNotFound
+	}
+}
+
+// resolveStoryThread resolves a story slug to its thread.
+func (s *Service) resolveStoryThread(
+	ctx context.Context,
+	storySlug string,
+) (*Thread, string, error) {
+	storyID, err := s.repo.GetStoryIDBySlug(ctx, storySlug)
+	if err != nil {
+		return nil, "", fmt.Errorf(
+			"%w (story slug: %s): %w",
+			ErrFailedToGetRecord,
+			storySlug,
+			err,
+		)
+	}
+
+	thread, err := s.GetOrCreateThreadByStory(ctx, storyID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Resolve owner profile for visibility check.
+	authorProfileID, aErr := s.repo.GetStoryAuthorProfileID(ctx, storyID)
+	if aErr != nil {
+		return nil, "", fmt.Errorf("%w: %w", ErrFailedToGetRecord, aErr)
+	}
+
+	ownerProfileSlug := ""
+	if authorProfileID != nil {
+		ownerProfileSlug = s.resolveProfileSlug(ctx, *authorProfileID)
+	}
+
+	return thread, ownerProfileSlug, nil
+}
+
+// resolveProfileThread resolves a profile slug to its thread.
+func (s *Service) resolveProfileThread(
+	ctx context.Context,
+	profileSlug string,
+) (*Thread, string, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, "", fmt.Errorf(
+			"%w (profile slug: %s): %w",
+			ErrFailedToGetRecord,
+			profileSlug,
+			err,
+		)
+	}
+
+	visibility, vErr := s.repo.GetDiscussionVisibility(ctx, profileID)
+	if vErr != nil {
+		return nil, "", fmt.Errorf("%w: %w", ErrFailedToGetRecord, vErr)
+	}
+
+	if visibility == "disabled" {
+		return nil, "", ErrDiscussionsNotEnabled
+	}
+
+	thread, err := s.GetOrCreateThreadByProfile(ctx, profileID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return thread, profileSlug, nil
+}
+
+// resolveCommentDepth validates the parent comment and returns the depth for a new reply.
+func (s *Service) resolveCommentDepth(
+	ctx context.Context,
+	parentID *string,
+) (int, error) {
+	if parentID == nil {
+		return 0, nil
+	}
+
+	parent, err := s.repo.GetCommentRaw(ctx, *parentID)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrCommentNotFound, err)
+	}
+
+	if parent == nil {
+		return 0, ErrCommentNotFound
+	}
+
+	if parent.Depth >= MaxNestingDepth {
+		return 0, ErrMaxNestingDepth
+	}
+
+	return parent.Depth + 1, nil
 }
 
 // EditComment updates the content of a comment (author only).
@@ -306,6 +349,8 @@ func (s *Service) EditComment(ctx context.Context, params EditCommentParams) err
 		EntityID:   params.CommentID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return nil
@@ -354,6 +399,7 @@ func (s *Service) DeleteComment(ctx context.Context, params DeleteCommentParams)
 		EntityID:   params.CommentID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_slug": params.ProfileSlug,
 		},
@@ -361,6 +407,9 @@ func (s *Service) DeleteComment(ctx context.Context, params DeleteCommentParams)
 
 	return nil
 }
+
+// voteFlipMultiplier is the score multiplier when flipping a vote direction.
+const voteFlipMultiplier = 2
 
 // Vote handles upvote/downvote/toggle on a comment.
 func (s *Service) Vote(ctx context.Context, params VoteParams) (*VoteResponse, error) {
@@ -380,73 +429,17 @@ func (s *Service) Vote(ctx context.Context, params VoteParams) (*VoteResponse, e
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
 	}
 
-	var (
-		scoreDelta, upvoteDelta, downvoteDelta int
-		viewerVoteDirection                    int
-	)
-
-	if existing != nil {
-		if existing.Direction == direction {
-			// Same direction: remove vote.
-			err = s.repo.DeleteCommentVote(ctx, params.CommentID, params.UserID)
-			if err != nil {
-				return nil, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
-			}
-
-			scoreDelta = -direction
-
-			if direction == int(VoteUp) {
-				upvoteDelta = -1
-			} else {
-				downvoteDelta = -1
-			}
-
-			viewerVoteDirection = 0
-		} else {
-			// Opposite direction: flip vote.
-			err = s.repo.UpdateCommentVoteDirection(ctx, params.CommentID, params.UserID, direction)
-			if err != nil {
-				return nil, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
-			}
-
-			scoreDelta = 2 * direction
-
-			if direction == int(VoteUp) {
-				upvoteDelta = 1
-				downvoteDelta = -1
-			} else {
-				upvoteDelta = -1
-				downvoteDelta = 1
-			}
-
-			viewerVoteDirection = direction
-		}
-	} else {
-		// New vote.
-		voteID := s.idGenerator()
-
-		_, err = s.repo.InsertCommentVote(ctx, voteID, params.CommentID, params.UserID, direction)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
-		}
-
-		scoreDelta = direction
-
-		if direction == int(VoteUp) {
-			upvoteDelta = 1
-		} else {
-			downvoteDelta = 1
-		}
-
-		viewerVoteDirection = direction
+	deltas, err := s.applyVote(ctx, params, existing, direction)
+	if err != nil {
+		return nil, err
 	}
 
 	err = s.repo.AdjustCommentVoteScore(
 		ctx,
 		params.CommentID,
-		scoreDelta,
-		upvoteDelta,
-		downvoteDelta,
+		deltas.score,
+		deltas.upvote,
+		deltas.downvote,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
@@ -458,15 +451,113 @@ func (s *Service) Vote(ctx context.Context, params VoteParams) (*VoteResponse, e
 		EntityID:   params.CommentID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"direction": direction,
 		},
 	})
 
 	return &VoteResponse{
-		VoteScore:           comment.VoteScore + scoreDelta,
-		ViewerVoteDirection: viewerVoteDirection,
+		VoteScore:           comment.VoteScore + deltas.score,
+		ViewerVoteDirection: deltas.viewerDirection,
 	}, nil
+}
+
+// voteDeltas holds the computed delta values from a vote operation.
+type voteDeltas struct {
+	score           int
+	upvote          int
+	downvote        int
+	viewerDirection int
+}
+
+// applyVote persists the vote change and returns the computed deltas.
+func (s *Service) applyVote(
+	ctx context.Context,
+	params VoteParams,
+	existing *CommentVote,
+	direction int,
+) (voteDeltas, error) {
+	if existing == nil {
+		return s.applyNewVote(ctx, params, direction)
+	}
+
+	if existing.Direction == direction {
+		return s.applyRemoveVote(ctx, params, direction)
+	}
+
+	return s.applyFlipVote(ctx, params, direction)
+}
+
+func (s *Service) applyNewVote(
+	ctx context.Context,
+	params VoteParams,
+	direction int,
+) (voteDeltas, error) {
+	voteID := s.idGenerator()
+
+	_, err := s.repo.InsertCommentVote(ctx, voteID, params.CommentID, params.UserID, direction)
+	if err != nil {
+		return voteDeltas{}, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
+	}
+
+	upvote, downvote := splitVoteDirection(direction, 1)
+
+	return voteDeltas{
+		score:           direction,
+		upvote:          upvote,
+		downvote:        downvote,
+		viewerDirection: direction,
+	}, nil
+}
+
+func (s *Service) applyRemoveVote(
+	ctx context.Context,
+	params VoteParams,
+	direction int,
+) (voteDeltas, error) {
+	err := s.repo.DeleteCommentVote(ctx, params.CommentID, params.UserID)
+	if err != nil {
+		return voteDeltas{}, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	upvote, downvote := splitVoteDirection(direction, -1)
+
+	return voteDeltas{
+		score:           -direction,
+		upvote:          upvote,
+		downvote:        downvote,
+		viewerDirection: 0,
+	}, nil
+}
+
+func (s *Service) applyFlipVote(
+	ctx context.Context,
+	params VoteParams,
+	direction int,
+) (voteDeltas, error) {
+	err := s.repo.UpdateCommentVoteDirection(ctx, params.CommentID, params.UserID, direction)
+	if err != nil {
+		return voteDeltas{}, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	upvote, downvote := splitVoteDirection(direction, 1)
+
+	return voteDeltas{
+		score:           voteFlipMultiplier * direction,
+		upvote:          upvote,
+		downvote:        -downvote,
+		viewerDirection: direction,
+	}, nil
+}
+
+// splitVoteDirection returns (upvoteDelta, downvoteDelta) based on direction and magnitude.
+func splitVoteDirection(direction int, magnitude int) (int, int) {
+	if direction == int(VoteUp) {
+		return magnitude, 0
+	}
+
+	return 0, magnitude
 }
 
 // HideComment toggles the hidden state of a comment (contributor+ only).
@@ -496,6 +587,7 @@ func (s *Service) HideComment(ctx context.Context, params HideCommentParams) err
 		EntityID:   params.CommentID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_slug": params.ProfileSlug,
 			"is_hidden":    params.IsHidden,
@@ -532,6 +624,7 @@ func (s *Service) PinComment(ctx context.Context, params PinCommentParams) error
 		EntityID:   params.CommentID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_slug": params.ProfileSlug,
 			"is_pinned":    params.IsPinned,
@@ -568,6 +661,7 @@ func (s *Service) LockThread(ctx context.Context, params LockThreadParams) error
 		EntityID:   params.ThreadID,
 		ActorID:    &params.UserID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_slug": params.ProfileSlug,
 			"is_locked":    params.IsLocked,

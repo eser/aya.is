@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { updateSessionPreferences } from "@/modules/backend/backend";
 import { useAuth } from "@/lib/auth/auth-context";
 

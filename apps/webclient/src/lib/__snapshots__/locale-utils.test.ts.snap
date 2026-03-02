@@ -1,0 +1,209 @@
+export const snapshot = {};
+
+snapshot[`SUPPORTED_LOCALES - complete list 1`] = `
+[
+  "en",
+  "tr",
+  "fr",
+  "de",
+  "es",
+  "pt-PT",
+  "it",
+  "nl",
+  "ja",
+  "ko",
+  "ru",
+  "zh-CN",
+  "ar",
+]
+`;
+
+snapshot[`supportedLocales - all entries 1`] = `
+{
+  "pt-PT": {
+    asciiName: "Portugues (Portugal)",
+    code: "pt-PT",
+    dir: "ltr",
+    englishName: "Portuguese (Portugal)",
+    flag: "🇵🇹",
+    matches: [
+      "@(pt)?(-PT)?(-*)",
+    ],
+    name: "Português (Portugal)",
+  },
+  "zh-CN": {
+    asciiName: "Zhongwen",
+    code: "zh-CN",
+    dir: "ltr",
+    englishName: "Chinese (Simplified)",
+    flag: "🇨🇳",
+    matches: [
+      "@(zh)?(-CN)?(-*)",
+    ],
+    name: "简体中文",
+  },
+  ar: {
+    asciiName: "Al-Arabiyyah",
+    code: "ar",
+    dir: "rtl",
+    englishName: "Arabic",
+    flag: "🇸🇦",
+    matches: [
+      "@(ar)?(-*)",
+    ],
+    name: "العربية",
+  },
+  de: {
+    asciiName: "Deutsch",
+    code: "de",
+    dir: "ltr",
+    englishName: "German",
+    flag: "🇩🇪",
+    matches: [
+      "@(de)?(-*)",
+    ],
+    name: "Deutsch",
+  },
+  en: {
+    asciiName: "English",
+    code: "en",
+    dir: "ltr",
+    englishName: "English",
+    flag: "🇺🇸",
+    matches: [
+      "@(en)?(-*)",
+    ],
+    name: "English",
+  },
+  es: {
+    asciiName: "Espanol",
+    code: "es",
+    dir: "ltr",
+    englishName: "Spanish",
+    flag: "🇪🇸",
+    matches: [
+      "@(es)?(-*)",
+    ],
+    name: "Español",
+  },
+  fr: {
+    asciiName: "Francais",
+    code: "fr",
+    dir: "ltr",
+    englishName: "French",
+    flag: "🇫🇷",
+    matches: [
+      "@(fr)?(-*)",
+    ],
+    name: "Français",
+  },
+  it: {
+    asciiName: "Italiano",
+    code: "it",
+    dir: "ltr",
+    englishName: "Italian",
+    flag: "🇮🇹",
+    matches: [
+      "@(it)?(-*)",
+    ],
+    name: "Italiano",
+  },
+  ja: {
+    asciiName: "Nihongo",
+    code: "ja",
+    dir: "ltr",
+    englishName: "Japanese",
+    flag: "🇯🇵",
+    matches: [
+      "@(ja)?(-*)",
+    ],
+    name: "日本語",
+  },
+  ko: {
+    asciiName: "Hangugeo",
+    code: "ko",
+    dir: "ltr",
+    englishName: "Korean",
+    flag: "🇰🇷",
+    matches: [
+      "@(ko)?(-*)",
+    ],
+    name: "한국어",
+  },
+  nl: {
+    asciiName: "Nederlands",
+    code: "nl",
+    dir: "ltr",
+    englishName: "Dutch",
+    flag: "🇳🇱",
+    matches: [
+      "@(nl)?(-*)",
+    ],
+    name: "Nederlands",
+  },
+  ru: {
+    asciiName: "Russkiy",
+    code: "ru",
+    dir: "ltr",
+    englishName: "Russian",
+    flag: "🇷🇺",
+    matches: [
+      "@(ru)?(-*)",
+    ],
+    name: "Русский",
+  },
+  tr: {
+    asciiName: "Turkce",
+    code: "tr",
+    dir: "ltr",
+    englishName: "Turkish",
+    flag: "🇹🇷",
+    matches: [
+      "@(tr)?(-*)",
+    ],
+    name: "Türkçe",
+  },
+}
+`;
+
+snapshot[`getLocaleData - returns data for valid locale 1`] = `
+{
+  asciiName: "English",
+  code: "en",
+  dir: "ltr",
+  englishName: "English",
+  flag: "🇺🇸",
+  matches: [
+    "@(en)?(-*)",
+  ],
+  name: "English",
+}
+`;
+
+snapshot[`getLocaleData - returns data for valid locale 2`] = `
+{
+  asciiName: "Al-Arabiyyah",
+  code: "ar",
+  dir: "rtl",
+  englishName: "Arabic",
+  flag: "🇸🇦",
+  matches: [
+    "@(ar)?(-*)",
+  ],
+  name: "العربية",
+}
+`;
+
+snapshot[`getLocaleData - returns data for valid locale 3`] = `
+{
+  asciiName: "Portugues (Portugal)",
+  code: "pt-PT",
+  dir: "ltr",
+  englishName: "Portuguese (Portugal)",
+  flag: "🇵🇹",
+  matches: [
+    "@(pt)?(-PT)?(-*)",
+  ],
+  name: "Português (Portugal)",
+}
+`;

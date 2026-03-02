@@ -34,8 +34,7 @@
   @apply w-[340px] min-w-[340px] border-r border-border flex flex-col;
 }
 
-.sidebarHiddenMobile {
-}
+.sidebarHiddenMobile {}
 
 .sidebarHeader {
   @apply p-3 border-b border-border flex items-center justify-between gap-1;
@@ -103,7 +102,8 @@
 }
 
 .unreadBadge {
-  @apply flex items-center justify-center size-5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold shrink-0;
+  @apply flex items-center justify-center size-5 rounded-full bg-primary text-primary-foreground text-[10px]
+    font-semibold shrink-0;
 }
 
 /* Detail Panel */
@@ -111,8 +111,7 @@
   @apply flex-1 flex flex-col min-w-0;
 }
 
-.detailPanelHiddenMobile {
-}
+.detailPanelHiddenMobile {}
 
 .emptyDetail {
   @apply flex-1 flex flex-col items-center justify-center text-center p-8;

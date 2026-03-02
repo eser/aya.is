@@ -136,6 +136,66 @@ type StreamEvent struct {
 	Error      error
 }
 
+// newStreamEventContentDelta creates a content delta stream event.
+func newStreamEventContentDelta(textDelta string) StreamEvent {
+	return StreamEvent{
+		Type:       StreamEventContentDelta,
+		TextDelta:  textDelta,
+		ToolCall:   nil,
+		StopReason: "",
+		Usage:      nil,
+		Error:      nil,
+	}
+}
+
+// newStreamEventToolCallTextDelta creates a tool call text delta stream event.
+func newStreamEventToolCallTextDelta(textDelta string) StreamEvent {
+	return StreamEvent{
+		Type:       StreamEventToolCallDelta,
+		TextDelta:  textDelta,
+		ToolCall:   nil,
+		StopReason: "",
+		Usage:      nil,
+		Error:      nil,
+	}
+}
+
+// newStreamEventToolCall creates a tool call stream event with a completed tool call.
+func newStreamEventToolCall(toolCall *ToolCall) StreamEvent {
+	return StreamEvent{
+		Type:       StreamEventToolCallDelta,
+		TextDelta:  "",
+		ToolCall:   toolCall,
+		StopReason: "",
+		Usage:      nil,
+		Error:      nil,
+	}
+}
+
+// newStreamEventDone creates a message-done stream event.
+func newStreamEventDone(stopReason StopReason, usage *Usage) StreamEvent {
+	return StreamEvent{
+		Type:       StreamEventMessageDone,
+		TextDelta:  "",
+		ToolCall:   nil,
+		StopReason: stopReason,
+		Usage:      usage,
+		Error:      nil,
+	}
+}
+
+// newStreamEventError creates an error stream event.
+func newStreamEventError(err error) StreamEvent {
+	return StreamEvent{
+		Type:       StreamEventError,
+		TextDelta:  "",
+		ToolCall:   nil,
+		StopReason: "",
+		Usage:      nil,
+		Error:      err,
+	}
+}
+
 // StreamIterator provides a pull-based API for consuming stream events.
 // Follows the Go iterator pattern (similar to sql.Rows).
 type StreamIterator struct {
@@ -149,7 +209,7 @@ type StreamIterator struct {
 
 // NewStreamIterator creates a new stream iterator from an event channel.
 func NewStreamIterator(eventCh <-chan StreamEvent, cancel context.CancelFunc) *StreamIterator {
-	return &StreamIterator{
+	return &StreamIterator{ //nolint:exhaustruct
 		eventCh: eventCh,
 		cancel:  cancel,
 	}
@@ -236,10 +296,7 @@ func (iter *StreamIterator) Collect() (*GenerateTextResult, error) {
 			textBuilder.WriteString(event.TextDelta)
 		case StreamEventToolCallDelta:
 			if event.ToolCall != nil {
-				toolCalls = append(toolCalls, ContentBlock{
-					Type:     ContentBlockToolCall,
-					ToolCall: event.ToolCall,
-				})
+				toolCalls = append(toolCalls, newToolCallContentBlock(event.ToolCall))
 			}
 		case StreamEventMessageDone:
 			stopReason = event.StopReason
@@ -257,20 +314,49 @@ func (iter *StreamIterator) Collect() (*GenerateTextResult, error) {
 		return nil, err
 	}
 
+	return buildCollectedResult(textBuilder, toolCalls, stopReason, usage), nil
+}
+
+func newToolCallContentBlock(toolCall *ToolCall) ContentBlock {
+	return ContentBlock{
+		Type:       ContentBlockToolCall,
+		Text:       "",
+		Image:      nil,
+		Audio:      nil,
+		File:       nil,
+		ToolCall:   toolCall,
+		ToolResult: nil,
+	}
+}
+
+func buildCollectedResult(
+	textBuilder strings.Builder,
+	toolCalls []ContentBlock,
+	stopReason StopReason,
+	usage Usage,
+) *GenerateTextResult {
 	content := make([]ContentBlock, 0, 1+len(toolCalls))
 
 	if textBuilder.Len() > 0 {
 		content = append(content, ContentBlock{
-			Type: ContentBlockText,
-			Text: textBuilder.String(),
+			Type:       ContentBlockText,
+			Text:       textBuilder.String(),
+			Image:      nil,
+			Audio:      nil,
+			File:       nil,
+			ToolCall:   nil,
+			ToolResult: nil,
 		})
 	}
 
 	content = append(content, toolCalls...)
 
 	return &GenerateTextResult{
-		Content:    content,
-		StopReason: stopReason,
-		Usage:      usage,
-	}, nil
+		Content:     content,
+		StopReason:  stopReason,
+		Usage:       usage,
+		ModelID:     "",
+		RawRequest:  nil,
+		RawResponse: nil,
+	}
 }

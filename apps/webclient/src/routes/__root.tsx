@@ -11,13 +11,7 @@ import { Button } from "@/components/ui/button";
 import { NavigationProvider, type NavigationState } from "@/modules/navigation/navigation-context";
 import { useWebMCP } from "@/modules/webmcp/use-webmcp";
 import { EasterEgg, ResponsiveIndicator } from "@/components/page-layouts/default";
-import {
-  DEFAULT_LOCALE,
-  isValidLocale,
-  siteConfig,
-  type SupportedLocaleCode,
-  supportedLocales,
-} from "@/config";
+import { DEFAULT_LOCALE, isValidLocale, siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config";
 import { generateMetaTags } from "@/lib/seo";
 import { parseLocaleFromPath } from "@/lib/url";
 import type { RequestContext } from "@/request-context";
@@ -191,7 +185,9 @@ function RootDocument(props: Readonly<RootDocumentProps>) {
   }
 })();
 
-globalThis.__REQUEST_CONTEXT__ = ${JSON.stringify(requestContext).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/\//g, "\\u002f")};
+globalThis.__REQUEST_CONTEXT__ = ${
+    JSON.stringify(requestContext).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/\//g, "\\u002f")
+  };
 `;
 
   return (

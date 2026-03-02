@@ -17,13 +17,29 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
     const profile = await backend.getProfile(locale, slug);
 
     if (profile?.feature_qa === "disabled") {
-      return { questionsData: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        questionsData: null,
+        locale,
+        slug,
+        profileTitle: slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     const questionsData = await backend.getProfileQuestions(locale, slug);
 
     if (questionsData === null) {
-      return { questionsData: null, locale, slug, profileTitle: slug, translatedTitle: "", translatedDescription: "", notFound: true as const };
+      return {
+        questionsData: null,
+        locale,
+        slug,
+        profileTitle: slug,
+        translatedTitle: "",
+        translatedDescription: "",
+        notFound: true as const,
+      };
     }
 
     // Pre-compile Q&A content for SSR
@@ -32,10 +48,14 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
         let compiledContent: string | null = null;
         let compiledAnswer: string | null = null;
         if (q.content !== "") {
-          try { compiledContent = await compileMdxLite(q.content); } catch { /* fallback */ }
+          try {
+            compiledContent = await compileMdxLite(q.content);
+          } catch { /* fallback */ }
         }
         if (q.answer_content !== null && q.answer_content !== "") {
-          try { compiledAnswer = await compileMdxLite(q.answer_content); } catch { /* fallback */ }
+          try {
+            compiledAnswer = await compileMdxLite(q.answer_content);
+          } catch { /* fallback */ }
         }
 
         return { ...q, compiledContent, compiledAnswer };
@@ -90,7 +110,12 @@ function QAIndexPage() {
   const { questionsData, locale, slug } = loaderData;
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <QAPageClient
         questions={questionsData ?? []}
         locale={locale}

@@ -96,6 +96,7 @@ func (p *Provider) HandleOAuthCallback(
 		Name:                 name,
 		Email:                email,
 		URI:                  "",
+		ProfilePictureURI:    "", // Apple doesn't provide a profile picture
 		AccessToken:          tokenResp.AccessToken,
 		RefreshToken:         tokenResp.RefreshToken,
 		AccessTokenExpiresAt: nil,

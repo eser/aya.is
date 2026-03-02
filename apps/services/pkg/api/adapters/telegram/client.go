@@ -142,6 +142,7 @@ func NewClient(config *Config, logger *logfx.Logger, httpClient HTTPClient) *Cli
 		logger:     logger,
 		httpClient: httpClient,
 		baseURL:    "https://api.telegram.org/bot" + config.BotToken,
+		botUserID:  0,
 	}
 }
 
@@ -158,7 +159,9 @@ func (c *Client) GetMe(ctx context.Context) (*BotInfo, error) {
 	}
 
 	var info BotInfo
-	if err := json.Unmarshal(result, &info); err != nil {
+
+	err = json.Unmarshal(result, &info)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBotTokenInvalid, err)
 	}
 
@@ -226,7 +229,9 @@ func (c *Client) GetUpdates(ctx context.Context, offset int64, timeout int) ([]U
 	}
 
 	var updates []Update
-	if err := json.Unmarshal(result, &updates); err != nil {
+
+	err = json.Unmarshal(result, &updates)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrGetUpdatesFailed, err)
 	}
 
@@ -240,7 +245,7 @@ type SendMessageOpts struct {
 
 // SendMessage sends a text message to a chat.
 func (c *Client) SendMessage(ctx context.Context, chatID int64, text string) error {
-	return c.SendMessageWithOpts(ctx, chatID, text, SendMessageOpts{})
+	return c.SendMessageWithOpts(ctx, chatID, text, SendMessageOpts{DisableLinkPreview: false})
 }
 
 // SendMessageWithOpts sends a text message to a chat with optional parameters.
@@ -340,7 +345,9 @@ func (c *Client) GetChatMember(
 	}
 
 	var member ChatMember
-	if err := json.Unmarshal(result, &member); err != nil {
+
+	err = json.Unmarshal(result, &member)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrAPICallFailed, err)
 	}
 
@@ -366,8 +373,10 @@ func (c *Client) CreateChatInviteLink(
 	}
 
 	var link ChatInviteLink
-	if err := json.Unmarshal(result, &link); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAPICallFailed, err)
+
+	unmarshalErr := json.Unmarshal(result, &link)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrAPICallFailed, unmarshalErr)
 	}
 
 	return &link, nil
@@ -420,8 +429,10 @@ func (c *Client) callAPI(ctx context.Context, method string, payload any) (json.
 	respBody, _ := io.ReadAll(resp.Body)
 
 	var apiResp apiResponse
-	if err := json.Unmarshal(respBody, &apiResp); err != nil {
-		return nil, fmt.Errorf("%w: failed to parse response: %w", ErrAPICallFailed, err)
+
+	unmarshalErr := json.Unmarshal(respBody, &apiResp)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("%w: failed to parse response: %w", ErrAPICallFailed, unmarshalErr)
 	}
 
 	if !apiResp.OK {

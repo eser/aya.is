@@ -15,7 +15,7 @@ import (
 // NewEnvelopeAutoRedeemer returns a callback that automatically redeems
 // telegram_group invitations when they are accepted — creating a single-use
 // invite link and DMing it to the recipient.
-func NewEnvelopeAutoRedeemer(
+func NewEnvelopeAutoRedeemer( //nolint:cyclop,funlen // sequential invitation redemption steps
 	client *Client,
 	telegramService *telegrambiz.Service,
 	envelopeService *mailbox.Service,

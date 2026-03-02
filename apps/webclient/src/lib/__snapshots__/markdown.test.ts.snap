@@ -1,0 +1,40 @@
+export const snapshot = {};
+
+snapshot[`formatFrontmatter - simple values 1`] = `
+"---
+title: Hello World
+date: 2026-01-28
+draft: false
+count: 42
+---"
+`;
+
+snapshot[`formatFrontmatter - strings needing quotes 1`] = `
+'---
+title: "Title with \\\\"quotes\\\\""
+subtitle: "Has: colon in value"
+multiline: "First line
+Second line"
+padded: " leading space"
+---'
+`;
+
+snapshot[`formatFrontmatter - null/undefined values skipped 1`] = `
+"---
+title: Present
+---"
+`;
+
+snapshot[`formatStoryListItem - full story with all fields 1`] = `
+"- [Microsoft's Vision](/en/eser/stories/20160610-microsoftun-yari-vizyonu.md) [Turkish] by Eser Ozvataf (Jun 10, 2016)
+  A look at Microsoft's development strategy"
+`;
+
+snapshot[`formatStoryListItem - minimal story 1`] = `"- [Untitled](/en/stories/.md)"`;
+
+snapshot[`formatStoryListItem - same locale (no badge) 1`] = `
+"- [Turkish Article](/tr/stories/20260128-turkish-article.md) by Author (28 Oca 2026)
+  Written in Turkish"
+`;
+
+snapshot[`formatStoryListItem - no date in slug 1`] = `"- [About Page](/en/pages/about-us.md)"`;

@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -58,7 +59,7 @@ type getStoryOutput struct {
 func registerStoryTools(server *mcp.Server, storyService *stories.Service) {
 	mcp.AddTool(
 		server,
-		&mcp.Tool{
+		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "list_stories",
 			Description: "Get a list of stories and articles on the AYA platform",
 		},
@@ -67,7 +68,7 @@ func registerStoryTools(server *mcp.Server, storyService *stories.Service) {
 
 	mcp.AddTool(
 		server,
-		&mcp.Tool{
+		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "get_story",
 			Description: "Get the full contents of a story or article",
 		},
@@ -75,7 +76,7 @@ func registerStoryTools(server *mcp.Server, storyService *stories.Service) {
 	)
 }
 
-func createListStoriesHandler(
+func createListStoriesHandler( //nolint:funlen // sequential story listing and mapping
 	storyService *stories.Service,
 ) func(context.Context, *mcp.CallToolRequest, listStoriesInput) (
 	*mcp.CallToolResult,
@@ -120,7 +121,7 @@ func createListStoriesHandler(
 		}
 
 		if err != nil {
-			return nil, listStoriesOutput{}, err
+			return nil, listStoriesOutput{}, fmt.Errorf("listing stories: %w", err)
 		}
 
 		output := listStoriesOutput{
@@ -135,6 +136,8 @@ func createListStoriesHandler(
 				Summary:         story.Summary,
 				Kind:            story.Kind,
 				StoryPictureURI: story.StoryPictureURI,
+				AuthorName:      nil,
+				AuthorSlug:      nil,
 			}
 
 			if story.AuthorProfile != nil {
@@ -168,7 +171,7 @@ func createGetStoryHandler(
 
 		result, err := storyService.GetBySlug(ctx, locale, input.Slug)
 		if err != nil {
-			return nil, getStoryOutput{}, err
+			return nil, getStoryOutput{}, fmt.Errorf("getting story by slug: %w", err)
 		}
 
 		if result == nil {
@@ -183,6 +186,8 @@ func createGetStoryHandler(
 			Kind:            result.Kind,
 			StoryPictureURI: result.StoryPictureURI,
 			Publications:    make([]publicationBrief, 0, len(result.Publications)),
+			AuthorName:      nil,
+			AuthorSlug:      nil,
 		}
 
 		if result.AuthorProfile != nil {

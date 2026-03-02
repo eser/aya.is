@@ -95,13 +95,13 @@ func DetectLocalNetwork(requestAddr string) (bool, error) {
 
 // IsPrivateIP checks if the given IP string falls within private or reserved ranges.
 func IsPrivateIP(ipStr string) bool {
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
+	parsedIP := net.ParseIP(ipStr)
+	if parsedIP == nil {
 		return false
 	}
 
 	for _, network := range privateNetworks {
-		if network.Contains(ip) {
+		if network.Contains(parsedIP) {
 			return true
 		}
 	}
@@ -109,15 +109,8 @@ func IsPrivateIP(ipStr string) bool {
 	return false
 }
 
-// ValidateExternalURL validates that a URL is safe for outbound requests (SSRF prevention).
-// It resolves the hostname and checks that no resolved IP is in a private/reserved range.
-// If requireHTTPS is true, only https:// URLs are allowed.
-func ValidateExternalURL(rawURL string, requireHTTPS bool) error {
-	parsed, err := url.Parse(rawURL)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInvalidURL, err)
-	}
-
+// validateURLScheme checks that the URL has a valid scheme and host, and enforces HTTPS if required.
+func validateURLScheme(parsed *url.URL, requireHTTPS bool) error {
 	if parsed.Scheme == "" || parsed.Host == "" {
 		return fmt.Errorf("%w: missing scheme or host", ErrInvalidURL)
 	}
@@ -130,10 +123,13 @@ func ValidateExternalURL(rawURL string, requireHTTPS bool) error {
 		return fmt.Errorf("%w: unsupported scheme %q", ErrInvalidURL, parsed.Scheme)
 	}
 
-	hostname := parsed.Hostname()
+	return nil
+}
 
+// validateHostnameIPs resolves a hostname and checks that no resolved IP is in a private range.
+func validateHostnameIPs(hostname string) error {
 	// Check if hostname is already an IP
-	if ip := net.ParseIP(hostname); ip != nil {
+	if parsedIP := net.ParseIP(hostname); parsedIP != nil {
 		if IsPrivateIP(hostname) {
 			return fmt.Errorf("%w: %s", ErrSSRFBlocked, hostname)
 		}
@@ -142,16 +138,33 @@ func ValidateExternalURL(rawURL string, requireHTTPS bool) error {
 	}
 
 	// Resolve hostname to IPs
-	ips, err := net.LookupHost(hostname)
+	resolvedIPs, err := net.LookupHost(hostname)
 	if err != nil {
 		return fmt.Errorf("%w: failed to resolve %q: %w", ErrInvalidURL, hostname, err)
 	}
 
-	for _, ip := range ips {
-		if IsPrivateIP(ip) {
-			return fmt.Errorf("%w: %s resolves to %s", ErrSSRFBlocked, hostname, ip)
+	for _, ipAddr := range resolvedIPs {
+		if IsPrivateIP(ipAddr) {
+			return fmt.Errorf("%w: %s resolves to %s", ErrSSRFBlocked, hostname, ipAddr)
 		}
 	}
 
 	return nil
+}
+
+// ValidateExternalURL validates that a URL is safe for outbound requests (SSRF prevention).
+// It resolves the hostname and checks that no resolved IP is in a private/reserved range.
+// If requireHTTPS is true, only https:// URLs are allowed.
+func ValidateExternalURL(rawURL string, requireHTTPS bool) error {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrInvalidURL, err)
+	}
+
+	schemeErr := validateURLScheme(parsed, requireHTTPS)
+	if schemeErr != nil {
+		return schemeErr
+	}
+
+	return validateHostnameIPs(parsed.Hostname())
 }

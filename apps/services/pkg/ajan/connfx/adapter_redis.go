@@ -91,9 +91,10 @@ type RedisConnection struct {
 // NewRedisConnection creates a new Redis connection with enhanced configuration.
 func NewRedisConnection(protocol string, config *RedisConfig) *RedisConnection {
 	adapter := &RedisAdapter{
-		config:      config,
-		client:      nil, // Will be initialized when needed
-		scriptCache: make(map[string]*redis.Script),
+		client:         nil, // Will be initialized when needed
+		config:         config,
+		scriptCache:    make(map[string]*redis.Script),
+		scriptCacheMux: sync.RWMutex{},
 	}
 
 	conn := &RedisConnection{
@@ -142,11 +143,12 @@ func (rc *RedisConnection) HealthCheck(ctx context.Context) *HealthStatus {
 	}
 
 	// Ensure client is initialized
-	if err := rc.ensureClient(); err != nil {
+	clientErr := rc.ensureClient()
+	if clientErr != nil {
 		atomic.StoreInt32(&rc.state, int32(ConnectionStateError))
 		status.State = ConnectionStateError
-		status.Error = err
-		status.Message = fmt.Sprintf("Failed to initialize Redis client: %v", err)
+		status.Error = clientErr
+		status.Message = fmt.Sprintf("Failed to initialize Redis client: %v", clientErr)
 		status.Latency = time.Since(start)
 
 		return status
@@ -1349,7 +1351,9 @@ func (f *RedisConnectionFactory) parseRedisURL(redisConfig *RedisConfig, parsedU
 	if parsedURL.Path != "" && parsedURL.Path != "/" {
 		// Remove leading slash and parse as integer
 		dbPath := parsedURL.Path[1:]
-		if db, err := strconv.Atoi(dbPath); err == nil {
+
+		db, atoiErr := strconv.Atoi(dbPath)
+		if atoiErr == nil {
 			redisConfig.DB = db
 		}
 	}
@@ -1585,13 +1589,14 @@ func (ra *RedisAdapter) GetItem(
 	}
 
 	// Unmarshal JSON into the provided item
-	if err := json.Unmarshal([]byte(jsonValue), item); err != nil {
+	unmarshalErr := json.Unmarshal([]byte(jsonValue), item)
+	if unmarshalErr != nil {
 		return false, fmt.Errorf(
 			"%w: (key=%q, value=%q): %w",
 			ErrCorruptedJSONData,
 			redisKey,
 			jsonValue,
-			err,
+			unmarshalErr,
 		)
 	}
 

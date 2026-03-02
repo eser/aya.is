@@ -1,6 +1,6 @@
 // Template Configurations for Cover Generator
 
-import type { TemplateId, CoverOptions } from "./types.ts";
+import type { CoverOptions, TemplateId } from "./types.ts";
 
 export interface TemplateConfig {
   id: TemplateId;

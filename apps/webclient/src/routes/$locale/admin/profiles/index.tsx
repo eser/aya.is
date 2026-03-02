@@ -4,21 +4,8 @@ import { useTranslation } from "react-i18next";
 import { backend } from "@/modules/backend/backend";
 import { formatDateShort } from "@/lib/date";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { SiteAvatar } from "@/components/userland";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -139,93 +126,95 @@ function AdminProfiles() {
         </Select>
       </div>
 
-      {profiles.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          {t("Admin.No profiles found")}
-        </div>
-      ) : (
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12"></TableHead>
-                <TableHead>{t("Common.Title")}</TableHead>
-                <TableHead>{t("Common.Slug")}</TableHead>
-                <TableHead>{t("Common.Kind")}</TableHead>
-                <TableHead className="text-right">{t("Common.Points")}</TableHead>
-                <TableHead>{t("Common.Created")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profiles.map((profile) => (
-                <TableRow
-                  key={profile.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() =>
-                    navigate({ to: `/${params.locale}/admin/profiles/${profile.slug}` })
-                  }
-                >
-                  <TableCell>
-                    <SiteAvatar
-                      src={profile.profile_picture_uri}
-                      name={profile.title}
-                      fallbackName={profile.slug}
-                      size="sm"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {profile.has_translation === false ? (
-                      <span className="italic text-muted-foreground">
-                        {t("Admin.no translation found")}
-                      </span>
-                    ) : (
-                      profile.title
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">
-                    @{profile.slug}
-                  </TableCell>
-                  <TableCell>{getKindBadge(profile.kind)}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    {profile.points.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDateShort(new Date(profile.created_at), locale)}
-                  </TableCell>
+      {profiles.length === 0
+        ? (
+          <div className="text-center py-8 text-muted-foreground">
+            {t("Admin.No profiles found")}
+          </div>
+        )
+        : (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead>{t("Common.Title")}</TableHead>
+                  <TableHead>{t("Common.Slug")}</TableHead>
+                  <TableHead>{t("Common.Kind")}</TableHead>
+                  <TableHead className="text-right">{t("Common.Points")}</TableHead>
+                  <TableHead>{t("Common.Created")}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {profiles.map((profile) => (
+                  <TableRow
+                    key={profile.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => navigate({ to: `/${params.locale}/admin/profiles/${profile.slug}` })}
+                  >
+                    <TableCell>
+                      <SiteAvatar
+                        src={profile.profile_picture_uri}
+                        name={profile.title}
+                        fallbackName={profile.slug}
+                        size="sm"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {profile.has_translation === false
+                        ? (
+                          <span className="italic text-muted-foreground">
+                            {t("Admin.no translation found")}
+                          </span>
+                        )
+                        : (
+                          profile.title
+                        )}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">
+                      @{profile.slug}
+                    </TableCell>
+                    <TableCell>{getKindBadge(profile.kind)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {profile.points.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDateShort(new Date(profile.created_at), locale)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t pt-4">
-              <div className="text-sm text-muted-foreground">
-                {t("Common.Page")} {currentPage} / {totalPages}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t pt-4">
+                <div className="text-sm text-muted-foreground">
+                  {t("Common.Page")} {currentPage} / {totalPages}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={offset === 0}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    {t("Common.Previous")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={offset + limit >= total}
+                  >
+                    {t("Common.Next")}
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevPage}
-                  disabled={offset === 0}
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  {t("Common.Previous")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={offset + limit >= total}
-                >
-                  {t("Common.Next")}
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
     </div>
   );
 }

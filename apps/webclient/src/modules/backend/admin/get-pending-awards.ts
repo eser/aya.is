@@ -1,6 +1,6 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
-import type { PendingAward, CursoredResponse } from "../types";
+import type { CursoredResponse, PendingAward } from "../types";
 
 export interface GetPendingAwardsParams {
   status?: "pending" | "approved" | "rejected";

@@ -128,13 +128,13 @@ func getMediaContentURLs(item *gofeed.Item) []string {
 		return nil
 	}
 
-	media, ok := item.Extensions["media"]
-	if !ok {
+	media, mediaExists := item.Extensions["media"]
+	if !mediaExists {
 		return nil
 	}
 
-	contents, ok := media["content"]
-	if !ok {
+	contents, contentsExist := media["content"]
+	if !contentsExist {
 		return nil
 	}
 

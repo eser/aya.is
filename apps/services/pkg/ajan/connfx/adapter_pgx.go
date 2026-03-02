@@ -80,10 +80,11 @@ func (f *PgxConnectionFactory) CreateConnection( //nolint:ireturn
 	}
 
 	// Initial ping to verify connection
-	if err := pool.Ping(ctx); err != nil {
+	pingErr := pool.Ping(ctx)
+	if pingErr != nil {
 		pool.Close()
 
-		return nil, fmt.Errorf("%w: %w", ErrFailedToPingPgx, err)
+		return nil, fmt.Errorf("%w: %w", ErrFailedToPingPgx, pingErr)
 	}
 
 	conn := &PgxConnection{
@@ -241,17 +242,19 @@ func (c *PgxConnection) BeginTxFunc(
 		}
 	}()
 
-	if err := txFunc(transaction); err != nil {
+	txErr := txFunc(transaction)
+	if txErr != nil {
 		rbErr := transaction.Rollback(ctx)
 		if rbErr != nil {
-			return fmt.Errorf("tx failed: %w, unable to rollback: %w", err, rbErr)
+			return fmt.Errorf("tx failed: %w, unable to rollback: %w", txErr, rbErr)
 		}
 
-		return err
+		return txErr
 	}
 
-	if err := transaction.Commit(ctx); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+	commitErr := transaction.Commit(ctx)
+	if commitErr != nil {
+		return fmt.Errorf("failed to commit transaction: %w", commitErr)
 	}
 
 	return nil

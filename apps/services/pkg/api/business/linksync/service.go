@@ -52,7 +52,7 @@ func (s *Service) GetLastSyncTime(ctx context.Context, linkID string) (*time.Tim
 	latestImport, err := s.repo.GetLatestImportByLinkID(ctx, linkID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return nil, nil
+			return nil, nil //nolint:nilnil // nil time + nil error indicates no sync history exists
 		}
 
 		return nil, fmt.Errorf("%w: %w", ErrFailedToGetLatestImport, err)

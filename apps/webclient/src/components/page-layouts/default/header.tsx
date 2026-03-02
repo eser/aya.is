@@ -74,78 +74,82 @@ export function Header() {
             >
               <Logo />
             </LocaleLink>
-            {isCustomDomain ? (
-              profileTitle !== null && (
-                <LocaleLink
-                  to={`/${customDomainProfileSlug}`}
-                  className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
-                >
-                  {profileTitle}
-                </LocaleLink>
+            {isCustomDomain
+              ? (
+                profileTitle !== null && (
+                  <LocaleLink
+                    to={`/${customDomainProfileSlug}`}
+                    className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
+                  >
+                    {profileTitle}
+                  </LocaleLink>
+                )
               )
-            ) : (
-              navItems.map((item) => (
-                <LocaleLink
-                  key={item.key}
-                  to={item.href}
-                  className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
-                >
-                  {item.title}
-                </LocaleLink>
-              ))
-            )}
+              : (
+                navItems.map((item) => (
+                  <LocaleLink
+                    key={item.key}
+                    to={item.href}
+                    className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
+                  >
+                    {item.title}
+                  </LocaleLink>
+                ))
+              )}
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex md:hidden">
-            {isCustomDomain ? (
-              <div className="flex items-center gap-3">
-                <LocaleLink
-                  to="/"
-                  className="text-foreground hover:text-accent-foreground no-underline"
-                >
-                  <Logo />
-                </LocaleLink>
-                {profileTitle !== null && (
-                  <span className="text-sm font-semibold text-foreground">
-                    {profileTitle}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={(props) => (
-                    <Button
-                      {...props}
-                      variant="ghost"
-                      className="-ml-4 hover:bg-transparent"
-                    >
-                      <Logo />
-                    </Button>
+            {isCustomDomain
+              ? (
+                <div className="flex items-center gap-3">
+                  <LocaleLink
+                    to="/"
+                    className="text-foreground hover:text-accent-foreground no-underline"
+                  >
+                    <Logo />
+                  </LocaleLink>
+                  {profileTitle !== null && (
+                    <span className="text-sm font-semibold text-foreground">
+                      {profileTitle}
+                    </span>
                   )}
-                />
-                <DropdownMenuContent
-                  align="start"
-                  sideOffset={14}
-                  className="w-[300px]"
-                >
-                  <DropdownMenuItem>
-                    <LocaleLink to="/" className="no-underline w-full">
-                      {t("Layout.Homepage")}
-                    </LocaleLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {navItems.map((item) => (
-                    <DropdownMenuItem key={item.key}>
-                      <LocaleLink to={item.href} className="no-underline w-full">
-                        {item.title}
+                </div>
+              )
+              : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={(props) => (
+                      <Button
+                        {...props}
+                        variant="ghost"
+                        className="-ml-4 hover:bg-transparent"
+                      >
+                        <Logo />
+                      </Button>
+                    )}
+                  />
+                  <DropdownMenuContent
+                    align="start"
+                    sideOffset={14}
+                    className="w-[300px]"
+                  >
+                    <DropdownMenuItem>
+                      <LocaleLink to="/" className="no-underline w-full">
+                        {t("Layout.Homepage")}
                       </LocaleLink>
                     </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                    <DropdownMenuSeparator />
+                    {navItems.map((item) => (
+                      <DropdownMenuItem key={item.key}>
+                        <LocaleLink to={item.href} className="no-underline w-full">
+                          {item.title}
+                        </LocaleLink>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
           </div>
         </nav>
 
@@ -154,9 +158,7 @@ export function Header() {
           <SearchBar />
           <ModeToggle />
 
-          {isAuthenticated ? <ProfileMenu /> : (
-            <LoginButton login={login} />
-          )}
+          {isAuthenticated ? <ProfileMenu /> : <LoginButton login={login} />}
         </div>
       </div>
     </header>

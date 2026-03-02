@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Search, X, Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Search, X } from "lucide-react";
 import { backend, type UnsplashPhoto } from "@/modules/backend/backend.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
@@ -120,11 +120,7 @@ export function BackgroundImagePicker(props: BackgroundImagePickerProps) {
           onClick={handleSearch}
           disabled={isLoading || query.trim().length === 0}
         >
-          {isLoading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Search className="size-4" />
-          )}
+          {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
         </Button>
       </div>
 

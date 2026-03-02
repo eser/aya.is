@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html"
 	"log/slog"
@@ -13,7 +14,13 @@ import (
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 )
 
-const maxSummaryLen = 120
+const (
+	maxSummaryLen    = 120
+	maxButtonTextLen = 30
+)
+
+// ErrEmptyRemoteID indicates a telegram link has no remote_id set.
+var ErrEmptyRemoteID = errors.New("telegram link has empty remote_id")
 
 // BulletinSender sends bulletin digests via Telegram.
 type BulletinSender struct {
@@ -58,7 +65,7 @@ func (s *BulletinSender) Send(
 	}
 
 	if link.RemoteID == "" {
-		return fmt.Errorf("telegram link has empty remote_id for profile %s", recipientProfileID)
+		return fmt.Errorf("%w for profile %s", ErrEmptyRemoteID, recipientProfileID)
 	}
 
 	chatID, parseErr := strconv.ParseInt(link.RemoteID, 10, 64)
@@ -82,29 +89,30 @@ func (s *BulletinSender) Send(
 
 // buildMessage constructs the HTML-formatted message and inline keyboard.
 func (s *BulletinSender) buildMessage(digest *bulletinbiz.Digest) (string, *InlineKeyboardMarkup) {
-	var b strings.Builder
+	var builder strings.Builder
 
-	b.WriteString("\U0001F4EC <b>Your Daily Digest</b>\n")
+	builder.WriteString("\U0001F4EC <b>Your Daily Digest</b>\n")
 
 	buttons := make([][]InlineKeyboardButton, 0)
 
 	for _, group := range digest.Groups {
-		b.WriteString(fmt.Sprintf("\n<b>From %s:</b>\n", html.EscapeString(group.Title)))
+		builder.WriteString(fmt.Sprintf("\n<b>From %s:</b>\n", html.EscapeString(group.Title)))
 
 		for _, story := range group.Stories {
 			storyURL := fmt.Sprintf("%s/%s/stories/%s", s.siteURI, digest.Locale, story.Slug)
 
-			b.WriteString(fmt.Sprintf("• <a href=\"%s\">%s</a>\n",
+			builder.WriteString(fmt.Sprintf("• <a href=\"%s\">%s</a>\n",
 				storyURL,
 				html.EscapeString(story.Title)))
 
 			summary := s.pickSummary(story)
 			if summary != "" {
-				b.WriteString(fmt.Sprintf("  <i>%s</i>\n", html.EscapeString(summary)))
+				builder.WriteString(fmt.Sprintf("  <i>%s</i>\n", html.EscapeString(summary)))
 			}
 
+			buttonText := "Read: " + truncate(story.Title, maxButtonTextLen)
 			buttons = append(buttons, []InlineKeyboardButton{
-				{Text: "Read: " + truncate(story.Title, 30), URL: storyURL},
+				{Text: buttonText, URL: storyURL, CallbackData: ""},
 			})
 		}
 	}
@@ -113,7 +121,7 @@ func (s *BulletinSender) buildMessage(digest *bulletinbiz.Digest) (string, *Inli
 		InlineKeyboard: buttons,
 	}
 
-	return b.String(), keyboard
+	return builder.String(), keyboard
 }
 
 // pickSummary returns the AI summary if available, otherwise the human summary, truncated.

@@ -6,7 +6,7 @@ import (
 )
 
 // Repository defines storage operations for the mailbox service.
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	// Conversations
 	CreateConversation(ctx context.Context, conv *Conversation) error
 	GetConversationByID(ctx context.Context, id string) (*Conversation, error)

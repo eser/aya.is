@@ -150,46 +150,49 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   }, [props.storySlug, props.profileSlug, props.locale, auth.user, thread]);
 
   // Reply handler
-  const handleReply = React.useCallback(async (parentId: string, content: string): Promise<DiscussionComment | null> => {
-    let result = null;
-    if (props.storySlug !== undefined) {
-      result = await backend.createStoryComment(props.locale, props.storySlug, {
-        content,
-        parent_id: parentId,
-      });
-    } else if (props.profileSlug !== undefined) {
-      result = await backend.createProfileComment(props.locale, props.profileSlug, {
-        content,
-        parent_id: parentId,
-      });
-    }
+  const handleReply = React.useCallback(
+    async (parentId: string, content: string): Promise<DiscussionComment | null> => {
+      let result = null;
+      if (props.storySlug !== undefined) {
+        result = await backend.createStoryComment(props.locale, props.storySlug, {
+          content,
+          parent_id: parentId,
+        });
+      } else if (props.profileSlug !== undefined) {
+        result = await backend.createProfileComment(props.locale, props.profileSlug, {
+          content,
+          parent_id: parentId,
+        });
+      }
 
-    if (result !== null) {
-      // Enrich with viewer profile data
-      const enriched = { ...result };
-      if (auth.user?.individual_profile !== undefined) {
-        enriched.author_profile_id = auth.user.individual_profile.id;
-        enriched.author_profile_slug = auth.user.individual_profile.slug;
-        enriched.author_profile_title = auth.user.individual_profile.title;
-        enriched.author_profile_picture_uri = auth.user.individual_profile.profile_picture_uri ?? null;
+      if (result !== null) {
+        // Enrich with viewer profile data
+        const enriched = { ...result };
+        if (auth.user?.individual_profile !== undefined) {
+          enriched.author_profile_id = auth.user.individual_profile.id;
+          enriched.author_profile_slug = auth.user.individual_profile.slug;
+          enriched.author_profile_title = auth.user.individual_profile.title;
+          enriched.author_profile_picture_uri = auth.user.individual_profile.profile_picture_uri ?? null;
+        }
+        // Update parent reply count optimistically
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === parentId) {
+              return { ...c, reply_count: c.reply_count + 1 };
+            }
+            return c;
+          })
+        );
+        if (thread !== null) {
+          setThread({ ...thread, comment_count: thread.comment_count + 1 });
+        }
+        const compiled = await compileOneComment(enriched);
+        return compiled;
       }
-      // Update parent reply count optimistically
-      setComments((prev) =>
-        prev.map((c) => {
-          if (c.id === parentId) {
-            return { ...c, reply_count: c.reply_count + 1 };
-          }
-          return c;
-        })
-      );
-      if (thread !== null) {
-        setThread({ ...thread, comment_count: thread.comment_count + 1 });
-      }
-      const compiled = await compileOneComment(enriched);
-      return compiled;
-    }
-    return null;
-  }, [props.storySlug, props.profileSlug, props.locale, auth.user, thread]);
+      return null;
+    },
+    [props.storySlug, props.profileSlug, props.locale, auth.user, thread],
+  );
 
   // Vote handler (optimistic)
   const handleVote = React.useCallback(async (commentId: string, direction: 1 | -1) => {
@@ -250,7 +253,14 @@ export function DiscussionThread(props: DiscussionThreadProps) {
       setComments((prev) =>
         prev.map((c) => {
           if (c.id === commentId) {
-            return { ...c, content: "", author_profile_id: null, author_profile_slug: null, author_profile_title: null, author_profile_picture_uri: null };
+            return {
+              ...c,
+              content: "",
+              author_profile_id: null,
+              author_profile_slug: null,
+              author_profile_title: null,
+              author_profile_picture_uri: null,
+            };
           }
           return c;
         })
@@ -353,7 +363,9 @@ export function DiscussionThread(props: DiscussionThreadProps) {
                   key={mode}
                   type="button"
                   onClick={() => handleSortChange(mode)}
-                  className={`${styles.sortButton} ${sortMode === mode ? styles.sortButtonActive : styles.sortButtonInactive}`}
+                  className={`${styles.sortButton} ${
+                    sortMode === mode ? styles.sortButtonActive : styles.sortButtonInactive
+                  }`}
                 >
                   {t(`Discussions.${mode}`)}
                 </button>
@@ -375,12 +387,23 @@ export function DiscussionThread(props: DiscussionThreadProps) {
                 <div className="absolute right-0 top-8 z-10 bg-popover border rounded-md shadow-md py-1 min-w-[180px]">
                   <button
                     type="button"
-                    onClick={() => { handleLockToggle(); setShowHeaderMenu(false); }}
+                    onClick={() => {
+                      handleLockToggle();
+                      setShowHeaderMenu(false);
+                    }}
                     className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-accent transition-colors"
                   >
                     {isLocked
-                      ? <><Unlock className="size-3.5" /> {t("Discussions.Unlock thread")}</>
-                      : <><Lock className="size-3.5" /> {t("Discussions.Lock thread")}</>}
+                      ? (
+                        <>
+                          <Unlock className="size-3.5" /> {t("Discussions.Unlock thread")}
+                        </>
+                      )
+                      : (
+                        <>
+                          <Lock className="size-3.5" /> {t("Discussions.Lock thread")}
+                        </>
+                      )}
                   </button>
                 </div>
               )}

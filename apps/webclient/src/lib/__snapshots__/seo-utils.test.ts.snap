@@ -1,0 +1,482 @@
+export const snapshot = {};
+
+snapshot[`generateMetaTags - basic website 1`] = `
+[
+  {
+    charSet: "utf-8",
+  },
+  {
+    content: "width=device-width, initial-scale=1",
+    name: "viewport",
+  },
+  {
+    title: "Home | AYA",
+  },
+  {
+    content: "Welcome to AYA",
+    name: "description",
+  },
+  {
+    content: "Home",
+    property: "og:title",
+  },
+  {
+    content: "Welcome to AYA",
+    property: "og:description",
+  },
+  {
+    content: "https://aya.is",
+    property: "og:url",
+  },
+  {
+    content: "AYA",
+    property: "og:site_name",
+  },
+  {
+    content: "website",
+    property: "og:type",
+  },
+  {
+    content: "en",
+    property: "og:locale",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    property: "og:image",
+  },
+  {
+    content: "Home",
+    property: "og:image:alt",
+  },
+  {
+    content: "summary_large_image",
+    name: "twitter:card",
+  },
+  {
+    content: "Home",
+    name: "twitter:title",
+  },
+  {
+    content: "Welcome to AYA",
+    name: "twitter:description",
+  },
+  {
+    content: "https://aya.is",
+    name: "twitter:url",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    name: "twitter:image",
+  },
+]
+`;
+
+snapshot[`generateMetaTags - article with dates and author 1`] = `
+[
+  {
+    charSet: "utf-8",
+  },
+  {
+    content: "width=device-width, initial-scale=1",
+    name: "viewport",
+  },
+  {
+    title: "My Article | AYA",
+  },
+  {
+    content: "An article about testing",
+    name: "description",
+  },
+  {
+    content: "My Article",
+    property: "og:title",
+  },
+  {
+    content: "An article about testing",
+    property: "og:description",
+  },
+  {
+    content: "https://aya.is/tr/stories/my-article",
+    property: "og:url",
+  },
+  {
+    content: "AYA",
+    property: "og:site_name",
+  },
+  {
+    content: "article",
+    property: "og:type",
+  },
+  {
+    content: "tr",
+    property: "og:locale",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    property: "og:image",
+  },
+  {
+    content: "My Article",
+    property: "og:image:alt",
+  },
+  {
+    content: "summary_large_image",
+    name: "twitter:card",
+  },
+  {
+    content: "My Article",
+    name: "twitter:title",
+  },
+  {
+    content: "An article about testing",
+    name: "twitter:description",
+  },
+  {
+    content: "https://aya.is/tr/stories/my-article",
+    name: "twitter:url",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    name: "twitter:image",
+  },
+  {
+    content: "2026-01-28T14:30:00Z",
+    property: "article:published_time",
+  },
+  {
+    content: "2026-02-01T10:00:00Z",
+    property: "article:modified_time",
+  },
+  {
+    content: "Eser",
+    property: "article:author",
+  },
+]
+`;
+
+snapshot[`generateMetaTags - noIndex 1`] = `
+[
+  {
+    charSet: "utf-8",
+  },
+  {
+    content: "width=device-width, initial-scale=1",
+    name: "viewport",
+  },
+  {
+    title: "Draft | AYA",
+  },
+  {
+    content: "Not for indexing",
+    name: "description",
+  },
+  {
+    content: "Draft",
+    property: "og:title",
+  },
+  {
+    content: "Not for indexing",
+    property: "og:description",
+  },
+  {
+    content: "https://aya.is",
+    property: "og:url",
+  },
+  {
+    content: "AYA",
+    property: "og:site_name",
+  },
+  {
+    content: "website",
+    property: "og:type",
+  },
+  {
+    content: "en",
+    property: "og:locale",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    property: "og:image",
+  },
+  {
+    content: "Draft",
+    property: "og:image:alt",
+  },
+  {
+    content: "summary_large_image",
+    name: "twitter:card",
+  },
+  {
+    content: "Draft",
+    name: "twitter:title",
+  },
+  {
+    content: "Not for indexing",
+    name: "twitter:description",
+  },
+  {
+    content: "https://aya.is",
+    name: "twitter:url",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    name: "twitter:image",
+  },
+  {
+    content: "noindex, nofollow",
+    name: "robots",
+  },
+]
+`;
+
+snapshot[`generateMetaTags - custom image 1`] = `
+[
+  {
+    charSet: "utf-8",
+  },
+  {
+    content: "width=device-width, initial-scale=1",
+    name: "viewport",
+  },
+  {
+    title: "With Image | AYA",
+  },
+  {
+    content: "Has custom image",
+    name: "description",
+  },
+  {
+    content: "With Image",
+    property: "og:title",
+  },
+  {
+    content: "Has custom image",
+    property: "og:description",
+  },
+  {
+    content: "https://aya.is",
+    property: "og:url",
+  },
+  {
+    content: "AYA",
+    property: "og:site_name",
+  },
+  {
+    content: "website",
+    property: "og:type",
+  },
+  {
+    content: "en",
+    property: "og:locale",
+  },
+  {
+    content: "https://aya.is/custom.png",
+    property: "og:image",
+  },
+  {
+    content: "With Image",
+    property: "og:image:alt",
+  },
+  {
+    content: "summary_large_image",
+    name: "twitter:card",
+  },
+  {
+    content: "With Image",
+    name: "twitter:title",
+  },
+  {
+    content: "Has custom image",
+    name: "twitter:description",
+  },
+  {
+    content: "https://aya.is",
+    name: "twitter:url",
+  },
+  {
+    content: "https://aya.is/custom.png",
+    name: "twitter:image",
+  },
+]
+`;
+
+snapshot[`generateMetaTags - null image 1`] = `
+[
+  {
+    charSet: "utf-8",
+  },
+  {
+    content: "width=device-width, initial-scale=1",
+    name: "viewport",
+  },
+  {
+    title: "No Image | AYA",
+  },
+  {
+    content: "Image is null",
+    name: "description",
+  },
+  {
+    content: "No Image",
+    property: "og:title",
+  },
+  {
+    content: "Image is null",
+    property: "og:description",
+  },
+  {
+    content: "https://aya.is",
+    property: "og:url",
+  },
+  {
+    content: "AYA",
+    property: "og:site_name",
+  },
+  {
+    content: "website",
+    property: "og:type",
+  },
+  {
+    content: "en",
+    property: "og:locale",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    property: "og:image",
+  },
+  {
+    content: "No Image",
+    property: "og:image:alt",
+  },
+  {
+    content: "summary_large_image",
+    name: "twitter:card",
+  },
+  {
+    content: "No Image",
+    name: "twitter:title",
+  },
+  {
+    content: "Image is null",
+    name: "twitter:description",
+  },
+  {
+    content: "https://aya.is",
+    name: "twitter:url",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    name: "twitter:image",
+  },
+]
+`;
+
+snapshot[`generateMetaTags - title matches siteName (no duplication) 1`] = `
+[
+  {
+    charSet: "utf-8",
+  },
+  {
+    content: "width=device-width, initial-scale=1",
+    name: "viewport",
+  },
+  {
+    title: "AYA",
+  },
+  {
+    content: "Main page",
+    name: "description",
+  },
+  {
+    content: "AYA",
+    property: "og:title",
+  },
+  {
+    content: "Main page",
+    property: "og:description",
+  },
+  {
+    content: "https://aya.is",
+    property: "og:url",
+  },
+  {
+    content: "AYA",
+    property: "og:site_name",
+  },
+  {
+    content: "website",
+    property: "og:type",
+  },
+  {
+    content: "en",
+    property: "og:locale",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    property: "og:image",
+  },
+  {
+    content: "AYA",
+    property: "og:image:alt",
+  },
+  {
+    content: "summary_large_image",
+    name: "twitter:card",
+  },
+  {
+    content: "AYA",
+    name: "twitter:title",
+  },
+  {
+    content: "Main page",
+    name: "twitter:description",
+  },
+  {
+    content: "https://aya.is",
+    name: "twitter:url",
+  },
+  {
+    content: "https://aya.is/og-image.png",
+    name: "twitter:image",
+  },
+]
+`;
+
+snapshot[`buildUrl - various combinations 1`] = `"https://aya.is/en"`;
+
+snapshot[`buildUrl - various combinations 2`] = `"https://aya.is/tr/stories"`;
+
+snapshot[`buildUrl - various combinations 3`] = `"https://aya.is/en/eser/stories/my-story"`;
+
+snapshot[`buildUrl - various combinations 4`] = `"https://aya.is/fr/about"`;
+
+snapshot[`generateCanonicalLink 1`] = `
+{
+  href: "https://aya.is/en/about",
+  rel: "canonical",
+}
+`;
+
+snapshot[`computeStoryCanonicalUrl - managed story with source_url 1`] = `"https://medium.com/original-article"`;
+
+snapshot[`computeStoryCanonicalUrl - regular story 1`] = `"https://aya.is/tr/eser/stories/20260128-test-story"`;
+
+snapshot[`computeStoryCanonicalUrl - fallback to viewer locale 1`] = `"https://aya.is/en/stories/my-story"`;
+
+snapshot[`computeContentLanguage - same locale 1`] = `"en"`;
+
+snapshot[`computeContentLanguage - different locales 1`] = `"en, tr"`;
+
+snapshot[`computeContentLanguage - undefined content locale 1`] = `"en"`;
+
+snapshot[`truncateDescription - various cases 1`] = `"Default description"`;
+
+snapshot[`truncateDescription - various cases 2`] = `"Default description"`;
+
+snapshot[`truncateDescription - various cases 3`] = `"Default description"`;
+
+snapshot[`truncateDescription - various cases 4`] = `"Short text"`;
+
+snapshot[`truncateDescription - various cases 5`] = `"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"`;
+
+snapshot[`truncateDescription - various cases 6`] = `"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB..."`;

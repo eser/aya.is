@@ -45,8 +45,8 @@ export function ListItem(props: ListItemProps) {
           <strong>{props.item.host}</strong>
           {props.item.participants.length > 0 && (
             <>
-              {" "}<em>with</em>{" "}
-              {props.item.participants.join(", ")}
+              {" "}
+              <em>with</em> {props.item.participants.join(", ")}
             </>
           )}
         </div>

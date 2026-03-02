@@ -40,7 +40,7 @@ func NewClient(config *Config, logger *logfx.Logger) *Client {
 	return &Client{
 		config: config,
 		logger: logger,
-		httpClient: &http.Client{
+		httpClient: &http.Client{ //nolint:exhaustruct // only Timeout needed
 			Timeout: config.RequestTimeout,
 		},
 	}
@@ -73,7 +73,7 @@ func (c *Client) GetCurrentDomains(ctx context.Context) ([]string, error) {
 		return nil, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -88,7 +88,8 @@ func (c *Client) GetCurrentDomains(ctx context.Context) ([]string, error) {
 
 	var appResp applicationResponse
 
-	if err := json.NewDecoder(resp.Body).Decode(&appResp); err != nil {
+	err = json.NewDecoder(resp.Body).Decode(&appResp)
+	if err != nil {
 		return nil, fmt.Errorf("%w: failed to decode response: %w", ErrAPIRequestFailed, err)
 	}
 
@@ -100,7 +101,7 @@ func (c *Client) GetCurrentDomains(ctx context.Context) ([]string, error) {
 	// Strip the protocol prefix to return bare domains
 	domains := make([]string, 0)
 
-	for _, d := range strings.Split(appResp.FQDN, ",") {
+	for d := range strings.SplitSeq(appResp.FQDN, ",") {
 		trimmed := strings.TrimSpace(d)
 		if trimmed != "" {
 			trimmed = strings.TrimPrefix(trimmed, "https://")
@@ -159,7 +160,7 @@ func (c *Client) UpdateDomains(ctx context.Context, domains []string) error {
 		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
@@ -200,7 +201,7 @@ func (c *Client) RestartApplication(ctx context.Context) error {
 		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)

@@ -41,6 +41,9 @@ aya.is/
 deno task dev         # Start dev server
 deno task build       # Build for production
 deno lint && deno fmt # Lint and format
+deno task test        # Run snapshot tests (writes snapshots)
+deno task test:update # Regenerate snapshots after intentional changes
+deno task test:ci     # Run tests read-only (CI mode, used by make ok)
 
 # Backend (in /apps/services)
 make restart          # Restart after changes
@@ -48,7 +51,7 @@ make lint             # Run golangci-lint
 make test             # Run tests
 
 # Root
-make ok               # All quality checks
+make ok               # All quality checks (includes frontend tests)
 ```
 
 ## Key Conventions (CRITICAL)
@@ -100,6 +103,22 @@ function Component(props: Props) {
 
 // Wrong - destructured
 function Component({ title }: Props) {}
+```
+
+### Pure Function Extraction for Testability
+
+```typescript
+// Correct - pure logic in separate file, testable with Deno
+// locale-utils.ts (pure, no import.meta.env)
+export function isValidLocale(locale: string) { ... }
+
+// config.ts (re-exports + env-dependent config)
+export { isValidLocale } from "@/lib/locale-utils.ts";
+export const siteConfig = { host: import.meta.env.VITE_SITE_URL };
+
+// Wrong - pure logic mixed with env dependency
+import { siteConfig } from "@/config.ts";
+export function buildUrl(locale: string) { return `${siteConfig.host}/${locale}`; }
 ```
 
 ## Project-Specific Notes

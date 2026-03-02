@@ -56,14 +56,14 @@ func (ns *NullString) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	var s string
+	var str string
 
-	err := json.Unmarshal(data, &s)
+	err := json.Unmarshal(data, &str)
 	if err != nil {
 		return err //nolint:wrapcheck
 	}
 
-	ns.String = s
+	ns.String = str
 	ns.Valid = true
 
 	return nil

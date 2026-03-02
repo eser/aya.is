@@ -22,7 +22,7 @@ type DNSVerificationConfig struct {
 //  3. Resolved IP match — domain resolves to the same IPs as the CNAME target.
 //     This handles Cloudflare CNAME flattening at zone apex and proxied setups
 //     where the target itself resolves to CDN edge IPs rather than the origin.
-func VerifyDomainDNS(
+func VerifyDomainDNS( //nolint:cyclop
 	ctx context.Context,
 	domain string,
 	config *DNSVerificationConfig,
@@ -76,14 +76,14 @@ func VerifyDomainDNS(
 }
 
 // ipsOverlap returns true if at least one IP appears in both slices.
-func ipsOverlap(a, b []string) bool {
-	set := make(map[string]struct{}, len(b))
+func ipsOverlap(domainIPs, targetIPs []string) bool {
+	set := make(map[string]struct{}, len(targetIPs))
 
-	for _, ip := range b {
+	for _, ip := range targetIPs {
 		set[ip] = struct{}{}
 	}
 
-	for _, ip := range a {
+	for _, ip := range domainIPs {
 		if _, ok := set[ip]; ok {
 			return true
 		}

@@ -171,7 +171,7 @@ type SlugAvailabilityResult struct {
 	Severity  string `json:"severity,omitempty"` // "error" | "warning" | ""
 }
 
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
 	GetProfileByID(
 		ctx context.Context,
@@ -434,95 +434,82 @@ func (s *Service) CheckSlugAvailability(
 	publishedAt *time.Time,
 	includeDeleted bool,
 ) (*SlugAvailabilityResult, error) {
-	// Determine if story is published by checking its publications
-	isPublished := false
+	isPublished := s.isStoryPublished(ctx, storyID)
+	datePrefix := s.resolveSlugDatePrefix(ctx, publishedAt, storyID)
 
-	if storyID != nil {
-		count, err := s.repo.CountStoryPublications(ctx, *storyID)
-		if err == nil && count > 0 {
-			isPublished = true
+	// Validate format (errors block, warnings are collected)
+	if result := checkSlugFormatError(slug, isPublished, datePrefix); result != nil {
+		return result, nil
+	}
+
+	// Check uniqueness
+	if result := s.checkSlugUniqueness(ctx, slug, excludeStoryID, includeDeleted); result != nil {
+		return result, nil
+	}
+
+	// Return any warnings from format validation
+	if result := checkSlugFormatWarning(slug, isPublished, datePrefix); result != nil {
+		return result, nil
+	}
+
+	return &SlugAvailabilityResult{
+		Available: true,
+		Message:   "",
+		Severity:  "",
+	}, nil
+}
+
+// isStoryPublished checks whether a story has any active publications.
+func (s *Service) isStoryPublished(ctx context.Context, storyID *string) bool {
+	if storyID == nil {
+		return false
+	}
+
+	count, err := s.repo.CountStoryPublications(ctx, *storyID)
+
+	return err == nil && count > 0
+}
+
+// checkSlugFormatError returns an error-severity result if slug format is invalid, nil otherwise.
+func checkSlugFormatError(
+	slug string,
+	isPublished bool,
+	datePrefix time.Time,
+) *SlugAvailabilityResult {
+	if lengthResult := validateSlugLength(slug, isPublished); lengthResult != nil &&
+		lengthResult.Severity == SeverityError {
+		return &SlugAvailabilityResult{
+			Available: false,
+			Message:   lengthResult.Message,
+			Severity:  lengthResult.Severity,
 		}
 	}
 
-	// Check minimum length (12 chars = 9 for date + 3 for content)
-	if lengthResult := validateSlugLength(slug, isPublished); lengthResult != nil {
-		// For errors, return immediately as unavailable
-		if lengthResult.Severity == SeverityError {
-			return &SlugAvailabilityResult{
-				Available: false,
-				Message:   lengthResult.Message,
-				Severity:  lengthResult.Severity,
-			}, nil
-		}
-		// For warnings, continue checking but remember to include the warning
-		// We'll return this warning at the end if slug is otherwise available
-	}
-
-	// Validate slug date prefix
-	var datePrefix time.Time
-	if publishedAt != nil {
-		datePrefix = *publishedAt
-	} else if storyID != nil {
-		// Try to get the first published_at from publications
-		firstPublishedAt, err := s.repo.GetStoryFirstPublishedAt(ctx, *storyID)
-		if err == nil && firstPublishedAt != nil {
-			datePrefix = *firstPublishedAt
-		} else {
-			datePrefix = time.Now()
-		}
-	} else {
-		datePrefix = time.Now()
-	}
-
-	if prefixResult := validateSlugDatePrefix(slug, datePrefix, isPublished); prefixResult != nil {
-		// For errors, return immediately as unavailable
-		if prefixResult.Severity == SeverityError {
-			return &SlugAvailabilityResult{
-				Available: false,
-				Message:   prefixResult.Message,
-				Severity:  prefixResult.Severity,
-			}, nil
-		}
-		// For warnings, continue checking but remember to include the warning
-	}
-
-	// Check if slug is already taken (active stories)
-	existingStoryID, err := s.repo.GetStoryIDBySlug(ctx, slug)
-	if err == nil && existingStoryID != "" {
-		// If we're editing and the slug belongs to the same story, continue
-		if excludeStoryID == nil || existingStoryID != *excludeStoryID {
-			return &SlugAvailabilityResult{
-				Available: false,
-				Message:   "This slug is already taken",
-				Severity:  SeverityError,
-			}, nil
+	if prefixResult := validateSlugDatePrefix(slug, datePrefix, isPublished); prefixResult != nil &&
+		prefixResult.Severity == SeverityError {
+		return &SlugAvailabilityResult{
+			Available: false,
+			Message:   prefixResult.Message,
+			Severity:  prefixResult.Severity,
 		}
 	}
 
-	// Optionally check deleted stories
-	if includeDeleted {
-		deletedStoryID, err := s.repo.GetStoryIDBySlugIncludingDeleted(ctx, slug)
-		if err == nil && deletedStoryID != "" {
-			// If we're editing and it's the same story, that's fine
-			if excludeStoryID == nil || deletedStoryID != *excludeStoryID {
-				return &SlugAvailabilityResult{
-					Available: false,
-					Message:   "This slug was previously used",
-					Severity:  SeverityError,
-				}, nil
-			}
-		}
-	}
+	return nil
+}
 
-	// Slug is available - but check if we have any warnings to return
-	// Re-check for warnings
+// checkSlugFormatWarning returns a warning-severity result if slug format has warnings, nil otherwise.
+func checkSlugFormatWarning(
+	slug string,
+	isPublished bool,
+	datePrefix time.Time,
+) *SlugAvailabilityResult {
 	if lengthResult := validateSlugLength(slug, isPublished); lengthResult != nil &&
 		lengthResult.Severity == SeverityWarning {
 		return &SlugAvailabilityResult{
 			Available: true,
 			Message:   lengthResult.Message,
 			Severity:  lengthResult.Severity,
-		}, nil
+		}
 	}
 
 	if prefixResult := validateSlugDatePrefix(slug, datePrefix, isPublished); prefixResult != nil &&
@@ -531,12 +518,65 @@ func (s *Service) CheckSlugAvailability(
 			Available: true,
 			Message:   prefixResult.Message,
 			Severity:  prefixResult.Severity,
-		}, nil
+		}
 	}
 
-	return &SlugAvailabilityResult{
-		Available: true,
-	}, nil
+	return nil
+}
+
+// checkSlugUniqueness checks if a slug is already used by active or deleted stories.
+func (s *Service) checkSlugUniqueness(
+	ctx context.Context,
+	slug string,
+	excludeStoryID *string,
+	includeDeleted bool,
+) *SlugAvailabilityResult {
+	existingStoryID, err := s.repo.GetStoryIDBySlug(ctx, slug)
+	if err == nil && existingStoryID != "" {
+		if excludeStoryID == nil || existingStoryID != *excludeStoryID {
+			return &SlugAvailabilityResult{
+				Available: false,
+				Message:   "This slug is already taken",
+				Severity:  SeverityError,
+			}
+		}
+	}
+
+	if includeDeleted {
+		deletedStoryID, delErr := s.repo.GetStoryIDBySlugIncludingDeleted(ctx, slug)
+		if delErr == nil && deletedStoryID != "" {
+			if excludeStoryID == nil || deletedStoryID != *excludeStoryID {
+				return &SlugAvailabilityResult{
+					Available: false,
+					Message:   "This slug was previously used",
+					Severity:  SeverityError,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// resolveSlugDatePrefix determines the date prefix to use for slug validation.
+func (s *Service) resolveSlugDatePrefix(
+	ctx context.Context,
+	publishedAt *time.Time,
+	storyID *string,
+) time.Time {
+	switch {
+	case publishedAt != nil:
+		return *publishedAt
+	case storyID != nil:
+		firstPublishedAt, err := s.repo.GetStoryFirstPublishedAt(ctx, *storyID)
+		if err == nil && firstPublishedAt != nil {
+			return *firstPublishedAt
+		}
+
+		return time.Now()
+	default:
+		return time.Now()
+	}
 }
 
 func (s *Service) List(
@@ -765,16 +805,168 @@ func (s *Service) Create(
 	visibility string,
 	featDiscussionsOverride *bool,
 ) (*Story, error) {
-	// Determine if the story will be published (for slug validation)
-	isPublishing := len(publishToProfileSlugs) > 0
-
-	status := "draft"
-
-	if isPublishing {
-		status = "published"
+	validateErr := s.validateCreateInputs(
+		ctx, slug, storyPictureURI, userKind, publishToProfileSlugs,
+	)
+	if validateErr != nil {
+		return nil, validateErr
 	}
 
-	// Validate slug availability and date prefix (only block on errors, not warnings)
+	authorProfileID, featDiscussions, resolveErr := s.resolveAuthorAndFeatures(
+		ctx, authorProfileSlug, localeCode, featDiscussionsOverride,
+	)
+	if resolveErr != nil {
+		return nil, resolveErr
+	}
+
+	storyID := string(s.idGenerator())
+
+	story, err := s.insertStoryWithTranslation(ctx, insertStoryParams{
+		storyID:         storyID,
+		authorProfileID: authorProfileID,
+		slug:            slug,
+		kind:            kind,
+		localeCode:      localeCode,
+		title:           title,
+		summary:         summary,
+		content:         content,
+		storyPictureURI: storyPictureURI,
+		properties:      properties,
+		visibility:      visibility,
+		featDiscussions: featDiscussions,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	publishErr := s.publishAndAuditCreate(
+		ctx, storyID, userID, slug, kind, authorProfileSlug, publishToProfileSlugs,
+	)
+	if publishErr != nil {
+		return nil, publishErr
+	}
+
+	return story, nil
+}
+
+// resolveAuthorAndFeatures resolves the author profile ID and feature flags for story creation.
+func (s *Service) resolveAuthorAndFeatures(
+	ctx context.Context,
+	authorProfileSlug, localeCode string,
+	featDiscussionsOverride *bool,
+) (string, bool, error) {
+	authorProfileID, err := s.repo.GetProfileIDBySlug(ctx, authorProfileSlug)
+	if err != nil {
+		return "", false, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			authorProfileSlug,
+			err,
+		)
+	}
+
+	featDiscussions, featErr := s.resolveFeatDiscussions(
+		ctx, localeCode, authorProfileID, featDiscussionsOverride,
+	)
+	if featErr != nil {
+		return "", false, featErr
+	}
+
+	return authorProfileID, featDiscussions, nil
+}
+
+// publishAndAuditCreate publishes a newly created story to profiles and records an audit entry.
+func (s *Service) publishAndAuditCreate(
+	ctx context.Context,
+	storyID, userID, slug, kind, authorProfileSlug string,
+	publishToProfileSlugs []string,
+) error {
+	pubErr := s.createPublicationsForProfiles(ctx, storyID, userID, publishToProfileSlugs)
+	if pubErr != nil {
+		return pubErr
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryCreated,
+		EntityType: "story",
+		EntityID:   storyID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"slug":                slug,
+			"kind":                kind,
+			"author_profile_slug": authorProfileSlug,
+		},
+	})
+
+	return nil
+}
+
+// insertStoryParams holds the parameters for inserting a story with its translation.
+type insertStoryParams struct {
+	storyID         string
+	authorProfileID string
+	slug            string
+	kind            string
+	localeCode      string
+	title           string
+	summary         string
+	content         string
+	storyPictureURI *string
+	properties      map[string]any
+	visibility      string
+	featDiscussions bool
+}
+
+// insertStoryWithTranslation creates the story record and its localized translation.
+func (s *Service) insertStoryWithTranslation(
+	ctx context.Context,
+	params insertStoryParams,
+) (*Story, error) {
+	story, err := s.repo.InsertStory(
+		ctx,
+		params.storyID,
+		params.authorProfileID,
+		params.slug,
+		params.kind,
+		params.storyPictureURI,
+		params.properties,
+		false,
+		nil,
+		params.visibility,
+		params.featDiscussions,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
+	}
+
+	err = s.repo.InsertStoryTx(
+		ctx,
+		params.storyID,
+		params.localeCode,
+		params.title,
+		params.summary,
+		params.content,
+		false,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: translation: %w", ErrFailedToInsertRecord, err)
+	}
+
+	return story, nil
+}
+
+// validateCreateInputs validates slug availability and picture URI for story creation.
+func (s *Service) validateCreateInputs(
+	ctx context.Context,
+	slug string,
+	storyPictureURI *string,
+	userKind string,
+	publishToProfileSlugs []string,
+) error {
+	isPublishing := len(publishToProfileSlugs) > 0
+
 	var publishedAt *time.Time
 
 	if isPublishing {
@@ -784,93 +976,80 @@ func (s *Service) Create(
 
 	slugResult, err := s.CheckSlugAvailability(ctx, slug, nil, nil, publishedAt, false)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	_ = status // used conceptually for slug validation
 
 	if !slugResult.Available && slugResult.Severity == SeverityError {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
+		return fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
 	}
 
-	// Validate story picture URI
-	if err := validateOptionalURL(storyPictureURI); err != nil {
-		return nil, err
+	return s.validateStoryPictureURI(storyPictureURI, userKind)
+}
+
+// validateStoryPictureURI validates the story picture URI and checks prefix restrictions.
+func (s *Service) validateStoryPictureURI(storyPictureURI *string, userKind string) error {
+	pictureErr := validateOptionalURL(storyPictureURI)
+	if pictureErr != nil {
+		return pictureErr
 	}
 
 	// Non-admin users can only use URIs from our upload service
 	if userKind != "admin" {
-		err := validateURIPrefixes(storyPictureURI, s.config.GetAllowedURIPrefixes())
-		if err != nil {
-			return nil, err
-		}
+		return validateURIPrefixes(storyPictureURI, s.config.GetAllowedURIPrefixes())
 	}
 
-	// Get author profile ID
-	authorProfileID, err := s.repo.GetProfileIDBySlug(ctx, authorProfileSlug)
-	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, authorProfileSlug, err)
+	return nil
+}
+
+// resolveFeatDiscussions determines the discussion feature flag for a new story.
+func (s *Service) resolveFeatDiscussions(
+	ctx context.Context,
+	localeCode string,
+	authorProfileID string,
+	override *bool,
+) (bool, error) {
+	if override != nil {
+		return *override, nil
 	}
 
-	// Fetch author profile to read discussion default
 	authorProfile, err := s.repo.GetProfileByID(ctx, localeCode, authorProfileID)
 	if err != nil {
-		return nil, fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, authorProfileID, err)
+		return false, fmt.Errorf(
+			"%w(profileID: %s): %w",
+			ErrFailedToGetRecord,
+			authorProfileID,
+			err,
+		)
 	}
 
-	featDiscussions := false
-	if featDiscussionsOverride != nil {
-		featDiscussions = *featDiscussionsOverride
-	} else if authorProfile != nil {
-		featDiscussions = authorProfile.OptionStoryDiscussionsByDefault
+	if authorProfile != nil {
+		return authorProfile.OptionStoryDiscussionsByDefault, nil
 	}
 
-	// Generate new story ID
-	storyID := s.idGenerator()
+	return false, nil
+}
 
-	// Create the main story record
-	story, err := s.repo.InsertStory(
-		ctx,
-		string(storyID),
-		authorProfileID,
-		slug,
-		kind,
-		storyPictureURI,
-		properties,
-		false,
-		nil,
-		visibility,
-		featDiscussions,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
-	}
+// publishRoles defines the set of membership roles allowed to publish stories.
+var publishRoles = map[string]bool{ //nolint:gochecknoglobals
+	"admin": true, "owner": true, "lead": true, "maintainer": true, "contributor": true,
+}
 
-	// Create the localized story data
-	err = s.repo.InsertStoryTx(
-		ctx,
-		string(storyID),
-		localeCode,
-		title,
-		summary,
-		content,
-		false,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%w: translation: %w", ErrFailedToInsertRecord, err)
-	}
-
-	// Create publications for each target profile
-	for _, profileSlug := range publishToProfileSlugs {
+// createPublicationsForProfiles creates story publications for a list of profile slugs.
+func (s *Service) createPublicationsForProfiles(
+	ctx context.Context,
+	storyID string,
+	userID string,
+	profileSlugs []string,
+) error {
+	for _, profileSlug := range profileSlugs {
 		profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 		if err != nil {
-			return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+			return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 		}
 
-		// Verify user has membership access to the target profile (contributor+)
 		membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, profileID)
 		if err != nil {
-			return nil, fmt.Errorf(
+			return fmt.Errorf(
 				"%w(userID: %s, profileID: %s): %w",
 				ErrFailedToGetRecord,
 				userID,
@@ -879,11 +1058,8 @@ func (s *Service) Create(
 			)
 		}
 
-		publishRoles := map[string]bool{
-			"admin": true, "owner": true, "lead": true, "maintainer": true, "contributor": true,
-		}
 		if !publishRoles[membershipKind] {
-			return nil, fmt.Errorf(
+			return fmt.Errorf(
 				"%w: user %s has no publish access to profile %s",
 				ErrNoProfileAccess,
 				userID,
@@ -897,7 +1073,7 @@ func (s *Service) Create(
 		err = s.repo.InsertStoryPublication(
 			ctx,
 			string(publicationID),
-			string(storyID),
+			storyID,
 			profileID,
 			"original",
 			false, // is_featured
@@ -905,24 +1081,104 @@ func (s *Service) Create(
 			nil,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("%w: publication: %w", ErrFailedToInsertRecord, err)
+			return fmt.Errorf("%w: publication: %w", ErrFailedToInsertRecord, err)
 		}
 	}
 
-	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.StoryCreated,
-		EntityType: "story",
-		EntityID:   string(storyID),
-		ActorID:    &userID,
-		ActorKind:  events.ActorUser,
-		Payload: map[string]any{
-			"slug":                slug,
-			"kind":                kind,
-			"author_profile_slug": authorProfileSlug,
-		},
-	})
+	return nil
+}
 
-	return story, nil
+// featureRoles defines the set of membership roles allowed to feature stories.
+var featureRoles = map[string]bool{ //nolint:gochecknoglobals
+	"admin": true, "owner": true, "lead": true, "maintainer": true,
+}
+
+// validatePublishAccess checks that a user has publish access and optionally featured permission.
+func (s *Service) validatePublishAccess(
+	ctx context.Context,
+	userID string,
+	profileID string,
+	isFeatured bool,
+) error {
+	membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, profileID)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(userID: %s, profileID: %s): %w",
+			ErrFailedToGetRecord,
+			userID,
+			profileID,
+			err,
+		)
+	}
+
+	if !publishRoles[membershipKind] {
+		return fmt.Errorf(
+			"%w: user %s has no publish access to profile %s",
+			ErrNoProfileAccess,
+			userID,
+			profileID,
+		)
+	}
+
+	if isFeatured && !featureRoles[membershipKind] {
+		return fmt.Errorf(
+			"%w: user %s cannot feature on profile %s (requires maintainer+)",
+			ErrInsufficientProfileRole,
+			userID,
+			profileID,
+		)
+	}
+
+	return nil
+}
+
+// validateUpdatePreconditions checks authorization, managed state, slug availability, and picture URI.
+func (s *Service) validateUpdatePreconditions(
+	ctx context.Context,
+	locale string,
+	userID string,
+	userKind string,
+	storyID string,
+	slug string,
+	storyPictureURI *string,
+) error {
+	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
+	if err != nil {
+		return err
+	}
+
+	if !canEdit {
+		return fmt.Errorf(
+			"%w: user %s cannot edit story %s",
+			ErrUnauthorized,
+			userID,
+			storyID,
+		)
+	}
+
+	storyForEdit, err := s.repo.GetStoryForEdit(ctx, locale, storyID)
+	if err != nil {
+		return fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
+	}
+
+	if storyForEdit == nil {
+		return fmt.Errorf("%w: %s", ErrStoryNotFound, storyID)
+	}
+
+	if storyForEdit.IsManaged {
+		return ErrManagedStory
+	}
+
+	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, &storyID, nil, false)
+	if err != nil {
+		return err
+	}
+
+	if !slugResult.Available && slugResult.Severity == SeverityError {
+		return fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
+	}
+
+	return s.validateStoryPictureURI(storyPictureURI, userKind)
 }
 
 // Update updates an existing story (slug, picture, and properties).
@@ -938,60 +1194,22 @@ func (s *Service) Update(
 	visibility string,
 	featDiscussions *bool,
 ) (*StoryForEdit, error) {
-	// Check authorization
-	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
-	if err != nil {
-		return nil, err
-	}
-
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit story %s",
-			ErrUnauthorized,
-			userID,
-			storyID,
-		)
-	}
-
-	// Check if story is managed (synced from external source)
-	storyForEdit, err := s.repo.GetStoryForEdit(ctx, locale, storyID)
-	if err != nil {
-		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
-	}
-
-	if storyForEdit == nil {
-		return nil, fmt.Errorf("%w: %s", ErrStoryNotFound, storyID)
-	}
-
-	if storyForEdit.IsManaged {
-		return nil, ErrManagedStory
-	}
-
-	// Validate slug availability and date prefix (only block on errors, not warnings)
-	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, &storyID, nil, false)
-	if err != nil {
-		return nil, err
-	}
-
-	if !slugResult.Available && slugResult.Severity == SeverityError {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
-	}
-
-	// Validate story picture URI
-	if err := validateOptionalURL(storyPictureURI); err != nil {
-		return nil, err
-	}
-
-	// Non-admin users can only use URIs from our upload service
-	if userKind != "admin" {
-		err := validateURIPrefixes(storyPictureURI, s.config.GetAllowedURIPrefixes())
-		if err != nil {
-			return nil, err
-		}
+	// Validate authorization, managed state, slug, and picture
+	validateErr := s.validateUpdatePreconditions(
+		ctx,
+		locale,
+		userID,
+		userKind,
+		storyID,
+		slug,
+		storyPictureURI,
+	)
+	if validateErr != nil {
+		return nil, validateErr
 	}
 
 	// Update the story
-	err = s.repo.UpdateStory(
+	err := s.repo.UpdateStory(
 		ctx,
 		storyID,
 		slug,
@@ -1010,6 +1228,7 @@ func (s *Service) Update(
 		EntityID:   storyID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"slug": slug},
 	})
 
@@ -1072,6 +1291,7 @@ func (s *Service) UpdateTranslation(
 		EntityID:   storyID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"locale_code": localeCode},
 	})
 
@@ -1122,6 +1342,7 @@ func (s *Service) DeleteTranslation(
 		EntityID:   storyID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"locale_code": localeCode},
 	})
 
@@ -1218,6 +1439,8 @@ func (s *Service) Delete(
 		EntityID:   storyID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
 	})
 
 	return nil
@@ -1232,65 +1455,22 @@ func (s *Service) AddPublication(
 	localeCode string,
 	isFeatured bool,
 ) (*StoryPublication, error) {
-	// Check story edit permission
-	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
-	if err != nil {
-		return nil, err
+	// Check story edit and publish access
+	authErr := s.authorizeStoryEdit(ctx, userID, storyID)
+	if authErr != nil {
+		return nil, authErr
 	}
 
-	if !canEdit {
-		return nil, fmt.Errorf(
-			"%w: user %s cannot edit story %s",
-			ErrUnauthorized,
-			userID,
-			storyID,
-		)
-	}
-
-	// Check user has membership access to the target profile (contributor+)
-	membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, profileID)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"%w(userID: %s, profileID: %s): %w",
-			ErrFailedToGetRecord,
-			userID,
-			profileID,
-			err,
-		)
-	}
-
-	publishRoles := map[string]bool{
-		"admin": true, "owner": true, "lead": true, "maintainer": true, "contributor": true,
-	}
-	if !publishRoles[membershipKind] {
-		return nil, fmt.Errorf(
-			"%w: user %s has no publish access to profile %s",
-			ErrNoProfileAccess,
-			userID,
-			profileID,
-		)
-	}
-
-	// Check featured permission (maintainer+)
-	if isFeatured {
-		featureRoles := map[string]bool{
-			"admin": true, "owner": true, "lead": true, "maintainer": true,
-		}
-		if !featureRoles[membershipKind] {
-			return nil, fmt.Errorf(
-				"%w: user %s cannot feature on profile %s (requires maintainer+)",
-				ErrInsufficientProfileRole,
-				userID,
-				profileID,
-			)
-		}
+	accessErr := s.validatePublishAccess(ctx, userID, profileID, isFeatured)
+	if accessErr != nil {
+		return nil, accessErr
 	}
 
 	// Create the publication
 	publicationID := s.idGenerator()
 	now := time.Now()
 
-	err = s.repo.InsertStoryPublication(
+	err := s.repo.InsertStoryPublication(
 		ctx,
 		string(publicationID),
 		storyID,
@@ -1304,12 +1484,7 @@ func (s *Service) AddPublication(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToInsertRecord, err)
 	}
 
-	// Invalidate the story slug cache so it becomes publicly findable
-	// We need to get the story's slug first
-	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
-	if err == nil && storyForEdit != nil {
-		_ = s.repo.InvalidateStorySlugCache(ctx, storyForEdit.Slug)
-	}
+	s.invalidateSlugCache(ctx, localeCode, storyID)
 
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.StoryPublished,
@@ -1317,61 +1492,76 @@ func (s *Service) AddPublication(
 		EntityID:   storyID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload: map[string]any{
 			"publication_id": string(publicationID),
 			"profile_id":     profileID,
 		},
 	})
 
-	// Return the created publication with profile info
+	return s.findOrBuildPublication(
+		ctx, localeCode, storyID, string(publicationID), profileID, isFeatured, now,
+	)
+}
+
+// invalidateSlugCache invalidates the story slug cache (best-effort).
+func (s *Service) invalidateSlugCache(ctx context.Context, localeCode string, storyID string) {
+	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
+	if err == nil && storyForEdit != nil {
+		_ = s.repo.InvalidateStorySlugCache(ctx, storyForEdit.Slug)
+	}
+}
+
+// findOrBuildPublication returns the just-created publication with profile info, or a fallback.
+func (s *Service) findOrBuildPublication(
+	ctx context.Context,
+	localeCode string,
+	storyID string,
+	publicationID string,
+	profileID string,
+	isFeatured bool,
+	now time.Time,
+) (*StoryPublication, error) {
 	publications, err := s.repo.ListStoryPublications(ctx, localeCode, storyID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
 
-	// Find the one we just created
 	for _, pub := range publications {
-		if pub.ID == string(publicationID) {
+		if pub.ID == publicationID {
 			return pub, nil
 		}
 	}
 
-	// Fallback: return a basic publication object
 	return &StoryPublication{
-		ID:          string(publicationID),
-		StoryID:     storyID,
-		ProfileID:   profileID,
-		Kind:        "original",
-		IsFeatured:  isFeatured,
-		PublishedAt: &now,
-		CreatedAt:   now,
+		ID:                publicationID,
+		StoryID:           storyID,
+		ProfileID:         profileID,
+		ProfilePictureURI: nil,
+		ProfileSlug:       "",
+		ProfileTitle:      "",
+		ProfileKind:       "",
+		Kind:              "original",
+		IsFeatured:        isFeatured,
+		PublishedAt:       &now,
+		CreatedAt:         now,
 	}, nil
 }
 
-// RemovePublication unpublishes a story from a profile.
-func (s *Service) RemovePublication(
+// validatePublicationEditAccess checks story edit permission and publication profile access.
+// When requireMaintainer is true, it checks for maintainer+ role (for featured operations).
+func (s *Service) validatePublicationEditAccess(
 	ctx context.Context,
 	userID string,
 	storyID string,
 	publicationID string,
-	localeCode string,
+	requireMaintainer bool,
 ) error {
-	// Check story edit permission
-	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
-	if err != nil {
-		return err
+	authErr := s.authorizeStoryEdit(ctx, userID, storyID)
+	if authErr != nil {
+		return authErr
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot edit story %s",
-			ErrUnauthorized,
-			userID,
-			storyID,
-		)
-	}
-
-	// Check user has membership access to the publication's profile (contributor+)
 	pubProfileID, err := s.repo.GetStoryPublicationProfileID(ctx, publicationID)
 	if err != nil {
 		return fmt.Errorf(
@@ -1382,33 +1572,56 @@ func (s *Service) RemovePublication(
 		)
 	}
 
-	if pubProfileID != "" {
-		membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, pubProfileID)
-		if err != nil {
-			return fmt.Errorf(
-				"%w(userID: %s, profileID: %s): %w",
-				ErrFailedToGetRecord,
-				userID,
-				pubProfileID,
-				err,
-			)
-		}
+	if pubProfileID == "" {
+		return nil
+	}
 
-		publishRoles := map[string]bool{
-			"admin": true, "owner": true, "lead": true, "maintainer": true, "contributor": true,
-		}
-		if !publishRoles[membershipKind] {
-			return fmt.Errorf(
-				"%w: user %s has no access to profile %s",
-				ErrNoProfileAccess,
-				userID,
-				pubProfileID,
-			)
-		}
+	membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, pubProfileID)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(userID: %s, profileID: %s): %w",
+			ErrFailedToGetRecord,
+			userID,
+			pubProfileID,
+			err,
+		)
+	}
+
+	requiredRoles := publishRoles
+	roleErr := ErrNoProfileAccess
+
+	if requireMaintainer {
+		requiredRoles = featureRoles
+		roleErr = ErrInsufficientProfileRole
+	}
+
+	if !requiredRoles[membershipKind] {
+		return fmt.Errorf(
+			"%w: user %s insufficient access on profile %s",
+			roleErr,
+			userID,
+			pubProfileID,
+		)
+	}
+
+	return nil
+}
+
+// RemovePublication unpublishes a story from a profile.
+func (s *Service) RemovePublication(
+	ctx context.Context,
+	userID string,
+	storyID string,
+	publicationID string,
+	localeCode string,
+) error {
+	accessErr := s.validatePublicationEditAccess(ctx, userID, storyID, publicationID, false)
+	if accessErr != nil {
+		return accessErr
 	}
 
 	// Remove the publication
-	err = s.repo.RemoveStoryPublication(ctx, publicationID)
+	err := s.repo.RemoveStoryPublication(ctx, publicationID)
 	if err != nil {
 		return fmt.Errorf("%w(publicationID: %s): %w", ErrFailedToRemoveRecord, publicationID, err)
 	}
@@ -1419,14 +1632,11 @@ func (s *Service) RemovePublication(
 		EntityID:   storyID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"publication_id": publicationID},
 	})
 
-	// Invalidate slug cache
-	storyForEdit, err := s.repo.GetStoryForEdit(ctx, localeCode, storyID)
-	if err == nil && storyForEdit != nil {
-		_ = s.repo.InvalidateStorySlugCache(ctx, storyForEdit.Slug)
-	}
+	s.invalidateSlugCache(ctx, localeCode, storyID)
 
 	return nil
 }
@@ -1439,58 +1649,12 @@ func (s *Service) UpdatePublication(
 	publicationID string,
 	isFeatured bool,
 ) error {
-	// Check story edit permission
-	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
-	if err != nil {
-		return err
+	accessErr := s.validatePublicationEditAccess(ctx, userID, storyID, publicationID, true)
+	if accessErr != nil {
+		return accessErr
 	}
 
-	if !canEdit {
-		return fmt.Errorf(
-			"%w: user %s cannot edit story %s",
-			ErrUnauthorized,
-			userID,
-			storyID,
-		)
-	}
-
-	// Check user has membership access to the publication's profile (maintainer+ for featured)
-	pubProfileID, err := s.repo.GetStoryPublicationProfileID(ctx, publicationID)
-	if err != nil {
-		return fmt.Errorf(
-			"%w(publicationID: %s): %w",
-			ErrFailedToGetRecord,
-			publicationID,
-			err,
-		)
-	}
-
-	if pubProfileID != "" {
-		membershipKind, err := s.repo.GetUserMembershipForProfile(ctx, userID, pubProfileID)
-		if err != nil {
-			return fmt.Errorf(
-				"%w(userID: %s, profileID: %s): %w",
-				ErrFailedToGetRecord,
-				userID,
-				pubProfileID,
-				err,
-			)
-		}
-
-		featureRoles := map[string]bool{
-			"admin": true, "owner": true, "lead": true, "maintainer": true,
-		}
-		if !featureRoles[membershipKind] {
-			return fmt.Errorf(
-				"%w: user %s cannot toggle featured on profile %s (requires maintainer+)",
-				ErrInsufficientProfileRole,
-				userID,
-				pubProfileID,
-			)
-		}
-	}
-
-	err = s.repo.UpdateStoryPublication(ctx, publicationID, isFeatured)
+	err := s.repo.UpdateStoryPublication(ctx, publicationID, isFeatured)
 	if err != nil {
 		return fmt.Errorf(
 			"%w(publicationID: %s): %w",
@@ -1506,6 +1670,7 @@ func (s *Service) UpdatePublication(
 		EntityID:   storyID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
+		SessionID:  nil,
 		Payload:    map[string]any{"publication_id": publicationID, "is_featured": isFeatured},
 	})
 

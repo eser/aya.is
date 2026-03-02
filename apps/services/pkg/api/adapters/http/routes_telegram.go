@@ -20,7 +20,7 @@ import (
 )
 
 // RegisterHTTPRoutesForTelegram registers the Telegram webhook and code verification endpoints.
-func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen
+func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen,gocognit,gocyclo,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -186,7 +186,7 @@ func RegisterHTTPRoutesForTelegram( //nolint:cyclop,funlen
 	routes.Route(
 		"POST /{locale}/profiles/{slug}/_resources/telegram/verify-code",
 		AuthMiddleware(authService, userService),
-		func(ctx *httpfx.Context) httpfx.Result { //nolint:cyclop,funlen
+		func(ctx *httpfx.Context) httpfx.Result {
 			localeParam, localeOk := validateLocale(ctx)
 			if !localeOk {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))

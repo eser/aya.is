@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -114,5 +115,10 @@ func (s *AuditService) ListByEntity(
 	entityID string,
 	limit int,
 ) ([]*AuditEntry, error) {
-	return s.repo.ListByEntity(ctx, entityType, entityID, limit)
+	entries, err := s.repo.ListByEntity(ctx, entityType, entityID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("listing audit entries: %w", err)
+	}
+
+	return entries, nil
 }

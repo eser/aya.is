@@ -63,7 +63,7 @@ var (
 
 // SanitizeContent transforms Hugo/Zola shortcodes in markdown content
 // into MDX-compatible equivalents (links, embeds, images, or removal).
-func SanitizeContent(content string) string {
+func SanitizeContent(content string) string { //nolint:funlen // sequential regex replacements
 	result := content
 
 	// Convert tweet shortcodes → Twitter embed link
@@ -92,7 +92,7 @@ func SanitizeContent(content string) string {
 	// Convert gist shortcodes → Gist link
 	result = reGist.ReplaceAllStringFunc(result, func(match string) string {
 		parts := reGist.FindStringSubmatch(match)
-		if len(parts) >= 3 {
+		if len(parts) >= 3 { //nolint:mnd
 			url := "https://gist.github.com/" + parts[1] + "/" + parts[2]
 
 			return url
@@ -104,18 +104,21 @@ func SanitizeContent(content string) string {
 	// Convert figure shortcodes → markdown image
 	result = reFigureSrc.ReplaceAllStringFunc(result, func(match string) string {
 		srcParts := reFigureSrc.FindStringSubmatch(match)
-		if len(srcParts) < 2 {
+		if len(srcParts) < minFigureSubmatchGroups {
 			return ""
 		}
 
 		src := srcParts[1]
 
 		alt := ""
-		if altMatch := reFigureAlt.FindStringSubmatch(match); len(altMatch) >= 2 {
+		if altMatch := reFigureAlt.FindStringSubmatch(match); len(
+			altMatch,
+		) >= minFigureSubmatchGroups {
 			alt = altMatch[1]
 		}
 
-		if caption := reFigureCap.FindStringSubmatch(match); alt == "" && len(caption) >= 2 {
+		if caption := reFigureCap.FindStringSubmatch(match); alt == "" &&
+			len(caption) >= minFigureSubmatchGroups {
 			alt = caption[1]
 		}
 
@@ -136,20 +139,20 @@ func SanitizeContent(content string) string {
 
 // SanitizeDescription strips HTML tags and markdown syntax from a description string,
 // producing clean plain text suitable for display in story cards.
-func SanitizeDescription(s string) string {
+func SanitizeDescription(input string) string {
 	// Strip HTML tags
 	inTag := false
 
 	var result strings.Builder
 
-	for _, ch := range s {
-		if ch == '<' {
+	for _, char := range input {
+		if char == '<' {
 			inTag = true
 
 			continue
 		}
 
-		if ch == '>' {
+		if char == '>' {
 			inTag = false
 
 			result.WriteRune(' ')
@@ -158,7 +161,7 @@ func SanitizeDescription(s string) string {
 		}
 
 		if !inTag {
-			result.WriteRune(ch)
+			result.WriteRune(char)
 		}
 	}
 
@@ -182,6 +185,14 @@ var (
 	reMarkdownUnderlineHeading = regexp.MustCompile(`(?m)^[=\-]{3,}\s*$`)
 	reMarkdownImageLink        = regexp.MustCompile(`!?\[([^\]]*)\]\([^)]+\)`)
 	reMultipleSpaces           = regexp.MustCompile(`\s{2,}`)
+)
+
+const (
+	// minFigureSubmatchGroups is the minimum submatch group count for figure shortcode regex matches.
+	minFigureSubmatchGroups = 2
+
+	// minImageSubmatchGroups is the minimum submatch group count for image regex patterns.
+	minImageSubmatchGroups = 4
 )
 
 // Patterns for image references in markdown.
@@ -233,7 +244,7 @@ func ResolveRelativeImages(content, ownerRepo, branch, filePath string) string {
 	// Rewrite markdown images: ![alt](relative/path)
 	result = reMarkdownImage.ReplaceAllStringFunc(result, func(match string) string {
 		parts := reMarkdownImage.FindStringSubmatch(match)
-		if len(parts) < 4 {
+		if len(parts) < minImageSubmatchGroups {
 			return match
 		}
 
@@ -243,7 +254,7 @@ func ResolveRelativeImages(content, ownerRepo, branch, filePath string) string {
 	// Rewrite HTML img src: <img src="relative/path">
 	result = reHTMLImgSrc.ReplaceAllStringFunc(result, func(match string) string {
 		parts := reHTMLImgSrc.FindStringSubmatch(match)
-		if len(parts) < 4 {
+		if len(parts) < minImageSubmatchGroups {
 			return match
 		}
 

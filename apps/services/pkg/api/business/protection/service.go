@@ -48,9 +48,13 @@ func (s *Service) CreatePOWChallenge(ctx context.Context, clientIP string) (*POW
 		return nil, ErrPOWChallengeDisabled
 	}
 
-	// Generate random prefix (32 bytes = 64 hex chars)
-	prefixBytes := make([]byte, 32)
-	if _, err := rand.Read(prefixBytes); err != nil {
+	// Generate random prefix (prefixByteLength bytes = 64 hex chars)
+	const prefixByteLength = 32
+
+	prefixBytes := make([]byte, prefixByteLength)
+
+	_, err := rand.Read(prefixBytes)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateChallenge, err)
 	}
 
@@ -67,9 +71,9 @@ func (s *Service) CreatePOWChallenge(ctx context.Context, clientIP string) (*POW
 		CreatedAt:  now,
 	}
 
-	err := s.repo.CreatePOWChallenge(ctx, challenge)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateChallenge, err)
+	createErr := s.repo.CreatePOWChallenge(ctx, challenge)
+	if createErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateChallenge, createErr)
 	}
 
 	return challenge, nil
@@ -108,10 +112,11 @@ func (s *Service) VerifyAndConsumePOWChallenge(
 	}
 
 	// Mark as used
-	if err := s.repo.MarkPOWChallengeUsed(ctx, challengeID); err != nil {
+	markErr := s.repo.MarkPOWChallengeUsed(ctx, challengeID)
+	if markErr != nil {
 		s.logger.WarnContext(ctx, "Failed to mark PoW challenge as used",
 			"challenge_id", challengeID,
-			"error", err.Error())
+			"error", markErr.Error())
 		// Don't fail the operation - challenge was valid
 	}
 
@@ -125,5 +130,10 @@ func (s *Service) IsPOWChallengeEnabled() bool {
 
 // CleanupExpiredChallenges removes expired challenges from the database.
 func (s *Service) CleanupExpiredChallenges(ctx context.Context) error {
-	return s.repo.DeleteExpiredPOWChallenges(ctx)
+	err := s.repo.DeleteExpiredPOWChallenges(ctx)
+	if err != nil {
+		return fmt.Errorf("deleting expired challenges: %w", err)
+	}
+
+	return nil
 }

@@ -2,13 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft, Languages, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,10 +48,12 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
   const { t } = useTranslation();
   const [translatingLocale, setTranslatingLocale] = React.useState<string | null>(null);
   const [deletingLocale, setDeletingLocale] = React.useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = React.useState<{
-    type: "delete" | "auto-translate";
-    locale: string;
-  } | null>(null);
+  const [confirmAction, setConfirmAction] = React.useState<
+    {
+      type: "delete" | "auto-translate";
+      locale: string;
+    } | null
+  >(null);
 
   const translationSet = React.useMemo(() => {
     if (translationLocales === null) {
@@ -177,9 +173,7 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
                       disabled={hasTranslation || isCurrent || isBusy}
                       title={t("ContentEditor.Auto-translate")}
                     >
-                      {isTranslating
-                        ? <Loader2 className="size-4 animate-spin" />
-                        : <Sparkles className="size-4" />}
+                      {isTranslating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
                     </Button>
 
                     <Button
@@ -201,7 +195,9 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
 
       <AlertDialog
         open={confirmAction !== null}
-        onOpenChange={(isOpen) => { if (!isOpen) setConfirmAction(null); }}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setConfirmAction(null);
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -229,9 +225,7 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
                 setConfirmAction(null);
               }}
             >
-              {confirmAction?.type === "delete"
-                ? t("Common.Delete")
-                : t("ContentEditor.Translate")}
+              {confirmAction?.type === "delete" ? t("Common.Delete") : t("ContentEditor.Translate")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

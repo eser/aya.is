@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -86,18 +87,18 @@ func (r *Repository) GetLinkImportByRemoteID(
 // CreateLinkImport creates a new link import.
 func (r *Repository) CreateLinkImport(
 	ctx context.Context,
-	id string,
+	importID string,
 	profileLinkID string,
 	remoteID string,
 	properties map[string]any,
 ) error {
 	propertiesJSON, err := json.Marshal(properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling link import properties: %w", err)
 	}
 
 	return r.queries.CreateLinkImport(ctx, CreateLinkImportParams{
-		ID:            id,
+		ID:            importID,
 		ProfileLinkID: profileLinkID,
 		RemoteID:      sql.NullString{String: remoteID, Valid: true},
 		Properties:    pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
@@ -107,16 +108,16 @@ func (r *Repository) CreateLinkImport(
 // UpdateLinkImport updates an existing link import.
 func (r *Repository) UpdateLinkImport(
 	ctx context.Context,
-	id string,
+	importID string,
 	properties map[string]any,
 ) error {
 	propertiesJSON, err := json.Marshal(properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshaling link import properties: %w", err)
 	}
 
 	_, err = r.queries.UpdateLinkImport(ctx, UpdateLinkImportParams{
-		ID:         id,
+		ID:         importID,
 		Properties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
 	})
 
@@ -241,6 +242,11 @@ func (r *Repository) ListImportsWithExistingStories(
 			}
 		}
 
+		var publicationID *string
+		if row.PublicationID.Valid {
+			publicationID = &row.PublicationID.String
+		}
+
 		item := &linksync.LinkImportWithStory{
 			ID:                   row.ID,
 			ProfileLinkID:        row.ProfileLinkID,
@@ -250,10 +256,7 @@ func (r *Repository) ListImportsWithExistingStories(
 			ProfileID:            row.ProfileID,
 			ProfileDefaultLocale: row.ProfileDefaultLocale,
 			StoryID:              row.StoryID,
-		}
-
-		if row.PublicationID.Valid {
-			item.PublicationID = &row.PublicationID.String
+			PublicationID:        publicationID,
 		}
 
 		result[i] = item

@@ -9,23 +9,10 @@ import type { PendingAward, PendingAwardStatus } from "@/modules/backend/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, XCircle, Coins, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, Coins, Loader2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/points/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -181,100 +168,102 @@ function AdminPointsDashboard() {
 
   return (
     <div className="space-y-6">
-      {stats === null ? (
-        <div className="text-center py-8 text-muted-foreground">
-          {t("Admin.Failed to load statistics")}
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("Admin.Pending Awards")}
-                </CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.total_pending}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t("Admin.Awards awaiting review")}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("Admin.Approved Awards")}
-                </CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.total_approved}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t("Admin.Total approved awards")}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("Admin.Rejected Awards")}
-                </CardTitle>
-                <XCircle className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.total_rejected}</div>
-                <p className="text-xs text-muted-foreground">
-                  {t("Admin.Total rejected awards")}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("Admin.Points Awarded")}
-                </CardTitle>
-                <Coins className="h-4 w-4 text-yellow-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(stats.points_awarded ?? 0).toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("Admin.Total points distributed")}
-                </p>
-              </CardContent>
-            </Card>
+      {stats === null
+        ? (
+          <div className="text-center py-8 text-muted-foreground">
+            {t("Admin.Failed to load statistics")}
           </div>
+        )
+        : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {t("Admin.Pending Awards")}
+                  </CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_pending}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("Admin.Awards awaiting review")}
+                  </p>
+                </CardContent>
+              </Card>
 
-          {stats.by_event_type !== undefined && Object.keys(stats.by_event_type).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">
-                  {t("Admin.Pending by Event Type")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {Object.entries(stats.by_event_type).map(([event, count]) => (
-                    <div
-                      key={event}
-                      className="flex items-center justify-between py-1"
-                    >
-                      <span className="text-sm text-muted-foreground">{event}</span>
-                      <span className="font-medium">{count as number}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {t("Admin.Approved Awards")}
+                  </CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_approved}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("Admin.Total approved awards")}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {t("Admin.Rejected Awards")}
+                  </CardTitle>
+                  <XCircle className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_rejected}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("Admin.Total rejected awards")}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {t("Admin.Points Awarded")}
+                  </CardTitle>
+                  <Coins className="h-4 w-4 text-yellow-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {(stats.points_awarded ?? 0).toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("Admin.Total points distributed")}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {stats.by_event_type !== undefined && Object.keys(stats.by_event_type).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium">
+                    {t("Admin.Pending by Event Type")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {Object.entries(stats.by_event_type).map(([event, count]) => (
+                      <div
+                        key={event}
+                        className="flex items-center justify-between py-1"
+                      >
+                        <span className="text-sm text-muted-foreground">{event}</span>
+                        <span className="font-medium">{count as number}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
 
       {/* Pending Awards Section */}
       <div className="space-y-4 pt-4">
@@ -307,11 +296,9 @@ function AdminPointsDashboard() {
                 onClick={handleBulkApprove}
                 disabled={isProcessing}
               >
-                {isProcessing ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
-                )}
+                {isProcessing
+                  ? <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  : <CheckCircle className="h-4 w-4 mr-1 text-green-500" />}
                 {t("Admin.Approve Selected")}
               </Button>
               <Button
@@ -320,105 +307,103 @@ function AdminPointsDashboard() {
                 onClick={handleBulkReject}
                 disabled={isProcessing}
               >
-                {isProcessing ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                ) : (
-                  <XCircle className="h-4 w-4 mr-1 text-red-500" />
-                )}
+                {isProcessing
+                  ? <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  : <XCircle className="h-4 w-4 mr-1 text-red-500" />}
                 {t("Admin.Reject Selected")}
               </Button>
             </div>
           </div>
         )}
 
-        {awards.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            {t("Admin.No awards found")}
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {status === "pending" && (
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={
-                        selectedIds.size === awards.length && awards.length > 0
-                      }
-                      onCheckedChange={toggleSelectAll}
-                    />
-                  </TableHead>
-                )}
-                <TableHead>{t("Admin.Event")}</TableHead>
-                <TableHead>{t("Admin.Profile")}</TableHead>
-                <TableHead>{t("Common.Amount")}</TableHead>
-                <TableHead>{t("Common.Date")}</TableHead>
-                <TableHead>{t("Common.Status")}</TableHead>
-                {status === "pending" && (
-                  <TableHead className="text-right">{t("Common.Actions")}</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {awards.map((award) => (
-                <TableRow key={award.id}>
+        {awards.length === 0
+          ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {t("Admin.No awards found")}
+            </div>
+          )
+          : (
+            <Table>
+              <TableHeader>
+                <TableRow>
                   {status === "pending" && (
-                    <TableCell>
+                    <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedIds.has(award.id)}
-                        onCheckedChange={() => toggleSelect(award.id)}
+                        checked={selectedIds.size === awards.length && awards.length > 0}
+                        onCheckedChange={toggleSelectAll}
                       />
-                    </TableCell>
+                    </TableHead>
                   )}
-                  <TableCell className="font-mono text-sm">
-                    {award.triggering_event}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {award.target_profile !== undefined ? (
-                      <LocaleLink
-                        to={`/${award.target_profile.slug}`}
-                        className="text-foreground hover:underline"
-                      >
-                        {award.target_profile.title}
-                      </LocaleLink>
-                    ) : (
-                      <span className="font-mono text-muted-foreground">
-                        {award.target_profile_id.slice(0, 8)}...
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{award.amount}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDateTimeShort(new Date(award.created_at), locale)}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(award.status)}</TableCell>
-                  {status === "pending" && (
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleApprove(award.id)}
-                          disabled={isProcessing}
-                        >
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleReject(award.id)}
-                          disabled={isProcessing}
-                        >
-                          <XCircle className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  )}
+                  <TableHead>{t("Admin.Event")}</TableHead>
+                  <TableHead>{t("Admin.Profile")}</TableHead>
+                  <TableHead>{t("Common.Amount")}</TableHead>
+                  <TableHead>{t("Common.Date")}</TableHead>
+                  <TableHead>{t("Common.Status")}</TableHead>
+                  {status === "pending" && <TableHead className="text-right">{t("Common.Actions")}</TableHead>}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {awards.map((award) => (
+                  <TableRow key={award.id}>
+                    {status === "pending" && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(award.id)}
+                          onCheckedChange={() => toggleSelect(award.id)}
+                        />
+                      </TableCell>
+                    )}
+                    <TableCell className="font-mono text-sm">
+                      {award.triggering_event}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {award.target_profile !== undefined
+                        ? (
+                          <LocaleLink
+                            to={`/${award.target_profile.slug}`}
+                            className="text-foreground hover:underline"
+                          >
+                            {award.target_profile.title}
+                          </LocaleLink>
+                        )
+                        : (
+                          <span className="font-mono text-muted-foreground">
+                            {award.target_profile_id.slice(0, 8)}...
+                          </span>
+                        )}
+                    </TableCell>
+                    <TableCell className="font-medium">{award.amount}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDateTimeShort(new Date(award.created_at), locale)}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(award.status)}</TableCell>
+                    {status === "pending" && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleApprove(award.id)}
+                            disabled={isProcessing}
+                          >
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleReject(award.id)}
+                            disabled={isProcessing}
+                          >
+                            <XCircle className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
       </div>
     </div>
   );

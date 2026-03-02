@@ -955,6 +955,95 @@ function ExpensiveList(props: { items: Item[] }) {
 
 ---
 
+## Testability
+
+### Pure Function Extraction
+
+Scope: JS/TS (Deno-tested frontend utilities)
+
+Rule: Pure functions should be kept free of environment/framework dependencies
+(like `import.meta.env`, Vite-specific APIs, React context) to enable direct
+testing with Deno's test runner. When a utility file needs both pure logic and
+environment config, extract the pure logic into a separate file.
+
+Correct:
+
+```typescript
+// locale-utils.ts — pure functions, no import.meta.env
+export const SUPPORTED_LOCALES = ["en", "tr", "fr"] as const;
+export function isValidLocale(locale: string): boolean {
+  return SUPPORTED_LOCALES.includes(locale as any);
+}
+
+// config.ts — re-exports pure functions + adds env-dependent config
+export { SUPPORTED_LOCALES, isValidLocale } from "@/lib/locale-utils.ts";
+export const siteConfig = {
+  host: import.meta.env.VITE_SITE_URL,
+};
+```
+
+```typescript
+// seo-utils.ts — pure functions with explicit parameters
+export function generateMetaTags(
+  meta: SeoMeta,
+  defaults: { host: string; name: string; defaultImage: string },
+): MetaTag[] { /* ... */ }
+
+// seo.ts — thin wrapper injecting siteConfig
+import { generateMetaTags as generateMetaTagsPure } from "@/lib/seo-utils.ts";
+import { siteConfig } from "@/config.ts";
+const DEFAULTS = { host: siteConfig.host, name: siteConfig.name, defaultImage: `${siteConfig.host}/og-image.png` };
+export function generateMetaTags(meta: SeoMeta) {
+  return generateMetaTagsPure(meta, DEFAULTS);
+}
+```
+
+Incorrect:
+
+```typescript
+// ❌ Pure logic mixed with env dependency — untestable with Deno
+import { siteConfig } from "@/config.ts"; // transitively imports import.meta.env
+export function buildUrl(locale: string, ...segments: string[]) {
+  return `${siteConfig.host}/${locale}/${segments.join("/")}`;
+}
+```
+
+Naming convention: `foo-utils.ts` for pure functions, `foo.ts` for the
+config-aware wrapper that re-exports and/or delegates to the utils file.
+
+### Snapshot Testing Pattern
+
+Scope: Deno test files (`*.test.ts`)
+
+Rule: Use `assertSnapshot` from `@std/testing/snapshot` for anti-regression
+tests. Test files need `/// <reference lib="deno.ns" />` since the project
+tsconfig targets Vite/React. Use `--no-check` flag when Deno's type checker
+conflicts with Vite-compatible types (e.g., Zod v4).
+
+Correct:
+
+```typescript
+/// <reference lib="deno.ns" />
+import { assertSnapshot } from "@std/testing/snapshot";
+import { myFunction } from "./my-utils.ts";
+
+Deno.test("myFunction - descriptive case name", async (t) => {
+  await assertSnapshot(t, myFunction("input"));
+});
+```
+
+Test commands (in package.json):
+
+```json
+{
+  "test": "deno test --no-check --allow-read --allow-write=. src/",
+  "test:update": "deno test --no-check --allow-read --allow-write=. -- --update src/",
+  "test:ci": "deno test --no-check --allow-read src/"
+}
+```
+
+---
+
 ## Translation System
 
 ### Translation Key Format

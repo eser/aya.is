@@ -48,12 +48,9 @@ export function ModeToggle() {
       // Apply theme class synchronously — useEffect won't fire within flushSync
       const root = document.documentElement;
       root.classList.remove("light", "dark");
-      const resolved =
-        newTheme === "system"
-          ? globalThis.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light"
-          : newTheme;
+      const resolved = newTheme === "system"
+        ? globalThis.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+        : newTheme;
       root.classList.add(resolved);
     });
 

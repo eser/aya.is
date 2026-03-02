@@ -7,6 +7,16 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import { visit } from "unist-util-visit";
 import { remarkEmbed } from "./remark-embed";
 
+interface HastNode {
+  type: string;
+  children?: HastNode[];
+}
+
+interface HastElement extends HastNode {
+  tagName: string;
+  properties?: Record<string, unknown>;
+}
+
 import {
   Card,
   Cards,
@@ -30,8 +40,8 @@ const headingTags: HeadingTag[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
  * to all links so they open in a new tab.
  */
 function rehypeExternalLinks() {
-  return (tree: any) => {
-    visit(tree, "element", (node: any) => {
+  return (tree: HastNode) => {
+    visit(tree, "element", (node: HastElement) => {
       if (
         node.tagName === "a" &&
         node.properties?.href !== undefined &&
@@ -57,8 +67,8 @@ function rehypeExternalLinks() {
 export function createMdxComponents(
   offset: number = 1,
   includeUserlandComponents: boolean = true,
-): Record<string, React.ComponentType<any>> {
-  const components: Record<string, React.ComponentType<any>> = {};
+): Record<string, React.ComponentType<Record<string, unknown>>> {
+  const components: Record<string, React.ComponentType<Record<string, unknown>>> = {};
 
   // Add heading components with offset
   for (let i = 0; i < headingTags.length; i++) {
@@ -66,9 +76,7 @@ export function createMdxComponents(
     const targetIndex = Math.min(i + offset, headingTags.length - 1);
     const TargetTag = headingTags[targetIndex];
 
-    components[sourceTag] = (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <TargetTag {...props} />
-    );
+    components[sourceTag] = (props: React.HTMLAttributes<HTMLHeadingElement>) => <TargetTag {...props} />;
   }
 
   if (includeUserlandComponents) {

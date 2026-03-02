@@ -36,18 +36,18 @@ type Router struct {
 func NewRouter(path string) *Router {
 	mux := http.NewServeMux()
 
-	r := &Router{
+	router := &Router{ //nolint:exhaustruct
 		mux:  mux,
 		path: path,
 	}
 
 	// Initialize with empty route table
-	r.table.Store(&routeTable{
+	router.table.Store(&routeTable{
 		handlers: make([]Handler, 0),
 		routes:   make([]*Route, 0),
 	})
 
-	return r
+	return router
 }
 
 func (r *Router) GetMux() *http.ServeMux {
@@ -132,7 +132,7 @@ func (r *Router) Use(handlers ...Handler) {
 
 // Route registers a new route with the given pattern and handlers.
 // Panics if the router has been frozen.
-func (r *Router) Route(pattern string, handlers ...Handler) *Route {
+func (r *Router) Route(pattern string, handlers ...Handler) *Route { //nolint:funlen
 	if r.frozen.Load() {
 		panic("httpfx: cannot register route on frozen router")
 	}
@@ -152,7 +152,7 @@ func (r *Router) Route(pattern string, handlers ...Handler) *Route {
 	routeHandlers := make([]Handler, len(handlers))
 	copy(routeHandlers, handlers)
 
-	route := &Route{
+	route := &Route{ //nolint:exhaustruct
 		Pattern:  parsed,
 		Handlers: routeHandlers,
 		frozen:   false, // Will be frozen when router is frozen

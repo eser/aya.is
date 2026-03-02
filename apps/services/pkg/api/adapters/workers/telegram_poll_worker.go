@@ -27,10 +27,11 @@ func NewTelegramPollWorker(
 	bot *telegramadapter.Bot,
 ) *TelegramPollWorker {
 	return &TelegramPollWorker{
-		config: config,
-		logger: logger,
-		client: client,
-		bot:    bot,
+		config:       config,
+		logger:       logger,
+		client:       client,
+		bot:          bot,
+		lastUpdateID: atomic.Int64{},
 	}
 }
 

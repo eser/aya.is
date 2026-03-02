@@ -5,8 +5,9 @@ import (
 )
 
 type Result struct { //nolint:errname
-	InnerRedirectToURI string
 	results.Result
+
+	InnerRedirectToURI string
 
 	InnerBody []byte
 

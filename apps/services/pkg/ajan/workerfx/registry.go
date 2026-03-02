@@ -11,6 +11,7 @@ type Registry struct {
 // NewRegistry creates a new worker registry.
 func NewRegistry() *Registry {
 	return &Registry{
+		mu:      sync.RWMutex{},
 		runners: make(map[string]*Runner),
 	}
 }

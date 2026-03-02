@@ -4,6 +4,9 @@ import (
 	"time"
 )
 
+// disabledStateValue is the runtime state value that disables a worker.
+const disabledStateValue = "true"
+
 // YouTubeSyncConfig holds configuration for the YouTube sync workers.
 type YouTubeSyncConfig struct {
 	FullSyncEnabled         bool          `conf:"full_sync_enabled"         default:"true"`

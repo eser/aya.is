@@ -127,7 +127,7 @@ func (w *YouTubeSyncWorker) Execute(ctx context.Context) error {
 	disabledKey := "worker." + w.Name() + ".disabled"
 
 	disabled, err := w.runtimeStates.Get(ctx, disabledKey)
-	if err == nil && disabled == "true" {
+	if err == nil && disabled == disabledStateValue {
 		return workerfx.ErrWorkerSkipped
 	}
 
@@ -250,43 +250,15 @@ func (w *YouTubeSyncWorker) syncLink( //nolint:cyclop,funlen
 
 	// Check if token needs refresh
 	if w.needsTokenRefresh(link) {
-		if link.AuthRefreshToken == nil {
-			// No refresh token - try with existing access token anyway
-			// The API will return 401 if it's truly expired
-			w.logger.WarnContext(ctx, "No refresh token available, trying existing access token",
-				slog.String("link_id", link.ID))
-		} else {
-			w.logger.DebugContext(ctx, "Refreshing YouTube access token",
-				slog.String("link_id", link.ID))
+		refreshedToken, refreshErr := w.refreshTokenIfPossible(ctx, link)
+		if refreshErr != nil {
+			result.Error = refreshErr
 
-			refreshResult, err := w.fetcher.RefreshAccessToken(ctx, *link.AuthRefreshToken)
-			if err != nil {
-				result.Error = err
+			return result
+		}
 
-				return result
-			}
-
-			// Preserve existing refresh token if Google didn't return a new one
-			refreshToken := refreshResult.RefreshToken
-			if refreshToken == nil {
-				refreshToken = link.AuthRefreshToken
-			}
-
-			// Update tokens in database
-			err = w.syncService.UpdateLinkTokens(
-				ctx,
-				link.ID,
-				refreshResult.AccessToken,
-				refreshResult.AccessTokenExpiresAt,
-				refreshToken,
-			)
-			if err != nil {
-				result.Error = err
-
-				return result
-			}
-
-			accessToken = refreshResult.AccessToken
+		if refreshedToken != "" {
+			accessToken = refreshedToken
 		}
 	}
 
@@ -359,6 +331,49 @@ func (w *YouTubeSyncWorker) syncLink( //nolint:cyclop,funlen
 	}
 
 	return result
+}
+
+// refreshTokenIfPossible refreshes the access token if a refresh token is available.
+// Returns the new access token (empty string if no refresh was performed) or an error.
+func (w *YouTubeSyncWorker) refreshTokenIfPossible(
+	ctx context.Context,
+	link *linksync.ManagedLink,
+) (string, error) {
+	if link.AuthRefreshToken == nil {
+		// No refresh token - try with existing access token anyway
+		w.logger.WarnContext(ctx, "No refresh token available, trying existing access token",
+			slog.String("link_id", link.ID))
+
+		return "", nil
+	}
+
+	w.logger.DebugContext(ctx, "Refreshing YouTube access token",
+		slog.String("link_id", link.ID))
+
+	refreshResult, err := w.fetcher.RefreshAccessToken(ctx, *link.AuthRefreshToken)
+	if err != nil {
+		return "", fmt.Errorf("refreshing access token: %w", err)
+	}
+
+	// Preserve existing refresh token if Google didn't return a new one
+	refreshToken := refreshResult.RefreshToken
+	if refreshToken == nil {
+		refreshToken = link.AuthRefreshToken
+	}
+
+	// Update tokens in database
+	err = w.syncService.UpdateLinkTokens(
+		ctx,
+		link.ID,
+		refreshResult.AccessToken,
+		refreshResult.AccessTokenExpiresAt,
+		refreshToken,
+	)
+	if err != nil {
+		return "", fmt.Errorf("updating link tokens: %w", err)
+	}
+
+	return refreshResult.AccessToken, nil
 }
 
 // needsTokenRefresh checks if the access token needs to be refreshed.

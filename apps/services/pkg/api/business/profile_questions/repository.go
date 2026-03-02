@@ -7,7 +7,7 @@ import (
 )
 
 // Repository defines the storage operations for profile questions (port).
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	// GetQAVisibility returns the Q&A module visibility for a profile.
 	GetQAVisibility(ctx context.Context, profileID string) (string, error)
 

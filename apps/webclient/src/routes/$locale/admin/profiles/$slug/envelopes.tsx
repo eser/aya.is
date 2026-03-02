@@ -8,14 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Send, Loader2, CheckCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle, Loader2, Send } from "lucide-react";
 
 const ENVELOPE_KINDS = [
   { value: "message", labelKey: "ProfileSettings.Standard Message" },
@@ -225,9 +219,7 @@ function AdminProfileEnvelopes() {
               <FieldError>{fieldErrors.message}</FieldError>
             )}
           </Field>
-          {sendError !== null && (
-            <FieldError>{sendError}</FieldError>
-          )}
+          {sendError !== null && <FieldError>{sendError}</FieldError>}
           {sendSuccess && (
             <p className="text-sm text-green-600 flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
@@ -235,11 +227,7 @@ function AdminProfileEnvelopes() {
             </p>
           )}
           <Button onClick={handleSend} disabled={isSending}>
-            {isSending ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Send className="h-4 w-4 mr-2" />
-            )}
+            {isSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
             {t("ProfileSettings.Send In-mail")}
           </Button>
         </CardContent>

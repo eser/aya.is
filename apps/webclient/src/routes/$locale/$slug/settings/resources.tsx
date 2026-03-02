@@ -125,7 +125,7 @@ function ResourcesSettings() {
       );
 
       if (oauthResult !== null) {
-        window.location.href = oauthResult.auth_url;
+        globalThis.location.href = oauthResult.auth_url;
       } else {
         toast.error(t("Profile.Failed to initiate GitHub authorization"));
       }

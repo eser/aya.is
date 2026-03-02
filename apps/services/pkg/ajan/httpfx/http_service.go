@@ -39,7 +39,7 @@ func NewHTTPService(
 	router *Router,
 	logger *logfx.Logger,
 ) *HTTPService {
-	hs := &HTTPService{
+	httpService := &HTTPService{
 		InnerServer:  nil, // Will be set below
 		InnerRouter:  router,
 		InnerMetrics: nil, // Will be set below
@@ -61,16 +61,16 @@ func NewHTTPService(
 		Handler: router.GetMux(),
 
 		// ConnState callback for connection lifecycle tracking
-		ConnState: hs.connStateCallback,
+		ConnState: httpService.connStateCallback,
 	}
 
 	metricsBuilder := logger.NewMetricsBuilder("httpfx")
 	metrics := NewMetrics(metricsBuilder)
 
-	hs.InnerServer = server
-	hs.InnerMetrics = metrics
+	httpService.InnerServer = server
+	httpService.InnerMetrics = metrics
 
-	return hs
+	return httpService
 }
 
 func (hs *HTTPService) Server() *http.Server {
@@ -89,6 +89,8 @@ func (hs *HTTPService) connStateCallback(conn net.Conn, state http.ConnState) {
 		atomic.AddInt64(&hs.totalConns, 1)
 	case http.StateClosed, http.StateHijacked:
 		atomic.AddInt64(&hs.activeConns, -1)
+	case http.StateActive, http.StateIdle:
+		// No action needed for active/idle transitions
 	}
 }
 
@@ -134,7 +136,7 @@ func (hs *HTTPService) SetupTLS(ctx context.Context) error {
 	return nil
 }
 
-func (hs *HTTPService) Start(ctx context.Context) (func(), error) {
+func (hs *HTTPService) Start(ctx context.Context) (func(), error) { //nolint:funlen
 	hs.logger.InfoContext(ctx, "HTTPService is starting...",
 		slog.String("addr", hs.Config.Addr),
 		slog.Int("max_connections", hs.Config.MaxConnections),
@@ -237,7 +239,12 @@ func (hs *HTTPService) createListener(ctx context.Context) (net.Listener, error)
 			slog.Any("error", err),
 		)
 
-		return net.Listen("tcp", hs.InnerServer.Addr)
+		standardListener, listenErr := net.Listen("tcp", hs.InnerServer.Addr)
+		if listenErr != nil {
+			return nil, fmt.Errorf("standard listener creation: %w", listenErr)
+		}
+
+		return standardListener, nil
 	}
 
 	return listener, nil

@@ -1,6 +1,6 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
-import type { ProfileLink, LinkVisibility } from "../types";
+import type { LinkVisibility, ProfileLink } from "../types";
 
 export type CreateProfileLinkRequest = {
   kind: string;

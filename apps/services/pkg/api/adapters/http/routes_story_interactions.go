@@ -12,7 +12,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
-func RegisterHTTPRoutesForStoryInteractions( //nolint:funlen
+func RegisterHTTPRoutesForStoryInteractions( //nolint:funlen,gocognit,gocyclo,cyclop,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -35,7 +35,8 @@ func RegisterHTTPRoutesForStoryInteractions( //nolint:funlen
 				Kind string `json:"kind"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 

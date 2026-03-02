@@ -61,7 +61,7 @@ func TestRegistry_SQLiteConnection(t *testing.T) {
 	assert.NotNil(t, db)
 
 	// Verify it's actually a working *sql.DB
-	err = db.Ping()
+	err = db.PingContext(ctx)
 	require.NoError(t, err)
 
 	// Close connection
@@ -341,7 +341,7 @@ func TestGetTypedConnection(t *testing.T) {
 	assert.NotNil(t, db)
 
 	// Verify it's actually a working *sql.DB
-	err = db.Ping()
+	err = db.PingContext(ctx)
 	require.NoError(t, err)
 
 	// Test failed type extraction (wrong type)

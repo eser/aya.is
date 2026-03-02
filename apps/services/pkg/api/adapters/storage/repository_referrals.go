@@ -12,7 +12,7 @@ import (
 
 func (r *Repository) CreateProfileMembershipReferral(
 	ctx context.Context,
-	id string,
+	referralID string,
 	profileID string,
 	referredProfileID string,
 	referrerMembershipID string,
@@ -20,7 +20,7 @@ func (r *Repository) CreateProfileMembershipReferral(
 	row, err := r.queries.CreateProfileMembershipReferral(
 		ctx,
 		CreateProfileMembershipReferralParams{
-			ID:                   id,
+			ID:                   referralID,
 			ProfileID:            profileID,
 			ReferredProfileID:    referredProfileID,
 			ReferrerMembershipID: referrerMembershipID,
@@ -37,6 +37,13 @@ func (r *Repository) CreateProfileMembershipReferral(
 		ReferrerMembershipID: row.ReferrerMembershipID,
 		Status:               profiles.ReferralStatus(row.Status),
 		VoteCount:            int(row.VoteCount),
+		TotalVotes:           0,
+		AverageScore:         0,
+		ViewerVoteScore:      nil,
+		ViewerVoteComment:    nil,
+		ReferrerProfile:      nil,
+		ReferredProfile:      nil,
+		Teams:                nil,
 		CreatedAt:            row.CreatedAt,
 		UpdatedAt:            vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -63,6 +70,13 @@ func (r *Repository) GetProfileMembershipReferralByID(
 		ReferrerMembershipID: row.ReferrerMembershipID,
 		Status:               profiles.ReferralStatus(row.Status),
 		VoteCount:            int(row.VoteCount),
+		TotalVotes:           0,
+		AverageScore:         0,
+		ViewerVoteScore:      nil,
+		ViewerVoteComment:    nil,
+		ReferrerProfile:      nil,
+		ReferredProfile:      nil,
+		Teams:                nil,
 		CreatedAt:            row.CreatedAt,
 		UpdatedAt:            vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -91,9 +105,63 @@ func (r *Repository) GetProfileMembershipReferralByProfileAndReferred(
 		ReferrerMembershipID: row.ReferrerMembershipID,
 		Status:               profiles.ReferralStatus(row.Status),
 		VoteCount:            int(row.VoteCount),
+		TotalVotes:           0,
+		AverageScore:         0,
+		ViewerVoteScore:      nil,
+		ViewerVoteComment:    nil,
+		ReferrerProfile:      nil,
+		ReferredProfile:      nil,
+		Teams:                nil,
 		CreatedAt:            row.CreatedAt,
 		UpdatedAt:            vars.ToTimePtr(row.UpdatedAt),
 	}, nil
+}
+
+// referralListRowToReferral converts a ListProfileMembershipReferralsByProfileIDRow
+// to a business ProfileMembershipReferral.
+func referralListRowToReferral(
+	row *ListProfileMembershipReferralsByProfileIDRow,
+) *profiles.ProfileMembershipReferral {
+	avgScore, _ := strconv.ParseFloat(row.AverageScore, 64)
+
+	var viewerVoteScore *int16
+
+	if row.ViewerVoteScore != -1 {
+		score := row.ViewerVoteScore
+		viewerVoteScore = &score
+	}
+
+	return &profiles.ProfileMembershipReferral{
+		ID:                   row.ID,
+		ProfileID:            row.ProfileID,
+		ReferredProfileID:    row.ReferredProfileID,
+		ReferrerMembershipID: row.ReferrerMembershipID,
+		Status:               profiles.ReferralStatus(row.Status),
+		VoteCount:            int(row.VoteCount),
+		TotalVotes:           row.TotalVotes,
+		AverageScore:         avgScore,
+		ViewerVoteScore:      viewerVoteScore,
+		ViewerVoteComment:    vars.ToStringPtr(row.ViewerVoteComment),
+		ReferrerProfile: &profiles.ProfileBrief{
+			ID:                "",
+			Slug:              row.ReferrerProfileSlug,
+			Kind:              row.ReferrerProfileKind,
+			ProfilePictureURI: vars.ToStringPtr(row.ReferrerProfilePictureURI),
+			Title:             strings.TrimRight(row.ReferrerProfileTitle, " "),
+			Description:       "",
+		},
+		ReferredProfile: &profiles.ProfileBrief{
+			ID:                "",
+			Slug:              row.ReferredProfileSlug,
+			Kind:              row.ReferredProfileKind,
+			ProfilePictureURI: vars.ToStringPtr(row.ReferredProfilePictureURI),
+			Title:             strings.TrimRight(row.ReferredProfileTitle, " "),
+			Description:       "",
+		},
+		Teams:     nil,
+		CreatedAt: row.CreatedAt,
+		UpdatedAt: vars.ToTimePtr(row.UpdatedAt),
+	}
 }
 
 func (r *Repository) ListProfileMembershipReferralsByProfileID(
@@ -120,45 +188,8 @@ func (r *Repository) ListProfileMembershipReferralsByProfileID(
 	}
 
 	result := make([]*profiles.ProfileMembershipReferral, 0, len(rows))
-
 	for _, row := range rows {
-		avgScore, _ := strconv.ParseFloat(row.AverageScore, 64)
-
-		var viewerVoteScore *int16
-
-		if row.ViewerVoteScore != -1 {
-			score := row.ViewerVoteScore
-			viewerVoteScore = &score
-		}
-
-		referral := &profiles.ProfileMembershipReferral{
-			ID:                   row.ID,
-			ProfileID:            row.ProfileID,
-			ReferredProfileID:    row.ReferredProfileID,
-			ReferrerMembershipID: row.ReferrerMembershipID,
-			Status:               profiles.ReferralStatus(row.Status),
-			VoteCount:            int(row.VoteCount),
-			CreatedAt:            row.CreatedAt,
-			UpdatedAt:            vars.ToTimePtr(row.UpdatedAt),
-			TotalVotes:           row.TotalVotes,
-			AverageScore:         avgScore,
-			ViewerVoteScore:      viewerVoteScore,
-			ViewerVoteComment:    vars.ToStringPtr(row.ViewerVoteComment),
-			ReferrerProfile: &profiles.ProfileBrief{
-				Slug:              row.ReferrerProfileSlug,
-				Kind:              row.ReferrerProfileKind,
-				ProfilePictureURI: vars.ToStringPtr(row.ReferrerProfilePictureURI),
-				Title:             strings.TrimRight(row.ReferrerProfileTitle, " "),
-			},
-			ReferredProfile: &profiles.ProfileBrief{
-				Slug:              row.ReferredProfileSlug,
-				Kind:              row.ReferredProfileKind,
-				ProfilePictureURI: vars.ToStringPtr(row.ReferredProfilePictureURI),
-				Title:             strings.TrimRight(row.ReferredProfileTitle, " "),
-			},
-		}
-
-		result = append(result, referral)
+		result = append(result, referralListRowToReferral(row))
 	}
 
 	return result, nil
@@ -166,7 +197,7 @@ func (r *Repository) ListProfileMembershipReferralsByProfileID(
 
 func (r *Repository) UpsertReferralVote(
 	ctx context.Context,
-	id string,
+	voteID string,
 	referralID string,
 	voterMembershipID string,
 	score int16,
@@ -178,7 +209,7 @@ func (r *Repository) UpsertReferralVote(
 	}
 
 	row, err := r.queries.UpsertReferralVote(ctx, UpsertReferralVoteParams{
-		ID:                          id,
+		ID:                          voteID,
 		ProfileMembershipReferralID: referralID,
 		VoterMembershipID:           voterMembershipID,
 		Score:                       score,
@@ -194,6 +225,7 @@ func (r *Repository) UpsertReferralVote(
 		VoterMembershipID:           row.VoterMembershipID,
 		Score:                       row.Score,
 		Comment:                     vars.ToStringPtr(row.Comment),
+		VoterProfile:                nil,
 		CreatedAt:                   row.CreatedAt,
 		UpdatedAt:                   vars.ToTimePtr(row.UpdatedAt),
 	}, nil
@@ -224,10 +256,12 @@ func (r *Repository) ListReferralVotes(
 			CreatedAt:                   row.CreatedAt,
 			UpdatedAt:                   vars.ToTimePtr(row.UpdatedAt),
 			VoterProfile: &profiles.ProfileBrief{
+				ID:                "",
 				Slug:              row.VoterProfileSlug,
 				Kind:              row.VoterProfileKind,
 				ProfilePictureURI: vars.ToStringPtr(row.VoterProfilePictureURI),
 				Title:             strings.TrimRight(row.VoterProfileTitle, " "),
+				Description:       "",
 			},
 		}
 
@@ -286,6 +320,8 @@ func (r *Repository) ListReferralTeams(
 
 				return nil
 			}(),
+			MemberCount:   0,
+			ResourceCount: 0,
 		})
 	}
 

@@ -93,11 +93,11 @@ function TemplateCard(props: TemplateCardProps) {
         </div>
         {/* Pattern overlay */}
         {template.defaults.backgroundPattern === "diagonal" && (
-          <div className={styles.templatePreviewPatternDiagonal} />
+          <div
+            className={styles.templatePreviewPatternDiagonal}
+          />
         )}
-        {template.defaults.backgroundPattern === "dots" && (
-          <div className={styles.templatePreviewPatternDots} />
-        )}
+        {template.defaults.backgroundPattern === "dots" && <div className={styles.templatePreviewPatternDots} />}
       </div>
       <span className={styles.templateName}>{template.name}</span>
     </button>

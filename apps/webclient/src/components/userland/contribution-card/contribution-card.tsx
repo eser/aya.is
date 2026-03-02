@@ -43,9 +43,7 @@ export function ContributionCard(props: ContributionCardProps) {
           </div>
           {profile.description !== null &&
             profile.description !== undefined &&
-            profile.description !== "" && (
-            <p className={styles.description}>{profile.description}</p>
-          )}
+            profile.description !== "" && <p className={styles.description}>{profile.description}</p>}
         </div>
 
         {githubStats !== undefined && (

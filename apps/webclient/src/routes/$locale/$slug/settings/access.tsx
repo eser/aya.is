@@ -4,32 +4,33 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+  Crown,
+  Heart,
   MoreHorizontal,
   Pencil,
   Plus,
-  Trash2,
   Search,
-  Users,
-  Crown,
   Shield,
-  Wrench,
-  UserPlus,
-  Heart,
   Star,
+  Trash2,
+  UserPlus,
+  Users,
+  Wrench,
 } from "lucide-react";
-import { backend, type ProfileMembershipWithMember, type UserSearchResult, type MembershipKind, type ProfileTeam } from "@/modules/backend/backend";
+import {
+  backend,
+  type MembershipKind,
+  type ProfileMembershipWithMember,
+  type ProfileTeam,
+  type UserSearchResult,
+} from "@/modules/backend/backend";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -191,9 +192,7 @@ function AccessSettingsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
 
   // Filter out admin-only membership kinds (sponsor, follower) for non-admin viewers
-  const memberships = isAdmin
-    ? allMemberships
-    : allMemberships.filter((m) => !adminOnlyKinds.has(m.kind));
+  const memberships = isAdmin ? allMemberships : allMemberships.filter((m) => !adminOnlyKinds.has(m.kind));
 
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
@@ -300,7 +299,10 @@ function AccessSettingsPage() {
   };
 
   const handleAddMember = async () => {
-    if (selectedUser === null || selectedUser.individual_profile_id === null || selectedUser.individual_profile_id === undefined) {
+    if (
+      selectedUser === null || selectedUser.individual_profile_id === null ||
+      selectedUser.individual_profile_id === undefined
+    ) {
       toast.error(t("Profile.Please select a user"));
       return;
     }
@@ -398,11 +400,7 @@ function AccessSettingsPage() {
   };
 
   const handleToggleEditTeam = (teamId: string) => {
-    setEditTeamIds((prev) =>
-      prev.includes(teamId)
-        ? prev.filter((id) => id !== teamId)
-        : [...prev, teamId],
-    );
+    setEditTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
   };
 
   if (isLoading) {
@@ -455,88 +453,89 @@ function AccessSettingsPage() {
         </div>
       </div>
 
-      {memberships.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Users className={styles.emptyIcon} />
-          <p className={styles.emptyText}>{t("Profile.No members added yet.")}</p>
-          <Button variant="outline" onClick={handleOpenAddDialog}>
-            <Plus className="size-4 mr-1" />
-            {t("Profile.Add Your First Member")}
-          </Button>
-        </div>
-      ) : (
-        <div className={styles.membersList}>
-          {memberships.map((membership) => {
-            const config = getMembershipKindConfig(membership.kind);
-            const IconComponent = config.icon;
-            const memberProfile = membership.member_profile;
+      {memberships.length === 0
+        ? (
+          <div className={styles.emptyState}>
+            <Users className={styles.emptyIcon} />
+            <p className={styles.emptyText}>{t("Profile.No members added yet.")}</p>
+            <Button variant="outline" onClick={handleOpenAddDialog}>
+              <Plus className="size-4 mr-1" />
+              {t("Profile.Add Your First Member")}
+            </Button>
+          </div>
+        )
+        : (
+          <div className={styles.membersList}>
+            {memberships.map((membership) => {
+              const config = getMembershipKindConfig(membership.kind);
+              const IconComponent = config.icon;
+              const memberProfile = membership.member_profile;
 
-            const isMemberOwner = membership.kind === "owner";
-            const ownerCount = memberships.filter((m) => m.kind === "owner").length;
-            const isLastOwner = isMemberOwner && ownerCount === 1;
+              const isMemberOwner = membership.kind === "owner";
+              const ownerCount = memberships.filter((m) => m.kind === "owner").length;
+              const isLastOwner = isMemberOwner && ownerCount === 1;
 
-            // Non-owners (and non-admins) cannot edit/delete owners
-            const canEditMember = isMemberOwner ? isViewerOwner : true;
-            // Last owner cannot be deleted by anyone
-            const canDeleteMember = isLastOwner ? false : canEditMember;
+              // Non-owners (and non-admins) cannot edit/delete owners
+              const canEditMember = isMemberOwner ? isViewerOwner : true;
+              // Last owner cannot be deleted by anyone
+              const canDeleteMember = isLastOwner ? false : canEditMember;
 
-            return (
-              <div key={membership.id} className={styles.memberItem}>
-                <Avatar className={styles.memberAvatar}>
-                  <AvatarImage
-                    src={memberProfile?.profile_picture_uri ?? undefined}
-                    alt={memberProfile?.title ?? ""}
-                  />
-                  <AvatarFallback>
-                    {getInitials(memberProfile?.title, memberProfile?.slug ?? "")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className={styles.memberInfo}>
-                  <div className={styles.memberName}>
-                    <span>{memberProfile?.title ?? t("Common.Unknown")}</span>
-                    <span className={`${styles.memberKindBadge} ${config.color}`}>
-                      <IconComponent className="size-3" />
-                      {t(config.labelKey)}
-                    </span>
-                    {membership.teams !== undefined && membership.teams.length > 0 && membership.teams.map((team) => (
-                      <span key={team.id} className={styles.teamBadge}>{team.name}</span>
-                    ))}
+              return (
+                <div key={membership.id} className={styles.memberItem}>
+                  <Avatar className={styles.memberAvatar}>
+                    <AvatarImage
+                      src={memberProfile?.profile_picture_uri ?? undefined}
+                      alt={memberProfile?.title ?? ""}
+                    />
+                    <AvatarFallback>
+                      {getInitials(memberProfile?.title, memberProfile?.slug ?? "")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className={styles.memberInfo}>
+                    <div className={styles.memberName}>
+                      <span>{memberProfile?.title ?? t("Common.Unknown")}</span>
+                      <span className={`${styles.memberKindBadge} ${config.color}`}>
+                        <IconComponent className="size-3" />
+                        {t(config.labelKey)}
+                      </span>
+                      {membership.teams !== undefined && membership.teams.length > 0 &&
+                        membership.teams.map((team) => (
+                          <span key={team.id} className={styles.teamBadge}>{team.name}</span>
+                        ))}
+                    </div>
+                    <p className={styles.memberSlug}>@{memberProfile?.slug}</p>
                   </div>
-                  <p className={styles.memberSlug}>@{memberProfile?.slug}</p>
+                  <div className={styles.memberActions}>
+                    {canDeleteMember && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                          <MoreHorizontal className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-auto">
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleOpenDeleteDialog(membership)}
+                          >
+                            <Trash2 className="size-4" />
+                            {t("Profile.Remove Member")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleOpenEditDialog(membership)}
+                      disabled={!canEditMember}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className={styles.memberActions}>
-                  {canDeleteMember && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-auto">
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => handleOpenDeleteDialog(membership)}
-                        >
-                          <Trash2 className="size-4" />
-                          {t("Profile.Remove Member")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleOpenEditDialog(membership)}
-                    disabled={!canEditMember}
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
 
       {/* Add Member Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -653,29 +652,31 @@ function AccessSettingsPage() {
 
                 <div className={styles.kindField}>
                   <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
-                  {isOnlyOwner ? (
-                    <div className={styles.onlyOwnerNotice}>
-                      {(() => {
-                        const config = getMembershipKindConfig(editKind);
-                        const Icon = config.icon;
-                        return (
-                          <div className={styles.kindOption}>
-                            <Icon className={`size-4 ${config.color}`} />
-                            <span>{t(config.labelKey)}</span>
-                          </div>
-                        );
-                      })()}
-                      <p className={styles.onlyOwnerText}>
-                        {t("Profile.Cannot change the access level of the only owner.")}
-                      </p>
-                    </div>
-                  ) : (
-                    <MembershipKindSelect
-                      value={editKind}
-                      onChange={setEditKind}
-                      kinds={availableKinds}
-                    />
-                  )}
+                  {isOnlyOwner
+                    ? (
+                      <div className={styles.onlyOwnerNotice}>
+                        {(() => {
+                          const config = getMembershipKindConfig(editKind);
+                          const Icon = config.icon;
+                          return (
+                            <div className={styles.kindOption}>
+                              <Icon className={`size-4 ${config.color}`} />
+                              <span>{t(config.labelKey)}</span>
+                            </div>
+                          );
+                        })()}
+                        <p className={styles.onlyOwnerText}>
+                          {t("Profile.Cannot change the access level of the only owner.")}
+                        </p>
+                      </div>
+                    )
+                    : (
+                      <MembershipKindSelect
+                        value={editKind}
+                        onChange={setEditKind}
+                        kinds={availableKinds}
+                      />
+                    )}
                 </div>
 
                 {teams.length > 0 && (
@@ -715,7 +716,9 @@ function AccessSettingsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("Profile.Remove Member")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("Profile.Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.")}
+              {t(
+                "Profile.Are you sure you want to remove this member? They will be demoted to follower and lose their current access level.",
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -748,8 +751,10 @@ function AccessSettingsPage() {
                 <div>
                   <span className="text-sm font-medium">{team.name}</span>
                   <span className={styles.teamMemberCount}>
-                    {" "}&middot;{" "}{team.member_count}{" "}{team.member_count === 1 ? t("Profile.member") : t("Profile.members")}
-                    {" "}&middot;{" "}{team.resource_count}{" "}{team.resource_count === 1 ? t("Profile.resource") : t("Profile.resources")}
+                    &middot; {team.member_count} {team.member_count === 1 ? t("Profile.member") : t("Profile.members")}
+                    {" "}
+                    &middot; {team.resource_count}{" "}
+                    {team.resource_count === 1 ? t("Profile.resource") : t("Profile.resources")}
                   </span>
                 </div>
                 <Button
@@ -757,15 +762,13 @@ function AccessSettingsPage() {
                   size="icon"
                   onClick={() => handleDeleteTeam(team.id)}
                   disabled={isTeamSaving || team.member_count > 0 || team.resource_count > 0}
-                  title={
-                    team.member_count > 0 && team.resource_count > 0
-                      ? t("Profile.Cannot delete team with members and resources")
-                      : team.member_count > 0
-                        ? t("Profile.Cannot delete team with members")
-                        : team.resource_count > 0
-                          ? t("Profile.Cannot delete team with resources")
-                          : undefined
-                  }
+                  title={team.member_count > 0 && team.resource_count > 0
+                    ? t("Profile.Cannot delete team with members and resources")
+                    : team.member_count > 0
+                    ? t("Profile.Cannot delete team with members")
+                    : team.resource_count > 0
+                    ? t("Profile.Cannot delete team with resources")
+                    : undefined}
                 >
                   <Trash2 className="size-4" />
                 </Button>

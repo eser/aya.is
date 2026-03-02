@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
@@ -37,16 +38,8 @@ func CorsMiddlewareWithCustomDomains(
 			return ctx.Next()
 		}
 
-		allowed := false
-
 		// Check config-defined origins first (fast path)
-		for _, origin := range allowedOrigins {
-			if origin == requestOrigin {
-				allowed = true
-
-				break
-			}
-		}
+		allowed := slices.Contains(allowedOrigins, requestOrigin)
 
 		// If not in config list, check custom domains in database
 		if !allowed {

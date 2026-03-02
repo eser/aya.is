@@ -68,6 +68,7 @@ func TestClientCircuitBreakerOnly(t *testing.T) {
 				Enabled:     false,
 				MaxAttempts: 1,
 			},
+			Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 			ServerErrorThreshold: 500,
 		}),
 	)
@@ -127,6 +128,7 @@ func TestClientRetryOnly(t *testing.T) {
 				Multiplier:      1.0,
 				RandomFactor:    0,
 			},
+			Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 			ServerErrorThreshold: 500,
 		}),
 	)
@@ -171,6 +173,7 @@ func TestClientCircuitBreakerAndRetryBoth(t *testing.T) { //nolint:dupl
 				Multiplier:      1.0,
 				RandomFactor:    0,
 			},
+			Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 			ServerErrorThreshold: 500,
 		}),
 	)
@@ -216,6 +219,7 @@ func TestClientCircuitBreakerOpensBeforeRetryExhaustion(t *testing.T) { //nolint
 				Multiplier:      1.0,
 				RandomFactor:    0,
 			},
+			Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 			ServerErrorThreshold: 500,
 		}),
 	)
@@ -253,6 +257,7 @@ func TestClientNoResilienceFeatures(t *testing.T) {
 			RetryStrategy: httpclient.RetryStrategyConfig{ //nolint:exhaustruct
 				Enabled: false,
 			},
+			Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 			ServerErrorThreshold: 500,
 		}),
 	)
@@ -299,6 +304,7 @@ func TestClientCircuitBreaker(t *testing.T) {
 				Multiplier:      1.0,
 				RandomFactor:    0,
 			},
+			Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 			ServerErrorThreshold: 500,
 		}),
 	)
@@ -359,6 +365,7 @@ func TestClientRetryMechanism(t *testing.T) {
 				RandomFactor:    0,
 			},
 
+			Transport:            httpclient.TransportConfig{}, //nolint:exhaustruct
 			ServerErrorThreshold: 500,
 		}),
 	)

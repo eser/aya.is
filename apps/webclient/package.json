@@ -7,7 +7,10 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "deno run -A .output/server/index.mjs"
+    "start": "deno run -A .output/server/index.mjs",
+    "test": "deno test --no-check --allow-read --allow-write=. src/",
+    "test:update": "deno test --no-check --allow-read --allow-write=. -- --update src/",
+    "test:ci": "deno test --no-check --allow-read src/"
   },
   "dependencies": {
     "@fontsource/bree-serif": "^5.2.8",
@@ -75,6 +78,8 @@
     "typescript": "^5.9.3",
     "vite": "npm:rolldown-vite@^7.3.1",
     "vite-tsconfig-paths": "^6.1.1",
-    "web-vitals": "^5.1.0"
+    "web-vitals": "^5.1.0",
+    "@std/testing": "npm:@jsr/std__testing@^1.0.17",
+    "@std/assert": "npm:@jsr/std__assert@^1.0.19"
   }
 }

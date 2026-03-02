@@ -49,7 +49,7 @@ func NewRepositoryFromDefault(
 	return NewRepositoryFromNamed(logger, dataRegistry, connfx.DefaultConnection)
 }
 
-func NewRepositoryFromNamed(
+func NewRepositoryFromNamed( //nolint:cyclop,funlen
 	logger *logfx.Logger,
 	dataRegistry *connfx.Registry,
 	name string,
@@ -155,11 +155,13 @@ func (r *Repository) RunMigrations(ctx context.Context, migrationsDir string) er
 		slog.String("dir", migrationsDir),
 	)
 
-	if err := goose.SetDialect("postgres"); err != nil {
+	err := goose.SetDialect("postgres")
+	if err != nil {
 		return fmt.Errorf("%w: failed to set goose dialect: %w", ErrMigrationFailed, err)
 	}
 
-	if err := goose.Up(r.db, migrationsDir); err != nil {
+	err = goose.Up(r.db, migrationsDir)
+	if err != nil {
 		return fmt.Errorf("%w: failed to run migrations: %w", ErrMigrationFailed, err)
 	}
 
@@ -204,7 +206,8 @@ func (r *Repository) SeedData(ctx context.Context, seedFilePath string) error {
 		return fmt.Errorf("%w: failed to read seed file: %w", ErrSeedingFailed, err)
 	}
 
-	if _, err := r.db.ExecContext(ctx, string(seedSQL)); err != nil {
+	_, err = r.db.ExecContext(ctx, string(seedSQL))
+	if err != nil {
 		return fmt.Errorf("%w: failed to execute seed data: %w", ErrSeedingFailed, err)
 	}
 

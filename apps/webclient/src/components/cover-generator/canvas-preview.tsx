@@ -3,17 +3,8 @@
 
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  type StoryData,
-  type CoverOptions,
-  COVER_WIDTH,
-  COVER_HEIGHT,
-} from "@/lib/cover-generator/types.ts";
-import {
-  createCanvas,
-  getContext,
-  renderCover,
-} from "@/lib/cover-generator/canvas-renderer.ts";
+import { COVER_HEIGHT, COVER_WIDTH, type CoverOptions, type StoryData } from "@/lib/cover-generator/types.ts";
+import { createCanvas, getContext, renderCover } from "@/lib/cover-generator/canvas-renderer.ts";
 import { loadImage, loadLogoImage } from "@/lib/cover-generator/upload.ts";
 import styles from "./cover-generator.module.css";
 
@@ -157,21 +148,25 @@ export function CanvasPreview(props: CanvasPreviewProps) {
 
   return (
     <div ref={containerRef} className={styles.previewContainer}>
-      {showLoading ? (
-        <div className={styles.previewLoading}>
-          <div className={styles.previewLoadingSpinner} />
-          <span>{t("ContentEditor.Loading preview...")}</span>
-        </div>
-      ) : previewUrl !== null ? (
-        <img
-          src={previewUrl}
-          alt="Cover preview"
-          className={styles.previewImage}
-          style={{
-            aspectRatio: `${COVER_WIDTH} / ${COVER_HEIGHT}`,
-          }}
-        />
-      ) : null}
+      {showLoading
+        ? (
+          <div className={styles.previewLoading}>
+            <div className={styles.previewLoadingSpinner} />
+            <span>{t("ContentEditor.Loading preview...")}</span>
+          </div>
+        )
+        : previewUrl !== null
+        ? (
+          <img
+            src={previewUrl}
+            alt="Cover preview"
+            className={styles.previewImage}
+            style={{
+              aspectRatio: `${COVER_WIDTH} / ${COVER_HEIGHT}`,
+            }}
+          />
+        )
+        : null}
     </div>
   );
 }

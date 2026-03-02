@@ -9,7 +9,13 @@ import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
-import { computeContentLanguage, computeStoryCanonicalUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import {
+  computeContentLanguage,
+  computeStoryCanonicalUrl,
+  generateCanonicalLink,
+  generateMetaTags,
+  truncateDescription,
+} from "@/lib/seo";
 import { setServerResponseHeader } from "@/lib/server-headers";
 import { ChildNotFound } from "../../route";
 
@@ -21,7 +27,15 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
     const story = await backend.getProfileStory(locale, slug, storyslug);
 
     if (story === null || story === undefined) {
-      return { story: null, compiledContent: null, currentUrl: null, locale, slug, initialDiscussion: null, notFound: true as const };
+      return {
+        story: null,
+        compiledContent: null,
+        currentUrl: null,
+        locale,
+        slug,
+        initialDiscussion: null,
+        notFound: true as const,
+      };
     }
 
     // Compile MDX content on the server
@@ -129,7 +143,12 @@ function ProfileStoryPage() {
   const isAuthorProfile = story.author_profile?.id === profile.id;
 
   return (
-    <ProfileSidebarLayout profile={profile} slug={slug} locale={locale} viewerMembershipKind={permissions?.viewer_membership_kind}>
+    <ProfileSidebarLayout
+      profile={profile}
+      slug={slug}
+      locale={locale}
+      viewerMembershipKind={permissions?.viewer_membership_kind}
+    >
       <StoryContent
         story={story}
         compiledContent={compiledContent}

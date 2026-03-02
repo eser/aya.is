@@ -11,13 +11,13 @@ import (
 
 func (r *Repository) UpsertInteraction(
 	ctx context.Context,
-	id string,
+	interactionID string,
 	storyID string,
 	profileID string,
 	kind string,
 ) (*story_interactions.StoryInteraction, error) {
 	row, err := r.queries.UpsertStoryInteraction(ctx, UpsertStoryInteractionParams{
-		ID:        id,
+		ID:        interactionID,
 		StoryID:   storyID,
 		ProfileID: profileID,
 		Kind:      kind,

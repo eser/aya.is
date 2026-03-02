@@ -68,7 +68,12 @@ func (s *Service) GetMembershipByProfiles(
 	profileID string,
 	memberProfileID string,
 ) (string, error) {
-	return s.repo.GetMembershipByProfiles(ctx, profileID, memberProfileID)
+	result, err := s.repo.GetMembershipByProfiles(ctx, profileID, memberProfileID)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToGetMembership, err)
+	}
+
+	return result, nil
 }
 
 // GetProfileLinkByRemoteID finds a profile (by its linked GitHub remote ID).
@@ -77,7 +82,12 @@ func (s *Service) GetProfileLinkByRemoteID(
 	kind string,
 	remoteID string,
 ) (string, error) {
-	return s.repo.GetProfileLinkByRemoteID(ctx, kind, remoteID)
+	result, err := s.repo.GetProfileLinkByRemoteID(ctx, kind, remoteID)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToGetProfileLink, err)
+	}
+
+	return result, nil
 }
 
 // GetProfileLinksByRemoteIDs batch-loads profile_links by kind and multiple remote_ids.
@@ -86,7 +96,12 @@ func (s *Service) GetProfileLinksByRemoteIDs(
 	kind string,
 	remoteIDs []string,
 ) (map[string]string, error) {
-	return s.repo.GetProfileLinksByRemoteIDs(ctx, kind, remoteIDs)
+	result, err := s.repo.GetProfileLinksByRemoteIDs(ctx, kind, remoteIDs)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetProfileLinks, err)
+	}
+
+	return result, nil
 }
 
 // GetMembershipsByProfilePairs batch-loads memberships for multiple profile pairs.
@@ -95,5 +110,10 @@ func (s *Service) GetMembershipsByProfilePairs(
 	profileIDs []string,
 	memberProfileIDs []string,
 ) (map[string]string, error) {
-	return s.repo.GetMembershipsByProfilePairs(ctx, profileIDs, memberProfileIDs)
+	result, err := s.repo.GetMembershipsByProfilePairs(ctx, profileIDs, memberProfileIDs)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetMemberships, err)
+	}
+
+	return result, nil
 }

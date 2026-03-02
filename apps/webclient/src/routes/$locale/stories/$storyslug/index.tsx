@@ -8,7 +8,13 @@ import { DiscussionThread } from "@/components/widgets/discussion-thread";
 import { compileMdx, compileMdxLite } from "@/lib/mdx";
 import { siteConfig } from "@/config";
 import { useAuth } from "@/lib/auth/auth-context";
-import { computeContentLanguage, computeStoryCanonicalUrl, generateCanonicalLink, generateMetaTags, truncateDescription } from "@/lib/seo";
+import {
+  computeContentLanguage,
+  computeStoryCanonicalUrl,
+  generateCanonicalLink,
+  generateMetaTags,
+  truncateDescription,
+} from "@/lib/seo";
 import { setServerResponseHeader } from "@/lib/server-headers";
 import { PageNotFound } from "@/components/page-not-found";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
@@ -19,7 +25,14 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
     const story = await backend.getStory(locale, storyslug);
 
     if (story === null || story === undefined) {
-      return { story: null, compiledContent: null, currentUrl: null, locale, initialDiscussion: null, notFound: true as const };
+      return {
+        story: null,
+        compiledContent: null,
+        currentUrl: null,
+        locale,
+        initialDiscussion: null,
+        notFound: true as const,
+      };
     }
 
     // Compile MDX content on the server

@@ -3,6 +3,7 @@ package externalsite
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,11 +13,27 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpclient"
 )
 
+// Sentinel errors for GitHub API responses.
+var (
+	ErrRepoNotFound     = errors.New("repository not found")
+	ErrRepoPrivate      = errors.New("repository is private")
+	ErrUnexpectedStatus = errors.New("unexpected status")
+	ErrFetchFailed      = errors.New("failed to fetch file")
+)
+
+const (
+	// ownerRepoParts is the expected number of segments in "owner/repo".
+	ownerRepoParts = 2
+
+	// minPageBundleDepth is the minimum slash count for a Hugo page bundle index.
+	minPageBundleDepth = 2
+)
+
 // escapeOwnerRepo URL-path-escapes the owner and repo segments individually,
 // preserving the slash separator. This prevents injection into URL paths.
 func escapeOwnerRepo(ownerRepo string) string {
-	parts := strings.SplitN(ownerRepo, "/", 2) //nolint:mnd
-	if len(parts) < 2 {                        //nolint:mnd
+	parts := strings.SplitN(ownerRepo, "/", ownerRepoParts)
+	if len(parts) < ownerRepoParts {
 		return neturl.PathEscape(ownerRepo)
 	}
 
@@ -69,20 +86,22 @@ func fetchRepoInfo(
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("repository %q not found", ownerRepo)
+		return nil, fmt.Errorf("%w: %s", ErrRepoNotFound, ownerRepo)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d", resp.StatusCode)
+		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatus, resp.StatusCode)
 	}
 
 	var info repoInfoResponse
-	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+
+	err = json.NewDecoder(resp.Body).Decode(&info)
+	if err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	if info.Private {
-		return nil, fmt.Errorf("repository %q is private", ownerRepo)
+		return nil, fmt.Errorf("%w: %s", ErrRepoPrivate, ownerRepo)
 	}
 
 	return &info, nil
@@ -115,11 +134,13 @@ func fetchRepoTree(
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d", resp.StatusCode)
+		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatus, resp.StatusCode)
 	}
 
 	var tree treeResponse
-	if err := json.NewDecoder(resp.Body).Decode(&tree); err != nil {
+
+	err = json.NewDecoder(resp.Body).Decode(&tree)
+	if err != nil {
 		return nil, fmt.Errorf("failed to decode tree: %w", err)
 	}
 
@@ -127,7 +148,7 @@ func fetchRepoTree(
 }
 
 // markdownExtensions lists recognised markdown file extensions.
-var markdownExtensions = []string{".md", ".mdx", ".mdoc", ".markdown"}
+var markdownExtensions = []string{".md", ".mdx", ".mdoc", ".markdown"} //nolint:gochecknoglobals
 
 // isMarkdownFile checks if a file path has a recognised markdown extension.
 func isMarkdownFile(path string) bool {
@@ -158,53 +179,51 @@ func stripMarkdownExt(filename string) string {
 // It auto-detects the content root (content/, _posts/, or repo root).
 // Hugo page bundles (e.g. content/posts/my-post/index.md) are kept.
 func filterMarkdownFiles(tree []treeEntry) []string {
-	// Detect content root
 	contentRoot := detectContentRoot(tree)
-
-	var files []string
+	files := make([]string, 0, len(tree))
 
 	for _, entry := range tree {
-		if entry.Type != "blob" {
-			continue
+		if shouldIncludeMarkdownEntry(entry, contentRoot) {
+			files = append(files, entry.Path)
 		}
-
-		if !isMarkdownFile(entry.Path) {
-			continue
-		}
-
-		// Only include files under the content root
-		if contentRoot != "" && !strings.HasPrefix(entry.Path, contentRoot) {
-			continue
-		}
-
-		base := entry.Path[strings.LastIndex(entry.Path, "/")+1:]
-		name := strings.ToLower(stripMarkdownExt(base))
-
-		// Always skip _index (Hugo section listings) and README
-		if name == "_index" || name == "readme" {
-			continue
-		}
-
-		// For index files, only keep if it's a Hugo page bundle (nested in a post subdirectory).
-		// e.g. content/posts/my-post/index.md → keep (page bundle)
-		// e.g. content/index.md → skip (section root)
-		if name == "index" {
-			pathUnderRoot := entry.Path
-			if contentRoot != "" {
-				pathUnderRoot = strings.TrimPrefix(entry.Path, contentRoot)
-			}
-
-			// Count slashes to determine depth: "posts/my-post/index.md" has 2 slashes → keep
-			// "index.md" has 0 slashes → skip
-			if strings.Count(pathUnderRoot, "/") < 2 {
-				continue
-			}
-		}
-
-		files = append(files, entry.Path)
 	}
 
 	return files
+}
+
+// shouldIncludeMarkdownEntry decides whether a tree entry is a content markdown file.
+func shouldIncludeMarkdownEntry(entry treeEntry, contentRoot string) bool {
+	if entry.Type != "blob" || !isMarkdownFile(entry.Path) {
+		return false
+	}
+
+	if contentRoot != "" && !strings.HasPrefix(entry.Path, contentRoot) {
+		return false
+	}
+
+	base := entry.Path[strings.LastIndex(entry.Path, "/")+1:]
+	name := strings.ToLower(stripMarkdownExt(base))
+
+	if name == "_index" || name == "readme" {
+		return false
+	}
+
+	if name == "index" {
+		return isPageBundle(entry.Path, contentRoot)
+	}
+
+	return true
+}
+
+// isPageBundle returns true if the index file is nested deeply enough to be a Hugo page bundle.
+func isPageBundle(entryPath string, contentRoot string) bool {
+	pathUnderRoot := entryPath
+	if contentRoot != "" {
+		pathUnderRoot = strings.TrimPrefix(entryPath, contentRoot)
+	}
+
+	// "posts/my-post/index.md" has 2 slashes → page bundle; "index.md" has 0 → skip
+	return strings.Count(pathUnderRoot, "/") >= minPageBundleDepth
 }
 
 // detectContentRoot finds the best content directory in the tree.
@@ -254,7 +273,7 @@ func fetchRawFile(
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to fetch %s: status %d", filePath, resp.StatusCode)
+		return "", fmt.Errorf("%w: %s (status %d)", ErrFetchFailed, filePath, resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)

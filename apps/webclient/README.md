@@ -1,7 +1,6 @@
 # AYA Web Client
 
-The frontend application for the [AYA platform](https://aya.is), built with
-TanStack Start on the Deno runtime.
+The frontend application for the [AYA platform](https://aya.is), built with TanStack Start on the Deno runtime.
 
 ## Tech Stack
 
@@ -82,9 +81,8 @@ src/
 
 ### CSS Modules with Tailwind
 
-Every `.module.css` file **must** start with `@reference "@/theme.css";` as its
-first line. Without it, `@apply` with Tailwind utility classes will crash the
-production build.
+Every `.module.css` file **must** start with `@reference "@/theme.css";` as its first line. Without it, `@apply` with
+Tailwind utility classes will crash the production build.
 
 ```css
 @reference "@/theme.css";
@@ -118,12 +116,10 @@ const profile = await backend.getProfile("en", slug);
 
 ### Routing
 
-Routes use TanStack Router's file-based routing. The `-` prefix excludes files
-from route generation (e.g., `-components/` directories for co-located
-components).
+Routes use TanStack Router's file-based routing. The `-` prefix excludes files from route generation (e.g.,
+`-components/` directories for co-located components).
 
-All user-facing routes are prefixed with `$locale` (e.g., `/tr/eser`,
-`/en/eser/qa`).
+All user-facing routes are prefixed with `$locale` (e.g., `/tr/eser`, `/en/eser/qa`).
 
 ### Internationalization
 

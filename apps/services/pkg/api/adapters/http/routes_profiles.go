@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -24,7 +25,18 @@ import (
 // Slug validation regex for pages.
 var pageSlugRegex = regexp.MustCompile(`^[a-z0-9-]+$`)
 
-func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
+// Profile validation constants.
+const (
+	maxTitleLength       = 100
+	maxPageTitleLength   = 200
+	maxDescriptionLength = 500
+	minSlugLength        = 2
+	maxSlugLength        = 50
+	maxSummaryDuration   = 90
+	errMsgUnauthorized   = "unauthorized"
+)
+
+func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,gocyclo
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -51,7 +63,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			kinds := strings.SplitSeq(filterKind, ",")
 			for kind := range kinds {
-				if kind != "individual" && kind != "organization" && kind != "product" {
+				if kind != profileKindIndividual && kind != "organization" && kind != "product" {
 					return ctx.Results.BadRequest(httpfx.WithErrorMessage("filter_kind is invalid"))
 				}
 			}
@@ -117,7 +129,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("slug parameter is required"))
 			}
 
-			includeDeleted := includeDeletedParam == "true"
+			includeDeleted := includeDeletedParam == boolTrue
 
 			availability, err := profileService.CheckSlugAvailability(
 				ctx.Request.Context(),
@@ -233,7 +245,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 					excludeID = &excludeIDParam
 				}
 
-				includeDeleted := includeDeletedParam == "true"
+				includeDeleted := includeDeletedParam == boolTrue
 
 				availability, err := profileService.CheckPageSlugAvailability(
 					ctx.Request.Context(),
@@ -376,7 +388,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		HasDescription("List stories authored by profile slug, including unpublished.").
 		HasResponse(http.StatusOK)
 
-	routes.
+	routes. //nolint:dupl
 		Route(
 			"GET /{locale}/profiles/{slug}/stories/{storySlug}",
 			func(ctx *httpfx.Context) httpfx.Result {
@@ -536,7 +548,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Description string `json:"description"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -547,18 +560,18 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			requestBody.Description = strings.TrimSpace(requestBody.Description)
 
 			// Validate kind
-			if requestBody.Kind != "individual" && requestBody.Kind != "organization" &&
+			if requestBody.Kind != profileKindIndividual && requestBody.Kind != "organization" &&
 				requestBody.Kind != "product" {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid profile kind"))
 			}
 
 			// Validate slug
-			if len(requestBody.Slug) < 2 {
+			if len(requestBody.Slug) < minSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
 			}
-			if len(requestBody.Slug) > 50 {
+			if len(requestBody.Slug) > maxSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at most 50 characters"),
 				)
@@ -576,12 +589,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if len(requestBody.Title) == 0 {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
 			}
-			if len(requestBody.Title) > 100 {
+			if len(requestBody.Title) > maxTitleLength {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
 			}
 
 			// Validate description (optional but has max length)
-			if len(requestBody.Description) > 500 {
+			if len(requestBody.Description) > maxDescriptionLength {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Description is too long"))
 			}
 
@@ -603,7 +616,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Check individual profile restriction
-			if requestBody.Kind == "individual" && user.IndividualProfileID != nil {
+			if requestBody.Kind == profileKindIndividual && user.IndividualProfileID != nil {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("User already has an individual profile"),
 				)
@@ -624,7 +637,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Create the profile — copy user's profile picture for individual profiles
 			var profilePictureURI *string
-			if requestBody.Kind == "individual" {
+			if requestBody.Kind == profileKindIndividual {
 				profilePictureURI = user.ProfilePictureURI
 			}
 
@@ -653,125 +666,17 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				)
 			}
 
-			// If creating an individual profile, set it as the user's individual profile
-			if requestBody.Kind == "individual" {
-				err = userService.SetIndividualProfileID(ctx.Request.Context(), user.ID, profile.ID)
-				if err != nil {
-					logger.ErrorContext(
-						ctx.Request.Context(),
-						"Failed to set user individual profile ID",
-						slog.String("error", err.Error()),
-						slog.String("session_id", sessionID),
-						slog.String("user_id", user.ID),
-						slog.String("profile_id", profile.ID),
-					)
-
-					// Note: We don't return an error here because the profile was created successfully
-					// The user can still access their profile, they just need to manually link it
-					logger.WarnContext(
-						ctx.Request.Context(),
-						"Profile created but failed to link to user",
-						slog.String("session_id", sessionID),
-						slog.String("user_id", user.ID),
-						slog.String("profile_id", profile.ID),
-					)
-				}
-
-				// Create self-membership for individual profile (profile is its own owner)
-				membershipErr := profileService.CreateProfileMembership(
-					ctx.Request.Context(),
-					user.ID,
-					profile.ID,
-					&profile.ID, // Self-reference: member_profile_id = profile_id
-					"owner",
+			// Set up profile memberships and auto-links based on profile kind
+			if requestBody.Kind == profileKindIndividual {
+				setupIndividualProfile(
+					ctx.Request.Context(), logger, userService, profileService,
+					bulletinService, session, user, profile, sessionID,
 				)
-				if membershipErr != nil {
-					logger.ErrorContext(
-						ctx.Request.Context(),
-						"Failed to create profile membership for individual profile",
-						slog.String("error", membershipErr.Error()),
-						slog.String("session_id", sessionID),
-						slog.String("user_id", user.ID),
-						slog.String("profile_id", profile.ID),
-					)
-				}
-
-				// Auto-create managed GitHub link from session's stored OAuth tokens
-				if session.OAuthProvider != nil &&
-					*session.OAuthProvider == "github" &&
-					session.OAuthAccessToken != nil &&
-					user.GithubRemoteID != nil {
-					githubHandle := ""
-					if user.GithubHandle != nil {
-						githubHandle = *user.GithubHandle
-					}
-
-					tokenScope := ""
-					if session.OAuthTokenScope != nil {
-						tokenScope = *session.OAuthTokenScope
-					}
-
-					upsertManagedGitHubLink(
-						ctx.Request.Context(),
-						logger,
-						profileService,
-						profile.ID,
-						*user.GithubRemoteID,
-						githubHandle,
-						*session.OAuthAccessToken,
-						tokenScope,
-					)
-				}
-
-				// Auto-subscribe to email bulletin with morning schedule
-				if bulletinService != nil {
-					const defaultBulletinHourUTC = 5 // ~08:00 EET
-
-					_, bulletinErr := bulletinService.Subscribe(
-						ctx.Request.Context(),
-						profile.ID,
-						bulletinbiz.ChannelEmail,
-						bulletinbiz.FrequencyDaily,
-						defaultBulletinHourUTC,
-					)
-					if bulletinErr != nil {
-						logger.WarnContext(
-							ctx.Request.Context(),
-							"Failed to auto-subscribe profile to bulletin",
-							slog.String("profile_id", profile.ID),
-							slog.String("error", bulletinErr.Error()),
-						)
-					}
-				}
 			} else {
-				// For org/product profiles, create membership with creator's individual profile as owner
-				if user.IndividualProfileID != nil {
-					membershipErr := profileService.CreateProfileMembership(
-						ctx.Request.Context(),
-						user.ID,
-						profile.ID,
-						user.IndividualProfileID,
-						"owner",
-					)
-					if membershipErr != nil {
-						logger.ErrorContext(
-							ctx.Request.Context(),
-							"Failed to create profile membership for org/product profile",
-							slog.String("error", membershipErr.Error()),
-							slog.String("session_id", sessionID),
-							slog.String("user_id", user.ID),
-							slog.String("profile_id", profile.ID),
-						)
-					}
-				} else {
-					logger.WarnContext(
-						ctx.Request.Context(),
-						"User has no individual profile, cannot create membership for org/product profile",
-						slog.String("session_id", sessionID),
-						slog.String("user_id", user.ID),
-						slog.String("profile_id", profile.ID),
-					)
-				}
+				setupOrgProductProfile(
+					ctx.Request.Context(), logger, profileService,
+					user, profile, sessionID,
+				)
 			}
 
 			// Wrap response in the expected format for the frontend fetcher
@@ -819,7 +724,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				OptionStoryDiscussionsByDefault *bool          `json:"option_story_discussions_by_default"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -858,7 +764,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.OptionStoryDiscussionsByDefault,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -913,7 +820,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Properties  map[string]any `json:"properties"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -925,12 +833,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if len(requestBody.Title) == 0 {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
 			}
-			if len(requestBody.Title) > 100 {
+			if len(requestBody.Title) > maxTitleLength {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
 			}
 
 			// Validate description (optional but has max length)
-			if len(requestBody.Description) > 500 {
+			if len(requestBody.Description) > maxDescriptionLength {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Description is too long"))
 			}
 
@@ -953,7 +861,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Update the translation
-			err := profileService.UpdateTranslation(
+			err = profileService.UpdateTranslation(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				user.Kind,
@@ -964,7 +872,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Properties,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1135,7 +1044,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				slugParam,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1198,7 +1108,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Visibility  string  `json:"visibility"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -1267,7 +1178,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				profiles.LinkVisibility(requestBody.Visibility),
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1332,7 +1244,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Visibility  string  `json:"visibility"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -1403,7 +1316,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				profiles.LinkVisibility(requestBody.Visibility),
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1435,7 +1349,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		HasDescription("Update an existing profile link.").
 		HasResponse(http.StatusOK)
 
-	routes.Route(
+	routes.Route( //nolint:dupl
 		"DELETE /{locale}/profiles/{slug}/_links/{linkId}",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
@@ -1479,7 +1393,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				linkIDParam,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1626,7 +1541,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Visibility      string  `json:"visibility"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -1640,12 +1556,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			requestBody.Summary = strings.TrimSpace(requestBody.Summary)
 
 			// Validate slug
-			if len(requestBody.Slug) < 2 {
+			if len(requestBody.Slug) < minSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
 			}
-			if len(requestBody.Slug) > 100 {
+			if len(requestBody.Slug) > maxTitleLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
 				)
@@ -1662,7 +1578,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			if len(requestBody.Title) == 0 {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is required"))
 			}
-			if len(requestBody.Title) > 200 {
+			if len(requestBody.Title) > maxPageTitleLength {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Title is too long"))
 			}
 
@@ -1700,7 +1616,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Visibility,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1757,7 +1674,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Visibility      string  `json:"visibility"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -1769,12 +1687,12 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			requestBody.Slug = lib.SanitizeSlug(strings.TrimSpace(requestBody.Slug))
 
 			// Validate slug
-			if len(requestBody.Slug) < 2 {
+			if len(requestBody.Slug) < minSlugLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at least 2 characters"),
 				)
 			}
-			if len(requestBody.Slug) > 100 {
+			if len(requestBody.Slug) > maxTitleLength {
 				return ctx.Results.BadRequest(
 					httpfx.WithErrorMessage("Slug must be at most 100 characters"),
 				)
@@ -1819,7 +1737,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Visibility,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1876,7 +1795,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				Content string `json:"content"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -1906,7 +1826,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 			}
 
 			// Update the translation
-			err := profileService.UpdateProfilePageTranslation(
+			err = profileService.UpdateProfilePageTranslation(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				user.Kind,
@@ -1918,7 +1838,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				requestBody.Content,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -1954,7 +1875,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		HasDescription("Update profile page translation for a specific locale.").
 		HasResponse(http.StatusOK)
 
-	routes.Route(
+	routes.Route( //nolint:dupl
 		"DELETE /{locale}/profiles/{slug}/_pages/{pageId}",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
@@ -1998,7 +1919,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				pageIDParam,
 			)
 			if err != nil {
-				if err.Error() == "unauthorized" || strings.Contains(err.Error(), "unauthorized") {
+				if err.Error() == errMsgUnauthorized ||
+					strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage("You do not have permission to edit this profile"),
@@ -2108,7 +2030,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				translationLocaleParam,
 			)
 			if err != nil {
-				if strings.Contains(err.Error(), "unauthorized") {
+				if strings.Contains(err.Error(), errMsgUnauthorized) {
 					return ctx.Results.Error(
 						http.StatusForbidden,
 						httpfx.WithErrorMessage(
@@ -2193,7 +2115,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Extend HTTP write deadline for long-running AI call
 			rc := http.NewResponseController(ctx.ResponseWriter)
-			_ = rc.SetWriteDeadline(time.Now().Add(90 * time.Second))
+			_ = rc.SetWriteDeadline(time.Now().Add(maxSummaryDuration * time.Second))
 
 			page, err := profileService.GenerateCVPage(
 				ctx.Request.Context(),
@@ -2282,7 +2204,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 				SourceLocale string `json:"source_locale"`
 			}
 
-			if err := ctx.ParseJSONBody(&requestBody); err != nil {
+			err := ctx.ParseJSONBody(&requestBody)
+			if err != nil {
 				return ctx.Results.BadRequest(httpfx.WithErrorMessage("Invalid request body"))
 			}
 
@@ -2316,9 +2239,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 
 			// Extend HTTP write deadline for long-running AI call
 			rc := http.NewResponseController(ctx.ResponseWriter)
-			_ = rc.SetWriteDeadline(time.Now().Add(90 * time.Second))
+			_ = rc.SetWriteDeadline(time.Now().Add(maxSummaryDuration * time.Second))
 
-			err := profileService.AutoTranslateProfilePage(
+			err = profileService.AutoTranslateProfilePage(
 				ctx.Request.Context(),
 				profiles.AutoTranslatePageParams{
 					UserID:              *session.LoggedInUserID,
@@ -2374,4 +2297,142 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx
 		HasSummary("Auto-translate Profile Page").
 		HasDescription("Auto-translate profile page content from source locale to target locale using AI.").
 		HasResponse(http.StatusOK)
+}
+
+// setupIndividualProfile handles post-creation setup for individual profiles:
+// links the profile to the user, creates self-membership, auto-creates GitHub link, and subscribes to bulletin.
+func setupIndividualProfile(
+	ctx context.Context,
+	logger *logfx.Logger,
+	userService *users.Service,
+	profileService *profiles.Service,
+	bulletinService *bulletinbiz.Service,
+	session *users.Session,
+	user *users.User,
+	profile *profiles.Profile,
+	sessionID string,
+) {
+	linkErr := userService.SetIndividualProfileID(ctx, user.ID, profile.ID)
+	if linkErr != nil {
+		logger.ErrorContext(ctx, "Failed to set user individual profile ID",
+			slog.String("error", linkErr.Error()),
+			slog.String("session_id", sessionID),
+			slog.String("user_id", user.ID),
+			slog.String("profile_id", profile.ID))
+
+		logger.WarnContext(ctx, "Profile created but failed to link to user",
+			slog.String("session_id", sessionID),
+			slog.String("user_id", user.ID),
+			slog.String("profile_id", profile.ID))
+	}
+
+	// Create self-membership for individual profile (profile is its own owner)
+	membershipErr := profileService.CreateProfileMembership(
+		ctx, user.ID, profile.ID, &profile.ID, "owner",
+	)
+	if membershipErr != nil {
+		logger.ErrorContext(ctx, "Failed to create profile membership for individual profile",
+			slog.String("error", membershipErr.Error()),
+			slog.String("session_id", sessionID),
+			slog.String("user_id", user.ID),
+			slog.String("profile_id", profile.ID))
+	}
+
+	// Auto-create managed GitHub link from session's stored OAuth tokens
+	autoCreateGitHubLinkFromSession(ctx, logger, profileService, session, user, profile.ID)
+
+	// Auto-subscribe to email bulletin with morning schedule
+	autoSubscribeToBulletin(ctx, logger, bulletinService, profile.ID)
+}
+
+// autoCreateGitHubLinkFromSession creates a managed GitHub link if session has OAuth tokens.
+func autoCreateGitHubLinkFromSession(
+	ctx context.Context,
+	logger *logfx.Logger,
+	profileService *profiles.Service,
+	session *users.Session,
+	user *users.User,
+	profileID string,
+) {
+	if session.OAuthProvider == nil ||
+		*session.OAuthProvider != providerGitHub ||
+		session.OAuthAccessToken == nil ||
+		user.GithubRemoteID == nil {
+		return
+	}
+
+	githubHandle := ""
+	if user.GithubHandle != nil {
+		githubHandle = *user.GithubHandle
+	}
+
+	tokenScope := ""
+	if session.OAuthTokenScope != nil {
+		tokenScope = *session.OAuthTokenScope
+	}
+
+	upsertManagedGitHubLink(
+		ctx, logger, profileService, profileID,
+		*user.GithubRemoteID, githubHandle,
+		*session.OAuthAccessToken, tokenScope,
+	)
+}
+
+// autoSubscribeToBulletin auto-subscribes a profile to email bulletin with morning schedule.
+func autoSubscribeToBulletin(
+	ctx context.Context,
+	logger *logfx.Logger,
+	bulletinService *bulletinbiz.Service,
+	profileID string,
+) {
+	if bulletinService == nil {
+		return
+	}
+
+	const defaultBulletinHourUTC = 5
+
+	_, bulletinErr := bulletinService.Subscribe(
+		ctx, profileID,
+		bulletinbiz.ChannelEmail,
+		bulletinbiz.FrequencyDaily,
+		defaultBulletinHourUTC,
+	)
+	if bulletinErr != nil {
+		logger.WarnContext(ctx, "Failed to auto-subscribe profile to bulletin",
+			slog.String("profile_id", profileID),
+			slog.String("error", bulletinErr.Error()))
+	}
+}
+
+// setupOrgProductProfile handles post-creation setup for organization/product profiles:
+// creates membership with the creator's individual profile as owner.
+func setupOrgProductProfile(
+	ctx context.Context,
+	logger *logfx.Logger,
+	profileService *profiles.Service,
+	user *users.User,
+	profile *profiles.Profile,
+	sessionID string,
+) {
+	if user.IndividualProfileID == nil {
+		logger.WarnContext(ctx,
+			"User has no individual profile, cannot create membership for org/product profile",
+			slog.String("session_id", sessionID),
+			slog.String("user_id", user.ID),
+			slog.String("profile_id", profile.ID))
+
+		return
+	}
+
+	membershipErr := profileService.CreateProfileMembership(
+		ctx, user.ID, profile.ID, user.IndividualProfileID, "owner",
+	)
+	if membershipErr != nil {
+		logger.ErrorContext(ctx,
+			"Failed to create profile membership for org/product profile",
+			slog.String("error", membershipErr.Error()),
+			slog.String("session_id", sessionID),
+			slog.String("user_id", user.ID),
+			slog.String("profile_id", profile.ID))
+	}
 }
