@@ -22,7 +22,7 @@ func NewReferralAutoAccepter(
 			return
 		}
 
-		props, ok := parseProfileJoinProps(envelope, logger)
+		props, ok := parseProfileJoinProps(ctx, envelope, logger)
 		if !ok {
 			return
 		}
@@ -80,7 +80,7 @@ func NewReferralAutoRejecter(
 			return
 		}
 
-		props, ok := parseProfileJoinProps(envelope, logger)
+		props, ok := parseProfileJoinProps(ctx, envelope, logger)
 		if !ok {
 			return
 		}
@@ -108,41 +108,53 @@ func NewReferralAutoRejecter(
 // parseProfileJoinProps extracts InvitationProperties from an envelope and checks
 // whether it's a profile_join invitation. Returns false if not applicable.
 func parseProfileJoinProps(
+	ctx context.Context,
 	envelope *mailbox.Envelope,
 	logger *logfx.Logger,
 ) (mailbox.InvitationProperties, bool) {
+	emptyProps := mailbox.InvitationProperties{
+		InvitationKind:   "",
+		TelegramChatID:   0,
+		GroupProfileSlug: "",
+		GroupName:        "",
+		InviteLink:       nil,
+		ReferralID:       "",
+		ProfileID:        "",
+		ProfileSlug:      "",
+	}
+
 	propsJSON, marshalErr := json.Marshal(envelope.Properties)
 	if marshalErr != nil {
-		logger.WarnContext(context.Background(), "Failed to marshal envelope properties",
+		logger.WarnContext(ctx, "Failed to marshal envelope properties",
 			slog.String("envelope_id", envelope.ID),
 			slog.String("error", marshalErr.Error()))
 
-		return mailbox.InvitationProperties{}, false
+		return emptyProps, false
 	}
 
 	var props mailbox.InvitationProperties
 
 	unmarshalErr := json.Unmarshal(propsJSON, &props)
 	if unmarshalErr != nil {
-		logger.WarnContext(context.Background(), "Failed to unmarshal invitation properties",
+		logger.WarnContext(ctx, "Failed to unmarshal invitation properties",
 			slog.String("envelope_id", envelope.ID),
 			slog.String("error", unmarshalErr.Error()))
 
-		return mailbox.InvitationProperties{}, false
+		return emptyProps, false
 	}
 
 	if props.InvitationKind != mailbox.InvitationKindProfileJoin {
-		return mailbox.InvitationProperties{}, false
+		return emptyProps, false
 	}
 
 	if props.ReferralID == "" || props.ProfileID == "" {
 		logger.WarnContext(
-			context.Background(),
+			ctx,
 			"Profile join invitation missing referral_id or profile_id",
 			slog.String("envelope_id", envelope.ID),
 		)
 
-		return mailbox.InvitationProperties{}, false
+		return emptyProps, false
 	}
 
 	return props, true

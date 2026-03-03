@@ -728,6 +728,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 			StartedAt:       vars.ToTimePtr(row.ProfileMembership.StartedAt),
 			FinishedAt:      vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties:      vars.ToObject(row.ProfileMembership.Properties),
+			Teams:           nil,
 			Profile: &profiles.Profile{
 				ID:                              row.Profile.ID,
 				Slug:                            row.Profile.Slug,
@@ -822,6 +823,7 @@ func (r *Repository) ListProfileMembers(
 			StartedAt:       vars.ToTimePtr(row.ProfileMembership.StartedAt),
 			FinishedAt:      vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties:      vars.ToObject(row.ProfileMembership.Properties),
+			Teams:           nil,
 			Profile: &profiles.Profile{
 				ID:                              row.Profile.ID,
 				Slug:                            row.Profile.Slug,
@@ -1158,6 +1160,7 @@ func (r *Repository) GetProfileMembershipByID(
 		Properties:      vars.ToObject(row.Properties),
 		StartedAt:       vars.ToTimePtr(row.StartedAt),
 		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+		Teams:           nil,
 		Profile:         nil,
 		MemberProfile:   nil,
 	}, nil
@@ -1191,6 +1194,7 @@ func (r *Repository) GetProfileMembershipByProfileAndMember(
 		Properties:      vars.ToObject(row.Properties),
 		StartedAt:       vars.ToTimePtr(row.StartedAt),
 		FinishedAt:      vars.ToTimePtr(row.FinishedAt),
+		Teams:           nil,
 		Profile:         nil,
 		MemberProfile:   nil,
 	}, nil

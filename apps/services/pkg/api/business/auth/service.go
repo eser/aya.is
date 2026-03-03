@@ -195,7 +195,7 @@ func (s *Service) Initiate(
 	return authURL, nil
 }
 
-func (s *Service) AuthHandleCallback(
+func (s *Service) AuthHandleCallback( //nolint:funlen
 	ctx context.Context,
 	providerName string,
 	code string,
@@ -536,5 +536,6 @@ func (s *Service) RefreshToken( //nolint:funlen
 		JWT:         tokenString,
 		ExpiresAt:   expiresAt,
 		RedirectURI: "",
+		IsNewUser:   false,
 	}, nil
 }

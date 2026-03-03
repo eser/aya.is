@@ -25,7 +25,7 @@ type LiveBroadcastResult struct {
 
 // CheckLiveBroadcasts checks if the authenticated user has any active live broadcasts.
 // Uses the liveBroadcasts.list endpoint with broadcastStatus=active (1 quota unit).
-func (p *Provider) CheckLiveBroadcasts(
+func (p *Provider) CheckLiveBroadcasts( //nolint:funlen
 	ctx context.Context,
 	accessToken string,
 ) (*LiveBroadcastResult, error) {

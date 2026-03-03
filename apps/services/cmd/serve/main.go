@@ -98,7 +98,7 @@ func buildTelegramProviders(appContext *appcontext.AppContext) *http.TelegramPro
 	}
 }
 
-func startWorkers( //nolint:cyclop,funlen
+func startWorkers( //nolint:cyclop,funlen,maintidx
 	process *processfx.Process,
 	appContext *appcontext.AppContext,
 ) {

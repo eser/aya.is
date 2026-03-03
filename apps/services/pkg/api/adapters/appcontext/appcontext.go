@@ -489,7 +489,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 	// ----------------------------------------------------
 	// Telegram Bot (optional - only if configured)
 	// ----------------------------------------------------
-	if a.Config.Telegram.Enabled && a.Config.Telegram.IsConfigured() {
+	if a.Config.Telegram.Enabled && a.Config.Telegram.IsConfigured() { //nolint:nestif
 		a.TelegramClient = telegramadapter.NewClient(
 			&a.Config.Telegram,
 			a.Logger,

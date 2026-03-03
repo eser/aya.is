@@ -4663,17 +4663,18 @@ var validReferralTransitions = map[ReferralStatus][]ReferralStatus{ //nolint:goc
 		ReferralStatusVoting,
 		ReferralStatusReferenceRejected,
 	},
-	// invitation_pending_response, reference_rejected, invitation_accepted, invitation_rejected are terminal or managed by mailbox.
+	// invitation_pending_response, reference_rejected, invitation_accepted,
+	// invitation_rejected are terminal or managed by mailbox.
 }
 
-func isValidReferralTransition(from, to ReferralStatus) bool {
+func isValidReferralTransition(from, target ReferralStatus) bool {
 	allowed, ok := validReferralTransitions[from]
 	if !ok {
 		return false
 	}
 
-	for _, s := range allowed {
-		if s == to {
+	for _, status := range allowed {
+		if status == target {
 			return true
 		}
 	}

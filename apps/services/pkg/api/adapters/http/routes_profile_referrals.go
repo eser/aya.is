@@ -314,7 +314,7 @@ func RegisterHTTPRoutesForProfileReferrals( //nolint:gocognit,gocyclo,cyclop,fun
 	routes.Route(
 		"PATCH /{locale}/profiles/{slug}/_referrals/{id}/status",
 		AuthMiddleware(authService, userService),
-		func(ctx *httpfx.Context) httpfx.Result { //nolint:cyclop,funlen
+		func(ctx *httpfx.Context) httpfx.Result {
 			localeParam, localeOk := validateLocale(ctx)
 			if !localeOk {
 				return ctx.Results.Error(
@@ -445,20 +445,27 @@ func sendReferralInvitation(
 
 	message := "You have been invited to join " + profile.Title
 	props := mailbox.InvitationProperties{
-		InvitationKind: mailbox.InvitationKindProfileJoin,
-		ReferralID:     referralID,
-		ProfileID:      referral.ProfileID,
-		ProfileSlug:    profileSlug,
+		InvitationKind:   mailbox.InvitationKindProfileJoin,
+		TelegramChatID:   0,
+		GroupProfileSlug: "",
+		GroupName:        "",
+		InviteLink:       nil,
+		ReferralID:       referralID,
+		ProfileID:        referral.ProfileID,
+		ProfileSlug:      profileSlug,
 	}
 
 	_, envelopeErr := mailboxService.SendSystemEnvelope(ctx, &mailbox.SendMessageParams{
 		SenderProfileID:    referral.ProfileID,
 		TargetProfileID:    referral.ReferredProfileID,
+		SenderUserID:       nil,
 		Kind:               mailbox.KindInvitation,
 		ConversationTitle:  "Membership Invitation",
 		Message:            &message,
 		Properties:         props,
+		ReplyToID:          nil,
 		SenderProfileTitle: profile.Title,
+		Locale:             "",
 	})
 	if envelopeErr != nil {
 		return fmt.Errorf("failed to send envelope: %w", envelopeErr)

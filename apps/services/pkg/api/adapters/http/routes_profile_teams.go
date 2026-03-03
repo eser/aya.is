@@ -14,7 +14,7 @@ import (
 )
 
 // RegisterHTTPRoutesForProfileTeams registers routes for managing profile teams.
-func RegisterHTTPRoutesForProfileTeams( //nolint:gocognit,gocyclo,cyclop,funlen,maintidx
+func RegisterHTTPRoutesForProfileTeams( //nolint:gocognit,cyclop,funlen,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,

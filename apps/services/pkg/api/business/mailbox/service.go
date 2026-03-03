@@ -37,6 +37,7 @@ func NewService(
 		idGenerator: idGenerator,
 		onCreated:   nil,
 		onAccepted:  nil,
+		onRejected:  nil,
 	}
 }
 
