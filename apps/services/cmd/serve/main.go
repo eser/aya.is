@@ -165,6 +165,7 @@ func startWorkers( //nolint:cyclop,funlen
 			appContext.ProfileLinkSyncService,
 			appContext.YouTubeProvider,
 			appContext.RuntimeStateService,
+			appContext.AuditService,
 		)
 
 		runner := workerfx.NewRunner(liveStatusWorker, appContext.Logger)

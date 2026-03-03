@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 )
 
 // Repository defines the data access port for the bulletin module.
@@ -51,11 +52,12 @@ type RecordIDGenerator func() string
 
 // Service orchestrates bulletin digest creation and delivery.
 type Service struct {
-	logger   *logfx.Logger
-	config   *Config
-	repo     Repository
-	channels map[ChannelKind]Channel
-	idGen    RecordIDGenerator
+	logger       *logfx.Logger
+	config       *Config
+	repo         Repository
+	channels     map[ChannelKind]Channel
+	idGen        RecordIDGenerator
+	auditService *events.AuditService
 }
 
 // NewService creates a new bulletin Service.
@@ -65,6 +67,7 @@ func NewService(
 	repo Repository,
 	channels []Channel,
 	idGen RecordIDGenerator,
+	auditService *events.AuditService,
 ) *Service {
 	channelMap := make(map[ChannelKind]Channel, len(channels))
 	for _, ch := range channels {
@@ -72,11 +75,12 @@ func NewService(
 	}
 
 	return &Service{
-		logger:   logger,
-		config:   config,
-		repo:     repo,
-		channels: channelMap,
-		idGen:    idGen,
+		logger:       logger,
+		config:       config,
+		repo:         repo,
+		channels:     channelMap,
+		idGen:        idGen,
+		auditService: auditService,
 	}
 }
 
@@ -303,6 +307,20 @@ func (s *Service) Subscribe(
 		return nil, fmt.Errorf("upserting subscription: %w", err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.BulletinSubscribed,
+		EntityType: "bulletin_subscription",
+		EntityID:   sub.ID,
+		ActorID:    &profileID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"channel":        string(channel),
+			"frequency":      string(frequency),
+			"preferred_time": preferredTime,
+		},
+	})
+
 	return sub, nil
 }
 
@@ -323,7 +341,7 @@ func (s *Service) UpdatePreferences(
 
 // UpdateBulletinPreferences atomically updates all bulletin preferences for a profile.
 // It upserts subscriptions for selected channels and soft-deletes unselected ones.
-func (s *Service) UpdateBulletinPreferences(
+func (s *Service) UpdateBulletinPreferences( //nolint:funlen
 	ctx context.Context,
 	profileID string,
 	frequency DigestFrequency,
@@ -383,6 +401,19 @@ func (s *Service) UpdateBulletinPreferences(
 		}
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.BulletinPreferencesUpdated,
+		EntityType: "bulletin_subscription",
+		EntityID:   profileID,
+		ActorID:    &profileID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"frequency":      string(frequency),
+			"preferred_time": preferredTime,
+		},
+	})
+
 	return nil
 }
 
@@ -392,6 +423,16 @@ func (s *Service) Unsubscribe(ctx context.Context, subscriptionID string) error 
 	if err != nil {
 		return fmt.Errorf("deleting subscription: %w", err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.BulletinUnsubscribed,
+		EntityType: "bulletin_subscription",
+		EntityID:   subscriptionID,
+		ActorID:    nil,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
+	})
 
 	return nil
 }

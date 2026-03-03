@@ -92,6 +92,26 @@ const (
 	StoryInteractionRemoved EventType = "story_interaction_removed"
 )
 
+// Story series events.
+const (
+	StorySeriesCreated EventType = "story_series_created"
+	StorySeriesUpdated EventType = "story_series_updated"
+	StorySeriesDeleted EventType = "story_series_deleted"
+)
+
+// Profile link online status events.
+const (
+	ProfileLinkWentOnline  EventType = "profile_link_went_online"
+	ProfileLinkWentOffline EventType = "profile_link_went_offline"
+)
+
+// Bulletin events.
+const (
+	BulletinSubscribed         EventType = "bulletin_subscribed"
+	BulletinUnsubscribed       EventType = "bulletin_unsubscribed"
+	BulletinPreferencesUpdated EventType = "bulletin_preferences_updated"
+)
+
 // Session events.
 const (
 	SessionCreated    EventType = "session_created"

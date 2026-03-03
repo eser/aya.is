@@ -314,11 +314,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 		a.Logger,
 		a.Repository,
 		story_interactions.DefaultIDGenerator,
+		a.AuditService,
 	)
 	a.StorySeriesService = story_series.NewService(
 		a.Logger,
 		a.Repository,
 		story_series.DefaultIDGenerator,
+		a.AuditService,
 	)
 	a.ProfilePointsService = profile_points.NewService(
 		a.Logger,
@@ -626,6 +628,7 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 			bulletinRepo,
 			bulletinChannels,
 			idGen,
+			a.AuditService,
 		)
 
 		a.Logger.DebugContext(ctx, "[AppContext] Bulletin service initialized",

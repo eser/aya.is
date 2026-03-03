@@ -6,6 +6,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 )
 
 func DefaultIDGenerator() string {
@@ -14,9 +15,10 @@ func DefaultIDGenerator() string {
 
 // Service provides story interaction operations.
 type Service struct {
-	logger      *logfx.Logger
-	repo        Repository
-	idGenerator IDGenerator
+	logger       *logfx.Logger
+	repo         Repository
+	idGenerator  IDGenerator
+	auditService *events.AuditService
 }
 
 // NewService creates a new story interactions service.
@@ -24,11 +26,13 @@ func NewService(
 	logger *logfx.Logger,
 	repo Repository,
 	idGenerator IDGenerator,
+	auditService *events.AuditService,
 ) *Service {
 	return &Service{
-		logger:      logger,
-		repo:        repo,
-		idGenerator: idGenerator,
+		logger:       logger,
+		repo:         repo,
+		idGenerator:  idGenerator,
+		auditService: auditService,
 	}
 }
 
@@ -45,6 +49,20 @@ func (s *Service) SetInteraction(
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToSetInteraction, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryInteractionSet,
+		EntityType: "story_interaction",
+		EntityID:   interaction.ID,
+		ActorID:    &profileID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"story_id":   storyID,
+			"profile_id": profileID,
+			"kind":       kind,
+		},
+	})
 
 	return interaction, nil
 }
@@ -74,6 +92,21 @@ func (s *Service) SetRSVP(
 		return nil, fmt.Errorf("%w: %w", ErrFailedToSetInteraction, err)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryInteractionSet,
+		EntityType: "story_interaction",
+		EntityID:   interaction.ID,
+		ActorID:    &profileID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"story_id":   storyID,
+			"profile_id": profileID,
+			"kind":       string(kind),
+			"is_rsvp":    true,
+		},
+	})
+
 	return interaction, nil
 }
 
@@ -88,6 +121,20 @@ func (s *Service) RemoveInteraction(
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToRemoveInteraction, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StoryInteractionRemoved,
+		EntityType: "story_interaction",
+		EntityID:   storyID,
+		ActorID:    &profileID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"story_id":   storyID,
+			"profile_id": profileID,
+			"kind":       kind,
+		},
+	})
 
 	return nil
 }

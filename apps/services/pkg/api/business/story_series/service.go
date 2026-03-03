@@ -6,6 +6,7 @@ import (
 
 	"github.com/eser/aya.is/services/pkg/ajan/lib"
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 )
 
 func DefaultIDGenerator() string {
@@ -14,9 +15,10 @@ func DefaultIDGenerator() string {
 
 // Service provides story series operations.
 type Service struct {
-	logger      *logfx.Logger
-	repo        Repository
-	idGenerator IDGenerator
+	logger       *logfx.Logger
+	repo         Repository
+	idGenerator  IDGenerator
+	auditService *events.AuditService
 }
 
 // NewService creates a new story series service.
@@ -24,11 +26,13 @@ func NewService(
 	logger *logfx.Logger,
 	repo Repository,
 	idGenerator IDGenerator,
+	auditService *events.AuditService,
 ) *Service {
 	return &Service{
-		logger:      logger,
-		repo:        repo,
-		idGenerator: idGenerator,
+		logger:       logger,
+		repo:         repo,
+		idGenerator:  idGenerator,
+		auditService: auditService,
 	}
 }
 
@@ -64,11 +68,11 @@ func (s *Service) List(ctx context.Context) ([]*StorySeries, error) {
 
 // Create creates a new series.
 func (s *Service) Create(ctx context.Context, params CreateParams) (*StorySeries, error) {
-	id := s.idGenerator()
+	seriesID := s.idGenerator()
 
 	series, err := s.repo.InsertSeries(
 		ctx,
-		id,
+		seriesID,
 		params.Slug,
 		params.SeriesPictureURI,
 		params.Title,
@@ -77,6 +81,19 @@ func (s *Service) Create(ctx context.Context, params CreateParams) (*StorySeries
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateSeries, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StorySeriesCreated,
+		EntityType: "story_series",
+		EntityID:   seriesID,
+		ActorID:    nil,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"slug":  params.Slug,
+			"title": params.Title,
+		},
+	})
 
 	return series, nil
 }
@@ -99,6 +116,19 @@ func (s *Service) Update(ctx context.Context, seriesID string, params UpdatePara
 		return fmt.Errorf("%w: %s", ErrSeriesNotFound, seriesID)
 	}
 
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StorySeriesUpdated,
+		EntityType: "story_series",
+		EntityID:   seriesID,
+		ActorID:    nil,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"slug":  params.Slug,
+			"title": params.Title,
+		},
+	})
+
 	return nil
 }
 
@@ -112,6 +142,16 @@ func (s *Service) Delete(ctx context.Context, seriesID string) error {
 	if rows == 0 {
 		return fmt.Errorf("%w: %s", ErrSeriesNotFound, seriesID)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.StorySeriesDeleted,
+		EntityType: "story_series",
+		EntityID:   seriesID,
+		ActorID:    nil,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload:    nil,
+	})
 
 	return nil
 }

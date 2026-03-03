@@ -9,6 +9,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/ajan/workerfx"
 	"github.com/eser/aya.is/services/pkg/api/adapters/youtube"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 )
@@ -36,6 +37,7 @@ type YouTubeLiveStatusWorker struct {
 	syncService   *linksync.Service
 	checker       LiveStatusChecker
 	runtimeStates *runtime_states.Service
+	auditService  *events.AuditService
 }
 
 // NewYouTubeLiveStatusWorker creates a new YouTube live status worker.
@@ -45,6 +47,7 @@ func NewYouTubeLiveStatusWorker(
 	syncService *linksync.Service,
 	checker LiveStatusChecker,
 	runtimeStates *runtime_states.Service,
+	auditService *events.AuditService,
 ) *YouTubeLiveStatusWorker {
 	return &YouTubeLiveStatusWorker{
 		config:        config,
@@ -52,6 +55,7 @@ func NewYouTubeLiveStatusWorker(
 		syncService:   syncService,
 		checker:       checker,
 		runtimeStates: runtimeStates,
+		auditService:  auditService,
 	}
 }
 
@@ -214,6 +218,36 @@ func (w *YouTubeLiveStatusWorker) executeCheck(ctx context.Context) error { //no
 			continue
 		}
 
+		if result.IsLive {
+			w.auditService.Record(ctx, events.AuditParams{
+				EventType:  events.ProfileLinkWentOnline,
+				EntityType: "profile_link",
+				EntityID:   link.ID,
+				ActorID:    nil,
+				ActorKind:  events.ActorWorker,
+				SessionID:  nil,
+				Payload: map[string]any{
+					"profile_id": link.ProfileID,
+					"is_live":    true,
+					"kind":       "youtube",
+				},
+			})
+		} else {
+			w.auditService.Record(ctx, events.AuditParams{
+				EventType:  events.ProfileLinkWentOffline,
+				EntityType: "profile_link",
+				EntityID:   link.ID,
+				ActorID:    nil,
+				ActorKind:  events.ActorWorker,
+				SessionID:  nil,
+				Payload: map[string]any{
+					"profile_id": link.ProfileID,
+					"is_live":    false,
+					"kind":       "youtube",
+				},
+			})
+		}
+
 		checkedCount++
 	}
 
@@ -244,6 +278,20 @@ func (w *YouTubeLiveStatusWorker) executeCheck(ctx context.Context) error { //no
 	} else if clearedCount > 0 {
 		w.logger.WarnContext(ctx, "Cleared stale online links",
 			slog.Int64("cleared", clearedCount))
+
+		w.auditService.Record(ctx, events.AuditParams{
+			EventType:  events.ProfileLinkWentOffline,
+			EntityType: "profile_link",
+			EntityID:   "batch",
+			ActorID:    nil,
+			ActorKind:  events.ActorWorker,
+			SessionID:  nil,
+			Payload: map[string]any{
+				"kind":          "youtube",
+				"cleared_count": clearedCount,
+				"reason":        "stale",
+			},
+		})
 	}
 
 	return nil
