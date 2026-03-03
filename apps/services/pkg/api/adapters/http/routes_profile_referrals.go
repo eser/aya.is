@@ -397,6 +397,17 @@ func RegisterHTTPRoutesForProfileReferrals( //nolint:gocognit,gocyclo,cyclop,fun
 					logger.ErrorContext(ctx.Request.Context(), "Failed to send referral invitation",
 						slog.String("error", sendErr.Error()),
 						slog.String("referralId", idParam))
+				} else {
+					referral, refErr := profileService.GetReferralByID(ctx.Request.Context(), idParam)
+					if refErr == nil {
+						profileService.RecordReferralInvitationSent(
+							ctx.Request.Context(),
+							*session.LoggedInUserID,
+							idParam,
+							referral.ProfileID,
+							referral.ReferredProfileID,
+						)
+					}
 				}
 			}
 

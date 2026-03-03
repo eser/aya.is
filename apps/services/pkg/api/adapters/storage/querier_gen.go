@@ -2906,6 +2906,10 @@ type Querier interface {
 	//      )
 	//  WHERE pmr.profile_id = $3
 	//    AND pmr.deleted_at IS NULL
+	//    AND NOT (
+	//      pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected')
+	//      AND pmr.updated_at < NOW() - INTERVAL '1 month'
+	//    )
 	//  ORDER BY pmr.created_at DESC
 	ListProfileMembershipReferralsByProfileID(ctx context.Context, arg ListProfileMembershipReferralsByProfileIDParams) ([]*ListProfileMembershipReferralsByProfileIDRow, error)
 	//ListProfileMemberships

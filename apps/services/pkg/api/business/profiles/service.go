@@ -4799,6 +4799,16 @@ func (s *Service) ensureMinMemberMembership(
 			if err != nil {
 				return "", fmt.Errorf("%w: upgrade membership: %w", ErrFailedToUpdateRecord, err)
 			}
+
+			s.recordSystemMembershipAudit(
+				ctx,
+				events.ProfileMembershipUpdated,
+				existing.ID,
+				map[string]any{
+					"profile_id": profileID, "member_profile_id": memberProfileID,
+					"old_kind": existing.Kind, "new_kind": string(MembershipKindMember), "source": "referral",
+				},
+			)
 		}
 
 		return existing.ID, nil
@@ -4818,6 +4828,11 @@ func (s *Service) ensureMinMemberMembership(
 		return "", fmt.Errorf("%w: create membership: %w", ErrFailedToCreateRecord, err)
 	}
 
+	s.recordSystemMembershipAudit(ctx, events.ProfileMembershipCreated, newID, map[string]any{
+		"profile_id": profileID, "member_profile_id": memberProfileID,
+		"kind": string(MembershipKindMember), "source": "referral",
+	})
+
 	return newID, nil
 }
 
@@ -4834,19 +4849,29 @@ func (s *Service) mergeReferralTeams(
 
 	existingTeams, _ := s.repo.ListMembershipTeams(ctx, membershipID)
 
-	teamIDSet := make(map[string]struct{}, len(existingTeams)+len(referralTeams))
+	existingSet := make(map[string]struct{}, len(existingTeams))
 	for _, t := range existingTeams {
-		teamIDSet[t.ID] = struct{}{}
+		existingSet[t.ID] = struct{}{}
 	}
+
+	var teamsAdded []string
 
 	for _, t := range referralTeams {
-		teamIDSet[t.ID] = struct{}{}
+		if _, exists := existingSet[t.ID]; !exists {
+			teamsAdded = append(teamsAdded, t.ID)
+		}
 	}
 
-	mergedIDs := make([]string, 0, len(teamIDSet))
-	for id := range teamIDSet {
-		mergedIDs = append(mergedIDs, id)
+	if len(teamsAdded) == 0 {
+		return nil
 	}
+
+	mergedIDs := make([]string, 0, len(existingTeams)+len(teamsAdded))
+	for _, t := range existingTeams {
+		mergedIDs = append(mergedIDs, t.ID)
+	}
+
+	mergedIDs = append(mergedIDs, teamsAdded...)
 
 	idGen := func() string { return string(s.idGenerator()) }
 
@@ -4855,5 +4880,54 @@ func (s *Service) mergeReferralTeams(
 		return fmt.Errorf("%w: set teams: %w", ErrFailedToUpdateRecord, err)
 	}
 
+	s.recordSystemMembershipAudit(
+		ctx,
+		events.ProfileMembershipUpdated,
+		membershipID,
+		map[string]any{
+			"teams_added": teamsAdded, "source": "referral", "referral_id": referralID,
+		},
+	)
+
 	return nil
+}
+
+// RecordReferralInvitationSent records an audit event when a referral invitation is sent.
+func (s *Service) RecordReferralInvitationSent(
+	ctx context.Context,
+	userID string,
+	referralID string,
+	profileID string,
+	referredProfileID string,
+) {
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileReferralInvitationSent,
+		EntityType: "referral",
+		EntityID:   referralID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_id":          profileID,
+			"referred_profile_id": referredProfileID,
+		},
+	})
+}
+
+// recordSystemMembershipAudit records a system-initiated membership audit event.
+func (s *Service) recordSystemMembershipAudit(
+	ctx context.Context,
+	eventType events.EventType,
+	entityID string,
+	payload map[string]any,
+) {
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  eventType,
+		EntityType: "membership",
+		EntityID:   entityID,
+		ActorID:    nil,
+		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
+		Payload:    payload,
+	})
 }

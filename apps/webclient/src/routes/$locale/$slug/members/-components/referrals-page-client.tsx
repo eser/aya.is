@@ -453,57 +453,59 @@ function ReferralCard(props: ReferralCardProps) {
         </div>
       )}
 
-      {/* Vote section */}
-      <form action={saveAction} className={styles.voteSection}>
-        {/* Vote buttons (local selection only, no auto-submit) */}
-        <div className={styles.voteButtons}>
-          {VOTE_LABELS.map((label, i) => {
-            const score = i;
-            const isActive = viewerScore === score;
-            return (
-              <button
-                key={score}
-                type="button"
-                className={isActive ? styles.voteButtonActive : styles.voteButton}
-                onClick={() => setViewerScore(score)}
-                disabled={isSaving}
-                title={t(label)}
-              >
-                {t(label)}
-              </button>
-            );
-          })}
-        </div>
+      {/* Vote section — only shown when referral is in "voting" state */}
+      {props.referral.status === "voting" && (
+        <form action={saveAction} className={styles.voteSection}>
+          {/* Vote buttons (local selection only, no auto-submit) */}
+          <div className={styles.voteButtons}>
+            {VOTE_LABELS.map((label, i) => {
+              const score = i;
+              const isActive = viewerScore === score;
+              return (
+                <button
+                  key={score}
+                  type="button"
+                  className={isActive ? styles.voteButtonActive : styles.voteButton}
+                  onClick={() => setViewerScore(score)}
+                  disabled={isSaving}
+                  title={t(label)}
+                >
+                  {t(label)}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Comment */}
-        <textarea
-          name="comment"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder={t("Referrals.Add a comment (optional)")}
-          className={styles.commentTextarea}
-          rows={2}
-        />
+          {/* Comment */}
+          <textarea
+            name="comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder={t("Referrals.Add a comment (optional)")}
+            className={styles.commentTextarea}
+            rows={2}
+          />
 
-        {/* Form actions */}
-        <div className={styles.formActions}>
-          <button
-            type="button"
-            onClick={handleReset}
-            disabled={isSaving || !isDirty}
-            className={styles.resetButton}
-          >
-            {t("Common.Reset")}
-          </button>
-          <button
-            type="submit"
-            disabled={isSaving || viewerScore === null || !isDirty}
-            className={styles.commentSubmit}
-          >
-            {t("Common.Save")}
-          </button>
-        </div>
-      </form>
+          {/* Form actions */}
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={isSaving || !isDirty}
+              className={styles.resetButton}
+            >
+              {t("Common.Reset")}
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving || viewerScore === null || !isDirty}
+              className={styles.commentSubmit}
+            >
+              {t("Common.Save")}
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* View all votes toggle */}
       {totalVotes > 0 && (

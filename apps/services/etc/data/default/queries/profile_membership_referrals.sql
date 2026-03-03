@@ -71,6 +71,10 @@ FROM "profile_membership_referral" pmr
     )
 WHERE pmr.profile_id = sqlc.arg(profile_id)
   AND pmr.deleted_at IS NULL
+  AND NOT (
+    pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected')
+    AND pmr.updated_at < NOW() - INTERVAL '1 month'
+  )
 ORDER BY pmr.created_at DESC;
 
 -- name: UpsertReferralVote :one
