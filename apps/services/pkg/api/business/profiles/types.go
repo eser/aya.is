@@ -223,6 +223,18 @@ type ProfileLinkBrief struct {
 	Visibility  LinkVisibility `json:"visibility"`
 }
 
+// LiveStreamInfo represents a currently active live stream for the homepage.
+type LiveStreamInfo struct {
+	LinkID            string         `json:"link_id"`
+	LinkKind          string         `json:"link_kind"`
+	LinkTitle         string         `json:"link_title"`
+	URI               string         `json:"uri"`
+	Properties        map[string]any `json:"properties"`
+	ProfileSlug       string         `json:"profile_slug"`
+	ProfileTitle      string         `json:"profile_title"`
+	ProfilePictureURI *string        `json:"profile_picture_uri"`
+}
+
 // ProfileLinkState contains state for profile link OAuth flows.
 // This extends the basic OAuth state with profile-specific data.
 type ProfileLinkState struct {

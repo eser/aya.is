@@ -2782,6 +2782,46 @@ type Querier interface {
 	//  WHERE pmt.profile_membership_id = $1 AND pt.deleted_at IS NULL
 	//  ORDER BY pt.name ASC
 	ListMembershipTeams(ctx context.Context, arg ListMembershipTeamsParams) ([]*ProfileTeam, error)
+	//ListOnlineProfileLinks
+	//
+	//  SELECT
+	//    pl.id,
+	//    pl.kind,
+	//    pl.uri,
+	//    pl.properties,
+	//    COALESCE(plt.title, pl.kind) as link_title,
+	//    p.slug as profile_slug,
+	//    p.profile_picture_uri as profile_picture_uri,
+	//    COALESCE(pt.title, '') as profile_title
+	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id AND p.deleted_at IS NULL
+	//    LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+	//      AND plt.locale_code = (
+	//        SELECT pltf.locale_code FROM "profile_link_tx" pltf
+	//        WHERE pltf.profile_link_id = pl.id
+	//        ORDER BY CASE
+	//          WHEN pltf.locale_code = $1 THEN 0
+	//          WHEN pltf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
+	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//      AND pt.locale_code = (
+	//        SELECT ptf.locale_code FROM "profile_tx" ptf
+	//        WHERE ptf.profile_id = p.id
+	//        ORDER BY CASE
+	//          WHEN ptf.locale_code = $1 THEN 0
+	//          WHEN ptf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
+	//  WHERE pl.is_online = TRUE
+	//    AND pl.is_featured = TRUE
+	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl.updated_at DESC
+	ListOnlineProfileLinks(ctx context.Context, arg ListOnlineProfileLinksParams) ([]*ListOnlineProfileLinksRow, error)
 	//ListPendingAwards
 	//
 	//  SELECT id, target_profile_id, triggering_event, description, amount, status, reviewed_by, reviewed_at, rejection_reason, metadata, created_at

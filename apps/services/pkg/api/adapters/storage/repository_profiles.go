@@ -2275,6 +2275,39 @@ func (r *Repository) ListProfileLinksByProfileIDForEditing(
 	return r.ListAllProfileLinksByProfileID(ctx, localeCode, profileID)
 }
 
+func (r *Repository) ListOnlineProfileLinks(
+	ctx context.Context,
+	localeCode string,
+) ([]*profiles.LiveStreamInfo, error) {
+	rows, err := r.queries.ListOnlineProfileLinks(ctx, ListOnlineProfileLinksParams{
+		LocaleCode: localeCode,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	streams := make([]*profiles.LiveStreamInfo, len(rows))
+	for i, row := range rows {
+		var ppURI *string
+		if row.ProfilePictureURI.Valid {
+			ppURI = &row.ProfilePictureURI.String
+		}
+
+		streams[i] = &profiles.LiveStreamInfo{
+			LinkID:            row.ID,
+			LinkKind:          row.Kind,
+			LinkTitle:         row.LinkTitle,
+			URI:               row.URI.String,
+			Properties:        unmarshalProperties(row.Properties),
+			ProfileSlug:       row.ProfileSlug,
+			ProfileTitle:      row.ProfileTitle,
+			ProfilePictureURI: ppURI,
+		}
+	}
+
+	return streams, nil
+}
+
 func (r *Repository) UpsertProfileLinkTx(
 	ctx context.Context,
 	profileLinkID string,

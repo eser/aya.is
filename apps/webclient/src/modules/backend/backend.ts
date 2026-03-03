@@ -125,6 +125,7 @@ import { updateSessionPreferences } from "./sessions/update-preferences";
 import { getPOWChallenge } from "./protection/get-pow-challenge";
 import { isPOWSolverSupported, solvePOW } from "./protection/solve-pow";
 import { getSpotlight } from "./site/get-spotlight";
+import { getLiveNow } from "./site/get-live-now";
 import { searchBackgroundImages } from "./site/search-background-images";
 import { handleAuthCallback } from "./auth/handle-callback";
 import { getUser } from "./users/get-user";
@@ -357,6 +358,7 @@ export const backend = {
 
   // Site
   getSpotlight,
+  getLiveNow,
   searchBackgroundImages,
 
   // Auth
@@ -466,6 +468,7 @@ export {
   getProfileTranslations,
   getReferralVotes,
   getSessionCurrent,
+  getLiveNow,
   getSpotlight,
   getStories,
   getStoriesByKinds,

@@ -388,6 +388,10 @@ type Repository interface { //nolint:interfacebloat
 		localeCode string,
 		profileID string,
 	) ([]*ProfileLinkBrief, error)
+	ListOnlineProfileLinks(
+		ctx context.Context,
+		localeCode string,
+	) ([]*LiveStreamInfo, error)
 	UpsertProfileLinkTx(
 		ctx context.Context,
 		profileLinkID string,
@@ -3151,6 +3155,19 @@ func (s *Service) ListAllLinksBySlug(
 
 	// Filter links based on viewer's membership
 	return s.FilterVisibleLinks(ctx, links, profileID, viewerProfileID), nil
+}
+
+// ListOnlineProfileLinks returns all currently live profile links across all profiles.
+func (s *Service) ListOnlineProfileLinks(
+	ctx context.Context,
+	localeCode string,
+) ([]*LiveStreamInfo, error) {
+	streams, err := s.repo.ListOnlineProfileLinks(ctx, localeCode)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return streams, nil
 }
 
 // UpsertProfileLinkTranslation creates or updates a profile link translation.

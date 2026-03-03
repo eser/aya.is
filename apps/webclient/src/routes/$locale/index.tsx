@@ -12,7 +12,8 @@ import { formatMonthYear, parseDateFromSlug } from "@/lib/date";
 import { siteConfig } from "@/config";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { backend } from "@/modules/backend/backend";
-import type { StoryEx } from "@/modules/backend/types";
+import type { LiveStreamInfo, StoryEx } from "@/modules/backend/types";
+import { LiveNowSection } from "@/components/live-now/live-now";
 import i18next from "i18next";
 import styles from "./-home.module.css";
 
@@ -32,13 +33,20 @@ export const Route = createFileRoute("/$locale/")({
     const compiledIntro = await compileMdxLite(introText);
 
     let allStories: StoryEx[] | null = null;
+    let liveStreams: LiveStreamInfo[] | null = null;
+
     try {
-      allStories = await backend.getStories(locale);
+      const [storiesResult, liveResult] = await Promise.all([
+        backend.getStories(locale).catch(() => null),
+        backend.getLiveNow(locale).catch(() => null),
+      ]);
+      allStories = storiesResult;
+      liveStreams = liveResult;
     } catch {
-      // Fetch can fail during HMR — render page without stories
+      // Fetch can fail during HMR — render page without data
     }
 
-    return { compiledIntro, allStories, locale };
+    return { compiledIntro, allStories, liveStreams, locale };
   },
   head: ({ loaderData }) => {
     const { locale } = loaderData;
@@ -97,7 +105,7 @@ function groupStoriesByMonth(
 function LocaleHomePage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
-  const { compiledIntro: loaderIntro, allStories, locale: loaderLocale } = Route.useLoaderData();
+  const { compiledIntro: loaderIntro, allStories, liveStreams, locale: loaderLocale } = Route.useLoaderData();
 
   // Loader compiles introText at request time for the URL locale.
   // When language changes client-side (e.g. via WebMCP switch-language),
@@ -155,6 +163,11 @@ function LocaleHomePage() {
           </div>
         </div>
       </section>
+
+      {/* Live Now section - only visible when streams are active */}
+      {liveStreams !== null && liveStreams.length > 0 && (
+        <LiveNowSection streams={liveStreams} locale={locale} />
+      )}
 
       {/* Stories section - scrolls over hero for parallax */}
       <section id="latest" className={styles.storiesSection}>

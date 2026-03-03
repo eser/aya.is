@@ -1,0 +1,114 @@
+@reference "@/theme.css";
+
+.section {
+  @apply relative z-10 bg-background;
+}
+
+.container {
+  @apply container mx-auto px-4 pt-12 pb-4;
+}
+
+.header {
+  @apply flex items-center gap-3 mb-6;
+}
+
+.headerDot {
+  @apply size-2.5 rounded-full;
+  background: hsl(0 72% 51%);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.headerTitle {
+  @apply text-xl font-bold;
+}
+
+.scrollContainer {
+  @apply flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory;
+  scrollbar-width: thin;
+}
+
+.card {
+  @apply flex-shrink-0 w-80 rounded-xl border overflow-hidden transition-shadow snap-start;
+  border-color: hsl(0 72% 51% / 0.2);
+  box-shadow: 0 0 20px hsl(0 72% 51% / 0.05);
+
+  &:hover {
+    box-shadow: 0 0 30px hsl(0 72% 51% / 0.12);
+  }
+}
+
+.thumbnailArea {
+  @apply relative h-36 overflow-hidden;
+  background: linear-gradient(135deg, hsl(0 72% 51% / 0.1), hsl(340 80% 60% / 0.08));
+}
+
+.thumbnailImage {
+  @apply w-full h-full object-cover;
+}
+
+.liveBadge {
+  @apply absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider;
+  background: hsl(0 72% 51%);
+  color: white;
+}
+
+.liveBadgeDot {
+  @apply size-1.5 rounded-full;
+  background: white;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.cardBody {
+  @apply p-4 pt-0;
+}
+
+.avatarRow {
+  @apply flex items-end gap-3 -mt-7 mb-3;
+}
+
+.avatarRing {
+  @apply rounded-full p-0.5;
+  background: hsl(0 72% 51%);
+}
+
+.streamTitle {
+  @apply text-sm font-semibold text-foreground line-clamp-2 mb-1;
+}
+
+.profileName {
+  @apply text-xs text-muted-foreground mb-3;
+}
+
+.profileLink {
+  @apply no-underline text-inherit transition-colors;
+
+  &:hover {
+    @apply text-foreground;
+  }
+}
+
+.watchButton {
+  @apply w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium no-underline transition-colors;
+  background: hsl(0 72% 51%);
+  color: white;
+
+  &:hover {
+    background: hsl(0 72% 41%);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    @apply w-full flex-shrink-0;
+  }
+}

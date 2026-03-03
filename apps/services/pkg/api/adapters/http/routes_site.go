@@ -94,6 +94,32 @@ func RegisterHTTPRoutesForSite( //nolint:gocognit,cyclop,funlen,maintidx
 		HasDescription("Gets spotlight metadata.").
 		HasResponse(http.StatusOK)
 
+	routes.
+		Route("GET /{locale}/site/live-now", func(ctx *httpfx.Context) httpfx.Result {
+			localeParam, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
+
+			streams, err := profileService.ListOnlineProfileLinks(
+				ctx.Request.Context(),
+				localeParam,
+			)
+			if err != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithSanitizedError(err),
+				)
+			}
+
+			wrappedResponse := cursors.WrapResponseWithCursor(streams, nil)
+
+			return ctx.Results.JSON(wrappedResponse)
+		}).
+		HasSummary("Get currently live streams").
+		HasDescription("Returns profile links that are currently broadcasting live.").
+		HasResponse(http.StatusOK)
+
 	// Upload routes (protected, requires authentication)
 
 	// Generate presigned URL for upload

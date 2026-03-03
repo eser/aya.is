@@ -3204,6 +3204,132 @@ func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHub
 	return items, nil
 }
 
+const listOnlineProfileLinks = `-- name: ListOnlineProfileLinks :many
+SELECT
+  pl.id,
+  pl.kind,
+  pl.uri,
+  pl.properties,
+  COALESCE(plt.title, pl.kind) as link_title,
+  p.slug as profile_slug,
+  p.profile_picture_uri as profile_picture_uri,
+  COALESCE(pt.title, '') as profile_title
+FROM "profile_link" pl
+  INNER JOIN "profile" p ON p.id = pl.profile_id AND p.deleted_at IS NULL
+  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+    AND plt.locale_code = (
+      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+      WHERE pltf.profile_link_id = pl.id
+      ORDER BY CASE
+        WHEN pltf.locale_code = $1 THEN 0
+        WHEN pltf.locale_code = p.default_locale THEN 1
+        ELSE 2
+      END
+      LIMIT 1
+    )
+  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+    AND pt.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      ORDER BY CASE
+        WHEN ptf.locale_code = $1 THEN 0
+        WHEN ptf.locale_code = p.default_locale THEN 1
+        ELSE 2
+      END
+      LIMIT 1
+    )
+WHERE pl.is_online = TRUE
+  AND pl.is_featured = TRUE
+  AND pl.deleted_at IS NULL
+ORDER BY pl.updated_at DESC
+`
+
+type ListOnlineProfileLinksParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+}
+
+type ListOnlineProfileLinksRow struct {
+	ID                string                `db:"id" json:"id"`
+	Kind              string                `db:"kind" json:"kind"`
+	URI               sql.NullString        `db:"uri" json:"uri"`
+	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
+	LinkTitle         string                `db:"link_title" json:"link_title"`
+	ProfileSlug       string                `db:"profile_slug" json:"profile_slug"`
+	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
+	ProfileTitle      string                `db:"profile_title" json:"profile_title"`
+}
+
+// ListOnlineProfileLinks
+//
+//	SELECT
+//	  pl.id,
+//	  pl.kind,
+//	  pl.uri,
+//	  pl.properties,
+//	  COALESCE(plt.title, pl.kind) as link_title,
+//	  p.slug as profile_slug,
+//	  p.profile_picture_uri as profile_picture_uri,
+//	  COALESCE(pt.title, '') as profile_title
+//	FROM "profile_link" pl
+//	  INNER JOIN "profile" p ON p.id = pl.profile_id AND p.deleted_at IS NULL
+//	  LEFT JOIN "profile_link_tx" plt ON plt.profile_link_id = pl.id
+//	    AND plt.locale_code = (
+//	      SELECT pltf.locale_code FROM "profile_link_tx" pltf
+//	      WHERE pltf.profile_link_id = pl.id
+//	      ORDER BY CASE
+//	        WHEN pltf.locale_code = $1 THEN 0
+//	        WHEN pltf.locale_code = p.default_locale THEN 1
+//	        ELSE 2
+//	      END
+//	      LIMIT 1
+//	    )
+//	  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	    AND pt.locale_code = (
+//	      SELECT ptf.locale_code FROM "profile_tx" ptf
+//	      WHERE ptf.profile_id = p.id
+//	      ORDER BY CASE
+//	        WHEN ptf.locale_code = $1 THEN 0
+//	        WHEN ptf.locale_code = p.default_locale THEN 1
+//	        ELSE 2
+//	      END
+//	      LIMIT 1
+//	    )
+//	WHERE pl.is_online = TRUE
+//	  AND pl.is_featured = TRUE
+//	  AND pl.deleted_at IS NULL
+//	ORDER BY pl.updated_at DESC
+func (q *Queries) ListOnlineProfileLinks(ctx context.Context, arg ListOnlineProfileLinksParams) ([]*ListOnlineProfileLinksRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOnlineProfileLinks, arg.LocaleCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListOnlineProfileLinksRow{}
+	for rows.Next() {
+		var i ListOnlineProfileLinksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Kind,
+			&i.URI,
+			&i.Properties,
+			&i.LinkTitle,
+			&i.ProfileSlug,
+			&i.ProfilePictureURI,
+			&i.ProfileTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProfileLinksByProfileID = `-- name: ListProfileLinksByProfileID :many
 SELECT
   pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,

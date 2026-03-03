@@ -592,6 +592,18 @@ export interface SpotlightItem {
   title: string;
 }
 
+// Live Stream Types
+export interface LiveStreamInfo {
+  link_id: string;
+  link_kind: string;
+  link_title: string;
+  uri: string;
+  properties: Record<string, unknown> | null;
+  profile_slug: string;
+  profile_title: string;
+  profile_picture_uri: string | null;
+}
+
 // Search Result Types
 export interface SearchResult {
   type: "profile" | "story" | "page";

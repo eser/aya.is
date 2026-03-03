@@ -152,7 +152,10 @@
     "About AYA": "AYA Hakkında",
     "GitHub": "GitHub",
     "IntroText": "**AYA (açılımı Açık Yazılım Ağı)**, sosyal bir yarar oluşturmak motivasyonuyla nitelikli bilişim çözümleri üreten gönüllülerin bir araya gelmesine ve projeler gerçekleştirmesine imkan sağlayan bir oluşumdur.\n\nİlk günden itibaren AYA'nın yapı taşını insanlar oluşturdu, bilişim ve teknolojiyle ilgilisi olan birbirini tanıyan insanlar dev bir çevre oluşturup en ihtiyaç olduğu anlarda projeler gerçekleyebildiler. Bu projeler resmi kurumlar ve sivil toplum kuruluşları başta olmak üzere herkesin kullanımına ve denetimine açık, açık kaynak lisanslarına sahip bilişim çözümleri oldular.\n\nBilişim ve teknoloji çevresinde üreten insanlar bu kadar kritik rol oynarken, bu ekosistemde yer alan kişileri daha iyi tanımak, üretimlerini ön plana çıkartmak, onları tanımak için [bir platform gereksinimi](/tr/stories/20241203-developer-platformu-eksikligi) olduğunu düşünerek şu an üzerinde bulunduğunuz aya.is platform'unu oluşturduk.",
-    "Latest Stories": "En Son Yazılar"
+    "Latest Stories": "En Son Yazılar",
+    "Live Now": "Şu An Canlı",
+    "Live": "CANLI",
+    "Watch Live": "Canlı İzle"
   },
   "Stories": {
     "Description": "AYA topluluğundan makaleler, duyurular ve içerikler.",
