@@ -277,7 +277,7 @@ INSERT INTO "profile_link" (
   $18,
   $19,
   NOW()
-) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
+) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id, is_online
 `
 
 type CreateProfileLinkParams struct {
@@ -346,7 +346,7 @@ type CreateProfileLinkParams struct {
 //	  $18,
 //	  $19,
 //	  NOW()
-//	) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
+//	) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id, is_online
 func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error) {
 	row := q.db.QueryRowContext(ctx, createProfileLink,
 		arg.ID,
@@ -393,6 +393,7 @@ func (q *Queries) CreateProfileLink(ctx context.Context, arg CreateProfileLinkPa
 		&i.Visibility,
 		&i.IsFeatured,
 		&i.AddedByProfileID,
+		&i.IsOnline,
 	)
 	return &i, err
 }
@@ -1425,7 +1426,7 @@ func (q *Queries) GetProfileIdentifierByID(ctx context.Context, arg GetProfileId
 
 const getProfileLink = `-- name: GetProfileLink :one
 SELECT
-  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -1476,6 +1477,7 @@ type GetProfileLinkRow struct {
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
+	IsOnline                  bool                  `db:"is_online" json:"is_online"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
 	Icon                      string                `db:"icon" json:"icon"`
@@ -1486,7 +1488,7 @@ type GetProfileLinkRow struct {
 // GetProfileLink
 //
 //	SELECT
-//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
 //	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, pl.kind) as title,
 //	  COALESCE(plt.icon, '') as icon,
@@ -1533,6 +1535,7 @@ func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) 
 		&i.Visibility,
 		&i.IsFeatured,
 		&i.AddedByProfileID,
+		&i.IsOnline,
 		&i.LocaleCode,
 		&i.Title,
 		&i.Icon,
@@ -1543,7 +1546,7 @@ func (q *Queries) GetProfileLink(ctx context.Context, arg GetProfileLinkParams) 
 }
 
 const getProfileLinkByRemoteID = `-- name: GetProfileLinkByRemoteID :one
-SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
+SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id, is_online
 FROM "profile_link"
 WHERE profile_id = $1
   AND kind = $2
@@ -1561,7 +1564,7 @@ type GetProfileLinkByRemoteIDParams struct {
 
 // GetProfileLinkByRemoteID
 //
-//	SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id, is_online
 //	FROM "profile_link"
 //	WHERE profile_id = $1
 //	  AND kind = $2
@@ -1595,6 +1598,7 @@ func (q *Queries) GetProfileLinkByRemoteID(ctx context.Context, arg GetProfileLi
 		&i.Visibility,
 		&i.IsFeatured,
 		&i.AddedByProfileID,
+		&i.IsOnline,
 	)
 	return &i, err
 }
@@ -2650,6 +2654,7 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
+  pl.is_online,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -2687,6 +2692,7 @@ type ListAllProfileLinksByProfileIDRow struct {
 	IsManaged   bool           `db:"is_managed" json:"is_managed"`
 	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
 	Visibility  string         `db:"visibility" json:"visibility"`
+	IsOnline    bool           `db:"is_online" json:"is_online"`
 	LocaleCode  string         `db:"locale_code" json:"locale_code"`
 	Title       string         `db:"title" json:"title"`
 	Icon        string         `db:"icon" json:"icon"`
@@ -2705,6 +2711,7 @@ type ListAllProfileLinksByProfileIDRow struct {
 //	  pl.is_managed,
 //	  pl.is_featured,
 //	  pl.visibility,
+//	  pl.is_online,
 //	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, pl.kind) as title,
 //	  COALESCE(plt.icon, '') as icon,
@@ -2744,6 +2751,7 @@ func (q *Queries) ListAllProfileLinksByProfileID(ctx context.Context, arg ListAl
 			&i.IsManaged,
 			&i.IsFeatured,
 			&i.Visibility,
+			&i.IsOnline,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
@@ -2973,6 +2981,7 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
+  pl.is_online,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -3011,6 +3020,7 @@ type ListFeaturedProfileLinksByProfileIDRow struct {
 	IsManaged   bool           `db:"is_managed" json:"is_managed"`
 	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
 	Visibility  string         `db:"visibility" json:"visibility"`
+	IsOnline    bool           `db:"is_online" json:"is_online"`
 	LocaleCode  string         `db:"locale_code" json:"locale_code"`
 	Title       string         `db:"title" json:"title"`
 	Icon        string         `db:"icon" json:"icon"`
@@ -3029,6 +3039,7 @@ type ListFeaturedProfileLinksByProfileIDRow struct {
 //	  pl.is_managed,
 //	  pl.is_featured,
 //	  pl.visibility,
+//	  pl.is_online,
 //	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, pl.kind) as title,
 //	  COALESCE(plt.icon, '') as icon,
@@ -3069,6 +3080,7 @@ func (q *Queries) ListFeaturedProfileLinksByProfileID(ctx context.Context, arg L
 			&i.IsManaged,
 			&i.IsFeatured,
 			&i.Visibility,
+			&i.IsOnline,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
@@ -3186,7 +3198,7 @@ func (q *Queries) ListGitHubResourcesForSync(ctx context.Context, arg ListGitHub
 
 const listProfileLinksByProfileID = `-- name: ListProfileLinksByProfileID :many
 SELECT
-  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -3245,6 +3257,7 @@ type ListProfileLinksByProfileIDRow struct {
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
+	IsOnline                  bool                  `db:"is_online" json:"is_online"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
 	Icon                      string                `db:"icon" json:"icon"`
@@ -3260,7 +3273,7 @@ type ListProfileLinksByProfileIDRow struct {
 // ListProfileLinksByProfileID
 //
 //	SELECT
-//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
 //	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, pl.kind) as title,
 //	  COALESCE(plt.icon, '') as icon,
@@ -3321,6 +3334,7 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 			&i.Visibility,
 			&i.IsFeatured,
 			&i.AddedByProfileID,
+			&i.IsOnline,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
@@ -3347,7 +3361,7 @@ func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfi
 
 const listProfileLinksForKind = `-- name: ListProfileLinksForKind :many
 SELECT
-  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -3400,6 +3414,7 @@ type ListProfileLinksForKindRow struct {
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
+	IsOnline                  bool                  `db:"is_online" json:"is_online"`
 	LocaleCode                string                `db:"locale_code" json:"locale_code"`
 	Title                     string                `db:"title" json:"title"`
 	Icon                      string                `db:"icon" json:"icon"`
@@ -3410,7 +3425,7 @@ type ListProfileLinksForKindRow struct {
 // ListProfileLinksForKind
 //
 //	SELECT
-//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+//	  pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
 //	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, pl.kind) as title,
 //	  COALESCE(plt.icon, '') as icon,
@@ -3465,6 +3480,7 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 			&i.Visibility,
 			&i.IsFeatured,
 			&i.AddedByProfileID,
+			&i.IsOnline,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
@@ -5129,6 +5145,39 @@ func (q *Queries) UpdateProfileLinkOAuthTokens(ctx context.Context, arg UpdatePr
 		arg.AuthAccessTokenScope,
 		arg.ID,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateProfileLinkOnlineStatus = `-- name: UpdateProfileLinkOnlineStatus :execrows
+UPDATE "profile_link"
+SET
+  is_online = $1,
+  properties = COALESCE(properties, '{}'::jsonb) || $2::jsonb,
+  updated_at = NOW()
+WHERE id = $3
+  AND deleted_at IS NULL
+`
+
+type UpdateProfileLinkOnlineStatusParams struct {
+	IsOnline         bool                  `db:"is_online" json:"is_online"`
+	OnlineProperties pqtype.NullRawMessage `db:"online_properties" json:"online_properties"`
+	ID               string                `db:"id" json:"id"`
+}
+
+// UpdateProfileLinkOnlineStatus
+//
+//	UPDATE "profile_link"
+//	SET
+//	  is_online = $1,
+//	  properties = COALESCE(properties, '{}'::jsonb) || $2::jsonb,
+//	  updated_at = NOW()
+//	WHERE id = $3
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateProfileLinkOnlineStatus(ctx context.Context, arg UpdateProfileLinkOnlineStatusParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateProfileLinkOnlineStatus, arg.IsOnline, arg.OnlineProperties, arg.ID)
 	if err != nil {
 		return 0, err
 	}

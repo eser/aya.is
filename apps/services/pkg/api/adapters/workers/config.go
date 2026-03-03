@@ -57,15 +57,25 @@ type StorySummariesConfig struct {
 	MaxBatchSize  int           `conf:"max_batch_size" default:"200"`
 }
 
+// YouTubeLiveStatusConfig holds configuration for the YouTube live status worker.
+type YouTubeLiveStatusConfig struct {
+	Enabled            bool          `conf:"enabled"              default:"true"`
+	CheckInterval      time.Duration `conf:"check_interval"       default:"1m"`
+	SyncInterval       time.Duration `conf:"sync_interval"        default:"5m"`
+	BatchSize          int           `conf:"batch_size"           default:"50"`
+	TokenRefreshBuffer time.Duration `conf:"token_refresh_buffer" default:"5m"`
+}
+
 // Config holds all worker configurations.
 type Config struct {
-	YouTubeSync      YouTubeSyncConfig        `conf:"youtube_sync"`
-	GitHubSync       GitHubSyncConfig         `conf:"github_sync"`
-	SpeakerDeckSync  SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
-	ExternalSiteSync ExternalSiteSyncConfig   `conf:"external_site_sync"`
-	DomainSync       DomainSyncConfig         `conf:"domain_sync"`
-	Queue            QueueWorkerConfig        `conf:"queue"`
-	TelegramBot      TelegramBotPollingConfig `conf:"telegram_bot"`
-	Bulletin         BulletinConfig           `conf:"bulletin"`
-	StorySummaries   StorySummariesConfig     `conf:"story_summaries"`
+	YouTubeSync       YouTubeSyncConfig        `conf:"youtube_sync"`
+	YouTubeLiveStatus YouTubeLiveStatusConfig  `conf:"youtube_live_status"`
+	GitHubSync        GitHubSyncConfig         `conf:"github_sync"`
+	SpeakerDeckSync   SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
+	ExternalSiteSync  ExternalSiteSyncConfig   `conf:"external_site_sync"`
+	DomainSync        DomainSyncConfig         `conf:"domain_sync"`
+	Queue             QueueWorkerConfig        `conf:"queue"`
+	TelegramBot       TelegramBotPollingConfig `conf:"telegram_bot"`
+	Bulletin          BulletinConfig           `conf:"bulletin"`
+	StorySummaries    StorySummariesConfig     `conf:"story_summaries"`
 }

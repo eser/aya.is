@@ -157,6 +157,25 @@ func startWorkers( //nolint:cyclop,funlen
 		})
 	}
 
+	// YouTube live status worker
+	if appContext.Config.Workers.YouTubeLiveStatus.Enabled {
+		liveStatusWorker := workers.NewYouTubeLiveStatusWorker(
+			&appContext.Config.Workers.YouTubeLiveStatus,
+			appContext.Logger,
+			appContext.ProfileLinkSyncService,
+			appContext.YouTubeProvider,
+			appContext.RuntimeStateService,
+		)
+
+		runner := workerfx.NewRunner(liveStatusWorker, appContext.Logger)
+		runner.SetStateKey("youtube.live_status_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("youtube-live-status-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
 	// GitHub resource sync worker
 	if appContext.Config.Workers.GitHubSync.Enabled {
 		githubFetcher := githubadapter.NewResourceFetcherAdapter(appContext.GitHubClient)

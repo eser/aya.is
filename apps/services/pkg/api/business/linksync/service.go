@@ -151,6 +151,21 @@ func (s *Service) GetPublicManagedLinks(
 	return links, nil
 }
 
+// UpdateLinkOnlineStatus updates the is_online flag and merges online properties for a link.
+func (s *Service) UpdateLinkOnlineStatus(
+	ctx context.Context,
+	linkID string,
+	isOnline bool,
+	onlineProperties map[string]any,
+) error {
+	err := s.repo.UpdateLinkOnlineStatus(ctx, linkID, isOnline, onlineProperties)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateOnlineStatus, err)
+	}
+
+	return nil
+}
+
 // UpdateLinkTokens updates the OAuth tokens for a link.
 func (s *Service) UpdateLinkTokens(
 	ctx context.Context,

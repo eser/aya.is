@@ -187,6 +187,7 @@ type ProfileLink struct {
 	IsManaged        bool           `json:"is_managed"`
 	IsVerified       bool           `json:"is_verified"`
 	IsFeatured       bool           `json:"is_featured"`
+	IsOnline         bool           `json:"is_online"`
 	Visibility       LinkVisibility `json:"visibility"`
 	RemoteID         *string        `json:"remote_id"`
 	PublicID         *string        `json:"public_id"`
@@ -217,6 +218,7 @@ type ProfileLinkBrief struct {
 	IsManaged   bool           `json:"is_managed"`
 	IsVerified  bool           `json:"is_verified"`
 	IsFeatured  bool           `json:"is_featured"`
+	IsOnline    bool           `json:"is_online"`
 	Visibility  LinkVisibility `json:"visibility"`
 }
 

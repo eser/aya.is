@@ -260,6 +260,7 @@ type ProfileLink struct {
 	Visibility                string                `db:"visibility" json:"visibility"`
 	IsFeatured                bool                  `db:"is_featured" json:"is_featured"`
 	AddedByProfileID          sql.NullString        `db:"added_by_profile_id" json:"added_by_profile_id"`
+	IsOnline                  bool                  `db:"is_online" json:"is_online"`
 }
 
 type ProfileLinkImport struct {

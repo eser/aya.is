@@ -1029,6 +1029,7 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
+  pl.is_online,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -1062,6 +1063,7 @@ SELECT
   pl.is_managed,
   pl.is_featured,
   pl.visibility,
+  pl.is_online,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -1271,3 +1273,12 @@ WHERE pm.profile_id = ANY(sqlc.arg(profile_ids)::TEXT[])
   AND pm.member_profile_id = ANY(sqlc.arg(member_profile_ids)::TEXT[])
   AND pm.deleted_at IS NULL
   AND (pm.finished_at IS NULL OR pm.finished_at > NOW());
+
+-- name: UpdateProfileLinkOnlineStatus :execrows
+UPDATE "profile_link"
+SET
+  is_online = sqlc.arg(is_online),
+  properties = COALESCE(properties, '{}'::jsonb) || sqlc.arg(online_properties)::jsonb,
+  updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;

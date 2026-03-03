@@ -455,7 +455,7 @@ type Querier interface {
 	//    $18,
 	//    $19,
 	//    NOW()
-	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
+	//  ) RETURNING id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id, is_online
 	CreateProfileLink(ctx context.Context, arg CreateProfileLinkParams) (*ProfileLink, error)
 	//CreateProfileLinkTx
 	//
@@ -1389,7 +1389,7 @@ type Querier interface {
 	//GetProfileLink
 	//
 	//  SELECT
-	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
 	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, pl.kind) as title,
 	//    COALESCE(plt.icon, '') as icon,
@@ -1423,7 +1423,7 @@ type Querier interface {
 	GetProfileLinkByProfileIDAndTelegram(ctx context.Context, arg GetProfileLinkByProfileIDAndTelegramParams) (*GetProfileLinkByProfileIDAndTelegramRow, error)
 	//GetProfileLinkByRemoteID
 	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, remote_id, public_id, uri, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at, visibility, is_featured, added_by_profile_id, is_online
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND kind = $2
@@ -2397,6 +2397,7 @@ type Querier interface {
 	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
+	//    pl.is_online,
 	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, pl.kind) as title,
 	//    COALESCE(plt.icon, '') as icon,
@@ -2582,6 +2583,7 @@ type Querier interface {
 	//    pl.is_managed,
 	//    pl.is_featured,
 	//    pl.visibility,
+	//    pl.is_online,
 	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, pl.kind) as title,
 	//    COALESCE(plt.icon, '') as icon,
@@ -2797,7 +2799,7 @@ type Querier interface {
 	//ListProfileLinksByProfileID
 	//
 	//  SELECT
-	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
 	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, pl.kind) as title,
 	//    COALESCE(plt.icon, '') as icon,
@@ -2830,7 +2832,7 @@ type Querier interface {
 	//ListProfileLinksForKind
 	//
 	//  SELECT
-	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id,
+	//    pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at, pl.visibility, pl.is_featured, pl.added_by_profile_id, pl.is_online,
 	//    COALESCE(plt.locale_code, p.default_locale) as locale_code,
 	//    COALESCE(plt.title, pl.kind) as title,
 	//    COALESCE(plt.icon, '') as icon,
@@ -4267,6 +4269,16 @@ type Querier interface {
 	//  WHERE id = $7
 	//    AND deleted_at IS NULL
 	UpdateProfileLinkOAuthTokens(ctx context.Context, arg UpdateProfileLinkOAuthTokensParams) (int64, error)
+	//UpdateProfileLinkOnlineStatus
+	//
+	//  UPDATE "profile_link"
+	//  SET
+	//    is_online = $1,
+	//    properties = COALESCE(properties, '{}'::jsonb) || $2::jsonb,
+	//    updated_at = NOW()
+	//  WHERE id = $3
+	//    AND deleted_at IS NULL
+	UpdateProfileLinkOnlineStatus(ctx context.Context, arg UpdateProfileLinkOnlineStatusParams) (int64, error)
 	//UpdateProfileLinkTokens
 	//
 	//  UPDATE "profile_link"

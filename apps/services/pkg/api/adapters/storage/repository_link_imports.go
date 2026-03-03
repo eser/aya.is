@@ -306,6 +306,27 @@ func (r *Repository) ListManagedLinksForKindPublic(
 	return links, nil
 }
 
+// UpdateLinkOnlineStatus updates the is_online flag and merges online properties for a link.
+func (r *Repository) UpdateLinkOnlineStatus(
+	ctx context.Context,
+	linkID string,
+	isOnline bool,
+	onlineProperties map[string]any,
+) error {
+	propertiesJSON, err := json.Marshal(onlineProperties)
+	if err != nil {
+		return fmt.Errorf("marshaling online properties: %w", err)
+	}
+
+	_, err = r.queries.UpdateProfileLinkOnlineStatus(ctx, UpdateProfileLinkOnlineStatusParams{
+		ID:               linkID,
+		IsOnline:         isOnline,
+		OnlineProperties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
+	})
+
+	return err
+}
+
 // rowToLinkImport converts a database row to a LinkImport domain object.
 func (r *Repository) rowToLinkImport(row *ProfileLinkImport) *linksync.LinkImport {
 	var properties map[string]any

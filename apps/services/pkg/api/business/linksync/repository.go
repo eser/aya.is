@@ -6,7 +6,7 @@ import (
 )
 
 // Repository defines the storage operations for link sync.
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	// ListManagedLinksForKind returns all managed, non-deleted links of a kind.
 	ListManagedLinksForKind(ctx context.Context, kind string, limit int) ([]*ManagedLink, error)
 
@@ -62,4 +62,12 @@ type Repository interface {
 		kind string,
 		limit int,
 	) ([]*PublicManagedLink, error)
+
+	// UpdateLinkOnlineStatus updates the is_online flag and merges online properties for a link.
+	UpdateLinkOnlineStatus(
+		ctx context.Context,
+		linkID string,
+		isOnline bool,
+		onlineProperties map[string]any,
+	) error
 }
