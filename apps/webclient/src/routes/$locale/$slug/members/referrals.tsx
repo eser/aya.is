@@ -1,7 +1,7 @@
 // Profile membership referrals page
 import { createFileRoute } from "@tanstack/react-router";
-import { backend } from "@/modules/backend/backend";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
+import { backend } from "@/modules/backend/backend";
 import i18next from "i18next";
 import { NotFoundContent } from "./route";
 import { ReferralsPageClient } from "./-components/referrals-page-client";
@@ -29,7 +29,6 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
     if (profile?.feature_relations === "disabled" || !isMemberPlus) {
       return {
         referrals: null,
-        teams: null,
         locale,
         slug,
         translatedTitle: "",
@@ -38,10 +37,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       };
     }
 
-    const [referrals, teams] = await Promise.all([
-      backend.listReferrals(locale, slug),
-      backend.listViewerTeams(locale, slug),
-    ]);
+    const referrals = await backend.listReferrals(locale, slug);
 
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
@@ -52,7 +48,6 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
 
     return {
       referrals: referrals ?? [],
-      teams: teams ?? [],
       locale,
       slug,
       viewerMembershipKind: permissions?.viewer_membership_kind ?? null,
@@ -91,12 +86,11 @@ function ReferralsPage() {
     return <NotFoundContent />;
   }
 
-  const { referrals, teams, locale, slug, viewerMembershipKind } = loaderData;
+  const { referrals, locale, slug, viewerMembershipKind } = loaderData;
 
   return (
     <ReferralsPageClient
       referrals={referrals}
-      teams={teams}
       locale={locale}
       slug={slug}
       viewerMembershipKind={viewerMembershipKind}

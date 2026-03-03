@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, MoreHorizontal, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth/auth-context";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import {
@@ -30,7 +31,6 @@ import styles from "./referrals-page-client.module.css";
 
 type ReferralsPageClientProps = {
   referrals: ProfileMembershipReferral[];
-  teams: ProfileTeam[];
   locale: string;
   slug: string;
   viewerMembershipKind: string | null;
@@ -49,7 +49,15 @@ const VOTE_LABELS = [
 export function ReferralsPageClient(props: ReferralsPageClientProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useAuth();
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+
+  const teams = React.useMemo(() => {
+    const match = user?.accessible_profiles?.find(
+      (p) => p.slug === props.slug,
+    );
+    return match?.teams ?? [];
+  }, [user?.accessible_profiles, props.slug]);
 
   const handleReferralCreated = React.useCallback(
     () => {
@@ -127,7 +135,7 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
         <CreateReferralDialog
           locale={props.locale}
           slug={props.slug}
-          teams={props.teams}
+          teams={teams}
           onCreated={handleReferralCreated}
           onClose={() => setShowCreateDialog(false)}
         />

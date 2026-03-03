@@ -152,6 +152,8 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop,gocognit,gocyclo,main
 							"title":               membership.Profile.Title,
 							"profile_picture_uri": membership.Profile.ProfilePictureURI,
 							"membership_kind":     membership.Kind,
+							"membership_id":       membership.ID,
+							"teams":               membership.Teams,
 						})
 					}
 

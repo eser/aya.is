@@ -4158,53 +4158,6 @@ func (s *Service) ListTeams(
 	return teams, nil
 }
 
-// ListViewerTeams returns the teams that the current user belongs to within a profile.
-// Requires member+ access.
-func (s *Service) ListViewerTeams(
-	ctx context.Context,
-	userID string,
-	profileSlug string,
-) ([]*ProfileTeam, error) {
-	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
-	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
-	}
-
-	if profileID == "" {
-		return nil, ErrProfileNotFound
-	}
-
-	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMember)
-	if accessErr != nil {
-		return nil, accessErr
-	}
-
-	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
-	}
-
-	if userInfo.IndividualProfileID == nil {
-		return []*ProfileTeam{}, nil
-	}
-
-	membership, _ := s.repo.GetProfileMembershipByProfileAndMember(
-		ctx,
-		profileID,
-		*userInfo.IndividualProfileID,
-	)
-	if membership == nil {
-		return []*ProfileTeam{}, nil
-	}
-
-	teams, err := s.repo.ListMembershipTeams(ctx, membership.ID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
-	}
-
-	return teams, nil
-}
-
 // CreateTeam creates a new team for a profile. Requires maintainer access.
 func (s *Service) CreateTeam(
 	ctx context.Context,

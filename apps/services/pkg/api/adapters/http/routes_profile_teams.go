@@ -22,7 +22,7 @@ func RegisterHTTPRoutesForProfileTeams( //nolint:gocognit,gocyclo,cyclop,funlen,
 	profileService *profiles.Service,
 ) {
 	// List teams with member counts
-	routes.Route( //nolint:dupl
+	routes.Route(
 		"GET /{locale}/profiles/{slug}/_teams",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
@@ -72,58 +72,6 @@ func RegisterHTTPRoutesForProfileTeams( //nolint:gocognit,gocyclo,cyclop,funlen,
 			})
 		},
 	).HasDescription("List profile teams with member counts")
-
-	// List viewer's own teams (member+ access)
-	routes.Route( //nolint:dupl
-		"GET /{locale}/profiles/{slug}/_my-teams",
-		AuthMiddleware(authService, userService),
-		func(ctx *httpfx.Context) httpfx.Result {
-			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
-			if !ok {
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Session ID not found in context"),
-				)
-			}
-
-			slugParam := ctx.Request.PathValue("slug")
-
-			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-			if sessionErr != nil {
-				return ctx.Results.Error(
-					http.StatusInternalServerError,
-					httpfx.WithErrorMessage("Failed to get session information"),
-				)
-			}
-
-			teams, err := profileService.ListViewerTeams(
-				ctx.Request.Context(),
-				*session.LoggedInUserID,
-				slugParam,
-			)
-			if err != nil {
-				logger.ErrorContext(ctx.Request.Context(), "Failed to list viewer teams",
-					slog.String("error", err.Error()),
-					slog.String("slug", slugParam))
-
-				statusCode := http.StatusInternalServerError
-				if errors.Is(err, profiles.ErrInsufficientAccess) {
-					statusCode = http.StatusForbidden
-				}
-
-				return ctx.Results.Error(statusCode, httpfx.WithSanitizedError(err))
-			}
-
-			if teams == nil {
-				teams = []*profiles.ProfileTeam{}
-			}
-
-			return ctx.Results.JSON(map[string]any{
-				"data":  teams,
-				"error": nil,
-			})
-		},
-	).HasDescription("List viewer's own teams within a profile")
 
 	// Create team
 	routes.Route(

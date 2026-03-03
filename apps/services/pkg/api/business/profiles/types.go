@@ -266,15 +266,16 @@ type LinkedInAccount struct {
 }
 
 type ProfileMembership struct {
-	Properties      any        `json:"properties"`
-	Profile         *Profile   `json:"profile"`
-	MemberProfile   *Profile   `json:"member_profile"`
-	StartedAt       *time.Time `json:"started_at"`
-	FinishedAt      *time.Time `json:"finished_at"`
-	ID              string     `json:"id"`
-	ProfileID       string     `json:"profile_id"`
-	MemberProfileID *string    `json:"member_profile_id"`
-	Kind            string     `json:"kind"`
+	Properties      any            `json:"properties"`
+	Profile         *Profile       `json:"profile"`
+	MemberProfile   *Profile       `json:"member_profile"`
+	Teams           []*ProfileTeam `json:"teams,omitempty"`
+	StartedAt       *time.Time     `json:"started_at"`
+	FinishedAt      *time.Time     `json:"finished_at"`
+	ID              string         `json:"id"`
+	ProfileID       string         `json:"profile_id"`
+	MemberProfileID *string        `json:"member_profile_id"`
+	Kind            string         `json:"kind"`
 }
 
 // ProfileBrief is a lightweight profile representation for lists and references.

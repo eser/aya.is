@@ -926,6 +926,13 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 			},
 			// MemberProfile is not needed for this use case since we're filtering by member profile ID
 			MemberProfile: nil,
+			Teams:         []*profiles.ProfileTeam{},
+		}
+
+		// Populate teams for this membership
+		teams, teamsErr := r.ListMembershipTeams(ctx, row.MembershipID)
+		if teamsErr == nil && teams != nil {
+			memberships[i].Teams = teams
 		}
 	}
 

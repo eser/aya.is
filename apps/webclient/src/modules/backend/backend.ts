@@ -38,7 +38,6 @@ import { addProfileMembership } from "./profiles/add-profile-membership";
 import { updateProfileMembership } from "./profiles/update-profile-membership";
 import { deleteProfileMembership } from "./profiles/delete-profile-membership";
 import { listProfileTeams } from "./profiles/list-profile-teams";
-import { listViewerTeams } from "./profiles/list-viewer-teams";
 import { createProfileTeam } from "./profiles/create-profile-team";
 import { updateProfileTeam } from "./profiles/update-profile-team";
 import { deleteProfileTeam } from "./profiles/delete-profile-team";
@@ -241,7 +240,6 @@ export const backend = {
 
   // Profile Teams
   listProfileTeams,
-  listViewerTeams,
   createProfileTeam,
   updateProfileTeam,
   deleteProfileTeam,

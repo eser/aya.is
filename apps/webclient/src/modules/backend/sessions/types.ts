@@ -1,3 +1,5 @@
+import type { ProfileTeam } from "../types";
+
 // Session Preference Types
 
 /**
@@ -34,6 +36,8 @@ export interface AccessibleProfile {
   title: string;
   profile_picture_uri?: string | null;
   membership_kind: string;
+  membership_id?: string;
+  teams?: ProfileTeam[];
 }
 
 export interface SessionCurrentResponse {
