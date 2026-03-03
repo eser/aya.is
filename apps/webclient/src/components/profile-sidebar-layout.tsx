@@ -11,6 +11,7 @@ import { SiteAvatar } from "@/components/userland";
 import { useAuth } from "@/lib/auth/auth-context";
 import { InlineMarkdown } from "@/lib/inline-markdown";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
+import { LiveBanner } from "@/components/live-banner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -73,7 +74,10 @@ export function ProfileSidebarLayout(props: ProfileSidebarLayoutProps) {
         locale={props.locale}
         viewerMembershipKind={props.viewerMembershipKind}
       />
-      <main className="min-w-0">{props.children}</main>
+      <main className="min-w-0">
+        <LiveBanner links={props.profile.links} />
+        {props.children}
+      </main>
     </div>
   );
 }

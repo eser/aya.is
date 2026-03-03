@@ -62,6 +62,7 @@ export interface ProfileLink {
   is_managed: boolean;
   is_verified: boolean;
   is_featured: boolean;
+  is_online?: boolean;
   visibility: LinkVisibility;
   remote_id?: string | null;
   public_id?: string | null;

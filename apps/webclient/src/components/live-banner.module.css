@@ -1,0 +1,46 @@
+@reference "@/theme.css";
+
+.banner {
+  @apply flex items-center gap-3 rounded-lg border px-4 py-3 mb-6;
+  border-color: hsl(0 72% 51% / 0.3);
+  background: hsl(0 72% 51% / 0.05);
+}
+
+.indicator {
+  @apply flex items-center gap-2 shrink-0;
+}
+
+.dot {
+  @apply size-2.5 rounded-full;
+  background: hsl(0 72% 51%);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.label {
+  @apply text-xs font-bold uppercase tracking-wider;
+  color: hsl(0 72% 51%);
+}
+
+.title {
+  @apply text-sm font-medium text-foreground truncate;
+}
+
+.watchLink {
+  @apply ml-auto shrink-0 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium no-underline transition-colors;
+  background: hsl(0 72% 51%);
+  color: white;
+
+  &:hover {
+    background: hsl(0 72% 41%);
+  }
+}
