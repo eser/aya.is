@@ -32,7 +32,11 @@
 }
 
 .title {
-  @apply text-sm font-medium text-foreground truncate;
+  @apply text-sm font-medium text-foreground truncate min-w-0;
+}
+
+.streamTitle {
+  @apply font-thin text-muted-foreground;
 }
 
 .watchLink {

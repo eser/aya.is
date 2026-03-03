@@ -8,12 +8,41 @@ type LiveBannerProps = {
 };
 
 function buildLiveUrl(link: ProfileLink): string {
+  // Use broadcast URL from properties if available, otherwise build from channel URL
+  if (link.properties !== null && link.properties !== undefined) {
+    const onlineInfo = link.properties.online_information;
+    if (onlineInfo !== null && onlineInfo !== undefined && typeof onlineInfo === "object") {
+      const broadcastUrl = (onlineInfo as Record<string, unknown>).broadcast_url;
+      if (typeof broadcastUrl === "string" && broadcastUrl !== "") {
+        return broadcastUrl;
+      }
+    }
+  }
+
   if (link.uri !== null && link.uri !== undefined && link.uri !== "") {
     // YouTube channel URLs like https://youtube.com/@channel — append /live
     return link.uri.replace(/\/+$/, "") + "/live";
   }
 
   return "https://www.youtube.com";
+}
+
+function getOnlineTitle(link: ProfileLink): string | null {
+  if (link.properties === null || link.properties === undefined) {
+    return null;
+  }
+
+  const onlineInfo = link.properties.online_information;
+  if (onlineInfo === null || onlineInfo === undefined || typeof onlineInfo !== "object") {
+    return null;
+  }
+
+  const title = (onlineInfo as Record<string, unknown>).title;
+  if (typeof title === "string" && title !== "") {
+    return title;
+  }
+
+  return null;
 }
 
 export function LiveBanner(props: LiveBannerProps) {
@@ -32,6 +61,7 @@ export function LiveBanner(props: LiveBannerProps) {
   }
 
   const liveUrl = buildLiveUrl(liveLink);
+  const onlineTitle = getOnlineTitle(liveLink);
 
   return (
     <div className={styles.banner}>
@@ -41,6 +71,9 @@ export function LiveBanner(props: LiveBannerProps) {
       </div>
       <span className={styles.title}>
         {liveLink.title}
+        {onlineTitle !== null && (
+          <span className={styles.streamTitle}> · {onlineTitle}</span>
+        )}
       </span>
       <a
         href={liveUrl}

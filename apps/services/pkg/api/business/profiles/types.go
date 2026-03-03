@@ -219,6 +219,7 @@ type ProfileLinkBrief struct {
 	IsVerified  bool           `json:"is_verified"`
 	IsFeatured  bool           `json:"is_featured"`
 	IsOnline    bool           `json:"is_online"`
+	Properties  map[string]any `json:"properties"`
 	Visibility  LinkVisibility `json:"visibility"`
 }
 

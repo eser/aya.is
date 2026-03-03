@@ -2655,6 +2655,7 @@ SELECT
   pl.is_featured,
   pl.visibility,
   pl.is_online,
+  pl.properties,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -2684,20 +2685,21 @@ type ListAllProfileLinksByProfileIDParams struct {
 }
 
 type ListAllProfileLinksByProfileIDRow struct {
-	ID          string         `db:"id" json:"id"`
-	Kind        string         `db:"kind" json:"kind"`
-	PublicID    sql.NullString `db:"public_id" json:"public_id"`
-	URI         sql.NullString `db:"uri" json:"uri"`
-	IsVerified  bool           `db:"is_verified" json:"is_verified"`
-	IsManaged   bool           `db:"is_managed" json:"is_managed"`
-	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
-	Visibility  string         `db:"visibility" json:"visibility"`
-	IsOnline    bool           `db:"is_online" json:"is_online"`
-	LocaleCode  string         `db:"locale_code" json:"locale_code"`
-	Title       string         `db:"title" json:"title"`
-	Icon        string         `db:"icon" json:"icon"`
-	Group       string         `db:"group" json:"group"`
-	Description string         `db:"description" json:"description"`
+	ID          string                `db:"id" json:"id"`
+	Kind        string                `db:"kind" json:"kind"`
+	PublicID    sql.NullString        `db:"public_id" json:"public_id"`
+	URI         sql.NullString        `db:"uri" json:"uri"`
+	IsVerified  bool                  `db:"is_verified" json:"is_verified"`
+	IsManaged   bool                  `db:"is_managed" json:"is_managed"`
+	IsFeatured  bool                  `db:"is_featured" json:"is_featured"`
+	Visibility  string                `db:"visibility" json:"visibility"`
+	IsOnline    bool                  `db:"is_online" json:"is_online"`
+	Properties  pqtype.NullRawMessage `db:"properties" json:"properties"`
+	LocaleCode  string                `db:"locale_code" json:"locale_code"`
+	Title       string                `db:"title" json:"title"`
+	Icon        string                `db:"icon" json:"icon"`
+	Group       string                `db:"group" json:"group"`
+	Description string                `db:"description" json:"description"`
 }
 
 // ListAllProfileLinksByProfileID
@@ -2712,6 +2714,7 @@ type ListAllProfileLinksByProfileIDRow struct {
 //	  pl.is_featured,
 //	  pl.visibility,
 //	  pl.is_online,
+//	  pl.properties,
 //	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, pl.kind) as title,
 //	  COALESCE(plt.icon, '') as icon,
@@ -2752,6 +2755,7 @@ func (q *Queries) ListAllProfileLinksByProfileID(ctx context.Context, arg ListAl
 			&i.IsFeatured,
 			&i.Visibility,
 			&i.IsOnline,
+			&i.Properties,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
@@ -2982,6 +2986,7 @@ SELECT
   pl.is_featured,
   pl.visibility,
   pl.is_online,
+  pl.properties,
   COALESCE(plt.locale_code, p.default_locale) as locale_code,
   COALESCE(plt.title, pl.kind) as title,
   COALESCE(plt.icon, '') as icon,
@@ -3012,20 +3017,21 @@ type ListFeaturedProfileLinksByProfileIDParams struct {
 }
 
 type ListFeaturedProfileLinksByProfileIDRow struct {
-	ID          string         `db:"id" json:"id"`
-	Kind        string         `db:"kind" json:"kind"`
-	PublicID    sql.NullString `db:"public_id" json:"public_id"`
-	URI         sql.NullString `db:"uri" json:"uri"`
-	IsVerified  bool           `db:"is_verified" json:"is_verified"`
-	IsManaged   bool           `db:"is_managed" json:"is_managed"`
-	IsFeatured  bool           `db:"is_featured" json:"is_featured"`
-	Visibility  string         `db:"visibility" json:"visibility"`
-	IsOnline    bool           `db:"is_online" json:"is_online"`
-	LocaleCode  string         `db:"locale_code" json:"locale_code"`
-	Title       string         `db:"title" json:"title"`
-	Icon        string         `db:"icon" json:"icon"`
-	Group       string         `db:"group" json:"group"`
-	Description string         `db:"description" json:"description"`
+	ID          string                `db:"id" json:"id"`
+	Kind        string                `db:"kind" json:"kind"`
+	PublicID    sql.NullString        `db:"public_id" json:"public_id"`
+	URI         sql.NullString        `db:"uri" json:"uri"`
+	IsVerified  bool                  `db:"is_verified" json:"is_verified"`
+	IsManaged   bool                  `db:"is_managed" json:"is_managed"`
+	IsFeatured  bool                  `db:"is_featured" json:"is_featured"`
+	Visibility  string                `db:"visibility" json:"visibility"`
+	IsOnline    bool                  `db:"is_online" json:"is_online"`
+	Properties  pqtype.NullRawMessage `db:"properties" json:"properties"`
+	LocaleCode  string                `db:"locale_code" json:"locale_code"`
+	Title       string                `db:"title" json:"title"`
+	Icon        string                `db:"icon" json:"icon"`
+	Group       string                `db:"group" json:"group"`
+	Description string                `db:"description" json:"description"`
 }
 
 // ListFeaturedProfileLinksByProfileID
@@ -3040,6 +3046,7 @@ type ListFeaturedProfileLinksByProfileIDRow struct {
 //	  pl.is_featured,
 //	  pl.visibility,
 //	  pl.is_online,
+//	  pl.properties,
 //	  COALESCE(plt.locale_code, p.default_locale) as locale_code,
 //	  COALESCE(plt.title, pl.kind) as title,
 //	  COALESCE(plt.icon, '') as icon,
@@ -3081,6 +3088,7 @@ func (q *Queries) ListFeaturedProfileLinksByProfileID(ctx context.Context, arg L
 			&i.IsFeatured,
 			&i.Visibility,
 			&i.IsOnline,
+			&i.Properties,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Icon,
