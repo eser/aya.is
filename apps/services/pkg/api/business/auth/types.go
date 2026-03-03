@@ -110,6 +110,7 @@ type AuthResult struct {
 	SessionID   string
 	JWT         string
 	RedirectURI string
+	IsNewUser   bool
 }
 
 type JWTClaims struct {

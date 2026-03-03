@@ -36,12 +36,13 @@ export const Route = createFileRoute("/auth/callback")({
     code: (search.code as string) ?? undefined,
     state: (search.state as string) ?? undefined,
     redirect: (search.redirect as string) ?? undefined,
+    is_new_user: (search.is_new_user as string) ?? undefined,
   }),
   component: AuthCallbackPage,
 });
 
 function AuthCallbackPage() {
-  const { auth_token, code, state, redirect } = Route.useSearch();
+  const { auth_token, code, state, redirect, is_new_user } = Route.useSearch();
   const [status, setStatus] = React.useState<Status>("processing");
   const [errorMessage, setErrorMessage] = React.useState<string>("");
   const { t } = useTranslation();
@@ -78,7 +79,10 @@ function AuthCallbackPage() {
           }
 
           // Redirect with full page load to locale-specific destination
-          const destination = getSafeRedirect(redirect, `/${localeCode}`);
+          // New users (no individual profile) go to profile creation
+          const destination = is_new_user === "true"
+            ? `/${localeCode}/elements/new`
+            : getSafeRedirect(redirect, `/${localeCode}`);
           globalThis.location.href = destination;
           return;
         }
@@ -138,7 +142,7 @@ function AuthCallbackPage() {
     };
 
     processCallback();
-  }, [auth_token, code, state, redirect, localeCode]);
+  }, [auth_token, code, state, redirect, is_new_user, localeCode]);
 
   const handleReturnHome = () => {
     globalThis.location.href = `/${localeCode}`;

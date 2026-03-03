@@ -249,12 +249,29 @@ func (s *Service) AuthHandleCallback(
 		JWT:         tokenString,
 		ExpiresAt:   expiresAt,
 		RedirectURI: redirectURI,
+		IsNewUser:   user.IndividualProfileID == nil,
 	}
 
 	// Append auth_token query parameter to redirect URI
-	authResult.RedirectURI, err = appendAuthToken(authResult.RedirectURI, authResult.JWT)
+	authResult.RedirectURI, err = appendQueryParam(
+		authResult.RedirectURI,
+		"auth_token",
+		authResult.JWT,
+	)
 	if err != nil {
 		return authResult, err
+	}
+
+	// Append is_new_user flag so the frontend can redirect to profile creation
+	if authResult.IsNewUser {
+		authResult.RedirectURI, err = appendQueryParam(
+			authResult.RedirectURI,
+			"is_new_user",
+			"true",
+		)
+		if err != nil {
+			return authResult, err
+		}
 	}
 
 	s.logger.DebugContext(ctx, "OAuth callback completed successfully",
@@ -402,23 +419,23 @@ func (s *Service) validateRedirectURI(ctx context.Context, redirectURI string) e
 	return nil
 }
 
-// appendAuthToken adds the auth_token query parameter to the redirect URI.
-func appendAuthToken(redirectURI string, token string) (string, error) {
+// appendQueryParam adds a query parameter to the redirect URI.
+func appendQueryParam(redirectURI string, key string, value string) (string, error) {
 	if redirectURI == "" {
 		return "", nil
 	}
 
-	finalRedirectURI, err := url.Parse(redirectURI)
+	parsed, err := url.Parse(redirectURI)
 	if err != nil {
 		return redirectURI, fmt.Errorf("%w: %w", ErrFailedToParseRedirectURI, err)
 	}
 
-	finalRedirectURIQueryString := finalRedirectURI.Query()
-	finalRedirectURIQueryString.Set("auth_token", token)
+	q := parsed.Query()
+	q.Set(key, value)
 
-	finalRedirectURI.RawQuery = finalRedirectURIQueryString.Encode()
+	parsed.RawQuery = q.Encode()
 
-	return finalRedirectURI.String(), nil
+	return parsed.String(), nil
 }
 
 // GenerateSessionToken creates a new JWT token for a given session.
