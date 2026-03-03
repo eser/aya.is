@@ -16,5 +16,6 @@ var (
 	ErrImportNotFound             = errors.New("import not found")
 	ErrFailedToListImports        = errors.New("failed to list imports for story creation")
 	ErrFailedToUpdateOnlineStatus = errors.New("failed to update online status")
+	ErrFailedToClearStaleOnline   = errors.New("failed to clear stale online links")
 	ErrNotFound                   = errors.New("not found")
 )

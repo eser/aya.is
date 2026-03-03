@@ -148,14 +148,12 @@ func (w *YouTubeLiveStatusWorker) executeCheck(ctx context.Context) error { //no
 		if w.needsTokenRefresh(link) {
 			refreshedToken, refreshErr := w.refreshTokenIfPossible(ctx, link)
 			if refreshErr != nil {
-				w.logger.WarnContext(ctx, "Failed to refresh token for live status check",
+				w.logger.WarnContext(ctx, "Failed to refresh token, trying with existing token",
 					slog.String("link_id", link.ID),
 					slog.Any("error", refreshErr))
-
-				continue
-			}
-
-			if refreshedToken != "" {
+				// Don't skip — try with the existing token anyway.
+				// The stale cleanup at the end of the cycle handles persistent failures.
+			} else if refreshedToken != "" {
 				accessToken = refreshedToken
 			}
 		}
@@ -167,7 +165,9 @@ func (w *YouTubeLiveStatusWorker) executeCheck(ctx context.Context) error { //no
 				slog.String("link_id", link.ID),
 				slog.Any("error", checkErr))
 
-			continue
+			// Don't skip — treat API failure as "not live" so the flag gets cleared.
+			// This prevents stale is_online=TRUE from persisting when tokens are broken.
+			result = &youtube.LiveBroadcastResult{IsLive: false} //nolint:exhaustruct
 		}
 
 		// Build online properties
@@ -221,6 +221,30 @@ func (w *YouTubeLiveStatusWorker) executeCheck(ctx context.Context) error { //no
 		slog.Int("checked", checkedCount),
 		slog.Int("live", liveCount),
 		slog.Int("total_links", len(links)))
+
+	// Clear stale online flags: any YouTube link marked is_online=TRUE
+	// that wasn't successfully updated in the last 2 sync intervals
+	// is stale (API check failed, token expired, etc.) and should be cleared.
+	staleThreshold := now.Add(-2 * w.config.SyncInterval)
+
+	clearedCount, clearErr := w.syncService.ClearStaleOnlineLinks(
+		ctx,
+		"youtube",
+		staleThreshold,
+		map[string]any{
+			"online_information": map[string]any{
+				"cleared_reason":  "stale",
+				"last_checked_at": now.Format(time.RFC3339),
+			},
+		},
+	)
+	if clearErr != nil {
+		w.logger.WarnContext(ctx, "Failed to clear stale online links",
+			slog.Any("error", clearErr))
+	} else if clearedCount > 0 {
+		w.logger.WarnContext(ctx, "Cleared stale online links",
+			slog.Int64("cleared", clearedCount))
+	}
 
 	return nil
 }

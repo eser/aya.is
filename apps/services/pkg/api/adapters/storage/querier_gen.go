@@ -171,6 +171,20 @@ type Querier interface {
 	//    AND is_managed = FALSE
 	//    AND deleted_at IS NULL
 	ClearNonManagedProfileLinkRemoteID(ctx context.Context, arg ClearNonManagedProfileLinkRemoteIDParams) (int64, error)
+	// Clears is_online for links that haven't been successfully checked recently.
+	// Called at the end of each worker cycle to prevent stale online flags from persisting
+	// when API checks fail (e.g. expired tokens, transient errors).
+	//
+	//  UPDATE "profile_link"
+	//  SET
+	//    is_online = FALSE,
+	//    properties = COALESCE(properties, '{}'::jsonb) || $1::jsonb,
+	//    updated_at = NOW()
+	//  WHERE is_online = TRUE
+	//    AND kind = $2
+	//    AND deleted_at IS NULL
+	//    AND updated_at < $3
+	ClearStaleOnlineLinks(ctx context.Context, arg ClearStaleOnlineLinksParams) (int64, error)
 	// Worker ID check prevents a timed-out worker from completing
 	// a job that was already re-claimed by another worker.
 	//

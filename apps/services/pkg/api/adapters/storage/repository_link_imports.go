@@ -327,6 +327,25 @@ func (r *Repository) UpdateLinkOnlineStatus(
 	return err
 }
 
+// ClearStaleOnlineLinks sets is_online=FALSE for links not checked since the threshold.
+func (r *Repository) ClearStaleOnlineLinks(
+	ctx context.Context,
+	kind string,
+	staleThreshold time.Time,
+	onlineProperties map[string]any,
+) (int64, error) {
+	propertiesJSON, err := json.Marshal(onlineProperties)
+	if err != nil {
+		return 0, fmt.Errorf("marshaling online properties: %w", err)
+	}
+
+	return r.queries.ClearStaleOnlineLinks(ctx, ClearStaleOnlineLinksParams{
+		Kind:             kind,
+		StaleThreshold:   sql.NullTime{Time: staleThreshold, Valid: true},
+		OnlineProperties: pqtype.NullRawMessage{RawMessage: propertiesJSON, Valid: true},
+	})
+}
+
 // rowToLinkImport converts a database row to a LinkImport domain object.
 func (r *Repository) rowToLinkImport(row *ProfileLinkImport) *linksync.LinkImport {
 	var properties map[string]any

@@ -124,6 +124,45 @@ func (q *Queries) ClearNonManagedProfileLinkRemoteID(ctx context.Context, arg Cl
 	return result.RowsAffected()
 }
 
+const clearStaleOnlineLinks = `-- name: ClearStaleOnlineLinks :execrows
+UPDATE "profile_link"
+SET
+  is_online = FALSE,
+  properties = COALESCE(properties, '{}'::jsonb) || $1::jsonb,
+  updated_at = NOW()
+WHERE is_online = TRUE
+  AND kind = $2
+  AND deleted_at IS NULL
+  AND updated_at < $3
+`
+
+type ClearStaleOnlineLinksParams struct {
+	OnlineProperties pqtype.NullRawMessage `db:"online_properties" json:"online_properties"`
+	Kind             string                `db:"kind" json:"kind"`
+	StaleThreshold   sql.NullTime          `db:"stale_threshold" json:"stale_threshold"`
+}
+
+// Clears is_online for links that haven't been successfully checked recently.
+// Called at the end of each worker cycle to prevent stale online flags from persisting
+// when API checks fail (e.g. expired tokens, transient errors).
+//
+//	UPDATE "profile_link"
+//	SET
+//	  is_online = FALSE,
+//	  properties = COALESCE(properties, '{}'::jsonb) || $1::jsonb,
+//	  updated_at = NOW()
+//	WHERE is_online = TRUE
+//	  AND kind = $2
+//	  AND deleted_at IS NULL
+//	  AND updated_at < $3
+func (q *Queries) ClearStaleOnlineLinks(ctx context.Context, arg ClearStaleOnlineLinksParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, clearStaleOnlineLinks, arg.OnlineProperties, arg.Kind, arg.StaleThreshold)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const countAllProfilesForAdmin = `-- name: CountAllProfilesForAdmin :one
 SELECT COUNT(*) as count
 FROM "profile" p

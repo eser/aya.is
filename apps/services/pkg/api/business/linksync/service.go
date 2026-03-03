@@ -166,6 +166,21 @@ func (s *Service) UpdateLinkOnlineStatus(
 	return nil
 }
 
+// ClearStaleOnlineLinks sets is_online=FALSE for links not checked since the threshold.
+func (s *Service) ClearStaleOnlineLinks(
+	ctx context.Context,
+	kind string,
+	staleThreshold time.Time,
+	onlineProperties map[string]any,
+) (int64, error) {
+	count, err := s.repo.ClearStaleOnlineLinks(ctx, kind, staleThreshold, onlineProperties)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrFailedToClearStaleOnline, err)
+	}
+
+	return count, nil
+}
+
 // UpdateLinkTokens updates the OAuth tokens for a link.
 func (s *Service) UpdateLinkTokens(
 	ctx context.Context,

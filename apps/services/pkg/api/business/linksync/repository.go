@@ -70,4 +70,12 @@ type Repository interface { //nolint:interfacebloat
 		isOnline bool,
 		onlineProperties map[string]any,
 	) error
+
+	// ClearStaleOnlineLinks sets is_online=FALSE for links not checked since the threshold.
+	ClearStaleOnlineLinks(
+		ctx context.Context,
+		kind string,
+		staleThreshold time.Time,
+		onlineProperties map[string]any,
+	) (int64, error)
 }

@@ -1323,3 +1323,17 @@ WHERE pl.is_online = TRUE
   AND pl.is_featured = TRUE
   AND pl.deleted_at IS NULL
 ORDER BY pl.updated_at DESC;
+
+-- name: ClearStaleOnlineLinks :execrows
+-- Clears is_online for links that haven't been successfully checked recently.
+-- Called at the end of each worker cycle to prevent stale online flags from persisting
+-- when API checks fail (e.g. expired tokens, transient errors).
+UPDATE "profile_link"
+SET
+  is_online = FALSE,
+  properties = COALESCE(properties, '{}'::jsonb) || sqlc.arg(online_properties)::jsonb,
+  updated_at = NOW()
+WHERE is_online = TRUE
+  AND kind = sqlc.arg(kind)
+  AND deleted_at IS NULL
+  AND updated_at < sqlc.arg(stale_threshold);
