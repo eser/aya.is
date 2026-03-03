@@ -40,7 +40,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
 
     const [referrals, teams] = await Promise.all([
       backend.listReferrals(locale, slug),
-      backend.listProfileTeams(locale, slug),
+      backend.listViewerTeams(locale, slug),
     ]);
 
     await i18next.loadLanguages(locale);
