@@ -4758,3 +4758,102 @@ func (s *Service) UpdateReferralStatusInternal(
 
 	return nil
 }
+
+// EnsureMembershipFromReferralInternal handles the membership+teams logic when
+// a referral invitation is accepted. No access checks (system-initiated).
+//
+// Membership: keeps existing member+ memberships, upgrades follower/sponsor to member, or creates new.
+// Teams: merges existing membership teams with the referral's suggested teams (union, no duplicates).
+func (s *Service) EnsureMembershipFromReferralInternal(
+	ctx context.Context,
+	profileID string,
+	memberProfileID string,
+	referralID string,
+) (string, error) {
+	membershipID, err := s.ensureMinMemberMembership(ctx, profileID, memberProfileID)
+	if err != nil {
+		return "", err
+	}
+
+	teamsErr := s.mergeReferralTeams(ctx, membershipID, referralID)
+	if teamsErr != nil {
+		return membershipID, teamsErr
+	}
+
+	return membershipID, nil
+}
+
+// ensureMinMemberMembership ensures a membership at member+ level exists between
+// profileID and memberProfileID. Returns the membership ID.
+func (s *Service) ensureMinMemberMembership(
+	ctx context.Context,
+	profileID string,
+	memberProfileID string,
+) (string, error) {
+	existing, _ := s.repo.GetProfileMembershipByProfileAndMember(ctx, profileID, memberProfileID)
+
+	if existing != nil {
+		levels := GetMembershipKindLevel()
+		if levels[MembershipKind(existing.Kind)] < levels[MembershipKindMember] {
+			err := s.repo.UpdateProfileMembership(ctx, existing.ID, string(MembershipKindMember))
+			if err != nil {
+				return "", fmt.Errorf("%w: upgrade membership: %w", ErrFailedToUpdateRecord, err)
+			}
+		}
+
+		return existing.ID, nil
+	}
+
+	newID := string(s.idGenerator())
+
+	err := s.repo.CreateProfileMembership(
+		ctx,
+		newID,
+		profileID,
+		&memberProfileID,
+		string(MembershipKindMember),
+		nil,
+	)
+	if err != nil {
+		return "", fmt.Errorf("%w: create membership: %w", ErrFailedToCreateRecord, err)
+	}
+
+	return newID, nil
+}
+
+// mergeReferralTeams merges a referral's suggested teams into the membership's existing teams.
+func (s *Service) mergeReferralTeams(
+	ctx context.Context,
+	membershipID string,
+	referralID string,
+) error {
+	referralTeams, _ := s.repo.ListReferralTeams(ctx, referralID)
+	if len(referralTeams) == 0 {
+		return nil
+	}
+
+	existingTeams, _ := s.repo.ListMembershipTeams(ctx, membershipID)
+
+	teamIDSet := make(map[string]struct{}, len(existingTeams)+len(referralTeams))
+	for _, t := range existingTeams {
+		teamIDSet[t.ID] = struct{}{}
+	}
+
+	for _, t := range referralTeams {
+		teamIDSet[t.ID] = struct{}{}
+	}
+
+	mergedIDs := make([]string, 0, len(teamIDSet))
+	for id := range teamIDSet {
+		mergedIDs = append(mergedIDs, id)
+	}
+
+	idGen := func() string { return string(s.idGenerator()) }
+
+	err := s.repo.SetMembershipTeams(ctx, membershipID, mergedIDs, idGen)
+	if err != nil {
+		return fmt.Errorf("%w: set teams: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	return nil
+}

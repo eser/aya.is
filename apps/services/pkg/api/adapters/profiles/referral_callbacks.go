@@ -10,8 +10,9 @@ import (
 	profilesbiz "github.com/eser/aya.is/services/pkg/api/business/profiles"
 )
 
-// NewReferralAutoAccepter returns a callback that automatically creates a membership
-// when a profile_join invitation is accepted — completing the referral flow.
+// NewReferralAutoAccepter returns a callback that ensures a membership exists
+// (creating or upgrading as needed) and merges teams when a profile_join
+// invitation is accepted — completing the referral flow.
 func NewReferralAutoAccepter(
 	profileService *profilesbiz.Service,
 	logger *logfx.Logger,
@@ -26,18 +27,17 @@ func NewReferralAutoAccepter(
 			return
 		}
 
-		// Create membership for the accepted profile.
 		recipientProfileID := envelope.TargetProfileID
 
-		err := profileService.CreateProfileMembership(
+		// Ensure membership exists at member+ level and merge teams.
+		membershipID, err := profileService.EnsureMembershipFromReferralInternal(
 			ctx,
-			"", // system-initiated, no user ID
 			props.ProfileID,
-			&recipientProfileID,
-			string(profilesbiz.MembershipKindMember),
+			recipientProfileID,
+			props.ReferralID,
 		)
 		if err != nil {
-			logger.ErrorContext(ctx, "Failed to create membership from referral acceptance",
+			logger.ErrorContext(ctx, "Failed to ensure membership from referral acceptance",
 				slog.String("referral_id", props.ReferralID),
 				slog.String("profile_id", props.ProfileID),
 				slog.String("recipient_profile_id", recipientProfileID),
@@ -61,10 +61,11 @@ func NewReferralAutoAccepter(
 			return
 		}
 
-		logger.InfoContext(ctx, "Referral invitation accepted, membership created",
+		logger.InfoContext(ctx, "Referral invitation accepted, membership ensured",
 			slog.String("referral_id", props.ReferralID),
 			slog.String("profile_id", props.ProfileID),
-			slog.String("recipient_profile_id", recipientProfileID))
+			slog.String("recipient_profile_id", recipientProfileID),
+			slog.String("membership_id", membershipID))
 	}
 }
 
