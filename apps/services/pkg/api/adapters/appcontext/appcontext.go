@@ -22,6 +22,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/externalsite"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
+	profilesadapter "github.com/eser/aya.is/services/pkg/api/adapters/profiles"
 	"github.com/eser/aya.is/services/pkg/api/adapters/resend"
 	"github.com/eser/aya.is/services/pkg/api/adapters/s3client"
 	"github.com/eser/aya.is/services/pkg/api/adapters/speakerdeck"
@@ -515,14 +516,18 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 		)
 
 		// Auto-redeem telegram group invitations when accepted.
-		a.MailboxService.SetOnAccepted(
-			telegramadapter.NewEnvelopeAutoRedeemer(
-				a.TelegramClient,
-				a.TelegramService,
-				a.MailboxService,
-				a.Logger,
-			),
+		telegramRedeemer := telegramadapter.NewEnvelopeAutoRedeemer(
+			a.TelegramClient,
+			a.TelegramService,
+			a.MailboxService,
+			a.Logger,
 		)
+		referralAccepter := profilesadapter.NewReferralAutoAccepter(a.ProfileService, a.Logger)
+
+		a.MailboxService.SetOnAccepted(func(ctx context.Context, envelope *mailbox.Envelope) {
+			telegramRedeemer(ctx, envelope)
+			referralAccepter(ctx, envelope)
+		})
 
 		// Set up webhook or clear it for polling mode
 		if !a.Config.Telegram.UsePolling && a.Config.Telegram.WebhookURL != "" {
@@ -546,7 +551,16 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 		a.Logger.DebugContext(ctx, "[AppContext] Telegram bot initialized",
 			slog.String("module", "appcontext"),
 			slog.String("bot_username", a.Config.Telegram.BotUsername))
+	} else {
+		// When Telegram is not configured, register only the referral callbacks.
+		referralAccepter := profilesadapter.NewReferralAutoAccepter(a.ProfileService, a.Logger)
+		a.MailboxService.SetOnAccepted(referralAccepter)
 	}
+
+	// Referral rejection callback — always registered regardless of Telegram.
+	a.MailboxService.SetOnRejected(
+		profilesadapter.NewReferralAutoRejecter(a.ProfileService, a.Logger),
+	)
 
 	// ----------------------------------------------------
 	// Localizer (i18nfx)

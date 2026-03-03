@@ -147,6 +147,14 @@ WHERE pmrt.profile_membership_referral_id = sqlc.arg(referral_id)
   AND pt.deleted_at IS NULL
 ORDER BY pt.name ASC;
 
+-- name: UpdateReferralStatus :exec
+UPDATE "profile_membership_referral"
+SET status = sqlc.arg(status),
+    updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND profile_id = sqlc.arg(profile_id)
+  AND deleted_at IS NULL;
+
 -- name: SoftDeleteReferral :execrows
 UPDATE "profile_membership_referral"
 SET deleted_at = NOW()

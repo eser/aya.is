@@ -47,6 +47,7 @@ import { listReferrals } from "./profiles/list-referrals";
 import { createReferral } from "./profiles/create-referral";
 import { voteReferral } from "./profiles/vote-referral";
 import { getReferralVotes } from "./profiles/get-referral-votes";
+import { updateReferralStatus } from "./profiles/update-referral-status";
 import { followProfile } from "./profiles/follow-profile";
 import { unfollowProfile } from "./profiles/unfollow-profile";
 import { createProfilePage } from "./profiles/create-profile-page";
@@ -250,6 +251,7 @@ export const backend = {
   createReferral,
   voteReferral,
   getReferralVotes,
+  updateReferralStatus,
 
   // Profile Pages
   listProfilePages,

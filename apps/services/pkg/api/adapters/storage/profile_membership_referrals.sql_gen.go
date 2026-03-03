@@ -576,6 +576,34 @@ func (q *Queries) SoftDeleteReferral(ctx context.Context, arg SoftDeleteReferral
 	return result.RowsAffected()
 }
 
+const updateReferralStatus = `-- name: UpdateReferralStatus :exec
+UPDATE "profile_membership_referral"
+SET status = $1,
+    updated_at = NOW()
+WHERE id = $2
+  AND profile_id = $3
+  AND deleted_at IS NULL
+`
+
+type UpdateReferralStatusParams struct {
+	Status    string `db:"status" json:"status"`
+	ID        string `db:"id" json:"id"`
+	ProfileID string `db:"profile_id" json:"profile_id"`
+}
+
+// UpdateReferralStatus
+//
+//	UPDATE "profile_membership_referral"
+//	SET status = $1,
+//	    updated_at = NOW()
+//	WHERE id = $2
+//	  AND profile_id = $3
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateReferralStatus(ctx context.Context, arg UpdateReferralStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateReferralStatus, arg.Status, arg.ID, arg.ProfileID)
+	return err
+}
+
 const updateReferralVoteCount = `-- name: UpdateReferralVoteCount :exec
 UPDATE "profile_membership_referral"
 SET vote_count = (

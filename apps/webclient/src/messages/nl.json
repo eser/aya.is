@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "Geaccepteerd",
     "Status.invitation_rejected": "Afgewezen",
     "Failed to submit vote": "Stem kon niet worden verzonden",
-    "Comment saved": "Opmerking opgeslagen"
+    "Comment saved": "Opmerking opgeslagen",
+    "Actions.Freeze": "Bevriezen",
+    "Actions.Unfreeze": "Ontdooien",
+    "Actions.SendInvite": "Uitnodiging versturen",
+    "Actions.Reject": "Afwijzen",
+    "Actions.FreezeConfirm": "Weet u zeker dat u deze verwijzing wilt bevriezen? De stemming wordt gepauzeerd.",
+    "Actions.UnfreezeConfirm": "Weet u zeker dat u deze verwijzing wilt ontdooien? De stemming wordt hervat.",
+    "Actions.SendInviteConfirm": "Weet u zeker dat u een uitnodiging wilt sturen naar {{name}}?",
+    "Actions.RejectConfirm": "Weet u zeker dat u deze verwijzing wilt afwijzen? Deze actie kan niet ongedaan worden gemaakt.",
+    "Actions.Confirm": "Bevestigen",
+    "Actions.Cancel": "Annuleren",
+    "Actions.StatusUpdated": "Verwijzingsstatus bijgewerkt",
+    "Actions.StatusUpdateFailed": "Kan de verwijzingsstatus niet bijwerken"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

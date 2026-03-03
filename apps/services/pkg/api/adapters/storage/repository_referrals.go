@@ -328,6 +328,19 @@ func (r *Repository) ListReferralTeams(
 	return result, nil
 }
 
+func (r *Repository) UpdateReferralStatus(
+	ctx context.Context,
+	referralID string,
+	profileID string,
+	status profiles.ReferralStatus,
+) error {
+	return r.queries.UpdateReferralStatus(ctx, UpdateReferralStatusParams{
+		Status:    string(status),
+		ID:        referralID,
+		ProfileID: profileID,
+	})
+}
+
 func (r *Repository) GetReferralVoteBreakdown(
 	ctx context.Context,
 	referralID string,

@@ -55,6 +55,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       teams: teams ?? [],
       locale,
       slug,
+      viewerMembershipKind: permissions?.viewer_membership_kind ?? null,
       translatedTitle,
       translatedDescription,
       notFound: false as const,
@@ -90,7 +91,7 @@ function ReferralsPage() {
     return <NotFoundContent />;
   }
 
-  const { referrals, teams, locale, slug } = loaderData;
+  const { referrals, teams, locale, slug, viewerMembershipKind } = loaderData;
 
   return (
     <ReferralsPageClient
@@ -98,6 +99,7 @@ function ReferralsPage() {
       teams={teams}
       locale={locale}
       slug={slug}
+      viewerMembershipKind={viewerMembershipKind}
     />
   );
 }

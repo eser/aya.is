@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "Accepté",
     "Status.invitation_rejected": "Refusé",
     "Failed to submit vote": "Échec de l'envoi du vote",
-    "Comment saved": "Commentaire enregistré"
+    "Comment saved": "Commentaire enregistré",
+    "Actions.Freeze": "Geler",
+    "Actions.Unfreeze": "Dégeler",
+    "Actions.SendInvite": "Envoyer une invitation",
+    "Actions.Reject": "Rejeter",
+    "Actions.FreezeConfirm": "Êtes-vous sûr de vouloir geler cette référence ? Le vote sera suspendu.",
+    "Actions.UnfreezeConfirm": "Êtes-vous sûr de vouloir dégeler cette référence ? Le vote reprendra.",
+    "Actions.SendInviteConfirm": "Êtes-vous sûr de vouloir envoyer une invitation à {{name}} ?",
+    "Actions.RejectConfirm": "Êtes-vous sûr de vouloir rejeter cette référence ? Cette action est irréversible.",
+    "Actions.Confirm": "Confirmer",
+    "Actions.Cancel": "Annuler",
+    "Actions.StatusUpdated": "Statut de la référence mis à jour",
+    "Actions.StatusUpdateFailed": "Échec de la mise à jour du statut de la référence"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

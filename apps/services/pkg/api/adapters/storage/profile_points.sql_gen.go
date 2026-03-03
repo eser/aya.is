@@ -381,7 +381,7 @@ type GetPendingAwardsStatsRow struct {
 	TotalPending  int64       `db:"total_pending" json:"total_pending"`
 	TotalApproved int64       `db:"total_approved" json:"total_approved"`
 	TotalRejected int64       `db:"total_rejected" json:"total_rejected"`
-	PointsAwarded any `db:"points_awarded" json:"points_awarded"`
+	PointsAwarded interface{} `db:"points_awarded" json:"points_awarded"`
 }
 
 // GetPendingAwardsStats

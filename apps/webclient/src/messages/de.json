@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "Angenommen",
     "Status.invitation_rejected": "Abgelehnt",
     "Failed to submit vote": "Abstimmung konnte nicht gesendet werden",
-    "Comment saved": "Kommentar gespeichert"
+    "Comment saved": "Kommentar gespeichert",
+    "Actions.Freeze": "Einfrieren",
+    "Actions.Unfreeze": "Freigeben",
+    "Actions.SendInvite": "Einladung senden",
+    "Actions.Reject": "Ablehnen",
+    "Actions.FreezeConfirm": "Möchten Sie diese Empfehlung wirklich einfrieren? Die Abstimmung wird pausiert.",
+    "Actions.UnfreezeConfirm": "Möchten Sie diese Empfehlung wirklich freigeben? Die Abstimmung wird fortgesetzt.",
+    "Actions.SendInviteConfirm": "Möchten Sie wirklich eine Einladung an {{name}} senden?",
+    "Actions.RejectConfirm": "Möchten Sie diese Empfehlung wirklich ablehnen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "Actions.Confirm": "Bestätigen",
+    "Actions.Cancel": "Abbrechen",
+    "Actions.StatusUpdated": "Empfehlungsstatus aktualisiert",
+    "Actions.StatusUpdateFailed": "Fehler beim Aktualisieren des Empfehlungsstatus"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

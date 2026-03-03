@@ -252,7 +252,19 @@
     "Status.invitation_accepted": "Accepted",
     "Status.invitation_rejected": "Declined",
     "Failed to submit vote": "Failed to submit vote",
-    "Comment saved": "Comment saved"
+    "Comment saved": "Comment saved",
+    "Actions.Freeze": "Freeze",
+    "Actions.Unfreeze": "Unfreeze",
+    "Actions.SendInvite": "Send Invite",
+    "Actions.Reject": "Reject",
+    "Actions.FreezeConfirm": "Are you sure you want to freeze this referral? Voting will be paused.",
+    "Actions.UnfreezeConfirm": "Are you sure you want to unfreeze this referral? Voting will resume.",
+    "Actions.SendInviteConfirm": "Are you sure you want to send an invitation to {{name}}?",
+    "Actions.RejectConfirm": "Are you sure you want to reject this referral? This action cannot be undone.",
+    "Actions.Confirm": "Confirm",
+    "Actions.Cancel": "Cancel",
+    "Actions.StatusUpdated": "Referral status updated",
+    "Actions.StatusUpdateFailed": "Failed to update referral status"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

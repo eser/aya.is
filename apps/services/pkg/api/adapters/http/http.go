@@ -202,6 +202,7 @@ func Run( //nolint:funlen
 		authService,
 		userService,
 		profileService,
+		mailboxService,
 	)
 	RegisterHTTPRoutesForProfileQuestions( //nolint:contextcheck
 		routes,

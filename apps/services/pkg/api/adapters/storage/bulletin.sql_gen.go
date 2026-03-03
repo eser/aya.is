@@ -420,7 +420,7 @@ type GetFollowedProfileStoriesSinceRow struct {
 	AuthorProfileSlug       string         `db:"author_profile_slug" json:"author_profile_slug"`
 	AuthorProfilePictureURI sql.NullString `db:"author_profile_picture_uri" json:"author_profile_picture_uri"`
 	AuthorProfileTitle      string         `db:"author_profile_title" json:"author_profile_title"`
-	PublishedAt             any    `db:"published_at" json:"published_at"`
+	PublishedAt             interface{}    `db:"published_at" json:"published_at"`
 }
 
 // Returns published stories from profiles that the given subscriber follows,

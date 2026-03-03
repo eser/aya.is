@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "수락됨",
     "Status.invitation_rejected": "거절됨",
     "Failed to submit vote": "투표 제출에 실패했습니다",
-    "Comment saved": "댓글이 저장되었습니다"
+    "Comment saved": "댓글이 저장되었습니다",
+    "Actions.Freeze": "동결",
+    "Actions.Unfreeze": "동결 해제",
+    "Actions.SendInvite": "초대 보내기",
+    "Actions.Reject": "거부",
+    "Actions.FreezeConfirm": "이 추천을 동결하시겠습니까? 투표가 일시 중지됩니다.",
+    "Actions.UnfreezeConfirm": "이 추천의 동결을 해제하시겠습니까? 투표가 재개됩니다.",
+    "Actions.SendInviteConfirm": "{{name}}에게 초대를 보내시겠습니까?",
+    "Actions.RejectConfirm": "이 추천을 거부하시겠습니까? 이 작업은 취소할 수 없습니다.",
+    "Actions.Confirm": "확인",
+    "Actions.Cancel": "취소",
+    "Actions.StatusUpdated": "추천 상태가 업데이트되었습니다",
+    "Actions.StatusUpdateFailed": "추천 상태 업데이트에 실패했습니다"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

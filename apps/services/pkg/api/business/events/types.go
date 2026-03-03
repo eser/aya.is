@@ -51,8 +51,9 @@ const (
 
 // Profile referral events.
 const (
-	ProfileReferralCreated EventType = "profile_referral_created"
-	ProfileReferralVoted   EventType = "profile_referral_voted"
+	ProfileReferralCreated       EventType = "profile_referral_created"
+	ProfileReferralVoted         EventType = "profile_referral_voted"
+	ProfileReferralStatusChanged EventType = "profile_referral_status_changed"
 )
 
 // Profile question events.

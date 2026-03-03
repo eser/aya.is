@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "承認済み",
     "Status.invitation_rejected": "拒否",
     "Failed to submit vote": "投票の送信に失敗しました",
-    "Comment saved": "コメントが保存されました"
+    "Comment saved": "コメントが保存されました",
+    "Actions.Freeze": "凍結",
+    "Actions.Unfreeze": "凍結解除",
+    "Actions.SendInvite": "招待を送信",
+    "Actions.Reject": "却下",
+    "Actions.FreezeConfirm": "この推薦を凍結しますか？投票が一時停止されます。",
+    "Actions.UnfreezeConfirm": "この推薦の凍結を解除しますか？投票が再開されます。",
+    "Actions.SendInviteConfirm": "{{name}}に招待を送信しますか？",
+    "Actions.RejectConfirm": "この推薦を却下しますか？この操作は取り消せません。",
+    "Actions.Confirm": "確認",
+    "Actions.Cancel": "キャンセル",
+    "Actions.StatusUpdated": "推薦ステータスが更新されました",
+    "Actions.StatusUpdateFailed": "推薦ステータスの更新に失敗しました"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

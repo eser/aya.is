@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "Принято",
     "Status.invitation_rejected": "Отклонено",
     "Failed to submit vote": "Не удалось отправить голос",
-    "Comment saved": "Комментарий сохранён"
+    "Comment saved": "Комментарий сохранён",
+    "Actions.Freeze": "Заморозить",
+    "Actions.Unfreeze": "Разморозить",
+    "Actions.SendInvite": "Отправить приглашение",
+    "Actions.Reject": "Отклонить",
+    "Actions.FreezeConfirm": "Вы уверены, что хотите заморозить эту рекомендацию? Голосование будет приостановлено.",
+    "Actions.UnfreezeConfirm": "Вы уверены, что хотите разморозить эту рекомендацию? Голосование будет возобновлено.",
+    "Actions.SendInviteConfirm": "Вы уверены, что хотите отправить приглашение {{name}}?",
+    "Actions.RejectConfirm": "Вы уверены, что хотите отклонить эту рекомендацию? Это действие нельзя отменить.",
+    "Actions.Confirm": "Подтвердить",
+    "Actions.Cancel": "Отмена",
+    "Actions.StatusUpdated": "Статус рекомендации обновлён",
+    "Actions.StatusUpdateFailed": "Не удалось обновить статус рекомендации"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

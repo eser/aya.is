@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "Accettato",
     "Status.invitation_rejected": "Rifiutato",
     "Failed to submit vote": "Impossibile inviare il voto",
-    "Comment saved": "Commento salvato"
+    "Comment saved": "Commento salvato",
+    "Actions.Freeze": "Congela",
+    "Actions.Unfreeze": "Scongela",
+    "Actions.SendInvite": "Invia invito",
+    "Actions.Reject": "Rifiuta",
+    "Actions.FreezeConfirm": "Sei sicuro di voler congelare questa segnalazione? La votazione sarà sospesa.",
+    "Actions.UnfreezeConfirm": "Sei sicuro di voler scongelare questa segnalazione? La votazione riprenderà.",
+    "Actions.SendInviteConfirm": "Sei sicuro di voler inviare un invito a {{name}}?",
+    "Actions.RejectConfirm": "Sei sicuro di voler rifiutare questa segnalazione? Questa azione non può essere annullata.",
+    "Actions.Confirm": "Conferma",
+    "Actions.Cancel": "Annulla",
+    "Actions.StatusUpdated": "Stato della segnalazione aggiornato",
+    "Actions.StatusUpdateFailed": "Impossibile aggiornare lo stato della segnalazione"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

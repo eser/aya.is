@@ -31,6 +31,7 @@ const (
 // Invitation sub-types (stored in properties.invitation_kind).
 const (
 	InvitationKindTelegramGroup = "telegram_group"
+	InvitationKindProfileJoin   = "profile_join"
 )
 
 // AllowedReactions is the curated set of emoji reactions.
@@ -137,6 +138,10 @@ type InvitationProperties struct {
 	GroupProfileSlug string  `json:"group_profile_slug,omitempty"`
 	GroupName        string  `json:"group_name,omitempty"`
 	InviteLink       *string `json:"invite_link,omitempty"`
+	// profile_join fields:
+	ReferralID  string `json:"referral_id,omitempty"`
+	ProfileID   string `json:"profile_id,omitempty"`
+	ProfileSlug string `json:"profile_slug,omitempty"`
 }
 
 // SendMessageParams contains parameters for sending a message or system envelope.
@@ -162,3 +167,7 @@ type OnEnvelopeCreatedFunc func(ctx context.Context, envelope *Envelope, params 
 // OnEnvelopeAcceptedFunc is a callback invoked after an envelope is accepted.
 // Implementations must be best-effort — failures should be logged, never propagated.
 type OnEnvelopeAcceptedFunc func(ctx context.Context, envelope *Envelope)
+
+// OnEnvelopeRejectedFunc is a callback invoked after an envelope is rejected.
+// Implementations must be best-effort — failures should be logged, never propagated.
+type OnEnvelopeRejectedFunc func(ctx context.Context, envelope *Envelope)

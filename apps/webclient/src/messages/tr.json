@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "Kabul Edildi",
     "Status.invitation_rejected": "Reddedildi",
     "Failed to submit vote": "Oy gönderilemedi",
-    "Comment saved": "Yorum kaydedildi"
+    "Comment saved": "Yorum kaydedildi",
+    "Actions.Freeze": "Dondur",
+    "Actions.Unfreeze": "Dondurmayı Kaldır",
+    "Actions.SendInvite": "Davet Gönder",
+    "Actions.Reject": "Reddet",
+    "Actions.FreezeConfirm": "Bu referansı dondurmak istediğinizden emin misiniz? Oylama duraklatılacaktır.",
+    "Actions.UnfreezeConfirm": "Bu referansın dondurmasını kaldırmak istediğinizden emin misiniz? Oylama devam edecektir.",
+    "Actions.SendInviteConfirm": "{{name}} kişisine davet göndermek istediğinizden emin misiniz?",
+    "Actions.RejectConfirm": "Bu referansı reddetmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "Actions.Confirm": "Onayla",
+    "Actions.Cancel": "İptal",
+    "Actions.StatusUpdated": "Referans durumu güncellendi",
+    "Actions.StatusUpdateFailed": "Referans durumu güncellenemedi"
   },
   "Links": {
     "All links associated with this profile.": "Bu profille ilişkili tüm bağlantılar.",

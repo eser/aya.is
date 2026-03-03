@@ -3,12 +3,29 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "@tanstack/react-router";
-import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, MoreHorizontal, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { backend } from "@/modules/backend/backend";
-import type { ProfileMembershipReferral, ProfileTeam, ReferralVote } from "@/modules/backend/types";
+import type { ProfileMembershipReferral, ProfileTeam, ReferralStatus, ReferralVote } from "@/modules/backend/types";
 import styles from "./referrals-page-client.module.css";
 
 type ReferralsPageClientProps = {
@@ -16,7 +33,10 @@ type ReferralsPageClientProps = {
   teams: ProfileTeam[];
   locale: string;
   slug: string;
+  viewerMembershipKind: string | null;
 };
+
+const LEAD_PLUS_KINDS = new Set(["maintainer", "lead", "owner"]);
 
 const VOTE_LABELS = [
   "Referrals.Strongly Disagree",
@@ -38,6 +58,28 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
     },
     [router],
   );
+
+  const handleStatusChange = React.useCallback(
+    async (referralId: string, status: ReferralStatus) => {
+      const result = await backend.updateReferralStatus(
+        props.locale,
+        props.slug,
+        referralId,
+        status,
+      );
+
+      if (result) {
+        toast.success(t("Referrals.Actions.StatusUpdated"));
+        router.invalidate();
+      } else {
+        toast.error(t("Referrals.Actions.StatusUpdateFailed"));
+      }
+    },
+    [props.locale, props.slug, router, t],
+  );
+
+  const isLeadPlus = props.viewerMembershipKind !== null &&
+    LEAD_PLUS_KINDS.has(props.viewerMembershipKind);
 
   return (
     <>
@@ -74,6 +116,8 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
                 referral={referral}
                 locale={props.locale}
                 slug={props.slug}
+                isLeadPlus={isLeadPlus}
+                onStatusChange={handleStatusChange}
               />
             ))}
           </div>
@@ -221,6 +265,15 @@ type ReferralCardProps = {
   referral: ProfileMembershipReferral;
   locale: string;
   slug: string;
+  isLeadPlus: boolean;
+  onStatusChange: (referralId: string, status: ReferralStatus) => Promise<void>;
+};
+
+type ConfirmAction = {
+  status: ReferralStatus;
+  titleKey: string;
+  descriptionKey: string;
+  descriptionParams?: Record<string, string>;
 };
 
 function ReferralCard(props: ReferralCardProps) {
@@ -236,6 +289,17 @@ function ReferralCard(props: ReferralCardProps) {
   const [totalVotes, setTotalVotes] = React.useState(props.referral.total_votes);
   const [averageScore, setAverageScore] = React.useState(props.referral.average_score);
   const [comment, setComment] = React.useState(props.referral.viewer_vote_comment ?? "");
+  const [confirmAction, setConfirmAction] = React.useState<ConfirmAction | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = React.useState(false);
+
+  const handleConfirmAction = React.useCallback(async () => {
+    if (confirmAction === null) return;
+
+    setIsUpdatingStatus(true);
+    await props.onStatusChange(props.referral.id, confirmAction.status);
+    setIsUpdatingStatus(false);
+    setConfirmAction(null);
+  }, [confirmAction, props.onStatusChange, props.referral.id]);
 
   const referred = props.referral.referred_profile;
   const referrer = props.referral.referrer_profile;
@@ -350,9 +414,16 @@ function ReferralCard(props: ReferralCardProps) {
             </>
           )}
         </div>
-        <span className={styles.statusBadge}>
-          {t(`Referrals.Status.${props.referral.status}`)}
-        </span>
+        <div className={styles.statusActions}>
+          <span className={styles.statusBadge}>
+            {t(`Referrals.Status.${props.referral.status}`)}
+          </span>
+          <ReferralActionsMenu
+            referral={props.referral}
+            isLeadPlus={props.isLeadPlus}
+            onAction={setConfirmAction}
+          />
+        </div>
       </div>
 
       {/* Referrer info */}
@@ -498,6 +569,136 @@ function ReferralCard(props: ReferralCardProps) {
           )}
         </div>
       )}
+
+      {/* Confirmation dialog for status changes */}
+      <AlertDialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmAction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction !== null ? t(confirmAction.titleKey) : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction !== null ? t(confirmAction.descriptionKey, confirmAction.descriptionParams) : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t("Referrals.Actions.Cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              disabled={isUpdatingStatus}
+            >
+              {t("Referrals.Actions.Confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+  );
+}
+
+// ─── Referral Actions Menu ──────────────────────────────────────────
+
+type ReferralActionsMenuProps = {
+  referral: ProfileMembershipReferral;
+  isLeadPlus: boolean;
+  onAction: (action: ConfirmAction) => void;
+};
+
+function ReferralActionsMenu(props: ReferralActionsMenuProps) {
+  const { t } = useTranslation();
+  const { status } = props.referral;
+
+  // Only show menu for lead+ roles and non-terminal statuses.
+  if (!props.isLeadPlus) return null;
+  if (
+    status === "invitation_pending_response" ||
+    status === "reference_rejected" ||
+    status === "invitation_accepted" ||
+    status === "invitation_rejected"
+  ) {
+    return null;
+  }
+
+  const referredName = props.referral.referred_profile?.title ?? props.referral.referred_profile?.slug ?? "";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className={styles.actionsMenuTrigger}>
+        <MoreHorizontal className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {status === "voting" && (
+          <>
+            <DropdownMenuItem
+              onClick={() =>
+                props.onAction({
+                  status: "frozen",
+                  titleKey: "Referrals.Actions.Freeze",
+                  descriptionKey: "Referrals.Actions.FreezeConfirm",
+                })}
+            >
+              {t("Referrals.Actions.Freeze")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                props.onAction({
+                  status: "invitation_pending_response",
+                  titleKey: "Referrals.Actions.SendInvite",
+                  descriptionKey: "Referrals.Actions.SendInviteConfirm",
+                  descriptionParams: { name: referredName },
+                })}
+            >
+              {t("Referrals.Actions.SendInvite")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() =>
+                props.onAction({
+                  status: "reference_rejected",
+                  titleKey: "Referrals.Actions.Reject",
+                  descriptionKey: "Referrals.Actions.RejectConfirm",
+                })}
+            >
+              {t("Referrals.Actions.Reject")}
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {status === "frozen" && (
+          <>
+            <DropdownMenuItem
+              onClick={() =>
+                props.onAction({
+                  status: "voting",
+                  titleKey: "Referrals.Actions.Unfreeze",
+                  descriptionKey: "Referrals.Actions.UnfreezeConfirm",
+                })}
+            >
+              {t("Referrals.Actions.Unfreeze")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() =>
+                props.onAction({
+                  status: "reference_rejected",
+                  titleKey: "Referrals.Actions.Reject",
+                  descriptionKey: "Referrals.Actions.RejectConfirm",
+                })}
+            >
+              {t("Referrals.Actions.Reject")}
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

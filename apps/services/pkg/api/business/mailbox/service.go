@@ -22,6 +22,7 @@ type Service struct {
 	idGenerator func() string
 	onCreated   OnEnvelopeCreatedFunc
 	onAccepted  OnEnvelopeAcceptedFunc
+	onRejected  OnEnvelopeRejectedFunc
 }
 
 // NewService creates a new mailbox service.
@@ -47,6 +48,11 @@ func (s *Service) SetOnCreated(fn OnEnvelopeCreatedFunc) {
 // SetOnAccepted sets a callback that fires after an envelope is accepted.
 func (s *Service) SetOnAccepted(fn OnEnvelopeAcceptedFunc) {
 	s.onAccepted = fn
+}
+
+// SetOnRejected sets a callback that fires after an envelope is rejected.
+func (s *Service) SetOnRejected(fn OnEnvelopeRejectedFunc) {
+	s.onRejected = fn
 }
 
 // GetOrCreateDirectConversation finds or creates a direct conversation between two profiles.
@@ -479,6 +485,10 @@ func (s *Service) RejectEnvelope(
 
 	s.logger.InfoContext(ctx, "Envelope rejected",
 		slog.String("envelope_id", envelopeID))
+
+	if s.onRejected != nil {
+		s.onRejected(ctx, envelope)
+	}
 
 	return nil
 }

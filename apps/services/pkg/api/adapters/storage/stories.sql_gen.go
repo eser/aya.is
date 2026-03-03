@@ -128,7 +128,7 @@ type GetStoryByIDRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
-	PublishedAt  any           `db:"published_at" json:"published_at"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // GetStoryByID
@@ -263,9 +263,9 @@ type GetStoryFirstPublishedAtParams struct {
 //	WHERE story_id = $1
 //	  AND deleted_at IS NULL
 //	  AND published_at IS NOT NULL
-func (q *Queries) GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirstPublishedAtParams) (any, error) {
+func (q *Queries) GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirstPublishedAtParams) (interface{}, error) {
 	row := q.db.QueryRowContext(ctx, getStoryFirstPublishedAt, arg.StoryID)
-	var first_published_at any
+	var first_published_at interface{}
 	err := row.Scan(&first_published_at)
 	return first_published_at, err
 }
@@ -959,7 +959,7 @@ type ListActivityStoriesRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
-	PublishedAt  any           `db:"published_at" json:"published_at"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // Lists published activity stories sorted by activity_time_start.
@@ -1155,7 +1155,7 @@ type ListStoriesByAuthorProfileIDRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
-	PublishedAt  any           `db:"published_at" json:"published_at"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // Lists all stories authored by a profile, including unpublished ones.
@@ -1363,7 +1363,7 @@ type ListStoriesByAuthorProfileIDForViewerRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
-	PublishedAt  any           `db:"published_at" json:"published_at"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // Like ListStoriesByAuthorProfileID but filters by visibility for the viewer.
@@ -1580,7 +1580,7 @@ type ListStoriesOfPublicationRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
-	PublishedAt  any           `db:"published_at" json:"published_at"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // Uses locale fallback: prefers the requested locale, falls back to author's default locale.
@@ -1799,7 +1799,7 @@ type ListStoriesOfPublicationForViewerRow struct {
 	Profile      Profile               `db:"profile" json:"profile"`
 	ProfileTx    ProfileTx             `db:"profile_tx" json:"profile_tx"`
 	Publications pqtype.NullRawMessage `db:"publications" json:"publications"`
-	PublishedAt  any           `db:"published_at" json:"published_at"`
+	PublishedAt  interface{}           `db:"published_at" json:"published_at"`
 }
 
 // Like ListStoriesOfPublication but includes private stories for authorized viewers.

@@ -249,7 +249,19 @@
     "Status.invitation_accepted": "已接受",
     "Status.invitation_rejected": "已拒绝",
     "Failed to submit vote": "提交投票失败",
-    "Comment saved": "评论已保存"
+    "Comment saved": "评论已保存",
+    "Actions.Freeze": "冻结",
+    "Actions.Unfreeze": "解冻",
+    "Actions.SendInvite": "发送邀请",
+    "Actions.Reject": "拒绝",
+    "Actions.FreezeConfirm": "您确定要冻结此推荐吗？投票将被暂停。",
+    "Actions.UnfreezeConfirm": "您确定要解冻此推荐吗？投票将恢复。",
+    "Actions.SendInviteConfirm": "您确定要向 {{name}} 发送邀请吗？",
+    "Actions.RejectConfirm": "您确定要拒绝此推荐吗？此操作无法撤消。",
+    "Actions.Confirm": "确认",
+    "Actions.Cancel": "取消",
+    "Actions.StatusUpdated": "推荐状态已更新",
+    "Actions.StatusUpdateFailed": "更新推荐状态失败"
   },
   "Links": {
     "All links associated with this profile.": "All links associated with this profile.",

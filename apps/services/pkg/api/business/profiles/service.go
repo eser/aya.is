@@ -42,6 +42,7 @@ var (
 	ErrReferralNotFound              = errors.New("referral not found")
 	ErrInvalidVoteScore              = errors.New("vote score must be between 0 and 4")
 	ErrReferralNotVoting             = errors.New("referral is not in voting status")
+	ErrInvalidStatusTransition       = errors.New("invalid referral status transition")
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -705,6 +706,12 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		referralID string,
 	) (map[int]int, error)
+	UpdateReferralStatus(
+		ctx context.Context,
+		referralID string,
+		profileID string,
+		status ReferralStatus,
+	) error
 }
 
 // WebserverSyncer is the port for syncing custom domains to webserver infrastructure.
@@ -4615,4 +4622,139 @@ func (s *Service) GetReferralVotes(
 	}
 
 	return votes, nil
+}
+
+// validReferralTransitions defines allowed status transitions.
+var validReferralTransitions = map[ReferralStatus][]ReferralStatus{ //nolint:gochecknoglobals
+	ReferralStatusVoting: {
+		ReferralStatusFrozen,
+		ReferralStatusReferenceRejected,
+		ReferralStatusInvitationPendingResponse,
+	},
+	ReferralStatusFrozen: {
+		ReferralStatusVoting,
+		ReferralStatusReferenceRejected,
+	},
+	// invitation_pending_response, reference_rejected, invitation_accepted, invitation_rejected are terminal or managed by mailbox.
+}
+
+func isValidReferralTransition(from, to ReferralStatus) bool {
+	allowed, ok := validReferralTransitions[from]
+	if !ok {
+		return false
+	}
+
+	for _, s := range allowed {
+		if s == to {
+			return true
+		}
+	}
+
+	return false
+}
+
+// UpdateReferralStatus changes the status of a referral. Requires lead+ access.
+func (s *Service) UpdateReferralStatus(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	referralID string,
+	newStatus ReferralStatus,
+) error {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
+	if err != nil {
+		return err
+	}
+
+	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+	}
+
+	if referral.ProfileID != profileID {
+		return ErrReferralNotFound
+	}
+
+	if !isValidReferralTransition(referral.Status, newStatus) {
+		return fmt.Errorf(
+			"%w: cannot transition from %s to %s",
+			ErrInvalidStatusTransition,
+			referral.Status,
+			newStatus,
+		)
+	}
+
+	err = s.repo.UpdateReferralStatus(ctx, referralID, profileID, newStatus)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileReferralStatusChanged,
+		EntityType: "referral",
+		EntityID:   referralID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_id": profileID,
+			"old_status": string(referral.Status),
+			"new_status": string(newStatus),
+		},
+	})
+
+	return nil
+}
+
+// GetReferralByID returns a referral by its ID. No access check.
+func (s *Service) GetReferralByID(
+	ctx context.Context,
+	referralID string,
+) (*ProfileMembershipReferral, error) {
+	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+	}
+
+	return referral, nil
+}
+
+// GetBySlugInternal returns a profile by slug using the default locale. No access check.
+func (s *Service) GetBySlugInternal(ctx context.Context, slug string) (*Profile, error) {
+	return s.GetBySlug(ctx, "en", slug)
+}
+
+// UpdateReferralStatusInternal changes the status of a referral without access checks.
+// Used by system callbacks (e.g. mailbox acceptance/rejection).
+func (s *Service) UpdateReferralStatusInternal(
+	ctx context.Context,
+	referralID string,
+	profileID string,
+	newStatus ReferralStatus,
+) error {
+	err := s.repo.UpdateReferralStatus(ctx, referralID, profileID, newStatus)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileReferralStatusChanged,
+		EntityType: "referral",
+		EntityID:   referralID,
+		ActorID:    nil,
+		ActorKind:  events.ActorSystem,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_id": profileID,
+			"new_status": string(newStatus),
+			"internal":   true,
+		},
+	})
+
+	return nil
 }
