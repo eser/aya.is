@@ -174,6 +174,15 @@ func (w *YouTubeLiveStatusWorker) executeCheck(ctx context.Context) error { //no
 			result = &youtube.LiveBroadcastResult{IsLive: false} //nolint:exhaustruct
 		}
 
+		// Skip update if state hasn't changed (already offline and still offline)
+		stateChanged := result.IsLive != link.IsOnline
+
+		if !stateChanged {
+			checkedCount++
+
+			continue
+		}
+
 		// Build online properties
 		var onlineProperties map[string]any
 
@@ -203,7 +212,7 @@ func (w *YouTubeLiveStatusWorker) executeCheck(ctx context.Context) error { //no
 			}
 		}
 
-		// Update link online status
+		// Update link online status (only on state transition)
 		updateErr := w.syncService.UpdateLinkOnlineStatus(
 			ctx,
 			link.ID,

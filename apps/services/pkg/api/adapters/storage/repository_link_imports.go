@@ -38,6 +38,7 @@ func (r *Repository) ListManagedLinksForKind(
 			AuthAccessToken:          row.AuthAccessToken.String,
 			AuthAccessTokenExpiresAt: vars.ToTimePtr(row.AuthAccessTokenExpiresAt),
 			AuthRefreshToken:         vars.ToStringPtr(row.AuthRefreshToken),
+			IsOnline:                 row.IsOnline,
 		}
 	}
 

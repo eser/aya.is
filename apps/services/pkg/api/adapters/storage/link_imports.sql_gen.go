@@ -325,7 +325,8 @@ SELECT
   pl.remote_id,
   pl.auth_access_token,
   pl.auth_access_token_expires_at,
-  pl.auth_refresh_token
+  pl.auth_refresh_token,
+  pl.is_online
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
     AND p.deleted_at IS NULL
@@ -350,6 +351,7 @@ type ListManagedLinksForKindRow struct {
 	AuthAccessToken          sql.NullString `db:"auth_access_token" json:"auth_access_token"`
 	AuthAccessTokenExpiresAt sql.NullTime   `db:"auth_access_token_expires_at" json:"auth_access_token_expires_at"`
 	AuthRefreshToken         sql.NullString `db:"auth_refresh_token" json:"auth_refresh_token"`
+	IsOnline                 bool           `db:"is_online" json:"is_online"`
 }
 
 // ListManagedLinksForKind
@@ -361,7 +363,8 @@ type ListManagedLinksForKindRow struct {
 //	  pl.remote_id,
 //	  pl.auth_access_token,
 //	  pl.auth_access_token_expires_at,
-//	  pl.auth_refresh_token
+//	  pl.auth_refresh_token,
+//	  pl.is_online
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	    AND p.deleted_at IS NULL
@@ -388,6 +391,7 @@ func (q *Queries) ListManagedLinksForKind(ctx context.Context, arg ListManagedLi
 			&i.AuthAccessToken,
 			&i.AuthAccessTokenExpiresAt,
 			&i.AuthRefreshToken,
+			&i.IsOnline,
 		); err != nil {
 			return nil, err
 		}

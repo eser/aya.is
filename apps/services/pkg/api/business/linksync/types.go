@@ -24,6 +24,7 @@ type ManagedLink struct {
 	AuthAccessToken          string
 	AuthAccessTokenExpiresAt *time.Time
 	AuthRefreshToken         *string
+	IsOnline                 bool
 }
 
 // SyncResult represents the result of syncing a single link.

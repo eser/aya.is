@@ -2744,7 +2744,8 @@ type Querier interface {
 	//    pl.remote_id,
 	//    pl.auth_access_token,
 	//    pl.auth_access_token_expires_at,
-	//    pl.auth_refresh_token
+	//    pl.auth_refresh_token,
+	//    pl.is_online
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//      AND p.deleted_at IS NULL
