@@ -2910,6 +2910,14 @@ type Querier interface {
 	//      pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected')
 	//      AND pmr.updated_at < NOW() - INTERVAL '1 month'
 	//    )
+	//    -- Hide referrals about the viewer themselves
+	//    AND (
+	//      $1 IS NULL
+	//      OR pmr.referred_profile_id != (
+	//        SELECT vm.member_profile_id FROM "profile_membership" vm
+	//        WHERE vm.id = $1
+	//      )
+	//    )
 	//  ORDER BY pmr.created_at DESC
 	ListProfileMembershipReferralsByProfileID(ctx context.Context, arg ListProfileMembershipReferralsByProfileIDParams) ([]*ListProfileMembershipReferralsByProfileIDRow, error)
 	//ListProfileMemberships

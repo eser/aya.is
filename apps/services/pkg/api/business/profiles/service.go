@@ -39,6 +39,7 @@ var (
 	ErrReferralAlreadyExists         = errors.New("referral already exists for this profile")
 	ErrCannotReferSelf               = errors.New("cannot refer yourself")
 	ErrCannotReferExistingMember     = errors.New("cannot refer someone who is already a member")
+	ErrCannotReferNonIndividual      = errors.New("only individual profiles can be referred")
 	ErrReferralNotFound              = errors.New("referral not found")
 	ErrInvalidVoteScore              = errors.New("vote score must be between 0 and 4")
 	ErrReferralNotVoting             = errors.New("referral is not in voting status")
@@ -4377,6 +4378,16 @@ func (s *Service) CreateReferral( //nolint:cyclop,funlen
 	referredProfileID, err := s.repo.GetProfileIDBySlug(ctx, referredProfileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w: referred profile not found: %w", ErrProfileNotFound, err)
+	}
+
+	// Only individual profiles can be referred
+	referredBrief, err := s.repo.GetProfileIdentifierByID(ctx, referredProfileID)
+	if err != nil || referredBrief == nil {
+		return nil, fmt.Errorf("%w: referred profile not found", ErrProfileNotFound)
+	}
+
+	if referredBrief.Kind != "individual" {
+		return nil, ErrCannotReferNonIndividual
 	}
 
 	if *userInfo.IndividualProfileID == referredProfileID {

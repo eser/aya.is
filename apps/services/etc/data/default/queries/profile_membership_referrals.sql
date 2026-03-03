@@ -75,6 +75,14 @@ WHERE pmr.profile_id = sqlc.arg(profile_id)
     pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected')
     AND pmr.updated_at < NOW() - INTERVAL '1 month'
   )
+  -- Hide referrals about the viewer themselves
+  AND (
+    sqlc.narg(viewer_membership_id) IS NULL
+    OR pmr.referred_profile_id != (
+      SELECT vm.member_profile_id FROM "profile_membership" vm
+      WHERE vm.id = sqlc.narg(viewer_membership_id)
+    )
+  )
 ORDER BY pmr.created_at DESC;
 
 -- name: UpsertReferralVote :one

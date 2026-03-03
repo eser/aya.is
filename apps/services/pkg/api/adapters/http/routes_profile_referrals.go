@@ -152,6 +152,8 @@ func RegisterHTTPRoutesForProfileReferrals( //nolint:gocognit,gocyclo,cyclop,fun
 					statusCode = http.StatusBadRequest
 				case errors.Is(err, profiles.ErrCannotReferExistingMember):
 					statusCode = http.StatusBadRequest
+				case errors.Is(err, profiles.ErrCannotReferNonIndividual):
+					statusCode = http.StatusBadRequest
 				case errors.Is(err, profiles.ErrProfileNotFound):
 					statusCode = http.StatusNotFound
 				case errors.Is(err, profiles.ErrInvalidInput):
