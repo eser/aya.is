@@ -172,13 +172,10 @@ function LocaleHomePage() {
       {/* Stories section - scrolls over hero for parallax */}
       <section id="latest" className={styles.storiesSection}>
         <div className={styles.storiesContainer}>
+          <h2 className={styles.storiesHeader}>
+            {t("Home.Latest Stories")}
+          </h2>
           <div className="content">
-            <h2 className={styles.storiesHeader}>
-              <a href="#latest" className={styles.storiesHeaderLink}>
-                {t("Home.Latest Stories")}
-              </a>
-            </h2>
-
             {groupedStories.length === 0 && (
               <p className="text-muted-foreground">
                 {t("Layout.Content not yet available.")}

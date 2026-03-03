@@ -9,7 +9,7 @@
 }
 
 .header {
-  @apply flex items-center gap-3 mb-6;
+  @apply flex items-center gap-3 mb-8;
 }
 
 .headerDot {
@@ -19,7 +19,7 @@
 }
 
 .headerTitle {
-  @apply text-xl font-bold;
+  @apply font-serif text-2xl font-bold;
 }
 
 .scrollContainer {

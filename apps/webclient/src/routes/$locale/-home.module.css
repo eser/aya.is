@@ -25,9 +25,5 @@
 }
 
 .storiesHeader {
-  @apply text-2xl font-bold mb-8 pb-4 border-b border-border;
-}
-
-.storiesHeaderLink {
-  @apply no-underline text-inherit;
+  @apply font-serif text-2xl font-bold mb-8;
 }
