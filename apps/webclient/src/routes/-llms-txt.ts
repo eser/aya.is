@@ -33,13 +33,13 @@ export async function generateLlmsTxt(): Promise<string> {
   sections.push(`# ${siteConfig.name}`);
   sections.push("");
   sections.push(`> ${siteConfig.description}`);
-  sections.push("> This file provides LLM-friendly access to AYA content.");
+  sections.push("> This file provides LLM-friendly access to aya.is community content.");
   sections.push("");
 
   // Documentation section
   sections.push("## Documentation");
   sections.push("");
-  sections.push(`- [About AYA](/${locale}/aya.md): Organization profile and mission`);
+  sections.push(`- [About AYA](/${locale}/aya.md): About the AYA organization`);
   sections.push(`- [Site Index](/${locale}.md): Main navigation and sections`);
   sections.push("");
 
@@ -117,13 +117,13 @@ export async function generateLlmsFullTxt(): Promise<string> {
   sections.push(`# ${siteConfig.name} - Full Content Index`);
   sections.push("");
   sections.push(`> ${siteConfig.description}`);
-  sections.push("> This file provides comprehensive LLM-friendly access to all AYA content.");
+  sections.push("> This file provides comprehensive LLM-friendly access to all aya.is community content.");
   sections.push("");
 
   // Documentation section
   sections.push("## Documentation");
   sections.push("");
-  sections.push(`- [About AYA](/${locale}/aya.md): Organization profile and mission`);
+  sections.push(`- [About AYA](/${locale}/aya.md): About the AYA organization`);
   sections.push(`- [Site Index](/${locale}.md): Main navigation and sections`);
   sections.push("");
 

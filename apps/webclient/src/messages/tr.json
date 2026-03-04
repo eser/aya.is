@@ -147,7 +147,8 @@
     "You need to be logged in to create a profile.": "Profil oluşturmak için giriş yapmanız gerekmektedir."
   },
   "Home": {
-    "AYA the Open Source Network": "AYA, Açık Yazılım Ağı",
+    "AYA the Open Source Network": "AYA Topluluk Sitesi",
+    "SiteSubtitle": "AYA Topluluk Sitesi",
     "A platform connecting the elements that produce and develop for the community": "Topluluk için üreten, geliştiren unsurları buluşturan platform",
     "About AYA": "AYA Hakkında",
     "GitHub": "GitHub",

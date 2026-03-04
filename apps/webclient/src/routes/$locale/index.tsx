@@ -52,7 +52,7 @@ export const Route = createFileRoute("/$locale/")({
     const { locale } = loaderData;
     return {
       meta: generateMetaTags({
-        title: `${siteConfig.name} - Acik Yazilim Agi`,
+        title: `${siteConfig.name} - ${i18next.getFixedT(locale)("Home.SiteSubtitle")}`,
         description: siteConfig.description,
         url: buildUrl(locale),
         locale,

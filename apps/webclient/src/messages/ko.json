@@ -147,7 +147,8 @@
     "You need to be logged in to create a profile.": "You need to be logged in to create a profile."
   },
   "Home": {
-    "AYA the Open Source Network": "AYA 오픈 소스 네트워크",
+    "AYA the Open Source Network": "AYA 커뮤니티 허브",
+    "SiteSubtitle": "AYA 커뮤니티 허브",
     "A platform connecting the elements that produce and develop for the community": "커뮤니티를 위해 생산하고 개발하는 요소들을 연결하는 플랫폼",
     "About AYA": "AYA 소개",
     "GitHub": "GitHub",

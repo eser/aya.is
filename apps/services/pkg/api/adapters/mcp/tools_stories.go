@@ -61,7 +61,7 @@ func registerStoryTools(server *mcp.Server, storyService *stories.Service) {
 		server,
 		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "list_stories",
-			Description: "Get a list of stories and articles on the AYA platform",
+			Description: "Get a list of stories and articles on the aya.is community platform",
 		},
 		createListStoriesHandler(storyService),
 	)

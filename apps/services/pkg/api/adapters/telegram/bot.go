@@ -111,7 +111,7 @@ func (b *Bot) handleStart(ctx context.Context, msg *Message) {
 		}
 
 		text := fmt.Sprintf(
-			"Your Telegram account is already linked to AYA profile <b>@%s</b>.\n\n"+
+			"Your Telegram account is already linked to aya.is profile <b>@%s</b>.\n\n"+
 				"Use /unlink first to disconnect, then try again.",
 			slug,
 		)
@@ -130,7 +130,7 @@ func (b *Bot) handleStart(ctx context.Context, msg *Message) {
 
 		if errors.Is(err, telegrambiz.ErrAlreadyLinked) {
 			_ = b.client.SendMessage(ctx, msg.Chat.ID,
-				"Your Telegram account is already linked to an AYA profile.\n"+
+				"Your Telegram account is already linked to an aya.is profile.\n"+
 					"Use /unlink first to disconnect, then try again.")
 		} else {
 			_ = b.client.SendMessage(ctx, msg.Chat.ID,
@@ -153,14 +153,14 @@ func (b *Bot) handleStart(ctx context.Context, msg *Message) {
 }
 
 func (b *Bot) handleHelp(ctx context.Context, msg *Message) {
-	text := "<b>AYA Bot Commands</b>\n\n" +
+	text := "<b>aya.is Bot Commands</b>\n\n" +
 		"/start — Get a verification code to link your account\n" +
-		"/status — Check your linked AYA profile\n" +
+		"/status — Check your linked aya.is profile\n" +
 		"/groups — List Telegram groups from your profiles\n" +
 		"/join — List private groups you can join\n" +
 		"/invite — Generate an invite code (use in a group chat)\n" +
 		"/register — Register a group as a resource (use in a group chat)\n" +
-		"/unlink — Disconnect your Telegram account from AYA\n" +
+		"/unlink — Disconnect your Telegram account from aya.is\n" +
 		"/help — Show this help message"
 
 	_ = b.client.SendMessage(ctx, msg.Chat.ID, text)
@@ -169,7 +169,7 @@ func (b *Bot) handleHelp(ctx context.Context, msg *Message) {
 func (b *Bot) handleStatus(ctx context.Context, msg *Message) {
 	info, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
 	if err != nil {
-		text := "Your Telegram account is <b>not linked</b> to any AYA profile.\n\n" +
+		text := "Your Telegram account is <b>not linked</b> to any aya.is profile.\n\n" +
 			"Send /start to get a verification code."
 		_ = b.client.SendMessage(ctx, msg.Chat.ID, text)
 
@@ -182,7 +182,7 @@ func (b *Bot) handleStatus(ctx context.Context, msg *Message) {
 	}
 
 	text := fmt.Sprintf(
-		"Your Telegram account is linked to AYA profile <b>@%s</b>.",
+		"Your Telegram account is linked to aya.is profile <b>@%s</b>.",
 		slug,
 	)
 
@@ -194,7 +194,7 @@ func (b *Bot) handleUnlink(ctx context.Context, msg *Message) {
 	if err != nil {
 		if errors.Is(err, telegrambiz.ErrNotLinked) {
 			_ = b.client.SendMessage(ctx, msg.Chat.ID,
-				"Your Telegram account is not linked to any AYA profile.")
+				"Your Telegram account is not linked to any aya.is profile.")
 		} else {
 			_ = b.client.SendMessage(ctx, msg.Chat.ID,
 				"Something went wrong while unlinking your account. Please try again later.")
@@ -204,7 +204,7 @@ func (b *Bot) handleUnlink(ctx context.Context, msg *Message) {
 	}
 
 	_ = b.client.SendMessage(ctx, msg.Chat.ID,
-		"Your Telegram account has been disconnected from AYA.")
+		"Your Telegram account has been disconnected from aya.is.")
 }
 
 func (b *Bot) handleGroups( //nolint:cyclop,funlen // sequential group command handling
@@ -214,7 +214,7 @@ func (b *Bot) handleGroups( //nolint:cyclop,funlen // sequential group command h
 	info, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
 	if err != nil {
 		_ = b.client.SendMessage(ctx, msg.Chat.ID,
-			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
+			"Your Telegram account is <b>not linked</b> to any aya.is profile.\n\n"+
 				"Send /start to get a verification code.")
 
 		return
@@ -486,7 +486,7 @@ func (b *Bot) handleJoinDirect(ctx context.Context, msg *Message) {
 	info, err := b.service.GetLinkedProfile(ctx, msg.From.ID)
 	if err != nil {
 		_ = b.client.SendMessage(ctx, msg.Chat.ID,
-			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
+			"Your Telegram account is <b>not linked</b> to any aya.is profile.\n\n"+
 				"Send /start to get a verification code.")
 
 		return
@@ -499,7 +499,7 @@ func (b *Bot) handleJoin(ctx context.Context, cq *CallbackQuery) { //nolint:varn
 	info, err := b.service.GetLinkedProfile(ctx, cq.From.ID)
 	if err != nil {
 		_ = b.client.SendMessage(ctx, cq.From.ID,
-			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
+			"Your Telegram account is <b>not linked</b> to any aya.is profile.\n\n"+
 				"Send /start to get a verification code.")
 
 		return
@@ -591,7 +591,7 @@ func (b *Bot) handleJoinGroup( //nolint:cyclop,funlen
 	info, err := b.service.GetLinkedProfile(ctx, cq.From.ID)
 	if err != nil {
 		_ = b.client.SendMessage(ctx, cq.From.ID,
-			"Your Telegram account is <b>not linked</b> to any AYA profile.\n\n"+
+			"Your Telegram account is <b>not linked</b> to any aya.is profile.\n\n"+
 				"Send /start to get a verification code.")
 
 		return
@@ -635,7 +635,7 @@ func (b *Bot) handleJoinGroup( //nolint:cyclop,funlen
 	}
 
 	// Generate single-use invite link
-	inviteName := "AYA /join"
+	inviteName := "aya.is /join"
 	if cq.From.Username != "" {
 		inviteName += " for @" + cq.From.Username
 	}

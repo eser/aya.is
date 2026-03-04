@@ -82,7 +82,7 @@ func registerProfileTools(server *mcp.Server, profileService *profiles.Service) 
 		server,
 		&mcp.Tool{ //nolint:exhaustruct // external SDK type
 			Name:        "list_profiles",
-			Description: "Get a list of profiles (people, organizations, products) on the AYA platform",
+			Description: "Get a list of profiles (people, organizations, products) on the aya.is community platform",
 		},
 		createListProfilesHandler(profileService),
 	)

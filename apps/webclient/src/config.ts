@@ -35,12 +35,20 @@ export type SiteConfig = {
 };
 
 export const siteConfig: SiteConfig = {
-  name: "AYA",
+  name: "aya.is",
   fancyName:
-    "\u{1D552}\u{1D554}\u{0131}\u{1D55C} \u{1D56A}\u{1D552}\u{1D55D}\u{0131}\u{1D55D}\u{0131}\u{1D55E} \u{1D552}\u{1D558}\u{0131}",
-  title: "AYA",
-  description: "Gonullu gelistirilen yazilimlarla olusan bir yazilim vakfi",
-  keywords: ["AYA", "Acik Yazilim Agi", "Acik Kaynak", "Acik Veri"],
+    "\u{1D400}\u{1D418}\u{1D400} \u{1D402}\u{1D428}\u{1D426}\u{1D426}\u{1D42E}\u{1D427}\u{1D422}\u{1D42D}\u{1D432} \u{1D407}\u{1D42E}\u{1D41B}",
+  title: "AYA Community Hub",
+  description: "The content and collaboration platform of our open software community",
+  keywords: [
+    "AYA",
+    "Community Hub",
+    "Community Platform",
+    "Community Site",
+    "Open Source",
+    "Open Data",
+    "Content",
+  ],
 
   links: {
     x: "https://twitter.com/acikyazilimagi",
