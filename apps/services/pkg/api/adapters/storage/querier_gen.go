@@ -3266,6 +3266,9 @@ type Querier interface {
 	//  WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
 	//    AND p.approved_at IS NOT NULL
 	//    AND p.deleted_at IS NULL
+	//  ORDER BY md5(p.id || $3)
+	//  LIMIT $5
+	//  OFFSET $4
 	ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error)
 	//ListQueueItemsByType
 	//

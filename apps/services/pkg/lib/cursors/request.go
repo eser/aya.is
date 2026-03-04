@@ -13,6 +13,7 @@ func NewCursorFromRequest(r *http.Request) *Cursor {
 	limit := getLimitFromString(limitStr)
 
 	offset := queryValues.Get("offset")
+	seed := queryValues.Get("seed")
 
 	sortStr := queryValues.Get("sort")
 	sortBy, sortDir := getSortFromString(sortStr)
@@ -29,6 +30,7 @@ func NewCursorFromRequest(r *http.Request) *Cursor {
 	return &Cursor{
 		Limit:  limit,
 		Offset: &offset,
+		Seed:   seed,
 
 		SortBy:  sortBy,
 		SortDir: sortDir,

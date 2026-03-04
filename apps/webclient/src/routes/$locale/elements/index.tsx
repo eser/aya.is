@@ -7,6 +7,7 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
+import { getDailySeed } from "@/lib/seed-utils";
 import { profilesByKindsQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import { ElementsContent } from "./_components/-elements-content";
@@ -15,15 +16,19 @@ import i18next from "i18next";
 export const Route = createFileRoute("/$locale/elements/")({
   loader: async ({ params, context }) => {
     const { locale } = params;
+    const seed = getDailySeed();
 
     await Promise.all([
-      context.queryClient.ensureQueryData(profilesByKindsQueryOptions(locale, ["individual", "organization"])),
+      context.queryClient.ensureQueryData(
+        profilesByKindsQueryOptions(locale, ["individual", "organization"], { seed }),
+      ),
       i18next.loadLanguages(locale),
     ]);
 
     const t = i18next.getFixedT(locale);
     return {
       locale,
+      seed,
       translatedTitle: t("Layout.Elements"),
       translatedDescription: t("Elements.Discover individuals and organizations in the AYA community"),
     };
@@ -46,8 +51,10 @@ export const Route = createFileRoute("/$locale/elements/")({
 });
 
 function ElementsIndexPage() {
-  const { locale } = Route.useLoaderData();
-  const { data: profiles } = useSuspenseQuery(profilesByKindsQueryOptions(locale, ["individual", "organization"]));
+  const { locale, seed } = Route.useLoaderData();
+  const { data: profiles } = useSuspenseQuery(
+    profilesByKindsQueryOptions(locale, ["individual", "organization"], { seed }),
+  );
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
@@ -70,7 +77,12 @@ function ElementsIndexPage() {
             )}
           </div>
 
-          <ElementsContent initialProfiles={profiles} />
+          <ElementsContent
+            initialProfiles={profiles}
+            locale={locale}
+            seed={seed}
+            kinds={["individual", "organization"]}
+          />
         </div>
       </section>
     </PageLayout>

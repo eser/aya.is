@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
@@ -133,6 +134,8 @@ func createListProfilesHandler(
 		}
 
 		cursor := cursors.NewCursor(limit, input.Cursor)
+		cursor.Seed = time.Now().UTC().Format("2006-01-02")
+
 		if input.Kind != "" {
 			cursor.Filters["kind"] = input.Kind
 		}

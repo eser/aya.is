@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -433,24 +434,20 @@ func (r *Repository) GetProfileByID(
 	return result, nil
 }
 
-func (r *Repository) ListProfiles(
-	ctx context.Context,
-	localeCode string,
-	cursor *cursors.Cursor,
-) (cursors.Cursored[[]*profiles.Profile], error) {
-	var wrappedResponse cursors.Cursored[[]*profiles.Profile]
-
-	rows, err := r.queries.ListProfiles(
-		ctx,
-		ListProfilesParams{
-			LocaleCode: localeCode,
-			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
-		},
-	)
-	if err != nil {
-		return wrappedResponse, err
+func parsePageOffset(cursor *cursors.Cursor) int32 {
+	if cursor.Offset == nil || *cursor.Offset == "" {
+		return 0
 	}
 
+	parsed, err := strconv.ParseInt(*cursor.Offset, 10, 32)
+	if err != nil {
+		return 0
+	}
+
+	return int32(parsed)
+}
+
+func mapListProfileRows(rows []*ListProfilesRow) []*profiles.Profile {
 	result := make([]*profiles.Profile, len(rows))
 	for i, row := range rows {
 		result[i] = &profiles.Profile{
@@ -478,10 +475,43 @@ func (r *Repository) ListProfiles(
 		}
 	}
 
+	return result
+}
+
+func (r *Repository) ListProfiles(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*profiles.Profile], error) {
+	var wrappedResponse cursors.Cursored[[]*profiles.Profile]
+
+	seed := cursor.Seed
+	if seed == "" {
+		seed = time.Now().UTC().Format("2006-01-02")
+	}
+
+	pageOffset := parsePageOffset(cursor)
+
+	rows, err := r.queries.ListProfiles(
+		ctx,
+		ListProfilesParams{
+			LocaleCode: localeCode,
+			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
+			Seed:       seed,
+			PageLimit:  int32(cursor.Limit),
+			PageOffset: pageOffset,
+		},
+	)
+	if err != nil {
+		return wrappedResponse, err
+	}
+
+	result := mapListProfileRows(rows)
 	wrappedResponse.Data = result
 
 	if len(result) == cursor.Limit && len(result) > 0 {
-		wrappedResponse.CursorPtr = &result[len(result)-1].ID
+		nextOffset := strconv.Itoa(int(pageOffset) + cursor.Limit)
+		wrappedResponse.CursorPtr = &nextOffset
 	}
 
 	return wrappedResponse, nil

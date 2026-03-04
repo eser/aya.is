@@ -4,6 +4,7 @@
 // Key structure: [entity, locale, ...identifiers, { filters }]
 // The { filters } object is reserved for future pagination params.
 import { queryOptions } from "@tanstack/react-query";
+import { getDailySeed } from "@/lib/seed-utils";
 import { backend } from "./backend";
 
 // === Stories ===
@@ -48,11 +49,20 @@ export const activityQueryOptions = (locale: string, slug: string) =>
 
 // === Profiles ===
 
-export const profilesByKindsQueryOptions = (locale: string, kinds: string[]) =>
-  queryOptions({
-    queryKey: ["profiles", locale, { kinds }],
-    queryFn: () => backend.getProfilesByKinds(locale, kinds),
+export const profilesByKindsQueryOptions = (
+  locale: string,
+  kinds: string[],
+  options?: { seed?: string; limit?: number; offset?: number },
+) => {
+  const seed = options?.seed ?? getDailySeed();
+  const limit = options?.limit ?? 24;
+  const offset = options?.offset ?? 0;
+
+  return queryOptions({
+    queryKey: ["profiles", locale, { kinds, seed, limit, offset }],
+    queryFn: () => backend.getProfilesByKinds(locale, kinds, seed, limit, offset),
   });
+};
 
 export const profileQueryOptions = (locale: string, slug: string) =>
   queryOptions({

@@ -7,6 +7,7 @@ import { PageLayout } from "@/components/page-layouts/default";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
+import { getDailySeed } from "@/lib/seed-utils";
 import { profilesByKindsQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import { ProductsContent } from "./_components/-products-content";
@@ -15,15 +16,17 @@ import i18next from "i18next";
 export const Route = createFileRoute("/$locale/products/")({
   loader: async ({ params, context }) => {
     const { locale } = params;
+    const seed = getDailySeed();
 
     await Promise.all([
-      context.queryClient.ensureQueryData(profilesByKindsQueryOptions(locale, ["product"])),
+      context.queryClient.ensureQueryData(profilesByKindsQueryOptions(locale, ["product"], { seed })),
       i18next.loadLanguages(locale),
     ]);
 
     const t = i18next.getFixedT(locale);
     return {
       locale,
+      seed,
       translatedTitle: t("Layout.Products"),
       translatedDescription: t("Products.Discover open source products and projects"),
     };
@@ -46,8 +49,8 @@ export const Route = createFileRoute("/$locale/products/")({
 });
 
 function ProductsPage() {
-  const { locale } = Route.useLoaderData();
-  const { data: products } = useSuspenseQuery(profilesByKindsQueryOptions(locale, ["product"]));
+  const { locale, seed } = Route.useLoaderData();
+  const { data: products } = useSuspenseQuery(profilesByKindsQueryOptions(locale, ["product"], { seed }));
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
@@ -70,7 +73,7 @@ function ProductsPage() {
             )}
           </div>
 
-          <ProductsContent initialProfiles={products} />
+          <ProductsContent initialProfiles={products} locale={locale} seed={seed} kinds={["product"]} />
         </div>
       </section>
     </PageLayout>

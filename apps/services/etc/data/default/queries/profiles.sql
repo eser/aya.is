@@ -143,7 +143,10 @@ FROM "profile" p
   )
 WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
   AND p.approved_at IS NOT NULL
-  AND p.deleted_at IS NULL;
+  AND p.deleted_at IS NULL
+ORDER BY md5(p.id || sqlc.arg(seed))
+LIMIT sqlc.arg(page_limit)
+OFFSET sqlc.arg(page_offset);
 
 -- name: GetProfileFeatureRelationsVisibility :one
 SELECT feature_relations

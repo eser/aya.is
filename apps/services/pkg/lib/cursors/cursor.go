@@ -11,6 +11,7 @@ type Cursor struct {
 	Filters map[string]string
 
 	Offset *string
+	Seed   string
 
 	SortBy  string
 	SortDir string
@@ -26,6 +27,7 @@ func NewCursor(limit int, offset *string) *Cursor {
 	return &Cursor{
 		Limit:  limit,
 		Offset: offset,
+		Seed:   "",
 
 		SortBy:  defaultSortBy,
 		SortDir: defaultSortDir,

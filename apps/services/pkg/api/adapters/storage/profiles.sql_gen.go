@@ -4459,11 +4459,17 @@ FROM "profile" p
 WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
+ORDER BY md5(p.id || $3)
+LIMIT $5
+OFFSET $4
 `
 
 type ListProfilesParams struct {
 	LocaleCode string         `db:"locale_code" json:"locale_code"`
 	FilterKind sql.NullString `db:"filter_kind" json:"filter_kind"`
+	Seed       string         `db:"seed" json:"seed"`
+	PageOffset int32          `db:"page_offset" json:"page_offset"`
+	PageLimit  int32          `db:"page_limit" json:"page_limit"`
 }
 
 type ListProfilesRow struct {
@@ -4489,8 +4495,17 @@ type ListProfilesRow struct {
 //	WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
 //	  AND p.approved_at IS NOT NULL
 //	  AND p.deleted_at IS NULL
+//	ORDER BY md5(p.id || $3)
+//	LIMIT $5
+//	OFFSET $4
 func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProfiles, arg.LocaleCode, arg.FilterKind)
+	rows, err := q.db.QueryContext(ctx, listProfiles,
+		arg.LocaleCode,
+		arg.FilterKind,
+		arg.Seed,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
 	if err != nil {
 		return nil, err
 	}
