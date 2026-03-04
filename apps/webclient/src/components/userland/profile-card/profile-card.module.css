@@ -36,7 +36,7 @@
 }
 
 .coverImage {
-  @apply w-full h-48 object-cover transition-transform duration-300;
+  @apply w-full aspect-square object-cover transition-transform duration-300;
 }
 
 .cardLink:hover .coverImage {
