@@ -7,8 +7,14 @@
     @apply pt-0;
   }
 
-  &:hover .title {
-    @apply text-primary;
+  &:hover {
+    .title {
+      @apply text-primary;
+    }
+
+    .image, .imagePlaceholderText {
+      @apply scale-105;
+    }
   }
 }
 
@@ -20,12 +26,8 @@
   @apply w-full h-full object-contain transition-transform duration-300;
 }
 
-.story:hover .image {
-  @apply scale-105;
-}
-
 .imagePlaceholderText {
-  @apply text-xs text-muted-foreground;
+  @apply text-xs p-2 text-muted-foreground;
 }
 
 .authorAvatarContainer {
