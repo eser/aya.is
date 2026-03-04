@@ -27,7 +27,7 @@
 }
 
 .imagePlaceholderText {
-  @apply text-xs p-2 text-muted-foreground;
+  @apply text-xs text-center p-2 text-muted-foreground;
 }
 
 .authorAvatarContainer {
