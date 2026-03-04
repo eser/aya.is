@@ -1,7 +1,9 @@
 // Profile stories index - shows all profile stories with date grouping and pagination
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
-import { backend } from "@/modules/backend/backend";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
+import { profileQueryOptions, profileStoriesQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
@@ -13,17 +15,16 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
     const offset = Number(search.offset) || 0;
     return offset > 0 ? { offset } : {};
   },
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { slug, locale } = params;
-    const stories = await backend.getProfileStories(locale, slug);
-    const profile = await backend.getProfile(locale, slug);
+    await context.queryClient.ensureQueryData(profileStoriesQueryOptions(locale, slug));
+    const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
     const profileTitle = profile?.title ?? slug;
 
     // Ensure locale translations are loaded before translating
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     return {
-      stories,
       slug,
       locale,
       profileTitle,
@@ -44,11 +45,13 @@ export const Route = createFileRoute("/$locale/$slug/stories/")({
       links: [generateCanonicalLink(buildUrl(locale, slug, "stories"))],
     };
   },
+  errorComponent: QueryError,
   component: ProfileStoriesIndexPage,
 });
 
 function ProfileStoriesIndexPage() {
-  const { stories, slug, locale } = Route.useLoaderData();
+  const { slug, locale } = Route.useLoaderData();
+  const { data: stories } = useSuspenseQuery(profileStoriesQueryOptions(locale, slug));
   const { profile, permissions } = profileRoute.useLoaderData();
 
   if (profile === null) {

@@ -1121,5 +1121,9 @@
     "confirmMessage": "Weet u het zeker? Analyses helpen ons te verbeteren.",
     "nevermind": "Laat maar",
     "confirmReject": "Ja, weigeren"
+  },
+  "Error": {
+    "Something went wrong": "Er is iets misgegaan",
+    "Try again": "Opnieuw proberen"
   }
 }

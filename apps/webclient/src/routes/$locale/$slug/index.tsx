@@ -2,8 +2,10 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
-import { backend } from "@/modules/backend/backend";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { StoriesPageClient } from "@/routes/$locale/stories/_components/-stories-page-client";
+import { profileStoriesQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { Button } from "@/components/ui/button";
 import { useProfilePermissions } from "@/lib/hooks/use-profile-permissions";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
@@ -16,10 +18,10 @@ export const Route = createFileRoute("/$locale/$slug/")({
     const offset = Number(search.offset) || 0;
     return offset > 0 ? { offset } : {};
   },
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { slug, locale } = params;
-    const stories = await backend.getProfileStories(locale, slug);
-    return { stories, slug, locale };
+    await context.queryClient.ensureQueryData(profileStoriesQueryOptions(locale, slug));
+    return { slug, locale };
   },
   head: ({ loaderData }) => {
     const { locale, slug } = loaderData;
@@ -27,12 +29,14 @@ export const Route = createFileRoute("/$locale/$slug/")({
       links: [generateCanonicalLink(buildUrl(locale, slug))],
     };
   },
+  errorComponent: QueryError,
   component: ProfileIndexPage,
 });
 
 function ProfileIndexPage() {
   const { t } = useTranslation();
-  const { stories, slug, locale } = Route.useLoaderData();
+  const { slug, locale } = Route.useLoaderData();
+  const { data: stories } = useSuspenseQuery(profileStoriesQueryOptions(locale, slug));
   const { profile, permissions } = parentRoute.useLoaderData();
   const { canEdit } = useProfilePermissions(profile?.id ?? "");
 

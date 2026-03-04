@@ -1121,5 +1121,9 @@
     "confirmMessage": "Êtes-vous sûr ? Les analyses nous aident à nous améliorer.",
     "nevermind": "Tant pis",
     "confirmReject": "Oui, refuser"
+  },
+  "Error": {
+    "Something went wrong": "Une erreur est survenue",
+    "Try again": "Réessayer"
   }
 }

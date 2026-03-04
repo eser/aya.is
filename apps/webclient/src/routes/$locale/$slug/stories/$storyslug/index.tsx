@@ -2,6 +2,8 @@
 import * as React from "react";
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { backend } from "@/modules/backend/backend";
+import { profileStoryQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { StoryContent } from "@/components/widgets/story-content";
 import { DiscussionThread } from "@/components/widgets/discussion-thread";
 import { compileMdx, compileMdxLite } from "@/lib/mdx";
@@ -22,9 +24,9 @@ import { ChildNotFound } from "../../route";
 const profileRoute = getRouteApi("/$locale/$slug");
 
 export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, slug, storyslug } = params;
-    const story = await backend.getProfileStory(locale, slug, storyslug);
+    const story = await context.queryClient.ensureQueryData(profileStoryQueryOptions(locale, slug, storyslug));
 
     if (story === null || story === undefined) {
       return {
@@ -104,6 +106,7 @@ export const Route = createFileRoute("/$locale/$slug/stories/$storyslug/")({
       links: [generateCanonicalLink(canonicalUrl)],
     };
   },
+  errorComponent: QueryError,
   component: ProfileStoryPage,
   notFoundComponent: ChildNotFound,
 });

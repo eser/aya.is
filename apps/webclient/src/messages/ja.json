@@ -1121,5 +1121,9 @@
     "confirmMessage": "よろしいですか？分析は改善に役立ちます。",
     "nevermind": "やっぱりやめる",
     "confirmReject": "はい、拒否します"
+  },
+  "Error": {
+    "Something went wrong": "エラーが発生しました",
+    "Try again": "再試行"
   }
 }

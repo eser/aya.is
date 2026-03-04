@@ -1,14 +1,8 @@
 // Profile route - loads profile data and passes through to children
-import {
-  CatchNotFound,
-  createFileRoute,
-  ErrorComponent,
-  getRouteApi,
-  Outlet,
-  useMatches,
-} from "@tanstack/react-router";
+import { CatchNotFound, createFileRoute, getRouteApi, Outlet, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { backend } from "@/modules/backend/backend";
+import { profilePermissionsQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { PageLayout } from "@/components/page-layouts/default";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateMetaTags, truncateDescription } from "@/lib/seo";
@@ -19,17 +13,19 @@ export const Route = createFileRoute("/$locale/$slug")({
     const { slug } = params;
     return { profileSlug: slug };
   },
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { slug, locale } = params;
 
-    const profile = await backend.getProfile(locale, slug);
+    const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
 
     if (profile === null) {
       return { profile: null, notFound: true, locale, slug, permissions: null };
     }
 
     // Returns null for unauthenticated users (401 → null via fetcher)
-    const permissions = await backend.getProfilePermissions(locale, slug).catch(() => null);
+    const permissions = await context.queryClient.ensureQueryData(
+      profilePermissionsQueryOptions(locale, slug),
+    ).catch(() => null);
 
     return { profile, notFound: false, locale, slug, permissions };
   },
@@ -50,7 +46,7 @@ export const Route = createFileRoute("/$locale/$slug")({
     };
   },
   component: ProfileRoute,
-  errorComponent: ErrorComponent,
+  errorComponent: QueryError,
   notFoundComponent: PageNotFound,
 });
 

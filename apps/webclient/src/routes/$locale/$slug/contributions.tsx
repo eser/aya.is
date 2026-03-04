@@ -1,7 +1,8 @@
 // Profile contributions page
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { backend } from "@/modules/backend/backend";
+import { profileContributionsQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { ContributionCard } from "@/components/userland/contribution-card/contribution-card";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
@@ -11,9 +12,9 @@ import { ChildNotFound } from "./route";
 const parentRoute = getRouteApi("/$locale/$slug");
 
 export const Route = createFileRoute("/$locale/$slug/contributions")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, slug } = params;
-    const profile = await backend.getProfile(locale, slug);
+    const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
 
     if (profile?.feature_relations === "disabled") {
       return {
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
       };
     }
 
-    const contributions = await backend.getProfileContributions(locale, slug);
+    const contributions = await context.queryClient.ensureQueryData(profileContributionsQueryOptions(locale, slug));
 
     if (contributions === null) {
       return {
@@ -75,6 +76,7 @@ export const Route = createFileRoute("/$locale/$slug/contributions")({
       links: [generateCanonicalLink(buildUrl(locale, slug, "contributions"))],
     };
   },
+  errorComponent: QueryError,
   component: ContributionsPage,
   notFoundComponent: ChildNotFound,
 });

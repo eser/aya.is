@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { Clock, ExternalLink, PencilLine, User } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
+import { activityQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { compileMdx } from "@/lib/mdx";
 import { MdxContent } from "@/components/userland/mdx-content";
 import { siteConfig } from "@/config";
@@ -24,9 +26,9 @@ import type { ActivityProperties, RSVPMode } from "@/modules/backend/types";
 import { RSVPButtons } from "../_components/-rsvp-buttons";
 
 export const Route = createFileRoute("/$locale/activities/$activityslug/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, activityslug } = params;
-    const activity = await backend.getActivity(locale, activityslug);
+    const activity = await context.queryClient.ensureQueryData(activityQueryOptions(locale, activityslug));
 
     if (activity === null || activity === undefined) {
       return {
@@ -93,6 +95,7 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
       links: [generateCanonicalLink(buildUrl(locale, "activities", activityslug))],
     };
   },
+  errorComponent: QueryError,
   component: ActivityDetailPage,
   notFoundComponent: PageNotFound,
 });

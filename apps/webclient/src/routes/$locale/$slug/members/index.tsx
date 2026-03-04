@@ -1,7 +1,8 @@
 // Profile members list page
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { backend } from "@/modules/backend/backend";
+import { profileMembersQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { MemberCard } from "@/components/userland/member-card/member-card";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import i18next from "i18next";
@@ -10,9 +11,9 @@ import { NotFoundContent } from "./route";
 const parentRoute = getRouteApi("/$locale/$slug");
 
 export const Route = createFileRoute("/$locale/$slug/members/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, slug } = params;
-    const profile = await backend.getProfile(locale, slug);
+    const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
 
     if (profile?.feature_relations === "disabled") {
       return {
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/$locale/$slug/members/")({
       };
     }
 
-    const members = await backend.getProfileMembers(locale, slug);
+    const members = await context.queryClient.ensureQueryData(profileMembersQueryOptions(locale, slug));
 
     if (members === null) {
       return {
@@ -72,6 +73,7 @@ export const Route = createFileRoute("/$locale/$slug/members/")({
       links: [generateCanonicalLink(buildUrl(locale, slug, "members"))],
     };
   },
+  errorComponent: QueryError,
   component: MembersPage,
 });
 

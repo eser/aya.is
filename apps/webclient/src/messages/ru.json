@@ -1121,5 +1121,9 @@
     "confirmMessage": "Вы уверены? Аналитика помогает нам улучшаться.",
     "nevermind": "Неважно",
     "confirmReject": "Да, отклонить"
+  },
+  "Error": {
+    "Something went wrong": "Что-то пошло не так",
+    "Try again": "Попробовать снова"
   }
 }

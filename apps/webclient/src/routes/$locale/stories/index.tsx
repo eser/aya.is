@@ -1,12 +1,14 @@
 // Stories index page
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
-import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
+import { storiesQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { StoriesPageClient } from "./_components/-stories-page-client";
 import i18next from "i18next";
 
@@ -15,15 +17,16 @@ export const Route = createFileRoute("/$locale/stories/")({
     const offset = Number(search.offset) || 0;
     return offset > 0 ? { offset } : {};
   },
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale } = params;
-    const stories = await backend.getStories(locale);
 
-    // Ensure locale translations are loaded before translating
-    await i18next.loadLanguages(locale);
+    await Promise.all([
+      context.queryClient.ensureQueryData(storiesQueryOptions(locale)),
+      i18next.loadLanguages(locale),
+    ]);
+
     const t = i18next.getFixedT(locale);
     return {
-      stories,
       locale,
       translatedTitle: t("Layout.Stories"),
       translatedDescription: t("Stories.Browse articles and stories from the AYA community"),
@@ -42,11 +45,13 @@ export const Route = createFileRoute("/$locale/stories/")({
       links: [generateCanonicalLink(buildUrl(locale, "stories"))],
     };
   },
+  errorComponent: QueryError,
   component: StoriesIndexPage,
 });
 
 function StoriesIndexPage() {
-  const { stories, locale } = Route.useLoaderData();
+  const { locale } = Route.useLoaderData();
+  const { data: stories } = useSuspenseQuery(storiesQueryOptions(locale));
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 

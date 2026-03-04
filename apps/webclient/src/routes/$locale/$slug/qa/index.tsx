@@ -1,6 +1,7 @@
 // Profile Q&A page
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
-import { backend } from "@/modules/backend/backend";
+import { profileQueryOptions, profileQuestionsQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { ChildNotFound } from "../route";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
@@ -12,9 +13,9 @@ import { QAPageClient } from "./-components/qa-page-client";
 const parentRoute = getRouteApi("/$locale/$slug");
 
 export const Route = createFileRoute("/$locale/$slug/qa/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, slug } = params;
-    const profile = await backend.getProfile(locale, slug);
+    const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
 
     if (profile?.feature_qa === "disabled") {
       return {
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
       };
     }
 
-    const questionsData = await backend.getProfileQuestions(locale, slug);
+    const questionsData = await context.queryClient.ensureQueryData(profileQuestionsQueryOptions(locale, slug));
 
     if (questionsData === null) {
       return {
@@ -95,6 +96,7 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
       links: [generateCanonicalLink(buildUrl(locale, slug, "qa"))],
     };
   },
+  errorComponent: QueryError,
   component: QAIndexPage,
   notFoundComponent: ChildNotFound,
 });

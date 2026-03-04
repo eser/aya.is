@@ -15,6 +15,7 @@ import { EasterEgg, ResponsiveIndicator } from "@/components/page-layouts/defaul
 import { DEFAULT_LOCALE, isValidLocale, siteConfig, type SupportedLocaleCode, supportedLocales } from "@/config";
 import { generateMetaTags } from "@/lib/seo";
 import { parseLocaleFromPath } from "@/lib/url";
+import type { QueryClient } from "@tanstack/react-query";
 import type { RequestContext } from "@/request-context";
 import i18n from "@/modules/i18n/i18n";
 import type { i18n as I18nType } from "i18next";
@@ -22,6 +23,7 @@ import "@/styles.css";
 
 type MyRouterContext = {
   requestContext: RequestContext | undefined;
+  queryClient: QueryClient;
 };
 
 // SSR: per-request i18n clone to avoid singleton race conditions between concurrent requests.

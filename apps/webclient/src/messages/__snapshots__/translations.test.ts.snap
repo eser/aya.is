@@ -461,6 +461,8 @@ snapshot[`translations - English key set baseline 1`] = `
   "Elements.NoProfilesFound",
   "Elements.Organizations",
   "Elements.SearchPlaceholder",
+  "Error.Something went wrong",
+  "Error.Try again",
   "Home.A platform connecting the elements that produce and develop for the community",
   "Home.AYA the Open Source Network",
   "Home.About AYA",

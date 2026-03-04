@@ -4,8 +4,9 @@ import { useTranslation } from "react-i18next";
 import { useCallback, useState } from "react";
 import { FileText, Newspaper, ScrollText, Search, User } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
-import { backend } from "@/modules/backend/backend";
 import type { SearchResult } from "@/modules/backend/types";
+import { searchQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/$locale/search/")({
       return { results: null, query: "", locale, profileSlug, translatedTitle, translatedDescription };
     }
 
-    const results = await backend.search(locale, query, profileSlug);
+    const results = await context.queryClient.ensureQueryData(searchQueryOptions(locale, query, profileSlug));
     return { results, query, locale, profileSlug, translatedTitle, translatedDescription };
   },
   head: ({ loaderData }) => {
@@ -53,6 +54,7 @@ export const Route = createFileRoute("/$locale/search/")({
       }),
     };
   },
+  errorComponent: QueryError,
   component: SearchPage,
 });
 

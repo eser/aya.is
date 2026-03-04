@@ -1,25 +1,28 @@
 // Products page
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
-import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
+import { profilesByKindsQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { ProductsContent } from "./_components/-products-content";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/products/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale } = params;
-    const products = await backend.getProfilesByKinds(locale, ["product"]);
 
-    // Ensure locale translations are loaded before translating
-    await i18next.loadLanguages(locale);
+    await Promise.all([
+      context.queryClient.ensureQueryData(profilesByKindsQueryOptions(locale, ["product"])),
+      i18next.loadLanguages(locale),
+    ]);
+
     const t = i18next.getFixedT(locale);
     return {
-      products: products ?? [],
       locale,
       translatedTitle: t("Layout.Products"),
       translatedDescription: t("Products.Discover open source products and projects"),
@@ -38,11 +41,13 @@ export const Route = createFileRoute("/$locale/products/")({
       links: [generateCanonicalLink(buildUrl(locale, "products"))],
     };
   },
+  errorComponent: QueryError,
   component: ProductsPage,
 });
 
 function ProductsPage() {
-  const { products, locale } = Route.useLoaderData();
+  const { locale } = Route.useLoaderData();
+  const { data: products } = useSuspenseQuery(profilesByKindsQueryOptions(locale, ["product"]));
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 

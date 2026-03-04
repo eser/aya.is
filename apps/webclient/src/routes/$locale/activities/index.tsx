@@ -1,27 +1,30 @@
 // Activities listing page
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { Button } from "@/components/ui/button";
-import { backend } from "@/modules/backend/backend";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { formatMonthYear } from "@/lib/date";
+import { activitiesQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { ActivityCard } from "./_components/-activity-card";
 import type { ActivityProperties, StoryEx } from "@/modules/backend/types";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/activities/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale } = params;
-    const activities = await backend.getActivities(locale);
 
-    // Ensure locale translations are loaded before translating
-    await i18next.loadLanguages(locale);
+    await Promise.all([
+      context.queryClient.ensureQueryData(activitiesQueryOptions(locale)),
+      i18next.loadLanguages(locale),
+    ]);
+
     const t = i18next.getFixedT(locale);
     return {
-      activities,
       locale,
       translatedTitle: t("Layout.Activities"),
       translatedDescription: t("Activities.Discover upcoming activities and meetups"),
@@ -40,6 +43,7 @@ export const Route = createFileRoute("/$locale/activities/")({
       links: [generateCanonicalLink(buildUrl(locale, "activities"))],
     };
   },
+  errorComponent: QueryError,
   component: ActivitiesPage,
 });
 
@@ -86,7 +90,8 @@ function groupActivitiesByMonth(activities: StoryEx[], locale: string): GroupedA
 }
 
 function ActivitiesPage() {
-  const { activities, locale } = Route.useLoaderData();
+  const { locale } = Route.useLoaderData();
+  const { data: activities } = useSuspenseQuery(activitiesQueryOptions(locale));
   const { t, i18n } = useTranslation();
   const { isAuthenticated } = useAuth();
   const currentLocale = i18n.language;

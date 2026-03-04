@@ -22,6 +22,7 @@
     "@shikijs/rehype": "^3.22.0",
     "@t3-oss/env-core": "^0.13.10",
     "@tanstack/react-form": "^1.28.3",
+    "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-router": "^1.162.2",
     "@tanstack/react-router-ssr-query": "^1.162.2",
     "@tanstack/react-start": "^1.162.2",

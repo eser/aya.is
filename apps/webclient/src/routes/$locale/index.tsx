@@ -11,8 +11,10 @@ import { compileMdxLite } from "@/lib/mdx";
 import { formatMonthYear, parseDateFromSlug } from "@/lib/date";
 import { siteConfig } from "@/config";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
-import { backend } from "@/modules/backend/backend";
-import type { LiveStreamInfo, StoryEx } from "@/modules/backend/types";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import type { StoryEx } from "@/modules/backend/types";
+import { liveNowQueryOptions, storiesQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { LiveNowSection } from "@/components/live-now/live-now";
 import i18next from "i18next";
 import styles from "./-home.module.css";
@@ -26,7 +28,7 @@ type GroupedStories = {
 };
 
 export const Route = createFileRoute("/$locale/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale } = params;
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
@@ -34,21 +36,12 @@ export const Route = createFileRoute("/$locale/")({
     const siteSubtitle = t("Home.SiteSubtitle");
     const compiledIntro = await compileMdxLite(introText);
 
-    let allStories: StoryEx[] | null = null;
-    let liveStreams: LiveStreamInfo[] | null = null;
+    await Promise.all([
+      context.queryClient.ensureQueryData(storiesQueryOptions(locale)),
+      context.queryClient.prefetchQuery(liveNowQueryOptions(locale)),
+    ]);
 
-    try {
-      const [storiesResult, liveResult] = await Promise.all([
-        backend.getStories(locale).catch(() => null),
-        backend.getLiveNow(locale).catch(() => null),
-      ]);
-      allStories = storiesResult;
-      liveStreams = liveResult;
-    } catch {
-      // Fetch can fail during HMR — render page without data
-    }
-
-    return { compiledIntro, allStories, liveStreams, locale, siteSubtitle };
+    return { compiledIntro, locale, siteSubtitle };
   },
   head: ({ loaderData }) => {
     const { locale, siteSubtitle } = loaderData;
@@ -63,6 +56,7 @@ export const Route = createFileRoute("/$locale/")({
       links: [generateCanonicalLink(buildUrl(locale))],
     };
   },
+  errorComponent: QueryError,
   component: LocaleHomePage,
 });
 
@@ -107,7 +101,9 @@ function groupStoriesByMonth(
 function LocaleHomePage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
-  const { compiledIntro: loaderIntro, allStories, liveStreams, locale: loaderLocale } = Route.useLoaderData();
+  const { compiledIntro: loaderIntro, locale: loaderLocale } = Route.useLoaderData();
+  const { data: allStories } = useSuspenseQuery(storiesQueryOptions(loaderLocale));
+  const { data: liveStreams } = useQuery(liveNowQueryOptions(loaderLocale));
 
   // Loader compiles introText at request time for the URL locale.
   // When language changes client-side (e.g. via WebMCP switch-language),
@@ -167,7 +163,9 @@ function LocaleHomePage() {
       </section>
 
       {/* Live Now section - only visible when streams are active */}
-      {liveStreams !== null && liveStreams.length > 0 && <LiveNowSection streams={liveStreams} locale={locale} />}
+      {liveStreams !== undefined && liveStreams !== null && liveStreams.length > 0 && (
+        <LiveNowSection streams={liveStreams} locale={locale} />
+      )}
 
       {/* Stories section - scrolls over hero for parallax */}
       <section id="latest" className={styles.storiesSection}>

@@ -1,28 +1,28 @@
 // Elements index page
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
-import { backend } from "@/modules/backend/backend";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
+import { profilesByKindsQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { ElementsContent } from "./_components/-elements-content";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/elements/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale } = params;
-    const profiles = await backend.getProfilesByKinds(locale, [
-      "individual",
-      "organization",
+
+    await Promise.all([
+      context.queryClient.ensureQueryData(profilesByKindsQueryOptions(locale, ["individual", "organization"])),
+      i18next.loadLanguages(locale),
     ]);
 
-    // Ensure locale translations are loaded before translating
-    await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     return {
-      profiles: profiles ?? [],
       locale,
       translatedTitle: t("Layout.Elements"),
       translatedDescription: t("Elements.Discover individuals and organizations in the AYA community"),
@@ -41,11 +41,13 @@ export const Route = createFileRoute("/$locale/elements/")({
       links: [generateCanonicalLink(buildUrl(locale, "elements"))],
     };
   },
+  errorComponent: QueryError,
   component: ElementsIndexPage,
 });
 
 function ElementsIndexPage() {
-  const { profiles, locale } = Route.useLoaderData();
+  const { locale } = Route.useLoaderData();
+  const { data: profiles } = useSuspenseQuery(profilesByKindsQueryOptions(locale, ["individual", "organization"]));
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 

@@ -154,6 +154,64 @@ ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
 
 For stories, `<default_locale_reference>` is `(SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id)`. For profiles/pages/links, it's `p.default_locale` directly.
 
+### React Query with SSR (CRITICAL)
+
+All route data fetching uses **TanStack Query (React Query)** with SSR dehydration/hydration via `@tanstack/react-router-ssr-query`.
+
+**Infrastructure:**
+- `QueryClient` created in `src/router.tsx` with `staleTime: 60_000` and `retry: 2`
+- `setupRouterSsrQueryIntegration({ router, queryClient })` handles dehydrate/hydrate/provider automatically
+- Query option factories centralized in `src/modules/backend/queries.ts`
+- Error handling via `QueryError` component (`src/components/query-error.tsx`)
+
+**Route patterns:**
+
+```typescript
+// Loader: prefetch into cache for SSR
+loader: async ({ params, context }) => {
+  const { locale } = params;
+  await context.queryClient.ensureQueryData(storiesByKindsQueryOptions(locale, ["article"]));
+  return { locale };
+},
+errorComponent: QueryError,
+
+// Component: read from hydrated cache, auto-refetch when stale
+function Page() {
+  const { locale } = Route.useLoaderData();
+  const { data } = useSuspenseQuery(storiesByKindsQueryOptions(locale, ["article"]));
+}
+```
+
+**Query key convention:** `[entity, locale, ...identifiers, { filters }]` — designed for future pagination.
+
+```typescript
+// Correct - use query options from queries.ts
+import { storiesByKindsQueryOptions } from "@/modules/backend/queries";
+await context.queryClient.ensureQueryData(storiesByKindsQueryOptions(locale, ["article"]));
+
+// Wrong - direct backend calls in route loaders
+const articles = await backend.getStoriesByKinds(locale, ["article"]);
+```
+
+**When head() needs backend data** (Pattern B), `ensureQueryData` returns the data AND caches it:
+
+```typescript
+const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
+// profile is available for head() via loaderData AND cached for components
+```
+
+**Optional data** (e.g., permissions, live streams) uses `.catch(() => null)` or `prefetchQuery`:
+
+```typescript
+// Permissions — optional, don't crash on failure
+const permissions = await context.queryClient.ensureQueryData(
+  profilePermissionsQueryOptions(locale, slug),
+).catch(() => null);
+
+// Live streams — optional, auto-refetch in component
+await context.queryClient.prefetchQuery(liveNowQueryOptions(locale));
+```
+
 ### Profile System
 
 - Users can have only ONE individual profile

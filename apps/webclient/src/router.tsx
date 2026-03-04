@@ -1,4 +1,6 @@
+import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { routeTree } from "./routeTree.gen";
 import { DEFAULT_LOCALE, isValidLocale, predefinedSlugs, siteConfig, SUPPORTED_LOCALES } from "@/config";
 
@@ -114,9 +116,18 @@ function parseAcceptLanguageSync(header: string): SupportedLocaleCode | null {
   return null;
 }
 
-// Create a new router instance
+// Create a new router instance (per-request on server, singleton on client)
 export async function getRouter() {
   const requestContext = await getRequestContext();
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60_000, // 1 min — data is fresh, no refetch on navigation
+        retry: 2, // retry failed fetches twice before showing error
+      },
+    },
+  });
 
   const customDomainProfileSlug = (
     requestContext?.domainConfiguration.type === "custom-domain" &&
@@ -129,7 +140,7 @@ export async function getRouter() {
 
   const router = createRouter({
     routeTree,
-    context: { requestContext },
+    context: { requestContext, queryClient },
     defaultPreload: "intent",
     scrollRestoration: true,
 
@@ -179,6 +190,11 @@ export async function getRouter() {
       }
       : undefined,
   });
+
+  // Integrates React Query with TanStack Router's SSR dehydration/hydration.
+  // Automatically wraps the app in QueryClientProvider and serializes/deserializes
+  // query cache between server and client.
+  setupRouterSsrQueryIntegration({ router, queryClient });
 
   return router;
 }

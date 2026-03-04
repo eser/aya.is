@@ -1121,5 +1121,9 @@
     "confirmMessage": "确定吗？分析有助于我们改进。",
     "nevermind": "算了",
     "confirmReject": "是的，拒绝"
+  },
+  "Error": {
+    "Something went wrong": "出错了",
+    "Try again": "重试"
   }
 }

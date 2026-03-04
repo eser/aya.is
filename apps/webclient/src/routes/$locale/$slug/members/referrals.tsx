@@ -1,7 +1,8 @@
 // Profile membership referrals page
 import { createFileRoute } from "@tanstack/react-router";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
-import { backend } from "@/modules/backend/backend";
+import { profilePermissionsQueryOptions, profileQueryOptions, referralsQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import i18next from "i18next";
 import { NotFoundContent } from "./route";
 import { ReferralsPageClient } from "./-components/referrals-page-client";
@@ -15,11 +16,11 @@ const MEMBER_PLUS_KINDS = new Set([
 ]);
 
 export const Route = createFileRoute("/$locale/$slug/members/referrals")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, slug } = params;
     const [profile, permissions] = await Promise.all([
-      backend.getProfile(locale, slug),
-      backend.getProfilePermissions(locale, slug),
+      context.queryClient.ensureQueryData(profileQueryOptions(locale, slug)),
+      context.queryClient.ensureQueryData(profilePermissionsQueryOptions(locale, slug)).catch(() => null),
     ]);
 
     const isMemberPlus = permissions?.viewer_membership_kind !== undefined &&
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       };
     }
 
-    const referrals = await backend.listReferrals(locale, slug);
+    const referrals = await context.queryClient.ensureQueryData(referralsQueryOptions(locale, slug));
 
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
@@ -76,6 +77,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       ],
     };
   },
+  errorComponent: QueryError,
   component: ReferralsPage,
 });
 

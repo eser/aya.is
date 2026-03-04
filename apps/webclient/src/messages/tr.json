@@ -1132,5 +1132,9 @@
     "confirmMessage": "Emin misiniz? Analitik, iyileştirmemize yardımcı olur.",
     "nevermind": "Vazgeç",
     "confirmReject": "Evet, reddet"
+  },
+  "Error": {
+    "Something went wrong": "Bir şeyler ters gitti",
+    "Try again": "Tekrar dene"
   }
 }

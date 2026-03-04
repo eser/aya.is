@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { ChildNotFound } from "./route";
 import { ExternalLink, EyeOff, Globe, Instagram, Linkedin, type LucideIcon, Youtube } from "lucide-react";
 import i18next from "i18next";
-import { backend, type ProfileLink, type ProfileLinkKind } from "@/modules/backend/backend";
+import type { ProfileLink, ProfileLinkKind } from "@/modules/backend/backend";
+import { profileLinksQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { Bsky, Discord, GitHub, Icon, SpeakerDeck, Telegram, X } from "@/components/icons";
@@ -37,9 +39,9 @@ function getLinkTypeConfig(kind: ProfileLinkKind): LinkTypeConfig {
 }
 
 export const Route = createFileRoute("/$locale/$slug/links")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, slug } = params;
-    const profile = await backend.getProfile(locale, slug);
+    const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
 
     if (profile?.feature_links === "disabled") {
       return {
@@ -53,7 +55,7 @@ export const Route = createFileRoute("/$locale/$slug/links")({
       };
     }
 
-    const links = await backend.getProfileLinks(locale, slug);
+    const links = await context.queryClient.ensureQueryData(profileLinksQueryOptions(locale, slug));
 
     if (links === null) {
       return {
@@ -101,6 +103,7 @@ export const Route = createFileRoute("/$locale/$slug/links")({
       links: [generateCanonicalLink(buildUrl(locale, slug, "links"))],
     };
   },
+  errorComponent: QueryError,
   component: LinksPage,
   notFoundComponent: ChildNotFound,
 });

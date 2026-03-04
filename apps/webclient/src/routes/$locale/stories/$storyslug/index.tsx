@@ -3,6 +3,8 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
+import { storyQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { StoryContent } from "@/components/widgets/story-content";
 import { DiscussionThread } from "@/components/widgets/discussion-thread";
 import { compileMdx, compileMdxLite } from "@/lib/mdx";
@@ -20,9 +22,9 @@ import { PageNotFound } from "@/components/page-not-found";
 import type { DiscussionComment, DiscussionListResponse } from "@/modules/backend/types";
 
 export const Route = createFileRoute("/$locale/stories/$storyslug/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, storyslug } = params;
-    const story = await backend.getStory(locale, storyslug);
+    const story = await context.queryClient.ensureQueryData(storyQueryOptions(locale, storyslug));
 
     if (story === null || story === undefined) {
       return {
@@ -101,6 +103,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
       links: [generateCanonicalLink(canonicalUrl)],
     };
   },
+  errorComponent: QueryError,
   component: StoryPage,
   notFoundComponent: PageNotFound,
 });

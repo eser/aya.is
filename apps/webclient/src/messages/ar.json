@@ -1121,5 +1121,9 @@
     "confirmMessage": "هل أنت متأكد؟ التحليلات تساعدنا على التحسين.",
     "nevermind": "تراجع",
     "confirmReject": "نعم، رفض"
+  },
+  "Error": {
+    "Something went wrong": "حدث خطأ ما",
+    "Try again": "حاول مرة أخرى"
   }
 }

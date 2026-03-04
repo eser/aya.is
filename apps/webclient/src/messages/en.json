@@ -1139,5 +1139,9 @@
     "confirmMessage": "Are you sure? Analytics help us improve.",
     "nevermind": "Nevermind",
     "confirmReject": "Yes, reject"
+  },
+  "Error": {
+    "Something went wrong": "Something went wrong",
+    "Try again": "Try again"
   }
 }

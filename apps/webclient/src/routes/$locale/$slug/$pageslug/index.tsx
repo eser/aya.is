@@ -2,7 +2,8 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { SquarePen } from "lucide-react";
-import { backend } from "@/modules/backend/backend";
+import { profilePageQueryOptions } from "@/modules/backend/queries";
+import { QueryError } from "@/components/query-error";
 import { TextContent } from "@/components/widgets/text-content";
 import { compileMdx } from "@/lib/mdx";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import { ChildNotFound } from "../route";
 const profileRoute = getRouteApi("/$locale/$slug");
 
 export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { locale, slug, pageslug } = params;
 
     // Skip if pageslug matches known routes
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
       return { page: null, compiledContent: null, notFound: true, locale, slug, pageslug };
     }
 
-    const page = await backend.getProfilePage(locale, slug, pageslug);
+    const page = await context.queryClient.ensureQueryData(profilePageQueryOptions(locale, slug, pageslug));
 
     if (page === null || page === undefined) {
       return { page: null, compiledContent: null, notFound: true, locale, slug, pageslug };
@@ -72,6 +73,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
       links: [generateCanonicalLink(buildUrl(canonicalLocale, slug, pageslug))],
     };
   },
+  errorComponent: QueryError,
   component: ProfileCustomPage,
   notFoundComponent: ChildNotFound,
 });
