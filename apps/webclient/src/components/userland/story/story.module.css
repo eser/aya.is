@@ -25,7 +25,7 @@
 }
 
 .imagePlaceholderText {
-  @apply w-full h-full text-center text-xs p-2 text-muted-foreground;
+  @apply text-xs text-muted-foreground;
 }
 
 .authorAvatarContainer {
@@ -54,6 +54,10 @@
 
 .author {
   @apply flex items-center gap-1;
+}
+
+.kindBadge {
+  @apply text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle;
 }
 
 .localeBadge {

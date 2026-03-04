@@ -10,7 +10,7 @@ import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { formatMonthYear } from "@/lib/date";
 import { activitiesQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
-import { ActivityCard } from "./_components/-activity-card";
+import { Story } from "@/components/userland/story";
 import type { ActivityProperties, StoryEx } from "@/modules/backend/types";
 import i18next from "i18next";
 
@@ -129,7 +129,7 @@ function ActivitiesPage() {
                       {formatMonthYear(group.date, currentLocale)}
                     </h2>
                     <div>
-                      {group.activities.map((activity) => <ActivityCard key={activity.id} activity={activity} />)}
+                      {group.activities.map((activity) => <Story key={activity.id} story={activity} />)}
                     </div>
                   </div>
                 ))}
