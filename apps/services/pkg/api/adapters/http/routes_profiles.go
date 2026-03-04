@@ -115,40 +115,45 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 			}
 
 			// Record profile visit (deduplicated per 15-minute window)
-			go func() {
-				sessionID := GetSessionIDFromRequest(ctx.Request, authService)
-				actorKey := sessionID
-				if actorKey == "" {
-					actorKey = "anon"
-				}
+			if record != nil {
+				go func() {
+					sessionID := GetSessionIDFromRequest(ctx.Request, authService)
+					actorKey := sessionID
+					if actorKey == "" {
+						actorKey = "anon"
+					}
 
-				windowTime := events.FloorToWindow(time.Now().UTC(), visitWindowMinutes)
-				auditID := events.WindowedAuditID(
-					events.ProfileVisited, record.ID, actorKey, windowTime,
-				)
+					windowTime := events.FloorToWindow(time.Now().UTC(), visitWindowMinutes)
+					auditID := events.WindowedAuditID(
+						events.ProfileVisited, record.ID, actorKey, windowTime,
+					)
 
-				var sessionIDPtr *string
-				if sessionID != "" {
-					sessionIDPtr = &sessionID
-				}
+					var sessionIDPtr *string
+					if sessionID != "" {
+						sessionIDPtr = &sessionID
+					}
 
-				auditService.RecordIdempotent(ctx.Request.Context(), events.IdempotentAuditParams{
-					AuditParams: events.AuditParams{
-						EventType:  events.ProfileVisited,
-						EntityType: "profile",
-						EntityID:   record.ID,
-						ActorID:    viewerUserID,
-						ActorKind:  events.ActorUser,
-						SessionID:  sessionIDPtr,
-						Payload: map[string]any{
-							"slug":   slugParam,
-							"locale": localeParam,
+					auditService.RecordIdempotent(
+						ctx.Request.Context(),
+						events.IdempotentAuditParams{
+							AuditParams: events.AuditParams{
+								EventType:  events.ProfileVisited,
+								EntityType: "profile",
+								EntityID:   record.ID,
+								ActorID:    viewerUserID,
+								ActorKind:  events.ActorUser,
+								SessionID:  sessionIDPtr,
+								Payload: map[string]any{
+									"slug":   slugParam,
+									"locale": localeParam,
+								},
+							},
+							ID:        auditID,
+							CreatedAt: windowTime,
 						},
-					},
-					ID:        auditID,
-					CreatedAt: windowTime,
-				})
-			}()
+					)
+				}()
+			}
 
 			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 
