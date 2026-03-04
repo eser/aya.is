@@ -64,10 +64,16 @@ func GetSessionIDFromCookie(r *http.Request, config *auth.Config) (string, error
 // This enables cross-domain scenarios where the cookie is not available (e.g.,
 // custom domains like eser.dev that can't receive the .aya.is cookie).
 func GetSessionIDFromRequest(r *http.Request, authService *auth.Service) string {
+	if authService == nil {
+		return ""
+	}
+
 	// 1. Try session cookie (works on same-site requests)
-	sessionID, err := GetSessionIDFromCookie(r, authService.Config)
-	if err == nil && sessionID != "" {
-		return sessionID
+	if authService.Config != nil {
+		sessionID, err := GetSessionIDFromCookie(r, authService.Config)
+		if err == nil && sessionID != "" {
+			return sessionID
+		}
 	}
 
 	// 2. Fall back to Bearer token (works on cross-domain requests)
@@ -78,8 +84,13 @@ func GetSessionIDFromRequest(r *http.Request, authService *auth.Service) string 
 
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
-	claims, err := authService.TokenService().ParseToken(tokenStr)
-	if err != nil {
+	tokenService := authService.TokenService()
+	if tokenService == nil {
+		return ""
+	}
+
+	claims, err := tokenService.ParseToken(tokenStr)
+	if err != nil || claims == nil {
 		return ""
 	}
 
