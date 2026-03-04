@@ -13,16 +13,19 @@
 }
 
 .imageContainer {
-  @apply flex-shrink-0 relative;
+  @apply shrink-0 relative overflow-hidden rounded-md bg-muted flex items-center justify-center;
 }
 
 .image {
-  @apply w-full h-full object-cover rounded-md;
+  @apply w-full h-full object-contain transition-transform duration-300;
 }
 
-.imagePlaceholder {
-  @apply w-full h-full bg-muted rounded-md flex items-center justify-center text-center text-xs p-2
-    text-muted-foreground overflow-hidden;
+.story:hover .image {
+  @apply scale-105;
+}
+
+.imagePlaceholderText {
+  @apply w-full h-full text-center text-xs p-2 text-muted-foreground;
 }
 
 .authorAvatarContainer {
@@ -34,7 +37,7 @@
 }
 
 .contentArea {
-  @apply flex flex-col flex-grow;
+  @apply flex flex-col grow;
 }
 
 .badge {

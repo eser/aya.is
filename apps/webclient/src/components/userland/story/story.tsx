@@ -61,7 +61,7 @@ export function Story(props: StoryProps) {
               />
             )
             : (
-              <div className={styles.imagePlaceholder}>
+              <div className={styles.imagePlaceholderText}>
                 {stripMarkdown(props.story.title ?? t("News.No image available"))}
               </div>
             )}

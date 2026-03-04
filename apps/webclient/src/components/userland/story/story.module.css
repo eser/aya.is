@@ -13,7 +13,7 @@
 }
 
 .imageContainer {
-  @apply flex-shrink-0 relative overflow-hidden rounded-md;
+  @apply shrink-0 relative overflow-hidden rounded-md bg-muted flex items-center justify-center;
 }
 
 .image {
@@ -24,9 +24,8 @@
   @apply scale-105;
 }
 
-.imagePlaceholder {
-  @apply w-full h-full bg-muted rounded-md flex items-center justify-center text-center text-xs p-2
-    text-muted-foreground overflow-hidden;
+.imagePlaceholderText {
+  @apply w-full h-full text-center text-xs p-2 text-muted-foreground;
 }
 
 .authorAvatarContainer {
@@ -38,7 +37,7 @@
 }
 
 .contentArea {
-  @apply flex flex-col flex-grow;
+  @apply flex flex-col grow;
 }
 
 .title {
