@@ -22,6 +22,7 @@ const (
 	ProfileCreated            EventType = "profile_created"
 	ProfileUpdated            EventType = "profile_updated"
 	ProfileTranslationUpdated EventType = "profile_translation_updated"
+	ProfileVisited            EventType = "profile_visited"
 )
 
 // Profile page events.

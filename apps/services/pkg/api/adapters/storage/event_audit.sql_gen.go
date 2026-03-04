@@ -8,6 +8,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sqlc-dev/pqtype"
 )
@@ -66,6 +67,66 @@ func (q *Queries) InsertEventAudit(ctx context.Context, arg InsertEventAuditPara
 		arg.ActorKind,
 		arg.SessionID,
 		arg.Payload,
+	)
+	return err
+}
+
+const insertEventAuditIdempotent = `-- name: InsertEventAuditIdempotent :exec
+INSERT INTO "event_audit" (
+  id, event_type, entity_type, entity_id,
+  actor_id, actor_kind, session_id, payload, created_at
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7,
+  $8,
+  $9
+) ON CONFLICT (id) DO NOTHING
+`
+
+type InsertEventAuditIdempotentParams struct {
+	ID         string                `db:"id" json:"id"`
+	EventType  string                `db:"event_type" json:"event_type"`
+	EntityType string                `db:"entity_type" json:"entity_type"`
+	EntityID   sql.NullString        `db:"entity_id" json:"entity_id"`
+	ActorID    sql.NullString        `db:"actor_id" json:"actor_id"`
+	ActorKind  string                `db:"actor_kind" json:"actor_kind"`
+	SessionID  sql.NullString        `db:"session_id" json:"session_id"`
+	Payload    pqtype.NullRawMessage `db:"payload" json:"payload"`
+	CreatedAt  time.Time             `db:"created_at" json:"created_at"`
+}
+
+// InsertEventAuditIdempotent
+//
+//	INSERT INTO "event_audit" (
+//	  id, event_type, entity_type, entity_id,
+//	  actor_id, actor_kind, session_id, payload, created_at
+//	) VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4,
+//	  $5,
+//	  $6,
+//	  $7,
+//	  $8,
+//	  $9
+//	) ON CONFLICT (id) DO NOTHING
+func (q *Queries) InsertEventAuditIdempotent(ctx context.Context, arg InsertEventAuditIdempotentParams) error {
+	_, err := q.db.ExecContext(ctx, insertEventAuditIdempotent,
+		arg.ID,
+		arg.EventType,
+		arg.EntityType,
+		arg.EntityID,
+		arg.ActorID,
+		arg.ActorKind,
+		arg.SessionID,
+		arg.Payload,
+		arg.CreatedAt,
 	)
 	return err
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/logfx"
 	"github.com/eser/aya.is/services/pkg/api/business/auth"
 	bulletinbiz "github.com/eser/aya.is/services/pkg/api/business/bulletin"
+	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
@@ -34,6 +35,8 @@ const (
 	maxSlugLength        = 50
 	maxSummaryDuration   = 90
 	errMsgUnauthorized   = "unauthorized"
+
+	visitWindowMinutes = 15
 )
 
 func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,gocyclo
@@ -46,6 +49,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 	profilePointsService *profile_points.Service,
 	aiModels *aifx.Registry,
 	bulletinService *bulletinbiz.Service,
+	auditService *events.AuditService,
 ) {
 	routes.
 		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
@@ -109,6 +113,42 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 					httpfx.WithSanitizedError(err),
 				)
 			}
+
+			// Record profile visit (deduplicated per 15-minute window)
+			go func() {
+				sessionID := GetSessionIDFromRequest(ctx.Request, authService)
+				actorKey := sessionID
+				if actorKey == "" {
+					actorKey = "anon"
+				}
+
+				windowTime := events.FloorToWindow(time.Now().UTC(), visitWindowMinutes)
+				auditID := events.WindowedAuditID(
+					events.ProfileVisited, record.ID, actorKey, windowTime,
+				)
+
+				var sessionIDPtr *string
+				if sessionID != "" {
+					sessionIDPtr = &sessionID
+				}
+
+				auditService.RecordIdempotent(ctx.Request.Context(), events.IdempotentAuditParams{
+					AuditParams: events.AuditParams{
+						EventType:  events.ProfileVisited,
+						EntityType: "profile",
+						EntityID:   record.ID,
+						ActorID:    viewerUserID,
+						ActorKind:  events.ActorUser,
+						SessionID:  sessionIDPtr,
+						Payload: map[string]any{
+							"slug":   slugParam,
+							"locale": localeParam,
+						},
+					},
+					ID:        auditID,
+					CreatedAt: windowTime,
+				})
+			}()
 
 			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 

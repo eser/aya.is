@@ -14,6 +14,22 @@ INSERT INTO "event_audit" (
   NOW()
 );
 
+-- name: InsertEventAuditIdempotent :exec
+INSERT INTO "event_audit" (
+  id, event_type, entity_type, entity_id,
+  actor_id, actor_kind, session_id, payload, created_at
+) VALUES (
+  sqlc.arg(id),
+  sqlc.arg(event_type),
+  sqlc.arg(entity_type),
+  sqlc.arg(entity_id),
+  sqlc.arg(actor_id),
+  sqlc.arg(actor_kind),
+  sqlc.arg(session_id),
+  sqlc.arg(payload),
+  sqlc.arg(created_at)
+) ON CONFLICT (id) DO NOTHING;
+
 -- name: ListEventAuditByEntity :many
 SELECT *
 FROM "event_audit"

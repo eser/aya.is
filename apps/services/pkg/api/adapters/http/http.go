@@ -142,6 +142,7 @@ func Run( //nolint:funlen
 		profilePointsService,
 		aiModels,
 		bulletinService,
+		auditService,
 	)
 	RegisterHTTPRoutesForProfilePoints( //nolint:contextcheck
 		routes,

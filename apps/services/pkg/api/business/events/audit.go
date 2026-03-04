@@ -2,6 +2,8 @@ package events
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"time"
@@ -42,12 +44,28 @@ type AuditParams struct {
 	Payload    map[string]any
 }
 
+// IdempotentAuditParams extends AuditParams with a caller-provided ID and timestamp
+// for deduplication via ON CONFLICT DO NOTHING.
+type IdempotentAuditParams struct {
+	AuditParams
+
+	ID        string
+	CreatedAt time.Time
+}
+
 // AuditRepository defines storage operations for audit entries (port).
 type AuditRepository interface {
 	InsertAudit(
 		ctx context.Context,
 		id string,
 		params AuditParams,
+	) error
+
+	InsertAuditIdempotent(
+		ctx context.Context,
+		id string,
+		params AuditParams,
+		createdAt time.Time,
 	) error
 
 	ListByEntity(
@@ -106,6 +124,47 @@ func (s *AuditService) Record(ctx context.Context, params AuditParams) {
 			slog.Any("error", err),
 		)
 	}
+}
+
+// RecordIdempotent persists an audit entry with a caller-provided ID and timestamp.
+// Duplicate IDs are silently dropped by the database (ON CONFLICT DO NOTHING).
+func (s *AuditService) RecordIdempotent(ctx context.Context, params IdempotentAuditParams) {
+	if params.SessionID == nil && s.sessionIDFromCtx != nil {
+		params.SessionID = s.sessionIDFromCtx(ctx)
+	}
+
+	err := s.repo.InsertAuditIdempotent(ctx, params.ID, params.AuditParams, params.CreatedAt)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to record idempotent audit entry",
+			slog.String("event_type", string(params.EventType)),
+			slog.String("entity_type", params.EntityType),
+			slog.String("entity_id", params.EntityID),
+			slog.Any("error", err),
+		)
+	}
+}
+
+// FloorToWindow rounds a time down to the nearest window boundary.
+func FloorToWindow(t time.Time, minutes int) time.Time {
+	minute := t.Minute()
+	floored := minute - (minute % minutes)
+
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), floored, 0, 0, t.Location())
+}
+
+// WindowedAuditID generates a deterministic ID from event dimensions and a time window,
+// ensuring that duplicate events within the same window produce the same PK.
+func WindowedAuditID(
+	eventType EventType,
+	entityID string,
+	actorKey string,
+	windowTime time.Time,
+) string {
+	h := sha256.Sum256(
+		fmt.Appendf(nil, "%s:%s:%s:%d", eventType, entityID, actorKey, windowTime.Unix()),
+	)
+
+	return hex.EncodeToString(h[:13]) // 26 hex chars fits CHAR(26) PK
 }
 
 // ListByEntity returns audit entries for a given entity.

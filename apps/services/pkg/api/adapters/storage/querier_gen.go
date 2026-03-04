@@ -2184,6 +2184,23 @@ type Querier interface {
 	//    NOW()
 	//  )
 	InsertEventAudit(ctx context.Context, arg InsertEventAuditParams) error
+	//InsertEventAuditIdempotent
+	//
+	//  INSERT INTO "event_audit" (
+	//    id, event_type, entity_type, entity_id,
+	//    actor_id, actor_kind, session_id, payload, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    $6,
+	//    $7,
+	//    $8,
+	//    $9
+	//  ) ON CONFLICT (id) DO NOTHING
+	InsertEventAuditIdempotent(ctx context.Context, arg InsertEventAuditIdempotentParams) error
 	//InsertProfileQuestion
 	//
 	//  INSERT INTO "profile_question" (

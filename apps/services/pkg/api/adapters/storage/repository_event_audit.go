@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/sqlc-dev/pqtype"
@@ -37,6 +38,38 @@ func (r *Repository) InsertAudit(
 		ActorKind:  string(params.ActorKind),
 		SessionID:  toNullString(params.SessionID),
 		Payload:    payloadJSON,
+	})
+}
+
+// InsertAuditIdempotent persists an audit entry with a caller-provided ID and timestamp.
+// Duplicates are silently dropped via ON CONFLICT DO NOTHING.
+func (r *Repository) InsertAuditIdempotent(
+	ctx context.Context,
+	auditID string,
+	params events.AuditParams,
+	createdAt time.Time,
+) error {
+	var payloadJSON pqtype.NullRawMessage
+
+	if params.Payload != nil {
+		data, err := json.Marshal(params.Payload)
+		if err != nil {
+			return fmt.Errorf("marshaling audit payload: %w", err)
+		}
+
+		payloadJSON = pqtype.NullRawMessage{RawMessage: data, Valid: true}
+	}
+
+	return r.queries.InsertEventAuditIdempotent(ctx, InsertEventAuditIdempotentParams{
+		ID:         auditID,
+		EventType:  string(params.EventType),
+		EntityType: params.EntityType,
+		EntityID:   sql.NullString{String: params.EntityID, Valid: params.EntityID != ""},
+		ActorID:    toNullString(params.ActorID),
+		ActorKind:  string(params.ActorKind),
+		SessionID:  toNullString(params.SessionID),
+		Payload:    payloadJSON,
+		CreatedAt:  createdAt,
 	})
 }
 
