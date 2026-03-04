@@ -128,6 +128,7 @@ export function buildUrl(locale: string) { return `${siteConfig.host}/${locale}`
 - 13 locales: ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN
 - Translation keys use English text: `t("Section", "English text")`
 - Messages in `/apps/webclient/src/messages/[locale].json`
+- **NEVER put English text in non-English locale files** — every value in a locale file MUST be translated to that locale's language. When adding new i18n keys, always provide proper translations for ALL 13 locales.
 - All `_tx` tables use `CHAR(12)` for `locale_code` — **always `strings.TrimRight(value, " ")` when mapping to Go business types**
 
 #### 3-Tier Locale Fallback Pattern
