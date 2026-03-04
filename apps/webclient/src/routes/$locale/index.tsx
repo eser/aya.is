@@ -29,7 +29,9 @@ export const Route = createFileRoute("/$locale/")({
   loader: async ({ params }) => {
     const { locale } = params;
     await i18next.loadLanguages(locale);
-    const introText = i18next.getFixedT(locale)("Home.IntroText");
+    const t = i18next.getFixedT(locale);
+    const introText = t("Home.IntroText");
+    const siteSubtitle = t("Home.SiteSubtitle");
     const compiledIntro = await compileMdxLite(introText);
 
     let allStories: StoryEx[] | null = null;
@@ -46,13 +48,13 @@ export const Route = createFileRoute("/$locale/")({
       // Fetch can fail during HMR — render page without data
     }
 
-    return { compiledIntro, allStories, liveStreams, locale };
+    return { compiledIntro, allStories, liveStreams, locale, siteSubtitle };
   },
   head: ({ loaderData }) => {
-    const { locale } = loaderData;
+    const { locale, siteSubtitle } = loaderData;
     return {
       meta: generateMetaTags({
-        title: `${siteConfig.name} - ${i18next.getFixedT(locale)("Home.SiteSubtitle")}`,
+        title: `${siteConfig.name} - ${siteSubtitle}`,
         description: siteConfig.description,
         url: buildUrl(locale),
         locale,

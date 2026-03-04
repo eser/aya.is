@@ -2,9 +2,11 @@
 
 ## Overview
 
-**httpfx** package provides a framework for building HTTP services with support for routing, middleware, and OpenAPI documentation generation.
+**httpfx** package provides a framework for building HTTP services with support for routing, middleware, and OpenAPI
+documentation generation.
 
-The documentation below provides an overview of the package, its types, functions, and usage examples. For more detailed information, refer to the source code and tests.
+The documentation below provides an overview of the package, its types, functions, and usage examples. For more detailed
+information, refer to the source code and tests.
 
 ## Configuration
 
@@ -33,6 +35,7 @@ type Config struct {
 ```
 
 Example configuration:
+
 ```go
 config := &httpfx.Config{
 	Addr:            ":8080",

@@ -1,6 +1,7 @@
 # ProcessFX
 
-ProcessFX is a process and goroutine lifecycle management utility for Go applications that provides graceful shutdown handling, signal management, and coordinated cleanup of concurrent operations.
+ProcessFX is a process and goroutine lifecycle management utility for Go applications that provides graceful shutdown
+handling, signal management, and coordinated cleanup of concurrent operations.
 
 ## Key Features
 
@@ -131,10 +132,12 @@ func New(baseCtx context.Context, logger *logfx.Logger) *Process
 ```
 
 **Parameters:**
+
 - `baseCtx`: Base context for the process (usually `context.Background()`)
 - `logger`: LogFX logger instance for structured logging (can be `nil`)
 
 **Returns:**
+
 - `*Process`: Configured process manager
 
 ### Starting Goroutines
@@ -148,10 +151,12 @@ func (p *Process) StartGoroutine(name string, fn func(ctx context.Context) error
 ```
 
 **Parameters:**
+
 - `name`: Unique name for the goroutine (used for logging and tracking)
 - `fn`: Function to execute in the goroutine, receives cancellable context
 
 **Behavior:**
+
 - Automatically adds the goroutine to a wait group
 - Provides a cancellable context that signals shutdown
 - Logs goroutine start, stop, and error events
@@ -168,6 +173,7 @@ func (p *Process) Wait()
 ```
 
 **Behavior:**
+
 - Blocks until context is cancelled or OS signal received
 - Automatically handles SIGINT and SIGTERM signals
 - Cleans up signal handlers
@@ -181,6 +187,7 @@ func (p *Process) Shutdown()
 ```
 
 **Behavior:**
+
 - Creates shutdown context with timeout
 - Waits for all goroutines to complete
 - Logs shutdown progress and completion
@@ -200,6 +207,7 @@ process.ShutdownTimeout = 45 * time.Second  // Default: 30 seconds
 ### Signal Handling
 
 ProcessFX automatically handles these OS signals:
+
 - `SIGINT` (Ctrl+C): Interrupt signal
 - `SIGTERM`: Termination signal (used by process managers)
 
@@ -416,6 +424,7 @@ process.StartGoroutine("failing-worker", func(ctx context.Context) error {
 ```
 
 **Error Behavior:**
+
 - Errors are automatically logged with context
 - Process continues running other goroutines
 - Context cancellation errors are handled gracefully
@@ -646,6 +655,7 @@ func main() {
 ## Thread Safety
 
 ProcessFX is designed to be thread-safe:
+
 - Safe to call `StartGoroutine` concurrently
 - Safe to call `Wait` and `Shutdown` from any goroutine
 - Internal wait groups and atomic operations ensure consistency
