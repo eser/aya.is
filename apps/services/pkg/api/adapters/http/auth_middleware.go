@@ -11,14 +11,16 @@ import (
 
 const ContextKeySessionID httpfx.ContextKey = "session_id"
 
-// AuthMiddleware resolves the caller's session from the session cookie.
-// The cookie carries the session ID directly. The session is loaded from
-// the database and must be active with a logged-in user.
+// AuthMiddleware resolves the caller's session from the request.
+// Tries the session cookie first, then falls back to the Authorization Bearer
+// token. This enables cross-domain scenarios where the cookie is not available
+// (e.g., custom domains like eser.dev that can't receive the .aya.is cookie).
+// The session is loaded from the database and must be active with a logged-in user.
 // The session ID is stored in context for downstream handlers.
 func AuthMiddleware(authService *auth.Service, userService *users.Service) httpfx.Handler {
 	return func(ctx *httpfx.Context) httpfx.Result {
-		sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-		if err != nil || sessionID == "" {
+		sessionID := GetSessionIDFromRequest(ctx.Request, authService)
+		if sessionID == "" {
 			return ctx.Results.Unauthorized(httpfx.WithErrorMessage("Unauthorized"))
 		}
 

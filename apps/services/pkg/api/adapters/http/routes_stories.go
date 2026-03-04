@@ -62,7 +62,7 @@ func RegisterHTTPRoutesForStories( //nolint:funlen,cyclop,gocognit,gocyclo,maint
 		HasDescription("List stories.").
 		HasResponse(http.StatusOK)
 
-	routes. //nolint:dupl
+	routes.
 		Route("GET /{locale}/stories/{slug}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			localeParam, localeOk := validateLocale(ctx)
@@ -71,16 +71,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen,cyclop,gocognit,gocyclo,maint
 			}
 			slugParam := ctx.Request.PathValue("slug")
 
-			// Try to get viewer's user ID from session (optional - not required)
-			var viewerUserID *string
-
-			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-			if err == nil && sessionID != "" {
-				session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-				if sessionErr == nil && session != nil && session.LoggedInUserID != nil {
-					viewerUserID = session.LoggedInUserID
-				}
-			}
+			// Try to get viewer's user ID from session (optional — supports cross-domain via Bearer token fallback)
+			viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
 
 			record, err := storyService.GetBySlugForViewer(
 				ctx.Request.Context(),

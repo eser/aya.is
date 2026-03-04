@@ -332,9 +332,9 @@ func RegisterHTTPRoutesForUsers( //nolint:funlen,cyclop,gocognit,gocyclo,maintid
 
 	routes.
 		Route("POST /{locale}/auth/logout", func(ctx *httpfx.Context) httpfx.Result {
-			// Get current session ID from cookie
-			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-			if err != nil {
+			// Get current session ID from cookie or Bearer token (cross-domain support)
+			sessionID := GetSessionIDFromRequest(ctx.Request, authService)
+			if sessionID == "" {
 				// No session to logout, just clear cookie and return success
 				ClearSessionCookie(ctx.ResponseWriter, authService.Config)
 

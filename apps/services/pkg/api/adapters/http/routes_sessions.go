@@ -50,8 +50,8 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop,gocognit,gocyclo,main
 	routes.Route(
 		"GET /{locale}/sessions/_current",
 		func(ctx *httpfx.Context) httpfx.Result {
-			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-			if err != nil {
+			sessionID := GetSessionIDFromRequest(ctx.Request, authService)
+			if sessionID == "" {
 				return ctx.Results.JSON(map[string]any{
 					"data": map[string]any{"authenticated": false, "preferences": nil},
 				})
@@ -434,9 +434,9 @@ func RegisterHTTPRoutesForSessions( //nolint:funlen,cyclop,gocognit,gocyclo,main
 	routes.Route(
 		"PATCH /{locale}/sessions/_current",
 		func(ctx *httpfx.Context) httpfx.Result {
-			// Get session ID from cookie
-			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-			if err != nil {
+			// Get session ID from cookie or Bearer token (cross-domain support)
+			sessionID := GetSessionIDFromRequest(ctx.Request, authService)
+			if sessionID == "" {
 				return ctx.Results.Unauthorized(
 					httpfx.WithErrorMessage("No session found"),
 				)

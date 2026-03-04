@@ -428,7 +428,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 		HasDescription("List stories authored by profile slug, including unpublished.").
 		HasResponse(http.StatusOK)
 
-	routes. //nolint:dupl
+	routes.
 		Route(
 			"GET /{locale}/profiles/{slug}/stories/{storySlug}",
 			func(ctx *httpfx.Context) httpfx.Result {
@@ -440,19 +440,8 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 				// slugParam := ctx.Request.PathValue("slug")
 				storySlugParam := ctx.Request.PathValue("storySlug")
 
-				// Try to get viewer's user ID from session (optional - not required)
-				var viewerUserID *string
-
-				sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-				if err == nil && sessionID != "" {
-					session, sessionErr := userService.GetSessionByID(
-						ctx.Request.Context(),
-						sessionID,
-					)
-					if sessionErr == nil && session != nil && session.LoggedInUserID != nil {
-						viewerUserID = session.LoggedInUserID
-					}
-				}
+				// Try to get viewer's user ID from session (optional — supports cross-domain via Bearer token fallback)
+				viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
 
 				// TODO(@eser) pass profile slug too for getting story by profile slug and story slug
 				record, err := storyService.GetBySlugForViewer(

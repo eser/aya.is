@@ -11,7 +11,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
-func RegisterHTTPRoutesForActivities( //nolint:cyclop,funlen
+func RegisterHTTPRoutesForActivities( //nolint:funlen
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	authService *auth.Service,
@@ -51,16 +51,8 @@ func RegisterHTTPRoutesForActivities( //nolint:cyclop,funlen
 			}
 			slugParam := ctx.Request.PathValue("slug")
 
-			// Optional viewer auth
-			var viewerUserID *string
-
-			sessionID, err := GetSessionIDFromCookie(ctx.Request, authService.Config)
-			if err == nil && sessionID != "" {
-				session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
-				if sessionErr == nil && session != nil && session.LoggedInUserID != nil {
-					viewerUserID = session.LoggedInUserID
-				}
-			}
+			// Optional viewer auth (supports cross-domain via Bearer token fallback)
+			viewerUserID := GetViewerUserID(ctx.Request, authService, userService)
 
 			record, err := storyService.GetBySlugForViewer(
 				ctx.Request.Context(),
