@@ -1112,5 +1112,13 @@
     "No digest sent yet": "Aún no se ha enviado ningún resumen.",
     "Preferences saved": "Preferencias de boletín guardadas correctamente.",
     "Failed to save": "Error al guardar las preferencias del boletín."
+  },
+  "Cookies": {
+    "message": "Usamos cookies para análisis.",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "confirmMessage": "¿Estás seguro? Los análisis nos ayudan a mejorar.",
+    "nevermind": "No importa",
+    "confirmReject": "Sí, rechazar"
   }
 }

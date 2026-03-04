@@ -165,9 +165,7 @@ function LocaleHomePage() {
       </section>
 
       {/* Live Now section - only visible when streams are active */}
-      {liveStreams !== null && liveStreams.length > 0 && (
-        <LiveNowSection streams={liveStreams} locale={locale} />
-      )}
+      {liveStreams !== null && liveStreams.length > 0 && <LiveNowSection streams={liveStreams} locale={locale} />}
 
       {/* Stories section - scrolls over hero for parallax */}
       <section id="latest" className={styles.storiesSection}>

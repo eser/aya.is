@@ -1130,5 +1130,13 @@
     "No digest sent yet": "No digest has been sent yet.",
     "Preferences saved": "Bulletin preferences saved successfully.",
     "Failed to save": "Failed to save bulletin preferences."
+  },
+  "Cookies": {
+    "message": "We use cookies for analytics.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "confirmMessage": "Are you sure? Analytics help us improve.",
+    "nevermind": "Nevermind",
+    "confirmReject": "Yes, reject"
   }
 }

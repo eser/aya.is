@@ -1112,5 +1112,13 @@
     "No digest sent yet": "Es wurde noch kein Digest gesendet.",
     "Preferences saved": "Bulletin-Einstellungen erfolgreich gespeichert.",
     "Failed to save": "Bulletin-Einstellungen konnten nicht gespeichert werden."
+  },
+  "Cookies": {
+    "message": "Wir verwenden Cookies für Analysen.",
+    "accept": "Akzeptieren",
+    "reject": "Ablehnen",
+    "confirmMessage": "Sind Sie sicher? Analysen helfen uns, uns zu verbessern.",
+    "nevermind": "Egal",
+    "confirmReject": "Ja, ablehnen"
   }
 }

@@ -1112,5 +1112,13 @@
     "No digest sent yet": "Nessun riassunto è stato ancora inviato.",
     "Preferences saved": "Preferenze del bollettino salvate con successo.",
     "Failed to save": "Impossibile salvare le preferenze del bollettino."
+  },
+  "Cookies": {
+    "message": "Utilizziamo i cookie per le analisi.",
+    "accept": "Accetta",
+    "reject": "Rifiuta",
+    "confirmMessage": "Sei sicuro? Le analisi ci aiutano a migliorare.",
+    "nevermind": "Non importa",
+    "confirmReject": "Sì, rifiuta"
   }
 }

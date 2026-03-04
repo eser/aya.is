@@ -1123,5 +1123,13 @@
     "No digest sent yet": "Henüz özet gönderilmedi.",
     "Preferences saved": "Bülten tercihleri başarıyla kaydedildi.",
     "Failed to save": "Bülten tercihleri kaydedilemedi."
+  },
+  "Cookies": {
+    "message": "Analitik için çerezler kullanıyoruz.",
+    "accept": "Kabul Et",
+    "reject": "Reddet",
+    "confirmMessage": "Emin misiniz? Analitik, iyileştirmemize yardımcı olur.",
+    "nevermind": "Vazgeç",
+    "confirmReject": "Evet, reddet"
   }
 }

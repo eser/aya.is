@@ -1112,5 +1112,13 @@
     "No digest sent yet": "Aucun résumé n'a encore été envoyé.",
     "Preferences saved": "Préférences de bulletin enregistrées avec succès.",
     "Failed to save": "Échec de l'enregistrement des préférences du bulletin."
+  },
+  "Cookies": {
+    "message": "Nous utilisons des cookies pour les analyses.",
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "confirmMessage": "Êtes-vous sûr ? Les analyses nous aident à nous améliorer.",
+    "nevermind": "Tant pis",
+    "confirmReject": "Oui, refuser"
   }
 }

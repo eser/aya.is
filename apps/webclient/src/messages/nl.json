@@ -1112,5 +1112,13 @@
     "No digest sent yet": "Er is nog geen digest verzonden.",
     "Preferences saved": "Bulletinvoorkeuren succesvol opgeslagen.",
     "Failed to save": "Kan bulletinvoorkeuren niet opslaan."
+  },
+  "Cookies": {
+    "message": "We gebruiken cookies voor analyses.",
+    "accept": "Accepteren",
+    "reject": "Weigeren",
+    "confirmMessage": "Weet u het zeker? Analyses helpen ons te verbeteren.",
+    "nevermind": "Laat maar",
+    "confirmReject": "Ja, weigeren"
   }
 }

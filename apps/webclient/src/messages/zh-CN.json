@@ -1112,5 +1112,13 @@
     "No digest sent yet": "尚未发送过摘要。",
     "Preferences saved": "通讯偏好已成功保存。",
     "Failed to save": "保存通讯偏好失败。"
+  },
+  "Cookies": {
+    "message": "我们使用 Cookie 进行分析。",
+    "accept": "接受",
+    "reject": "拒绝",
+    "confirmMessage": "确定吗？分析有助于我们改进。",
+    "nevermind": "算了",
+    "confirmReject": "是的，拒绝"
   }
 }

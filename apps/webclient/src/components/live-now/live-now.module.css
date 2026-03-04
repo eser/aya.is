@@ -47,7 +47,8 @@
 }
 
 .liveBadge {
-  @apply absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider;
+  @apply absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase
+    tracking-wider;
   background: hsl(0 72% 51%);
   color: white;
 }
@@ -88,7 +89,8 @@
 }
 
 .watchButton {
-  @apply w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium no-underline transition-colors;
+  @apply w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium no-underline
+    transition-colors;
   background: hsl(0 72% 51%);
   color: white;
 

@@ -71,9 +71,7 @@ export function LiveBanner(props: LiveBannerProps) {
       </div>
       <span className={styles.title}>
         {liveLink.title}
-        {onlineTitle !== null && (
-          <span className={styles.streamTitle}> · {onlineTitle}</span>
-        )}
+        {onlineTitle !== null && <span className={styles.streamTitle}>· {onlineTitle}</span>}
       </span>
       <a
         href={liveUrl}

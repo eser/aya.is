@@ -1,0 +1,17 @@
+@reference "@/theme.css";
+
+.banner {
+  @apply fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm;
+}
+
+.content {
+  @apply container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-3 sm:flex-row;
+}
+
+.message {
+  @apply flex items-center gap-2 text-sm text-muted-foreground;
+}
+
+.actions {
+  @apply flex items-center gap-2 shrink-0;
+}

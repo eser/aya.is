@@ -1112,5 +1112,13 @@
     "No digest sent yet": "まだダイジェストは送信されていません。",
     "Preferences saved": "ブレティン設定が正常に保存されました。",
     "Failed to save": "ブレティン設定の保存に失敗しました。"
+  },
+  "Cookies": {
+    "message": "分析のためにCookieを使用しています。",
+    "accept": "同意する",
+    "reject": "拒否する",
+    "confirmMessage": "よろしいですか？分析は改善に役立ちます。",
+    "nevermind": "やっぱりやめる",
+    "confirmReject": "はい、拒否します"
   }
 }
