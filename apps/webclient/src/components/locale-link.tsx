@@ -23,11 +23,6 @@ interface LocaleLinkProps extends Omit<LinkProps, "to"> {
    * Additional class names
    */
   className?: string;
-
-  /**
-   * ARIA role for accessibility
-   */
-  role?: string;
 }
 
 /**

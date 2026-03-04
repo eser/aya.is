@@ -333,7 +333,8 @@
     "Sign in to vote": "Войдите, чтобы голосовать",
     "Upvote": "За",
     "Downvote": "Против",
-    "Unknown": "Неизвестно"
+    "Unknown": "Неизвестно",
+    "More actions": "Другие действия"
   },
   "Elements": {
     "Description": "Люди, организации и проекты в сети AYA.",

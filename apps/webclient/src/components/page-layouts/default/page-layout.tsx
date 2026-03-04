@@ -17,7 +17,7 @@ export function PageLayout(props: PageLayoutProps) {
       )}
     >
       <Header />
-      <main className={cn("flex-1", props.fullHeight === true && "min-h-0 overflow-hidden")}>
+      <main id="main-content" className={cn("flex-1", props.fullHeight === true && "min-h-0 overflow-hidden")}>
         {props.children}
       </main>
       {props.fullHeight !== true && <Footer />}

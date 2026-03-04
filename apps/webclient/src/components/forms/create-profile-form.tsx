@@ -202,7 +202,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     <div className={styles.formContainer}>
       <div className={styles.formHeader}>
         <Link to={props.backUrl}>
-          <Button variant="outline" size="icon" className="rounded-full">
+          <Button variant="outline" size="icon" className="rounded-full" aria-label={t("Common.Back")}>
             <ArrowLeft className="size-4" />
           </Button>
         </Link>

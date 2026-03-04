@@ -24,7 +24,7 @@ export function ProfileCard(props: ProfileCardProps) {
   if (variant === "cover") {
     return (
       <LocaleLink
-        role="card"
+        data-slot="card"
         to={`/${profile.slug}`}
         className={styles.cardLink}
       >
@@ -59,7 +59,7 @@ export function ProfileCard(props: ProfileCardProps) {
 
   return (
     <LocaleLink
-      role="card"
+      data-slot="card"
       to={`/${profile.slug}`}
       className={styles.cardLink}
     >

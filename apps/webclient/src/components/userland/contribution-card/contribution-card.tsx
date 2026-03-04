@@ -17,7 +17,7 @@ export function ContributionCard(props: ContributionCardProps) {
 
   return (
     <LocaleLink
-      role="card"
+      data-slot="card"
       to={`/${profile.slug}`}
       className={styles.cardLink}
     >

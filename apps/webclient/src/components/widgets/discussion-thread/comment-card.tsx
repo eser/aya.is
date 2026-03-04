@@ -155,7 +155,7 @@ export function CommentCard(props: CommentCardProps) {
           {props.comment.author_profile_picture_uri !== null && (
             <img
               src={props.comment.author_profile_picture_uri}
-              alt=""
+              alt={props.comment.author_profile_title ?? ""}
               className={styles.authorAvatar}
             />
           )}
@@ -280,12 +280,19 @@ export function CommentCard(props: CommentCardProps) {
                   type="button"
                   onClick={() => setShowMoreActions(!showMoreActions)}
                   className={styles.actionButton}
+                  aria-label={t("Discussions.More actions")}
+                  aria-expanded={showMoreActions}
+                  aria-haspopup="menu"
                 >
                   <MoreHorizontal className="size-3" />
                 </button>
                 {showMoreActions && (
-                  <div className="absolute left-0 top-5 z-10 bg-popover border rounded-md shadow-md py-1 min-w-[140px]">
+                  <div
+                    role="menu"
+                    className="absolute left-0 top-5 z-10 bg-popover border rounded-md shadow-md py-1 min-w-[140px]"
+                  >
                     <button
+                      role="menuitem"
                       type="button"
                       onClick={() => {
                         handleHideToggle();
@@ -306,6 +313,7 @@ export function CommentCard(props: CommentCardProps) {
                         )}
                     </button>
                     <button
+                      role="menuitem"
                       type="button"
                       onClick={() => {
                         handlePinToggle();
@@ -327,6 +335,7 @@ export function CommentCard(props: CommentCardProps) {
                     </button>
                     {props.isAdmin && (
                       <button
+                        role="menuitem"
                         type="button"
                         onClick={() => {
                           handleDelete();

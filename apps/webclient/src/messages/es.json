@@ -333,7 +333,8 @@
     "Sign in to vote": "Inicia sesión para votar",
     "Upvote": "Votar a favor",
     "Downvote": "Votar en contra",
-    "Unknown": "Desconocido"
+    "Unknown": "Desconocido",
+    "More actions": "Más acciones"
   },
   "Elements": {
     "Description": "Individuos, organizaciones y proyectos en la red AYA.",

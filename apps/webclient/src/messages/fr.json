@@ -333,7 +333,8 @@
     "Sign in to vote": "Connectez-vous pour voter",
     "Upvote": "Vote positif",
     "Downvote": "Vote négatif",
-    "Unknown": "Inconnu"
+    "Unknown": "Inconnu",
+    "More actions": "Plus d'actions"
   },
   "Elements": {
     "Description": "Individus, organisations et projets du réseau AYA.",

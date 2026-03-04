@@ -54,9 +54,9 @@ export function Story(props: StoryProps) {
   }
 
   return (
-    <LocaleLink role="card" to={href} className="no-underline block">
+    <LocaleLink data-slot="card" to={href} className="no-underline block">
       <article className={styles.story}>
-        <div className={cn(styles.imageContainer, "w-[250px] h-[150px]")}>
+        <div className={cn(styles.imageContainer, "w-full h-[150px] md:w-[250px]")}>
           {props.story.story_picture_uri !== null &&
               props.story.story_picture_uri !== undefined
             ? (
@@ -88,9 +88,7 @@ export function Story(props: StoryProps) {
         <div className={styles.contentArea}>
           <h3 className={styles.title}>
             {stripMarkdown(props.story.title ?? "")}
-            {isActivity && (
-              <ActivityKindBadge properties={props.story.properties} />
-            )}
+            {isActivity && <ActivityKindBadge properties={props.story.properties} />}
             <LocaleBadge localeCode={props.story.locale_code} className={styles.localeBadge} />
           </h3>
           {props.story.summary !== null && props.story.summary !== undefined && (
@@ -98,7 +96,13 @@ export function Story(props: StoryProps) {
           )}
           <div className={styles.meta}>
             {isActivity
-              ? <ActivityMeta properties={props.story.properties} authorProfile={props.story.author_profile} locale={locale} />
+              ? (
+                <ActivityMeta
+                  properties={props.story.properties}
+                  authorProfile={props.story.author_profile}
+                  locale={locale}
+                />
+              )
               : <StoryMeta story={props.story} locale={locale} />}
           </div>
         </div>
@@ -138,9 +142,7 @@ function ActivityKindBadge(props: { properties: Record<string, unknown> | null }
   const activityKind = activityProps.activity_kind ?? "meetup";
   const kindLabelKey = activityKindLabels[activityKind] ?? "Activities.Meetup";
 
-  return (
-    <span className={styles.kindBadge}>{t(kindLabelKey)}</span>
-  );
+  return <span className={styles.kindBadge}>{t(kindLabelKey)}</span>;
 }
 
 function ActivityMeta(props: {
@@ -152,9 +154,7 @@ function ActivityMeta(props: {
   const timeStart = activityProps.activity_time_start !== undefined
     ? new Date(activityProps.activity_time_start)
     : null;
-  const timeEnd = activityProps.activity_time_end !== undefined
-    ? new Date(activityProps.activity_time_end)
-    : null;
+  const timeEnd = activityProps.activity_time_end !== undefined ? new Date(activityProps.activity_time_end) : null;
 
   return (
     <>

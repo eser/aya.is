@@ -333,7 +333,8 @@
     "Sign in to vote": "Anmelden um abzustimmen",
     "Upvote": "Hochstimmen",
     "Downvote": "Runterstimmen",
-    "Unknown": "Unbekannt"
+    "Unknown": "Unbekannt",
+    "More actions": "Weitere Aktionen"
   },
   "Elements": {
     "Description": "Einzelpersonen, Organisationen und Projekte im AYA-Netzwerk.",

@@ -17,7 +17,7 @@ export function MemberCard(props: MemberCardProps) {
 
   return (
     <LocaleLink
-      role="card"
+      data-slot="card"
       to={`/${memberProfile.slug}`}
       className={styles.cardLink}
     >
