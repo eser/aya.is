@@ -1,5 +1,0 @@
-@reference "../../../globals.css";
-
-.container {
-  @apply flex gap-2 items-center whitespace-nowrap;
-}
