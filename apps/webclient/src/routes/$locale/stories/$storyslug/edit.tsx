@@ -255,20 +255,23 @@ function EditStoryPage() {
     }
 
     // Update the translation for the selected translation locale
-    const translationResult = await backend.updateStoryTranslation(
-      params.locale,
-      authorProfileSlug,
-      storyData.id,
-      translationLocale,
-      {
-        title: data.title,
-        summary: data.summary,
-        content: data.content,
-      },
-    );
+    // Skip when the translation is managed (synced from external source)
+    if (!storyData.tx_is_managed) {
+      const translationResult = await backend.updateStoryTranslation(
+        params.locale,
+        authorProfileSlug,
+        storyData.id,
+        translationLocale,
+        {
+          title: data.title,
+          summary: data.summary,
+          content: data.content,
+        },
+      );
 
-    if (translationResult === null) {
-      throw new Error("Failed to save story translation");
+      if (translationResult === null) {
+        throw new Error("Failed to save story translation");
+      }
     }
 
     toast.success(t("ContentEditor.Story saved successfully"));

@@ -1280,10 +1280,10 @@ func (s *Service) UpdateTranslation(
 		)
 	}
 
-	// Check if the specific translation is managed (synced from external source)
+	// If the specific translation is managed, skip the upsert silently
 	txIsManaged, txErr := s.repo.IsStoryTxManaged(ctx, storyID, localeCode)
 	if txErr == nil && txIsManaged {
-		return ErrManagedStory
+		return nil
 	}
 	// If txErr (row doesn't exist) → this is a new translation → allow
 
