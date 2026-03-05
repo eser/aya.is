@@ -36,9 +36,12 @@ public struct RemoteImage: View {
         AsyncImage(url: url, transaction: Transaction(animation: .easeIn(duration: 0.2))) { phase in
             switch phase {
             case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                Color.clear.overlay {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                }
+                .clipped()
             case .failure:
                 fallbackView
             default:
