@@ -170,11 +170,11 @@ function LocaleHomePage() {
                 )}
               </h2>
 
+              {compiledIntro !== null && <MdxContent compiledSource={compiledIntro} />}
+
               <div className="mt-10">
                 <HomeCta githubStars={githubStars} />
               </div>
-
-              {compiledIntro !== null && <MdxContent compiledSource={compiledIntro} />}
             </article>
           </div>
         </div>

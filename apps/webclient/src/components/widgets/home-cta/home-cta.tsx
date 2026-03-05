@@ -26,8 +26,8 @@ export function HomeCta(props: HomeCtaProps) {
     <div className={styles.ctaSection}>
       <div className={styles.buttonRow}>
         {!isLoading && !isAuthenticated && (
-          <Button variant="outline" size="lg" onClick={() => login()}>
-            <LogIn className="mr-1.5 h-4 w-4" />
+          <Button variant="outline" size="lg" onClick={() => login()} className="no-underline">
+            <LogIn className="h-4 w-4" />
             {t("Home.Login")}
           </Button>
         )}
@@ -37,13 +37,13 @@ export function HomeCta(props: HomeCtaProps) {
             size="lg"
             render={<LocaleLink to={`/${user.individual_profile_slug}`} className="no-underline" />}
           >
-            <User className="mr-1.5 h-4 w-4" />
+            <User className="h-4 w-4" />
             {t("Home.Go to your profile")}
           </Button>
         )}
         {props.githubStars > 0 && (
           <Button
-            variant="default"
+            variant="outline"
             size="lg"
             render={
               <a
@@ -54,7 +54,7 @@ export function HomeCta(props: HomeCtaProps) {
               />
             }
           >
-            <Star className="mr-1.5 h-4 w-4 text-amber-300" />
+            <Star className="h-4 w-4 text-amber-500" />
             {t("Home.Be the stargazer", {
               count: nextStar.toLocaleString(i18n.language),
               ordinal,
