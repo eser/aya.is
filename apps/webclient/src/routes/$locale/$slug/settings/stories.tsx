@@ -12,6 +12,8 @@ import {
   Info,
   Loader2,
   Megaphone,
+  MessageSquare,
+  MessageSquareOff,
   Newspaper,
   Pencil,
   PencilLine,
@@ -257,6 +259,9 @@ function StoriesSettingsPage() {
                         {isPublished
                           ? <Globe className="size-3.5 text-green-600" />
                           : <GlobeLock className="size-3.5 text-yellow-600" />}
+                        {story.feat_discussions
+                          ? <MessageSquare className="size-3.5 text-blue-500" title={t("ContentEditor.Discussions enabled description")} />
+                          : <MessageSquareOff className="size-3.5 text-muted-foreground" title={t("ContentEditor.Discussions disabled description")} />}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {formatDateString(story.published_at ?? story.created_at, locale)}
