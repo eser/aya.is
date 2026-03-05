@@ -1,0 +1,164 @@
+import SwiftUI
+
+@Observable @MainActor
+public final class ProfileDetailViewModel {
+    var profile: Profile?
+    var pages: [Page] = []
+    var stories: [Story] = []
+    var activities: [Activity] = []
+    var isLoading = false
+    var error: String?
+    var selectedTab: ProfileTab = .pages
+    let slug: String
+    let client: APIClientProtocol
+    private let locale: String
+
+    public enum ProfileTab: String, CaseIterable, Sendable {
+        case pages = "Pages"
+        case stories = "Stories"
+        case activities = "Activities"
+    }
+
+    public init(
+        slug: String,
+        client: APIClientProtocol,
+        locale: String = LocaleHelper.currentLocale,
+        initialProfile: Profile? = nil
+    ) {
+        self.slug = slug
+        self.client = client
+        self.locale = locale
+        self.profile = initialProfile
+    }
+
+    func load() async {
+        isLoading = true
+        do {
+            async let profileFetch = client.fetchProfile(locale: locale, slug: slug)
+            async let pagesFetch = client.fetchProfilePages(locale: locale, slug: slug)
+            async let storiesFetch = client.fetchProfileStories(locale: locale, slug: slug)
+
+            profile = try await profileFetch
+            pages = try await pagesFetch.data
+            stories = try await storiesFetch.data
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
+    }
+}
+
+public struct ProfileDetailView: View {
+    @Bindable var viewModel: ProfileDetailViewModel
+    @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
+
+    public init(viewModel: ProfileDetailViewModel) {
+        self.viewModel = viewModel
+    }
+
+    public var body: some View {
+        ScrollView {
+            if let profile = viewModel.profile {
+                VStack(alignment: .leading, spacing: AYASpacing.md) {
+                    HStack(spacing: AYASpacing.md) {
+                        RemoteImage(urlString: profile.profilePictureUri, cornerRadius: 32)
+                            .frame(width: 72, height: 72)
+
+                        VStack(alignment: .leading, spacing: AYASpacing.xs) {
+                            Text(profile.title)
+                                .font(AYATypography.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(AYAColors.textPrimary)
+
+                            Text(profile.kind.capitalized)
+                                .font(AYATypography.caption)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(AYAColors.accent)
+                                .clipShape(Capsule())
+
+                            if profile.points > 0 {
+                                Text("\(profile.points) \(LocaleHelper.localized("profile.points", defaultValue: "points", locale: preferredLocale))")
+                                    .font(AYATypography.caption)
+                                    .foregroundStyle(AYAColors.textSecondary)
+                            }
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+
+                    if !profile.description.isEmpty {
+                        RichContentView(content: profile.description)
+                    }
+
+                    Picker("", selection: $viewModel.selectedTab) {
+                        ForEach(ProfileDetailViewModel.ProfileTab.allCases, id: \.self) { tab in
+                            Text(localizedTabLabel(tab, locale: preferredLocale)).tag(tab)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    switch viewModel.selectedTab {
+                    case .pages:
+                        if viewModel.pages.isEmpty {
+                            Text(LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale))
+                                .font(AYATypography.body)
+                                .foregroundStyle(AYAColors.textTertiary)
+                        } else {
+                            ForEach(viewModel.pages) { page in
+                                VStack(alignment: .leading, spacing: AYASpacing.sm) {
+                                    Text(page.title)
+                                        .font(AYATypography.headline)
+                                        .fontWeight(.semibold)
+                                    if let content = page.content {
+                                        RichContentView(content: content)
+                                    }
+                                }
+                            }
+                        }
+
+                    case .stories:
+                        if viewModel.stories.isEmpty {
+                            Text(LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale))
+                                .font(AYATypography.body)
+                                .foregroundStyle(AYAColors.textTertiary)
+                        } else {
+                            ForEach(viewModel.stories) { story in
+                                StoryCard(
+                                    title: story.title,
+                                    summary: story.summary,
+                                    imageUrl: story.storyPictureUri,
+                                    date: story.publishedAt,
+                                    kind: story.kind
+                                )
+                            }
+                        }
+
+                    case .activities:
+                        Text(LocaleHelper.localized("feed.empty", defaultValue: "No content found", locale: preferredLocale))
+                            .font(AYATypography.body)
+                            .foregroundStyle(AYAColors.textTertiary)
+                    }
+                }
+                .padding(AYASpacing.md)
+            } else if viewModel.isLoading {
+                AYALoadingView()
+            } else if let error = viewModel.error {
+                AYAErrorView(message: error) { Task { await viewModel.load() } }
+            }
+        }
+        .navigationTitle(viewModel.profile?.title ?? LocaleHelper.localized("detail.profile", defaultValue: "Profile", locale: preferredLocale))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .task { await viewModel.load() }
+    }
+
+    private func localizedTabLabel(_ tab: ProfileDetailViewModel.ProfileTab, locale: String) -> String {
+        switch tab {
+        case .pages: LocaleHelper.localized("profile.pages", defaultValue: "Pages", locale: locale)
+        case .stories: LocaleHelper.localized("profile.stories", defaultValue: "Stories", locale: locale)
+        case .activities: LocaleHelper.localized("profile.activities", defaultValue: "Activities", locale: locale)
+        }
+    }
+}

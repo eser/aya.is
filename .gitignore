@@ -35,3 +35,10 @@ node_modules/
 *.test
 *.out
 cov_profile.lcov
+
+# Apple Fastlane - Personal credentials and info
+apps/apple/fastlane/Appfile
+apps/apple/fastlane/metadata/*/review_information/
+apps/apple/fastlane/metadata-macos/*/review_information/
+apps/apple/fastlane/report.xml
+apps/apple/fastlane/README.md

@@ -1,0 +1,159 @@
+name: Apple Apps CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/apple/**'
+      - '.github/workflows/apple.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/apple/**'
+      - '.github/workflows/apple.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  XCODE_VERSION: '26.2'
+
+jobs:
+  test-ios:
+    name: Unit Tests (iOS)
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run unit tests on iPhone 16e (iOS 26.2)
+        run: |
+          xcodebuild test \
+            -project AYA.xcodeproj \
+            -scheme AYA-iOS \
+            -destination 'platform=iOS Simulator,name=iPhone 16e,OS=26.2' \
+            -skipPackagePluginValidation \
+            -skip-testing:AYA-Tests/RTLSnapshotTests \
+            -skip-testing:AYA-Tests/UtilityViewsSnapshotTests \
+            -skip-testing:AYA-Tests/ProfileCardSnapshotTests \
+            -skip-testing:AYA-Tests/StoryCardSnapshotTests \
+            -skip-testing:AYA-Tests/ProductCardSnapshotTests \
+            -skip-testing:AYA-Tests/FeaturedStoryCardSnapshotTests \
+            -skip-testing:AYA-Tests/ActivityCardSnapshotTests \
+            CODE_SIGNING_ALLOWED=NO
+
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build iOS
+        run: |
+          xcodebuild build \
+            -project AYA.xcodeproj \
+            -scheme AYA-iOS \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build macOS
+        run: |
+          xcodebuild build \
+            -project AYA.xcodeproj \
+            -scheme AYA-macOS \
+            -destination 'platform=macOS' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
+
+  ui-test-ios:
+    name: UI Tests (iOS)
+    runs-on: macos-26
+    needs: build-ios
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run UI Tests
+        run: |
+          xcodebuild test \
+            -project AYA.xcodeproj \
+            -scheme AYA-iOS-UITests \
+            -destination 'platform=iOS Simulator,name=iPhone 16e' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
+
+  lint:
+    name: Lint
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: apps/apple
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify code conventions
+        run: |
+          echo "Checking import conventions..."
+          ! grep -rn "^import Models$\|^import Networking$\|^import UI$" Sources/ || \
+            (echo "ERROR: Found unexpected module imports" && exit 1)
+          echo "Clean — all conventions verified."

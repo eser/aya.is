@@ -1,0 +1,193 @@
+default_platform(:ios)
+
+# Shared App Store Connect API key configuration
+def asc_api_key
+  app_store_connect_api_key(
+    key_id: "DUMK8G6L5P",
+    issuer_id: "73c63e63-a414-45d1-b3d9-4b4fb3b7642a",
+    key_filepath: File.expand_path("~/Development/App Store/AuthKey_DUMK8G6L5P.p8")
+  )
+end
+
+platform :ios do
+  desc "Build the iOS app"
+  lane :build do
+    xcodebuild(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-iOS",
+      configuration: "Release",
+      destination: "generic/platform=iOS",
+      xcargs: "CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation"
+    )
+  end
+
+  desc "Run tests"
+  lane :test do
+    scan(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-iOS",
+      destination: "platform=iOS Simulator,name=iPhone 16",
+      code_coverage: true,
+      clean: true
+    )
+  end
+
+  desc "Build, archive, and upload to App Store Connect"
+  lane :release do
+    archive
+    upload
+  end
+
+  desc "Build and archive for App Store"
+  lane :archive do
+    build_app(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-iOS",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "AYA.ipa",
+      xcargs: "DEVELOPMENT_TEAM=TW692R3LL6 CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates -skipPackagePluginValidation",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: "TW692R3LL6"
+      }
+    )
+  end
+
+  desc "Upload build and metadata to App Store Connect"
+  lane :upload do
+    deliver(
+      api_key: asc_api_key,
+      ipa: "./build/AYA.ipa",
+      skip_metadata: false,
+      skip_screenshots: false,
+      screenshots_path: "./fastlane/screenshots",
+      metadata_path: "./fastlane/metadata",
+      force: true,
+      submit_for_review: false,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      ignore_language_directory_validation: true,
+      languages: ["en-US", "tr"]
+    )
+  end
+
+  desc "Upload screenshots only to App Store Connect"
+  lane :screenshots do
+    deliver(
+      api_key: asc_api_key,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: false,
+      screenshots_path: "./fastlane/screenshots",
+      overwrite_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      ignore_language_directory_validation: true
+    )
+  end
+
+  desc "Upload metadata only to App Store Connect"
+  lane :metadata do
+    deliver(
+      api_key: asc_api_key,
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: true,
+      metadata_path: "./fastlane/metadata",
+      force: true,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false
+    )
+  end
+end
+
+platform :mac do
+  desc "Build the macOS app"
+  lane :build do
+    xcodebuild(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-macOS",
+      configuration: "Release",
+      destination: "platform=macOS",
+      xcargs: "CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation"
+    )
+  end
+
+  desc "Run tests"
+  lane :test do
+    scan(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-macOS",
+      destination: "platform=macOS",
+      code_coverage: true,
+      clean: true
+    )
+  end
+
+  desc "Build, archive, and upload to Mac App Store"
+  lane :release do
+    archive
+    upload
+  end
+
+  desc "Build and archive for Mac App Store"
+  lane :archive do
+    build_app(
+      project: "AYA.xcodeproj",
+      scheme: "AYA-macOS",
+      destination: "generic/platform=macOS",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "AYA-macOS",
+      skip_package_ipa: true,
+      xcargs: "DEVELOPMENT_TEAM=TW692R3LL6 CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates -skipPackagePluginValidation",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: "TW692R3LL6"
+      }
+    )
+  end
+
+  desc "Upload screenshots only to Mac App Store"
+  lane :screenshots do
+    deliver(
+      api_key: asc_api_key,
+      app_identifier: "is.aya.mac",
+      platform: "osx",
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: false,
+      screenshots_path: "./fastlane/screenshots-macos",
+      overwrite_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      ignore_language_directory_validation: true
+    )
+  end
+
+  desc "Upload build and metadata to Mac App Store"
+  lane :upload do
+    deliver(
+      api_key: asc_api_key,
+      app_identifier: "is.aya.mac",
+      pkg: "./build/AYA-macOS.pkg",
+      platform: "osx",
+      skip_metadata: false,
+      skip_screenshots: false,
+      screenshots_path: "./fastlane/screenshots-macos",
+      overwrite_screenshots: true,
+      metadata_path: "./fastlane/metadata-macos",
+      force: true,
+      submit_for_review: false,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      ignore_language_directory_validation: true,
+      languages: ["en-US", "tr"]
+    )
+  end
+end

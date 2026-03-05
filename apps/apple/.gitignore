@@ -1,0 +1,34 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.moved-aside
+
+# SPM
+.build/
+.swiftpm/
+Package.resolved
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+vendor/
+
+# Ruby
+Gemfile.lock
+.bundle/
+
+# OS
+.DS_Store
+*.swp
+*~
+
+# Code signing (added later)
+*.mobileprovision
+*.p12
+*.cer

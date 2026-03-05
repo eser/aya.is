@@ -1,0 +1,9 @@
+Welcome to AYA! This is our first release.
+
+- Browse community stories and articles
+- Discover upcoming events and meetups
+- Explore developer profiles
+- Search across all content
+- 13 languages with right-to-left Arabic support
+- Dark and light mode
+- Optimized for iPhone, iPad, and Mac

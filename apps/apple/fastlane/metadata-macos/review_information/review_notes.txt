@@ -1,0 +1,11 @@
+AYA is a read-only community feed app. Here is what you need to know for review:
+
+- No login or account creation is required. All content is publicly accessible.
+- The app fetches content from https://api.aya.is (stories, events, profiles).
+- There is no user-generated content within the app — it is strictly read-only.
+- No age-restricted or mature content is served.
+- No in-app purchases.
+- No advertising or analytics SDKs.
+- Suggested category: Reference or Developer Tools.
+
+To test the app, simply launch it and browse the feed. Tap any story, event, or profile to view details. Use the search feature to find specific content. No special configuration is needed.
