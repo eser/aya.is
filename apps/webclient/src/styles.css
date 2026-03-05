@@ -302,6 +302,7 @@
 /* Navigation and UI links - no underlines */
 a[role="button"],
 a[role="menuitem"],
+a[data-slot="button"],
 a[data-slot="card"],
 a[data-slot="nav-link"],
 .content a[data-slot="pagination-link"],

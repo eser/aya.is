@@ -26,7 +26,7 @@ export function HomeCta(props: HomeCtaProps) {
     <div className={styles.ctaSection}>
       <div className={styles.buttonRow}>
         {!isLoading && !isAuthenticated && (
-          <Button variant="outline" size="lg" onClick={() => login()} className="no-underline">
+          <Button variant="outline" size="lg" onClick={() => login()}>
             <LogIn className="h-4 w-4" />
             {t("Home.Login")}
           </Button>

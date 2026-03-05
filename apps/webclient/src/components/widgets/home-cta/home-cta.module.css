@@ -2,6 +2,10 @@
 
 .ctaSection {
   @apply flex flex-col gap-4;
+
+  a {
+    @apply no-underline;
+  }
 }
 
 .buttonRow {
@@ -9,7 +13,7 @@
 }
 
 .subtleLink {
-  @apply flex items-center gap-2 text-sm text-muted-foreground transition-colors no-underline;
+  @apply flex items-center gap-2 text-sm text-muted-foreground transition-colors;
 
   &:hover {
     @apply text-foreground;
