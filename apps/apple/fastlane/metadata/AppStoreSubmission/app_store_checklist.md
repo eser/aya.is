@@ -6,7 +6,7 @@
 |-------|-------|
 | App Name | AYA |
 | Subtitle | Open Source Network |
-| Bundle ID | is.aya.app |
+| Bundle ID | is.aya.ios |
 | SKU | aya-ios |
 | Primary Language | English (U.S.) |
 | Category (Primary) | Reference _or_ Developer Tools |

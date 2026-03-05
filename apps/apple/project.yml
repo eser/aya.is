@@ -60,8 +60,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: is.aya.ios
         PRODUCT_NAME: AYA
-        MARKETING_VERSION: "0.2.1"
-        CURRENT_PROJECT_VERSION: "3"
+        MARKETING_VERSION: "0.2.3"
+        CURRENT_PROJECT_VERSION: "5"
         INFOPLIST_KEY_CFBundleDisplayName: AYA
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         GENERATE_INFOPLIST_FILE: YES
@@ -87,8 +87,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: is.aya.mac
         PRODUCT_NAME: AYA
-        MARKETING_VERSION: "0.2.1"
-        CURRENT_PROJECT_VERSION: "3"
+        MARKETING_VERSION: "0.2.3"
+        CURRENT_PROJECT_VERSION: "5"
         INFOPLIST_KEY_CFBundleDisplayName: AYA
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.developer-tools"
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright 2026 AYA. MIT License. Implemented by Alp Özcan using Agentic Engineering for AYA community."
