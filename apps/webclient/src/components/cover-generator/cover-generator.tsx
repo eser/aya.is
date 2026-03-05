@@ -199,7 +199,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
               {t("CoverDesigner.Download")}
               <ChevronDown className="size-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="whitespace-nowrap">
               <DropdownMenuItem onClick={handleDownloadPng}>
                 <FileImage className="size-4" />
                 {t("CoverDesigner.Download PNG")}

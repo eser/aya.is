@@ -219,6 +219,29 @@ await context.queryClient.prefetchQuery(liveNowQueryOptions(locale));
 - Supports: individual, organization, product profile types
 - Slug-based routing: `/{locale}/{profile-slug}`
 
+### Accessibility
+
+- Use `data-slot="card"` (NOT `role="card"`) as CSS hook for card links — `role="card"` is not a valid ARIA role
+- Icon-only `<Button>` elements MUST have `aria-label`
+- Custom dropdown menus need `role="menu"` on container, `role="menuitem"` on items
+
+### DropdownMenu Navigation (Base UI)
+
+For menu items that navigate, use `render` prop with `LocaleLink` (renders a real `<a>` tag):
+
+```tsx
+// Correct — accessible link menu item
+<DropdownMenuItem render={<LocaleLink to="/path" className="no-underline" />}>
+  <Icon size="14" />
+  {t("Label")}
+</DropdownMenuItem>
+
+// For action items (logout, dialogs) — use onClick
+<DropdownMenuItem onClick={handleAction}>
+  {t("Label")}
+</DropdownMenuItem>
+```
+
 ### Shadcn UI Components
 
 - Location: `/apps/webclient/src/components/ui/`

@@ -1,6 +1,5 @@
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
 import * as React from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
 import { toast } from "sonner";
@@ -95,7 +94,6 @@ const MEMBER_PLUS_KINDS = new Set(["member", "contributor", "maintainer", "lead"
 
 function ProfileSidebar(props: ProfileSidebarProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { canEdit } = useProfilePermissions(props.profile.id);
   const { isAuthenticated, user } = useAuth();
 
@@ -191,10 +189,10 @@ function ProfileSidebar(props: ProfileSidebarProps) {
                 {t(`Profile.MembershipKind.${localMembershipKind}`)}
                 <ChevronDown size="14" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="whitespace-nowrap">
                 {isMemberPlus && (
                   <DropdownMenuItem
-                    onClick={() => navigate({ to: `/${props.locale}/${props.slug}/members/referrals` })}
+                    render={<LocaleLink to={`/${props.slug}/members/referrals`} className="no-underline" />}
                   >
                     <UserPlus size="14" />
                     {t("Profile.Invite someone")}

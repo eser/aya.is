@@ -134,17 +134,18 @@ export function Header() {
                     sideOffset={14}
                     className="w-[300px]"
                   >
-                    <DropdownMenuItem>
-                      <LocaleLink to="/" className="no-underline w-full">
-                        {t("Layout.Homepage")}
-                      </LocaleLink>
+                    <DropdownMenuItem
+                      render={<LocaleLink to="/" className="no-underline" />}
+                    >
+                      {t("Layout.Homepage")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {navItems.map((item) => (
-                      <DropdownMenuItem key={item.key}>
-                        <LocaleLink to={item.href} className="no-underline w-full">
-                          {item.title}
-                        </LocaleLink>
+                      <DropdownMenuItem
+                        key={item.key}
+                        render={<LocaleLink to={item.href} className="no-underline" />}
+                      >
+                        {item.title}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>

@@ -420,7 +420,7 @@ function PagesSettingsPage() {
                 <ChevronDown className="ml-1.5 size-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="whitespace-nowrap">
               <DropdownMenuItem onClick={handleGenerateCVFromLinkedIn}>
                 <Linkedin className="size-4 mr-2" />
                 {t("Profile.CV from LinkedIn")}
