@@ -16,7 +16,7 @@ public enum LocaleHelper: Sendable {
         ("ja", "日本語", "\u{1F1EF}\u{1F1F5}"),
         ("ko", "한국어", "\u{1F1F0}\u{1F1F7}"),
         ("ru", "Русский", "\u{1F1F7}\u{1F1FA}"),
-        ("zh-Hans", "简体中文", "\u{1F1E8}\u{1F1F3}"),
+        ("zh-CN", "简体中文", "\u{1F1E8}\u{1F1F3}"),
         ("ar", "العربية", "\u{1F1F8}\u{1F1E6}"),
     ]
 
@@ -55,9 +55,20 @@ public enum LocaleHelper: Sendable {
         supportedLocales.first { $0.code == code }?.flag ?? "🏳️"
     }
 
+    /// Maps API locale codes to Apple `.lproj` bundle identifiers where they differ.
+    private static let bundleLocaleMap: [String: String] = [
+        "zh-CN": "zh-Hans",
+    ]
+
+    /// Returns the Apple bundle identifier for a given API locale code.
+    static func bundleLocale(for code: String) -> String {
+        bundleLocaleMap[code] ?? code
+    }
+
     /// Returns a localized string from the correct `.lproj` bundle for runtime language switching.
     public static func localized(_ key: String, defaultValue: String, locale: String) -> String {
-        guard let path = Bundle.main.path(forResource: locale, ofType: "lproj"),
+        let resource = bundleLocale(for: locale)
+        guard let path = Bundle.main.path(forResource: resource, ofType: "lproj"),
               let bundle = Bundle(path: path) else {
             return defaultValue
         }
