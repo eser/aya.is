@@ -938,7 +938,8 @@
     "Disabled": "Disabled",
     "Discussions enabled description": "Readers can comment and discuss this story",
     "Discussions disabled description": "Comments are disabled for this story",
-    "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited."
+    "This story is synced from an external source. Some fields cannot be edited.": "This story is synced from an external source. Some fields cannot be edited.",
+    "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "This translation is synced from an external source and cannot be edited. You can add translations in other languages."
   },
   "Admin": {
     "Admin Area": "Admin Area",

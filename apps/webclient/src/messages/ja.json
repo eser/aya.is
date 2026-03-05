@@ -938,7 +938,8 @@
     "Enabled": "有効",
     "Failed to delete page": "ページの削除に失敗しました",
     "Page deleted successfully": "ページが正常に削除されました",
-    "Page saved successfully": "ページが正常に保存されました"
+    "Page saved successfully": "ページが正常に保存されました",
+    "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "この翻訳は外部ソースから同期されており、編集できません。他の言語の翻訳を追加できます。"
   },
   "Admin": {
     "Admin Area": "管理エリア",

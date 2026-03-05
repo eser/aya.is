@@ -296,6 +296,7 @@ snapshot[`translations - English key set baseline 1`] = `
   "ContentEditor.This slug is already taken",
   "ContentEditor.This slug was previously used",
   "ContentEditor.This story is synced from an external source. Some fields cannot be edited.",
+  "ContentEditor.This translation is synced from an external source and cannot be edited. You can add translations in other languages.",
   "ContentEditor.Title is required",
   "ContentEditor.Title must be at most 200 characters",
   "ContentEditor.Translate",

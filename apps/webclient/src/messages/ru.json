@@ -938,7 +938,8 @@
     "Enabled": "Включено",
     "Disabled": "Отключено",
     "Discussions enabled description": "Читатели могут комментировать и обсуждать эту историю",
-    "Discussions disabled description": "Комментарии для этой истории отключены"
+    "Discussions disabled description": "Комментарии для этой истории отключены",
+    "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "Этот перевод синхронизирован из внешнего источника и не может быть отредактирован. Вы можете добавить переводы на другие языки."
   },
   "Admin": {
     "Admin Area": "Панель администратора",

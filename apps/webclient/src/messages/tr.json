@@ -938,7 +938,8 @@
     "This story is synced from an external source. Some fields cannot be edited.": "Bu hikaye harici bir kaynaktan senkronize edilmiştir. Bazı alanlar düzenlenemez.",
     "Page saved successfully": "Sayfa başarıyla kaydedildi",
     "Page deleted successfully": "Sayfa başarıyla silindi",
-    "Failed to delete page": "Sayfa silinemedi"
+    "Failed to delete page": "Sayfa silinemedi",
+    "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "Bu çeviri harici bir kaynaktan senkronize edilmiştir ve düzenlenemez. Diğer dillerde çeviri ekleyebilirsiniz."
   },
   "Admin": {
     "Admin Area": "Yönetim Paneli",

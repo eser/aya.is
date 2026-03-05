@@ -994,7 +994,7 @@ export function ContentEditor(props: ContentEditorProps) {
                   >
                     <Upload className="size-4" />
                   </Button>
-                  {!isNew && initialData.slug !== ""
+                  {!isNew && !isManaged && initialData.slug !== ""
                     ? (
                       <Link
                         to={contentType === "story"
@@ -1020,7 +1020,9 @@ export function ContentEditor(props: ContentEditorProps) {
                         variant="outline"
                         size="icon"
                         disabled
-                        title={t("CoverDesigner.Save content first to enable cover designer")}
+                        title={isManaged
+                          ? t("ContentEditor.This story is synced from an external source. Some fields cannot be edited.")
+                          : t("CoverDesigner.Save content first to enable cover designer")}
                       >
                         <ImagePlus className="size-4" />
                       </Button>

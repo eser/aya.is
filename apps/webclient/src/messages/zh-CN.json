@@ -938,7 +938,8 @@
     "Enabled": "已启用",
     "Failed to delete page": "页面删除失败",
     "Page deleted successfully": "页面删除成功",
-    "Page saved successfully": "页面保存成功"
+    "Page saved successfully": "页面保存成功",
+    "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "此翻译从外部来源同步，无法编辑。您可以添加其他语言的翻译。"
   },
   "Admin": {
     "Admin Area": "管理区域",

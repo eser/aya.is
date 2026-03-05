@@ -1132,7 +1132,9 @@ func (s *Service) validatePublishAccess(
 	return nil
 }
 
-// validateUpdatePreconditions checks authorization, managed state, slug availability, and picture URI.
+// validateUpdatePreconditions checks authorization, slug availability, and picture URI.
+// Returns the existing story so callers can inspect IsManaged and preserve fields.
+// For managed stories, slug and picture validation is skipped (those fields are locked).
 func (s *Service) validateUpdatePreconditions(
 	ctx context.Context,
 	locale string,
@@ -1141,14 +1143,14 @@ func (s *Service) validateUpdatePreconditions(
 	storyID string,
 	slug string,
 	storyPictureURI *string,
-) error {
+) (*StoryForEdit, error) {
 	canEdit, err := s.CanUserEditStory(ctx, userID, storyID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !canEdit {
-		return fmt.Errorf(
+		return nil, fmt.Errorf(
 			"%w: user %s cannot edit story %s",
 			ErrUnauthorized,
 			userID,
@@ -1158,27 +1160,29 @@ func (s *Service) validateUpdatePreconditions(
 
 	storyForEdit, err := s.repo.GetStoryForEdit(ctx, locale, storyID)
 	if err != nil {
-		return fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
+		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToGetRecord, storyID, err)
 	}
 
 	if storyForEdit == nil {
-		return fmt.Errorf("%w: %s", ErrStoryNotFound, storyID)
+		return nil, fmt.Errorf("%w: %s", ErrStoryNotFound, storyID)
 	}
 
+	// Managed stories can only update visibility and discussions;
+	// skip slug and picture URI validation since those fields are preserved.
 	if storyForEdit.IsManaged {
-		return ErrManagedStory
+		return storyForEdit, nil
 	}
 
 	slugResult, err := s.CheckSlugAvailability(ctx, slug, &storyID, &storyID, nil, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !slugResult.Available && slugResult.Severity == SeverityError {
-		return fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
+		return nil, fmt.Errorf("%w: %s", ErrInvalidSlugPrefix, slugResult.Message)
 	}
 
-	return s.validateStoryPictureURI(storyPictureURI, userKind)
+	return storyForEdit, s.validateStoryPictureURI(storyPictureURI, userKind)
 }
 
 // Update updates an existing story (slug, picture, and properties).
@@ -1194,8 +1198,8 @@ func (s *Service) Update(
 	visibility string,
 	featDiscussions *bool,
 ) (*StoryForEdit, error) {
-	// Validate authorization, managed state, slug, and picture
-	validateErr := s.validateUpdatePreconditions(
+	// Validate authorization, slug, and picture
+	existingStory, validateErr := s.validateUpdatePreconditions(
 		ctx,
 		locale,
 		userID,
@@ -1206,6 +1210,16 @@ func (s *Service) Update(
 	)
 	if validateErr != nil {
 		return nil, validateErr
+	}
+
+	// For managed stories, preserve managed fields — only visibility and discussions can change.
+	if existingStory.IsManaged {
+		slug = existingStory.Slug
+		storyPictureURI = existingStory.StoryPictureURI
+
+		if propsMap, ok := existingStory.Properties.(map[string]any); ok {
+			properties = propsMap
+		}
 	}
 
 	// Update the story

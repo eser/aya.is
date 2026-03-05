@@ -938,7 +938,8 @@
     "Enabled": "مفعّل",
     "Disabled": "معطّل",
     "Discussions enabled description": "يمكن للقراء التعليق ومناقشة هذه القصة",
-    "Discussions disabled description": "التعليقات معطلة لهذه القصة"
+    "Discussions disabled description": "التعليقات معطلة لهذه القصة",
+    "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "هذه الترجمة متزامنة من مصدر خارجي ولا يمكن تعديلها. يمكنك إضافة ترجمات بلغات أخرى."
   },
   "Admin": {
     "Admin Area": "منطقة الإدارة",

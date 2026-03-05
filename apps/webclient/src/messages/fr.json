@@ -938,7 +938,8 @@
     "Enabled": "Activé",
     "Disabled": "Désactivé",
     "Discussions enabled description": "Les lecteurs peuvent commenter et discuter de cet article",
-    "Discussions disabled description": "Les commentaires sont désactivés pour cet article"
+    "Discussions disabled description": "Les commentaires sont désactivés pour cet article",
+    "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "Cette traduction est synchronisée depuis une source externe et ne peut pas être modifiée. Vous pouvez ajouter des traductions dans d'autres langues."
   },
   "Admin": {
     "Admin Area": "Zone d'administration",
