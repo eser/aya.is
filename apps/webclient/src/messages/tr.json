@@ -161,7 +161,11 @@
     "Latest Stories": "En Son Yazılar",
     "Live Now": "Şu An Canlı",
     "Live": "CANLI",
-    "Watch Live": "Canlı İzle"
+    "Watch Live": "Canlı İzle",
+    "Login": "Giriş Yap",
+    "Go to your profile": "Profiline git",
+    "Be the stargazer": "{{count}}. yıldız veren destekçi ol",
+    "Read about our history": "Tarihçemiz hakkında daha fazla oku"
   },
   "Stories": {
     "Description": "AYA topluluğundan makaleler, duyurular ve içerikler.",

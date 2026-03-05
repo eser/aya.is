@@ -161,7 +161,11 @@
     "Latest Stories": "Laatste Verhalen",
     "Live Now": "Nu Live",
     "Live": "LIVE",
-    "Watch Live": "Live bekijken"
+    "Watch Live": "Live bekijken",
+    "Login": "Inloggen",
+    "Go to your profile": "Ga naar je profiel",
+    "Be the stargazer": "Word de {{count}}e stargazer om te ondersteunen",
+    "Read about our history": "Lees meer over onze geschiedenis"
   },
   "Stories": {
     "Description": "Artikelen, aankondigingen en inhoud van de AYA-community.",

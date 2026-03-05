@@ -161,7 +161,11 @@
     "Latest Stories": "Последние истории",
     "Live Now": "Сейчас в эфире",
     "Live": "ЭФИР",
-    "Watch Live": "Смотреть трансляцию"
+    "Watch Live": "Смотреть трансляцию",
+    "Login": "Войти",
+    "Go to your profile": "Перейти в профиль",
+    "Be the stargazer": "Стань {{count}}-м, кто поставил звезду в поддержку",
+    "Read about our history": "Узнайте больше о нашей истории"
   },
   "Stories": {
     "Description": "Статьи, объявления и контент от сообщества AYA.",

@@ -161,7 +161,11 @@
     "Latest Stories": "أحدث المقالات",
     "Live Now": "مباشر الآن",
     "Live": "مباشر",
-    "Watch Live": "شاهد البث المباشر"
+    "Watch Live": "شاهد البث المباشر",
+    "Login": "تسجيل الدخول",
+    "Go to your profile": "انتقل إلى ملفك الشخصي",
+    "Be the stargazer": "كن المعجب رقم {{count}} لدعمنا",
+    "Read about our history": "اقرأ المزيد عن تاريخنا"
   },
   "Stories": {
     "Description": "مقالات وإعلانات ومحتوى من مجتمع AYA.",

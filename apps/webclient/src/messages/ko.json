@@ -161,7 +161,11 @@
     "Latest Stories": "최신 스토리",
     "Live Now": "실시간 방송 중",
     "Live": "라이브",
-    "Watch Live": "라이브 시청"
+    "Watch Live": "라이브 시청",
+    "Login": "로그인",
+    "Go to your profile": "내 프로필로 이동",
+    "Be the stargazer": "{{count}}번째 스타가 되어 응원해주세요",
+    "Read about our history": "우리의 역사에 대해 자세히 알아보기"
   },
   "Stories": {
     "Description": "AYA 커뮤니티의 글, 공지사항 및 콘텐츠.",

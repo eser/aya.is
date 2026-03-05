@@ -16,6 +16,7 @@ import type { StoryEx } from "@/modules/backend/types";
 import { liveNowQueryOptions, storiesQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import { LiveNowSection } from "@/components/live-now/live-now";
+import { HomeCta } from "@/components/widgets/home-cta";
 import i18next from "i18next";
 import styles from "./-home.module.css";
 
@@ -41,7 +42,22 @@ export const Route = createFileRoute("/$locale/")({
       context.queryClient.prefetchQuery(liveNowQueryOptions(locale)),
     ]);
 
-    return { compiledIntro, locale, siteSubtitle };
+    // Fetch GitHub star count for the stargazer CTA (non-blocking fallback)
+    let githubStars = 0;
+    try {
+      const res = await fetch("https://api.github.com/repos/eser/aya.is", {
+        headers: { Accept: "application/vnd.github.v3+json" },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        githubStars = data.stargazers_count ?? 0;
+      }
+    } catch {
+      // Use fallback — stargazer button will be hidden
+    }
+
+    return { compiledIntro, locale, siteSubtitle, githubStars };
   },
   head: ({ loaderData }) => {
     const { locale, siteSubtitle } = loaderData;
@@ -101,7 +117,7 @@ function groupStoriesByMonth(
 function LocaleHomePage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
-  const { compiledIntro: loaderIntro, locale: loaderLocale } = Route.useLoaderData();
+  const { compiledIntro: loaderIntro, locale: loaderLocale, githubStars } = Route.useLoaderData();
   const { data: allStories } = useSuspenseQuery(storiesQueryOptions(loaderLocale));
   const { data: liveStreams } = useQuery(liveNowQueryOptions(loaderLocale));
 
@@ -154,7 +170,9 @@ function LocaleHomePage() {
                 )}
               </h2>
 
-              <div className="mt-10" />
+              <div className="mt-10">
+                <HomeCta githubStars={githubStars} />
+              </div>
 
               {compiledIntro !== null && <MdxContent compiledSource={compiledIntro} />}
             </article>

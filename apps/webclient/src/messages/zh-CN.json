@@ -161,7 +161,11 @@
     "Latest Stories": "最新故事",
     "Live Now": "正在直播",
     "Live": "直播",
-    "Watch Live": "观看直播"
+    "Watch Live": "观看直播",
+    "Login": "登录",
+    "Go to your profile": "前往您的个人资料",
+    "Be the stargazer": "成为第{{count}}位星标支持者",
+    "Read about our history": "了解更多关于我们的历史"
   },
   "Stories": {
     "Description": "来自 AYA 社区的文章、公告和内容。",

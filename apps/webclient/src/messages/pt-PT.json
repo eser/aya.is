@@ -161,7 +161,11 @@
     "Latest Stories": "Últimas Histórias",
     "Live Now": "Ao Vivo Agora",
     "Live": "AO VIVO",
-    "Watch Live": "Assistir ao Vivo"
+    "Watch Live": "Assistir ao Vivo",
+    "Login": "Entrar",
+    "Go to your profile": "Ir para o seu perfil",
+    "Be the stargazer": "Seja o {{count}}º stargazer a apoiar",
+    "Read about our history": "Leia mais sobre a nossa história"
   },
   "Stories": {
     "Description": "Artigos, anúncios e conteúdo da comunidade AYA.",

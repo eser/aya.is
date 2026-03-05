@@ -161,7 +161,11 @@
     "Latest Stories": "Latest Stories",
     "Live Now": "Live Now",
     "Live": "LIVE",
-    "Watch Live": "Watch Live"
+    "Watch Live": "Watch Live",
+    "Login": "Login",
+    "Go to your profile": "Go to your profile",
+    "Be the stargazer": "Be the {{count}}{{ordinal}} stargazer to support",
+    "Read about our history": "Read more about our history"
   },
   "Stories": {
     "Description": "Articles, announcements and content from the AYA community.",
