@@ -3908,23 +3908,35 @@ type Querier interface {
 	//    ppt.summary,
 	//    p.slug as profile_slug,
 	//    pt.title as profile_title,
-	//    ts_rank(ppt.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+	//    CASE
+	//      WHEN normalize_text(ppt.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+	//      ELSE 0.5
+	//    END::REAL as rank
 	//  FROM "profile_page" pp
 	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-	//      AND ppt.locale_code = $1
+	//      AND ppt.locale_code = (
+	//        SELECT pptf.locale_code FROM "profile_page_tx" pptf
+	//        WHERE pptf.profile_page_id = pp.id
+	//        ORDER BY CASE
+	//          WHEN pptf.locale_code = $2 THEN 0
+	//          ELSE 1
+	//        END
+	//        LIMIT 1
+	//      )
 	//    INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//      AND pt.locale_code = (
 	//        SELECT ptf.locale_code FROM "profile_tx" ptf
 	//        WHERE ptf.profile_id = p.id
 	//        ORDER BY CASE
-	//          WHEN ptf.locale_code = $1 THEN 0
+	//          WHEN ptf.locale_code = $2 THEN 0
 	//          WHEN ptf.locale_code = p.default_locale THEN 1
 	//          ELSE 2
 	//        END
 	//        LIMIT 1
 	//      )
-	//  WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+	//  WHERE (normalize_text(ppt.title) LIKE '%' || normalize_text($1) || '%'
+	//         OR normalize_text(ppt.summary) LIKE '%' || normalize_text($1) || '%')
 	//    AND pp.deleted_at IS NULL
 	//    AND pp.visibility = 'public'
 	//    AND p.approved_at IS NOT NULL
@@ -3941,11 +3953,24 @@ type Querier interface {
 	//    p.profile_picture_uri,
 	//    pt.title,
 	//    pt.description,
-	//    ts_rank(pt.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+	//    CASE
+	//      WHEN normalize_text(pt.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+	//      ELSE 0.5
+	//    END::REAL as rank
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-	//      AND pt.locale_code = $1
-	//  WHERE pt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+	//      AND pt.locale_code = (
+	//        SELECT ptf.locale_code FROM "profile_tx" ptf
+	//        WHERE ptf.profile_id = p.id
+	//        ORDER BY CASE
+	//          WHEN ptf.locale_code = $2 THEN 0
+	//          WHEN ptf.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
+	//  WHERE (normalize_text(pt.title) LIKE '%' || normalize_text($1) || '%'
+	//         OR normalize_text(pt.description) LIKE '%' || normalize_text($1) || '%')
 	//    AND p.approved_at IS NOT NULL
 	//    AND p.deleted_at IS NULL
 	//    AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
@@ -3964,19 +3989,36 @@ type Querier interface {
 	//    st.summary,
 	//    p.slug as author_slug,
 	//    pt.title as author_title,
-	//    ts_rank(st.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+	//    CASE
+	//      WHEN normalize_text(st.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+	//      ELSE 0.5
+	//    END::REAL as rank
 	//  FROM "story" s
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
-	//      AND st.locale_code = $1
+	//      AND st.locale_code = (
+	//        SELECT stx.locale_code FROM "story_tx" stx
+	//        WHERE stx.story_id = s.id
+	//        ORDER BY CASE
+	//          WHEN stx.locale_code = $2 THEN 0
+	//          WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
 	//    LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
 	//    LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//      AND pt.locale_code = (
 	//        SELECT ptx.locale_code FROM "profile_tx" ptx
 	//        WHERE ptx.profile_id = p.id
-	//        ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+	//        ORDER BY CASE
+	//          WHEN ptx.locale_code = $2 THEN 0
+	//          WHEN ptx.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
 	//        LIMIT 1
 	//      )
-	//  WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+	//  WHERE (normalize_text(st.title) LIKE '%' || normalize_text($1) || '%'
+	//         OR normalize_text(st.summary) LIKE '%' || normalize_text($1) || '%')
 	//    AND s.deleted_at IS NULL
 	//    AND s.visibility = 'public'
 	//    AND EXISTS (

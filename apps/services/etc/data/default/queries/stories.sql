@@ -525,19 +525,36 @@ SELECT
   st.summary,
   p.slug as author_slug,
   pt.title as author_title,
-  ts_rank(st.search_vector, plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))) as rank
+  CASE
+    WHEN normalize_text(st.title) LIKE '%' || normalize_text(sqlc.arg(query)) || '%' THEN 1.0
+    ELSE 0.5
+  END::REAL as rank
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-    AND st.locale_code = sqlc.arg(locale_code)
+    AND st.locale_code = (
+      SELECT stx.locale_code FROM "story_tx" stx
+      WHERE stx.story_id = s.id
+      ORDER BY CASE
+        WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+        ELSE 2
+      END
+      LIMIT 1
+    )
   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
   LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
     AND pt.locale_code = (
       SELECT ptx.locale_code FROM "profile_tx" ptx
       WHERE ptx.profile_id = p.id
-      ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN ptx.locale_code = p.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
-WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
+WHERE (normalize_text(st.title) LIKE '%' || normalize_text(sqlc.arg(query)) || '%'
+       OR normalize_text(st.summary) LIKE '%' || normalize_text(sqlc.arg(query)) || '%')
   AND s.deleted_at IS NULL
   AND s.visibility = 'public'
   AND EXISTS (

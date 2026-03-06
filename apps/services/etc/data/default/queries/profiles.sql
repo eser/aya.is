@@ -711,11 +711,24 @@ SELECT
   p.profile_picture_uri,
   pt.title,
   pt.description,
-  ts_rank(pt.search_vector, plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))) as rank
+  CASE
+    WHEN normalize_text(pt.title) LIKE '%' || normalize_text(sqlc.arg(query)) || '%' THEN 1.0
+    ELSE 0.5
+  END::REAL as rank
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-    AND pt.locale_code = sqlc.arg(locale_code)
-WHERE pt.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
+    AND pt.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      ORDER BY CASE
+        WHEN ptf.locale_code = sqlc.arg(locale_code) THEN 0
+        WHEN ptf.locale_code = p.default_locale THEN 1
+        ELSE 2
+      END
+      LIMIT 1
+    )
+WHERE (normalize_text(pt.title) LIKE '%' || normalize_text(sqlc.arg(query)) || '%'
+       OR normalize_text(pt.description) LIKE '%' || normalize_text(sqlc.arg(query)) || '%')
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
   AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
@@ -732,10 +745,21 @@ SELECT
   ppt.summary,
   p.slug as profile_slug,
   pt.title as profile_title,
-  ts_rank(ppt.search_vector, plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))) as rank
+  CASE
+    WHEN normalize_text(ppt.title) LIKE '%' || normalize_text(sqlc.arg(query)) || '%' THEN 1.0
+    ELSE 0.5
+  END::REAL as rank
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-    AND ppt.locale_code = sqlc.arg(locale_code)
+    AND ppt.locale_code = (
+      SELECT pptf.locale_code FROM "profile_page_tx" pptf
+      WHERE pptf.profile_page_id = pp.id
+      ORDER BY CASE
+        WHEN pptf.locale_code = sqlc.arg(locale_code) THEN 0
+        ELSE 1
+      END
+      LIMIT 1
+    )
   INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
     AND pt.locale_code = (
@@ -748,7 +772,8 @@ FROM "profile_page" pp
       END
       LIMIT 1
     )
-WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig(sqlc.arg(locale_code)), sqlc.arg(query))
+WHERE (normalize_text(ppt.title) LIKE '%' || normalize_text(sqlc.arg(query)) || '%'
+       OR normalize_text(ppt.summary) LIKE '%' || normalize_text(sqlc.arg(query)) || '%')
   AND pp.deleted_at IS NULL
   AND pp.visibility = 'public'
   AND p.approved_at IS NOT NULL

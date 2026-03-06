@@ -4690,23 +4690,35 @@ SELECT
   ppt.summary,
   p.slug as profile_slug,
   pt.title as profile_title,
-  ts_rank(ppt.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+  CASE
+    WHEN normalize_text(ppt.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+    ELSE 0.5
+  END::REAL as rank
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-    AND ppt.locale_code = $1
+    AND ppt.locale_code = (
+      SELECT pptf.locale_code FROM "profile_page_tx" pptf
+      WHERE pptf.profile_page_id = pp.id
+      ORDER BY CASE
+        WHEN pptf.locale_code = $2 THEN 0
+        ELSE 1
+      END
+      LIMIT 1
+    )
   INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
     AND pt.locale_code = (
       SELECT ptf.locale_code FROM "profile_tx" ptf
       WHERE ptf.profile_id = p.id
       ORDER BY CASE
-        WHEN ptf.locale_code = $1 THEN 0
+        WHEN ptf.locale_code = $2 THEN 0
         WHEN ptf.locale_code = p.default_locale THEN 1
         ELSE 2
       END
       LIMIT 1
     )
-WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+WHERE (normalize_text(ppt.title) LIKE '%' || normalize_text($1) || '%'
+       OR normalize_text(ppt.summary) LIKE '%' || normalize_text($1) || '%')
   AND pp.deleted_at IS NULL
   AND pp.visibility = 'public'
   AND p.approved_at IS NOT NULL
@@ -4716,8 +4728,8 @@ LIMIT $4
 `
 
 type SearchProfilePagesParams struct {
-	LocaleCode        string         `db:"locale_code" json:"locale_code"`
 	Query             string         `db:"query" json:"query"`
+	LocaleCode        string         `db:"locale_code" json:"locale_code"`
 	FilterProfileSlug sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
 	LimitCount        int32          `db:"limit_count" json:"limit_count"`
 }
@@ -4745,23 +4757,35 @@ type SearchProfilePagesRow struct {
 //	  ppt.summary,
 //	  p.slug as profile_slug,
 //	  pt.title as profile_title,
-//	  ts_rank(ppt.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+//	  CASE
+//	    WHEN normalize_text(ppt.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+//	    ELSE 0.5
+//	  END::REAL as rank
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-//	    AND ppt.locale_code = $1
+//	    AND ppt.locale_code = (
+//	      SELECT pptf.locale_code FROM "profile_page_tx" pptf
+//	      WHERE pptf.profile_page_id = pp.id
+//	      ORDER BY CASE
+//	        WHEN pptf.locale_code = $2 THEN 0
+//	        ELSE 1
+//	      END
+//	      LIMIT 1
+//	    )
 //	  INNER JOIN "profile" p ON p.id = pp.profile_id AND p.deleted_at IS NULL
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	    AND pt.locale_code = (
 //	      SELECT ptf.locale_code FROM "profile_tx" ptf
 //	      WHERE ptf.profile_id = p.id
 //	      ORDER BY CASE
-//	        WHEN ptf.locale_code = $1 THEN 0
+//	        WHEN ptf.locale_code = $2 THEN 0
 //	        WHEN ptf.locale_code = p.default_locale THEN 1
 //	        ELSE 2
 //	      END
 //	      LIMIT 1
 //	    )
-//	WHERE ppt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+//	WHERE (normalize_text(ppt.title) LIKE '%' || normalize_text($1) || '%'
+//	       OR normalize_text(ppt.summary) LIKE '%' || normalize_text($1) || '%')
 //	  AND pp.deleted_at IS NULL
 //	  AND pp.visibility = 'public'
 //	  AND p.approved_at IS NOT NULL
@@ -4770,8 +4794,8 @@ type SearchProfilePagesRow struct {
 //	LIMIT $4
 func (q *Queries) SearchProfilePages(ctx context.Context, arg SearchProfilePagesParams) ([]*SearchProfilePagesRow, error) {
 	rows, err := q.db.QueryContext(ctx, searchProfilePages,
-		arg.LocaleCode,
 		arg.Query,
+		arg.LocaleCode,
 		arg.FilterProfileSlug,
 		arg.LimitCount,
 	)
@@ -4814,11 +4838,24 @@ SELECT
   p.profile_picture_uri,
   pt.title,
   pt.description,
-  ts_rank(pt.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+  CASE
+    WHEN normalize_text(pt.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+    ELSE 0.5
+  END::REAL as rank
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-    AND pt.locale_code = $1
-WHERE pt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+    AND pt.locale_code = (
+      SELECT ptf.locale_code FROM "profile_tx" ptf
+      WHERE ptf.profile_id = p.id
+      ORDER BY CASE
+        WHEN ptf.locale_code = $2 THEN 0
+        WHEN ptf.locale_code = p.default_locale THEN 1
+        ELSE 2
+      END
+      LIMIT 1
+    )
+WHERE (normalize_text(pt.title) LIKE '%' || normalize_text($1) || '%'
+       OR normalize_text(pt.description) LIKE '%' || normalize_text($1) || '%')
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
   AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
@@ -4827,8 +4864,8 @@ LIMIT $4
 `
 
 type SearchProfilesParams struct {
-	LocaleCode        string         `db:"locale_code" json:"locale_code"`
 	Query             string         `db:"query" json:"query"`
+	LocaleCode        string         `db:"locale_code" json:"locale_code"`
 	FilterProfileSlug sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
 	LimitCount        int32          `db:"limit_count" json:"limit_count"`
 }
@@ -4852,11 +4889,24 @@ type SearchProfilesRow struct {
 //	  p.profile_picture_uri,
 //	  pt.title,
 //	  pt.description,
-//	  ts_rank(pt.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+//	  CASE
+//	    WHEN normalize_text(pt.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+//	    ELSE 0.5
+//	  END::REAL as rank
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-//	    AND pt.locale_code = $1
-//	WHERE pt.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+//	    AND pt.locale_code = (
+//	      SELECT ptf.locale_code FROM "profile_tx" ptf
+//	      WHERE ptf.profile_id = p.id
+//	      ORDER BY CASE
+//	        WHEN ptf.locale_code = $2 THEN 0
+//	        WHEN ptf.locale_code = p.default_locale THEN 1
+//	        ELSE 2
+//	      END
+//	      LIMIT 1
+//	    )
+//	WHERE (normalize_text(pt.title) LIKE '%' || normalize_text($1) || '%'
+//	       OR normalize_text(pt.description) LIKE '%' || normalize_text($1) || '%')
 //	  AND p.approved_at IS NOT NULL
 //	  AND p.deleted_at IS NULL
 //	  AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
@@ -4864,8 +4914,8 @@ type SearchProfilesRow struct {
 //	LIMIT $4
 func (q *Queries) SearchProfiles(ctx context.Context, arg SearchProfilesParams) ([]*SearchProfilesRow, error) {
 	rows, err := q.db.QueryContext(ctx, searchProfiles,
-		arg.LocaleCode,
 		arg.Query,
+		arg.LocaleCode,
 		arg.FilterProfileSlug,
 		arg.LimitCount,
 	)

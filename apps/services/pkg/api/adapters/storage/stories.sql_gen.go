@@ -2155,19 +2155,36 @@ SELECT
   st.summary,
   p.slug as author_slug,
   pt.title as author_title,
-  ts_rank(st.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+  CASE
+    WHEN normalize_text(st.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+    ELSE 0.5
+  END::REAL as rank
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-    AND st.locale_code = $1
+    AND st.locale_code = (
+      SELECT stx.locale_code FROM "story_tx" stx
+      WHERE stx.story_id = s.id
+      ORDER BY CASE
+        WHEN stx.locale_code = $2 THEN 0
+        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+        ELSE 2
+      END
+      LIMIT 1
+    )
   LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
   LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
     AND pt.locale_code = (
       SELECT ptx.locale_code FROM "profile_tx" ptx
       WHERE ptx.profile_id = p.id
-      ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+      ORDER BY CASE
+        WHEN ptx.locale_code = $2 THEN 0
+        WHEN ptx.locale_code = p.default_locale THEN 1
+        ELSE 2
+      END
       LIMIT 1
     )
-WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+WHERE (normalize_text(st.title) LIKE '%' || normalize_text($1) || '%'
+       OR normalize_text(st.summary) LIKE '%' || normalize_text($1) || '%')
   AND s.deleted_at IS NULL
   AND s.visibility = 'public'
   AND EXISTS (
@@ -2180,8 +2197,8 @@ LIMIT $4
 `
 
 type SearchStoriesParams struct {
-	LocaleCode        string         `db:"locale_code" json:"locale_code"`
 	Query             string         `db:"query" json:"query"`
+	LocaleCode        string         `db:"locale_code" json:"locale_code"`
 	FilterProfileSlug sql.NullString `db:"filter_profile_slug" json:"filter_profile_slug"`
 	LimitCount        int32          `db:"limit_count" json:"limit_count"`
 }
@@ -2211,19 +2228,36 @@ type SearchStoriesRow struct {
 //	  st.summary,
 //	  p.slug as author_slug,
 //	  pt.title as author_title,
-//	  ts_rank(st.search_vector, plainto_tsquery(locale_to_regconfig($1), $2)) as rank
+//	  CASE
+//	    WHEN normalize_text(st.title) LIKE '%' || normalize_text($1) || '%' THEN 1.0
+//	    ELSE 0.5
+//	  END::REAL as rank
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
-//	    AND st.locale_code = $1
+//	    AND st.locale_code = (
+//	      SELECT stx.locale_code FROM "story_tx" stx
+//	      WHERE stx.story_id = s.id
+//	      ORDER BY CASE
+//	        WHEN stx.locale_code = $2 THEN 0
+//	        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+//	        ELSE 2
+//	      END
+//	      LIMIT 1
+//	    )
 //	  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
 //	  LEFT JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	    AND pt.locale_code = (
 //	      SELECT ptx.locale_code FROM "profile_tx" ptx
 //	      WHERE ptx.profile_id = p.id
-//	      ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+//	      ORDER BY CASE
+//	        WHEN ptx.locale_code = $2 THEN 0
+//	        WHEN ptx.locale_code = p.default_locale THEN 1
+//	        ELSE 2
+//	      END
 //	      LIMIT 1
 //	    )
-//	WHERE st.search_vector @@ plainto_tsquery(locale_to_regconfig($1), $2)
+//	WHERE (normalize_text(st.title) LIKE '%' || normalize_text($1) || '%'
+//	       OR normalize_text(st.summary) LIKE '%' || normalize_text($1) || '%')
 //	  AND s.deleted_at IS NULL
 //	  AND s.visibility = 'public'
 //	  AND EXISTS (
@@ -2235,8 +2269,8 @@ type SearchStoriesRow struct {
 //	LIMIT $4
 func (q *Queries) SearchStories(ctx context.Context, arg SearchStoriesParams) ([]*SearchStoriesRow, error) {
 	rows, err := q.db.QueryContext(ctx, searchStories,
-		arg.LocaleCode,
 		arg.Query,
+		arg.LocaleCode,
 		arg.FilterProfileSlug,
 		arg.LimitCount,
 	)
