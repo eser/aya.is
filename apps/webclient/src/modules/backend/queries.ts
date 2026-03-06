@@ -101,6 +101,7 @@ export const profilePermissionsQueryOptions = (locale: string, slug: string) =>
     queryKey: ["profile-permissions", locale, slug],
     queryFn: () => backend.getProfilePermissions(locale, slug),
     retry: false, // 401 for unauthenticated — don't retry
+    staleTime: 0, // Always refetch — SSR may lack auth on custom domains
   });
 
 export const profileQuestionsQueryOptions = (locale: string, slug: string) =>

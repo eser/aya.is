@@ -545,6 +545,11 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		id string,
 	) error
+	InvalidateMembershipKindCache(
+		ctx context.Context,
+		profileID string,
+		memberProfileID string,
+	) error
 	CountProfileOwners(
 		ctx context.Context,
 		profileID string,
@@ -3446,6 +3451,14 @@ func (s *Service) UpdateMembership( //nolint:cyclop,funlen,gocognit
 		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, membershipID, err)
 	}
 
+	if membership.MemberProfileID != nil {
+		_ = s.repo.InvalidateMembershipKindCache(
+			ctx,
+			membership.ProfileID,
+			*membership.MemberProfileID,
+		)
+	}
+
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.ProfileMembershipUpdated,
 		EntityType: "membership",
@@ -3546,6 +3559,14 @@ func (s *Service) DeleteMembership( //nolint:cyclop,funlen
 			)
 		}
 
+		if membership.MemberProfileID != nil {
+			_ = s.repo.InvalidateMembershipKindCache(
+				ctx,
+				membership.ProfileID,
+				*membership.MemberProfileID,
+			)
+		}
+
 		s.auditService.Record(ctx, events.AuditParams{
 			EventType:  events.ProfileMembershipDeleted,
 			EntityType: "membership",
@@ -3565,6 +3586,10 @@ func (s *Service) DeleteMembership( //nolint:cyclop,funlen
 		err = s.repo.UpdateProfileMembership(ctx, membershipID, string(MembershipKindFollower))
 		if err != nil {
 			return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, membershipID, err)
+		}
+
+		if membership.MemberProfileID != nil {
+			_ = s.repo.InvalidateMembershipKindCache(ctx, membership.ProfileID, *membership.MemberProfileID)
 		}
 
 		s.auditService.Record(ctx, events.AuditParams{
@@ -3728,6 +3753,8 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 			return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, existing.ID, err)
 		}
 
+		_ = s.repo.InvalidateMembershipKindCache(ctx, profileID, memberProfileID)
+
 		s.auditService.Record(ctx, events.AuditParams{
 			EventType:  events.ProfileMembershipUpdated,
 			EntityType: "membership",
@@ -3886,6 +3913,8 @@ func (s *Service) UnfollowProfile(
 	if err != nil {
 		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToDeleteRecord, existing.ID, err)
 	}
+
+	_ = s.repo.InvalidateMembershipKindCache(ctx, profileID, userIndividualProfileID)
 
 	s.auditService.Record(ctx, events.AuditParams{
 		EventType:  events.ProfileMembershipDeleted,
@@ -4828,6 +4857,8 @@ func (s *Service) ensureMinMemberMembership(
 			if err != nil {
 				return "", fmt.Errorf("%w: upgrade membership: %w", ErrFailedToUpdateRecord, err)
 			}
+
+			_ = s.repo.InvalidateMembershipKindCache(ctx, profileID, memberProfileID)
 
 			s.recordSystemMembershipAudit(
 				ctx,

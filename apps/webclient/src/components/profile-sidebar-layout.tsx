@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { ChevronDown, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
+import { useQuery } from "@tanstack/react-query";
 import { backend, type Profile } from "@/modules/backend/backend";
+import { profilePermissionsQueryOptions } from "@/modules/backend/queries";
 import { LocaleBadge } from "@/components/locale-badge";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland";
@@ -97,16 +99,20 @@ function ProfileSidebar(props: ProfileSidebarProps) {
   const { canEdit } = useProfilePermissions(props.profile.id);
   const { isAuthenticated, user } = useAuth();
 
+  // Subscribe to permissions query for reactive updates (SSR may lack auth on custom domains)
+  const { data: queryPermissions } = useQuery(profilePermissionsQueryOptions(props.locale, props.slug));
+  const effectiveMembershipKind = queryPermissions?.viewer_membership_kind ?? props.viewerMembershipKind ?? null;
+
   const [isUnfollowDialogOpen, setIsUnfollowDialogOpen] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [localMembershipKind, setLocalMembershipKind] = React.useState<string | null>(
-    props.viewerMembershipKind ?? null,
+    effectiveMembershipKind,
   );
 
-  // Sync when prop changes (e.g. navigation between profiles)
+  // Sync when permissions data changes (e.g. navigation between profiles, or client-side refetch)
   React.useEffect(() => {
-    setLocalMembershipKind(props.viewerMembershipKind ?? null);
-  }, [props.viewerMembershipKind]);
+    setLocalMembershipKind(effectiveMembershipKind);
+  }, [effectiveMembershipKind]);
 
   // Determine viewer's membership relationship to this profile
   const isOwnProfile = user?.individual_profile_id === props.profile.id;

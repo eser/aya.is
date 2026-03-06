@@ -4458,9 +4458,8 @@ FROM "profile" p
   )
 WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
   AND ($3::TEXT IS NULL
-       OR pt.search_vector @@ plainto_tsquery(
-            locale_to_regconfig($1),
-            $3::TEXT))
+       OR normalize_text(pt.title) LIKE '%' || normalize_text($3::TEXT) || '%'
+       OR normalize_text(pt.description) LIKE '%' || normalize_text($3::TEXT) || '%')
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
 ORDER BY md5(p.id || $4)
@@ -4499,9 +4498,8 @@ type ListProfilesRow struct {
 //	  )
 //	WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
 //	  AND ($3::TEXT IS NULL
-//	       OR pt.search_vector @@ plainto_tsquery(
-//	            locale_to_regconfig($1),
-//	            $3::TEXT))
+//	       OR normalize_text(pt.title) LIKE '%' || normalize_text($3::TEXT) || '%'
+//	       OR normalize_text(pt.description) LIKE '%' || normalize_text($3::TEXT) || '%')
 //	  AND p.approved_at IS NOT NULL
 //	  AND p.deleted_at IS NULL
 //	ORDER BY md5(p.id || $4)

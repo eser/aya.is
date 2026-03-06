@@ -1117,6 +1117,11 @@ func (r *Repository) CreateProfileMembership(
 		return err
 	}
 
+	// Invalidate cached membership-kind lookup so subsequent reads see the new membership.
+	if memberProfileID != nil {
+		_ = r.cache.Invalidate(ctx, "membership_kind:"+profileID+":"+*memberProfileID)
+	}
+
 	return nil
 }
 
@@ -2218,6 +2223,18 @@ func (r *Repository) GetMembershipBetweenProfiles(
 	)
 
 	return profiles.MembershipKind(result), err
+}
+
+func (r *Repository) InvalidateMembershipKindCache(
+	ctx context.Context,
+	profileID, memberProfileID string,
+) error {
+	err := r.cache.Invalidate(ctx, "membership_kind:"+profileID+":"+memberProfileID)
+	if err != nil {
+		return fmt.Errorf("invalidating membership kind cache: %w", err)
+	}
+
+	return nil
 }
 
 func (r *Repository) ListFeaturedProfileLinksByProfileID( //nolint:dupl
