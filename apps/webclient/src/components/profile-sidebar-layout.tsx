@@ -100,7 +100,9 @@ function ProfileSidebar(props: ProfileSidebarProps) {
   const { isAuthenticated, user } = useAuth();
 
   // Subscribe to permissions query for reactive updates (SSR may lack auth on custom domains)
-  const { data: queryPermissions } = useQuery(profilePermissionsQueryOptions(props.locale, props.slug));
+  const { data: queryPermissions, isFetching: isPermissionsFetching } = useQuery(
+    profilePermissionsQueryOptions(props.locale, props.slug),
+  );
   const effectiveMembershipKind = queryPermissions?.viewer_membership_kind ?? props.viewerMembershipKind ?? null;
 
   const [isUnfollowDialogOpen, setIsUnfollowDialogOpen] = React.useState(false);
@@ -119,7 +121,9 @@ function ProfileSidebar(props: ProfileSidebarProps) {
 
   const isFollower = localMembershipKind === "follower";
   const isMemberPlus = localMembershipKind !== null && MEMBER_PLUS_KINDS.has(localMembershipKind);
-  const showFollowButton = isAuthenticated && !isOwnProfile && localMembershipKind === null;
+  // Hide follow/relation buttons while permissions are being refetched (prevents flash on custom domains)
+  const permissionsReady = !isPermissionsFetching || localMembershipKind !== null;
+  const showFollowButton = isAuthenticated && !isOwnProfile && localMembershipKind === null && permissionsReady;
   const showRelationDropdown = isAuthenticated && !isOwnProfile && localMembershipKind !== null;
 
   const handleFollow = async () => {
