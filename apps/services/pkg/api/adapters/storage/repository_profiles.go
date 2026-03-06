@@ -497,6 +497,7 @@ func (r *Repository) ListProfiles(
 		ListProfilesParams{
 			LocaleCode: localeCode,
 			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
+			FilterQ:    vars.MapValueToNullString(cursor.Filters, "q"),
 			Seed:       seed,
 			PageLimit:  int32(cursor.Limit),
 			PageOffset: pageOffset,

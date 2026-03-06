@@ -52,15 +52,17 @@ export const activityQueryOptions = (locale: string, slug: string) =>
 export const profilesByKindsQueryOptions = (
   locale: string,
   kinds: string[],
-  options?: { seed?: string; limit?: number; offset?: number },
+  options?: { seed?: string; limit?: number; offset?: number; q?: string },
 ) => {
   const seed = options?.seed ?? getDailySeed();
   const limit = options?.limit ?? 24;
   const offset = options?.offset ?? 0;
+  const q = options?.q ?? "";
 
   return queryOptions({
-    queryKey: ["profiles", locale, { kinds, seed, limit, offset }],
-    queryFn: () => backend.getProfilesByKinds(locale, kinds, seed, limit, offset),
+    queryKey: ["profiles", locale, { kinds, seed, limit, offset, q }],
+    queryFn: () => backend.getProfilesByKinds(locale, kinds, seed, limit, offset, q),
+    placeholderData: (prev: unknown) => prev, // keep stale data visible while refetching
   });
 };
 

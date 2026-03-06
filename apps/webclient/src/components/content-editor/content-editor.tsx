@@ -1021,7 +1021,9 @@ export function ContentEditor(props: ContentEditorProps) {
                         size="icon"
                         disabled
                         title={isManaged
-                          ? t("ContentEditor.This story is synced from an external source. Some fields cannot be edited.")
+                          ? t(
+                            "ContentEditor.This story is synced from an external source. Some fields cannot be edited.",
+                          )
                           : t("CoverDesigner.Save content first to enable cover designer")}
                       >
                         <ImagePlus className="size-4" />

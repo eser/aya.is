@@ -1,6 +1,5 @@
 // Products page
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -10,7 +9,7 @@ import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { getDailySeed } from "@/lib/seed-utils";
 import { profilesByKindsQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
-import { ProductsContent } from "./_components/-products-content";
+import { ProfileListingContent } from "@/components/userland/profile-listing";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/products/")({
@@ -50,7 +49,6 @@ export const Route = createFileRoute("/$locale/products/")({
 
 function ProductsPage() {
   const { locale, seed } = Route.useLoaderData();
-  const { data: products } = useSuspenseQuery(profilesByKindsQueryOptions(locale, ["product"], { seed }));
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
@@ -73,7 +71,19 @@ function ProductsPage() {
             )}
           </div>
 
-          <ProductsContent initialProfiles={products} locale={locale} seed={seed} kinds={["product"]} />
+          <ProfileListingContent
+            locale={locale}
+            seed={seed}
+            baseKinds={["product"]}
+            filterOptions={[
+              { label: t("Products.AllStatuses"), value: "" },
+              { label: t("Products.HelpNeeded"), value: "help-needed" },
+              { label: t("Products.LookingForParticipants"), value: "looking-for-participants" },
+            ]}
+            filterLabel={t("Products.FilterByStatus")}
+            searchPlaceholder={t("Products.SearchProductsPlaceholder")}
+            emptyMessage={t("Products.NoProductsFound")}
+          />
         </div>
       </section>
     </PageLayout>

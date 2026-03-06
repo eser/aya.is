@@ -1,6 +1,5 @@
 // Elements index page
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
@@ -10,7 +9,7 @@ import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
 import { getDailySeed } from "@/lib/seed-utils";
 import { profilesByKindsQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
-import { ElementsContent } from "./_components/-elements-content";
+import { ProfileListingContent } from "@/components/userland/profile-listing";
 import i18next from "i18next";
 
 export const Route = createFileRoute("/$locale/elements/")({
@@ -52,9 +51,6 @@ export const Route = createFileRoute("/$locale/elements/")({
 
 function ElementsIndexPage() {
   const { locale, seed } = Route.useLoaderData();
-  const { data: profiles } = useSuspenseQuery(
-    profilesByKindsQueryOptions(locale, ["individual", "organization"], { seed }),
-  );
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
@@ -77,11 +73,18 @@ function ElementsIndexPage() {
             )}
           </div>
 
-          <ElementsContent
-            initialProfiles={profiles}
+          <ProfileListingContent
             locale={locale}
             seed={seed}
-            kinds={["individual", "organization"]}
+            baseKinds={["individual", "organization"]}
+            filterOptions={[
+              { label: t("Elements.AllTypes"), value: "" },
+              { label: t("Elements.Individuals"), value: "individual" },
+              { label: t("Elements.Organizations"), value: "organization" },
+            ]}
+            filterLabel={t("Elements.FilterByKind")}
+            searchPlaceholder={t("Elements.SearchPlaceholder")}
+            emptyMessage={t("Elements.NoProfilesFound")}
           />
         </div>
       </section>

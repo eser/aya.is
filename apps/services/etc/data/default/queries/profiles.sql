@@ -142,6 +142,10 @@ FROM "profile" p
     LIMIT 1
   )
 WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
+  AND (sqlc.narg(filter_q)::TEXT IS NULL
+       OR pt.search_vector @@ plainto_tsquery(
+            locale_to_regconfig(sqlc.arg(locale_code)),
+            sqlc.narg(filter_q)::TEXT))
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
 ORDER BY md5(p.id || sqlc.arg(seed))

@@ -7,6 +7,7 @@ export async function getProfilesByKinds(
   seed?: string,
   limit?: number,
   offset?: number,
+  q?: string,
 ): Promise<Profile[] | null> {
   const kindsParam = kinds.join(",");
   const params = new URLSearchParams({ filter_kind: kindsParam });
@@ -21,6 +22,10 @@ export async function getProfilesByKinds(
 
   if (offset !== undefined) {
     params.set("offset", String(offset));
+  }
+
+  if (q !== undefined && q !== "") {
+    params.set("filter_q", q);
   }
 
   return await fetcher<Profile[]>(locale, `/profiles?${params.toString()}`);

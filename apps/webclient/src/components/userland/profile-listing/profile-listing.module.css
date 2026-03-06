@@ -1,0 +1,50 @@
+@reference "@/theme.css";
+
+.filterBar {
+  @apply flex flex-col p-4 mb-8 border rounded-lg gap-4 md:flex-row md:items-end md:justify-between bg-card;
+}
+
+.filterSection {
+  @apply flex flex-col md:flex-5/12 gap-2;
+}
+
+.searchSection {
+  @apply flex flex-col md:flex-7/12 gap-2;
+}
+
+.grid {
+  @apply grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+}
+
+.emptyState {
+  @apply py-10 text-center;
+}
+
+.emptyMessage {
+  @apply text-xl text-muted-foreground;
+}
+
+.loadMoreContainer {
+  @apply flex justify-center mt-8;
+}
+
+/* Skeleton styles */
+.skeletonCard {
+  @apply border rounded-lg overflow-hidden bg-card;
+}
+
+.skeletonImage {
+  @apply w-full aspect-square;
+}
+
+.skeletonInfo {
+  @apply p-4 space-y-2;
+}
+
+.skeletonTitle {
+  @apply h-5 w-3/4;
+}
+
+.skeletonDesc {
+  @apply h-4 w-full;
+}
