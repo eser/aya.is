@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Library, Loader2, Plus, Trash2 } from "lucide-react";
+import { Check, Library, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -57,17 +57,11 @@ export function SeriesDialog(props: SeriesDialogProps) {
     props.onSeriesChange(id);
   };
 
-  const handleUnassign = () => {
-    props.onSeriesChange(null);
-  };
-
-  const currentSeries = seriesList.find((s) => s.id === props.seriesId) ?? null;
-
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("ContentEditor.Assign to series")}</DialogTitle>
+          <DialogTitle>{t("ContentEditor.Assign to series...")}</DialogTitle>
           <DialogDescription>
             {t("ContentEditor.Assign this story to a series or create a new one.")}
           </DialogDescription>
@@ -81,27 +75,24 @@ export function SeriesDialog(props: SeriesDialogProps) {
           )
           : (
             <div className="space-y-2">
-              {currentSeries !== null && (
-                <div className="flex items-center justify-between p-2 rounded border border-primary bg-primary/5">
-                  <div className="flex items-center gap-2">
-                    <Library className="size-4 text-primary" />
-                    <span className="text-sm font-medium">{currentSeries.title}</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleUnassign}
-                    title={t("ContentEditor.Remove from series")}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              )}
+              {/* Unassigned option — always first */}
+              <div
+                className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${props.seriesId === null ? "border-primary bg-primary/5" : "hover:border-primary"}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => props.onSeriesChange(null)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") props.onSeriesChange(null);
+                }}
+              >
+                <span className="text-sm text-muted-foreground">{t("ContentEditor.No series")}</span>
+                {props.seriesId === null && <Check className="size-4 text-primary" />}
+              </div>
 
-              {seriesList.filter((s) => s.id !== props.seriesId).map((series) => (
+              {seriesList.map((series) => (
                 <div
                   key={series.id}
-                  className="flex items-center justify-between p-2 rounded border cursor-pointer hover:border-primary transition-colors"
+                  className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${series.id === props.seriesId ? "border-primary bg-primary/5" : "hover:border-primary"}`}
                   role="button"
                   tabIndex={0}
                   onClick={() => handleSelect(series.id)}
@@ -110,17 +101,12 @@ export function SeriesDialog(props: SeriesDialogProps) {
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <Library className="size-4 text-muted-foreground" />
-                    <span className="text-sm">{series.title}</span>
+                    <Library className="size-4" />
+                    <span className="text-sm font-medium">{series.title}</span>
                   </div>
+                  {series.id === props.seriesId && <Check className="size-4 text-primary" />}
                 </div>
               ))}
-
-              {seriesList.length === 0 && props.seriesId === null && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  {t("Series.No series yet")}
-                </p>
-              )}
             </div>
           )}
 
