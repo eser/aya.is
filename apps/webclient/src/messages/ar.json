@@ -946,6 +946,11 @@
     "Enabled": "مفعّل",
     "Disabled": "معطّل",
     "No series": "بدون سلسلة",
+    "Assign to series...": "تعيين إلى سلسلة...",
+    "Assign this story to a series or create a new one.": "قم بتعيين هذه القصة إلى سلسلة أو أنشئ واحدة جديدة.",
+    "Remove from series": "إزالة من السلسلة",
+    "Series title": "عنوان السلسلة",
+    "Create": "إنشاء",
     "Discussions enabled description": "يمكن للقراء التعليق ومناقشة هذه القصة",
     "Discussions disabled description": "التعليقات معطلة لهذه القصة",
     "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "هذه الترجمة متزامنة من مصدر خارجي ولا يمكن تعديلها. يمكنك إضافة ترجمات بلغات أخرى."

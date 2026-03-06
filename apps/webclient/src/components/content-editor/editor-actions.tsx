@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
+import { Globe, Library, Loader2, MoreHorizontal, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -35,6 +35,7 @@ type EditorActionsProps = {
   locale?: string;
   onOpenLocalizationsDialog?: () => void;
   onLocaleChange?: (locale: string) => void;
+  onOpenSeriesDialog?: () => void;
 };
 
 export function EditorActions(props: EditorActionsProps) {
@@ -52,6 +53,7 @@ export function EditorActions(props: EditorActionsProps) {
     locale,
     onOpenLocalizationsDialog,
     onLocaleChange,
+    onOpenSeriesDialog,
   } = props;
 
   const isPublished = publicationCount > 0;
@@ -85,6 +87,12 @@ export function EditorActions(props: EditorActionsProps) {
           )}
         />
         <DropdownMenuContent align="end" className="w-auto">
+          {onOpenSeriesDialog !== undefined && (
+            <DropdownMenuItem onClick={onOpenSeriesDialog}>
+              <Library className="mr-2 size-4" />
+              {t("ContentEditor.Assign to series...")}
+            </DropdownMenuItem>
+          )}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger render={<div />}>

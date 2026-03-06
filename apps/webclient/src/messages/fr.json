@@ -946,6 +946,11 @@
     "Enabled": "Activé",
     "Disabled": "Désactivé",
     "No series": "Aucune série",
+    "Assign to series...": "Assigner à une série...",
+    "Assign this story to a series or create a new one.": "Assignez cette histoire à une série ou créez-en une nouvelle.",
+    "Remove from series": "Retirer de la série",
+    "Series title": "Titre de la série",
+    "Create": "Créer",
     "Discussions enabled description": "Les lecteurs peuvent commenter et discuter de cet article",
     "Discussions disabled description": "Les commentaires sont désactivés pour cet article",
     "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "Cette traduction est synchronisée depuis une source externe et ne peut pas être modifiée. Vous pouvez ajouter des traductions dans d'autres langues."

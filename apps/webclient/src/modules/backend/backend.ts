@@ -100,6 +100,7 @@ import { pinComment } from "./discussions/pin-comment";
 import { lockThread } from "./discussions/lock-thread";
 import { getSeriesList } from "./series/get-series-list";
 import { getSeries } from "./series/get-series";
+import { createSeries } from "./series/create-series";
 import { getStories } from "./stories/get-stories";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
@@ -334,6 +335,7 @@ export const backend = {
   // Series
   getSeriesList,
   getSeries,
+  createSeries,
 
   // Activities
   getActivities,
@@ -474,6 +476,7 @@ export {
   getProfileStory,
   getProfileTranslations,
   getReferralVotes,
+  createSeries,
   getSeries,
   getSeriesList,
   getSessionCurrent,

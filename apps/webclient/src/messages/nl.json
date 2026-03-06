@@ -946,6 +946,11 @@
     "Enabled": "Ingeschakeld",
     "Disabled": "Uitgeschakeld",
     "No series": "Geen serie",
+    "Assign to series...": "Toewijzen aan serie...",
+    "Assign this story to a series or create a new one.": "Wijs dit verhaal toe aan een serie of maak een nieuwe aan.",
+    "Remove from series": "Verwijderen uit serie",
+    "Series title": "Serietitel",
+    "Create": "Aanmaken",
     "Discussions enabled description": "Lezers kunnen reageren en dit verhaal bespreken",
     "Discussions disabled description": "Reacties zijn uitgeschakeld voor dit verhaal",
     "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "Deze vertaling wordt gesynchroniseerd vanuit een externe bron en kan niet worden bewerkt. U kunt vertalingen in andere talen toevoegen."

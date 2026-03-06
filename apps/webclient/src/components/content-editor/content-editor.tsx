@@ -12,7 +12,6 @@ import {
   ImagePlus,
   Images,
   Info,
-  Library,
   Loader2,
   Lock,
   Megaphone,
@@ -31,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import type { ContentVisibility, StorySeries, StoryKind, StoryPublication } from "@/modules/backend/types";
+import type { ContentVisibility, StoryKind, StoryPublication } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/backend";
 import type { IndividualProfile } from "@/lib/auth/auth-context";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -41,6 +40,7 @@ import { EditorToolbar, type FormatAction, type ViewMode } from "./editor-toolba
 import { EditorActions } from "./editor-actions";
 import { PublishDialog } from "./publish-dialog";
 import { LocalizationsDialog } from "./localizations-dialog";
+import { SeriesDialog } from "./series-dialog";
 import { ImageUploadModal } from "./image-upload-modal";
 import styles from "./content-editor.module.css";
 import { cn } from "@/lib/utils";
@@ -179,14 +179,7 @@ export function ContentEditor(props: ContentEditorProps) {
 
   // Series state
   const [seriesId, setSeriesId] = React.useState<string | null>(initialData.seriesId ?? null);
-  const [seriesList, setSeriesList] = React.useState<StorySeries[]>([]);
-
-  React.useEffect(() => {
-    if (contentType !== "story") return;
-    backend.getSeriesList(locale).then((list) => {
-      if (list !== null) setSeriesList(list);
-    });
-  }, [locale, contentType]);
+  const [isSeriesDialogOpen, setIsSeriesDialogOpen] = React.useState(false);
 
   // Publication state
   const [publications, setPublications] = React.useState<StoryPublication[]>(initialPublications);
@@ -684,6 +677,9 @@ export function ContentEditor(props: ContentEditorProps) {
             ? () => setIsLocalizationsDialogOpen(true)
             : undefined}
           onLocaleChange={isNew ? onLocaleChange : undefined}
+          onOpenSeriesDialog={contentType === "story" && !isNew
+            ? () => setIsSeriesDialogOpen(true)
+            : undefined}
         />
       </div>
 
@@ -1150,43 +1146,6 @@ export function ContentEditor(props: ContentEditorProps) {
                 </Field>
               )}
 
-              {/* Series */}
-              {contentType === "story" && seriesList.length > 0 && (
-                <Field className={styles.metadataField}>
-                  <FieldLabel htmlFor="series" className={styles.metadataLabel}>
-                    {t("Layout.Series")}
-                  </FieldLabel>
-                  <Select
-                    value={seriesId ?? "__none__"}
-                    onValueChange={(value) => setSeriesId(value === "__none__" ? null : value)}
-                    disabled={isManaged}
-                  >
-                    <SelectTrigger id="series">
-                      <span className="flex items-center gap-2">
-                        <Library className="size-4" />
-                        {seriesId === null
-                          ? t("ContentEditor.No series")
-                          : (seriesList.find((s) => s.id === seriesId)?.title ?? seriesId)}
-                      </span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">
-                        <span className="flex items-center gap-2">
-                          {t("ContentEditor.No series")}
-                        </span>
-                      </SelectItem>
-                      {seriesList.map((series) => (
-                        <SelectItem key={series.id} value={series.id}>
-                          <span className="flex items-center gap-2">
-                            <Library className="size-4" />
-                            {series.title}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
             </div>
           )}
         </div>
@@ -1290,6 +1249,16 @@ export function ContentEditor(props: ContentEditorProps) {
           translationLocales={translationLocales ?? null}
           onAutoTranslate={onAutoTranslate}
           onDeleteTranslation={onDeleteTranslation}
+        />
+      )}
+
+      {contentType === "story" && (
+        <SeriesDialog
+          open={isSeriesDialogOpen}
+          onOpenChange={setIsSeriesDialogOpen}
+          locale={locale}
+          seriesId={seriesId}
+          onSeriesChange={setSeriesId}
         />
       )}
     </div>

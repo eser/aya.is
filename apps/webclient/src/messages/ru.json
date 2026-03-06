@@ -946,6 +946,11 @@
     "Enabled": "Включено",
     "Disabled": "Отключено",
     "No series": "Без серии",
+    "Assign to series...": "Назначить в серию...",
+    "Assign this story to a series or create a new one.": "Назначьте эту историю в серию или создайте новую.",
+    "Remove from series": "Удалить из серии",
+    "Series title": "Название серии",
+    "Create": "Создать",
     "Discussions enabled description": "Читатели могут комментировать и обсуждать эту историю",
     "Discussions disabled description": "Комментарии для этой истории отключены",
     "This translation is synced from an external source and cannot be edited. You can add translations in other languages.": "Этот перевод синхронизирован из внешнего источника и не может быть отредактирован. Вы можете добавить переводы на другие языки."
