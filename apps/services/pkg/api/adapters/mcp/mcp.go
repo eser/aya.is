@@ -6,6 +6,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
+	"github.com/eser/aya.is/services/pkg/api/business/story_series"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -18,6 +19,7 @@ func RegisterMCPRoutes(
 	routes *httpfx.Router,
 	profileService *profiles.Service,
 	storyService *stories.Service,
+	storySeriesService *story_series.Service,
 ) {
 	server := mcp.NewServer(
 		&mcp.Implementation{ //nolint:exhaustruct // external SDK type
@@ -31,6 +33,7 @@ func RegisterMCPRoutes(
 	registerStoryTools(server, storyService)
 	registerNewsTools(server, storyService)
 	registerSearchTools(server, profileService)
+	registerSeriesTools(server, storySeriesService, storyService)
 
 	handler := mcp.NewStreamableHTTPHandler(
 		func(req *http.Request) *mcp.Server {

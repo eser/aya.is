@@ -97,7 +97,8 @@
     "Development": "开发",
     "Use default data source": "使用默认数据源",
     "Use production data source": "使用生产数据源",
-    "Mailbox": "邮箱"
+    "Mailbox": "邮箱",
+    "Series": "系列"
   },
   "Loading": {
     "Loading...": "加载中...",
@@ -190,6 +191,13 @@
     "Share on Reddit": "在 Reddit 上分享",
     "Share on X": "在 X 上分享",
     "Download Markdown": "下载 Markdown"
+  },
+  "Series": {
+    "Browse story series from the AYA community": "浏览AYA社区的系列",
+    "No series yet": "暂无系列",
+    "Stories in this series": "本系列中的故事",
+    "No stories in this series yet": "本系列中暂无故事",
+    "series_count": "{{count}} 个故事"
   },
   "Pagination": {
     "Go to page": "跳转到页面",

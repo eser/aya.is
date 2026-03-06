@@ -98,6 +98,8 @@ import { voteComment } from "./discussions/vote-comment";
 import { hideComment as hideDiscussionComment } from "./discussions/hide-comment";
 import { pinComment } from "./discussions/pin-comment";
 import { lockThread } from "./discussions/lock-thread";
+import { getSeriesList } from "./series/get-series-list";
+import { getSeries } from "./series/get-series";
 import { getStories } from "./stories/get-stories";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
@@ -329,6 +331,10 @@ export const backend = {
   deleteStoryTranslation,
   autoTranslateStory,
 
+  // Series
+  getSeriesList,
+  getSeries,
+
   // Activities
   getActivities,
   getActivity,
@@ -468,6 +474,8 @@ export {
   getProfileStory,
   getProfileTranslations,
   getReferralVotes,
+  getSeries,
+  getSeriesList,
   getSessionCurrent,
   getSpotlight,
   getStories,

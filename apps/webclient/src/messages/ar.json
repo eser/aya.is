@@ -97,7 +97,8 @@
     "Development": "التطوير",
     "Use default data source": "استخدام البيانات الافتراضية",
     "Use production data source": "استخدام البيانات المنتجة",
-    "Mailbox": "صندوق البريد"
+    "Mailbox": "صندوق البريد",
+    "Series": "السلاسل"
   },
   "Loading": {
     "Loading...": "جاري التحميل...",
@@ -190,6 +191,13 @@
     "Share on Reddit": "مشاركة على ريديت",
     "Share on X": "مشاركة على إكس",
     "Download Markdown": "تحميل ماركداون"
+  },
+  "Series": {
+    "Browse story series from the AYA community": "تصفح سلاسل القصص من مجتمع AYA",
+    "No series yet": "لا توجد سلاسل بعد",
+    "Stories in this series": "القصص في هذه السلسلة",
+    "No stories in this series yet": "لا توجد قصص في هذه السلسلة بعد",
+    "series_count": "{{count}} قصص"
   },
   "Pagination": {
     "Go to page": "اذهب إلى الصفحة",

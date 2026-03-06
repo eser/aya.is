@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/eser/aya.is/services/pkg/api/business/story_series"
 	"github.com/eser/aya.is/services/pkg/lib/vars"
@@ -11,9 +12,13 @@ import (
 
 func (r *Repository) GetSeriesByID(
 	ctx context.Context,
+	localeCode string,
 	id string,
 ) (*story_series.StorySeries, error) {
-	row, err := r.queries.GetStorySeriesByID(ctx, GetStorySeriesByIDParams{ID: id})
+	row, err := r.queries.GetStorySeriesByID(ctx, GetStorySeriesByIDParams{
+		LocaleCode: localeCode,
+		ID:         id,
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil //nolint:nilnil
@@ -22,14 +27,18 @@ func (r *Repository) GetSeriesByID(
 		return nil, err
 	}
 
-	return mapStorySeries(row), nil
+	return mapStorySeriesFromIDRow(row), nil
 }
 
 func (r *Repository) GetSeriesBySlug(
 	ctx context.Context,
+	localeCode string,
 	slug string,
 ) (*story_series.StorySeries, error) {
-	row, err := r.queries.GetStorySeriesBySlug(ctx, GetStorySeriesBySlugParams{Slug: slug})
+	row, err := r.queries.GetStorySeriesBySlug(ctx, GetStorySeriesBySlugParams{
+		LocaleCode: localeCode,
+		Slug:       slug,
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil //nolint:nilnil
@@ -38,18 +47,21 @@ func (r *Repository) GetSeriesBySlug(
 		return nil, err
 	}
 
-	return mapStorySeries(row), nil
+	return mapStorySeriesFromSlugRow(row), nil
 }
 
-func (r *Repository) ListSeries(ctx context.Context) ([]*story_series.StorySeries, error) {
-	rows, err := r.queries.ListStorySeries(ctx)
+func (r *Repository) ListSeries(
+	ctx context.Context,
+	localeCode string,
+) ([]*story_series.StorySeries, error) {
+	rows, err := r.queries.ListStorySeries(ctx, ListStorySeriesParams{LocaleCode: localeCode})
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]*story_series.StorySeries, len(rows))
 	for i, row := range rows {
-		result[i] = mapStorySeries(row)
+		result[i] = mapStorySeriesFromListRow(row)
 	}
 
 	return result, nil
@@ -60,21 +72,29 @@ func (r *Repository) InsertSeries(
 	seriesID string,
 	slug string,
 	seriesPictureURI *string,
-	title string,
-	description string,
-) (*story_series.StorySeries, error) {
-	row, err := r.queries.InsertStorySeries(ctx, InsertStorySeriesParams{
+) error {
+	_, err := r.queries.InsertStorySeries(ctx, InsertStorySeriesParams{
 		ID:               seriesID,
 		Slug:             slug,
 		SeriesPictureURI: vars.ToSQLNullString(seriesPictureURI),
-		Title:            title,
-		Description:      description,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return mapStorySeries(row), nil
+	return err
+}
+
+func (r *Repository) UpsertSeriesTx(
+	ctx context.Context,
+	seriesID string,
+	localeCode string,
+	title string,
+	description string,
+) error {
+	return r.queries.UpsertStorySeriesTx(ctx, UpsertStorySeriesTxParams{
+		StorySeriesID: seriesID,
+		LocaleCode:    localeCode,
+		Title:         title,
+		Description:   description,
+	})
 }
 
 func (r *Repository) UpdateSeries(
@@ -82,15 +102,11 @@ func (r *Repository) UpdateSeries(
 	seriesID string,
 	slug string,
 	seriesPictureURI *string,
-	title string,
-	description string,
 ) (int64, error) {
 	return r.queries.UpdateStorySeries(ctx, UpdateStorySeriesParams{
 		ID:               seriesID,
 		Slug:             slug,
 		SeriesPictureURI: vars.ToSQLNullString(seriesPictureURI),
-		Title:            title,
-		Description:      description,
 	})
 }
 
@@ -98,11 +114,38 @@ func (r *Repository) RemoveSeries(ctx context.Context, id string) (int64, error)
 	return r.queries.RemoveStorySeries(ctx, RemoveStorySeriesParams{ID: id})
 }
 
-func mapStorySeries(row *StorySeries) *story_series.StorySeries {
+func mapStorySeriesFromIDRow(row *GetStorySeriesByIDRow) *story_series.StorySeries {
 	return &story_series.StorySeries{
 		ID:               row.ID,
 		Slug:             row.Slug,
 		SeriesPictureURI: vars.ToStringPtr(row.SeriesPictureURI),
+		LocaleCode:       strings.TrimRight(row.LocaleCode, " "),
+		Title:            row.Title,
+		Description:      row.Description,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+	}
+}
+
+func mapStorySeriesFromSlugRow(row *GetStorySeriesBySlugRow) *story_series.StorySeries {
+	return &story_series.StorySeries{
+		ID:               row.ID,
+		Slug:             row.Slug,
+		SeriesPictureURI: vars.ToStringPtr(row.SeriesPictureURI),
+		LocaleCode:       strings.TrimRight(row.LocaleCode, " "),
+		Title:            row.Title,
+		Description:      row.Description,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        vars.ToTimePtr(row.UpdatedAt),
+	}
+}
+
+func mapStorySeriesFromListRow(row *ListStorySeriesRow) *story_series.StorySeries {
+	return &story_series.StorySeries{
+		ID:               row.ID,
+		Slug:             row.Slug,
+		SeriesPictureURI: vars.ToStringPtr(row.SeriesPictureURI),
+		LocaleCode:       strings.TrimRight(row.LocaleCode, " "),
 		Title:            row.Title,
 		Description:      row.Description,
 		CreatedAt:        row.CreatedAt,

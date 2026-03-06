@@ -33,6 +33,20 @@ export const storyDiscussionQueryOptions = (locale: string, storySlug: string) =
     queryFn: () => backend.getStoryDiscussion(locale, storySlug),
   });
 
+// === Series ===
+
+export const seriesListQueryOptions = (locale: string) =>
+  queryOptions({
+    queryKey: ["series", locale],
+    queryFn: () => backend.getSeriesList(locale),
+  });
+
+export const seriesQueryOptions = (locale: string, slug: string) =>
+  queryOptions({
+    queryKey: ["series", locale, slug],
+    queryFn: () => backend.getSeries(locale, slug),
+  });
+
 // === Activities ===
 
 export const activitiesQueryOptions = (locale: string) =>

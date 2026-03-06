@@ -424,6 +424,43 @@ func (r *Repository) ListActivityStories(
 	return result, nil
 }
 
+func (r *Repository) ListStoriesInSeries(
+	ctx context.Context,
+	localeCode string,
+	seriesID string,
+) ([]*stories.StoryWithChildren, error) {
+	rows, err := r.queries.ListStoriesInSeries(ctx, ListStoriesInSeriesParams{
+		LocaleCode: localeCode,
+		SeriesID:   sql.NullString{String: seriesID, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*stories.StoryWithChildren, 0, len(rows))
+
+	for _, row := range rows {
+		storyWithChildren, parseErr := r.parseStoryWithChildren(
+			row.Profile,
+			row.ProfileTx,
+			row.Story,
+			row.StoryTx,
+			row.Publications,
+		)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+
+		if t, ok := row.PublishedAt.(time.Time); ok {
+			storyWithChildren.PublishedAt = &t
+		}
+
+		result = append(result, storyWithChildren)
+	}
+
+	return result, nil
+}
+
 // Story CRUD methods
 
 func (r *Repository) InsertStory(
@@ -450,6 +487,8 @@ func (r *Repository) InsertStory(
 		RemoteID:        vars.ToSQLNullString(remoteID),
 		Visibility:      visibility,
 		FeatDiscussions: featDiscussions,
+		SeriesID:        sql.NullString{String: "", Valid: false},
+		SortOrder:       sql.NullInt32{Int32: 0, Valid: false},
 	}
 
 	row, err := r.queries.InsertStory(ctx, params)
@@ -465,6 +504,7 @@ func (r *Repository) InsertStory(
 		IsManaged:       row.IsManaged,
 		StoryPictureURI: vars.ToStringPtr(row.StoryPictureURI),
 		SeriesID:        vars.ToStringPtr(row.SeriesID),
+		SortOrder:       vars.ToInt32Ptr(row.SortOrder),
 		PublishedAt:     nil,
 		Properties:      nil,
 		LocaleCode:      "",
@@ -534,6 +574,8 @@ func (r *Repository) UpdateStory(
 	properties map[string]any,
 	visibility string,
 	featDiscussions *bool,
+	seriesID *string,
+	sortOrder *int32,
 ) error {
 	params := UpdateStoryParams{
 		ID:              storyID,
@@ -542,6 +584,8 @@ func (r *Repository) UpdateStory(
 		Properties:      vars.ToSQLNullRawMessage(properties),
 		Visibility:      visibility,
 		FeatDiscussions: vars.ToSQLNullBool(featDiscussions),
+		SeriesID:        vars.ToSQLNullString(seriesID),
+		SortOrder:       vars.ToSQLNullInt32(sortOrder),
 	}
 
 	_, err := r.queries.UpdateStory(ctx, params)
@@ -876,6 +920,7 @@ func (r *Repository) parseStoryWithChildrenOptionalPublications(
 				Kind:            story.Kind,
 				StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
 				SeriesID:        vars.ToStringPtr(story.SeriesID),
+				SortOrder:       vars.ToInt32Ptr(story.SortOrder),
 				PublishedAt:     nil,
 				Title:           storyTx.Title,
 				Summary:         storyTx.Summary,
@@ -934,6 +979,7 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Kind:            story.Kind,
 			StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
 			SeriesID:        vars.ToStringPtr(story.SeriesID),
+			SortOrder:       vars.ToInt32Ptr(story.SortOrder),
 			PublishedAt:     nil,
 			Title:           storyTx.Title,
 			Summary:         storyTx.Summary,

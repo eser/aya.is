@@ -427,6 +427,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen,cyclop,gocognit,gocyclo,maint
 				Properties      map[string]any `json:"properties"`
 				Visibility      string         `json:"visibility"`
 				FeatDiscussions *bool          `json:"feat_discussions"`
+				SeriesID        *string        `json:"series_id"`
+				SortOrder       *int32         `json:"sort_order"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)
@@ -488,6 +490,8 @@ func RegisterHTTPRoutesForStories( //nolint:funlen,cyclop,gocognit,gocyclo,maint
 				requestBody.Properties,
 				requestBody.Visibility,
 				requestBody.FeatDiscussions,
+				requestBody.SeriesID,
+				requestBody.SortOrder,
 			)
 			if err != nil {
 				if strings.Contains(err.Error(), "unauthorized") {

@@ -97,7 +97,8 @@
     "Development": "Разработка",
     "Use default data source": "Использовать данные по умолчанию",
     "Use production data source": "Использовать данные производства",
-    "Mailbox": "Почтовый ящик"
+    "Mailbox": "Почтовый ящик",
+    "Series": "Серии"
   },
   "Loading": {
     "Loading...": "Загрузка...",
@@ -190,6 +191,13 @@
     "Share on Reddit": "Поделиться в Reddit",
     "Share on X": "Поделиться в X",
     "Download Markdown": "Скачать Markdown"
+  },
+  "Series": {
+    "Browse story series from the AYA community": "Просмотрите серии сообщества AYA",
+    "No series yet": "Серий пока нет",
+    "Stories in this series": "Статьи в этой серии",
+    "No stories in this series yet": "В этой серии пока нет статей",
+    "series_count": "{{count}} статей"
   },
   "Pagination": {
     "Go to page": "Перейти на страницу",

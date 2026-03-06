@@ -97,7 +97,8 @@
     "Development": "Développement",
     "Use default data source": "Utiliser la source de données par défaut",
     "Use production data source": "Utiliser la source de données de production",
-    "Mailbox": "Boîte de réception"
+    "Mailbox": "Boîte de réception",
+    "Series": "Séries"
   },
   "Loading": {
     "Loading...": "Chargement...",
@@ -190,6 +191,13 @@
     "Share on Reddit": "Partager sur Reddit",
     "Share on X": "Partager sur X",
     "Download Markdown": "Télécharger Markdown"
+  },
+  "Series": {
+    "Browse story series from the AYA community": "Parcourez les séries de la communauté AYA",
+    "No series yet": "Aucune série pour le moment",
+    "Stories in this series": "Articles dans cette série",
+    "No stories in this series yet": "Aucun article dans cette série pour le moment",
+    "series_count": "{{count}} articles"
   },
   "Pagination": {
     "Go to page": "Aller à la page",

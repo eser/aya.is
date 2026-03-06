@@ -9,6 +9,7 @@ type StorySeries struct {
 	ID               string     `json:"id"`
 	Slug             string     `json:"slug"`
 	SeriesPictureURI *string    `json:"series_picture_uri"`
+	LocaleCode       string     `json:"locale_code"`
 	Title            string     `json:"title"`
 	Description      string     `json:"description"`
 	CreatedAt        time.Time  `json:"created_at"`
@@ -19,16 +20,22 @@ type StorySeries struct {
 type CreateParams struct {
 	Slug             string
 	SeriesPictureURI *string
+	LocaleCode       string
 	Title            string
 	Description      string
 }
 
-// UpdateParams holds parameters for updating a series.
+// UpdateParams holds parameters for updating series base fields.
 type UpdateParams struct {
 	Slug             string
 	SeriesPictureURI *string
-	Title            string
-	Description      string
+}
+
+// TranslationParams holds parameters for upserting a series translation.
+type TranslationParams struct {
+	LocaleCode  string
+	Title       string
+	Description string
 }
 
 // IDGenerator is a function that generates unique IDs.

@@ -8,122 +8,189 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const getStorySeriesByID = `-- name: GetStorySeriesByID :one
-SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-WHERE id = $1
-  AND deleted_at IS NULL
+SELECT
+  ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+  sst.locale_code, sst.title, sst.description
+FROM "story_series" ss
+  INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+  AND sst.locale_code = (
+    SELECT sstx.locale_code FROM "story_series_tx" sstx
+    WHERE sstx.story_series_id = ss.id
+    ORDER BY CASE
+      WHEN sstx.locale_code = $1 THEN 0
+      WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+      ELSE 2
+    END
+    LIMIT 1
+  )
+WHERE ss.id = $2
+  AND ss.deleted_at IS NULL
 LIMIT 1
 `
 
 type GetStorySeriesByIDParams struct {
-	ID string `db:"id" json:"id"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ID         string `db:"id" json:"id"`
+}
+
+type GetStorySeriesByIDRow struct {
+	ID               string         `db:"id" json:"id"`
+	Slug             string         `db:"slug" json:"slug"`
+	SeriesPictureURI sql.NullString `db:"series_picture_uri" json:"series_picture_uri"`
+	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
+	LocaleCode       string         `db:"locale_code" json:"locale_code"`
+	Title            string         `db:"title" json:"title"`
+	Description      string         `db:"description" json:"description"`
 }
 
 // GetStorySeriesByID
 //
-//	SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-//	WHERE id = $1
-//	  AND deleted_at IS NULL
+//	SELECT
+//	  ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+//	  sst.locale_code, sst.title, sst.description
+//	FROM "story_series" ss
+//	  INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+//	  AND sst.locale_code = (
+//	    SELECT sstx.locale_code FROM "story_series_tx" sstx
+//	    WHERE sstx.story_series_id = ss.id
+//	    ORDER BY CASE
+//	      WHEN sstx.locale_code = $1 THEN 0
+//	      WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+//	      ELSE 2
+//	    END
+//	    LIMIT 1
+//	  )
+//	WHERE ss.id = $2
+//	  AND ss.deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetStorySeriesByID(ctx context.Context, arg GetStorySeriesByIDParams) (*StorySeries, error) {
-	row := q.db.QueryRowContext(ctx, getStorySeriesByID, arg.ID)
-	var i StorySeries
+func (q *Queries) GetStorySeriesByID(ctx context.Context, arg GetStorySeriesByIDParams) (*GetStorySeriesByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getStorySeriesByID, arg.LocaleCode, arg.ID)
+	var i GetStorySeriesByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Slug,
 		&i.SeriesPictureURI,
-		&i.Title,
-		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.DeletedAt,
+		&i.LocaleCode,
+		&i.Title,
+		&i.Description,
 	)
 	return &i, err
 }
 
 const getStorySeriesBySlug = `-- name: GetStorySeriesBySlug :one
-SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-WHERE slug = $1
-  AND deleted_at IS NULL
+SELECT
+  ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+  sst.locale_code, sst.title, sst.description
+FROM "story_series" ss
+  INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+  AND sst.locale_code = (
+    SELECT sstx.locale_code FROM "story_series_tx" sstx
+    WHERE sstx.story_series_id = ss.id
+    ORDER BY CASE
+      WHEN sstx.locale_code = $1 THEN 0
+      WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+      ELSE 2
+    END
+    LIMIT 1
+  )
+WHERE ss.slug = $2
+  AND ss.deleted_at IS NULL
 LIMIT 1
 `
 
 type GetStorySeriesBySlugParams struct {
-	Slug string `db:"slug" json:"slug"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	Slug       string `db:"slug" json:"slug"`
+}
+
+type GetStorySeriesBySlugRow struct {
+	ID               string         `db:"id" json:"id"`
+	Slug             string         `db:"slug" json:"slug"`
+	SeriesPictureURI sql.NullString `db:"series_picture_uri" json:"series_picture_uri"`
+	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
+	LocaleCode       string         `db:"locale_code" json:"locale_code"`
+	Title            string         `db:"title" json:"title"`
+	Description      string         `db:"description" json:"description"`
 }
 
 // GetStorySeriesBySlug
 //
-//	SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-//	WHERE slug = $1
-//	  AND deleted_at IS NULL
+//	SELECT
+//	  ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+//	  sst.locale_code, sst.title, sst.description
+//	FROM "story_series" ss
+//	  INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+//	  AND sst.locale_code = (
+//	    SELECT sstx.locale_code FROM "story_series_tx" sstx
+//	    WHERE sstx.story_series_id = ss.id
+//	    ORDER BY CASE
+//	      WHEN sstx.locale_code = $1 THEN 0
+//	      WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+//	      ELSE 2
+//	    END
+//	    LIMIT 1
+//	  )
+//	WHERE ss.slug = $2
+//	  AND ss.deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*StorySeries, error) {
-	row := q.db.QueryRowContext(ctx, getStorySeriesBySlug, arg.Slug)
-	var i StorySeries
+func (q *Queries) GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*GetStorySeriesBySlugRow, error) {
+	row := q.db.QueryRowContext(ctx, getStorySeriesBySlug, arg.LocaleCode, arg.Slug)
+	var i GetStorySeriesBySlugRow
 	err := row.Scan(
 		&i.ID,
 		&i.Slug,
 		&i.SeriesPictureURI,
-		&i.Title,
-		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.DeletedAt,
+		&i.LocaleCode,
+		&i.Title,
+		&i.Description,
 	)
 	return &i, err
 }
 
 const insertStorySeries = `-- name: InsertStorySeries :one
 INSERT INTO "story_series" (
-  id, slug, series_picture_uri, title, description, created_at
+  id, slug, series_picture_uri, created_at
 ) VALUES (
   $1,
   $2,
   $3,
-  $4,
-  $5,
   NOW()
-) RETURNING id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at
+) RETURNING id, slug, series_picture_uri, created_at, updated_at, deleted_at
 `
 
 type InsertStorySeriesParams struct {
 	ID               string         `db:"id" json:"id"`
 	Slug             string         `db:"slug" json:"slug"`
 	SeriesPictureURI sql.NullString `db:"series_picture_uri" json:"series_picture_uri"`
-	Title            string         `db:"title" json:"title"`
-	Description      string         `db:"description" json:"description"`
 }
 
 // InsertStorySeries
 //
 //	INSERT INTO "story_series" (
-//	  id, slug, series_picture_uri, title, description, created_at
+//	  id, slug, series_picture_uri, created_at
 //	) VALUES (
 //	  $1,
 //	  $2,
 //	  $3,
-//	  $4,
-//	  $5,
 //	  NOW()
-//	) RETURNING id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at
+//	) RETURNING id, slug, series_picture_uri, created_at, updated_at, deleted_at
 func (q *Queries) InsertStorySeries(ctx context.Context, arg InsertStorySeriesParams) (*StorySeries, error) {
-	row := q.db.QueryRowContext(ctx, insertStorySeries,
-		arg.ID,
-		arg.Slug,
-		arg.SeriesPictureURI,
-		arg.Title,
-		arg.Description,
-	)
+	row := q.db.QueryRowContext(ctx, insertStorySeries, arg.ID, arg.Slug, arg.SeriesPictureURI)
 	var i StorySeries
 	err := row.Scan(
 		&i.ID,
 		&i.Slug,
 		&i.SeriesPictureURI,
-		&i.Title,
-		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -132,34 +199,77 @@ func (q *Queries) InsertStorySeries(ctx context.Context, arg InsertStorySeriesPa
 }
 
 const listStorySeries = `-- name: ListStorySeries :many
-SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-WHERE deleted_at IS NULL
-ORDER BY created_at DESC
+SELECT
+  ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+  sst.locale_code, sst.title, sst.description
+FROM "story_series" ss
+  INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+  AND sst.locale_code = (
+    SELECT sstx.locale_code FROM "story_series_tx" sstx
+    WHERE sstx.story_series_id = ss.id
+    ORDER BY CASE
+      WHEN sstx.locale_code = $1 THEN 0
+      WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+      ELSE 2
+    END
+    LIMIT 1
+  )
+WHERE ss.deleted_at IS NULL
+ORDER BY ss.created_at DESC
 `
+
+type ListStorySeriesParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+}
+
+type ListStorySeriesRow struct {
+	ID               string         `db:"id" json:"id"`
+	Slug             string         `db:"slug" json:"slug"`
+	SeriesPictureURI sql.NullString `db:"series_picture_uri" json:"series_picture_uri"`
+	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
+	LocaleCode       string         `db:"locale_code" json:"locale_code"`
+	Title            string         `db:"title" json:"title"`
+	Description      string         `db:"description" json:"description"`
+}
 
 // ListStorySeries
 //
-//	SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-//	WHERE deleted_at IS NULL
-//	ORDER BY created_at DESC
-func (q *Queries) ListStorySeries(ctx context.Context) ([]*StorySeries, error) {
-	rows, err := q.db.QueryContext(ctx, listStorySeries)
+//	SELECT
+//	  ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+//	  sst.locale_code, sst.title, sst.description
+//	FROM "story_series" ss
+//	  INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+//	  AND sst.locale_code = (
+//	    SELECT sstx.locale_code FROM "story_series_tx" sstx
+//	    WHERE sstx.story_series_id = ss.id
+//	    ORDER BY CASE
+//	      WHEN sstx.locale_code = $1 THEN 0
+//	      WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+//	      ELSE 2
+//	    END
+//	    LIMIT 1
+//	  )
+//	WHERE ss.deleted_at IS NULL
+//	ORDER BY ss.created_at DESC
+func (q *Queries) ListStorySeries(ctx context.Context, arg ListStorySeriesParams) ([]*ListStorySeriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listStorySeries, arg.LocaleCode)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []*StorySeries{}
+	items := []*ListStorySeriesRow{}
 	for rows.Next() {
-		var i StorySeries
+		var i ListStorySeriesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Slug,
 			&i.SeriesPictureURI,
-			&i.Title,
-			&i.Description,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.DeletedAt,
+			&i.LocaleCode,
+			&i.Title,
+			&i.Description,
 		); err != nil {
 			return nil, err
 		}
@@ -204,18 +314,14 @@ UPDATE "story_series"
 SET
   slug = $1,
   series_picture_uri = $2,
-  title = $3,
-  description = $4,
   updated_at = NOW()
-WHERE id = $5
+WHERE id = $3
   AND deleted_at IS NULL
 `
 
 type UpdateStorySeriesParams struct {
 	Slug             string         `db:"slug" json:"slug"`
 	SeriesPictureURI sql.NullString `db:"series_picture_uri" json:"series_picture_uri"`
-	Title            string         `db:"title" json:"title"`
-	Description      string         `db:"description" json:"description"`
 	ID               string         `db:"id" json:"id"`
 }
 
@@ -225,21 +331,55 @@ type UpdateStorySeriesParams struct {
 //	SET
 //	  slug = $1,
 //	  series_picture_uri = $2,
-//	  title = $3,
-//	  description = $4,
 //	  updated_at = NOW()
-//	WHERE id = $5
+//	WHERE id = $3
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateStorySeries(ctx context.Context, arg UpdateStorySeriesParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, updateStorySeries,
-		arg.Slug,
-		arg.SeriesPictureURI,
-		arg.Title,
-		arg.Description,
-		arg.ID,
-	)
+	result, err := q.db.ExecContext(ctx, updateStorySeries, arg.Slug, arg.SeriesPictureURI, arg.ID)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const upsertStorySeriesTx = `-- name: UpsertStorySeriesTx :exec
+INSERT INTO "story_series_tx" (story_series_id, locale_code, title, description)
+VALUES (
+  $1,
+  $2,
+  $3,
+  $4
+)
+ON CONFLICT (story_series_id, locale_code) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description
+`
+
+type UpsertStorySeriesTxParams struct {
+	StorySeriesID string `db:"story_series_id" json:"story_series_id"`
+	LocaleCode    string `db:"locale_code" json:"locale_code"`
+	Title         string `db:"title" json:"title"`
+	Description   string `db:"description" json:"description"`
+}
+
+// UpsertStorySeriesTx
+//
+//	INSERT INTO "story_series_tx" (story_series_id, locale_code, title, description)
+//	VALUES (
+//	  $1,
+//	  $2,
+//	  $3,
+//	  $4
+//	)
+//	ON CONFLICT (story_series_id, locale_code) DO UPDATE SET
+//	  title = EXCLUDED.title,
+//	  description = EXCLUDED.description
+func (q *Queries) UpsertStorySeriesTx(ctx context.Context, arg UpsertStorySeriesTxParams) error {
+	_, err := q.db.ExecContext(ctx, upsertStorySeriesTx,
+		arg.StorySeriesID,
+		arg.LocaleCode,
+		arg.Title,
+		arg.Description,
+	)
+	return err
 }

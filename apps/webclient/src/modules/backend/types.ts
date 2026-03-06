@@ -258,6 +258,7 @@ export interface Story {
   locale_code?: string;
   story_picture_uri: string | null;
   series_id: string | null;
+  sort_order: number | null;
   title: string | null;
   summary: string | null;
   content: string;
@@ -802,4 +803,22 @@ export interface DiscussionListResponse {
 export interface DiscussionVoteResponse {
   vote_score: number;
   viewer_vote_direction: number;
+}
+
+// Series Types
+export interface StorySeries {
+  id: string;
+  slug: string;
+  locale_code: string;
+  title: string;
+  description: string;
+  series_picture_uri: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface StorySeriesWithStories {
+  series: StorySeries;
+  stories: StoryEx[];
 }

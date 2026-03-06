@@ -97,7 +97,8 @@
     "Development": "Geliştirme",
     "Use default data source": "Varsayılan veri kaynağını kullan",
     "Use production data source": "Production veri kaynağını kullan",
-    "Mailbox": "Posta Kutusu"
+    "Mailbox": "Posta Kutusu",
+    "Series": "Seriler"
   },
   "Loading": {
     "Loading...": "Yükleniyor...",
@@ -190,6 +191,13 @@
     "Share on Reddit": "Reddit'te paylaş",
     "Share on X": "X'te paylaş",
     "Download Markdown": "Markdown İndir"
+  },
+  "Series": {
+    "Browse story series from the AYA community": "AYA topluluğunun serilerini keşfedin",
+    "No series yet": "Henüz seri yok",
+    "Stories in this series": "Bu serideki içerikler",
+    "No stories in this series yet": "Bu seride henüz içerik yok",
+    "series_count": "{{count}} içerik"
   },
   "Pagination": {
     "Go to page": "Sayfaya git",

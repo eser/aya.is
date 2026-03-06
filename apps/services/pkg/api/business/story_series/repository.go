@@ -4,33 +4,38 @@ import "context"
 
 // Repository defines the storage operations for story series (port).
 type Repository interface {
-	// GetSeriesByID returns a series by its ID.
-	GetSeriesByID(ctx context.Context, id string) (*StorySeries, error)
+	// GetSeriesByID returns a series by its ID with localized text.
+	GetSeriesByID(ctx context.Context, localeCode string, id string) (*StorySeries, error)
 
-	// GetSeriesBySlug returns a series by its slug.
-	GetSeriesBySlug(ctx context.Context, slug string) (*StorySeries, error)
+	// GetSeriesBySlug returns a series by its slug with localized text.
+	GetSeriesBySlug(ctx context.Context, localeCode string, slug string) (*StorySeries, error)
 
-	// ListSeries returns all series.
-	ListSeries(ctx context.Context) ([]*StorySeries, error)
+	// ListSeries returns all series with localized text.
+	ListSeries(ctx context.Context, localeCode string) ([]*StorySeries, error)
 
-	// InsertSeries creates a new series.
+	// InsertSeries creates a new series (base table only).
 	InsertSeries(
 		ctx context.Context,
 		id string,
 		slug string,
 		seriesPictureURI *string,
+	) error
+
+	// UpsertSeriesTx creates or updates a series translation.
+	UpsertSeriesTx(
+		ctx context.Context,
+		seriesID string,
+		localeCode string,
 		title string,
 		description string,
-	) (*StorySeries, error)
+	) error
 
-	// UpdateSeries updates an existing series.
+	// UpdateSeries updates series base fields.
 	UpdateSeries(
 		ctx context.Context,
 		id string,
 		slug string,
 		seriesPictureURI *string,
-		title string,
-		description string,
 	) (int64, error)
 
 	// RemoveSeries soft-deletes a series.

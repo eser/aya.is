@@ -256,6 +256,8 @@ type Repository interface { //nolint:interfacebloat
 		properties map[string]any,
 		visibility string,
 		featDiscussions *bool,
+		seriesID *string,
+		sortOrder *int32,
 	) error
 	UpdateStoryTx(
 		ctx context.Context,
@@ -309,6 +311,11 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		localeCode string,
 		filterAuthorProfileID *string,
+	) ([]*StoryWithChildren, error)
+	ListStoriesInSeries(
+		ctx context.Context,
+		localeCode string,
+		seriesID string,
 	) ([]*StoryWithChildren, error)
 	// AI summarization methods
 	GetUnsummarizedPublishedStories(
@@ -1186,7 +1193,7 @@ func (s *Service) validateUpdatePreconditions(
 }
 
 // Update updates an existing story (slug, picture, and properties).
-func (s *Service) Update(
+func (s *Service) Update( //nolint:funlen
 	ctx context.Context,
 	locale string,
 	userID string,
@@ -1197,6 +1204,8 @@ func (s *Service) Update(
 	properties map[string]any,
 	visibility string,
 	featDiscussions *bool,
+	seriesID *string,
+	sortOrder *int32,
 ) (*StoryForEdit, error) {
 	// Validate authorization, slug, and picture
 	existingStory, validateErr := s.validateUpdatePreconditions(
@@ -1231,6 +1240,8 @@ func (s *Service) Update(
 		properties,
 		visibility,
 		featDiscussions,
+		seriesID,
+		sortOrder,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w(storyID: %s): %w", ErrFailedToUpdateRecord, storyID, err)
@@ -1698,6 +1709,20 @@ func (s *Service) ListActivities(
 	filterAuthorProfileID *string,
 ) ([]*StoryWithChildren, error) {
 	records, err := s.repo.ListActivityStories(ctx, localeCode, filterAuthorProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return records, nil
+}
+
+// ListBySeriesID returns all public stories in a series, ordered by sort_order then published_at.
+func (s *Service) ListBySeriesID(
+	ctx context.Context,
+	localeCode string,
+	seriesID string,
+) ([]*StoryWithChildren, error) {
+	records, err := s.repo.ListStoriesInSeries(ctx, localeCode, seriesID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}

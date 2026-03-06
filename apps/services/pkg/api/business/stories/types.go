@@ -59,6 +59,7 @@ type Story struct {
 	AuthorProfileID *string    `json:"author_profile_id"`
 	StoryPictureURI *string    `json:"story_picture_uri"`
 	SeriesID        *string    `json:"series_id"`
+	SortOrder       *int32     `json:"sort_order"`
 	UpdatedAt       *time.Time `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at"`
 	ID              string     `json:"id"`

@@ -20,6 +20,7 @@ import { Route as LocaleAdminRouteRouteImport } from './routes/$locale/admin/rou
 import { Route as LocaleActivitiesRouteRouteImport } from './routes/$locale/activities/route'
 import { Route as LocaleSlugRouteRouteImport } from './routes/$locale/$slug/route'
 import { Route as LocaleStoriesIndexRouteImport } from './routes/$locale/stories/index'
+import { Route as LocaleSeriesIndexRouteImport } from './routes/$locale/series/index'
 import { Route as LocaleSearchIndexRouteImport } from './routes/$locale/search/index'
 import { Route as LocaleProductsIndexRouteImport } from './routes/$locale/products/index'
 import { Route as LocaleNewsIndexRouteImport } from './routes/$locale/news/index'
@@ -49,6 +50,7 @@ import { Route as LocaleSlugQaRouteRouteImport } from './routes/$locale/$slug/qa
 import { Route as LocaleSlugMembersRouteRouteImport } from './routes/$locale/$slug/members/route'
 import { Route as LocaleSlugPageslugRouteRouteImport } from './routes/$locale/$slug/$pageslug/route'
 import { Route as LocaleStoriesStoryslugIndexRouteImport } from './routes/$locale/stories/$storyslug/index'
+import { Route as LocaleSeriesSeriesSlugIndexRouteImport } from './routes/$locale/series/$seriesSlug/index'
 import { Route as LocaleAdminWorkersIndexRouteImport } from './routes/$locale/admin/workers/index'
 import { Route as LocaleAdminProfilesIndexRouteImport } from './routes/$locale/admin/profiles/index'
 import { Route as LocaleAdminPointsIndexRouteImport } from './routes/$locale/admin/points/index'
@@ -131,6 +133,11 @@ const LocaleStoriesIndexRoute = LocaleStoriesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LocaleStoriesRouteRoute,
+} as any)
+const LocaleSeriesIndexRoute = LocaleSeriesIndexRouteImport.update({
+  id: '/series/',
+  path: '/series/',
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleSearchIndexRoute = LocaleSearchIndexRouteImport.update({
   id: '/search/',
@@ -279,6 +286,12 @@ const LocaleStoriesStoryslugIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+  } as any)
+const LocaleSeriesSeriesSlugIndexRoute =
+  LocaleSeriesSeriesSlugIndexRouteImport.update({
+    id: '/series/$seriesSlug/',
+    path: '/series/$seriesSlug/',
+    getParentRoute: () => LocaleRouteRoute,
   } as any)
 const LocaleAdminWorkersIndexRoute = LocaleAdminWorkersIndexRouteImport.update({
   id: '/',
@@ -473,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/$locale/news/': typeof LocaleNewsIndexRoute
   '/$locale/products/': typeof LocaleProductsIndexRoute
   '/$locale/search/': typeof LocaleSearchIndexRoute
+  '/$locale/series/': typeof LocaleSeriesIndexRoute
   '/$locale/stories/': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/admin/profiles/$slug': typeof LocaleAdminProfilesSlugRouteRouteWithChildren
@@ -495,6 +509,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/points/': typeof LocaleAdminPointsIndexRoute
   '/$locale/admin/profiles/': typeof LocaleAdminProfilesIndexRoute
   '/$locale/admin/workers/': typeof LocaleAdminWorkersIndexRoute
+  '/$locale/series/$seriesSlug/': typeof LocaleSeriesSeriesSlugIndexRoute
   '/$locale/stories/$storyslug/': typeof LocaleStoriesStoryslugIndexRoute
   '/$locale/$slug/settings/pages/new': typeof LocaleSlugSettingsPagesNewRoute
   '/$locale/admin/profiles/$slug/envelopes': typeof LocaleAdminProfilesSlugEnvelopesRoute
@@ -528,6 +543,7 @@ export interface FileRoutesByTo {
   '/$locale/news': typeof LocaleNewsIndexRoute
   '/$locale/products': typeof LocaleProductsIndexRoute
   '/$locale/search': typeof LocaleSearchIndexRoute
+  '/$locale/series': typeof LocaleSeriesIndexRoute
   '/$locale/stories': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
   '/$locale/$slug/members/referrals': typeof LocaleSlugMembersReferralsRoute
@@ -548,6 +564,7 @@ export interface FileRoutesByTo {
   '/$locale/admin/points': typeof LocaleAdminPointsIndexRoute
   '/$locale/admin/profiles': typeof LocaleAdminProfilesIndexRoute
   '/$locale/admin/workers': typeof LocaleAdminWorkersIndexRoute
+  '/$locale/series/$seriesSlug': typeof LocaleSeriesSeriesSlugIndexRoute
   '/$locale/stories/$storyslug': typeof LocaleStoriesStoryslugIndexRoute
   '/$locale/$slug/settings/pages/new': typeof LocaleSlugSettingsPagesNewRoute
   '/$locale/admin/profiles/$slug/envelopes': typeof LocaleAdminProfilesSlugEnvelopesRoute
@@ -596,6 +613,7 @@ export interface FileRoutesById {
   '/$locale/news/': typeof LocaleNewsIndexRoute
   '/$locale/products/': typeof LocaleProductsIndexRoute
   '/$locale/search/': typeof LocaleSearchIndexRoute
+  '/$locale/series/': typeof LocaleSeriesIndexRoute
   '/$locale/stories/': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/admin/profiles/$slug': typeof LocaleAdminProfilesSlugRouteRouteWithChildren
@@ -618,6 +636,7 @@ export interface FileRoutesById {
   '/$locale/admin/points/': typeof LocaleAdminPointsIndexRoute
   '/$locale/admin/profiles/': typeof LocaleAdminProfilesIndexRoute
   '/$locale/admin/workers/': typeof LocaleAdminWorkersIndexRoute
+  '/$locale/series/$seriesSlug/': typeof LocaleSeriesSeriesSlugIndexRoute
   '/$locale/stories/$storyslug/': typeof LocaleStoriesStoryslugIndexRoute
   '/$locale/$slug/settings/pages/new': typeof LocaleSlugSettingsPagesNewRoute
   '/$locale/admin/profiles/$slug/envelopes': typeof LocaleAdminProfilesSlugEnvelopesRoute
@@ -667,6 +686,7 @@ export interface FileRouteTypes {
     | '/$locale/news/'
     | '/$locale/products/'
     | '/$locale/search/'
+    | '/$locale/series/'
     | '/$locale/stories/'
     | '/$locale/$slug/stories/$storyslug'
     | '/$locale/admin/profiles/$slug'
@@ -689,6 +709,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/points/'
     | '/$locale/admin/profiles/'
     | '/$locale/admin/workers/'
+    | '/$locale/series/$seriesSlug/'
     | '/$locale/stories/$storyslug/'
     | '/$locale/$slug/settings/pages/new'
     | '/$locale/admin/profiles/$slug/envelopes'
@@ -722,6 +743,7 @@ export interface FileRouteTypes {
     | '/$locale/news'
     | '/$locale/products'
     | '/$locale/search'
+    | '/$locale/series'
     | '/$locale/stories'
     | '/$locale/$slug/$pageslug/edit'
     | '/$locale/$slug/members/referrals'
@@ -742,6 +764,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/points'
     | '/$locale/admin/profiles'
     | '/$locale/admin/workers'
+    | '/$locale/series/$seriesSlug'
     | '/$locale/stories/$storyslug'
     | '/$locale/$slug/settings/pages/new'
     | '/$locale/admin/profiles/$slug/envelopes'
@@ -789,6 +812,7 @@ export interface FileRouteTypes {
     | '/$locale/news/'
     | '/$locale/products/'
     | '/$locale/search/'
+    | '/$locale/series/'
     | '/$locale/stories/'
     | '/$locale/$slug/stories/$storyslug'
     | '/$locale/admin/profiles/$slug'
@@ -811,6 +835,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/points/'
     | '/$locale/admin/profiles/'
     | '/$locale/admin/workers/'
+    | '/$locale/series/$seriesSlug/'
     | '/$locale/stories/$storyslug/'
     | '/$locale/$slug/settings/pages/new'
     | '/$locale/admin/profiles/$slug/envelopes'
@@ -905,6 +930,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/stories/'
       preLoaderRoute: typeof LocaleStoriesIndexRouteImport
       parentRoute: typeof LocaleStoriesRouteRoute
+    }
+    '/$locale/series/': {
+      id: '/$locale/series/'
+      path: '/series'
+      fullPath: '/$locale/series/'
+      preLoaderRoute: typeof LocaleSeriesIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/search/': {
       id: '/$locale/search/'
@@ -1108,6 +1140,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/stories/$storyslug/'
       preLoaderRoute: typeof LocaleStoriesStoryslugIndexRouteImport
       parentRoute: typeof LocaleStoriesStoryslugRouteRoute
+    }
+    '/$locale/series/$seriesSlug/': {
+      id: '/$locale/series/$seriesSlug/'
+      path: '/series/$seriesSlug'
+      fullPath: '/$locale/series/$seriesSlug/'
+      preLoaderRoute: typeof LocaleSeriesSeriesSlugIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/admin/workers/': {
       id: '/$locale/admin/workers/'
@@ -1595,6 +1634,8 @@ interface LocaleRouteRouteChildren {
   LocaleNewsIndexRoute: typeof LocaleNewsIndexRoute
   LocaleProductsIndexRoute: typeof LocaleProductsIndexRoute
   LocaleSearchIndexRoute: typeof LocaleSearchIndexRoute
+  LocaleSeriesIndexRoute: typeof LocaleSeriesIndexRoute
+  LocaleSeriesSeriesSlugIndexRoute: typeof LocaleSeriesSeriesSlugIndexRoute
 }
 
 const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
@@ -1614,6 +1655,8 @@ const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
   LocaleNewsIndexRoute: LocaleNewsIndexRoute,
   LocaleProductsIndexRoute: LocaleProductsIndexRoute,
   LocaleSearchIndexRoute: LocaleSearchIndexRoute,
+  LocaleSeriesIndexRoute: LocaleSeriesIndexRoute,
+  LocaleSeriesSeriesSlugIndexRoute: LocaleSeriesSeriesSlugIndexRoute,
 }
 
 const LocaleRouteRouteWithChildren = LocaleRouteRoute._addFileChildren(

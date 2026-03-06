@@ -72,6 +72,25 @@ func ToBoolPtr(b sql.NullBool) *bool {
 	return nil
 }
 
+func ToSQLNullInt32(i *int32) sql.NullInt32 {
+	if i != nil {
+		return sql.NullInt32{Int32: *i, Valid: true}
+	}
+
+	return sql.NullInt32{
+		Int32: 0,
+		Valid: false,
+	}
+}
+
+func ToInt32Ptr(i sql.NullInt32) *int32 {
+	if i.Valid {
+		return &i.Int32
+	}
+
+	return nil
+}
+
 func ToSQLNullBool(b *bool) sql.NullBool {
 	if b != nil {
 		return sql.NullBool{Bool: *b, Valid: true}

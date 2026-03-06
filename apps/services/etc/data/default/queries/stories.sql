@@ -99,6 +99,8 @@ INSERT INTO "story" (
   remote_id,
   visibility,
   feat_discussions,
+  series_id,
+  sort_order,
   created_at
 ) VALUES (
   sqlc.arg(id),
@@ -111,6 +113,8 @@ INSERT INTO "story" (
   sqlc.narg(remote_id),
   sqlc.arg(visibility),
   sqlc.arg(feat_discussions),
+  sqlc.narg(series_id),
+  sqlc.narg(sort_order),
   NOW()
 ) RETURNING *;
 
@@ -160,6 +164,8 @@ SET
   properties = sqlc.narg(properties),
   visibility = sqlc.arg(visibility),
   feat_discussions = COALESCE(sqlc.narg(feat_discussions), feat_discussions),
+  series_id = sqlc.narg(series_id),
+  sort_order = sqlc.narg(sort_order),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
@@ -720,3 +726,59 @@ LIMIT 1;
 -- Used to gate editing: managed translations cannot be modified by users.
 SELECT is_managed FROM "story_tx"
 WHERE story_id = sqlc.arg(story_id) AND locale_code = sqlc.arg(locale_code);
+
+-- name: ListStoriesInSeries :many
+-- Lists all public stories in a series, ordered by sort_order (ascending, NULLs last) then published_at.
+SELECT
+  sqlc.embed(s),
+  sqlc.embed(st),
+  sqlc.embed(p1),
+  sqlc.embed(p1t),
+  pb.publications,
+  (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+FROM "story" s
+  INNER JOIN "story_tx" st ON st.story_id = s.id
+  AND st.locale_code = (
+    SELECT stx.locale_code FROM "story_tx" stx
+    WHERE stx.story_id = s.id
+    ORDER BY CASE
+      WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0
+      WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+      ELSE 2
+    END
+    LIMIT 1
+  )
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.approved_at IS NOT NULL
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+  AND p1t.locale_code = (
+    SELECT ptx.locale_code FROM "profile_tx" ptx
+    WHERE ptx.profile_id = p1.id
+    ORDER BY CASE WHEN ptx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+    LIMIT 1
+  )
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.approved_at IS NOT NULL
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = (
+        SELECT ptx2.locale_code FROM "profile_tx" ptx2
+        WHERE ptx2.profile_id = p2.id
+        ORDER BY CASE WHEN ptx2.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
+        LIMIT 1
+      )
+    WHERE sp.story_id = s.id
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+WHERE s.series_id = sqlc.arg(series_id)
+  AND pb.publications IS NOT NULL
+  AND s.visibility = 'public'
+  AND s.deleted_at IS NULL
+ORDER BY COALESCE(s.sort_order, 2147483647) ASC,
+  COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) ASC;

@@ -97,7 +97,8 @@
     "Development": "開発",
     "Use default data source": "デフォルトのデータソースを使用",
     "Use production data source": "本番のデータソースを使用",
-    "Mailbox": "メールボックス"
+    "Mailbox": "メールボックス",
+    "Series": "シリーズ"
   },
   "Loading": {
     "Loading...": "読み込み中...",
@@ -190,6 +191,13 @@
     "Share on Reddit": "Redditでシェア",
     "Share on X": "Xでシェア",
     "Download Markdown": "Markdownをダウンロード"
+  },
+  "Series": {
+    "Browse story series from the AYA community": "AYAコミュニティのシリーズを閲覧",
+    "No series yet": "シリーズはまだありません",
+    "Stories in this series": "このシリーズのストーリー",
+    "No stories in this series yet": "このシリーズにはまだストーリーがありません",
+    "series_count": "{{count}} ストーリー"
   },
   "Pagination": {
     "Go to page": "ページに移動",

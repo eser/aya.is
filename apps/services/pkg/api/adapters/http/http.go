@@ -27,6 +27,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/story_interactions"
+	"github.com/eser/aya.is/services/pkg/api/business/story_series"
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
 	"github.com/eser/aya.is/services/pkg/api/business/uploads"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
@@ -54,6 +55,7 @@ func Run( //nolint:funlen
 	mailboxService *mailbox.Service,
 	storyService *stories.Service,
 	storyInteractionService *story_interactions.Service,
+	storySeriesService *story_series.Service,
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
 	uploadService *uploads.Service,
@@ -85,7 +87,7 @@ func Run( //nolint:funlen
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics)) //nolint:contextcheck
 
 	// mcp adapter (must be registered before OPTIONS wildcard to avoid pattern conflict)
-	mcpadapter.RegisterMCPRoutes(routes, profileService, storyService)
+	mcpadapter.RegisterMCPRoutes(routes, profileService, storyService, storySeriesService)
 
 	// Global OPTIONS handler for preflight requests
 	routes.Route("OPTIONS /{path...}", func(ctx *httpfx.Context) httpfx.Result {
@@ -164,6 +166,14 @@ func Run( //nolint:funlen
 	RegisterHTTPRoutesForSearch( //nolint:contextcheck
 		routes,
 		profileService,
+	)
+	RegisterHTTPRoutesForStorySeries( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		storySeriesService,
+		storyService,
 	)
 	RegisterHTTPRoutesForProfileLinks( //nolint:contextcheck
 		routes,

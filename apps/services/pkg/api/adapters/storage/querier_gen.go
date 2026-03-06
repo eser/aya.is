@@ -1800,7 +1800,7 @@ type Querier interface {
 	//GetStoryByID
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
@@ -1864,7 +1864,7 @@ type Querier interface {
 	// Includes is_managed flag (tx_is_managed) to protect synced stories from editing.
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.locale_code,
 	//    st.title,
 	//    st.summary,
@@ -1967,18 +1967,46 @@ type Querier interface {
 	GetStoryPublicationProfileID(ctx context.Context, arg GetStoryPublicationProfileIDParams) (string, error)
 	//GetStorySeriesByID
 	//
-	//  SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-	//  WHERE id = $1
-	//    AND deleted_at IS NULL
+	//  SELECT
+	//    ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+	//    sst.locale_code, sst.title, sst.description
+	//  FROM "story_series" ss
+	//    INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+	//    AND sst.locale_code = (
+	//      SELECT sstx.locale_code FROM "story_series_tx" sstx
+	//      WHERE sstx.story_series_id = ss.id
+	//      ORDER BY CASE
+	//        WHEN sstx.locale_code = $1 THEN 0
+	//        WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+	//        ELSE 2
+	//      END
+	//      LIMIT 1
+	//    )
+	//  WHERE ss.id = $2
+	//    AND ss.deleted_at IS NULL
 	//  LIMIT 1
-	GetStorySeriesByID(ctx context.Context, arg GetStorySeriesByIDParams) (*StorySeries, error)
+	GetStorySeriesByID(ctx context.Context, arg GetStorySeriesByIDParams) (*GetStorySeriesByIDRow, error)
 	//GetStorySeriesBySlug
 	//
-	//  SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-	//  WHERE slug = $1
-	//    AND deleted_at IS NULL
+	//  SELECT
+	//    ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+	//    sst.locale_code, sst.title, sst.description
+	//  FROM "story_series" ss
+	//    INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+	//    AND sst.locale_code = (
+	//      SELECT sstx.locale_code FROM "story_series_tx" sstx
+	//      WHERE sstx.story_series_id = ss.id
+	//      ORDER BY CASE
+	//        WHEN sstx.locale_code = $1 THEN 0
+	//        WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+	//        ELSE 2
+	//      END
+	//      LIMIT 1
+	//    )
+	//  WHERE ss.slug = $2
+	//    AND ss.deleted_at IS NULL
 	//  LIMIT 1
-	GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*StorySeries, error)
+	GetStorySeriesBySlug(ctx context.Context, arg GetStorySeriesBySlugParams) (*GetStorySeriesBySlugRow, error)
 	// Returns published story translations that have no AI summary yet.
 	//
 	//  SELECT
@@ -2259,6 +2287,8 @@ type Querier interface {
 	//    remote_id,
 	//    visibility,
 	//    feat_discussions,
+	//    series_id,
+	//    sort_order,
 	//    created_at
 	//  ) VALUES (
 	//    $1,
@@ -2271,8 +2301,10 @@ type Querier interface {
 	//    $8,
 	//    $9,
 	//    $10,
+	//    $11,
+	//    $12,
 	//    NOW()
-	//  ) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id, visibility, feat_discussions
+	//  ) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id, visibility, feat_discussions, sort_order
 	InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error)
 	//InsertStoryPublication
 	//
@@ -2299,15 +2331,13 @@ type Querier interface {
 	//InsertStorySeries
 	//
 	//  INSERT INTO "story_series" (
-	//    id, slug, series_picture_uri, title, description, created_at
+	//    id, slug, series_picture_uri, created_at
 	//  ) VALUES (
 	//    $1,
 	//    $2,
 	//    $3,
-	//    $4,
-	//    $5,
 	//    NOW()
-	//  ) RETURNING id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at
+	//  ) RETURNING id, slug, series_picture_uri, created_at, updated_at, deleted_at
 	InsertStorySeries(ctx context.Context, arg InsertStorySeriesParams) (*StorySeries, error)
 	//InsertStoryTx
 	//
@@ -2356,7 +2386,7 @@ type Querier interface {
 	// Activity-specific fields are in the properties JSONB column.
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -3372,7 +3402,7 @@ type Querier interface {
 	// Publications are included as optional data (LEFT JOIN).
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -3428,7 +3458,7 @@ type Querier interface {
 	// Unlisted stories are always excluded from listings (accessible only via direct link).
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -3491,10 +3521,66 @@ type Querier interface {
 	//    )
 	//  ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 	ListStoriesByAuthorProfileIDForViewer(ctx context.Context, arg ListStoriesByAuthorProfileIDForViewerParams) ([]*ListStoriesByAuthorProfileIDForViewerRow, error)
+	// Lists all public stories in a series, ordered by sort_order (ascending, NULLs last) then published_at.
+	//
+	//  SELECT
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
+	//    pb.publications,
+	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
+	//  FROM "story" s
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
+	//    AND st.locale_code = (
+	//      SELECT stx.locale_code FROM "story_tx" stx
+	//      WHERE stx.story_id = s.id
+	//      ORDER BY CASE
+	//        WHEN stx.locale_code = $1 THEN 0
+	//        WHEN stx.locale_code = (SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id) THEN 1
+	//        ELSE 2
+	//      END
+	//      LIMIT 1
+	//    )
+	//    LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+	//    AND p1.approved_at IS NOT NULL
+	//    AND p1.deleted_at IS NULL
+	//    INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+	//    AND p1t.locale_code = (
+	//      SELECT ptx.locale_code FROM "profile_tx" ptx
+	//      WHERE ptx.profile_id = p1.id
+	//      ORDER BY CASE WHEN ptx.locale_code = $1 THEN 0 ELSE 1 END
+	//      LIMIT 1
+	//    )
+	//    LEFT JOIN LATERAL (
+	//      SELECT JSONB_AGG(
+	//        JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+	//      ) AS "publications"
+	//      FROM story_publication sp
+	//        INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+	//        AND p2.approved_at IS NOT NULL
+	//        AND p2.deleted_at IS NULL
+	//        INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+	//        AND p2t.locale_code = (
+	//          SELECT ptx2.locale_code FROM "profile_tx" ptx2
+	//          WHERE ptx2.profile_id = p2.id
+	//          ORDER BY CASE WHEN ptx2.locale_code = $1 THEN 0 ELSE 1 END
+	//          LIMIT 1
+	//        )
+	//      WHERE sp.story_id = s.id
+	//        AND sp.deleted_at IS NULL
+	//    ) pb ON TRUE
+	//  WHERE s.series_id = $2
+	//    AND pb.publications IS NOT NULL
+	//    AND s.visibility = 'public'
+	//    AND s.deleted_at IS NULL
+	//  ORDER BY COALESCE(s.sort_order, 2147483647) ASC,
+	//    COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) ASC
+	ListStoriesInSeries(ctx context.Context, arg ListStoriesInSeriesParams) ([]*ListStoriesInSeriesRow, error)
 	// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -3554,7 +3640,7 @@ type Querier interface {
 	// Unlisted stories are always excluded from listings (accessible only via direct link).
 	//
 	//  SELECT
-	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions,
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
 	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
@@ -3684,10 +3770,24 @@ type Querier interface {
 	ListStoryPublications(ctx context.Context, arg ListStoryPublicationsParams) ([]*ListStoryPublicationsRow, error)
 	//ListStorySeries
 	//
-	//  SELECT id, slug, series_picture_uri, title, description, created_at, updated_at, deleted_at FROM "story_series"
-	//  WHERE deleted_at IS NULL
-	//  ORDER BY created_at DESC
-	ListStorySeries(ctx context.Context) ([]*StorySeries, error)
+	//  SELECT
+	//    ss.id, ss.slug, ss.series_picture_uri, ss.created_at, ss.updated_at,
+	//    sst.locale_code, sst.title, sst.description
+	//  FROM "story_series" ss
+	//    INNER JOIN "story_series_tx" sst ON sst.story_series_id = ss.id
+	//    AND sst.locale_code = (
+	//      SELECT sstx.locale_code FROM "story_series_tx" sstx
+	//      WHERE sstx.story_series_id = ss.id
+	//      ORDER BY CASE
+	//        WHEN sstx.locale_code = $1 THEN 0
+	//        WHEN RTRIM(sstx.locale_code) = 'en' THEN 1
+	//        ELSE 2
+	//      END
+	//      LIMIT 1
+	//    )
+	//  WHERE ss.deleted_at IS NULL
+	//  ORDER BY ss.created_at DESC
+	ListStorySeries(ctx context.Context, arg ListStorySeriesParams) ([]*ListStorySeriesRow, error)
 	//ListStoryTxLocales
 	//
 	//  SELECT locale_code FROM "story_tx"
@@ -4567,8 +4667,10 @@ type Querier interface {
 	//    properties = $3,
 	//    visibility = $4,
 	//    feat_discussions = COALESCE($5, feat_discussions),
+	//    series_id = $6,
+	//    sort_order = $7,
 	//    updated_at = NOW()
-	//  WHERE id = $6
+	//  WHERE id = $8
 	//    AND deleted_at IS NULL
 	UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error)
 	//UpdateStoryPublication
@@ -4595,10 +4697,8 @@ type Querier interface {
 	//  SET
 	//    slug = $1,
 	//    series_picture_uri = $2,
-	//    title = $3,
-	//    description = $4,
 	//    updated_at = NOW()
-	//  WHERE id = $5
+	//  WHERE id = $3
 	//    AND deleted_at IS NULL
 	UpdateStorySeries(ctx context.Context, arg UpdateStorySeriesParams) (int64, error)
 	//UpdateStoryTx
@@ -4752,6 +4852,19 @@ type Querier interface {
 	//  DO UPDATE SET updated_at = NOW()
 	//  RETURNING id, story_id, profile_id, kind, created_at, updated_at, deleted_at
 	UpsertStoryInteraction(ctx context.Context, arg UpsertStoryInteractionParams) (*StoryInteraction, error)
+	//UpsertStorySeriesTx
+	//
+	//  INSERT INTO "story_series_tx" (story_series_id, locale_code, title, description)
+	//  VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4
+	//  )
+	//  ON CONFLICT (story_series_id, locale_code) DO UPDATE SET
+	//    title = EXCLUDED.title,
+	//    description = EXCLUDED.description
+	UpsertStorySeriesTx(ctx context.Context, arg UpsertStorySeriesTxParams) error
 	// Updates the AI-generated summary for a specific story translation.
 	//
 	//  UPDATE "story_tx"

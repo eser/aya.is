@@ -535,6 +535,7 @@ type Story struct {
 	SeriesID        sql.NullString        `db:"series_id" json:"series_id"`
 	Visibility      string                `db:"visibility" json:"visibility"`
 	FeatDiscussions bool                  `db:"feat_discussions" json:"feat_discussions"`
+	SortOrder       sql.NullInt32         `db:"sort_order" json:"sort_order"`
 }
 
 type StoryInteraction struct {
@@ -564,11 +565,16 @@ type StorySeries struct {
 	ID               string         `db:"id" json:"id"`
 	Slug             string         `db:"slug" json:"slug"`
 	SeriesPictureURI sql.NullString `db:"series_picture_uri" json:"series_picture_uri"`
-	Title            string         `db:"title" json:"title"`
-	Description      string         `db:"description" json:"description"`
 	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt        sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt        sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+}
+
+type StorySeriesTx struct {
+	StorySeriesID string `db:"story_series_id" json:"story_series_id"`
+	LocaleCode    string `db:"locale_code" json:"locale_code"`
+	Title         string `db:"title" json:"title"`
+	Description   string `db:"description" json:"description"`
 }
 
 type StoryTx struct {
