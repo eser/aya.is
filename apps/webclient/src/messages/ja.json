@@ -197,7 +197,21 @@
     "No series yet": "シリーズはまだありません",
     "Stories in this series": "このシリーズのストーリー",
     "No stories in this series yet": "このシリーズにはまだストーリーがありません",
-    "series_count": "{{count}} ストーリー"
+    "series_count": "{{count}} ストーリー",
+    "Manage Series...": "シリーズ管理...",
+    "Manage your story series": "ストーリーシリーズを管理します。",
+    "Edit Series": "シリーズを編集",
+    "Content Locale": "コンテンツ言語",
+    "Series slug": "シリーズスラッグ",
+    "Series picture URI": "シリーズ画像URI",
+    "Cannot delete series with stories": "ストーリーを含むシリーズは削除できません。まずすべてのストーリーを削除してください。",
+    "Delete series?": "このシリーズを削除しますか？",
+    "Delete series confirmation": "この操作は元に戻せません。",
+    "Series updated": "シリーズが更新されました",
+    "Series deleted": "シリーズが削除されました",
+    "Series created": "シリーズが作成されました",
+    "No translation": "この言語の翻訳がありません。保存して作成してください。",
+    "Back to list": "リストに戻る"
   },
   "Pagination": {
     "Go to page": "ページに移動",

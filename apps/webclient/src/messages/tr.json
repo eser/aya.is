@@ -197,7 +197,21 @@
     "No series yet": "Henüz seri yok",
     "Stories in this series": "Bu serideki içerikler",
     "No stories in this series yet": "Bu seride henüz içerik yok",
-    "series_count": "{{count}} içerik"
+    "series_count": "{{count}} içerik",
+    "Manage Series...": "Serileri Yönet...",
+    "Manage your story series": "Hikaye serilerinizi yönetin.",
+    "Edit Series": "Seriyi Düzenle",
+    "Content Locale": "İçerik Dili",
+    "Series slug": "Seri slug'ı",
+    "Series picture URI": "Seri görseli URI",
+    "Cannot delete series with stories": "Hikayeleri olan seri silinemez. Önce tüm hikayeleri kaldırın.",
+    "Delete series?": "Bu seri silinsin mi?",
+    "Delete series confirmation": "Bu işlem geri alınamaz.",
+    "Series updated": "Seri güncellendi",
+    "Series deleted": "Seri silindi",
+    "Series created": "Seri oluşturuldu",
+    "No translation": "Bu dil için çeviri yok. Oluşturmak için kaydedin.",
+    "Back to list": "Listeye dön"
   },
   "Pagination": {
     "Go to page": "Sayfaya git",

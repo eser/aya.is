@@ -197,7 +197,21 @@
     "No series yet": "Nog geen series",
     "Stories in this series": "Verhalen in deze serie",
     "No stories in this series yet": "Nog geen verhalen in deze serie",
-    "series_count": "{{count}} verhalen"
+    "series_count": "{{count}} verhalen",
+    "Manage Series...": "Series beheren...",
+    "Manage your story series": "Beheer je verhalenseries.",
+    "Edit Series": "Serie bewerken",
+    "Content Locale": "Inhoudstaal",
+    "Series slug": "Serie-slug",
+    "Series picture URI": "Serie-afbeelding URI",
+    "Cannot delete series with stories": "Kan serie met verhalen niet verwijderen. Verwijder eerst alle verhalen.",
+    "Delete series?": "Deze serie verwijderen?",
+    "Delete series confirmation": "Deze actie kan niet ongedaan worden gemaakt.",
+    "Series updated": "Serie bijgewerkt",
+    "Series deleted": "Serie verwijderd",
+    "Series created": "Serie aangemaakt",
+    "No translation": "Geen vertaling voor deze taal. Sla op om er een aan te maken.",
+    "Back to list": "Terug naar lijst"
   },
   "Pagination": {
     "Go to page": "Ga naar pagina",

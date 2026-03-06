@@ -10,6 +10,7 @@ import {
   GlobeLock,
   Images,
   Info,
+  Library,
   Loader2,
   Megaphone,
   MessageSquare,
@@ -46,6 +47,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { formatDateString } from "@/lib/date";
+import { SeriesManagementDialog } from "@/components/series-management-dialog";
 
 const settingsRoute = getRouteApi("/$locale/$slug/settings");
 
@@ -83,6 +85,7 @@ function StoriesSettingsPage() {
 
   // Story Defaults dialog state
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [seriesDialogOpen, setSeriesDialogOpen] = React.useState(false);
   const [isSavingDefaults, setIsSavingDefaults] = React.useState(false);
   const [storyDiscussionsByDefault, setStoryDiscussionsByDefault] = React.useState(
     initialProfile.option_story_discussions_by_default === true,
@@ -222,6 +225,11 @@ function StoriesSettingsPage() {
             </DialogContent>
           </Dialog>
 
+          <Button variant="outline" size="sm" onClick={() => setSeriesDialogOpen(true)}>
+            <Library className="mr-1.5 size-4" />
+            {t("Series.Manage Series...")}
+          </Button>
+
           <Link to="/$locale/stories/new" params={{ locale: params.locale }}>
             <Button variant="default" size="sm">
               <Plus className="mr-1.5 size-4" />
@@ -353,6 +361,11 @@ function StoriesSettingsPage() {
             )}
           </>
         )}
+      <SeriesManagementDialog
+        open={seriesDialogOpen}
+        onOpenChange={setSeriesDialogOpen}
+        locale={locale}
+      />
     </Card>
   );
 }

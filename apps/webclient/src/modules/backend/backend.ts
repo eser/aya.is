@@ -101,6 +101,9 @@ import { lockThread } from "./discussions/lock-thread";
 import { getSeriesList } from "./series/get-series-list";
 import { getSeries } from "./series/get-series";
 import { createSeries } from "./series/create-series";
+import { updateSeries } from "./series/update-series";
+import { updateSeriesTranslation } from "./series/update-series-translation";
+import { deleteSeries } from "./series/delete-series";
 import { getStories } from "./stories/get-stories";
 import { getStoriesByKinds } from "./stories/get-stories-by-kinds";
 import { getStory } from "./stories/get-story";
@@ -336,6 +339,9 @@ export const backend = {
   getSeriesList,
   getSeries,
   createSeries,
+  updateSeries,
+  updateSeriesTranslation,
+  deleteSeries,
 
   // Activities
   getActivities,

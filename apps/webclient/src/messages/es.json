@@ -197,7 +197,21 @@
     "No series yet": "Aún no hay series",
     "Stories in this series": "Historias en esta serie",
     "No stories in this series yet": "Aún no hay historias en esta serie",
-    "series_count": "{{count}} historias"
+    "series_count": "{{count}} historias",
+    "Manage Series...": "Gestionar series...",
+    "Manage your story series": "Gestiona tus series de historias.",
+    "Edit Series": "Editar serie",
+    "Content Locale": "Idioma del contenido",
+    "Series slug": "Slug de la serie",
+    "Series picture URI": "URI de imagen de la serie",
+    "Cannot delete series with stories": "No se puede eliminar una serie con historias. Elimina primero todas las historias.",
+    "Delete series?": "¿Eliminar esta serie?",
+    "Delete series confirmation": "Esta acción no se puede deshacer.",
+    "Series updated": "Serie actualizada",
+    "Series deleted": "Serie eliminada",
+    "Series created": "Serie creada",
+    "No translation": "No hay traducción para este idioma. Guarda para crear una.",
+    "Back to list": "Volver a la lista"
   },
   "Pagination": {
     "Go to page": "Ir a la página",

@@ -197,7 +197,21 @@
     "No series yet": "아직 시리즈가 없습니다",
     "Stories in this series": "이 시리즈의 스토리",
     "No stories in this series yet": "이 시리즈에는 아직 스토리가 없습니다",
-    "series_count": "{{count}} 스토리"
+    "series_count": "{{count}} 스토리",
+    "Manage Series...": "시리즈 관리...",
+    "Manage your story series": "스토리 시리즈를 관리하세요.",
+    "Edit Series": "시리즈 편집",
+    "Content Locale": "콘텐츠 언어",
+    "Series slug": "시리즈 슬러그",
+    "Series picture URI": "시리즈 이미지 URI",
+    "Cannot delete series with stories": "스토리가 있는 시리즈는 삭제할 수 없습니다. 먼저 모든 스토리를 제거하세요.",
+    "Delete series?": "이 시리즈를 삭제하시겠습니까?",
+    "Delete series confirmation": "이 작업은 되돌릴 수 없습니다.",
+    "Series updated": "시리즈가 업데이트되었습니다",
+    "Series deleted": "시리즈가 삭제되었습니다",
+    "Series created": "시리즈가 생성되었습니다",
+    "No translation": "이 언어의 번역이 없습니다. 저장하여 생성하세요.",
+    "Back to list": "목록으로 돌아가기"
   },
   "Pagination": {
     "Go to page": "페이지로 이동",

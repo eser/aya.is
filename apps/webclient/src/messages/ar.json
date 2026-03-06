@@ -197,7 +197,21 @@
     "No series yet": "لا توجد سلاسل بعد",
     "Stories in this series": "القصص في هذه السلسلة",
     "No stories in this series yet": "لا توجد قصص في هذه السلسلة بعد",
-    "series_count": "{{count}} قصص"
+    "series_count": "{{count}} قصص",
+    "Manage Series...": "إدارة السلاسل...",
+    "Manage your story series": "إدارة سلاسل قصصك.",
+    "Edit Series": "تعديل السلسلة",
+    "Content Locale": "لغة المحتوى",
+    "Series slug": "معرّف السلسلة",
+    "Series picture URI": "رابط صورة السلسلة",
+    "Cannot delete series with stories": "لا يمكن حذف سلسلة تحتوي على قصص. قم بإزالة جميع القصص أولاً.",
+    "Delete series?": "حذف هذه السلسلة؟",
+    "Delete series confirmation": "لا يمكن التراجع عن هذا الإجراء.",
+    "Series updated": "تم تحديث السلسلة",
+    "Series deleted": "تم حذف السلسلة",
+    "Series created": "تم إنشاء السلسلة",
+    "No translation": "لا توجد ترجمة لهذه اللغة. احفظ لإنشاء واحدة.",
+    "Back to list": "العودة إلى القائمة"
   },
   "Pagination": {
     "Go to page": "اذهب إلى الصفحة",

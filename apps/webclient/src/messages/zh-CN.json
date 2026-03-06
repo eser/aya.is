@@ -197,7 +197,21 @@
     "No series yet": "暂无系列",
     "Stories in this series": "本系列中的故事",
     "No stories in this series yet": "本系列中暂无故事",
-    "series_count": "{{count}} 个故事"
+    "series_count": "{{count}} 个故事",
+    "Manage Series...": "管理系列...",
+    "Manage your story series": "管理您的故事系列。",
+    "Edit Series": "编辑系列",
+    "Content Locale": "内容语言",
+    "Series slug": "系列标识符",
+    "Series picture URI": "系列图片URI",
+    "Cannot delete series with stories": "无法删除包含故事的系列。请先移除所有故事。",
+    "Delete series?": "删除此系列？",
+    "Delete series confirmation": "此操作无法撤销。",
+    "Series updated": "系列已更新",
+    "Series deleted": "系列已删除",
+    "Series created": "系列已创建",
+    "No translation": "此语言没有翻译。保存以创建一个。",
+    "Back to list": "返回列表"
   },
   "Pagination": {
     "Go to page": "跳转到页面",

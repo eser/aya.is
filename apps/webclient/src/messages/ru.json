@@ -197,7 +197,21 @@
     "No series yet": "Серий пока нет",
     "Stories in this series": "Статьи в этой серии",
     "No stories in this series yet": "В этой серии пока нет статей",
-    "series_count": "{{count}} статей"
+    "series_count": "{{count}} статей",
+    "Manage Series...": "Управление сериями...",
+    "Manage your story series": "Управляйте своими сериями историй.",
+    "Edit Series": "Редактировать серию",
+    "Content Locale": "Язык контента",
+    "Series slug": "Slug серии",
+    "Series picture URI": "URI изображения серии",
+    "Cannot delete series with stories": "Невозможно удалить серию с историями. Сначала удалите все истории.",
+    "Delete series?": "Удалить эту серию?",
+    "Delete series confirmation": "Это действие нельзя отменить.",
+    "Series updated": "Серия обновлена",
+    "Series deleted": "Серия удалена",
+    "Series created": "Серия создана",
+    "No translation": "Нет перевода для этого языка. Сохраните, чтобы создать.",
+    "Back to list": "Вернуться к списку"
   },
   "Pagination": {
     "Go to page": "Перейти на страницу",
