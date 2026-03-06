@@ -30,6 +30,7 @@ func RegisterMCPRoutes(
 	registerProfileTools(server, profileService)
 	registerStoryTools(server, storyService)
 	registerNewsTools(server, storyService)
+	registerSearchTools(server, profileService)
 
 	handler := mcp.NewStreamableHTTPHandler(
 		func(req *http.Request) *mcp.Server {
