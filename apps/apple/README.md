@@ -78,10 +78,10 @@ Sources/
 
 | Target | Platform | Bundle ID | Min OS |
 |--------|----------|-----------|--------|
-| AYA-iOS | iPhone | `is.aya.app` | iOS 18.0 |
-| AYA-macOS | Mac | `is.aya.app.macos` | macOS 15.0 |
-| AYA-iOS-UITests | iPhone | `is.aya.app.uitests` | iOS 18.0 |
-| AYA-macOS-UITests | Mac | `is.aya.app.macos.uitests` | macOS 15.0 |
+| AYA-iOS | iPhone | `is.aya.ios` | iOS 18.0 |
+| AYA-macOS | Mac | `is.aya.mac` | macOS 15.0 |
+| AYA-iOS-UITests | iPhone | `is.aya.ios.uitests` | iOS 18.0 |
+| AYA-macOS-UITests | Mac | `is.aya.mac.uitests` | macOS 15.0 |
 
 ## Prerequisites
 

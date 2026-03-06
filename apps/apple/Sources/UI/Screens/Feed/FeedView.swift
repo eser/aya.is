@@ -4,6 +4,9 @@ import SwiftUI
 public struct FeedView: View {
     @Bindable var viewModel: FeedViewModel
     @AppStorage("preferredLocale") private var preferredLocale: String = LocaleHelper.currentLocale
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
 
     /// Creates a feed view backed by the given view model.
     public init(viewModel: FeedViewModel) {
@@ -77,28 +80,31 @@ public struct FeedView: View {
 
     // MARK: - Feed Content
 
-    private static let gridBreakpoint: CGFloat = 700
+    private var useGrid: Bool {
+        #if os(iOS)
+        horizontalSizeClass == .regular
+        #else
+        true
+        #endif
+    }
 
     private var feedContent: some View {
-        GeometryReader { geo in
-            let useGrid = geo.size.width >= Self.gridBreakpoint
-            ScrollViewReader { proxy in
-                ScrollView {
-                    Color.clear
-                        .frame(height: 0)
-                        .id("feedTop")
+        ScrollViewReader { proxy in
+            ScrollView {
+                Color.clear
+                    .frame(height: 0)
+                    .id("feedTop")
 
-                    if useGrid {
-                        gridFeedContent(width: geo.size.width)
-                    } else {
-                        singleColumnFeedContent
-                    }
+                if useGrid {
+                    gridFeedContent
+                } else {
+                    singleColumnFeedContent
                 }
-                .refreshable { await viewModel.refresh() }
-                .onChange(of: viewModel.activeFilter) {
-                    withAnimation {
-                        proxy.scrollTo("feedTop", anchor: .top)
-                    }
+            }
+            .refreshable { await viewModel.refresh() }
+            .onChange(of: viewModel.activeFilter) {
+                withAnimation {
+                    proxy.scrollTo("feedTop", anchor: .top)
                 }
             }
         }
@@ -121,17 +127,20 @@ public struct FeedView: View {
         .padding(AYASpacing.md)
     }
 
-    private func gridFeedContent(width: CGFloat) -> some View {
-        let columns = [
+    private var gridColumns: [GridItem] {
+        [
             GridItem(.flexible(), spacing: AYASpacing.md),
             GridItem(.flexible(), spacing: AYASpacing.md),
         ]
+    }
+
+    private var gridFeedContent: some View {
         let displayItems = feedDisplayItems
 
         return LazyVStack(spacing: AYASpacing.md) {
             featuredHeroCard
 
-            LazyVGrid(columns: columns, spacing: AYASpacing.md) {
+            LazyVGrid(columns: gridColumns, spacing: AYASpacing.md) {
                 ForEach(displayItems) { item in
                     feedItemView(item)
                         .task(id: item.id) {
@@ -385,7 +394,7 @@ public struct FeedNavigationView: View {
             FeedView(viewModel: viewModel)
                 .navigationTitle(LocaleHelper.localized("app.title", defaultValue: "AYA", locale: preferredLocale))
                 #if os(iOS)
-                .navigationBarTitleDisplayMode(.large)
+                .navigationBarTitleDisplayMode(.inline)
                 #endif
                 #if os(macOS)
                 .toolbarTitleDisplayMode(.inline)
