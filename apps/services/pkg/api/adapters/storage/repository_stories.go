@@ -700,6 +700,7 @@ func (r *Repository) GetStoryForEdit(
 
 	return &stories.StoryForEdit{
 		ID:                row.ID,
+		SeriesID:          vars.ToStringPtr(row.SeriesID),
 		AuthorProfileID:   vars.ToStringPtr(row.AuthorProfileID),
 		AuthorProfileSlug: vars.ToStringPtr(row.AuthorProfileSlug),
 		Slug:              row.Slug,

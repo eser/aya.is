@@ -12,6 +12,7 @@ import {
   ImagePlus,
   Images,
   Info,
+  Library,
   Loader2,
   Lock,
   Megaphone,
@@ -30,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import type { ContentVisibility, StoryKind, StoryPublication } from "@/modules/backend/types";
+import type { ContentVisibility, StorySeries, StoryKind, StoryPublication } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/backend";
 import type { IndividualProfile } from "@/lib/auth/auth-context";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -85,6 +86,7 @@ export type ContentEditorData = {
   kind?: StoryKind;
   visibility?: ContentVisibility;
   featDiscussions?: boolean;
+  seriesId?: string | null;
   // Activity-specific fields (only relevant when kind === "activity")
   activityKind?: string;
   activityTimeStart?: string;
@@ -174,6 +176,17 @@ export function ContentEditor(props: ContentEditorProps) {
   const [externalActivityUri, setExternalActivityUri] = React.useState(initialData.externalActivityUri ?? "");
   const [externalAttendanceUri, setExternalAttendanceUri] = React.useState(initialData.externalAttendanceUri ?? "");
   const [rsvpMode, setRsvpMode] = React.useState(initialData.rsvpMode ?? "enabled");
+
+  // Series state
+  const [seriesId, setSeriesId] = React.useState<string | null>(initialData.seriesId ?? null);
+  const [seriesList, setSeriesList] = React.useState<StorySeries[]>([]);
+
+  React.useEffect(() => {
+    if (contentType !== "story") return;
+    backend.getSeriesList(locale).then((list) => {
+      if (list !== null) setSeriesList(list);
+    });
+  }, [locale, contentType]);
 
   // Publication state
   const [publications, setPublications] = React.useState<StoryPublication[]>(initialPublications);
@@ -380,7 +393,8 @@ export function ContentEditor(props: ContentEditorProps) {
       storyPictureUri !== (savedData.storyPictureUri ?? null) ||
       kind !== (savedData.kind ?? "article") ||
       visibility !== (savedData.visibility ?? "public") ||
-      featDiscussions !== (savedData.featDiscussions ?? false);
+      featDiscussions !== (savedData.featDiscussions ?? false) ||
+      seriesId !== (savedData.seriesId ?? null);
 
     if (kind === "activity") {
       return baseChanged ||
@@ -401,6 +415,7 @@ export function ContentEditor(props: ContentEditorProps) {
     kind,
     visibility,
     featDiscussions,
+    seriesId,
     activityKind,
     activityTimeStart,
     activityTimeEnd,
@@ -437,6 +452,7 @@ export function ContentEditor(props: ContentEditorProps) {
     kind,
     visibility,
     featDiscussions,
+    seriesId,
     ...(kind === "activity"
       ? {
         activityKind,
@@ -499,6 +515,7 @@ export function ContentEditor(props: ContentEditorProps) {
     kind,
     visibility,
     featDiscussions,
+    seriesId,
     activityKind,
     activityTimeStart,
     activityTimeEnd,
@@ -1130,6 +1147,44 @@ export function ContentEditor(props: ContentEditorProps) {
                       ? t("ContentEditor.Discussions enabled description")
                       : t("ContentEditor.Discussions disabled description")}
                   </FieldDescription>
+                </Field>
+              )}
+
+              {/* Series */}
+              {contentType === "story" && seriesList.length > 0 && (
+                <Field className={styles.metadataField}>
+                  <FieldLabel htmlFor="series" className={styles.metadataLabel}>
+                    {t("Layout.Series")}
+                  </FieldLabel>
+                  <Select
+                    value={seriesId ?? "__none__"}
+                    onValueChange={(value) => setSeriesId(value === "__none__" ? null : value)}
+                    disabled={isManaged}
+                  >
+                    <SelectTrigger id="series">
+                      <span className="flex items-center gap-2">
+                        <Library className="size-4" />
+                        {seriesId === null
+                          ? t("ContentEditor.No series")
+                          : (seriesList.find((s) => s.id === seriesId)?.title ?? seriesId)}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">
+                        <span className="flex items-center gap-2">
+                          {t("ContentEditor.No series")}
+                        </span>
+                      </SelectItem>
+                      {seriesList.map((series) => (
+                        <SelectItem key={series.id} value={series.id}>
+                          <span className="flex items-center gap-2">
+                            <Library className="size-4" />
+                            {series.title}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Field>
               )}
             </div>

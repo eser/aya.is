@@ -393,6 +393,7 @@ export interface UpdateStoryInput {
   properties?: Record<string, unknown>;
   visibility?: ContentVisibility;
   feat_discussions?: boolean;
+  series_id?: string | null;
 }
 
 export interface UpdateStoryTranslationInput {
@@ -423,6 +424,7 @@ export interface StoryEditData {
   is_fallback: boolean;
   is_managed: boolean;
   tx_is_managed: boolean;
+  series_id: string | null;
   story_picture_uri: string | null;
   title: string | null;
   summary: string | null;

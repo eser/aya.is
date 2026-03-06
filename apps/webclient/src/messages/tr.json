@@ -941,6 +941,7 @@
     "Discussions": "Tartışmalar",
     "Enabled": "Etkin",
     "Disabled": "Devre Dışı",
+    "No series": "Seri yok",
     "Discussions enabled description": "Okuyucular bu hikayeye yorum yapabilir ve tartışabilir",
     "Discussions disabled description": "Bu hikaye için yorumlar devre dışı",
     "This story is synced from an external source. Some fields cannot be edited.": "Bu hikaye harici bir kaynaktan senkronize edilmiştir. Bazı alanlar düzenlenemez.",

@@ -91,6 +91,7 @@ type StoryForEdit struct {
 	StoryPictureURI   *string    `json:"story_picture_uri"`
 	UpdatedAt         *time.Time `json:"updated_at"`
 	ID                string     `json:"id"`
+	SeriesID          *string    `json:"series_id"`
 	Slug              string     `json:"slug"`
 	Kind              string     `json:"kind"`
 	LocaleCode        string     `json:"locale_code"`

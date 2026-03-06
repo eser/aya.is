@@ -944,6 +944,7 @@
     "Discussions disabled description": "このストーリーのコメントは無効です",
     "Discussions enabled description": "読者はこのストーリーにコメントやディスカッションができます",
     "Enabled": "有効",
+    "No series": "シリーズなし",
     "Failed to delete page": "ページの削除に失敗しました",
     "Page deleted successfully": "ページが正常に削除されました",
     "Page saved successfully": "ページが正常に保存されました",

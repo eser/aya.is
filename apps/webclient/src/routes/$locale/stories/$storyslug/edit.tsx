@@ -216,6 +216,7 @@ function EditStoryPage() {
     kind: (storyData.kind as ContentEditorData["kind"]) ?? "article",
     visibility: storyData.visibility ?? "public",
     featDiscussions: storyData.feat_discussions,
+    seriesId: storyData.series_id,
     ...activityFields,
   };
 
@@ -247,6 +248,7 @@ function EditStoryPage() {
         properties,
         visibility: data.visibility ?? "public",
         feat_discussions: data.featDiscussions,
+        series_id: data.seriesId ?? null,
       },
     );
 
