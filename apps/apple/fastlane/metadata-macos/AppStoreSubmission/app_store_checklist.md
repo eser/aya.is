@@ -7,7 +7,7 @@
 | App Name | AYA |
 | Subtitle | Open Source Network |
 | Bundle ID | is.aya.mac |
-| SKU | aya-ios |
+| SKU | aya-macos |
 | Primary Language | English (U.S.) |
 | Category (Primary) | Reference _or_ Developer Tools |
 | Category (Secondary) | News |
@@ -26,7 +26,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 0.2.1 |
+| Version | 0.2.3 |
 | Copyright | 2026 Açık Yazılım Ağı |
 | Build | Uploaded via Xcode / xcodebuild |
 

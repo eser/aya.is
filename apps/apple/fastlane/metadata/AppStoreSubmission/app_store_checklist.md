@@ -26,7 +26,7 @@
 
 | Field | Value |
 |-------|-------|
-| Version | 0.2.1 |
+| Version | 0.2.3 |
 | Copyright | 2026 Açık Yazılım Ağı |
 | Build | Uploaded via Xcode / xcodebuild |
 
