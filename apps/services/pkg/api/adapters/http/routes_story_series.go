@@ -10,6 +10,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
 	"github.com/eser/aya.is/services/pkg/api/business/story_series"
 	"github.com/eser/aya.is/services/pkg/api/business/users"
+	"github.com/eser/aya.is/services/pkg/lib/cursors"
 )
 
 func RegisterHTTPRoutesForStorySeries( //nolint:funlen,cyclop,gocognit,maintidx
@@ -36,7 +37,9 @@ func RegisterHTTPRoutesForStorySeries( //nolint:funlen,cyclop,gocognit,maintidx
 				)
 			}
 
-			return ctx.Results.JSON(seriesList)
+			wrappedResponse := cursors.WrapResponseWithCursor(seriesList, nil)
+
+			return ctx.Results.JSON(wrappedResponse)
 		})
 
 	// Get series by slug with its stories (public)
@@ -80,10 +83,12 @@ func RegisterHTTPRoutesForStorySeries( //nolint:funlen,cyclop,gocognit,maintidx
 				)
 			}
 
-			return ctx.Results.JSON(map[string]any{
+			wrappedResponse := cursors.WrapResponseWithCursor(map[string]any{
 				"series":  series,
 				"stories": seriesStories,
-			})
+			}, nil)
+
+			return ctx.Results.JSON(wrappedResponse)
 		})
 
 	// Create series (admin only)
@@ -147,7 +152,9 @@ func RegisterHTTPRoutesForStorySeries( //nolint:funlen,cyclop,gocognit,maintidx
 					)
 				}
 
-				return ctx.Results.JSON(series)
+				wrappedResponse := cursors.WrapResponseWithCursor(series, nil)
+
+				return ctx.Results.JSON(wrappedResponse)
 			},
 		)
 

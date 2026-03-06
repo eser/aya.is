@@ -266,3 +266,4 @@ For rich items with descriptions, use `SelectPrimitive.Item` directly — label 
 - **Business logic stays dependency-free** (hexagonal architecture)
 - **Sentinel errors in Go** - no `fmt.Errorf("message")` without wrapping
 - Use Chrome DevTools to debug and verify
+- **NEVER claim "not deployed" without evidence** — always verify the live site first (curl, browser). When the user reports something broken, investigate the actual cause instead of assuming deployment state
