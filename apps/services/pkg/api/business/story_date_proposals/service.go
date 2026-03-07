@@ -450,12 +450,13 @@ func (s *Service) applyFlipVote(
 		return voteDeltas{}, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}
 
-	upvote, downvote := splitVoteDirection(direction, 1)
-
+	// Flipping means: +1 to the new direction's count, -1 from the old direction's count.
+	// direction=+1 (agree): upvote +1, downvote -1
+	// direction=-1 (disagree): upvote -1, downvote +1
 	return voteDeltas{
 		score:           voteFlipMultiplier * direction,
-		upvote:          upvote,
-		downvote:        -downvote,
+		upvote:          direction,
+		downvote:        -direction,
 		viewerDirection: direction,
 	}, nil
 }
