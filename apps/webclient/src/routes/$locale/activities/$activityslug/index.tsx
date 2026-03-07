@@ -19,7 +19,7 @@ import {
   truncateDescription,
 } from "@/lib/seo";
 import { setServerResponseHeader } from "@/lib/server-headers";
-import { formatDateTimeLong } from "@/lib/date";
+import { formatDateTimeLong, formatDateTimeRange } from "@/lib/date";
 import { LocaleLink } from "@/components/locale-link";
 import { PageNotFound } from "@/components/page-not-found";
 import type { ActivityProperties, DateMode, RSVPMode } from "@/modules/backend/types";
@@ -186,8 +186,9 @@ function ActivityDetailPage() {
               : timeStart !== null && (
                 <span className="flex items-center gap-1.5">
                   <Clock className="size-4" />
-                  {formatDateTimeLong(timeStart, locale)}
-                  {timeEnd !== null && <>– {formatDateTimeLong(timeEnd, locale)}</>}
+                  {timeEnd !== null
+                    ? formatDateTimeRange(timeStart, timeEnd, locale)
+                    : formatDateTimeLong(timeStart, locale)}
                 </span>
               )}
 
@@ -213,21 +214,19 @@ function ActivityDetailPage() {
                 {t("Common.View")}
               </a>
             )}
-          </div>
 
-          {/* Edit link */}
-          {canEdit && (
-            <div className="flex justify-end mb-4 not-prose">
+            {/* Edit link */}
+            {canEdit && (
               <Link
                 to="/$locale/stories/$storyslug/edit"
                 params={{ locale: params.locale, storyslug: params.activityslug }}
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors no-underline"
+                className="ml-auto flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors no-underline"
               >
                 <PencilLine className="size-3.5" />
                 {t("ContentEditor.Edit Story")}
               </Link>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* RSVP section */}
           <RSVPButtons
