@@ -1,4 +1,5 @@
 // Create new activity page
+import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -21,6 +22,17 @@ function NewActivityPage() {
 
   // Get user's profile slug directly from auth context
   const userProfileSlug = auth.user?.individual_profile_slug ?? null;
+
+  // Fetch profile to get discussion default setting
+  const [discussionsByDefault, setDiscussionsByDefault] = React.useState(false);
+  React.useEffect(() => {
+    if (userProfileSlug === null) return;
+    backend.getProfile(params.locale, userProfileSlug).then((profile) => {
+      if (profile !== null && profile.option_story_discussions_by_default === true) {
+        setDiscussionsByDefault(true);
+      }
+    });
+  }, [params.locale, userProfileSlug]);
 
   if (auth.isLoading) {
     return (
@@ -110,6 +122,7 @@ function NewActivityPage() {
     dateMode: "fixed",
     dateProposalAccess: "anyone",
     dateVoteAccess: "anyone",
+    featDiscussions: discussionsByDefault,
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -138,6 +151,7 @@ function NewActivityPage() {
       content: data.content,
       story_picture_uri: data.storyPictureUri,
       properties,
+      feat_discussions: data.featDiscussions,
     });
 
     if (result !== null) {
@@ -157,6 +171,7 @@ function NewActivityPage() {
   return (
     <PageLayout fullHeight>
       <ContentEditor
+        key={`${params.locale}-${discussionsByDefault}`}
         locale={params.locale}
         profileSlug={userProfileSlug}
         contentType="story"
