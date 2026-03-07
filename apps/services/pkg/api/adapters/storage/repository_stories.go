@@ -1153,6 +1153,16 @@ func (r *Repository) GetStoryKindAndProperties(
 	return row.Kind, rawProps, authorProfileID, nil
 }
 
+func (r *Repository) ListStoryPublicationProfileIDs(
+	ctx context.Context,
+	storyID string,
+) ([]string, error) {
+	return r.queries.ListStoryPublicationProfileIDs(
+		ctx,
+		ListStoryPublicationProfileIDsParams{StoryID: storyID},
+	)
+}
+
 func (r *Repository) UpdateStoryProperties(
 	ctx context.Context,
 	storyID string,

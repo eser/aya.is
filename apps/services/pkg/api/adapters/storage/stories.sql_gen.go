@@ -2167,6 +2167,42 @@ func (q *Queries) ListStoriesOfPublicationForViewer(ctx context.Context, arg Lis
 	return items, nil
 }
 
+const listStoryPublicationProfileIDs = `-- name: ListStoryPublicationProfileIDs :many
+SELECT profile_id FROM "story_publication"
+WHERE story_id = $1 AND deleted_at IS NULL
+`
+
+type ListStoryPublicationProfileIDsParams struct {
+	StoryID string `db:"story_id" json:"story_id"`
+}
+
+// ListStoryPublicationProfileIDs
+//
+//	SELECT profile_id FROM "story_publication"
+//	WHERE story_id = $1 AND deleted_at IS NULL
+func (q *Queries) ListStoryPublicationProfileIDs(ctx context.Context, arg ListStoryPublicationProfileIDsParams) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, listStoryPublicationProfileIDs, arg.StoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var profile_id string
+		if err := rows.Scan(&profile_id); err != nil {
+			return nil, err
+		}
+		items = append(items, profile_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listStoryPublications = `-- name: ListStoryPublications :many
 SELECT
   sp.id,

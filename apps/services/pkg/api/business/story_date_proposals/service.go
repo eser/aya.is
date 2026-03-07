@@ -74,10 +74,12 @@ func accessLevelToMembershipKind(access string) profiles.MembershipKind {
 	}
 }
 
-// checkAccessLevel verifies that the user meets the minimum membership level.
+// checkAccessLevel verifies that the user meets the minimum membership level
+// against at least one of the access profile IDs (publication profiles, or
+// author profile as fallback).
 func (s *Service) checkAccessLevel(
 	ctx context.Context,
-	authorProfileID *string,
+	accessProfileIDs []string,
 	userProfileID string,
 	requiredAccess string,
 ) error {
@@ -87,32 +89,29 @@ func (s *Service) checkAccessLevel(
 		return nil
 	}
 
-	if authorProfileID == nil {
-		return ErrUnauthorized
-	}
-
-	membershipKind, err := s.accessChecker.GetMembershipKindBetween(
-		ctx,
-		*authorProfileID,
-		userProfileID,
-	)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
-	}
-
-	if membershipKind == "" {
+	if len(accessProfileIDs) == 0 {
 		return ErrUnauthorized
 	}
 
 	levels := profiles.GetMembershipKindLevel()
-	userLevel := levels[profiles.MembershipKind(membershipKind)]
 	requiredLevel := levels[requiredKind]
 
-	if userLevel < requiredLevel {
-		return ErrUnauthorized
+	for _, profileID := range accessProfileIDs {
+		membershipKind, err := s.accessChecker.GetMembershipKindBetween(
+			ctx,
+			profileID,
+			userProfileID,
+		)
+		if err != nil || membershipKind == "" {
+			continue
+		}
+
+		if levels[profiles.MembershipKind(membershipKind)] >= requiredLevel {
+			return nil
+		}
 	}
 
-	return nil
+	return ErrUnauthorized
 }
 
 // CreateProposal creates a new date proposal for an activity.
@@ -130,7 +129,7 @@ func (s *Service) CreateProposal(
 
 	accessErr := s.checkAccessLevel(
 		ctx,
-		config.AuthorProfileID,
+		config.AccessProfileIDs,
 		profileID,
 		config.ProposalAccess,
 	)
@@ -274,7 +273,7 @@ func (s *Service) Vote( //nolint:funlen
 		return nil, validateErr
 	}
 
-	accessErr := s.checkAccessLevel(ctx, config.AuthorProfileID, profileID, config.VoteAccess)
+	accessErr := s.checkAccessLevel(ctx, config.AccessProfileIDs, profileID, config.VoteAccess)
 	if accessErr != nil {
 		return nil, accessErr
 	}

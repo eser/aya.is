@@ -73,10 +73,12 @@ const (
 
 // ActivityDateConfig holds the date proposal configuration for an activity.
 type ActivityDateConfig struct {
-	DateMode        string
-	ProposalAccess  string
-	VoteAccess      string
-	AuthorProfileID *string
+	DateMode       string
+	ProposalAccess string
+	VoteAccess     string
+	// AccessProfileIDs holds the profile IDs against which membership is checked.
+	// When published, these are the publication profile IDs; otherwise the author profile ID.
+	AccessProfileIDs []string
 }
 
 type Story struct {

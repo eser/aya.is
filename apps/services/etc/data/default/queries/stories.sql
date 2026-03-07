@@ -628,6 +628,10 @@ SET deleted_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
+-- name: ListStoryPublicationProfileIDs :many
+SELECT profile_id FROM "story_publication"
+WHERE story_id = sqlc.arg(story_id) AND deleted_at IS NULL;
+
 -- name: CountStoryPublications :one
 SELECT COUNT(*) as count
 FROM story_publication

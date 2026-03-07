@@ -3843,6 +3843,11 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  ORDER BY created_at
 	ListStoryInteractionsForProfile(ctx context.Context, arg ListStoryInteractionsForProfileParams) ([]*StoryInteraction, error)
+	//ListStoryPublicationProfileIDs
+	//
+	//  SELECT profile_id FROM "story_publication"
+	//  WHERE story_id = $1 AND deleted_at IS NULL
+	ListStoryPublicationProfileIDs(ctx context.Context, arg ListStoryPublicationProfileIDsParams) ([]string, error)
 	// Lists all publications for a story with profile info (for publish popup)
 	//
 	//  SELECT

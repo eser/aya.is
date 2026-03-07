@@ -335,6 +335,7 @@ type Repository interface { //nolint:interfacebloat
 		ctx context.Context,
 		storyID string,
 	) (string, []byte, *string, error)
+	ListStoryPublicationProfileIDs(ctx context.Context, storyID string) ([]string, error)
 	UpdateStoryProperties(
 		ctx context.Context,
 		storyID string,
@@ -1805,16 +1806,37 @@ func (s *Service) GetActivityDateConfig(
 		return nil, ErrNotActivity
 	}
 
+	accessProfileIDs := s.resolveAccessProfileIDs(ctx, storyID, authorProfileID)
+
 	config := &ActivityDateConfig{
-		DateMode:        DateModeFixed,
-		ProposalAccess:  DateAccessAnyone,
-		VoteAccess:      DateAccessAnyone,
-		AuthorProfileID: authorProfileID,
+		DateMode:         DateModeFixed,
+		ProposalAccess:   DateAccessAnyone,
+		VoteAccess:       DateAccessAnyone,
+		AccessProfileIDs: accessProfileIDs,
 	}
 
 	applyDateConfigFromProps(config, rawProps)
 
 	return config, nil
+}
+
+// resolveAccessProfileIDs returns publication profile IDs if the story has
+// publications, otherwise falls back to the author profile ID.
+func (s *Service) resolveAccessProfileIDs(
+	ctx context.Context,
+	storyID string,
+	authorProfileID *string,
+) []string {
+	pubProfileIDs, err := s.repo.ListStoryPublicationProfileIDs(ctx, storyID)
+	if err == nil && len(pubProfileIDs) > 0 {
+		return pubProfileIDs
+	}
+
+	if authorProfileID != nil {
+		return []string{*authorProfileID}
+	}
+
+	return nil
 }
 
 // applyDateConfigFromProps overwrites config fields from the raw properties JSON.
