@@ -1,0 +1,26 @@
+@reference "@/theme.css";
+
+.container {
+  @apply flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6;
+}
+
+.item {
+  @apply flex items-center gap-1.5;
+}
+
+.kindBadge {
+  @apply inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary;
+}
+
+.dateUndecided {
+  @apply inline-block px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium dark:bg-amber-900
+    dark:text-amber-200;
+}
+
+.editGroup {
+  @apply flex-1 flex justify-end gap-4;
+}
+
+.editLink {
+  @apply flex items-center gap-1.5 text-sm text-muted-foreground transition-colors;
+}

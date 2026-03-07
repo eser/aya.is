@@ -156,6 +156,7 @@ function ProfileStoryPage() {
         story={story}
         compiledContent={compiledContent}
         currentUrl={currentUrl}
+        locale={locale}
         showAuthor={!isAuthorProfile}
         showPublications={false}
         headingOffset={2}

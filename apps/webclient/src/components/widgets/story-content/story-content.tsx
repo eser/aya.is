@@ -1,19 +1,22 @@
+import type * as React from "react";
 import type { StoryEx } from "@/modules/backend/types";
 import { TextContent } from "@/components/widgets/text-content";
 import { LocaleBadge } from "@/components/locale-badge";
-import { StoryMetadata } from "./story-metadata";
+import { StoryInformation } from "./story-information";
 import { StoryFooter } from "./story-footer";
 
 export type StoryContentProps = {
   story: StoryEx;
   compiledContent: string | null;
   currentUrl: string;
+  locale: string;
   showAuthor?: boolean;
   showPublications?: boolean;
   showShare?: boolean;
   headingOffset?: number;
   editUrl?: string;
   coverUrl?: string;
+  beforeContent?: React.ReactNode;
 };
 
 const headingTags = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
@@ -23,12 +26,14 @@ export function StoryContent(props: StoryContentProps) {
     story,
     compiledContent,
     currentUrl,
+    locale,
     showAuthor = true,
     showPublications,
     showShare = true,
     headingOffset = 1,
     editUrl,
     coverUrl,
+    beforeContent,
   } = props;
 
   const TitleTag = headingTags[headingOffset - 1] ?? "h1";
@@ -43,7 +48,9 @@ export function StoryContent(props: StoryContentProps) {
         />
       </TitleTag>
 
-      <StoryMetadata story={story} editUrl={editUrl} coverUrl={coverUrl} />
+      <StoryInformation story={story} locale={locale} editUrl={editUrl} coverUrl={coverUrl} />
+
+      {beforeContent}
 
       <TextContent
         compiledContent={compiledContent}
