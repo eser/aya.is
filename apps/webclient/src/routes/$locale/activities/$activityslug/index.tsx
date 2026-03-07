@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Clock, ExternalLink, PencilLine, User } from "lucide-react";
 import { PageLayout } from "@/components/page-layouts/default";
 import { backend } from "@/modules/backend/backend";
-import { activityQueryOptions } from "@/modules/backend/queries";
+import { activityQueryOptions, dateProposalsQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import { compileMdx } from "@/lib/mdx";
 import { MdxContent } from "@/components/userland/mdx-content";
@@ -22,8 +22,9 @@ import { setServerResponseHeader } from "@/lib/server-headers";
 import { formatDateTimeLong } from "@/lib/date";
 import { LocaleLink } from "@/components/locale-link";
 import { PageNotFound } from "@/components/page-not-found";
-import type { ActivityProperties, RSVPMode } from "@/modules/backend/types";
+import type { ActivityProperties, DateMode, RSVPMode } from "@/modules/backend/types";
 import { RSVPButtons } from "../_components/-rsvp-buttons";
+import { DatePoll } from "../_components/-date-poll";
 
 export const Route = createFileRoute("/$locale/activities/$activityslug/")({
   loader: async ({ params, context }) => {
@@ -38,6 +39,8 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
         locale,
         myInteractions: null,
         interactionCounts: null,
+        dateProposals: null,
+        dateMode: "fixed" as DateMode,
         notFound: true as const,
       };
     }
@@ -55,10 +58,17 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
 
     const currentUrl = `${siteConfig.host}/${locale}/activities/${activityslug}`;
 
-    // Fetch interaction data
-    const [myInteractions, interactionCounts] = await Promise.all([
+    // Check date mode from properties
+    const activityProperties = (activity.properties ?? {}) as unknown as ActivityProperties;
+    const dateMode: DateMode = activityProperties.date_mode ?? "fixed";
+
+    // Fetch interaction data and date proposals (if undecided)
+    const [myInteractions, interactionCounts, dateProposals] = await Promise.all([
       backend.getMyInteractions(locale, activityslug).catch(() => null),
       backend.getInteractionCounts(locale, activityslug).catch(() => null),
+      dateMode === "undecided"
+        ? context.queryClient.ensureQueryData(dateProposalsQueryOptions(locale, activityslug)).catch(() => null)
+        : Promise.resolve(null),
     ]);
 
     // Set Content-Language header with content locale awareness
@@ -71,6 +81,8 @@ export const Route = createFileRoute("/$locale/activities/$activityslug/")({
       locale,
       myInteractions,
       interactionCounts,
+      dateProposals,
+      dateMode,
       notFound: false as const,
     };
   },
@@ -112,7 +124,7 @@ function ActivityDetailPage() {
     return <PageNotFound />;
   }
 
-  const { activity, compiledContent, myInteractions, interactionCounts } = loaderData;
+  const { activity, compiledContent, myInteractions, interactionCounts, dateProposals, dateMode } = loaderData;
 
   // Get author profile slug for permissions check
   const authorProfileSlug = activity.author_profile?.slug ?? null;
@@ -162,13 +174,22 @@ function ActivityDetailPage() {
 
           {/* Activity metadata */}
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6 not-prose">
-            {timeStart !== null && (
-              <span className="flex items-center gap-1.5">
-                <Clock className="size-4" />
-                {formatDateTimeLong(timeStart, locale)}
-                {timeEnd !== null && <>– {formatDateTimeLong(timeEnd, locale)}</>}
-              </span>
-            )}
+            {dateMode === "undecided"
+              ? (
+                <span className="flex items-center gap-1.5">
+                  <Clock className="size-4" />
+                  <span className="inline-block px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium dark:bg-amber-900 dark:text-amber-200">
+                    {t("Activities.Date Undecided")}
+                  </span>
+                </span>
+              )
+              : timeStart !== null && (
+                <span className="flex items-center gap-1.5">
+                  <Clock className="size-4" />
+                  {formatDateTimeLong(timeStart, locale)}
+                  {timeEnd !== null && <>– {formatDateTimeLong(timeEnd, locale)}</>}
+                </span>
+              )}
 
             {activity.author_profile !== null && activity.author_profile !== undefined && (
               <LocaleLink
@@ -218,6 +239,17 @@ function ActivityDetailPage() {
             initialMyInteractions={myInteractions}
             initialCounts={interactionCounts}
           />
+
+          {/* Date Proposals (when date is undecided) */}
+          {dateMode === "undecided" && (
+            <DatePoll
+              locale={params.locale}
+              storySlug={params.activityslug}
+              isAuthenticated={auth.isAuthenticated}
+              canEdit={canEdit}
+              initialProposals={dateProposals}
+            />
+          )}
 
           {/* Activity content */}
           {compiledContent !== null

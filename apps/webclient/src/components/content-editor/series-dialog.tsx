@@ -3,13 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Check, Library, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { StorySeries } from "@/modules/backend/types";
 import { backend } from "@/modules/backend/backend";
 import { slugify } from "@/lib/slugify";
@@ -77,7 +71,9 @@ export function SeriesDialog(props: SeriesDialogProps) {
             <div className="space-y-2">
               {/* Unassigned option — always first */}
               <div
-                className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${props.seriesId === null ? "border-primary bg-primary/5" : "hover:border-primary"}`}
+                className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${
+                  props.seriesId === null ? "border-primary bg-primary/5" : "hover:border-primary"
+                }`}
                 role="button"
                 tabIndex={0}
                 onClick={() => props.onSeriesChange(null)}
@@ -92,7 +88,9 @@ export function SeriesDialog(props: SeriesDialogProps) {
               {seriesList.map((series) => (
                 <div
                   key={series.id}
-                  className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${series.id === props.seriesId ? "border-primary bg-primary/5" : "hover:border-primary"}`}
+                  className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${
+                    series.id === props.seriesId ? "border-primary bg-primary/5" : "hover:border-primary"
+                  }`}
                   role="button"
                   tabIndex={0}
                   onClick={() => handleSelect(series.id)}
@@ -124,9 +122,7 @@ export function SeriesDialog(props: SeriesDialogProps) {
             onClick={handleCreate}
             disabled={isCreating || newSeriesTitle.trim().length === 0}
           >
-            {isCreating
-              ? <Loader2 className="size-4 animate-spin" />
-              : <Plus className="size-4 mr-1" />}
+            {isCreating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />}
             {t("ContentEditor.Create")}
           </Button>
         </div>

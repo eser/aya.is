@@ -107,6 +107,9 @@ function NewActivityPage() {
     externalActivityUri: "",
     externalAttendanceUri: "",
     rsvpMode: "enabled",
+    dateMode: "fixed",
+    dateProposalAccess: "anyone",
+    dateVoteAccess: "anyone",
   };
 
   const handleSave = async (data: ContentEditorData) => {
@@ -118,6 +121,13 @@ function NewActivityPage() {
       external_activity_uri: data.externalActivityUri ?? "",
       external_attendance_uri: data.externalAttendanceUri ?? "",
       rsvp_mode: data.rsvpMode ?? "enabled",
+      date_mode: data.dateMode ?? "fixed",
+      ...(data.dateMode === "undecided"
+        ? {
+          date_proposal_access: data.dateProposalAccess ?? "anyone",
+          date_vote_access: data.dateVoteAccess ?? "anyone",
+        }
+        : {}),
     };
 
     const result = await backend.insertStory(params.locale, userProfileSlug, {

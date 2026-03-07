@@ -93,6 +93,14 @@ const (
 	StoryInteractionRemoved EventType = "story_interaction_removed"
 )
 
+// Story date proposal events.
+const (
+	DateProposalCreated   EventType = "date_proposal_created"
+	DateProposalRemoved   EventType = "date_proposal_removed"
+	DateProposalVoted     EventType = "date_proposal_voted"
+	DateProposalFinalized EventType = "date_proposal_finalized"
+)
+
 // Story series events.
 const (
 	StorySeriesCreated EventType = "story_series_created"

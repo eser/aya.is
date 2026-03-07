@@ -34,6 +34,9 @@ type ActivityProperties struct {
 	ExternalActivityURI   string `json:"external_activity_uri,omitempty"`
 	ExternalAttendanceURI string `json:"external_attendance_uri,omitempty"`
 	RSVPMode              string `json:"rsvp_mode"`
+	DateMode              string `json:"date_mode,omitempty"`
+	DateProposalAccess    string `json:"date_proposal_access,omitempty"`
+	DateVoteAccess        string `json:"date_vote_access,omitempty"`
 }
 
 // Valid activity kinds.
@@ -51,6 +54,30 @@ const (
 	RSVPModeManagedExternally = "managed_externally"
 	RSVPModeEnabled           = "enabled"
 )
+
+// Valid date modes.
+const (
+	DateModeFixed     = "fixed"
+	DateModeUndecided = "undecided"
+)
+
+// Valid date access levels for proposals and voting.
+// "anyone" means any authenticated user; others map to MembershipKind names.
+const (
+	DateAccessAnyone      = "anyone"
+	DateAccessFollower    = "follower"
+	DateAccessMember      = "member"
+	DateAccessContributor = "contributor"
+	DateAccessMaintainer  = "maintainer"
+)
+
+// ActivityDateConfig holds the date proposal configuration for an activity.
+type ActivityDateConfig struct {
+	DateMode        string
+	ProposalAccess  string
+	VoteAccess      string
+	AuthorProfileID *string
+}
 
 type Story struct {
 	CreatedAt       time.Time  `json:"created_at"`

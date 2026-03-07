@@ -204,6 +204,9 @@ function EditStoryPage() {
       externalActivityUri: (props.external_activity_uri as string) ?? "",
       externalAttendanceUri: (props.external_attendance_uri as string) ?? "",
       rsvpMode: (props.rsvp_mode as string) ?? "enabled",
+      dateMode: (props.date_mode as string) ?? "fixed",
+      dateProposalAccess: (props.date_proposal_access as string) ?? "anyone",
+      dateVoteAccess: (props.date_vote_access as string) ?? "anyone",
     }
     : {};
 
@@ -234,6 +237,13 @@ function EditStoryPage() {
         external_activity_uri: data.externalActivityUri ?? "",
         external_attendance_uri: data.externalAttendanceUri ?? "",
         rsvp_mode: data.rsvpMode ?? "enabled",
+        date_mode: data.dateMode ?? "fixed",
+        ...(data.dateMode === "undecided"
+          ? {
+            date_proposal_access: data.dateProposalAccess ?? "anyone",
+            date_vote_access: data.dateVoteAccess ?? "anyone",
+          }
+          : {}),
       }
       : undefined;
 

@@ -538,6 +538,30 @@ type Story struct {
 	SortOrder       sql.NullInt32         `db:"sort_order" json:"sort_order"`
 }
 
+type StoryDateProposal struct {
+	ID                string       `db:"id" json:"id"`
+	StoryID           string       `db:"story_id" json:"story_id"`
+	ProposerProfileID string       `db:"proposer_profile_id" json:"proposer_profile_id"`
+	DatetimeStart     time.Time    `db:"datetime_start" json:"datetime_start"`
+	DatetimeEnd       sql.NullTime `db:"datetime_end" json:"datetime_end"`
+	IsFinalized       bool         `db:"is_finalized" json:"is_finalized"`
+	VoteScore         int32        `db:"vote_score" json:"vote_score"`
+	UpvoteCount       int32        `db:"upvote_count" json:"upvote_count"`
+	DownvoteCount     int32        `db:"downvote_count" json:"downvote_count"`
+	CreatedAt         time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt         sql.NullTime `db:"updated_at" json:"updated_at"`
+	DeletedAt         sql.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
+type StoryDateProposalVote struct {
+	ID             string       `db:"id" json:"id"`
+	ProposalID     string       `db:"proposal_id" json:"proposal_id"`
+	VoterProfileID string       `db:"voter_profile_id" json:"voter_profile_id"`
+	Direction      int16        `db:"direction" json:"direction"`
+	CreatedAt      time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt      sql.NullTime `db:"updated_at" json:"updated_at"`
+}
+
 type StoryInteraction struct {
 	ID        string       `db:"id" json:"id"`
 	StoryID   string       `db:"story_id" json:"story_id"`

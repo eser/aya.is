@@ -150,7 +150,9 @@ function ActivityMeta(props: {
   authorProfile: { title: string | null; slug: string } | null;
   locale: string;
 }) {
+  const { t } = useTranslation();
   const activityProps = (props.properties ?? {}) as unknown as ActivityProperties;
+  const dateMode = activityProps.date_mode ?? "fixed";
   const timeStart = activityProps.activity_time_start !== undefined
     ? new Date(activityProps.activity_time_start)
     : null;
@@ -158,14 +160,23 @@ function ActivityMeta(props: {
 
   return (
     <>
-      {timeStart !== null && (
-        <span className="flex items-center gap-1.5">
-          <Calendar className="size-3.5" />
-          {timeEnd !== null
-            ? formatDateTimeRange(timeStart, timeEnd, props.locale)
-            : formatDateTimeShort(timeStart, props.locale)}
-        </span>
-      )}
+      {dateMode === "undecided"
+        ? (
+          <span className="flex items-center gap-1.5">
+            <Calendar className="size-3.5" />
+            <span className="inline-block px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[0.65rem] font-medium dark:bg-amber-900 dark:text-amber-200">
+              {t("Activities.Date Undecided")}
+            </span>
+          </span>
+        )
+        : timeStart !== null && (
+          <span className="flex items-center gap-1.5">
+            <Calendar className="size-3.5" />
+            {timeEnd !== null
+              ? formatDateTimeRange(timeStart, timeEnd, props.locale)
+              : formatDateTimeShort(timeStart, props.locale)}
+          </span>
+        )}
       {props.authorProfile !== null && (
         <span className={styles.author}>
           {props.authorProfile.title}

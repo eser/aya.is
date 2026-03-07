@@ -5,13 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SUPPORTED_LOCALES, supportedLocales } from "@/config";
 import type { StorySeries } from "@/modules/backend/types";
 import { backend } from "@/modules/backend/backend";
-import { slugify, sanitizeSlug } from "@/lib/slugify";
+import { sanitizeSlug, slugify } from "@/lib/slugify";
 
 type SeriesManagementDialogProps = {
   open: boolean;
@@ -285,9 +279,7 @@ export function SeriesManagementDialog(props: SeriesManagementDialogProps) {
                     onClick={handleCreate}
                     disabled={isCreating || newSeriesTitle.trim().length === 0}
                   >
-                    {isCreating
-                      ? <Loader2 className="size-4 animate-spin" />
-                      : <Plus className="size-4 mr-1" />}
+                    {isCreating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />}
                     {t("ContentEditor.Create")}
                   </Button>
                 </div>

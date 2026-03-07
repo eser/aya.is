@@ -26,6 +26,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/runtime_states"
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
+	"github.com/eser/aya.is/services/pkg/api/business/story_date_proposals"
 	"github.com/eser/aya.is/services/pkg/api/business/story_interactions"
 	"github.com/eser/aya.is/services/pkg/api/business/story_series"
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
@@ -55,6 +56,7 @@ func Run( //nolint:funlen
 	mailboxService *mailbox.Service,
 	storyService *stories.Service,
 	storyInteractionService *story_interactions.Service,
+	storyDateProposalService *story_date_proposals.Service,
 	storySeriesService *story_series.Service,
 	sessionService *sessions.Service,
 	protectionService *protection.Service,
@@ -269,6 +271,14 @@ func Run( //nolint:funlen
 		userService,
 		storyService,
 		storyInteractionService,
+	)
+	RegisterHTTPRoutesForStoryDateProposals( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		storyService,
+		storyDateProposalService,
 	)
 	RegisterHTTPRoutesForAdminProfiles( //nolint:contextcheck
 		routes,

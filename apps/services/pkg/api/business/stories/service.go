@@ -2,6 +2,7 @@ package stories
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -37,6 +38,7 @@ var (
 	ErrManagedStory = errors.New(
 		"this story is managed by an external sync and cannot be edited directly",
 	)
+	ErrNotActivity = errors.New("story is not an activity")
 )
 
 // Config holds the stories service configuration.
@@ -327,6 +329,16 @@ type Repository interface { //nolint:interfacebloat
 		storyID string,
 		localeCode string,
 		summaryAI string,
+	) error
+	// Activity date config
+	GetStoryKindAndProperties(
+		ctx context.Context,
+		storyID string,
+	) (string, []byte, *string, error)
+	UpdateStoryProperties(
+		ctx context.Context,
+		storyID string,
+		properties []byte,
 	) error
 }
 
@@ -1773,6 +1785,102 @@ func (s *Service) PersistSummaryAI(
 			localeCode,
 			err,
 		)
+	}
+
+	return nil
+}
+
+// GetActivityDateConfig returns the date proposal configuration for an activity.
+// Returns ErrStoryNotFound if the story doesn't exist, ErrNotActivity if not an activity.
+func (s *Service) GetActivityDateConfig(
+	ctx context.Context,
+	storyID string,
+) (*ActivityDateConfig, error) {
+	kind, rawProps, authorProfileID, err := s.repo.GetStoryKindAndProperties(ctx, storyID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrStoryNotFound, err)
+	}
+
+	if kind != KindActivity {
+		return nil, ErrNotActivity
+	}
+
+	config := &ActivityDateConfig{
+		DateMode:        DateModeFixed,
+		ProposalAccess:  DateAccessAnyone,
+		VoteAccess:      DateAccessAnyone,
+		AuthorProfileID: authorProfileID,
+	}
+
+	applyDateConfigFromProps(config, rawProps)
+
+	return config, nil
+}
+
+// applyDateConfigFromProps overwrites config fields from the raw properties JSON.
+func applyDateConfigFromProps(config *ActivityDateConfig, rawProps []byte) {
+	if len(rawProps) == 0 {
+		return
+	}
+
+	var props ActivityProperties
+
+	if json.Unmarshal(rawProps, &props) != nil {
+		return
+	}
+
+	if props.DateMode != "" {
+		config.DateMode = props.DateMode
+	}
+
+	if props.DateProposalAccess != "" {
+		config.ProposalAccess = props.DateProposalAccess
+	}
+
+	if props.DateVoteAccess != "" {
+		config.VoteAccess = props.DateVoteAccess
+	}
+}
+
+// FinalizeActivityDate sets the activity's date to the given values and switches
+// date_mode from "undecided" to "fixed".
+func (s *Service) FinalizeActivityDate(
+	ctx context.Context,
+	storyID string,
+	datetimeStart time.Time,
+	datetimeEnd *time.Time,
+) error {
+	_, rawProps, _, err := s.repo.GetStoryKindAndProperties(ctx, storyID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	var props map[string]any
+
+	if len(rawProps) > 0 {
+		unmarshalErr := json.Unmarshal(rawProps, &props)
+		if unmarshalErr != nil {
+			props = make(map[string]any)
+		}
+	} else {
+		props = make(map[string]any)
+	}
+
+	props["date_mode"] = DateModeFixed
+	props["activity_time_start"] = datetimeStart.Format(time.RFC3339)
+
+	if datetimeEnd != nil {
+		props["activity_time_end"] = datetimeEnd.Format(time.RFC3339)
+	}
+
+	updatedProps, err := json.Marshal(props)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+	}
+
+	err = s.repo.UpdateStoryProperties(ctx, storyID, updatedProps)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}
 
 	return nil

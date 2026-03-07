@@ -62,9 +62,7 @@ function SeriesListPage() {
             )
             : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {seriesList.map((series) => (
-                  <SeriesCard key={series.id} series={series} />
-                ))}
+                {seriesList.map((series) => <SeriesCard key={series.id} series={series} />)}
               </div>
             )}
         </div>

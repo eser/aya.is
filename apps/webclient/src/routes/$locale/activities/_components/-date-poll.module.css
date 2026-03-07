@@ -1,0 +1,122 @@
+@reference "@/theme.css";
+
+.container {
+  @apply mt-6 mb-4 p-4 rounded-lg border border-border bg-card;
+}
+
+.header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.title {
+  @apply text-base font-semibold;
+}
+
+.proposalList {
+  @apply flex flex-col gap-3;
+}
+
+.proposalCard {
+  @apply flex items-center justify-between gap-4 p-3 rounded-md border border-border bg-background;
+}
+
+.proposalInfo {
+  @apply flex flex-col gap-1 min-w-0;
+}
+
+.proposalDate {
+  @apply text-sm font-medium;
+}
+
+.proposerInfo {
+  @apply flex items-center gap-1.5 text-xs text-muted-foreground;
+}
+
+.proposerAvatar {
+  @apply size-4 rounded-full object-cover;
+}
+
+.voteSection {
+  @apply flex items-center gap-2 shrink-0;
+}
+
+.voteButton {
+  @apply flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium border transition-colors duration-200;
+}
+
+.voteActive {
+  @apply bg-primary text-primary-foreground border-primary;
+}
+
+.voteInactive {
+  @apply bg-background text-foreground border-border;
+
+  &:hover {
+    @apply bg-muted;
+  }
+}
+
+.voteScore {
+  @apply text-xs font-medium text-muted-foreground min-w-6 text-center;
+}
+
+.finalizeButton {
+  @apply ml-2 px-2.5 py-1 rounded text-xs font-medium border border-primary text-primary transition-colors duration-200;
+
+  &:hover {
+    @apply bg-primary text-primary-foreground;
+  }
+}
+
+.finalizedBadge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium
+    dark:bg-green-900 dark:text-green-200;
+}
+
+.proposalForm {
+  @apply mt-4 pt-4 border-t border-border;
+}
+
+.formTitle {
+  @apply text-sm font-medium mb-2;
+}
+
+.formFields {
+  @apply flex flex-wrap items-end gap-2;
+}
+
+.formField {
+  @apply flex flex-col gap-1;
+}
+
+.formLabel {
+  @apply text-xs text-muted-foreground;
+}
+
+.formInput {
+  @apply px-2.5 py-1.5 rounded border border-border bg-background text-sm;
+}
+
+.submitButton {
+  @apply px-3 py-1.5 rounded text-sm font-medium bg-primary text-primary-foreground transition-colors duration-200;
+
+  &:hover {
+    @apply bg-primary/90;
+  }
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
+
+.emptyState {
+  @apply text-sm text-muted-foreground italic;
+}
+
+.removeButton {
+  @apply ml-1 p-0.5 rounded text-muted-foreground transition-colors duration-200;
+
+  &:hover {
+    @apply text-destructive;
+  }
+}

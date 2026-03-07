@@ -74,9 +74,7 @@ function SeriesDetailPage() {
           )}
 
           <h1>{series.title}</h1>
-          {series.description.length > 0 && (
-            <p className="text-muted-foreground mb-6">{series.description}</p>
-          )}
+          {series.description.length > 0 && <p className="text-muted-foreground mb-6">{series.description}</p>}
 
           <h2>{t("Series.Stories in this series")}</h2>
 

@@ -94,6 +94,9 @@ export type ContentEditorData = {
   externalActivityUri?: string;
   externalAttendanceUri?: string;
   rsvpMode?: string;
+  dateMode?: string;
+  dateProposalAccess?: string;
+  dateVoteAccess?: string;
 };
 
 type ContentEditorProps = {
@@ -176,6 +179,9 @@ export function ContentEditor(props: ContentEditorProps) {
   const [externalActivityUri, setExternalActivityUri] = React.useState(initialData.externalActivityUri ?? "");
   const [externalAttendanceUri, setExternalAttendanceUri] = React.useState(initialData.externalAttendanceUri ?? "");
   const [rsvpMode, setRsvpMode] = React.useState(initialData.rsvpMode ?? "enabled");
+  const [dateMode, setDateMode] = React.useState(initialData.dateMode ?? "fixed");
+  const [dateProposalAccess, setDateProposalAccess] = React.useState(initialData.dateProposalAccess ?? "anyone");
+  const [dateVoteAccess, setDateVoteAccess] = React.useState(initialData.dateVoteAccess ?? "anyone");
 
   // Series state
   const [seriesId, setSeriesId] = React.useState<string | null>(initialData.seriesId ?? null);
@@ -396,7 +402,10 @@ export function ContentEditor(props: ContentEditorProps) {
         activityTimeEnd !== (savedData.activityTimeEnd ?? "") ||
         externalActivityUri !== (savedData.externalActivityUri ?? "") ||
         externalAttendanceUri !== (savedData.externalAttendanceUri ?? "") ||
-        rsvpMode !== (savedData.rsvpMode ?? "enabled");
+        rsvpMode !== (savedData.rsvpMode ?? "enabled") ||
+        dateMode !== (savedData.dateMode ?? "fixed") ||
+        dateProposalAccess !== (savedData.dateProposalAccess ?? "anyone") ||
+        dateVoteAccess !== (savedData.dateVoteAccess ?? "anyone");
     }
     return baseChanged;
   }, [
@@ -415,6 +424,9 @@ export function ContentEditor(props: ContentEditorProps) {
     externalActivityUri,
     externalAttendanceUri,
     rsvpMode,
+    dateMode,
+    dateProposalAccess,
+    dateVoteAccess,
     savedData,
   ]);
 
@@ -454,6 +466,9 @@ export function ContentEditor(props: ContentEditorProps) {
         externalActivityUri,
         externalAttendanceUri,
         rsvpMode,
+        dateMode,
+        dateProposalAccess,
+        dateVoteAccess,
       }
       : {}),
   });
@@ -515,6 +530,9 @@ export function ContentEditor(props: ContentEditorProps) {
     externalActivityUri,
     externalAttendanceUri,
     rsvpMode,
+    dateMode,
+    dateProposalAccess,
+    dateVoteAccess,
     slugError,
     slugAvailability,
     titleError,
@@ -677,9 +695,7 @@ export function ContentEditor(props: ContentEditorProps) {
             ? () => setIsLocalizationsDialogOpen(true)
             : undefined}
           onLocaleChange={isNew ? onLocaleChange : undefined}
-          onOpenSeriesDialog={contentType === "story" && !isNew
-            ? () => setIsSeriesDialogOpen(true)
-            : undefined}
+          onOpenSeriesDialog={contentType === "story" && !isNew ? () => setIsSeriesDialogOpen(true) : undefined}
         />
       </div>
 
@@ -817,30 +833,109 @@ export function ContentEditor(props: ContentEditorProps) {
                   </Field>
 
                   <Field className={styles.metadataField}>
-                    <FieldLabel htmlFor="activity-time-start" className={styles.metadataLabel}>
-                      {t("Activities.Start Time")}
+                    <FieldLabel htmlFor="date-mode" className={styles.metadataLabel}>
+                      {t("Activities.Date Mode")}
                     </FieldLabel>
-                    <Input
-                      id="activity-time-start"
-                      type="datetime-local"
-                      value={activityTimeStart}
-                      onChange={(e) => setActivityTimeStart(e.target.value)}
-                      disabled={isManaged}
-                    />
+                    <Select value={dateMode} onValueChange={setDateMode} disabled={isManaged}>
+                      <SelectTrigger id="date-mode">
+                        <span>
+                          {t(dateMode === "fixed" ? "Activities.Fixed Date" : "Activities.Undecided (Polling)")}
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fixed">{t("Activities.Fixed Date")}</SelectItem>
+                        <SelectItem value="undecided">{t("Activities.Undecided (Polling)")}</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
 
-                  <Field className={styles.metadataField}>
-                    <FieldLabel htmlFor="activity-time-end" className={styles.metadataLabel}>
-                      {t("Activities.End Time")}
-                    </FieldLabel>
-                    <Input
-                      id="activity-time-end"
-                      type="datetime-local"
-                      value={activityTimeEnd}
-                      onChange={(e) => setActivityTimeEnd(e.target.value)}
-                      disabled={isManaged}
-                    />
-                  </Field>
+                  {dateMode === "fixed" && (
+                    <>
+                      <Field className={styles.metadataField}>
+                        <FieldLabel htmlFor="activity-time-start" className={styles.metadataLabel}>
+                          {t("Activities.Start Time")}
+                        </FieldLabel>
+                        <Input
+                          id="activity-time-start"
+                          type="datetime-local"
+                          value={activityTimeStart}
+                          onChange={(e) => setActivityTimeStart(e.target.value)}
+                          disabled={isManaged}
+                        />
+                      </Field>
+
+                      <Field className={styles.metadataField}>
+                        <FieldLabel htmlFor="activity-time-end" className={styles.metadataLabel}>
+                          {t("Activities.End Time")}
+                        </FieldLabel>
+                        <Input
+                          id="activity-time-end"
+                          type="datetime-local"
+                          value={activityTimeEnd}
+                          onChange={(e) => setActivityTimeEnd(e.target.value)}
+                          disabled={isManaged}
+                        />
+                      </Field>
+                    </>
+                  )}
+
+                  {dateMode === "undecided" && (
+                    <>
+                      <Field className={styles.metadataField}>
+                        <FieldLabel htmlFor="date-proposal-access" className={styles.metadataLabel}>
+                          {t("Activities.Proposal Access")}
+                        </FieldLabel>
+                        <Select value={dateProposalAccess} onValueChange={setDateProposalAccess} disabled={isManaged}>
+                          <SelectTrigger id="date-proposal-access">
+                            <span>
+                              {t(`Activities.${
+                                dateProposalAccess === "anyone"
+                                  ? "Anyone"
+                                  : dateProposalAccess.charAt(0).toUpperCase() + dateProposalAccess.slice(1) + "+"
+                              }`)}
+                            </span>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="anyone">{t("Activities.Anyone")}</SelectItem>
+                            <SelectItem value="follower">{t("Activities.Follower+")}</SelectItem>
+                            <SelectItem value="member">{t("Activities.Member+")}</SelectItem>
+                            <SelectItem value="contributor">{t("Activities.Contributor+")}</SelectItem>
+                            <SelectItem value="maintainer">{t("Activities.Maintainer+")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FieldDescription>
+                          {t("Activities.Who can propose dates")}
+                        </FieldDescription>
+                      </Field>
+
+                      <Field className={styles.metadataField}>
+                        <FieldLabel htmlFor="date-vote-access" className={styles.metadataLabel}>
+                          {t("Activities.Vote Access")}
+                        </FieldLabel>
+                        <Select value={dateVoteAccess} onValueChange={setDateVoteAccess} disabled={isManaged}>
+                          <SelectTrigger id="date-vote-access">
+                            <span>
+                              {t(`Activities.${
+                                dateVoteAccess === "anyone"
+                                  ? "Anyone"
+                                  : dateVoteAccess.charAt(0).toUpperCase() + dateVoteAccess.slice(1) + "+"
+                              }`)}
+                            </span>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="anyone">{t("Activities.Anyone")}</SelectItem>
+                            <SelectItem value="follower">{t("Activities.Follower+")}</SelectItem>
+                            <SelectItem value="member">{t("Activities.Member+")}</SelectItem>
+                            <SelectItem value="contributor">{t("Activities.Contributor+")}</SelectItem>
+                            <SelectItem value="maintainer">{t("Activities.Maintainer+")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FieldDescription>
+                          {t("Activities.Who can vote on proposals")}
+                        </FieldDescription>
+                      </Field>
+                    </>
+                  )}
 
                   <Field className={styles.metadataField}>
                     <FieldLabel htmlFor="external-activity-uri" className={styles.metadataLabel}>
@@ -1145,7 +1240,6 @@ export function ContentEditor(props: ContentEditorProps) {
                   </FieldDescription>
                 </Field>
               )}
-
             </div>
           )}
         </div>

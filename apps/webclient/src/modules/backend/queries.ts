@@ -61,6 +61,14 @@ export const activityQueryOptions = (locale: string, slug: string) =>
     queryFn: () => backend.getActivity(locale, slug),
   });
 
+// === Date Proposals ===
+
+export const dateProposalsQueryOptions = (locale: string, storySlug: string) =>
+  queryOptions({
+    queryKey: ["date-proposals", locale, storySlug],
+    queryFn: () => backend.getDateProposals(locale, storySlug),
+  });
+
 // === Profiles ===
 
 export const profilesByKindsQueryOptions = (

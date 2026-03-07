@@ -4991,3 +4991,18 @@ func (s *Service) recordSystemMembershipAudit(
 		Payload:    payload,
 	})
 }
+
+// GetMembershipKindBetween returns the membership kind of memberProfileID on profileID.
+// Returns empty string and no error when no membership exists.
+func (s *Service) GetMembershipKindBetween(
+	ctx context.Context,
+	profileID string,
+	memberProfileID string,
+) (string, error) {
+	kind, err := s.repo.GetMembershipBetweenProfiles(ctx, profileID, memberProfileID)
+	if err != nil {
+		return "", nil //nolint:nilerr // no membership is not an error
+	}
+
+	return string(kind), nil
+}

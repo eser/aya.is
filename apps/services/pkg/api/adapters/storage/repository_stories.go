@@ -1128,3 +1128,44 @@ func (r *Repository) UpsertStorySummaryAI(
 		SummaryAi:  sql.NullString{String: summaryAI, Valid: true},
 	})
 }
+
+func (r *Repository) GetStoryKindAndProperties(
+	ctx context.Context,
+	storyID string,
+) (string, []byte, *string, error) {
+	row, err := r.queries.GetStoryKindAndProperties(ctx, GetStoryKindAndPropertiesParams{
+		ID: storyID,
+	})
+	if err != nil {
+		return "", nil, nil, err
+	}
+
+	var rawProps []byte
+	if row.Properties.Valid {
+		rawProps = row.Properties.RawMessage
+	}
+
+	var authorProfileID *string
+	if row.AuthorProfileID.Valid {
+		authorProfileID = &row.AuthorProfileID.String
+	}
+
+	return row.Kind, rawProps, authorProfileID, nil
+}
+
+func (r *Repository) UpdateStoryProperties(
+	ctx context.Context,
+	storyID string,
+	properties []byte,
+) error {
+	return r.queries.UpdateStoryPropertiesForDateFinalization(
+		ctx,
+		UpdateStoryPropertiesForDateFinalizationParams{
+			ID: storyID,
+			Properties: pqtype.NullRawMessage{
+				RawMessage: properties,
+				Valid:      true,
+			},
+		},
+	)
+}

@@ -47,6 +47,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/sessions"
 	"github.com/eser/aya.is/services/pkg/api/business/siteimporter"
 	"github.com/eser/aya.is/services/pkg/api/business/stories"
+	"github.com/eser/aya.is/services/pkg/api/business/story_date_proposals"
 	"github.com/eser/aya.is/services/pkg/api/business/story_interactions"
 	"github.com/eser/aya.is/services/pkg/api/business/story_series"
 	telegrambiz "github.com/eser/aya.is/services/pkg/api/business/telegram"
@@ -105,6 +106,7 @@ type AppContext struct {
 	MailboxService             *mailbox.Service
 	StoryService               *stories.Service
 	StoryInteractionService    *story_interactions.Service
+	StoryDateProposalService   *story_date_proposals.Service
 	StorySeriesService         *story_series.Service
 	SessionService             *sessions.Service
 	ProtectionService          *protection.Service
@@ -315,6 +317,14 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 		a.Repository,
 		story_interactions.DefaultIDGenerator,
 		a.AuditService,
+	)
+	a.StoryDateProposalService = story_date_proposals.NewService(
+		a.Logger,
+		a.Repository,
+		story_date_proposals.DefaultIDGenerator,
+		a.AuditService,
+		a.StoryService,
+		a.ProfileService,
 	)
 	a.StorySeriesService = story_series.NewService(
 		a.Logger,

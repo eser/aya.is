@@ -691,6 +691,10 @@ export type ActivityKind =
 
 export type RSVPMode = "disabled" | "managed_externally" | "enabled";
 
+export type DateMode = "fixed" | "undecided";
+
+export type DateAccessLevel = "anyone" | "follower" | "member" | "contributor" | "maintainer";
+
 export interface ActivityProperties {
   activity_kind: ActivityKind;
   activity_time_start: string;
@@ -698,6 +702,34 @@ export interface ActivityProperties {
   external_activity_uri?: string;
   external_attendance_uri?: string;
   rsvp_mode: RSVPMode;
+  date_mode?: DateMode;
+  date_proposal_access?: DateAccessLevel;
+  date_vote_access?: DateAccessLevel;
+}
+
+// Date Proposal Types (for activities with undecided dates)
+export interface DateProposal {
+  id: string;
+  story_id: string;
+  proposer_profile_id: string;
+  datetime_start: string;
+  datetime_end: string | null;
+  is_finalized: boolean;
+  vote_score: number;
+  upvote_count: number;
+  downvote_count: number;
+  proposer_profile_slug: string;
+  proposer_profile_title: string;
+  proposer_profile_picture_uri: string | null;
+  proposer_profile_kind: string;
+  viewer_vote_direction: number;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface DateProposalVoteResponse {
+  vote_score: number;
+  viewer_vote_direction: number;
 }
 
 // Story Interaction Types

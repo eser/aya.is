@@ -144,6 +144,11 @@ import { removeInteraction } from "./interactions/remove-interaction";
 import { getInteractions } from "./interactions/get-interactions";
 import { getMyInteractions } from "./interactions/get-my-interactions";
 import { getInteractionCounts } from "./interactions/get-interaction-counts";
+import { getDateProposals } from "./date-proposals/get-date-proposals";
+import { createDateProposal } from "./date-proposals/create-date-proposal";
+import { removeDateProposal } from "./date-proposals/remove-date-proposal";
+import { voteDateProposal } from "./date-proposals/vote-date-proposal";
+import { finalizeDateProposal } from "./date-proposals/finalize-date-proposal";
 import { getPendingAwards } from "./admin/get-pending-awards";
 import { getPendingAwardsStats } from "./admin/get-pending-awards-stats";
 import { approvePendingAward } from "./admin/approve-pending-award";
@@ -347,6 +352,13 @@ export const backend = {
   getActivities,
   getActivity,
 
+  // Date Proposals
+  getDateProposals,
+  createDateProposal,
+  removeDateProposal,
+  voteDateProposal,
+  finalizeDateProposal,
+
   // Story Interactions
   setInteraction,
   removeInteraction,
@@ -424,6 +436,7 @@ export {
   checkStorySlug,
   connectExternalSite,
   connectSpeakerDeck,
+  createDateProposal,
   createProfile,
   createProfileComment,
   createProfileLink,
@@ -432,6 +445,7 @@ export {
   createProfileTeam,
   createQuestion,
   createReferral,
+  createSeries,
   createSession,
   createStoryComment,
   deleteDiscussionComment,
@@ -444,6 +458,7 @@ export {
   deleteStoryTranslation,
   editAnswer,
   editDiscussionComment,
+  finalizeDateProposal,
   finalizeGitHubConnection,
   finalizeLinkedInConnection,
   generateCVPage,
@@ -457,6 +472,7 @@ export {
   getCommentReplies,
   getConversation,
   getCurrentSession,
+  getDateProposals,
   getGitHubAccounts,
   getInteractionCounts,
   getInteractions,
@@ -482,7 +498,6 @@ export {
   getProfileStory,
   getProfileTranslations,
   getReferralVotes,
-  createSeries,
   getSeries,
   getSeriesList,
   getSessionCurrent,
@@ -524,6 +539,7 @@ export {
   rejectPendingAward,
   rejectProfileEnvelope,
   removeConversation,
+  removeDateProposal,
   removeInteraction,
   removeReaction,
   removeStory,
@@ -558,6 +574,7 @@ export {
   verifyTelegramCode,
   verifyTelegramRegisterCode,
   voteComment,
+  voteDateProposal,
   voteQuestion,
   voteReferral,
 };

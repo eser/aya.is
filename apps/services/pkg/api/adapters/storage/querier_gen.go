@@ -53,6 +53,16 @@ type Querier interface {
 	//  WHERE id = $4
 	//    AND deleted_at IS NULL
 	AdjustDiscussionCommentVoteScore(ctx context.Context, arg AdjustDiscussionCommentVoteScoreParams) error
+	//AdjustStoryDateProposalVoteScore
+	//
+	//  UPDATE "story_date_proposal"
+	//  SET
+	//    vote_score = vote_score + $1::INTEGER,
+	//    upvote_count = GREATEST(upvote_count + $2::INTEGER, 0),
+	//    downvote_count = GREATEST(downvote_count + $3::INTEGER, 0),
+	//    updated_at = NOW()
+	//  WHERE id = $4 AND deleted_at IS NULL
+	AdjustStoryDateProposalVoteScore(ctx context.Context, arg AdjustStoryDateProposalVoteScoreParams) error
 	//ApprovePendingAward
 	//
 	//  UPDATE "profile_point_pending_award"
@@ -811,6 +821,12 @@ type Querier interface {
 	//    session_id = $1
 	//    AND key = $2
 	DeleteSessionPreference(ctx context.Context, arg DeleteSessionPreferenceParams) error
+	//DeleteStoryDateProposalVote
+	//
+	//  DELETE FROM "story_date_proposal_vote"
+	//  WHERE proposal_id = $1
+	//    AND voter_profile_id = $2
+	DeleteStoryDateProposalVote(ctx context.Context, arg DeleteStoryDateProposalVoteParams) error
 	//DeleteStoryTx
 	//
 	//  DELETE FROM "story_tx"
@@ -1851,6 +1867,17 @@ type Querier interface {
 	//    AND s.deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*GetStoryByIDRow, error)
+	//GetStoryDateProposal
+	//
+	//  SELECT id, story_id, proposer_profile_id, datetime_start, datetime_end, is_finalized, vote_score, upvote_count, downvote_count, created_at, updated_at, deleted_at FROM "story_date_proposal"
+	//  WHERE id = $1 AND deleted_at IS NULL
+	GetStoryDateProposal(ctx context.Context, arg GetStoryDateProposalParams) (*StoryDateProposal, error)
+	//GetStoryDateProposalVote
+	//
+	//  SELECT id, proposal_id, voter_profile_id, direction, created_at, updated_at FROM "story_date_proposal_vote"
+	//  WHERE proposal_id = $1
+	//    AND voter_profile_id = $2
+	GetStoryDateProposalVote(ctx context.Context, arg GetStoryDateProposalVoteParams) (*StoryDateProposalVote, error)
 	//GetStoryFirstPublishedAt
 	//
 	//  SELECT MIN(published_at) as first_published_at
@@ -1934,6 +1961,11 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryInteraction(ctx context.Context, arg GetStoryInteractionParams) (*StoryInteraction, error)
+	//GetStoryKindAndProperties
+	//
+	//  SELECT kind, properties, author_profile_id FROM "story"
+	//  WHERE id = $1 AND deleted_at IS NULL
+	GetStoryKindAndProperties(ctx context.Context, arg GetStoryKindAndPropertiesParams) (*GetStoryKindAndPropertiesRow, error)
 	//GetStoryOwnershipForUser
 	//
 	//  SELECT
@@ -2306,6 +2338,31 @@ type Querier interface {
 	//    NOW()
 	//  ) RETURNING id, author_profile_id, slug, kind, story_picture_uri, properties, created_at, updated_at, deleted_at, is_managed, remote_id, series_id, visibility, feat_discussions, sort_order
 	InsertStory(ctx context.Context, arg InsertStoryParams) (*Story, error)
+	//InsertStoryDateProposal
+	//
+	//  INSERT INTO "story_date_proposal" (
+	//    id, story_id, proposer_profile_id, datetime_start, datetime_end, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    NOW()
+	//  ) RETURNING id, story_id, proposer_profile_id, datetime_start, datetime_end, is_finalized, vote_score, upvote_count, downvote_count, created_at, updated_at, deleted_at
+	InsertStoryDateProposal(ctx context.Context, arg InsertStoryDateProposalParams) (*StoryDateProposal, error)
+	//InsertStoryDateProposalVote
+	//
+	//  INSERT INTO "story_date_proposal_vote" (
+	//    id, proposal_id, voter_profile_id, direction, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    NOW()
+	//  ) RETURNING id, proposal_id, voter_profile_id, direction, created_at, updated_at
+	InsertStoryDateProposalVote(ctx context.Context, arg InsertStoryDateProposalVoteParams) (*StoryDateProposalVote, error)
 	//InsertStoryPublication
 	//
 	//  INSERT INTO "story_publication" (
@@ -3706,6 +3763,51 @@ type Querier interface {
 	//    AND s.deleted_at IS NULL
 	//  ORDER BY COALESCE((SELECT MIN(sp4.published_at) FROM story_publication sp4 WHERE sp4.story_id = s.id AND sp4.deleted_at IS NULL), s.created_at) DESC
 	ListStoriesOfPublicationForViewer(ctx context.Context, arg ListStoriesOfPublicationForViewerParams) ([]*ListStoriesOfPublicationForViewerRow, error)
+	// Lists proposals for a story with proposer profile info and viewer's vote direction.
+	//
+	//  SELECT
+	//    sdp.id,
+	//    sdp.story_id,
+	//    sdp.proposer_profile_id,
+	//    sdp.datetime_start,
+	//    sdp.datetime_end,
+	//    sdp.is_finalized,
+	//    sdp.vote_score,
+	//    sdp.upvote_count,
+	//    sdp.downvote_count,
+	//    sdp.created_at,
+	//    sdp.updated_at,
+	//    p.slug AS proposer_profile_slug,
+	//    pt.title AS proposer_profile_title,
+	//    p.profile_picture_uri AS proposer_profile_picture_uri,
+	//    p.kind AS proposer_profile_kind,
+	//    CASE
+	//      WHEN $1::TEXT IS NOT NULL THEN
+	//        COALESCE(
+	//          (SELECT sdpv.direction FROM "story_date_proposal_vote" sdpv
+	//           WHERE sdpv.proposal_id = sdp.id
+	//             AND sdpv.voter_profile_id = $1::TEXT),
+	//          0
+	//        )::SMALLINT
+	//      ELSE 0::SMALLINT
+	//    END AS viewer_vote_direction
+	//  FROM "story_date_proposal" sdp
+	//    INNER JOIN "profile" p ON p.id = sdp.proposer_profile_id AND p.deleted_at IS NULL
+	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//      AND pt.locale_code = (
+	//        SELECT ptx.locale_code FROM "profile_tx" ptx
+	//        WHERE ptx.profile_id = p.id
+	//        ORDER BY CASE
+	//          WHEN ptx.locale_code = $2 THEN 0
+	//          WHEN ptx.locale_code = p.default_locale THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
+	//  WHERE sdp.story_id = $3
+	//    AND sdp.deleted_at IS NULL
+	//  ORDER BY sdp.vote_score DESC, sdp.created_at ASC
+	ListStoryDateProposals(ctx context.Context, arg ListStoryDateProposalsParams) ([]*ListStoryDateProposalsRow, error)
 	// Lists interactions on a story with profile info, optionally filtered by kind.
 	//
 	//  SELECT
@@ -3870,6 +3972,12 @@ type Querier interface {
 	//  WHERE
 	//    id = $1
 	MarkPOWChallengeUsed(ctx context.Context, arg MarkPOWChallengeUsedParams) error
+	//MarkStoryDateProposalFinalized
+	//
+	//  UPDATE "story_date_proposal"
+	//  SET is_finalized = TRUE, updated_at = NOW()
+	//  WHERE id = $1 AND deleted_at IS NULL
+	MarkStoryDateProposalFinalized(ctx context.Context, arg MarkStoryDateProposalFinalizedParams) error
 	//MergeProfileMembershipProperties
 	//
 	//  UPDATE "profile_membership"
@@ -4262,6 +4370,12 @@ type Querier interface {
 	//  SET deleted_at = NOW()
 	//  WHERE id = $1 AND deleted_at IS NULL
 	SoftDeleteReferral(ctx context.Context, arg SoftDeleteReferralParams) (int64, error)
+	//SoftDeleteStoryDateProposal
+	//
+	//  UPDATE "story_date_proposal"
+	//  SET deleted_at = NOW(), updated_at = NOW()
+	//  WHERE id = $1 AND deleted_at IS NULL
+	SoftDeleteStoryDateProposal(ctx context.Context, arg SoftDeleteStoryDateProposalParams) error
 	//SoftDeleteTelegramProfileLink
 	//
 	//  UPDATE "profile_link"
@@ -4673,6 +4787,19 @@ type Querier interface {
 	//  WHERE id = $8
 	//    AND deleted_at IS NULL
 	UpdateStory(ctx context.Context, arg UpdateStoryParams) (int64, error)
+	//UpdateStoryDateProposalVoteDirection
+	//
+	//  UPDATE "story_date_proposal_vote"
+	//  SET direction = $1, updated_at = NOW()
+	//  WHERE proposal_id = $2
+	//    AND voter_profile_id = $3
+	UpdateStoryDateProposalVoteDirection(ctx context.Context, arg UpdateStoryDateProposalVoteDirectionParams) error
+	//UpdateStoryPropertiesForDateFinalization
+	//
+	//  UPDATE "story"
+	//  SET properties = $1::JSONB, updated_at = NOW()
+	//  WHERE id = $2 AND deleted_at IS NULL
+	UpdateStoryPropertiesForDateFinalization(ctx context.Context, arg UpdateStoryPropertiesForDateFinalizationParams) error
 	//UpdateStoryPublication
 	//
 	//  UPDATE story_publication
