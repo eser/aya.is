@@ -244,9 +244,10 @@ function ActivityDetailPage() {
             <DatePoll
               locale={params.locale}
               storySlug={params.activityslug}
-              isAuthenticated={auth.isAuthenticated}
+              canPropose={dateProposals?.viewer_can_propose ?? false}
+              canVote={dateProposals?.viewer_can_vote ?? false}
               canEdit={canEdit}
-              initialProposals={dateProposals}
+              initialProposals={dateProposals?.proposals ?? null}
             />
           )}
 

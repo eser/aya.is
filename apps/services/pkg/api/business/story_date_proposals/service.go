@@ -167,19 +167,59 @@ func (s *Service) CreateProposal(
 	return proposal, nil
 }
 
-// ListProposals lists all proposals for a story with profile info.
+// ListProposals lists all proposals for a story with profile info and viewer permissions.
 func (s *Service) ListProposals(
 	ctx context.Context,
 	localeCode string,
 	storyID string,
 	viewerProfileID *string,
-) ([]*DateProposalWithProfile, error) {
+) (*DateProposalListResponse, error) {
 	proposals, err := s.repo.ListProposals(ctx, localeCode, storyID, viewerProfileID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
 
-	return proposals, nil
+	canPropose, canVote := s.checkViewerAccess(ctx, storyID, viewerProfileID)
+
+	return &DateProposalListResponse{
+		Proposals:        proposals,
+		ViewerCanPropose: canPropose,
+		ViewerCanVote:    canVote,
+	}, nil
+}
+
+// checkViewerAccess determines whether the viewer can propose dates and/or vote.
+func (s *Service) checkViewerAccess(
+	ctx context.Context,
+	storyID string,
+	viewerProfileID *string,
+) (canPropose bool, canVote bool) {
+	if viewerProfileID == nil {
+		return false, false
+	}
+
+	config, err := s.validateStoryForProposals(ctx, storyID)
+	if err != nil {
+		return false, false
+	}
+
+	proposeErr := s.checkAccessLevel(
+		ctx,
+		config.AuthorProfileID,
+		config.AccessProfileIDs,
+		*viewerProfileID,
+		config.ProposalAccess,
+	)
+
+	voteErr := s.checkAccessLevel(
+		ctx,
+		config.AuthorProfileID,
+		config.AccessProfileIDs,
+		*viewerProfileID,
+		config.VoteAccess,
+	)
+
+	return proposeErr == nil, voteErr == nil
 }
 
 // RemoveProposal soft-deletes a proposal.

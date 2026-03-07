@@ -59,7 +59,7 @@ func RegisterHTTPRoutesForStoryDateProposals( //nolint:funlen,gocognit,gocyclo,c
 					}
 				}
 
-				proposals, err := dateProposalService.ListProposals(
+				listResponse, err := dateProposalService.ListProposals(
 					ctx.Request.Context(),
 					localeParam,
 					story.ID,
@@ -72,7 +72,7 @@ func RegisterHTTPRoutesForStoryDateProposals( //nolint:funlen,gocognit,gocyclo,c
 					)
 				}
 
-				return ctx.Results.JSON(cursors.WrapResponseWithCursor(proposals, nil))
+				return ctx.Results.JSON(cursors.WrapResponseWithCursor(listResponse, nil))
 			},
 		).
 		HasSummary("List date proposals").

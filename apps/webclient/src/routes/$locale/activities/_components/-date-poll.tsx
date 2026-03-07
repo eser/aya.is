@@ -13,7 +13,8 @@ import styles from "./-date-poll.module.css";
 export type DatePollProps = {
   locale: string;
   storySlug: string;
-  isAuthenticated: boolean;
+  canPropose: boolean;
+  canVote: boolean;
   canEdit: boolean;
   initialProposals: DateProposal[] | null;
 };
@@ -28,7 +29,7 @@ export function DatePoll(props: DatePollProps) {
   const [datetimeEnd, setDatetimeEnd] = React.useState("");
 
   const handleVote = async (proposalId: string, direction: number) => {
-    if (!props.isAuthenticated || isSubmitting) {
+    if (!props.canVote || isSubmitting) {
       return;
     }
 
@@ -70,7 +71,7 @@ export function DatePoll(props: DatePollProps) {
 
   const handlePropose = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!props.isAuthenticated || isSubmitting || datetimeStart === "") {
+    if (!props.canPropose || isSubmitting || datetimeStart === "") {
       return;
     }
 
@@ -90,7 +91,7 @@ export function DatePoll(props: DatePollProps) {
         // Refresh the full list to get profile info
         const updated = await backend.getDateProposals(props.locale, props.storySlug);
         if (updated !== null) {
-          setProposals(updated);
+          setProposals(updated.proposals);
         }
 
         setDatetimeStart("");
@@ -139,7 +140,7 @@ export function DatePoll(props: DatePollProps) {
       // Refresh proposals to see the finalized state
       const updated = await backend.getDateProposals(props.locale, props.storySlug);
       if (updated !== null) {
-        setProposals(updated);
+        setProposals(updated.proposals);
       }
     } finally {
       setIsSubmitting(false);
@@ -196,7 +197,7 @@ export function DatePoll(props: DatePollProps) {
                     )
                     : (
                       <>
-                        {props.isAuthenticated && (
+                        {props.canVote && (
                           <>
                             <button
                               type="button"
@@ -262,8 +263,8 @@ export function DatePoll(props: DatePollProps) {
           </div>
         )}
 
-      {/* Proposal form — only show if authenticated and not yet finalized */}
-      {props.isAuthenticated && !hasFinalized && (
+      {/* Proposal form — only show if viewer can propose and not yet finalized */}
+      {props.canPropose && !hasFinalized && (
         <form className={styles.proposalForm} onSubmit={handlePropose}>
           <p className={styles.formTitle}>{t("Activities.Propose a Date")}</p>
           <div className={styles.formFields}>

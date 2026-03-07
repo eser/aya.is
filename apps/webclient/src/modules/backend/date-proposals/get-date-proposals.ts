@@ -1,11 +1,11 @@
 import { fetcher } from "../fetcher";
-import type { DateProposal } from "../types";
+import type { DateProposalListResponse } from "../types";
 
 export async function getDateProposals(
   locale: string,
   storySlug: string,
-): Promise<DateProposal[] | null> {
-  const response = await fetcher<DateProposal[]>(
+): Promise<DateProposalListResponse | null> {
+  const response = await fetcher<DateProposalListResponse>(
     locale,
     `/stories/${storySlug}/date-proposals`,
   );

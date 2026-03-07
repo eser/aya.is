@@ -87,6 +87,13 @@ type DateProposalVote struct {
 	CreatedAt      time.Time `json:"created_at"`
 }
 
+// DateProposalListResponse wraps the proposals list with viewer permission flags.
+type DateProposalListResponse struct {
+	Proposals        []*DateProposalWithProfile `json:"proposals"`
+	ViewerCanPropose bool                       `json:"viewer_can_propose"`
+	ViewerCanVote    bool                       `json:"viewer_can_vote"`
+}
+
 // VoteResponse is returned after a vote operation.
 type VoteResponse struct {
 	VoteScore           int `json:"vote_score"`

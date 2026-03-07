@@ -727,6 +727,12 @@ export interface DateProposal {
   updated_at: string | null;
 }
 
+export interface DateProposalListResponse {
+  proposals: DateProposal[];
+  viewer_can_propose: boolean;
+  viewer_can_vote: boolean;
+}
+
 export interface DateProposalVoteResponse {
   vote_score: number;
   viewer_vote_direction: number;
