@@ -1812,6 +1812,7 @@ func (s *Service) GetActivityDateConfig(
 		DateMode:         DateModeFixed,
 		ProposalAccess:   DateAccessAnyone,
 		VoteAccess:       DateAccessAnyone,
+		AuthorProfileID:  authorProfileID,
 		AccessProfileIDs: accessProfileIDs,
 	}
 

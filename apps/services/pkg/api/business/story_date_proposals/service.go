@@ -76,9 +76,10 @@ func accessLevelToMembershipKind(access string) profiles.MembershipKind {
 
 // checkAccessLevel verifies that the user meets the minimum membership level
 // against at least one of the access profile IDs (publication profiles, or
-// author profile as fallback).
+// author profile as fallback). The story author always has full access.
 func (s *Service) checkAccessLevel(
 	ctx context.Context,
+	authorProfileID *string,
 	accessProfileIDs []string,
 	userProfileID string,
 	requiredAccess string,
@@ -86,6 +87,11 @@ func (s *Service) checkAccessLevel(
 	requiredKind := accessLevelToMembershipKind(requiredAccess)
 	if requiredKind == "" {
 		// "anyone" — any authenticated user is allowed
+		return nil
+	}
+
+	// Story author always has full access
+	if authorProfileID != nil && *authorProfileID == userProfileID {
 		return nil
 	}
 
@@ -129,6 +135,7 @@ func (s *Service) CreateProposal(
 
 	accessErr := s.checkAccessLevel(
 		ctx,
+		config.AuthorProfileID,
 		config.AccessProfileIDs,
 		profileID,
 		config.ProposalAccess,
@@ -273,7 +280,13 @@ func (s *Service) Vote( //nolint:funlen
 		return nil, validateErr
 	}
 
-	accessErr := s.checkAccessLevel(ctx, config.AccessProfileIDs, profileID, config.VoteAccess)
+	accessErr := s.checkAccessLevel(
+		ctx,
+		config.AuthorProfileID,
+		config.AccessProfileIDs,
+		profileID,
+		config.VoteAccess,
+	)
 	if accessErr != nil {
 		return nil, accessErr
 	}
