@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { backend } from "@/modules/backend/backend";
 import type { DateProposal } from "@/modules/backend/types";
-import { formatDateTimeLong } from "@/lib/date";
+import { formatDateTimeLong, formatDateTimeRange } from "@/lib/date";
 import styles from "./-date-poll.module.css";
 
 export type DatePollProps = {
@@ -48,9 +48,16 @@ export function DatePoll(props: DatePollProps) {
               return p;
             }
 
+            const oldDir = p.viewer_vote_direction;
+            const newDir = result.viewer_vote_direction;
+            const upDelta = (newDir === 1 ? 1 : 0) - (oldDir === 1 ? 1 : 0);
+            const downDelta = (newDir === -1 ? 1 : 0) - (oldDir === -1 ? 1 : 0);
+
             return {
               ...p,
               vote_score: result.vote_score,
+              upvote_count: p.upvote_count + upDelta,
+              downvote_count: p.downvote_count + downDelta,
               viewer_vote_direction: result.viewer_vote_direction,
             };
           })
@@ -155,10 +162,13 @@ export function DatePoll(props: DatePollProps) {
               <div key={proposal.id} className={styles.proposalCard}>
                 <div className={styles.proposalInfo}>
                   <span className={styles.proposalDate}>
-                    {formatDateTimeLong(new Date(proposal.datetime_start), props.locale)}
-                    {proposal.datetime_end !== null && (
-                      <>– {formatDateTimeLong(new Date(proposal.datetime_end), props.locale)}</>
-                    )}
+                    {proposal.datetime_end !== null
+                      ? formatDateTimeRange(
+                        new Date(proposal.datetime_start),
+                        new Date(proposal.datetime_end),
+                        props.locale,
+                      )
+                      : formatDateTimeLong(new Date(proposal.datetime_start), props.locale)}
                   </span>
                   <span className={styles.proposerInfo}>
                     {proposal.proposer_profile_picture_uri !== null && (
