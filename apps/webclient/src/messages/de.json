@@ -417,6 +417,7 @@
     "Failed to create proposal": "Vorschlag konnte nicht erstellt werden",
     "Proposal finalized successfully": "Vorschlag erfolgreich festgelegt",
     "Confirm finalize": "Möchten Sie dieses Datum wirklich festlegen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "Confirm remove proposal": "Möchten Sie diesen Datumsvorschlag wirklich entfernen? Alle Stimmen gehen verloren.",
     "Proposal Access": "Vorschlagszugang",
     "Vote Access": "Abstimmungszugang",
     "Anyone": "Jeder",

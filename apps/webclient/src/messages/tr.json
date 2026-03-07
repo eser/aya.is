@@ -417,6 +417,7 @@
     "Failed to create proposal": "Öneri oluşturulamadı",
     "Proposal finalized successfully": "Öneri başarıyla kesinleştirildi",
     "Confirm finalize": "Bu tarihi kesinleştirmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "Confirm remove proposal": "Bu tarih önerisini kaldırmak istediğinizden emin misiniz? Tüm oylar silinecektir.",
     "Proposal Access": "Öneri Erişimi",
     "Vote Access": "Oy Erişimi",
     "Anyone": "Herkes",

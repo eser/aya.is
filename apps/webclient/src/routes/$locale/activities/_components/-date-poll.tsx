@@ -109,6 +109,10 @@ export function DatePoll(props: DatePollProps) {
       return;
     }
 
+    if (!globalThis.confirm(t("Activities.Confirm remove proposal"))) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await backend.removeDateProposal(props.locale, props.storySlug, proposalId);

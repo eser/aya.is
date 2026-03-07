@@ -417,6 +417,7 @@
     "Failed to create proposal": "提议创建失败",
     "Proposal finalized successfully": "提议已成功确定",
     "Confirm finalize": "确定要敲定此日期吗？此操作无法撤销。",
+    "Confirm remove proposal": "确定要删除此日期提议吗？所有投票将会丢失。",
     "Proposal Access": "提议权限",
     "Vote Access": "投票权限",
     "Anyone": "任何人",

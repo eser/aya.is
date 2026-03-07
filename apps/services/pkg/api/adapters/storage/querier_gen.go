@@ -716,6 +716,11 @@ type Querier interface {
 	//  WHERE
 	//    session_id = $1
 	DeleteAllSessionPreferences(ctx context.Context, arg DeleteAllSessionPreferencesParams) error
+	//DeleteAllVotesForProposal
+	//
+	//  DELETE FROM "story_date_proposal_vote"
+	//  WHERE proposal_id = $1
+	DeleteAllVotesForProposal(ctx context.Context, arg DeleteAllVotesForProposalParams) error
 	// Soft-deletes a subscription.
 	//
 	//  UPDATE "bulletin_subscription"

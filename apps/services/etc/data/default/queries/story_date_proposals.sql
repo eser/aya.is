@@ -96,6 +96,10 @@ DELETE FROM "story_date_proposal_vote"
 WHERE proposal_id = sqlc.arg(proposal_id)
   AND voter_profile_id = sqlc.arg(voter_profile_id);
 
+-- name: DeleteAllVotesForProposal :exec
+DELETE FROM "story_date_proposal_vote"
+WHERE proposal_id = sqlc.arg(proposal_id);
+
 -- name: AdjustStoryDateProposalVoteScore :exec
 UPDATE "story_date_proposal"
 SET

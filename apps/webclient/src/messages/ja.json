@@ -417,6 +417,7 @@
     "Failed to create proposal": "提案の作成に失敗しました",
     "Proposal finalized successfully": "提案が正常に確定されました",
     "Confirm finalize": "この日程を確定してもよろしいですか？この操作は取り消せません。",
+    "Confirm remove proposal": "この日程提案を削除してもよろしいですか？すべての投票が失われます。",
     "Proposal Access": "提案へのアクセス",
     "Vote Access": "投票へのアクセス",
     "Anyone": "誰でも",

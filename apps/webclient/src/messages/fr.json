@@ -417,6 +417,7 @@
     "Failed to create proposal": "Échec de la création de la proposition",
     "Proposal finalized successfully": "Proposition finalisée avec succès",
     "Confirm finalize": "Êtes-vous sûr de vouloir finaliser cette date ? Cette action est irréversible.",
+    "Confirm remove proposal": "Êtes-vous sûr de vouloir supprimer cette proposition de date ? Tous les votes seront perdus.",
     "Proposal Access": "Accès aux propositions",
     "Vote Access": "Accès au vote",
     "Anyone": "Tout le monde",

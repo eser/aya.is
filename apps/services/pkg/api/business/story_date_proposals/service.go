@@ -202,6 +202,8 @@ func (s *Service) RemoveProposal(
 		return ErrUnauthorized
 	}
 
+	_ = s.repo.DeleteAllVotesForProposal(ctx, proposalID)
+
 	err = s.repo.SoftDeleteProposal(ctx, proposalID)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToRemoveRecord, err)
@@ -236,6 +238,8 @@ func (s *Service) RemoveProposalAsAdmin(
 	if proposal.IsFinalized {
 		return ErrCannotRemoveFinalized
 	}
+
+	_ = s.repo.DeleteAllVotesForProposal(ctx, proposalID)
 
 	err = s.repo.SoftDeleteProposal(ctx, proposalID)
 	if err != nil {

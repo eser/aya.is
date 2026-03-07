@@ -49,6 +49,24 @@ func (q *Queries) AdjustStoryDateProposalVoteScore(ctx context.Context, arg Adju
 	return err
 }
 
+const deleteAllVotesForProposal = `-- name: DeleteAllVotesForProposal :exec
+DELETE FROM "story_date_proposal_vote"
+WHERE proposal_id = $1
+`
+
+type DeleteAllVotesForProposalParams struct {
+	ProposalID string `db:"proposal_id" json:"proposal_id"`
+}
+
+// DeleteAllVotesForProposal
+//
+//	DELETE FROM "story_date_proposal_vote"
+//	WHERE proposal_id = $1
+func (q *Queries) DeleteAllVotesForProposal(ctx context.Context, arg DeleteAllVotesForProposalParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAllVotesForProposal, arg.ProposalID)
+	return err
+}
+
 const deleteStoryDateProposalVote = `-- name: DeleteStoryDateProposalVote :exec
 DELETE FROM "story_date_proposal_vote"
 WHERE proposal_id = $1

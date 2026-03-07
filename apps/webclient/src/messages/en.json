@@ -417,6 +417,7 @@
     "Failed to create proposal": "Failed to create proposal",
     "Proposal finalized successfully": "Proposal finalized successfully",
     "Confirm finalize": "Are you sure you want to finalize this date? This action cannot be undone.",
+    "Confirm remove proposal": "Are you sure you want to remove this date proposal? All votes will be lost.",
     "Proposal Access": "Proposal Access",
     "Vote Access": "Vote Access",
     "Anyone": "Anyone",

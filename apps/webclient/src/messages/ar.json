@@ -417,6 +417,7 @@
     "Failed to create proposal": "فشل في إنشاء الاقتراح",
     "Proposal finalized successfully": "تم تأكيد الاقتراح بنجاح",
     "Confirm finalize": "هل أنت متأكد من تأكيد هذا التاريخ؟ لا يمكن التراجع عن هذا الإجراء.",
+    "Confirm remove proposal": "هل أنت متأكد من إزالة هذا الاقتراح؟ سيتم حذف جميع الأصوات.",
     "Proposal Access": "صلاحية الاقتراح",
     "Vote Access": "صلاحية التصويت",
     "Anyone": "أي شخص",

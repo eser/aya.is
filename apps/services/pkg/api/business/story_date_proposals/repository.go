@@ -6,7 +6,7 @@ import (
 )
 
 // Repository defines the storage operations for story date proposals (port).
-type Repository interface {
+type Repository interface { //nolint:interfacebloat
 	// InsertProposal creates a new date proposal.
 	InsertProposal(
 		ctx context.Context,
@@ -60,6 +60,9 @@ type Repository interface {
 
 	// DeleteDateProposalVote removes a vote.
 	DeleteDateProposalVote(ctx context.Context, proposalID string, voterProfileID string) error
+
+	// DeleteAllVotesForProposal removes all votes for a proposal.
+	DeleteAllVotesForProposal(ctx context.Context, proposalID string) error
 
 	// AdjustProposalVoteScore atomically adjusts vote score.
 	AdjustProposalVoteScore(

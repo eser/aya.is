@@ -417,6 +417,7 @@
     "Failed to create proposal": "Voorstel aanmaken mislukt",
     "Proposal finalized successfully": "Voorstel succesvol definitief gemaakt",
     "Confirm finalize": "Weet u zeker dat u deze datum definitief wilt maken? Deze actie kan niet ongedaan worden gemaakt.",
+    "Confirm remove proposal": "Weet u zeker dat u dit datumvoorstel wilt verwijderen? Alle stemmen gaan verloren.",
     "Proposal Access": "Toegang tot voorstellen",
     "Vote Access": "Toegang tot stemmen",
     "Anyone": "Iedereen",

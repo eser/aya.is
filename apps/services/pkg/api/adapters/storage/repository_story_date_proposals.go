@@ -183,6 +183,12 @@ func (r *Repository) DeleteDateProposalVote(
 	})
 }
 
+func (r *Repository) DeleteAllVotesForProposal(ctx context.Context, proposalID string) error {
+	return r.queries.DeleteAllVotesForProposal(ctx, DeleteAllVotesForProposalParams{
+		ProposalID: proposalID,
+	})
+}
+
 func (r *Repository) AdjustProposalVoteScore(
 	ctx context.Context,
 	proposalID string,
