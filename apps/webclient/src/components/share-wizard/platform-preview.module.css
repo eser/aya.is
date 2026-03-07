@@ -1,0 +1,92 @@
+@reference "@/theme.css";
+
+.container {
+  @apply space-y-4;
+}
+
+.sectionTitle {
+  @apply text-sm font-semibold;
+}
+
+.tabs {
+  @apply flex border-b;
+}
+
+.tab {
+  @apply px-4 py-2 text-sm font-medium text-muted-foreground cursor-pointer border-b-2 border-transparent
+    transition-colors hover:text-foreground bg-transparent;
+}
+
+.tabActive {
+  @apply text-foreground border-primary;
+}
+
+.previewCard {
+  @apply rounded-lg border bg-card p-4 space-y-3 mt-3;
+}
+
+.previewHeader {
+  @apply flex items-center gap-2;
+}
+
+.previewAvatar {
+  @apply size-10 rounded-full bg-muted shrink-0;
+}
+
+.previewNameGroup {
+  @apply flex flex-col;
+}
+
+.previewName {
+  @apply text-sm font-semibold;
+}
+
+.previewHandle {
+  @apply text-xs text-muted-foreground;
+}
+
+.previewText {
+  @apply text-sm whitespace-pre-wrap break-words;
+}
+
+.previewHashtags {
+  @apply text-sm text-primary;
+}
+
+.previewTruncated {
+  @apply text-xs text-red-500 mt-1;
+}
+
+.previewLinkCard {
+  @apply rounded-lg border overflow-hidden;
+}
+
+.previewLinkImage {
+  @apply w-full h-32 object-cover bg-muted;
+}
+
+.previewLinkMeta {
+  @apply p-3 space-y-1;
+}
+
+.previewLinkTitle {
+  @apply text-sm font-medium truncate;
+}
+
+.previewLinkUrl {
+  @apply text-xs text-muted-foreground truncate;
+}
+
+.customizeToggle {
+  @apply flex items-center gap-2 text-xs text-muted-foreground cursor-pointer bg-transparent border-none p-0
+    hover:text-foreground transition-colors mt-3;
+}
+
+.customizeTextarea {
+  @apply w-full min-h-[100px] resize-y rounded-md border border-input bg-background px-3 py-2 text-sm
+    placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mt-2;
+}
+
+.previewActions {
+  @apply flex gap-2 mt-3 pt-3 border-t;
+}

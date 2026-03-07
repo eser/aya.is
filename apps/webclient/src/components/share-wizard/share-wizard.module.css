@@ -1,0 +1,55 @@
+@reference "@/theme.css";
+
+.container {
+  @apply flex flex-col h-[calc(100vh-140px)] bg-background;
+}
+
+.header {
+  @apply flex items-center justify-between border-b px-4 py-3;
+}
+
+.headerLeft {
+  @apply flex items-center gap-3;
+}
+
+.headerTitle {
+  @apply text-base font-semibold;
+}
+
+.content {
+  @apply flex flex-1 overflow-hidden;
+}
+
+.mainPanel {
+  @apply flex-1 flex flex-col overflow-y-auto p-6 gap-6;
+}
+
+.sidePanel {
+  @apply w-[420px] shrink-0 border-l overflow-y-auto p-4 space-y-6;
+}
+
+.accessDenied {
+  @apply flex flex-col items-center justify-center gap-4 py-16 text-center;
+}
+
+.accessDeniedIcon {
+  @apply size-16 text-muted-foreground;
+}
+
+.accessDeniedTitle {
+  @apply text-xl font-semibold;
+}
+
+.accessDeniedMessage {
+  @apply text-muted-foreground max-w-md;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    @apply flex-col;
+  }
+
+  .sidePanel {
+    @apply w-full border-l-0 border-t;
+  }
+}

@@ -1,0 +1,58 @@
+@reference "@/theme.css";
+
+.container {
+  @apply space-y-3;
+}
+
+.title {
+  @apply text-sm font-semibold flex items-center gap-2;
+}
+
+.actions {
+  @apply space-y-1.5;
+}
+
+.actionButton {
+  @apply w-full justify-start text-sm;
+}
+
+.divider {
+  @apply border-t my-3;
+}
+
+.toneSection {
+  @apply space-y-2;
+}
+
+.toneLabel {
+  @apply text-xs font-medium text-muted-foreground;
+}
+
+.toneGrid {
+  @apply grid grid-cols-2 gap-1.5;
+}
+
+.toneButton {
+  @apply px-3 py-1.5 text-xs rounded-md border transition-colors cursor-pointer bg-transparent hover:bg-muted
+    text-center;
+}
+
+.toneButtonActive {
+  @apply bg-primary text-primary-foreground border-primary hover:bg-primary/90;
+}
+
+.result {
+  @apply rounded-md border bg-muted/50 p-3 text-sm whitespace-pre-wrap;
+}
+
+.resultActions {
+  @apply flex gap-2 mt-2;
+}
+
+.loading {
+  @apply flex items-center gap-2 text-sm text-muted-foreground py-2;
+}
+
+.spinner {
+  @apply size-4 animate-spin;
+}

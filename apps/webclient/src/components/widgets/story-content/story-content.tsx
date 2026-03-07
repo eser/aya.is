@@ -16,6 +16,7 @@ export type StoryContentProps = {
   headingOffset?: number;
   editUrl?: string;
   coverUrl?: string;
+  shareUrl?: string;
   beforeContent?: React.ReactNode;
 };
 
@@ -33,6 +34,7 @@ export function StoryContent(props: StoryContentProps) {
     headingOffset = 1,
     editUrl,
     coverUrl,
+    shareUrl,
     beforeContent,
   } = props;
 
@@ -48,7 +50,7 @@ export function StoryContent(props: StoryContentProps) {
         />
       </TitleTag>
 
-      <StoryInformation story={story} locale={locale} editUrl={editUrl} coverUrl={coverUrl} />
+      <StoryInformation story={story} locale={locale} editUrl={editUrl} coverUrl={coverUrl} shareUrl={shareUrl} />
 
       {beforeContent}
 

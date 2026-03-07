@@ -1,0 +1,71 @@
+@reference "@/theme.css";
+
+.container {
+  @apply space-y-4;
+}
+
+.label {
+  @apply text-sm font-medium;
+}
+
+.textarea {
+  @apply w-full min-h-[180px] resize-y rounded-md border border-input bg-background px-3 py-2 text-sm
+    placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+}
+
+.prefillRow {
+  @apply flex items-center gap-2;
+}
+
+.prefillButton {
+  @apply text-xs text-primary hover:underline cursor-pointer bg-transparent border-none p-0;
+}
+
+.counters {
+  @apply flex flex-wrap gap-2;
+}
+
+.counter {
+  @apply flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+}
+
+.counterOk {
+  @apply bg-muted text-muted-foreground;
+}
+
+.counterWarning {
+  @apply bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200;
+}
+
+.counterExceeded {
+  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+}
+
+.hashtagSection {
+  @apply space-y-1;
+}
+
+.hashtagInput {
+  @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+}
+
+.storyLinkCard {
+  @apply flex items-center gap-3 rounded-lg border p-3 bg-muted/30;
+}
+
+.storyLinkImage {
+  @apply size-12 rounded object-cover bg-muted shrink-0;
+}
+
+.storyLinkMeta {
+  @apply flex-1 min-w-0;
+}
+
+.storyLinkTitle {
+  @apply text-sm font-medium truncate;
+}
+
+.storyLinkUrl {
+  @apply text-xs text-muted-foreground truncate;
+}

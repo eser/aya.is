@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { Calendar, Clock, ExternalLink, PencilLine, Tag } from "lucide-react";
+import { Calendar, Clock, ExternalLink, PencilLine, Share2, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { formatDateTimeLong, formatDateTimeRange } from "@/lib/date";
@@ -12,6 +12,7 @@ export type StoryInformationProps = {
   locale: string;
   editUrl?: string;
   coverUrl?: string;
+  shareUrl?: string;
 };
 
 const activityKindLabels: Record<string, string> = {
@@ -24,15 +25,22 @@ const activityKindLabels: Record<string, string> = {
 
 export function StoryInformation(props: StoryInformationProps) {
   if (props.story.kind === "activity") {
-    return <ActivityInformationContent story={props.story} locale={props.locale} editUrl={props.editUrl} />;
+    return (
+      <ActivityInformationContent
+        story={props.story}
+        locale={props.locale}
+        editUrl={props.editUrl}
+        shareUrl={props.shareUrl}
+      />
+    );
   }
 
-  return <DefaultInformationContent story={props.story} editUrl={props.editUrl} />;
+  return <DefaultInformationContent story={props.story} editUrl={props.editUrl} shareUrl={props.shareUrl} />;
 }
 
 // --- Internal: activity metadata ---
 
-function ActivityInformationContent(props: { story: StoryEx; locale: string; editUrl?: string }) {
+function ActivityInformationContent(props: { story: StoryEx; locale: string; editUrl?: string; shareUrl?: string }) {
   const { t } = useTranslation();
 
   const activityProps = (props.story.properties ?? {}) as unknown as ActivityProperties;
@@ -81,15 +89,26 @@ function ActivityInformationContent(props: { story: StoryEx; locale: string; edi
         </a>
       )}
 
-      {props.editUrl !== undefined && (
+      {(props.editUrl !== undefined || props.shareUrl !== undefined) && (
         <div className={styles.editGroup}>
-          <Link
-            to={props.editUrl}
-            className={cn(styles.editLink, "!no-underline hover:!no-underline hover:text-foreground")}
-          >
-            <PencilLine className="size-3.5" />
-            {t("ContentEditor.Edit Story")}
-          </Link>
+          {props.shareUrl !== undefined && (
+            <Link
+              to={props.shareUrl}
+              className={cn(styles.editLink, "!no-underline hover:!no-underline hover:text-foreground")}
+            >
+              <Share2 className="size-3.5" />
+              {t("ShareWizard.Share Wizard")}
+            </Link>
+          )}
+          {props.editUrl !== undefined && (
+            <Link
+              to={props.editUrl}
+              className={cn(styles.editLink, "!no-underline hover:!no-underline hover:text-foreground")}
+            >
+              <PencilLine className="size-3.5" />
+              {t("ContentEditor.Edit Story")}
+            </Link>
+          )}
         </div>
       )}
     </div>
@@ -98,7 +117,7 @@ function ActivityInformationContent(props: { story: StoryEx; locale: string; edi
 
 // --- Internal: default (article/news/etc.) metadata ---
 
-function DefaultInformationContent(props: { story: StoryEx; editUrl?: string }) {
+function DefaultInformationContent(props: { story: StoryEx; editUrl?: string; shareUrl?: string }) {
   const { t } = useTranslation();
 
   const readingTime = calculateReadingTime(props.story.content);
@@ -123,15 +142,26 @@ function DefaultInformationContent(props: { story: StoryEx; editUrl?: string }) 
         </span>
       </span>
 
-      {props.editUrl !== undefined && (
+      {(props.editUrl !== undefined || props.shareUrl !== undefined) && (
         <div className={styles.editGroup}>
-          <Link
-            to={props.editUrl}
-            className={cn(styles.editLink, "!no-underline hover:!no-underline hover:text-foreground")}
-          >
-            <PencilLine className="size-3.5" />
-            {t("ContentEditor.Edit Story")}
-          </Link>
+          {props.shareUrl !== undefined && (
+            <Link
+              to={props.shareUrl}
+              className={cn(styles.editLink, "!no-underline hover:!no-underline hover:text-foreground")}
+            >
+              <Share2 className="size-3.5" />
+              {t("ShareWizard.Share Wizard")}
+            </Link>
+          )}
+          {props.editUrl !== undefined && (
+            <Link
+              to={props.editUrl}
+              className={cn(styles.editLink, "!no-underline hover:!no-underline hover:text-foreground")}
+            >
+              <PencilLine className="size-3.5" />
+              {t("ContentEditor.Edit Story")}
+            </Link>
+          )}
         </div>
       )}
     </div>

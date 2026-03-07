@@ -1,0 +1,57 @@
+@reference "@/theme.css";
+
+.container {
+  @apply space-y-3;
+}
+
+.title {
+  @apply text-sm font-semibold flex items-center gap-2;
+}
+
+.templates {
+  @apply grid grid-cols-2 gap-2;
+}
+
+.templateCard {
+  @apply rounded-lg border p-3 cursor-pointer transition-colors text-center hover:bg-muted;
+}
+
+.templateCardActive {
+  @apply border-primary bg-primary/5;
+}
+
+.templateIcon {
+  @apply size-8 mx-auto text-muted-foreground;
+}
+
+.templateLabel {
+  @apply text-xs font-medium mt-1.5;
+}
+
+.dimensions {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.dimensionButton {
+  @apply px-2.5 py-1 text-xs rounded-md border transition-colors cursor-pointer bg-transparent hover:bg-muted;
+}
+
+.dimensionButtonActive {
+  @apply bg-primary text-primary-foreground border-primary hover:bg-primary/90;
+}
+
+.preview {
+  @apply rounded-lg border overflow-hidden bg-muted/30 flex items-center justify-center min-h-[120px];
+}
+
+.previewImage {
+  @apply max-w-full max-h-48 object-contain;
+}
+
+.previewPlaceholder {
+  @apply text-sm text-muted-foreground;
+}
+
+.downloadButton {
+  @apply w-full;
+}

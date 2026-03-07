@@ -163,11 +163,13 @@ import { toggleAdminWorker } from "./admin/toggle-admin-worker";
 import { triggerAdminWorker } from "./admin/trigger-admin-worker";
 import { getBulletinPreferences } from "./bulletins/get-bulletin-preferences";
 import { updateBulletinPreferences } from "./bulletins/update-bulletin-preferences";
+import { shareWizardAiAssist } from "./share-wizard/ai-assist";
 
 // Re-export types
 export * from "./types";
 export type { AdminWorkerStatus } from "./admin/get-admin-workers";
 export type { BulletinPreferences, UpdateBulletinPreferencesRequest } from "./bulletins/types";
+export type { ShareWizardAiAssistRequest, ShareWizardAiAssistResponse } from "./share-wizard/ai-assist";
 export type { AccessibleProfile } from "./sessions/types";
 export type { ToggleWorkerResult } from "./admin/toggle-admin-worker";
 export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
@@ -414,6 +416,9 @@ export const backend = {
   // Bulletins
   getBulletinPreferences,
   updateBulletinPreferences,
+
+  // Share Wizard
+  shareWizardAiAssist,
 };
 
 // Individual exports for tree-shaking
@@ -553,6 +558,8 @@ export {
   setInteraction,
   setMembershipTeams,
   setResourceTeams,
+  // Share Wizard
+  shareWizardAiAssist,
   solvePOW,
   toggleAdminWorker,
   triggerAdminWorker,

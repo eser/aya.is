@@ -189,6 +189,7 @@ function StoryPage() {
 
   const editUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/edit` : undefined;
   const coverUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/cover` : undefined;
+  const shareUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/share` : undefined;
 
   // Activity-specific widgets injected between metadata and content
   const beforeContent = story.kind === "activity"
@@ -206,6 +207,7 @@ function StoryPage() {
           showAuthor
           editUrl={editUrl}
           coverUrl={coverUrl}
+          shareUrl={shareUrl}
           beforeContent={beforeContent}
         />
 

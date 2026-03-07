@@ -165,6 +165,13 @@ func Run( //nolint:funlen
 		profilePointsService,
 		aiModels,
 	)
+	RegisterHTTPRoutesForShareWizard( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		aiModels,
+	)
 	RegisterHTTPRoutesForSearch( //nolint:contextcheck
 		routes,
 		profileService,
