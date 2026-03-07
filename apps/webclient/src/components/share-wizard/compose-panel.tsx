@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Hash, Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon } from "lucide-react";
 import type { StoryEx } from "@/modules/backend/types";
 import styles from "./compose-panel.module.css";
 
@@ -12,19 +12,15 @@ const PLATFORM_LIMITS = [
 
 export type ComposePanelProps = {
   text: string;
-  hashtags: string;
   story: StoryEx;
   currentUrl: string;
   onTextChange: (text: string) => void;
-  onHashtagsChange: (hashtags: string) => void;
 };
 
-function computeCharCount(text: string, hashtags: string, linkCost: number): number {
-  const hashtagText = hashtags.trim().length > 0 ? ` ${hashtags.trim()}` : "";
-  const fullText = `${text}${hashtagText}`;
+function computeCharCount(text: string, linkCost: number): number {
   // Link cost: some platforms shorten URLs (X, Mastodon use t.co-style ~23 chars)
   // We add the link cost since the story URL is always appended
-  return fullText.length + (linkCost > 0 ? linkCost : 0);
+  return text.length + (linkCost > 0 ? linkCost : 0);
 }
 
 function counterStatus(
@@ -91,7 +87,7 @@ export function ComposePanel(props: ComposePanelProps) {
       {/* Character counters */}
       <div className={styles.counters}>
         {PLATFORM_LIMITS.map((platform) => {
-          const charCount = computeCharCount(props.text, props.hashtags, platform.linkCost);
+          const charCount = computeCharCount(props.text, platform.linkCost);
           const status = counterStatus(charCount, platform.limit, platform.warning);
           const remaining = platform.limit - charCount;
 
@@ -105,22 +101,6 @@ export function ComposePanel(props: ComposePanelProps) {
             </span>
           );
         })}
-      </div>
-
-      {/* Hashtags */}
-      <div className={styles.hashtagSection}>
-        <label className={styles.label} htmlFor="share-hashtags">
-          <Hash className="inline size-3.5 mr-1" />
-          {t("ShareWizard.Hashtags")}
-        </label>
-        <input
-          id="share-hashtags"
-          type="text"
-          className={styles.hashtagInput}
-          value={props.hashtags}
-          onChange={(e) => props.onHashtagsChange(e.target.value)}
-          placeholder="#aya #tech #article"
-        />
       </div>
 
       {/* Story link card */}

@@ -16,7 +16,6 @@ export type ShareWizardProps = {
 
 export function ShareWizard(props: ShareWizardProps) {
   const [text, setText] = useState("");
-  const [hashtags, setHashtags] = useState("");
   const [platformOverrides, setPlatformOverrides] = useState<Map<string, string>>(new Map());
   const [activePlatform, setActivePlatform] = useState("x");
 
@@ -30,19 +29,6 @@ export function ShareWizard(props: ShareWizardProps) {
       }
       return next;
     });
-  }, []);
-
-  const handleApplyText = useCallback((newText: string) => {
-    // Apply AI result to active platform override if one exists, otherwise to main text
-    if (platformOverrides.has(activePlatform)) {
-      handlePlatformOverrideChange(activePlatform, newText);
-    } else {
-      setText(newText);
-    }
-  }, [activePlatform, platformOverrides, handlePlatformOverrideChange]);
-
-  const handleApplyHashtags = useCallback((newHashtags: string) => {
-    setHashtags(newHashtags);
   }, []);
 
   return (
@@ -62,16 +48,13 @@ export function ShareWizard(props: ShareWizardProps) {
         <div className={styles.mainPanel}>
           <ComposePanel
             text={text}
-            hashtags={hashtags}
             story={props.story}
             currentUrl={props.currentUrl}
             onTextChange={setText}
-            onHashtagsChange={setHashtags}
           />
 
           <PlatformPreview
             text={text}
-            hashtags={hashtags}
             story={props.story}
             currentUrl={props.currentUrl}
             platformOverrides={platformOverrides}
@@ -89,8 +72,6 @@ export function ShareWizard(props: ShareWizardProps) {
             storySlug={props.story.slug ?? ""}
             locale={props.locale}
             activePlatform={activePlatform}
-            onApplyText={handleApplyText}
-            onApplyHashtags={handleApplyHashtags}
           />
 
           <ImageComposer

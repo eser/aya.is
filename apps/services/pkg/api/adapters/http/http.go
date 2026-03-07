@@ -165,13 +165,15 @@ func Run( //nolint:funlen
 		profilePointsService,
 		aiModels,
 	)
-	RegisterHTTPRoutesForShareWizard( //nolint:contextcheck
-		routes,
-		logger,
-		authService,
-		userService,
-		aiModels,
-	)
+	// Share Wizard AI routes are temporarily disabled — they will be enabled
+	// once profile points integration is in place to avoid spending AI credits.
+	// RegisterHTTPRoutesForShareWizard( //nolint:contextcheck
+	// 	routes,
+	// 	logger,
+	// 	authService,
+	// 	userService,
+	// 	aiModels,
+	// )
 	RegisterHTTPRoutesForSearch( //nolint:contextcheck
 		routes,
 		profileService,

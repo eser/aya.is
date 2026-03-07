@@ -48,7 +48,6 @@ const PLATFORMS: Platform[] = [
 
 export type PlatformPreviewProps = {
   text: string;
-  hashtags: string;
   story: StoryEx;
   currentUrl: string;
   platformOverrides: Map<string, string>;
@@ -60,12 +59,9 @@ export type PlatformPreviewProps = {
 function getDisplayText(
   platformId: string,
   mainText: string,
-  hashtags: string,
   overrides: Map<string, string>,
 ): string {
-  const base = overrides.get(platformId) ?? mainText;
-  const hashtagText = hashtags.trim().length > 0 ? `\n\n${hashtags.trim()}` : "";
-  return `${base}${hashtagText}`;
+  return overrides.get(platformId) ?? mainText;
 }
 
 function getEffectiveLength(text: string, linkCost: number): number {
@@ -78,7 +74,7 @@ export function PlatformPreview(props: PlatformPreviewProps) {
 
   const activeTab = props.activePlatform;
   const activePlatformDef = PLATFORMS.find((p) => p.id === activeTab) ?? PLATFORMS[0];
-  const displayText = getDisplayText(activeTab, props.text, props.hashtags, props.platformOverrides);
+  const displayText = getDisplayText(activeTab, props.text, props.platformOverrides);
   const effectiveLength = getEffectiveLength(displayText, activePlatformDef.linkCost);
   const isExceeded = effectiveLength > activePlatformDef.limit;
   const isCustomized = props.platformOverrides.has(activeTab);
@@ -100,7 +96,7 @@ export function PlatformPreview(props: PlatformPreviewProps) {
   };
 
   const handleOpenIntent = (platform: Platform) => {
-    const text = getDisplayText(platform.id, props.text, props.hashtags, props.platformOverrides);
+    const text = getDisplayText(platform.id, props.text, props.platformOverrides);
     const url = platform.buildIntentUrl(text, props.currentUrl);
     globalThis.open(url, "_blank", "noopener,noreferrer");
   };
