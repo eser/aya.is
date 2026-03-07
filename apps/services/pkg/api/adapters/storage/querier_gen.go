@@ -3811,7 +3811,7 @@ type Querier interface {
 	//      )
 	//  WHERE sdp.story_id = $3
 	//    AND sdp.deleted_at IS NULL
-	//  ORDER BY sdp.vote_score DESC, sdp.created_at ASC
+	//  ORDER BY sdp.datetime_start ASC, sdp.datetime_end ASC NULLS LAST
 	ListStoryDateProposals(ctx context.Context, arg ListStoryDateProposalsParams) ([]*ListStoryDateProposalsRow, error)
 	// Lists interactions on a story with profile info, optionally filtered by kind.
 	//

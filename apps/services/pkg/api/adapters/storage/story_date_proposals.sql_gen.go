@@ -327,7 +327,7 @@ FROM "story_date_proposal" sdp
     )
 WHERE sdp.story_id = $3
   AND sdp.deleted_at IS NULL
-ORDER BY sdp.vote_score DESC, sdp.created_at ASC
+ORDER BY sdp.datetime_start ASC, sdp.datetime_end ASC NULLS LAST
 `
 
 type ListStoryDateProposalsParams struct {
@@ -398,7 +398,7 @@ type ListStoryDateProposalsRow struct {
 //	    )
 //	WHERE sdp.story_id = $3
 //	  AND sdp.deleted_at IS NULL
-//	ORDER BY sdp.vote_score DESC, sdp.created_at ASC
+//	ORDER BY sdp.datetime_start ASC, sdp.datetime_end ASC NULLS LAST
 func (q *Queries) ListStoryDateProposals(ctx context.Context, arg ListStoryDateProposalsParams) ([]*ListStoryDateProposalsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listStoryDateProposals, arg.ViewerProfileID, arg.LocaleCode, arg.StoryID)
 	if err != nil {

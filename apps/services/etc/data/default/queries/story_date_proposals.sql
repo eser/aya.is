@@ -57,7 +57,7 @@ FROM "story_date_proposal" sdp
     )
 WHERE sdp.story_id = sqlc.arg(story_id)
   AND sdp.deleted_at IS NULL
-ORDER BY sdp.vote_score DESC, sdp.created_at ASC;
+ORDER BY sdp.datetime_start ASC, sdp.datetime_end ASC NULLS LAST;
 
 -- name: SoftDeleteStoryDateProposal :exec
 UPDATE "story_date_proposal"
