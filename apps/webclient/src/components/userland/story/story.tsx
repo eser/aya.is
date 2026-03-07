@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Calendar, Images, Info, Megaphone, Newspaper, PencilLine, Presentation } from "lucide-react";
+import { Calendar, Images, Info, Megaphone, Newspaper, PencilLine, Presentation, Tag } from "lucide-react";
 import { LocaleLink } from "@/components/locale-link";
 import { SiteAvatar } from "@/components/userland/site-avatar";
 import { cn } from "@/lib/utils";
@@ -86,7 +86,6 @@ export function Story(props: StoryProps) {
         <div className={styles.contentArea}>
           <h3 className={styles.title}>
             {stripMarkdown(props.story.title ?? "")}
-            {isActivity && <ActivityKindBadge properties={props.story.properties} />}
             <LocaleBadge localeCode={props.story.locale_code} className={styles.localeBadge} />
           </h3>
           {props.story.summary !== null && props.story.summary !== undefined && (
@@ -134,15 +133,6 @@ function StoryMeta(props: { story: StoryType | StoryEx; locale: string }) {
   );
 }
 
-function ActivityKindBadge(props: { properties: Record<string, unknown> | null }) {
-  const { t } = useTranslation();
-  const activityProps = (props.properties ?? {}) as unknown as ActivityProperties;
-  const activityKind = activityProps.activity_kind ?? "meetup";
-  const kindLabelKey = activityKindLabels[activityKind] ?? "Activities.Meetup";
-
-  return <span className={styles.kindBadge}>{t(kindLabelKey)}</span>;
-}
-
 function ActivityMeta(props: {
   properties: Record<string, unknown> | null;
   authorProfile: { title: string | null; slug: string } | null;
@@ -155,6 +145,7 @@ function ActivityMeta(props: {
     ? new Date(activityProps.activity_time_start)
     : null;
   const timeEnd = activityProps.activity_time_end !== undefined ? new Date(activityProps.activity_time_end) : null;
+  const kindLabel = activityKindLabels[activityProps.activity_kind ?? "meetup"] ?? "Activities.Meetup";
 
   return (
     <>
@@ -175,6 +166,10 @@ function ActivityMeta(props: {
               : formatDateTimeShort(timeStart, props.locale)}
           </span>
         )}
+      <span className="flex items-center gap-1.5">
+        <Tag className="size-3.5" />
+        {t(kindLabel)}
+      </span>
       {props.authorProfile !== null && (
         <span className={styles.author}>
           {props.authorProfile.title}
