@@ -43,9 +43,7 @@ export function Story(props: StoryProps) {
   const isActivity = props.story.kind === "activity";
 
   let href: string;
-  if (isActivity) {
-    href = `/activities/${props.story.slug}`;
-  } else if (props.isCustomDomain === true) {
+  if (props.isCustomDomain === true) {
     href = `/stories/${props.story.slug}`;
   } else if (props.profileSlug !== undefined) {
     href = `/${props.profileSlug}/stories/${props.story.slug}`;

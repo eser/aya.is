@@ -6,7 +6,7 @@ import { Check, ExternalLink, Star, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { backend } from "@/modules/backend/backend";
 import type { InteractionCount, RSVPMode, StoryInteraction } from "@/modules/backend/types";
-import styles from "./-rsvp-buttons.module.css";
+import styles from "./rsvp-buttons.module.css";
 
 const RSVP_KINDS = ["attending", "interested", "not_attending"] as const;
 

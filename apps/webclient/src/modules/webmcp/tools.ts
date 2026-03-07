@@ -9,7 +9,6 @@ import { isValidLocale, SUPPORTED_LOCALES } from "@/config.ts";
 export interface RouteContext {
   profileSlug: string | null;
   storySlug: string | null;
-  activitySlug: string | null;
 }
 
 const RESERVED_SEGMENTS = new Set([
@@ -33,7 +32,6 @@ export function parseRouteContext(pathname: string): RouteContext {
   const result: RouteContext = {
     profileSlug: null,
     storySlug: null,
-    activitySlug: null,
   };
 
   if (segments.length < 2) {
@@ -48,9 +46,9 @@ export function parseRouteContext(pathname: string): RouteContext {
     return result;
   }
 
-  // /$locale/activities/$activityslug
+  // /$locale/activities/$activityslug — activities are served under /stories/ now
   if (second === "activities" && segments.length >= 3) {
-    result.activitySlug = segments[2];
+    result.storySlug = segments[2];
     return result;
   }
 
@@ -363,19 +361,6 @@ export function buildContextualTools(
         },
       },
     );
-  }
-
-  if (context.activitySlug !== null) {
-    const slug = context.activitySlug;
-    tools.push({
-      name: "get-current-activity",
-      description: `Get details about the activity currently being viewed (${slug}).`,
-      inputSchema: { type: "object", properties: {} },
-      annotations: { readOnlyHint: true },
-      execute: async () => {
-        return await backend.getStory(locale, slug);
-      },
-    });
   }
 
   return tools;

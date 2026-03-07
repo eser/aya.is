@@ -43,7 +43,6 @@ import { Route as LocaleSlugSplatRouteImport } from './routes/$locale/$slug/$'
 import { Route as LocaleStoriesStoryslugRouteRouteImport } from './routes/$locale/stories/$storyslug/route'
 import { Route as LocaleAdminWorkersRouteRouteImport } from './routes/$locale/admin/workers/route'
 import { Route as LocaleAdminPointsRouteRouteImport } from './routes/$locale/admin/points/route'
-import { Route as LocaleActivitiesActivityslugRouteRouteImport } from './routes/$locale/activities/$activityslug/route'
 import { Route as LocaleSlugStoriesRouteRouteImport } from './routes/$locale/$slug/stories/route'
 import { Route as LocaleSlugSettingsRouteRouteImport } from './routes/$locale/$slug/settings/route'
 import { Route as LocaleSlugQaRouteRouteImport } from './routes/$locale/$slug/qa/route'
@@ -54,7 +53,6 @@ import { Route as LocaleSeriesSeriesSlugIndexRouteImport } from './routes/$local
 import { Route as LocaleAdminWorkersIndexRouteImport } from './routes/$locale/admin/workers/index'
 import { Route as LocaleAdminProfilesIndexRouteImport } from './routes/$locale/admin/profiles/index'
 import { Route as LocaleAdminPointsIndexRouteImport } from './routes/$locale/admin/points/index'
-import { Route as LocaleActivitiesActivityslugIndexRouteImport } from './routes/$locale/activities/$activityslug/index'
 import { Route as LocaleSlugStoriesIndexRouteImport } from './routes/$locale/$slug/stories/index'
 import { Route as LocaleSlugSettingsIndexRouteImport } from './routes/$locale/$slug/settings/index'
 import { Route as LocaleSlugQaIndexRouteImport } from './routes/$locale/$slug/qa/index'
@@ -250,12 +248,6 @@ const LocaleAdminPointsRouteRoute = LocaleAdminPointsRouteRouteImport.update({
   path: '/points',
   getParentRoute: () => LocaleAdminRouteRoute,
 } as any)
-const LocaleActivitiesActivityslugRouteRoute =
-  LocaleActivitiesActivityslugRouteRouteImport.update({
-    id: '/$activityslug',
-    path: '/$activityslug',
-    getParentRoute: () => LocaleActivitiesRouteRoute,
-  } as any)
 const LocaleSlugStoriesRouteRoute = LocaleSlugStoriesRouteRouteImport.update({
   id: '/stories',
   path: '/stories',
@@ -309,12 +301,6 @@ const LocaleAdminPointsIndexRoute = LocaleAdminPointsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LocaleAdminPointsRouteRoute,
 } as any)
-const LocaleActivitiesActivityslugIndexRoute =
-  LocaleActivitiesActivityslugIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LocaleActivitiesActivityslugRouteRoute,
-  } as any)
 const LocaleSlugStoriesIndexRoute = LocaleSlugStoriesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -463,7 +449,6 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/qa': typeof LocaleSlugQaRouteRouteWithChildren
   '/$locale/$slug/settings': typeof LocaleSlugSettingsRouteRouteWithChildren
   '/$locale/$slug/stories': typeof LocaleSlugStoriesRouteRouteWithChildren
-  '/$locale/activities/$activityslug': typeof LocaleActivitiesActivityslugRouteRouteWithChildren
   '/$locale/admin/points': typeof LocaleAdminPointsRouteRouteWithChildren
   '/$locale/admin/workers': typeof LocaleAdminWorkersRouteRouteWithChildren
   '/$locale/stories/$storyslug': typeof LocaleStoriesStoryslugRouteRouteWithChildren
@@ -505,7 +490,6 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/qa/': typeof LocaleSlugQaIndexRoute
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories/': typeof LocaleSlugStoriesIndexRoute
-  '/$locale/activities/$activityslug/': typeof LocaleActivitiesActivityslugIndexRoute
   '/$locale/admin/points/': typeof LocaleAdminPointsIndexRoute
   '/$locale/admin/profiles/': typeof LocaleAdminProfilesIndexRoute
   '/$locale/admin/workers/': typeof LocaleAdminWorkersIndexRoute
@@ -560,7 +544,6 @@ export interface FileRoutesByTo {
   '/$locale/$slug/qa': typeof LocaleSlugQaIndexRoute
   '/$locale/$slug/settings': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories': typeof LocaleSlugStoriesIndexRoute
-  '/$locale/activities/$activityslug': typeof LocaleActivitiesActivityslugIndexRoute
   '/$locale/admin/points': typeof LocaleAdminPointsIndexRoute
   '/$locale/admin/profiles': typeof LocaleAdminProfilesIndexRoute
   '/$locale/admin/workers': typeof LocaleAdminWorkersIndexRoute
@@ -590,7 +573,6 @@ export interface FileRoutesById {
   '/$locale/$slug/qa': typeof LocaleSlugQaRouteRouteWithChildren
   '/$locale/$slug/settings': typeof LocaleSlugSettingsRouteRouteWithChildren
   '/$locale/$slug/stories': typeof LocaleSlugStoriesRouteRouteWithChildren
-  '/$locale/activities/$activityslug': typeof LocaleActivitiesActivityslugRouteRouteWithChildren
   '/$locale/admin/points': typeof LocaleAdminPointsRouteRouteWithChildren
   '/$locale/admin/workers': typeof LocaleAdminWorkersRouteRouteWithChildren
   '/$locale/stories/$storyslug': typeof LocaleStoriesStoryslugRouteRouteWithChildren
@@ -632,7 +614,6 @@ export interface FileRoutesById {
   '/$locale/$slug/qa/': typeof LocaleSlugQaIndexRoute
   '/$locale/$slug/settings/': typeof LocaleSlugSettingsIndexRoute
   '/$locale/$slug/stories/': typeof LocaleSlugStoriesIndexRoute
-  '/$locale/activities/$activityslug/': typeof LocaleActivitiesActivityslugIndexRoute
   '/$locale/admin/points/': typeof LocaleAdminPointsIndexRoute
   '/$locale/admin/profiles/': typeof LocaleAdminProfilesIndexRoute
   '/$locale/admin/workers/': typeof LocaleAdminWorkersIndexRoute
@@ -663,7 +644,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/qa'
     | '/$locale/$slug/settings'
     | '/$locale/$slug/stories'
-    | '/$locale/activities/$activityslug'
     | '/$locale/admin/points'
     | '/$locale/admin/workers'
     | '/$locale/stories/$storyslug'
@@ -705,7 +685,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/qa/'
     | '/$locale/$slug/settings/'
     | '/$locale/$slug/stories/'
-    | '/$locale/activities/$activityslug/'
     | '/$locale/admin/points/'
     | '/$locale/admin/profiles/'
     | '/$locale/admin/workers/'
@@ -760,7 +739,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/qa'
     | '/$locale/$slug/settings'
     | '/$locale/$slug/stories'
-    | '/$locale/activities/$activityslug'
     | '/$locale/admin/points'
     | '/$locale/admin/profiles'
     | '/$locale/admin/workers'
@@ -789,7 +767,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/qa'
     | '/$locale/$slug/settings'
     | '/$locale/$slug/stories'
-    | '/$locale/activities/$activityslug'
     | '/$locale/admin/points'
     | '/$locale/admin/workers'
     | '/$locale/stories/$storyslug'
@@ -831,7 +808,6 @@ export interface FileRouteTypes {
     | '/$locale/$slug/qa/'
     | '/$locale/$slug/settings/'
     | '/$locale/$slug/stories/'
-    | '/$locale/activities/$activityslug/'
     | '/$locale/admin/points/'
     | '/$locale/admin/profiles/'
     | '/$locale/admin/workers/'
@@ -1092,13 +1068,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminPointsRouteRouteImport
       parentRoute: typeof LocaleAdminRouteRoute
     }
-    '/$locale/activities/$activityslug': {
-      id: '/$locale/activities/$activityslug'
-      path: '/$activityslug'
-      fullPath: '/$locale/activities/$activityslug'
-      preLoaderRoute: typeof LocaleActivitiesActivityslugRouteRouteImport
-      parentRoute: typeof LocaleActivitiesRouteRoute
-    }
     '/$locale/$slug/stories': {
       id: '/$locale/$slug/stories'
       path: '/stories'
@@ -1168,13 +1137,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/admin/points/'
       preLoaderRoute: typeof LocaleAdminPointsIndexRouteImport
       parentRoute: typeof LocaleAdminPointsRouteRoute
-    }
-    '/$locale/activities/$activityslug/': {
-      id: '/$locale/activities/$activityslug/'
-      path: '/'
-      fullPath: '/$locale/activities/$activityslug/'
-      preLoaderRoute: typeof LocaleActivitiesActivityslugIndexRouteImport
-      parentRoute: typeof LocaleActivitiesActivityslugRouteRoute
     }
     '/$locale/$slug/stories/': {
       id: '/$locale/$slug/stories/'
@@ -1472,30 +1434,12 @@ const LocaleSlugRouteRouteWithChildren = LocaleSlugRouteRoute._addFileChildren(
   LocaleSlugRouteRouteChildren,
 )
 
-interface LocaleActivitiesActivityslugRouteRouteChildren {
-  LocaleActivitiesActivityslugIndexRoute: typeof LocaleActivitiesActivityslugIndexRoute
-}
-
-const LocaleActivitiesActivityslugRouteRouteChildren: LocaleActivitiesActivityslugRouteRouteChildren =
-  {
-    LocaleActivitiesActivityslugIndexRoute:
-      LocaleActivitiesActivityslugIndexRoute,
-  }
-
-const LocaleActivitiesActivityslugRouteRouteWithChildren =
-  LocaleActivitiesActivityslugRouteRoute._addFileChildren(
-    LocaleActivitiesActivityslugRouteRouteChildren,
-  )
-
 interface LocaleActivitiesRouteRouteChildren {
-  LocaleActivitiesActivityslugRouteRoute: typeof LocaleActivitiesActivityslugRouteRouteWithChildren
   LocaleActivitiesNewRoute: typeof LocaleActivitiesNewRoute
   LocaleActivitiesIndexRoute: typeof LocaleActivitiesIndexRoute
 }
 
 const LocaleActivitiesRouteRouteChildren: LocaleActivitiesRouteRouteChildren = {
-  LocaleActivitiesActivityslugRouteRoute:
-    LocaleActivitiesActivityslugRouteRouteWithChildren,
   LocaleActivitiesNewRoute: LocaleActivitiesNewRoute,
   LocaleActivitiesIndexRoute: LocaleActivitiesIndexRoute,
 }

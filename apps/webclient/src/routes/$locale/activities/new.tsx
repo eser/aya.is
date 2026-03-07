@@ -157,10 +157,10 @@ function NewActivityPage() {
     if (result !== null) {
       toast.success(t("Activities.Activity created successfully"));
       navigate({
-        to: "/$locale/activities/$activityslug",
+        to: "/$locale/stories/$storyslug",
         params: {
           locale: params.locale,
-          activityslug: data.slug,
+          storyslug: data.slug,
         },
       });
     } else {

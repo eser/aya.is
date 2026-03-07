@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { backend } from "@/modules/backend/backend";
 import type { DateProposal } from "@/modules/backend/types";
 import { formatDateTimeLong, formatDateTimeRange } from "@/lib/date";
-import styles from "./-date-poll.module.css";
+import styles from "./date-poll.module.css";
 
 export type DatePollProps = {
   locale: string;
