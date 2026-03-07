@@ -11,6 +11,7 @@ const AUTH_TOKEN_EXPIRES_KEY = "auth_token_expires_at";
 const AUTH_SESSION_KEY = "auth_session";
 
 // HTTP status codes
+const HTTP_STATUS_NO_CONTENT = 204;
 const HTTP_STATUS_UNAUTHORIZED = 401;
 const HTTP_STATUS_NOT_FOUND = 404;
 const HTTP_STATUS_METHOD_NOT_ALLOWED = 405;
@@ -318,6 +319,10 @@ async function fetcherInternal<T>(
           });
         }
 
+        if (retryResponse.status === HTTP_STATUS_NO_CONTENT) {
+          return null;
+        }
+
         const retryResult = (await retryResponse.json()) as Result<T>;
 
         if (retryResult.error !== undefined && retryResult.error !== null) {
@@ -342,6 +347,11 @@ async function fetcherInternal<T>(
     throw new Error("Internal server error", {
       cause: { status: response.status, url: targetUrl },
     });
+  }
+
+  // 204 No Content — successful operation with no response body
+  if (response.status === HTTP_STATUS_NO_CONTENT) {
+    return null;
   }
 
   const result = (await response.json()) as Result<T>;
@@ -399,6 +409,11 @@ export async function uploadFetcher<T>(
     throw new Error("Internal server error", {
       cause: { status: response.status, url: targetUrl },
     });
+  }
+
+  // 204 No Content — successful operation with no response body
+  if (response.status === HTTP_STATUS_NO_CONTENT) {
+    return null;
   }
 
   const result = (await response.json()) as Result<T>;

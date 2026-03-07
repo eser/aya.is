@@ -26,7 +26,7 @@ CREATE INDEX "story_date_proposal_story_id_idx"
 CREATE TABLE IF NOT EXISTS "story_date_proposal_vote" (
   "id"               CHAR(26) NOT NULL PRIMARY KEY,
   "proposal_id"      CHAR(26) NOT NULL
-    CONSTRAINT "story_date_proposal_vote_proposal_id_fk" REFERENCES "story_date_proposal" ("id"),
+    CONSTRAINT "story_date_proposal_vote_proposal_id_fk" REFERENCES "story_date_proposal" ("id") ON DELETE CASCADE,
   "voter_profile_id" CHAR(26) NOT NULL
     CONSTRAINT "story_date_proposal_vote_voter_profile_id_fk" REFERENCES "profile" ("id"),
   "direction"        SMALLINT NOT NULL,
