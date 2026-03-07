@@ -37,7 +37,7 @@ export function StoryFooter(props: StoryFooterProps) {
         </div>
         <div>
           <div className="text-sm text-muted-foreground">
-            {t("Stories.Written by")}
+            {props.story.kind === "activity" ? t("Activities.Organized by") : t("Stories.Written by")}
           </div>
           <div className="text-lg font-semibold text-foreground">
             <Link to={`/${locale}/${props.story.author_profile.slug}`}>

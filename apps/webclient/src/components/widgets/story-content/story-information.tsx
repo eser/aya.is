@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { Calendar, Clock, ExternalLink, PencilLine, User } from "lucide-react";
-import { LocaleLink } from "@/components/locale-link";
+import { Calendar, Clock, ExternalLink, PencilLine, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { formatDateTimeLong, formatDateTimeRange } from "@/lib/date";
@@ -49,7 +48,7 @@ function ActivityInformationContent(props: { story: StoryEx; locale: string; edi
       {dateMode === "undecided"
         ? (
           <span className={styles.item}>
-            <Clock className="size-4" />
+            <Calendar className="size-4" />
             <span className={styles.dateUndecided}>
               {t("Activities.Date Undecided")}
             </span>
@@ -57,24 +56,17 @@ function ActivityInformationContent(props: { story: StoryEx; locale: string; edi
         )
         : timeStart !== null && (
           <span className={styles.item}>
-            <Clock className="size-4" />
+            <Calendar className="size-4" />
             {timeEnd !== null
               ? formatDateTimeRange(timeStart, timeEnd, props.locale)
               : formatDateTimeLong(timeStart, props.locale)}
           </span>
         )}
 
-      <span className={styles.kindBadge}>{t(kindLabel)}</span>
-
-      {props.story.author_profile !== null && props.story.author_profile !== undefined && (
-        <LocaleLink
-          to={`/${props.story.author_profile.slug}`}
-          className={cn(styles.item, "text-muted-foreground hover:text-foreground")}
-        >
-          <User className="size-4" />
-          {t("Activities.Organized by")} {props.story.author_profile.title}
-        </LocaleLink>
-      )}
+      <span className={styles.item}>
+        <Tag className="size-4" />
+        {t(kindLabel)}
+      </span>
 
       {activityProps.external_activity_uri !== undefined &&
         activityProps.external_activity_uri !== "" && (
