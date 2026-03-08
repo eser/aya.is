@@ -60,5 +60,13 @@ logs: ## Shows the logs of the containers.
 cli: ## Opens a shell in the containers.
 	COMPOSE_BAKE=true docker compose exec services bash $(ARGS)
 
+.PHONY: tag
+tag: ## Creates and pushes a release tag from VERSION file.
+	deno run --allow-read --allow-run=git --allow-net scripts/push_current_release_tag.ts
+
+.PHONY: release
+release: ## Syncs latest CHANGELOG.md entry to GitHub Releases.
+	deno run --allow-read --allow-write --allow-run=gh --allow-env scripts/sync_release_notes_from_changelog.ts --repo eser/aya.is
+
 %:
 	@:

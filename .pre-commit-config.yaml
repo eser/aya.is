@@ -141,6 +141,8 @@ repos:
             LICENSE|
             Makefile|
             CLAUDE.md|
+            CHANGELOG.md|
+            VERSION|
             README.en.md|
             README.md|
             MEMORY.md
