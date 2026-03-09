@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| App Name | AYA |
+| App Name | Open Software Network (AYA) |
 | Subtitle | Open Source Network |
 | Bundle ID | is.aya.mac |
 | SKU | aya-macos |
@@ -42,8 +42,8 @@
 
 | Locale | Name | Subtitle |
 |--------|------|----------|
-| en-US | AYA | Open Source Network |
-| tr | AYA | Açık Yazılım Ağı |
+| en-US | Open Software Network (AYA) | Open Source Network |
+| tr | Açık Yazılım Ağı (AYA) | Açık Yazılım Ağı |
 
 ## App Review Information
 

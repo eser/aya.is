@@ -6,4 +6,4 @@ AYA'ya hoş geldiniz! Bu ilk sürümümüz.
 - Tüm içerikte arama yapın
 - Sağdan sola Arapça desteği ile 13 dil
 - Karanlık ve aydınlık mod
-- iPhone, iPad ve Mac için optimize edildi
+- iPhone, iPad ve macOS için optimize edildi
