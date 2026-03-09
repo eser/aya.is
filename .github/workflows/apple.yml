@@ -43,12 +43,12 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Run unit tests on iPhone 16e (iOS 26.2)
+      - name: Run unit tests (iOS)
         run: |
           xcodebuild test \
             -project AYA.xcodeproj \
             -scheme AYA-iOS \
-            -destination 'platform=iOS Simulator,name=iPhone 16e,OS=26.2' \
+            -destination 'platform=iOS Simulator,name=iPhone 16e' \
             -skipPackagePluginValidation \
             -skip-testing:AYA-Tests/RTLSnapshotTests \
             -skip-testing:AYA-Tests/UtilityViewsSnapshotTests \
