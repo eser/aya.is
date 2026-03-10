@@ -30,7 +30,7 @@ jobs:
       run:
         working-directory: apps/apple
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -67,7 +67,7 @@ jobs:
       run:
         working-directory: apps/apple
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
@@ -94,7 +94,7 @@ jobs:
       run:
         working-directory: apps/apple
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
@@ -122,7 +122,7 @@ jobs:
       run:
         working-directory: apps/apple
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
@@ -149,7 +149,7 @@ jobs:
       run:
         working-directory: apps/apple
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Verify code conventions
         run: |
