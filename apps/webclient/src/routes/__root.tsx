@@ -32,6 +32,21 @@ type MyRouterContext = {
 // are not JSON-serializable (methods, event emitters) and would break TanStack Router's hydration.
 let ssrI18nInstance: I18nType | null = null;
 
+/**
+ * Returns the correct i18n instance for the current context:
+ * - SSR: the per-request clone (locale-aware, isolated from concurrent requests)
+ * - Client: the singleton (safe — one request at a time)
+ *
+ * Route loaders should use this instead of importing `i18next` directly,
+ * because the singleton may not have the correct locale loaded during SSR.
+ */
+export function getI18nInstance(): I18nType {
+  if (import.meta.env.SSR && ssrI18nInstance !== null) {
+    return ssrI18nInstance;
+  }
+  return i18n;
+}
+
 // Detect navigation state from URL, host, and request context
 function detectNavigationState(
   pathname: string,

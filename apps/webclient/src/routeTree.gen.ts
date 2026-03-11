@@ -58,6 +58,7 @@ import { Route as LocaleSlugSettingsIndexRouteImport } from './routes/$locale/$s
 import { Route as LocaleSlugQaIndexRouteImport } from './routes/$locale/$slug/qa/index'
 import { Route as LocaleSlugMembersIndexRouteImport } from './routes/$locale/$slug/members/index'
 import { Route as LocaleSlugPageslugIndexRouteImport } from './routes/$locale/$slug/$pageslug/index'
+import { Route as LocaleStoriesStoryslugShareRouteImport } from './routes/$locale/stories/$storyslug/share'
 import { Route as LocaleStoriesStoryslugEditRouteImport } from './routes/$locale/stories/$storyslug/edit'
 import { Route as LocaleStoriesStoryslugCoverRouteImport } from './routes/$locale/stories/$storyslug/cover'
 import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/$slug/settings/stories'
@@ -326,6 +327,12 @@ const LocaleSlugPageslugIndexRoute = LocaleSlugPageslugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LocaleSlugPageslugRouteRoute,
 } as any)
+const LocaleStoriesStoryslugShareRoute =
+  LocaleStoriesStoryslugShareRouteImport.update({
+    id: '/share',
+    path: '/share',
+    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+  } as any)
 const LocaleStoriesStoryslugEditRoute =
   LocaleStoriesStoryslugEditRouteImport.update({
     id: '/edit',
@@ -485,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
   '/$locale/stories/$storyslug/edit': typeof LocaleStoriesStoryslugEditRoute
+  '/$locale/stories/$storyslug/share': typeof LocaleStoriesStoryslugShareRoute
   '/$locale/$slug/$pageslug/': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/members/': typeof LocaleSlugMembersIndexRoute
   '/$locale/$slug/qa/': typeof LocaleSlugQaIndexRoute
@@ -539,6 +547,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
   '/$locale/stories/$storyslug/edit': typeof LocaleStoriesStoryslugEditRoute
+  '/$locale/stories/$storyslug/share': typeof LocaleStoriesStoryslugShareRoute
   '/$locale/$slug/$pageslug': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/members': typeof LocaleSlugMembersIndexRoute
   '/$locale/$slug/qa': typeof LocaleSlugQaIndexRoute
@@ -609,6 +618,7 @@ export interface FileRoutesById {
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
   '/$locale/stories/$storyslug/edit': typeof LocaleStoriesStoryslugEditRoute
+  '/$locale/stories/$storyslug/share': typeof LocaleStoriesStoryslugShareRoute
   '/$locale/$slug/$pageslug/': typeof LocaleSlugPageslugIndexRoute
   '/$locale/$slug/members/': typeof LocaleSlugMembersIndexRoute
   '/$locale/$slug/qa/': typeof LocaleSlugQaIndexRoute
@@ -680,6 +690,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
     | '/$locale/stories/$storyslug/edit'
+    | '/$locale/stories/$storyslug/share'
     | '/$locale/$slug/$pageslug/'
     | '/$locale/$slug/members/'
     | '/$locale/$slug/qa/'
@@ -734,6 +745,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
     | '/$locale/stories/$storyslug/edit'
+    | '/$locale/stories/$storyslug/share'
     | '/$locale/$slug/$pageslug'
     | '/$locale/$slug/members'
     | '/$locale/$slug/qa'
@@ -803,6 +815,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
     | '/$locale/stories/$storyslug/edit'
+    | '/$locale/stories/$storyslug/share'
     | '/$locale/$slug/$pageslug/'
     | '/$locale/$slug/members/'
     | '/$locale/$slug/qa/'
@@ -1173,6 +1186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugPageslugIndexRouteImport
       parentRoute: typeof LocaleSlugPageslugRouteRoute
     }
+    '/$locale/stories/$storyslug/share': {
+      id: '/$locale/stories/$storyslug/share'
+      path: '/share'
+      fullPath: '/$locale/stories/$storyslug/share'
+      preLoaderRoute: typeof LocaleStoriesStoryslugShareRouteImport
+      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
+    }
     '/$locale/stories/$storyslug/edit': {
       id: '/$locale/stories/$storyslug/edit'
       path: '/edit'
@@ -1530,6 +1550,7 @@ const LocaleElementsRouteRouteWithChildren =
 interface LocaleStoriesStoryslugRouteRouteChildren {
   LocaleStoriesStoryslugCoverRoute: typeof LocaleStoriesStoryslugCoverRoute
   LocaleStoriesStoryslugEditRoute: typeof LocaleStoriesStoryslugEditRoute
+  LocaleStoriesStoryslugShareRoute: typeof LocaleStoriesStoryslugShareRoute
   LocaleStoriesStoryslugIndexRoute: typeof LocaleStoriesStoryslugIndexRoute
 }
 
@@ -1537,6 +1558,7 @@ const LocaleStoriesStoryslugRouteRouteChildren: LocaleStoriesStoryslugRouteRoute
   {
     LocaleStoriesStoryslugCoverRoute: LocaleStoriesStoryslugCoverRoute,
     LocaleStoriesStoryslugEditRoute: LocaleStoriesStoryslugEditRoute,
+    LocaleStoriesStoryslugShareRoute: LocaleStoriesStoryslugShareRoute,
     LocaleStoriesStoryslugIndexRoute: LocaleStoriesStoryslugIndexRoute,
   }
 

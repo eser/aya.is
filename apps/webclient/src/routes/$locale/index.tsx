@@ -17,7 +17,7 @@ import { liveNowQueryOptions, storiesQueryOptions } from "@/modules/backend/quer
 import { QueryError } from "@/components/query-error";
 import { LiveNowSection } from "@/components/live-now/live-now";
 import { HomeCta } from "@/components/widgets/home-cta";
-import i18next from "i18next";
+import { getI18nInstance } from "@/routes/__root";
 import styles from "./-home.module.css";
 
 const MAX_STORIES = 20;
@@ -31,8 +31,9 @@ type GroupedStories = {
 export const Route = createFileRoute("/$locale/")({
   loader: async ({ params, context }) => {
     const { locale } = params;
-    await i18next.loadLanguages(locale);
-    const t = i18next.getFixedT(locale);
+    const i18nInstance = getI18nInstance();
+    await i18nInstance.loadLanguages(locale);
+    const t = i18nInstance.getFixedT(locale);
     const introText = t("Home.IntroText");
     const siteSubtitle = t("Home.SiteSubtitle");
     const compiledIntro = await compileMdxLite(introText);
