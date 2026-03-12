@@ -14,7 +14,7 @@ Learn about the people behind the projects. Browse developer profiles to find co
 BUILT FOR EVERYONE
 - Available in 13 languages including right-to-left Arabic support
 - Dark and light mode for comfortable reading
-- Responsive grid layout optimized for iPhone, iPad, and Mac
+- Responsive grid layout optimized for iPhone, iPad, and macOS
 - Fast search across all content
 - No account required to browse
 

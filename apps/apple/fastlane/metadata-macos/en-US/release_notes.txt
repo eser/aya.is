@@ -6,4 +6,4 @@ Welcome to AYA! This is our first release.
 - Search across all content
 - 13 languages with right-to-left Arabic support
 - Dark and light mode
-- Optimized for iPhone, iPad, and Mac
+- Optimized for iPhone, iPad, and macOS

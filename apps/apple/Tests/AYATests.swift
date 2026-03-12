@@ -214,7 +214,8 @@ struct NetworkingTests {
     @Test("LocaleHelper returns valid locale")
     func localeHelper() {
         let locale = LocaleHelper.currentLocale
-        #expect(locale == "en" || locale == "tr")
+        let supportedCodes = LocaleHelper.supportedLocales.map(\.code)
+        #expect(supportedCodes.contains(locale), "currentLocale returned unsupported code: \(locale)")
     }
 
     @Test("APIClient initializes with default values")

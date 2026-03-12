@@ -5,6 +5,7 @@ public struct AYASearchBar: View {
     @Binding var text: String
     var placeholder: String = "Search..."
     var onCommit: (() -> Void)?
+    @FocusState private var isFocused: Bool
 
     /// Creates a search bar.
     public init(text: Binding<String>, placeholder: String = "Search...", onCommit: (() -> Void)? = nil) {
@@ -21,6 +22,7 @@ public struct AYASearchBar: View {
                 .font(.body)
 
             TextField(placeholder, text: $text)
+                .focused($isFocused)
                 .textFieldStyle(.plain)
                 .font(AYATypography.body)
                 .onSubmit { onCommit?() }
@@ -34,6 +36,7 @@ public struct AYASearchBar: View {
                     withAnimation(AYAAnimation.filterSwitch) {
                         text = ""
                     }
+                    isFocused = false
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(AYAColors.textTertiary)
