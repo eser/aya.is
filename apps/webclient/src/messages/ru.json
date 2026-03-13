@@ -624,6 +624,8 @@
     "Members Visibility": "Видимость участников",
     "Links Visibility": "Видимость ссылок",
     "Q&A Visibility": "Видимость Вопросов и Ответов",
+    "Candidates Visibility": "Видимость кандидатов",
+    "Applications Visibility": "Видимость заявок",
     "Public": "Публичный",
     "Visible in navigation and accessible by everyone.": "Отображается в навигации и доступен для всех.",
     "Not shown in navigation, but accessible via direct link.": "Не отображается в навигации, но доступен по прямой ссылке.",

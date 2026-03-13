@@ -1040,6 +1040,8 @@ func (r *Repository) UpdateProfile(
 	featureLinks *string,
 	featureQA *string,
 	featureDiscussions *string,
+	featureCandidates *string,
+	featureApplications *string,
 	optionStoryDiscussionsByDefault *bool,
 ) error {
 	params := UpdateProfileParams{
@@ -1051,6 +1053,8 @@ func (r *Repository) UpdateProfile(
 		FeatureLinks:                    vars.ToSQLNullString(featureLinks),
 		FeatureQa:                       vars.ToSQLNullString(featureQA),
 		FeatureDiscussions:              vars.ToSQLNullString(featureDiscussions),
+		FeatureCandidates:               vars.ToSQLNullString(featureCandidates),
+		FeatureApplications:             vars.ToSQLNullString(featureApplications),
 		OptionStoryDiscussionsByDefault: vars.ToSQLNullBool(optionStoryDiscussionsByDefault),
 	}
 

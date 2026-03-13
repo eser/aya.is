@@ -185,6 +185,8 @@ SET
   feature_links = COALESCE(sqlc.narg(feature_links), feature_links),
   feature_qa = COALESCE(sqlc.narg(feature_qa), feature_qa),
   feature_discussions = COALESCE(sqlc.narg(feature_discussions), feature_discussions),
+  feature_candidates = COALESCE(sqlc.narg(feature_candidates), feature_candidates),
+  feature_applications = COALESCE(sqlc.narg(feature_applications), feature_applications),
   option_story_discussions_by_default = COALESCE(sqlc.narg(option_story_discussions_by_default), option_story_discussions_by_default),
   updated_at = NOW()
 WHERE id = sqlc.arg(id)

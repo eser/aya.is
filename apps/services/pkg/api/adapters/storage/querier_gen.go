@@ -4695,9 +4695,11 @@ type Querier interface {
 	//    feature_links = COALESCE($5, feature_links),
 	//    feature_qa = COALESCE($6, feature_qa),
 	//    feature_discussions = COALESCE($7, feature_discussions),
-	//    option_story_discussions_by_default = COALESCE($8, option_story_discussions_by_default),
+	//    feature_candidates = COALESCE($8, feature_candidates),
+	//    feature_applications = COALESCE($9, feature_applications),
+	//    option_story_discussions_by_default = COALESCE($10, option_story_discussions_by_default),
 	//    updated_at = NOW()
-	//  WHERE id = $9
+	//  WHERE id = $11
 	//    AND deleted_at IS NULL
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	//UpdateProfileLink

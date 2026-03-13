@@ -319,6 +319,8 @@ type Repository interface { //nolint:interfacebloat
 		featureLinks *string,
 		featureQA *string,
 		featureDiscussions *string,
+		featureCandidates *string,
+		featureApplications *string,
 		optionStoryDiscussionsByDefault *bool,
 	) error
 	UpdateProfileTx(
@@ -1865,6 +1867,8 @@ func (s *Service) Update( //nolint:cyclop,funlen
 	featureLinks *string,
 	featureQA *string,
 	featureDiscussions *string,
+	featureCandidates *string,
+	featureApplications *string,
 	optionStoryDiscussionsByDefault *bool,
 ) (*Profile, error) {
 	// Get profile ID
@@ -1899,7 +1903,7 @@ func (s *Service) Update( //nolint:cyclop,funlen
 	}
 
 	// Validate module visibility values
-	for _, v := range []*string{featureRelations, featureLinks, featureQA, featureDiscussions} {
+	for _, v := range []*string{featureRelations, featureLinks, featureQA, featureDiscussions, featureCandidates, featureApplications} {
 		if v != nil {
 			switch ModuleVisibility(*v) {
 			case ModuleVisibilityPublic, ModuleVisibilityHidden, ModuleVisibilityDisabled:
@@ -1920,6 +1924,8 @@ func (s *Service) Update( //nolint:cyclop,funlen
 		featureLinks,
 		featureQA,
 		featureDiscussions,
+		featureCandidates,
+		featureApplications,
 		optionStoryDiscussionsByDefault,
 	)
 	if err != nil {

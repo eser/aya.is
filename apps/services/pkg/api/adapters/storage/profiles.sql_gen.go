@@ -5252,9 +5252,11 @@ SET
   feature_links = COALESCE($5, feature_links),
   feature_qa = COALESCE($6, feature_qa),
   feature_discussions = COALESCE($7, feature_discussions),
-  option_story_discussions_by_default = COALESCE($8, option_story_discussions_by_default),
+  feature_candidates = COALESCE($8, feature_candidates),
+  feature_applications = COALESCE($9, feature_applications),
+  option_story_discussions_by_default = COALESCE($10, option_story_discussions_by_default),
   updated_at = NOW()
-WHERE id = $9
+WHERE id = $11
   AND deleted_at IS NULL
 `
 
@@ -5266,6 +5268,8 @@ type UpdateProfileParams struct {
 	FeatureLinks                    sql.NullString        `db:"feature_links" json:"feature_links"`
 	FeatureQa                       sql.NullString        `db:"feature_qa" json:"feature_qa"`
 	FeatureDiscussions              sql.NullString        `db:"feature_discussions" json:"feature_discussions"`
+	FeatureCandidates               sql.NullString        `db:"feature_candidates" json:"feature_candidates"`
+	FeatureApplications             sql.NullString        `db:"feature_applications" json:"feature_applications"`
 	OptionStoryDiscussionsByDefault sql.NullBool          `db:"option_story_discussions_by_default" json:"option_story_discussions_by_default"`
 	ID                              string                `db:"id" json:"id"`
 }
@@ -5285,9 +5289,11 @@ type UpdateProfileParams struct {
 //	  feature_links = COALESCE($5, feature_links),
 //	  feature_qa = COALESCE($6, feature_qa),
 //	  feature_discussions = COALESCE($7, feature_discussions),
-//	  option_story_discussions_by_default = COALESCE($8, option_story_discussions_by_default),
+//	  feature_candidates = COALESCE($8, feature_candidates),
+//	  feature_applications = COALESCE($9, feature_applications),
+//	  option_story_discussions_by_default = COALESCE($10, option_story_discussions_by_default),
 //	  updated_at = NOW()
-//	WHERE id = $9
+//	WHERE id = $11
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateProfile,
@@ -5298,6 +5304,8 @@ func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (i
 		arg.FeatureLinks,
 		arg.FeatureQa,
 		arg.FeatureDiscussions,
+		arg.FeatureCandidates,
+		arg.FeatureApplications,
 		arg.OptionStoryDiscussionsByDefault,
 		arg.ID,
 	)

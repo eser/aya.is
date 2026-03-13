@@ -624,6 +624,8 @@
     "Members Visibility": "成员可见性",
     "Links Visibility": "链接可见性",
     "Q&A Visibility": "问答可见性",
+    "Candidates Visibility": "候选人可见性",
+    "Applications Visibility": "申请可见性",
     "Public": "公开",
     "Visible in navigation and accessible by everyone.": "在导航中可见，所有人均可访问。",
     "Not shown in navigation, but accessible via direct link.": "不在导航中显示，但可通过直接链接访问。",

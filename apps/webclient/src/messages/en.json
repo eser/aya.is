@@ -624,6 +624,8 @@
     "Members Visibility": "Members Visibility",
     "Links Visibility": "Links Visibility",
     "Q&A Visibility": "Q&A Visibility",
+    "Candidates Visibility": "Candidates Visibility",
+    "Applications Visibility": "Applications Visibility",
     "Public": "Public",
     "Visible in navigation and accessible by everyone.": "Visible in navigation and accessible by everyone.",
     "Not shown in navigation, but accessible via direct link.": "Not shown in navigation, but accessible via direct link.",

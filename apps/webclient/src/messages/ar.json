@@ -624,6 +624,8 @@
     "Members Visibility": "إظهار الأعضاء",
     "Links Visibility": "إظهار الروابط",
     "Q&A Visibility": "إظهار الأسئلة والأجوبة",
+    "Candidates Visibility": "رؤية المرشحين",
+    "Applications Visibility": "رؤية الطلبات",
     "Public": "عام",
     "Visible in navigation and accessible by everyone.": "مرئي في التنقل ومتاح للجميع.",
     "Not shown in navigation, but accessible via direct link.": "غير ظاهر في التنقل، ولكن يمكن الوصول إليه عبر رابط مباشر.",
