@@ -570,13 +570,11 @@ function AccessSettingsPage() {
 
       // Upsert application form if preset changed and applications are enabled
       if (featureApplications !== "disabled" && selectedPreset !== currentFormPreset) {
-        if (selectedPreset !== "none") {
-          await backend.upsertApplicationForm(params.locale, params.slug, {
-            preset_key: selectedPreset,
-            fields: [],
-            responses_visibility: "members",
-          });
-        }
+        await backend.upsertApplicationForm(params.locale, params.slug, {
+          preset_key: selectedPreset === "none" ? null : selectedPreset,
+          fields: [],
+          responses_visibility: "members",
+        });
       }
 
       toast.success(t("Profile.Preferences saved"));

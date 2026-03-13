@@ -425,11 +425,12 @@ func RegisterHTTPRoutesForProfileCandidates( //nolint:gocognit,gocyclo,cyclop,fu
 
 	// --- Application Form Endpoints ---
 
-	// List application presets (public)
+	// List application presets (public, locale-aware)
 	routes.Route(
 		"GET /{locale}/profiles/{slug}/_application-presets",
 		func(ctx *httpfx.Context) httpfx.Result {
-			presets := profiles.ListApplicationPresets()
+			localeParam := ctx.Request.PathValue("locale")
+			presets := profiles.ListApplicationPresets(localeParam)
 
 			return ctx.Results.JSON(map[string]any{
 				"data":  presets,
@@ -505,9 +506,12 @@ func RegisterHTTPRoutesForProfileCandidates( //nolint:gocognit,gocyclo,cyclop,fu
 				)
 			}
 
+			localeParam := ctx.Request.PathValue("locale")
+
 			form, err := profileService.UpsertApplicationForm(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
+				localeParam,
 				slugParam,
 				input.PresetKey,
 				input.Fields,

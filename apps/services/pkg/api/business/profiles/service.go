@@ -5140,6 +5140,7 @@ func (s *Service) GetApplicationForm(
 func (s *Service) UpsertApplicationForm( //nolint:cyclop,gocognit,funlen
 	ctx context.Context,
 	userID string,
+	locale string,
 	profileSlug string,
 	presetKey *string,
 	fields []ApplicationFormFieldInput,
@@ -5167,10 +5168,10 @@ func (s *Service) UpsertApplicationForm( //nolint:cyclop,gocognit,funlen
 		}
 	}
 
-	// If preset is given and no explicit fields, use preset fields
+	// If preset is given and no explicit fields, use locale-aware preset fields
 	if presetKey != nil && len(fields) == 0 {
-		preset, ok := ApplicationPresets[*presetKey]
-		if ok {
+		preset := buildPreset(*presetKey, locale)
+		if len(preset.Fields) > 0 {
 			fields = make([]ApplicationFormFieldInput, 0, len(preset.Fields))
 			for i, presetField := range preset.Fields {
 				var placeholder *string
