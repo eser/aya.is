@@ -21,6 +21,7 @@ import {
   Wrench,
 } from "lucide-react";
 import {
+  type ApplicationPreset,
   backend,
   type MembershipKind,
   type ProfileMembershipWithMember,
@@ -297,6 +298,9 @@ function AccessSettingsPage() {
   const [featureApplications, setFeatureApplications] = React.useState<ModuleVisibility>(
     (profile?.feature_applications as ModuleVisibility) ?? "disabled",
   );
+  const [presets, setPresets] = React.useState<ApplicationPreset[]>([]);
+  const [selectedPreset, setSelectedPreset] = React.useState<string>("none");
+  const [currentFormPreset, setCurrentFormPreset] = React.useState<string>("none");
 
   const router = useRouter();
 
@@ -312,6 +316,34 @@ function AccessSettingsPage() {
     setFeatureReferrals((profile?.feature_referrals as ModuleVisibility) ?? "disabled");
     setFeatureApplications((profile?.feature_applications as ModuleVisibility) ?? "disabled");
   }, [profile]);
+
+  // Load application presets on mount
+  React.useEffect(() => {
+    const loadPresets = async () => {
+      const result = await backend.listApplicationPresets(params.locale, params.slug);
+      if (result !== null) {
+        setPresets(result);
+      }
+    };
+
+    if (!isIndividual) {
+      loadPresets();
+    }
+  }, [params.locale, params.slug, isIndividual]);
+
+  // Load current application form when membership dialog opens
+  React.useEffect(() => {
+    if (membershipDialogOpen) {
+      const loadCurrentForm = async () => {
+        const form = await backend.getApplicationForm(params.locale, params.slug).catch(() => null);
+        const presetKey = form !== null && form.preset_key !== null ? form.preset_key : "none";
+        setSelectedPreset(presetKey);
+        setCurrentFormPreset(presetKey);
+      };
+
+      loadCurrentForm();
+    }
+  }, [membershipDialogOpen, params.locale, params.slug]);
 
   const loadTeams = async () => {
     const result = await backend.listProfileTeams(params.locale, params.slug);
@@ -536,6 +568,17 @@ function AccessSettingsPage() {
         return;
       }
 
+      // Upsert application form if preset changed and applications are enabled
+      if (featureApplications !== "disabled" && selectedPreset !== currentFormPreset) {
+        if (selectedPreset !== "none") {
+          await backend.upsertApplicationForm(params.locale, params.slug, {
+            preset_key: selectedPreset,
+            fields: [],
+            responses_visibility: "members",
+          });
+        }
+      }
+
       toast.success(t("Profile.Preferences saved"));
       router.invalidate();
       setMembershipDialogOpen(false);
@@ -619,6 +662,62 @@ function AccessSettingsPage() {
                         onChange={setFeatureApplications}
                         options={visibilityOptions}
                       />
+                    </Field>
+                  )}
+
+                  {featureApplications !== "disabled" && presets.length > 0 && (
+                    <Field>
+                      <FieldLabel>{t("Profile.Application Form Preset")}</FieldLabel>
+                      <Select
+                        value={selectedPreset}
+                        onValueChange={setSelectedPreset}
+                      >
+                        <SelectTrigger>
+                          <SelectValue>
+                            {(value: string) => {
+                              if (value === "none") return t("Profile.None (message only)");
+                              const preset = presets.find((p) => p.key === value);
+                              return preset !== undefined ? preset.label : value;
+                            }}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">
+                            {t("Profile.None (message only)")}
+                          </SelectItem>
+                          {presets.map((preset) => (
+                            <SelectItem key={preset.key} value={preset.key}>
+                              {preset.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {(() => {
+                        const activePreset = presets.find((p) => p.key === selectedPreset);
+                        if (activePreset === undefined || activePreset.fields.length === 0) return null;
+
+                        return (
+                          <div className="mt-2 rounded-md border border-border bg-muted/30 p-3">
+                            <p className="text-xs font-medium text-muted-foreground mb-2">
+                              {t("Profile.Form fields")}
+                            </p>
+                            <ul className="space-y-1.5">
+                              {activePreset.fields.map((field, index) => (
+                                <li key={index} className="flex items-center gap-2 text-sm">
+                                  <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground font-mono">
+                                    {field.field_type}
+                                  </span>
+                                  <span className="text-foreground">
+                                    {field.label}
+                                  </span>
+                                  {field.is_required && <span className="text-destructive text-xs">*</span>}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })()}
                     </Field>
                   )}
                 </div>
