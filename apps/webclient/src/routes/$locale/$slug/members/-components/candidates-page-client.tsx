@@ -26,11 +26,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { backend } from "@/modules/backend/backend";
-import type { ProfileMembershipReferral, ProfileTeam, ReferralStatus, ReferralVote } from "@/modules/backend/types";
-import styles from "./referrals-page-client.module.css";
+import type {
+  CandidateFormResponse,
+  CandidateStatus,
+  CandidateVote,
+  ProfileMembershipCandidate,
+  ProfileTeam,
+} from "@/modules/backend/types";
+import styles from "./candidates-page-client.module.css";
 
-type ReferralsPageClientProps = {
-  referrals: ProfileMembershipReferral[];
+type CandidatesPageClientProps = {
+  candidates: ProfileMembershipCandidate[];
   locale: string;
   slug: string;
   viewerMembershipKind: string | null;
@@ -39,14 +45,14 @@ type ReferralsPageClientProps = {
 const LEAD_PLUS_KINDS = new Set(["maintainer", "lead", "owner"]);
 
 const VOTE_LABELS = [
-  "Referrals.Strongly Disagree",
-  "Referrals.Disagree",
-  "Referrals.Neutral",
-  "Referrals.Agree",
-  "Referrals.Strongly Agree",
+  "Candidates.Strongly Disagree",
+  "Candidates.Disagree",
+  "Candidates.Neutral",
+  "Candidates.Agree",
+  "Candidates.Strongly Agree",
 ] as const;
 
-export function ReferralsPageClient(props: ReferralsPageClientProps) {
+export function CandidatesPageClient(props: CandidatesPageClientProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
@@ -59,7 +65,7 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
     return match?.teams ?? [];
   }, [user?.accessible_profiles, props.slug]);
 
-  const handleReferralCreated = React.useCallback(
+  const handleCandidateCreated = React.useCallback(
     () => {
       setShowCreateDialog(false);
       router.invalidate();
@@ -68,19 +74,19 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
   );
 
   const handleStatusChange = React.useCallback(
-    async (referralId: string, status: ReferralStatus) => {
-      const result = await backend.updateReferralStatus(
+    async (candidateId: string, status: CandidateStatus) => {
+      const result = await backend.updateCandidateStatus(
         props.locale,
         props.slug,
-        referralId,
+        candidateId,
         status,
       );
 
       if (result) {
-        toast.success(t("Referrals.Actions.StatusUpdated"));
+        toast.success(t("Candidates.Actions.StatusUpdated"));
         router.invalidate();
       } else {
-        toast.error(t("Referrals.Actions.StatusUpdateFailed"));
+        toast.error(t("Candidates.Actions.StatusUpdateFailed"));
       }
     },
     [props.locale, props.slug, router, t],
@@ -93,8 +99,8 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
     <>
       <div className={styles.header}>
         <div className={styles.headerText}>
-          <h2>{t("Layout.Referrals")}</h2>
-          <p>{t("Referrals.Referral proposals for new members.")}</p>
+          <h2>{t("Layout.Candidates")}</h2>
+          <p>{t("Candidates.Candidate proposals for new members.")}</p>
         </div>
         <button
           type="button"
@@ -103,25 +109,25 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
         >
           <span className="flex items-center gap-1.5">
             <Plus className="size-4" />
-            {t("Referrals.Refer Someone")}
+            {t("Candidates.Refer Someone")}
           </span>
         </button>
       </div>
 
-      {props.referrals.length === 0
+      {props.candidates.length === 0
         ? (
           <div className={styles.emptyState}>
             <p className={styles.emptyStateText}>
-              {t("Referrals.No referrals yet")}
+              {t("Candidates.No candidates yet")}
             </p>
           </div>
         )
         : (
           <div className="flex flex-col gap-4">
-            {props.referrals.map((referral) => (
-              <ReferralCard
-                key={referral.id}
-                referral={referral}
+            {props.candidates.map((candidate) => (
+              <CandidateCard
+                key={candidate.id}
+                candidate={candidate}
                 locale={props.locale}
                 slug={props.slug}
                 isLeadPlus={isLeadPlus}
@@ -132,11 +138,11 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
         )}
 
       {showCreateDialog && (
-        <CreateReferralDialog
+        <CreateCandidateDialog
           locale={props.locale}
           slug={props.slug}
           teams={teams}
-          onCreated={handleReferralCreated}
+          onCreated={handleCandidateCreated}
           onClose={() => setShowCreateDialog(false)}
         />
       )}
@@ -144,9 +150,9 @@ export function ReferralsPageClient(props: ReferralsPageClientProps) {
   );
 }
 
-// ─── Create Referral Dialog ──────────────────────────────────────────
+// ─── Create Candidate Dialog ──────────────────────────────────────────
 
-type CreateReferralDialogProps = {
+type CreateCandidateDialogProps = {
   locale: string;
   slug: string;
   teams: ProfileTeam[];
@@ -154,7 +160,7 @@ type CreateReferralDialogProps = {
   onClose: () => void;
 };
 
-function CreateReferralDialog(props: CreateReferralDialogProps) {
+function CreateCandidateDialog(props: CreateCandidateDialogProps) {
   const { t } = useTranslation();
   const [username, setUsername] = React.useState("");
   const [selectedTeamIds, setSelectedTeamIds] = React.useState<string[]>([]);
@@ -174,7 +180,7 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
       setIsSubmitting(true);
       setError(null);
 
-      const result = await backend.createReferral(
+      const result = await backend.createCandidate(
         props.locale,
         props.slug,
         trimmedUsername,
@@ -182,7 +188,7 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
       );
 
       if (result === null) {
-        setError(t("Referrals.Failed to create referral. Please check the username and try again."));
+        setError(t("Candidates.Failed to create candidate. Please check the username and try again."));
         setIsSubmitting(false);
         return;
       }
@@ -200,7 +206,7 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
       >
         <div className="flex items-center justify-between">
           <h3 className={styles.dialogTitle}>
-            {t("Referrals.Refer Someone")}
+            {t("Candidates.Refer Someone")}
           </h3>
           <button type="button" onClick={props.onClose}>
             <X className="size-4 text-muted-foreground hover:text-foreground" />
@@ -209,15 +215,15 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className={styles.formGroup}>
-            <label htmlFor="referral-username" className={styles.label}>
-              {t("Referrals.Username")}
+            <label htmlFor="candidate-username" className={styles.label}>
+              {t("Candidates.Username")}
             </label>
             <input
-              id="referral-username"
+              id="candidate-username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={t("Referrals.Enter profile slug")}
+              placeholder={t("Candidates.Enter profile slug")}
               className={styles.input}
               autoFocus
             />
@@ -226,7 +232,7 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
           {props.teams.length > 0 && (
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                {t("Referrals.Suggested Teams")}
+                {t("Candidates.Suggested Teams")}
               </label>
               <div className={styles.teamCheckboxes}>
                 {props.teams.map((team) => (
@@ -258,7 +264,7 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
               disabled={isSubmitting || username.trim().length === 0}
               className={styles.submitButton}
             >
-              {t("Referrals.Submit Referral")}
+              {t("Candidates.Submit Candidate")}
             </button>
           </div>
         </form>
@@ -267,36 +273,36 @@ function CreateReferralDialog(props: CreateReferralDialogProps) {
   );
 }
 
-// ─── Referral Card ───────────────────────────────────────────────────
+// ─── Candidate Card ───────────────────────────────────────────────────
 
-type ReferralCardProps = {
-  referral: ProfileMembershipReferral;
+type CandidateCardProps = {
+  candidate: ProfileMembershipCandidate;
   locale: string;
   slug: string;
   isLeadPlus: boolean;
-  onStatusChange: (referralId: string, status: ReferralStatus) => Promise<void>;
+  onStatusChange: (candidateId: string, status: CandidateStatus) => Promise<void>;
 };
 
 type ConfirmAction = {
-  status: ReferralStatus;
+  status: CandidateStatus;
   titleKey: string;
   descriptionKey: string;
   descriptionParams?: Record<string, string>;
 };
 
-function ReferralCard(props: ReferralCardProps) {
+function CandidateCard(props: CandidateCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const initialScore = props.referral.viewer_vote_score !== -1 ? props.referral.viewer_vote_score : null;
+  const initialScore = props.candidate.viewer_vote_score !== -1 ? props.candidate.viewer_vote_score : null;
   const [viewerScore, setViewerScore] = React.useState<number | null>(
     initialScore ?? null,
   );
   const [showVotes, setShowVotes] = React.useState(false);
-  const [votes, setVotes] = React.useState<ReferralVote[] | null>(null);
+  const [votes, setVotes] = React.useState<CandidateVote[] | null>(null);
   const [isLoadingVotes, setIsLoadingVotes] = React.useState(false);
-  const [totalVotes, setTotalVotes] = React.useState(props.referral.total_votes);
-  const [averageScore, setAverageScore] = React.useState(props.referral.average_score);
-  const [comment, setComment] = React.useState(props.referral.viewer_vote_comment ?? "");
+  const [totalVotes, setTotalVotes] = React.useState(props.candidate.total_votes);
+  const [averageScore, setAverageScore] = React.useState(props.candidate.average_score);
+  const [comment, setComment] = React.useState(props.candidate.viewer_vote_comment ?? "");
   const [confirmAction, setConfirmAction] = React.useState<ConfirmAction | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = React.useState(false);
 
@@ -304,24 +310,24 @@ function ReferralCard(props: ReferralCardProps) {
     if (confirmAction === null) return;
 
     setIsUpdatingStatus(true);
-    await props.onStatusChange(props.referral.id, confirmAction.status);
+    await props.onStatusChange(props.candidate.id, confirmAction.status);
     setIsUpdatingStatus(false);
     setConfirmAction(null);
-  }, [confirmAction, props.onStatusChange, props.referral.id]);
+  }, [confirmAction, props.onStatusChange, props.candidate.id]);
 
-  const referred = props.referral.referred_profile;
-  const referrer = props.referral.referrer_profile;
+  const referred = props.candidate.referred_profile;
+  const referrer = props.candidate.referrer_profile;
 
-  const formattedDate = new Date(props.referral.created_at).toLocaleDateString(
+  const formattedDate = new Date(props.candidate.created_at).toLocaleDateString(
     props.locale,
     { year: "numeric", month: "short", day: "numeric" },
   );
 
   const refreshVotes = React.useCallback(async () => {
-    const freshVotes = await backend.getReferralVotes(
+    const freshVotes = await backend.getCandidateVotes(
       props.locale,
       props.slug,
-      props.referral.id,
+      props.candidate.id,
     );
 
     if (freshVotes !== null) {
@@ -333,35 +339,35 @@ function ReferralCard(props: ReferralCardProps) {
         setAverageScore(Math.round(avg * 10) / 10);
       }
     }
-  }, [props.locale, props.slug, props.referral.id]);
+  }, [props.locale, props.slug, props.candidate.id]);
 
   const handleReset = React.useCallback(() => {
     setViewerScore(initialScore ?? null);
-    setComment(props.referral.viewer_vote_comment ?? "");
-  }, [initialScore, props.referral.viewer_vote_comment]);
+    setComment(props.candidate.viewer_vote_comment ?? "");
+  }, [initialScore, props.candidate.viewer_vote_comment]);
 
   const isDirty = viewerScore !== (initialScore ?? null) ||
-    comment !== (props.referral.viewer_vote_comment ?? "");
+    comment !== (props.candidate.viewer_vote_comment ?? "");
 
   const [, saveAction, isSaving] = React.useActionState(
     async (_prev: null): Promise<null> => {
       if (viewerScore === null) return null;
 
       const trimmedComment = comment.trim();
-      const result = await backend.voteReferral(
+      const result = await backend.voteCandidate(
         props.locale,
         props.slug,
-        props.referral.id,
+        props.candidate.id,
         viewerScore,
         trimmedComment.length > 0 ? trimmedComment : null,
       );
 
       if (result !== null) {
-        toast.success(t("Referrals.Comment saved"));
+        toast.success(t("Candidates.Comment saved"));
         await refreshVotes();
         router.invalidate();
       } else {
-        toast.error(t("Referrals.Failed to submit vote"));
+        toast.error(t("Candidates.Failed to submit vote"));
       }
 
       return null;
@@ -377,10 +383,10 @@ function ReferralCard(props: ReferralCardProps) {
 
     if (votes === null) {
       setIsLoadingVotes(true);
-      const result = await backend.getReferralVotes(
+      const result = await backend.getCandidateVotes(
         props.locale,
         props.slug,
-        props.referral.id,
+        props.candidate.id,
       );
       setVotes(result ?? []);
       setIsLoadingVotes(false);
@@ -392,14 +398,14 @@ function ReferralCard(props: ReferralCardProps) {
     votes,
     props.locale,
     props.slug,
-    props.referral.id,
+    props.candidate.id,
   ]);
 
   return (
-    <div className={styles.referralCard}>
+    <div className={styles.candidateCard}>
       {/* Header: referred profile + status */}
-      <div className={styles.referralHeader}>
-        <div className={styles.referralProfileInfo}>
+      <div className={styles.candidateHeader}>
+        <div className={styles.candidateProfileInfo}>
           {referred !== undefined && referred !== null && (
             <>
               <LocaleLink to={`/${referred.slug}`}>
@@ -407,53 +413,76 @@ function ReferralCard(props: ReferralCardProps) {
                   src={referred.profile_picture_uri}
                   name={referred.title}
                   fallbackName={referred.slug}
-                  className={styles.referralAvatar}
+                  className={styles.candidateAvatar}
                 />
               </LocaleLink>
               <div>
                 <LocaleLink
                   to={`/${referred.slug}`}
-                  className={styles.referralName}
+                  className={styles.candidateName}
                 >
                   {referred.title}
                 </LocaleLink>
-                <div className={styles.referralSlug}>@{referred.slug}</div>
+                <div className={styles.candidateSlug}>@{referred.slug}</div>
               </div>
             </>
           )}
         </div>
         <div className={styles.statusActions}>
+          {props.candidate.source === "application"
+            ? (
+              <span className={styles.sourceBadgeApplication}>
+                {t("Candidates.Source.application")}
+              </span>
+            )
+            : (
+              <span className={styles.sourceBadgeReferral}>
+                {t("Candidates.Source.referral")}
+              </span>
+            )}
           <span className={styles.statusBadge}>
-            {t(`Referrals.Status.${props.referral.status}`)}
+            {t(`Candidates.Status.${props.candidate.status}`)}
           </span>
-          <ReferralActionsMenu
-            referral={props.referral}
+          <CandidateActionsMenu
+            candidate={props.candidate}
             isLeadPlus={props.isLeadPlus}
             onAction={setConfirmAction}
           />
         </div>
       </div>
 
-      {/* Referrer info */}
-      {referrer !== undefined && referrer !== null && (
-        <div className={styles.referrerInfo}>
-          {t("Referrals.Referred by")}{" "}
-          <LocaleLink
-            to={`/${referrer.slug}`}
-            className="hover:underline"
-          >
-            {referrer.title}
-          </LocaleLink>{" "}
-          &middot; {formattedDate}
-        </div>
-      )}
+      {/* Referrer / applicant info */}
+      {props.candidate.source === "application"
+        ? (
+          <div className={styles.referrerInfo}>
+            {t("Candidates.Applied on")} {formattedDate}
+            {props.candidate.applicant_message !== null &&
+              props.candidate.applicant_message !== undefined && (
+              <p className="mt-1 text-xs text-muted-foreground italic">
+                &ldquo;{props.candidate.applicant_message}&rdquo;
+              </p>
+            )}
+          </div>
+        )
+        : referrer !== undefined && referrer !== null && (
+          <div className={styles.referrerInfo}>
+            {t("Candidates.Referred by")}{" "}
+            <LocaleLink
+              to={`/${referrer.slug}`}
+              className="hover:underline"
+            >
+              {referrer.title}
+            </LocaleLink>{" "}
+            &middot; {formattedDate}
+          </div>
+        )}
 
       {/* Team badges */}
-      {props.referral.teams !== undefined &&
-        props.referral.teams !== null &&
-        props.referral.teams.length > 0 && (
+      {props.candidate.teams !== undefined &&
+        props.candidate.teams !== null &&
+        props.candidate.teams.length > 0 && (
         <div className={styles.teamBadges}>
-          {props.referral.teams.map((team) => (
+          {props.candidate.teams.map((team) => (
             <span key={team.id} className={styles.teamBadge}>
               {team.name}
             </span>
@@ -461,8 +490,17 @@ function ReferralCard(props: ReferralCardProps) {
         </div>
       )}
 
-      {/* Vote section — only shown when referral is in "voting" state */}
-      {props.referral.status === "voting" && (
+      {/* Form responses viewer — for application-type candidates */}
+      {props.candidate.source === "application" && props.isLeadPlus && (
+        <FormResponsesViewer
+          locale={props.locale}
+          slug={props.slug}
+          candidateId={props.candidate.id}
+        />
+      )}
+
+      {/* Vote section — only shown when candidate is in "voting" state */}
+      {props.candidate.status === "voting" && (
         <form action={saveAction} className={styles.voteSection}>
           {/* Vote buttons (local selection only, no auto-submit) */}
           <div className={styles.voteButtons}>
@@ -489,7 +527,7 @@ function ReferralCard(props: ReferralCardProps) {
             name="comment"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder={t("Referrals.Add a comment (optional)")}
+            placeholder={t("Candidates.Add a comment (optional)")}
             className={styles.commentTextarea}
             rows={2}
           />
@@ -525,8 +563,8 @@ function ReferralCard(props: ReferralCardProps) {
           >
             <span className="flex items-center gap-1">
               {showVotes ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-              {t("Referrals.View All")} ({totalVotes} {t("Referrals.votes")}, {averageScore.toFixed(1)}{" "}
-              {t("Referrals.average")})
+              {t("Candidates.View All")} ({totalVotes} {t("Candidates.votes")}, {averageScore.toFixed(1)}{" "}
+              {t("Candidates.average")})
             </span>
           </button>
 
@@ -598,13 +636,13 @@ function ReferralCard(props: ReferralCardProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {t("Referrals.Actions.Cancel")}
+              {t("Candidates.Actions.Cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
               disabled={isUpdatingStatus}
             >
-              {t("Referrals.Actions.Confirm")}
+              {t("Candidates.Actions.Confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -613,17 +651,17 @@ function ReferralCard(props: ReferralCardProps) {
   );
 }
 
-// ─── Referral Actions Menu ──────────────────────────────────────────
+// ─── Candidate Actions Menu ──────────────────────────────────────────
 
-type ReferralActionsMenuProps = {
-  referral: ProfileMembershipReferral;
+type CandidateActionsMenuProps = {
+  candidate: ProfileMembershipCandidate;
   isLeadPlus: boolean;
   onAction: (action: ConfirmAction) => void;
 };
 
-function ReferralActionsMenu(props: ReferralActionsMenuProps) {
+function CandidateActionsMenu(props: CandidateActionsMenuProps) {
   const { t } = useTranslation();
-  const { status } = props.referral;
+  const { status } = props.candidate;
 
   // Only show menu for lead+ roles and non-terminal statuses.
   if (!props.isLeadPlus) return null;
@@ -631,12 +669,13 @@ function ReferralActionsMenu(props: ReferralActionsMenuProps) {
     status === "invitation_pending_response" ||
     status === "reference_rejected" ||
     status === "invitation_accepted" ||
-    status === "invitation_rejected"
+    status === "invitation_rejected" ||
+    status === "application_accepted"
   ) {
     return null;
   }
 
-  const referredName = props.referral.referred_profile?.title ?? props.referral.referred_profile?.slug ?? "";
+  const referredName = props.candidate.referred_profile?.title ?? props.candidate.referred_profile?.slug ?? "";
 
   return (
     <DropdownMenu>
@@ -650,34 +689,50 @@ function ReferralActionsMenu(props: ReferralActionsMenuProps) {
               onClick={() =>
                 props.onAction({
                   status: "frozen",
-                  titleKey: "Referrals.Actions.Freeze",
-                  descriptionKey: "Referrals.Actions.FreezeConfirm",
+                  titleKey: "Candidates.Actions.Freeze",
+                  descriptionKey: "Candidates.Actions.FreezeConfirm",
                 })}
             >
-              {t("Referrals.Actions.Freeze")}
+              {t("Candidates.Actions.Freeze")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                props.onAction({
-                  status: "invitation_pending_response",
-                  titleKey: "Referrals.Actions.SendInvite",
-                  descriptionKey: "Referrals.Actions.SendInviteConfirm",
-                  descriptionParams: { name: referredName },
-                })}
-            >
-              {t("Referrals.Actions.SendInvite")}
-            </DropdownMenuItem>
+            {props.candidate.source === "application"
+              ? (
+                <DropdownMenuItem
+                  onClick={() =>
+                    props.onAction({
+                      status: "application_accepted",
+                      titleKey: "Candidates.Actions.AcceptApplication",
+                      descriptionKey: "Candidates.Actions.AcceptApplicationConfirm",
+                      descriptionParams: { name: referredName },
+                    })}
+                >
+                  {t("Candidates.Actions.AcceptApplication")}
+                </DropdownMenuItem>
+              )
+              : (
+                <DropdownMenuItem
+                  onClick={() =>
+                    props.onAction({
+                      status: "invitation_pending_response",
+                      titleKey: "Candidates.Actions.SendInvite",
+                      descriptionKey: "Candidates.Actions.SendInviteConfirm",
+                      descriptionParams: { name: referredName },
+                    })}
+                >
+                  {t("Candidates.Actions.SendInvite")}
+                </DropdownMenuItem>
+              )}
             <DropdownMenuItem
               variant="destructive"
               onClick={() =>
                 props.onAction({
                   status: "reference_rejected",
-                  titleKey: "Referrals.Actions.Reject",
-                  descriptionKey: "Referrals.Actions.RejectConfirm",
+                  titleKey: "Candidates.Actions.Reject",
+                  descriptionKey: "Candidates.Actions.RejectConfirm",
                 })}
             >
-              {t("Referrals.Actions.Reject")}
+              {t("Candidates.Actions.Reject")}
             </DropdownMenuItem>
           </>
         )}
@@ -688,11 +743,11 @@ function ReferralActionsMenu(props: ReferralActionsMenuProps) {
               onClick={() =>
                 props.onAction({
                   status: "voting",
-                  titleKey: "Referrals.Actions.Unfreeze",
-                  descriptionKey: "Referrals.Actions.UnfreezeConfirm",
+                  titleKey: "Candidates.Actions.Unfreeze",
+                  descriptionKey: "Candidates.Actions.UnfreezeConfirm",
                 })}
             >
-              {t("Referrals.Actions.Unfreeze")}
+              {t("Candidates.Actions.Unfreeze")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -700,15 +755,92 @@ function ReferralActionsMenu(props: ReferralActionsMenuProps) {
               onClick={() =>
                 props.onAction({
                   status: "reference_rejected",
-                  titleKey: "Referrals.Actions.Reject",
-                  descriptionKey: "Referrals.Actions.RejectConfirm",
+                  titleKey: "Candidates.Actions.Reject",
+                  descriptionKey: "Candidates.Actions.RejectConfirm",
                 })}
             >
-              {t("Referrals.Actions.Reject")}
+              {t("Candidates.Actions.Reject")}
             </DropdownMenuItem>
           </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+// ─── Form Responses Viewer ──────────────────────────────────────────
+
+type FormResponsesViewerProps = {
+  locale: string;
+  slug: string;
+  candidateId: string;
+};
+
+function FormResponsesViewer(props: FormResponsesViewerProps) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = React.useState(false);
+  const [responses, setResponses] = React.useState<CandidateFormResponse[] | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const handleToggle = React.useCallback(async () => {
+    if (expanded) {
+      setExpanded(false);
+      return;
+    }
+
+    if (responses === null) {
+      setIsLoading(true);
+      const result = await backend.getCandidateResponses(
+        props.locale,
+        props.slug,
+        props.candidateId,
+      );
+      setResponses(result ?? []);
+      setIsLoading(false);
+    }
+
+    setExpanded(true);
+  }, [expanded, responses, props.locale, props.slug, props.candidateId]);
+
+  return (
+    <div className={styles.formResponses}>
+      <button
+        type="button"
+        onClick={handleToggle}
+        className={styles.formResponsesToggle}
+      >
+        <span className="flex items-center gap-1">
+          {expanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+          {t("Candidates.Form Responses")}
+        </span>
+      </button>
+
+      {expanded && isLoading && (
+        <p className="text-xs text-muted-foreground mt-2">
+          {t("Common.Loading")}...
+        </p>
+      )}
+
+      {expanded && responses !== null && responses.length > 0 && (
+        <div className={styles.formResponsesList}>
+          {responses.map((response) => (
+            <div key={response.id} className={styles.formResponseItem}>
+              <div className={styles.formResponseLabel}>
+                {response.field_label}
+              </div>
+              <div className={styles.formResponseValue}>
+                {response.value.length > 0 ? response.value : <span className="italic">{t("Common.Empty")}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {expanded && responses !== null && responses.length === 0 && (
+        <p className="text-xs text-muted-foreground mt-2">
+          {t("Candidates.No form responses")}
+        </p>
+      )}
+    </div>
   );
 }

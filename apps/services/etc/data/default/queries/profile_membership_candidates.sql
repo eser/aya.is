@@ -1,26 +1,28 @@
--- name: CreateProfileMembershipReferral :one
-INSERT INTO "profile_membership_referral" (
-  id, profile_id, referred_profile_id, referrer_membership_id, status, created_at
+-- name: CreateProfileMembershipCandidate :one
+INSERT INTO "profile_membership_candidate" (
+  id, profile_id, referred_profile_id, referrer_membership_id, source, applicant_message, status, created_at
 ) VALUES (
   sqlc.arg(id),
   sqlc.arg(profile_id),
   sqlc.arg(referred_profile_id),
-  sqlc.arg(referrer_membership_id),
+  sqlc.narg(referrer_membership_id),
+  sqlc.arg(source),
+  sqlc.narg(applicant_message),
   'voting',
   NOW()
 ) RETURNING *;
 
--- name: GetProfileMembershipReferralByID :one
-SELECT * FROM "profile_membership_referral"
+-- name: GetProfileMembershipCandidateByID :one
+SELECT * FROM "profile_membership_candidate"
 WHERE id = sqlc.arg(id) AND deleted_at IS NULL;
 
--- name: GetProfileMembershipReferralByProfileAndReferred :one
-SELECT * FROM "profile_membership_referral"
+-- name: GetProfileMembershipCandidateByProfileAndReferred :one
+SELECT * FROM "profile_membership_candidate"
 WHERE profile_id = sqlc.arg(profile_id)
   AND referred_profile_id = sqlc.arg(referred_profile_id)
   AND deleted_at IS NULL;
 
--- name: ListProfileMembershipReferralsByProfileID :many
+-- name: ListProfileMembershipCandidatesByProfileID :many
 SELECT
   pmr.*,
   ref_p.slug AS referrer_profile_slug,
@@ -31,22 +33,22 @@ SELECT
   tgt_p.kind AS referred_profile_kind,
   tgt_p.profile_picture_uri AS referred_profile_picture_uri,
   tgt_pt.title AS referred_profile_title,
-  (SELECT COUNT(*) FROM "profile_membership_referral_vote" v
-   WHERE v.profile_membership_referral_id = pmr.id)::BIGINT AS total_votes,
-  COALESCE((SELECT AVG(v.score)::NUMERIC(3,2) FROM "profile_membership_referral_vote" v
-   WHERE v.profile_membership_referral_id = pmr.id), 0)::TEXT AS average_score,
-  COALESCE((SELECT v.score FROM "profile_membership_referral_vote" v
-   WHERE v.profile_membership_referral_id = pmr.id
+  (SELECT COUNT(*) FROM "profile_membership_candidate_vote" v
+   WHERE v.candidate_id = pmr.id)::BIGINT AS total_votes,
+  COALESCE((SELECT AVG(v.score)::NUMERIC(3,2) FROM "profile_membership_candidate_vote" v
+   WHERE v.candidate_id = pmr.id), 0)::TEXT AS average_score,
+  COALESCE((SELECT v.score FROM "profile_membership_candidate_vote" v
+   WHERE v.candidate_id = pmr.id
      AND v.voter_membership_id = sqlc.narg(viewer_membership_id)
   ), -1)::SMALLINT AS viewer_vote_score,
-  (SELECT v.comment FROM "profile_membership_referral_vote" v
-   WHERE v.profile_membership_referral_id = pmr.id
+  (SELECT v.comment FROM "profile_membership_candidate_vote" v
+   WHERE v.candidate_id = pmr.id
      AND v.voter_membership_id = sqlc.narg(viewer_membership_id)
   ) AS viewer_vote_comment
-FROM "profile_membership_referral" pmr
-  INNER JOIN "profile_membership" ref_pm ON ref_pm.id = pmr.referrer_membership_id
-  INNER JOIN "profile" ref_p ON ref_p.id = ref_pm.member_profile_id AND ref_p.deleted_at IS NULL
-  INNER JOIN "profile_tx" ref_pt ON ref_pt.profile_id = ref_p.id
+FROM "profile_membership_candidate" pmr
+  LEFT JOIN "profile_membership" ref_pm ON ref_pm.id = pmr.referrer_membership_id
+  LEFT JOIN "profile" ref_p ON ref_p.id = ref_pm.member_profile_id AND ref_p.deleted_at IS NULL
+  LEFT JOIN "profile_tx" ref_pt ON ref_pt.profile_id = ref_p.id
     AND ref_pt.locale_code = (
       SELECT rptf.locale_code FROM "profile_tx" rptf
       WHERE rptf.profile_id = ref_p.id
@@ -72,10 +74,10 @@ FROM "profile_membership_referral" pmr
 WHERE pmr.profile_id = sqlc.arg(profile_id)
   AND pmr.deleted_at IS NULL
   AND NOT (
-    pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected')
+    pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected', 'application_accepted')
     AND pmr.updated_at < NOW() - INTERVAL '1 month'
   )
-  -- Hide referrals about the viewer themselves
+  -- Hide candidates about the viewer themselves
   AND (
     sqlc.narg(viewer_membership_id) IS NULL
     OR pmr.referred_profile_id != (
@@ -85,31 +87,31 @@ WHERE pmr.profile_id = sqlc.arg(profile_id)
   )
 ORDER BY pmr.created_at DESC;
 
--- name: UpsertReferralVote :one
-INSERT INTO "profile_membership_referral_vote" (
-  id, profile_membership_referral_id, voter_membership_id, score, comment, created_at
+-- name: UpsertCandidateVote :one
+INSERT INTO "profile_membership_candidate_vote" (
+  id, candidate_id, voter_membership_id, score, comment, created_at
 ) VALUES (
   sqlc.arg(id),
-  sqlc.arg(profile_membership_referral_id),
+  sqlc.arg(candidate_id),
   sqlc.arg(voter_membership_id),
   sqlc.arg(score),
   sqlc.narg(comment),
   NOW()
-) ON CONFLICT (profile_membership_referral_id, voter_membership_id)
+) ON CONFLICT (candidate_id, voter_membership_id)
 DO UPDATE SET
   score = EXCLUDED.score,
   comment = EXCLUDED.comment,
   updated_at = NOW()
 RETURNING *;
 
--- name: ListReferralVotes :many
+-- name: ListCandidateVotes :many
 SELECT
   v.*,
   vp.slug AS voter_profile_slug,
   vp.kind AS voter_profile_kind,
   vp.profile_picture_uri AS voter_profile_picture_uri,
   vpt.title AS voter_profile_title
-FROM "profile_membership_referral_vote" v
+FROM "profile_membership_candidate_vote" v
   INNER JOIN "profile_membership" vm ON vm.id = v.voter_membership_id
   INNER JOIN "profile" vp ON vp.id = vm.member_profile_id AND vp.deleted_at IS NULL
   INNER JOIN "profile_tx" vpt ON vpt.profile_id = vp.id
@@ -123,51 +125,51 @@ FROM "profile_membership_referral_vote" v
       END
       LIMIT 1
     )
-WHERE v.profile_membership_referral_id = sqlc.arg(referral_id)
+WHERE v.candidate_id = sqlc.arg(candidate_id)
 ORDER BY v.created_at DESC;
 
--- name: GetReferralVoteBreakdown :many
+-- name: GetCandidateVoteBreakdown :many
 SELECT score, COUNT(*)::BIGINT AS count
-FROM "profile_membership_referral_vote"
-WHERE profile_membership_referral_id = sqlc.arg(referral_id)
+FROM "profile_membership_candidate_vote"
+WHERE candidate_id = sqlc.arg(candidate_id)
 GROUP BY score
 ORDER BY score;
 
--- name: UpdateReferralVoteCount :exec
-UPDATE "profile_membership_referral"
+-- name: UpdateCandidateVoteCount :exec
+UPDATE "profile_membership_candidate"
 SET vote_count = (
-  SELECT COUNT(*) FROM "profile_membership_referral_vote"
-  WHERE profile_membership_referral_id = sqlc.arg(id)
+  SELECT COUNT(*) FROM "profile_membership_candidate_vote"
+  WHERE candidate_id = sqlc.arg(id)
 ), updated_at = NOW()
 WHERE id = sqlc.arg(id) AND deleted_at IS NULL;
 
--- name: InsertReferralTeam :one
-INSERT INTO "profile_membership_referral_team" (
-  id, profile_membership_referral_id, profile_team_id, created_at
+-- name: InsertCandidateTeam :one
+INSERT INTO "profile_membership_candidate_team" (
+  id, candidate_id, profile_team_id, created_at
 ) VALUES (
   sqlc.arg(id),
-  sqlc.arg(profile_membership_referral_id),
+  sqlc.arg(candidate_id),
   sqlc.arg(profile_team_id),
   NOW()
 ) RETURNING *;
 
--- name: ListReferralTeams :many
+-- name: ListCandidateTeams :many
 SELECT pt.* FROM "profile_team" pt
-JOIN "profile_membership_referral_team" pmrt
+JOIN "profile_membership_candidate_team" pmrt
   ON pmrt.profile_team_id = pt.id AND pmrt.deleted_at IS NULL
-WHERE pmrt.profile_membership_referral_id = sqlc.arg(referral_id)
+WHERE pmrt.candidate_id = sqlc.arg(candidate_id)
   AND pt.deleted_at IS NULL
 ORDER BY pt.name ASC;
 
--- name: UpdateReferralStatus :exec
-UPDATE "profile_membership_referral"
+-- name: UpdateCandidateStatus :exec
+UPDATE "profile_membership_candidate"
 SET status = sqlc.arg(status),
     updated_at = NOW()
 WHERE id = sqlc.arg(id)
   AND profile_id = sqlc.arg(profile_id)
   AND deleted_at IS NULL;
 
--- name: SoftDeleteReferral :execrows
-UPDATE "profile_membership_referral"
+-- name: SoftDeleteCandidate :execrows
+UPDATE "profile_membership_candidate"
 SET deleted_at = NOW()
 WHERE id = sqlc.arg(id) AND deleted_at IS NULL;

@@ -43,11 +43,17 @@ import { updateProfileTeam } from "./profiles/update-profile-team";
 import { deleteProfileTeam } from "./profiles/delete-profile-team";
 import { setMembershipTeams } from "./profiles/set-membership-teams";
 import { setResourceTeams } from "./profiles/set-resource-teams";
-import { listReferrals } from "./profiles/list-referrals";
-import { createReferral } from "./profiles/create-referral";
-import { voteReferral } from "./profiles/vote-referral";
-import { getReferralVotes } from "./profiles/get-referral-votes";
-import { updateReferralStatus } from "./profiles/update-referral-status";
+import { listCandidates } from "./profiles/list-candidates";
+import { createCandidate } from "./profiles/create-candidate";
+import { voteCandidate } from "./profiles/vote-candidate";
+import { getCandidateVotes } from "./profiles/get-candidate-votes";
+import { updateCandidateStatus } from "./profiles/update-candidate-status";
+import { getApplicationForm } from "./profiles/get-application-form";
+import { upsertApplicationForm } from "./profiles/upsert-application-form";
+import { createApplication } from "./profiles/create-application";
+import { getMyApplication } from "./profiles/get-my-application";
+import { getCandidateResponses } from "./profiles/get-candidate-responses";
+import { listApplicationPresets } from "./profiles/list-application-presets";
 import { followProfile } from "./profiles/follow-profile";
 import { unfollowProfile } from "./profiles/unfollow-profile";
 import { createProfilePage } from "./profiles/create-profile-page";
@@ -176,6 +182,7 @@ export type { TriggerWorkerResult } from "./admin/trigger-admin-worker";
 export type { GitHubAccount, GitHubAccountsResponse } from "./profiles/get-github-accounts";
 export type { VerifyTelegramCodeResponse } from "./profiles/verify-telegram-code";
 export type { SendProfileEnvelopeParams } from "./profile-envelopes/send-profile-envelope";
+export type { UpsertApplicationFormInput } from "./profiles/upsert-application-form";
 export type { MailboxEnvelope } from "./mailbox/list-mailbox-envelopes";
 export type { SendMailboxMessageParams } from "./mailbox/send-mailbox-message";
 export type { ListConversationsResult } from "./mailbox/list-conversations";
@@ -260,12 +267,20 @@ export const backend = {
   setMembershipTeams,
   setResourceTeams,
 
-  // Profile Referrals
-  listReferrals,
-  createReferral,
-  voteReferral,
-  getReferralVotes,
-  updateReferralStatus,
+  // Profile Candidates
+  listCandidates,
+  createCandidate,
+  voteCandidate,
+  getCandidateVotes,
+  updateCandidateStatus,
+
+  // Application Forms
+  getApplicationForm,
+  upsertApplicationForm,
+  createApplication,
+  getMyApplication,
+  getCandidateResponses,
+  listApplicationPresets,
 
   // Profile Pages
   listProfilePages,
@@ -441,6 +456,8 @@ export {
   checkStorySlug,
   connectExternalSite,
   connectSpeakerDeck,
+  createApplication,
+  createCandidate,
   createDateProposal,
   createProfile,
   createProfileComment,
@@ -449,7 +466,6 @@ export {
   createProfileResource,
   createProfileTeam,
   createQuestion,
-  createReferral,
   createSeries,
   createSession,
   createStoryComment,
@@ -473,7 +489,10 @@ export {
   getAdminProfile,
   getAdminProfiles,
   getAdminWorkers,
+  getApplicationForm,
   getBulletinPreferences,
+  getCandidateResponses,
+  getCandidateVotes,
   getCommentReplies,
   getConversation,
   getCurrentSession,
@@ -483,6 +502,7 @@ export {
   getInteractions,
   getLinkedInAccounts,
   getLiveNow,
+  getMyApplication,
   getMyInteractions,
   getPendingAwards,
   getPendingAwardsStats,
@@ -502,7 +522,6 @@ export {
   getProfileStories,
   getProfileStory,
   getProfileTranslations,
-  getReferralVotes,
   getSeries,
   getSeriesList,
   getSessionCurrent,
@@ -522,6 +541,8 @@ export {
   hideQuestion,
   insertStory,
   isPOWSolverSupported,
+  listApplicationPresets,
+  listCandidates,
   // Mailbox (conversations)
   listConversations,
   listGitHubRepos,
@@ -534,7 +555,6 @@ export {
   listProfilePointTransactions,
   listProfileResources,
   listProfileTeams,
-  listReferrals,
   // Translation management
   listStoryTranslationLocales,
   lockThread,
@@ -578,10 +598,11 @@ export {
   updateStoryTranslation,
   uploadProfilePicture,
   uploadToPresignedURL,
+  upsertApplicationForm,
   verifyTelegramCode,
   verifyTelegramRegisterCode,
+  voteCandidate,
   voteComment,
   voteDateProposal,
   voteQuestion,
-  voteReferral,
 };

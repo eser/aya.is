@@ -1,19 +1,18 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
-import type { ReferralVote } from "../types";
+import type { ProfileMembershipCandidate } from "../types";
 
-export async function voteReferral(
+export async function createApplication(
   locale: string,
   slug: string,
-  referralId: string,
-  score: number,
-  comment?: string | null,
-): Promise<ReferralVote | null> {
+  applicantMessage: string | null,
+  formResponses: Record<string, string>,
+): Promise<ProfileMembershipCandidate | null> {
   const token = getAuthToken();
   if (token === null) return null;
 
   const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_referrals/${referralId}/votes`,
+    `${getBackendUri()}/${locale}/profiles/${slug}/_candidates/apply`,
     {
       method: "POST",
       headers: {
@@ -22,8 +21,8 @@ export async function voteReferral(
       },
       credentials: "include",
       body: JSON.stringify({
-        score,
-        comment: comment ?? null,
+        applicant_message: applicantMessage,
+        form_responses: formResponses,
       }),
     },
   );

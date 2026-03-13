@@ -1,4 +1,4 @@
-// Profile members layout with Members/Referrals tab navigation
+// Profile members layout with Members/Candidates tab navigation
 import { createFileRoute, getRouteApi, Outlet } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
@@ -68,14 +68,14 @@ function MembersLayout() {
               {t("Layout.Members")}
             </LocaleLink>
             <LocaleLink
-              to={`/${params.slug}/members/referrals`}
+              to={`/${params.slug}/members/candidates`}
               className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
               activeProps={{
                 className:
                   "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
               }}
             >
-              {t("Layout.Referrals")}
+              {t("Layout.Candidates")}
             </LocaleLink>
           </nav>
         )}

@@ -10,10 +10,10 @@ import (
 	profilesbiz "github.com/eser/aya.is/services/pkg/api/business/profiles"
 )
 
-// NewReferralAutoAccepter returns a callback that ensures a membership exists
+// NewCandidateAutoAccepter returns a callback that ensures a membership exists
 // (creating or upgrading as needed) and merges teams when a profile_join
-// invitation is accepted — completing the referral flow.
-func NewReferralAutoAccepter(
+// invitation is accepted — completing the candidate flow.
+func NewCandidateAutoAccepter(
 	profileService *profilesbiz.Service,
 	logger *logfx.Logger,
 ) mailbox.OnEnvelopeAcceptedFunc {
@@ -30,15 +30,15 @@ func NewReferralAutoAccepter(
 		recipientProfileID := envelope.TargetProfileID
 
 		// Ensure membership exists at member+ level and merge teams.
-		membershipID, err := profileService.EnsureMembershipFromReferralInternal(
+		membershipID, err := profileService.EnsureMembershipFromCandidateInternal(
 			ctx,
 			props.ProfileID,
 			recipientProfileID,
-			props.ReferralID,
+			props.CandidateID,
 		)
 		if err != nil {
-			logger.ErrorContext(ctx, "Failed to ensure membership from referral acceptance",
-				slog.String("referral_id", props.ReferralID),
+			logger.ErrorContext(ctx, "Failed to ensure membership from candidate acceptance",
+				slog.String("candidate_id", props.CandidateID),
 				slog.String("profile_id", props.ProfileID),
 				slog.String("recipient_profile_id", recipientProfileID),
 				slog.String("error", err.Error()))
@@ -46,32 +46,32 @@ func NewReferralAutoAccepter(
 			return
 		}
 
-		// Update referral status to accepted.
-		statusErr := profileService.UpdateReferralStatusInternal(
+		// Update candidate status to accepted.
+		statusErr := profileService.UpdateCandidateStatusInternal(
 			ctx,
-			props.ReferralID,
+			props.CandidateID,
 			props.ProfileID,
-			profilesbiz.ReferralStatusInvitationAccepted,
+			profilesbiz.CandidateStatusInvitationAccepted,
 		)
 		if statusErr != nil {
-			logger.ErrorContext(ctx, "Failed to update referral status to accepted",
-				slog.String("referral_id", props.ReferralID),
+			logger.ErrorContext(ctx, "Failed to update candidate status to accepted",
+				slog.String("candidate_id", props.CandidateID),
 				slog.String("error", statusErr.Error()))
 
 			return
 		}
 
-		logger.InfoContext(ctx, "Referral invitation accepted, membership ensured",
-			slog.String("referral_id", props.ReferralID),
+		logger.InfoContext(ctx, "Candidate invitation accepted, membership ensured",
+			slog.String("candidate_id", props.CandidateID),
 			slog.String("profile_id", props.ProfileID),
 			slog.String("recipient_profile_id", recipientProfileID),
 			slog.String("membership_id", membershipID))
 	}
 }
 
-// NewReferralAutoRejecter returns a callback that updates referral status to invitation_rejected
+// NewCandidateAutoRejecter returns a callback that updates candidate status to invitation_rejected
 // when a profile_join invitation is rejected.
-func NewReferralAutoRejecter(
+func NewCandidateAutoRejecter(
 	profileService *profilesbiz.Service,
 	logger *logfx.Logger,
 ) mailbox.OnEnvelopeRejectedFunc {
@@ -85,22 +85,22 @@ func NewReferralAutoRejecter(
 			return
 		}
 
-		err := profileService.UpdateReferralStatusInternal(
+		err := profileService.UpdateCandidateStatusInternal(
 			ctx,
-			props.ReferralID,
+			props.CandidateID,
 			props.ProfileID,
-			profilesbiz.ReferralStatusInvitationRejected,
+			profilesbiz.CandidateStatusInvitationRejected,
 		)
 		if err != nil {
-			logger.ErrorContext(ctx, "Failed to update referral status to rejected",
-				slog.String("referral_id", props.ReferralID),
+			logger.ErrorContext(ctx, "Failed to update candidate status to rejected",
+				slog.String("candidate_id", props.CandidateID),
 				slog.String("error", err.Error()))
 
 			return
 		}
 
-		logger.InfoContext(ctx, "Referral invitation rejected, status updated",
-			slog.String("referral_id", props.ReferralID),
+		logger.InfoContext(ctx, "Candidate invitation rejected, status updated",
+			slog.String("candidate_id", props.CandidateID),
 			slog.String("profile_id", props.ProfileID))
 	}
 }
@@ -118,7 +118,7 @@ func parseProfileJoinProps(
 		GroupProfileSlug: "",
 		GroupName:        "",
 		InviteLink:       nil,
-		ReferralID:       "",
+		CandidateID:      "",
 		ProfileID:        "",
 		ProfileSlug:      "",
 	}
@@ -147,10 +147,10 @@ func parseProfileJoinProps(
 		return emptyProps, false
 	}
 
-	if props.ReferralID == "" || props.ProfileID == "" {
+	if props.CandidateID == "" || props.ProfileID == "" {
 		logger.WarnContext(
 			ctx,
-			"Profile join invitation missing referral_id or profile_id",
+			"Profile join invitation missing candidate_id or profile_id",
 			slog.String("envelope_id", envelope.ID),
 		)
 

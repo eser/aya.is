@@ -220,6 +220,37 @@ type Profile struct {
 	FeatureQa                       string                `db:"feature_qa" json:"feature_qa"`
 	FeatureDiscussions              string                `db:"feature_discussions" json:"feature_discussions"`
 	OptionStoryDiscussionsByDefault bool                  `db:"option_story_discussions_by_default" json:"option_story_discussions_by_default"`
+	FeatureCandidates               string                `db:"feature_candidates" json:"feature_candidates"`
+	FeatureApplications             string                `db:"feature_applications" json:"feature_applications"`
+}
+
+type ProfileApplicationForm struct {
+	ID                  string         `db:"id" json:"id"`
+	ProfileID           string         `db:"profile_id" json:"profile_id"`
+	PresetKey           sql.NullString `db:"preset_key" json:"preset_key"`
+	IsActive            bool           `db:"is_active" json:"is_active"`
+	ResponsesVisibility string         `db:"responses_visibility" json:"responses_visibility"`
+	CreatedAt           time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt           sql.NullTime   `db:"updated_at" json:"updated_at"`
+}
+
+type ProfileApplicationFormField struct {
+	ID          string         `db:"id" json:"id"`
+	FormID      string         `db:"form_id" json:"form_id"`
+	Label       string         `db:"label" json:"label"`
+	FieldType   string         `db:"field_type" json:"field_type"`
+	IsRequired  bool           `db:"is_required" json:"is_required"`
+	SortOrder   int32          `db:"sort_order" json:"sort_order"`
+	Placeholder sql.NullString `db:"placeholder" json:"placeholder"`
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
+}
+
+type ProfileCandidateResponse struct {
+	ID          string    `db:"id" json:"id"`
+	CandidateID string    `db:"candidate_id" json:"candidate_id"`
+	FormFieldID string    `db:"form_field_id" json:"form_field_id"`
+	Value       string    `db:"value" json:"value"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 }
 
 type ProfileCustomDomain struct {
@@ -293,34 +324,36 @@ type ProfileMembership struct {
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
-type ProfileMembershipReferral struct {
-	ID                   string       `db:"id" json:"id"`
-	ProfileID            string       `db:"profile_id" json:"profile_id"`
-	ReferredProfileID    string       `db:"referred_profile_id" json:"referred_profile_id"`
-	ReferrerMembershipID string       `db:"referrer_membership_id" json:"referrer_membership_id"`
-	Status               string       `db:"status" json:"status"`
-	VoteCount            int32        `db:"vote_count" json:"vote_count"`
-	CreatedAt            time.Time    `db:"created_at" json:"created_at"`
-	UpdatedAt            sql.NullTime `db:"updated_at" json:"updated_at"`
-	DeletedAt            sql.NullTime `db:"deleted_at" json:"deleted_at"`
+type ProfileMembershipCandidate struct {
+	ID                   string         `db:"id" json:"id"`
+	ProfileID            string         `db:"profile_id" json:"profile_id"`
+	ReferredProfileID    string         `db:"referred_profile_id" json:"referred_profile_id"`
+	ReferrerMembershipID sql.NullString `db:"referrer_membership_id" json:"referrer_membership_id"`
+	Status               string         `db:"status" json:"status"`
+	VoteCount            int32          `db:"vote_count" json:"vote_count"`
+	CreatedAt            time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt            sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt            sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	Source               string         `db:"source" json:"source"`
+	ApplicantMessage     sql.NullString `db:"applicant_message" json:"applicant_message"`
 }
 
-type ProfileMembershipReferralTeam struct {
-	ID                          string       `db:"id" json:"id"`
-	ProfileMembershipReferralID string       `db:"profile_membership_referral_id" json:"profile_membership_referral_id"`
-	ProfileTeamID               string       `db:"profile_team_id" json:"profile_team_id"`
-	CreatedAt                   time.Time    `db:"created_at" json:"created_at"`
-	DeletedAt                   sql.NullTime `db:"deleted_at" json:"deleted_at"`
+type ProfileMembershipCandidateTeam struct {
+	ID            string       `db:"id" json:"id"`
+	CandidateID   string       `db:"candidate_id" json:"candidate_id"`
+	ProfileTeamID string       `db:"profile_team_id" json:"profile_team_id"`
+	CreatedAt     time.Time    `db:"created_at" json:"created_at"`
+	DeletedAt     sql.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
-type ProfileMembershipReferralVote struct {
-	ID                          string         `db:"id" json:"id"`
-	ProfileMembershipReferralID string         `db:"profile_membership_referral_id" json:"profile_membership_referral_id"`
-	VoterMembershipID           string         `db:"voter_membership_id" json:"voter_membership_id"`
-	Score                       int16          `db:"score" json:"score"`
-	Comment                     sql.NullString `db:"comment" json:"comment"`
-	CreatedAt                   time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt                   sql.NullTime   `db:"updated_at" json:"updated_at"`
+type ProfileMembershipCandidateVote struct {
+	ID                string         `db:"id" json:"id"`
+	CandidateID       string         `db:"candidate_id" json:"candidate_id"`
+	VoterMembershipID string         `db:"voter_membership_id" json:"voter_membership_id"`
+	Score             int16          `db:"score" json:"score"`
+	Comment           sql.NullString `db:"comment" json:"comment"`
+	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt         sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
 
 type ProfileMembershipTeam struct {

@@ -36,14 +36,26 @@ var (
 	ErrLinksNotEnabled               = errors.New("links feature is not enabled for this profile")
 	ErrCannotDeleteTeamWithMembers   = errors.New("cannot delete team that has members")
 	ErrCannotDeleteTeamWithResources = errors.New("cannot delete team that has resources")
-	ErrReferralAlreadyExists         = errors.New("referral already exists for this profile")
+	ErrCandidateAlreadyExists        = errors.New("candidate already exists for this profile")
 	ErrCannotReferSelf               = errors.New("cannot refer yourself")
 	ErrCannotReferExistingMember     = errors.New("cannot refer someone who is already a member")
 	ErrCannotReferNonIndividual      = errors.New("only individual profiles can be referred")
-	ErrReferralNotFound              = errors.New("referral not found")
+	ErrCandidateNotFound             = errors.New("candidate not found")
 	ErrInvalidVoteScore              = errors.New("vote score must be between 0 and 4")
-	ErrReferralNotVoting             = errors.New("referral is not in voting status")
-	ErrInvalidStatusTransition       = errors.New("invalid referral status transition")
+	ErrCandidateNotVoting            = errors.New("candidate is not in voting status")
+	ErrInvalidStatusTransition       = errors.New("invalid candidate status transition")
+	ErrApplicationsNotEnabled        = errors.New(
+		"applications feature is not enabled for this profile",
+	)
+	ErrNoApplicationForm = errors.New(
+		"no active application form configured for this profile",
+	)
+	ErrAlreadyApplied             = errors.New("you have already applied to this organization")
+	ErrMissingRequiredField       = errors.New("a required form field is missing")
+	ErrInvalidFieldType           = errors.New("invalid field type")
+	ErrInvalidResponsesVisibility = errors.New(
+		"responses visibility must be 'members' or 'leads'",
+	)
 )
 
 // SupportedLocaleCodes contains all locales supported by the platform.
@@ -662,66 +674,119 @@ type Repository interface { //nolint:interfacebloat
 		idGenerator func() string,
 	) error
 
-	// Referral methods
-	CreateProfileMembershipReferral(
+	// Candidate methods
+	CreateProfileMembershipCandidate(
 		ctx context.Context,
 		id string,
 		profileID string,
 		referredProfileID string,
-		referrerMembershipID string,
-	) (*ProfileMembershipReferral, error)
-	GetProfileMembershipReferralByID(
+		referrerMembershipID *string,
+		source string,
+		applicantMessage *string,
+	) (*ProfileMembershipCandidate, error)
+	GetProfileMembershipCandidateByID(
 		ctx context.Context,
 		id string,
-	) (*ProfileMembershipReferral, error)
-	GetProfileMembershipReferralByProfileAndReferred(
+	) (*ProfileMembershipCandidate, error)
+	GetProfileMembershipCandidateByProfileAndReferred(
 		ctx context.Context,
 		profileID string,
 		referredProfileID string,
-	) (*ProfileMembershipReferral, error)
-	ListProfileMembershipReferralsByProfileID(
+	) (*ProfileMembershipCandidate, error)
+	ListProfileMembershipCandidatesByProfileID(
 		ctx context.Context,
 		localeCode string,
 		profileID string,
 		viewerMembershipID *string,
-	) ([]*ProfileMembershipReferral, error)
-	UpsertReferralVote(
+	) ([]*ProfileMembershipCandidate, error)
+	UpsertCandidateVote(
 		ctx context.Context,
 		id string,
-		referralID string,
+		candidateID string,
 		voterMembershipID string,
 		score int16,
 		comment *string,
-	) (*ReferralVote, error)
-	ListReferralVotes(
+	) (*CandidateVote, error)
+	ListCandidateVotes(
 		ctx context.Context,
 		localeCode string,
-		referralID string,
-	) ([]*ReferralVote, error)
-	UpdateReferralVoteCount(
+		candidateID string,
+	) ([]*CandidateVote, error)
+	UpdateCandidateVoteCount(
 		ctx context.Context,
-		referralID string,
+		candidateID string,
 	) error
-	InsertReferralTeam(
+	InsertCandidateTeam(
 		ctx context.Context,
 		id string,
-		referralID string,
+		candidateID string,
 		teamID string,
 	) error
-	ListReferralTeams(
+	ListCandidateTeams(
 		ctx context.Context,
-		referralID string,
+		candidateID string,
 	) ([]*ProfileTeam, error)
-	GetReferralVoteBreakdown(
+	GetCandidateVoteBreakdown(
 		ctx context.Context,
-		referralID string,
+		candidateID string,
 	) (map[int]int, error)
-	UpdateReferralStatus(
+	UpdateCandidateStatus(
 		ctx context.Context,
-		referralID string,
+		candidateID string,
 		profileID string,
-		status ReferralStatus,
+		status CandidateStatus,
 	) error
+	SoftDeleteCandidate(ctx context.Context, candidateID string) error
+
+	// Application form methods
+	GetActiveApplicationForm(
+		ctx context.Context,
+		profileID string,
+	) (*ApplicationForm, error)
+	GetApplicationFormByProfileID(
+		ctx context.Context,
+		profileID string,
+	) (*ApplicationForm, string, error) // returns form, featureApplications, error
+	CreateApplicationForm(
+		ctx context.Context,
+		formID string,
+		profileID string,
+		presetKey *string,
+		responsesVisibility string,
+	) (*ApplicationForm, error)
+	UpdateApplicationForm(
+		ctx context.Context,
+		formID string,
+		presetKey *string,
+		responsesVisibility string,
+	) error
+	DeactivateApplicationForms(ctx context.Context, profileID string) error
+	ListApplicationFormFields(
+		ctx context.Context,
+		formID string,
+	) ([]*ApplicationFormField, error)
+	CreateApplicationFormField(
+		ctx context.Context,
+		fieldID string,
+		formID string,
+		label string,
+		fieldType string,
+		isRequired bool,
+		sortOrder int,
+		placeholder *string,
+	) (*ApplicationFormField, error)
+	DeleteApplicationFormFields(ctx context.Context, formID string) error
+	CreateCandidateResponse(
+		ctx context.Context,
+		responseID string,
+		candidateID string,
+		formFieldID string,
+		value string,
+	) error
+	ListCandidateResponses(
+		ctx context.Context,
+		candidateID string,
+	) ([]*CandidateFormResponse, error)
 }
 
 // WebserverSyncer is the port for syncing custom domains to webserver infrastructure.
@@ -4387,14 +4452,14 @@ func (s *Service) SetResourceTeams(
 	return nil
 }
 
-// CreateReferral creates a new membership referral. The referrer must be member+ on the profile.
-func (s *Service) CreateReferral( //nolint:cyclop,funlen
+// CreateCandidate creates a new membership candidate. The referrer must be member+ on the profile.
+func (s *Service) CreateCandidate( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	profileSlug string,
 	referredProfileSlug string,
 	teamIDs []string,
-) (*ProfileMembershipReferral, error) {
+) (*ProfileMembershipCandidate, error) {
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
@@ -4448,11 +4513,11 @@ func (s *Service) CreateReferral( //nolint:cyclop,funlen
 		return nil, ErrCannotReferExistingMember
 	}
 
-	existingReferral, _ := s.repo.GetProfileMembershipReferralByProfileAndReferred(
+	existingCandidate, _ := s.repo.GetProfileMembershipCandidateByProfileAndReferred(
 		ctx, profileID, referredProfileID,
 	)
-	if existingReferral != nil {
-		return nil, ErrReferralAlreadyExists
+	if existingCandidate != nil {
+		return nil, ErrCandidateAlreadyExists
 	}
 
 	if len(teamIDs) > 0 {
@@ -4477,10 +4542,11 @@ func (s *Service) CreateReferral( //nolint:cyclop,funlen
 		}
 	}
 
-	referralID := string(s.idGenerator())
+	candidateID := string(s.idGenerator())
 
-	referral, err := s.repo.CreateProfileMembershipReferral(
-		ctx, referralID, profileID, referredProfileID, referrerMembership.ID,
+	candidate, err := s.repo.CreateProfileMembershipCandidate(
+		ctx, candidateID, profileID, referredProfileID, &referrerMembership.ID,
+		string(CandidateSourceReferral), nil,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
@@ -4489,19 +4555,19 @@ func (s *Service) CreateReferral( //nolint:cyclop,funlen
 	for _, teamID := range teamIDs {
 		teamRecordID := string(s.idGenerator())
 
-		insertErr := s.repo.InsertReferralTeam(ctx, teamRecordID, referralID, teamID)
+		insertErr := s.repo.InsertCandidateTeam(ctx, teamRecordID, candidateID, teamID)
 		if insertErr != nil {
 			return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, insertErr)
 		}
 	}
 
-	teams, _ := s.repo.ListReferralTeams(ctx, referralID)
-	referral.Teams = teams
+	teams, _ := s.repo.ListCandidateTeams(ctx, candidateID)
+	candidate.Teams = teams
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.ProfileReferralCreated,
-		EntityType: "referral",
-		EntityID:   referralID,
+		EventType:  events.ProfileCandidateCreated,
+		EntityType: "candidate",
+		EntityID:   candidateID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
 		SessionID:  nil,
@@ -4509,19 +4575,20 @@ func (s *Service) CreateReferral( //nolint:cyclop,funlen
 			"profile_id":             profileID,
 			"referred_profile":       referredProfileSlug,
 			"referrer_membership_id": referrerMembership.ID,
+			"source":                 string(CandidateSourceReferral),
 		},
 	})
 
-	return referral, nil
+	return candidate, nil
 }
 
-// ListReferrals lists all active referrals for a profile. Member+ only.
-func (s *Service) ListReferrals(
+// ListCandidates lists all active candidates for a profile. Member+ only.
+func (s *Service) ListCandidates(
 	ctx context.Context,
 	localeCode string,
 	userID string,
 	profileSlug string,
-) ([]*ProfileMembershipReferral, error) {
+) ([]*ProfileMembershipCandidate, error) {
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
@@ -4548,32 +4615,32 @@ func (s *Service) ListReferrals(
 		}
 	}
 
-	referrals, err := s.repo.ListProfileMembershipReferralsByProfileID(
+	candidates, err := s.repo.ListProfileMembershipCandidatesByProfileID(
 		ctx, localeCode, profileID, viewerMembershipID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
 
-	for _, referral := range referrals {
-		teams, teamsErr := s.repo.ListReferralTeams(ctx, referral.ID)
+	for _, candidate := range candidates {
+		teams, teamsErr := s.repo.ListCandidateTeams(ctx, candidate.ID)
 		if teamsErr == nil {
-			referral.Teams = teams
+			candidate.Teams = teams
 		}
 	}
 
-	return referrals, nil
+	return candidates, nil
 }
 
-// VoteOnReferral casts or updates a vote on a referral. Member+ only.
-func (s *Service) VoteOnReferral( //nolint:cyclop,funlen
+// VoteCandidate casts or updates a vote on a candidate. Member+ only.
+func (s *Service) VoteCandidate( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
 	profileSlug string,
-	referralID string,
+	candidateID string,
 	score int16,
 	comment *string,
-) (*ReferralVote, error) {
+) (*CandidateVote, error) {
 	const minScore, maxScore = 0, 4
 
 	if score < minScore || score > maxScore {
@@ -4590,17 +4657,17 @@ func (s *Service) VoteOnReferral( //nolint:cyclop,funlen
 		return nil, err
 	}
 
-	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	candidate, err := s.repo.GetProfileMembershipCandidateByID(ctx, candidateID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+		return nil, fmt.Errorf("%w: %w", ErrCandidateNotFound, err)
 	}
 
-	if referral.ProfileID != profileID {
-		return nil, ErrReferralNotFound
+	if candidate.ProfileID != profileID {
+		return nil, ErrCandidateNotFound
 	}
 
-	if referral.Status != ReferralStatusVoting {
-		return nil, ErrReferralNotVoting
+	if candidate.Status != CandidateStatusVoting {
+		return nil, ErrCandidateNotVoting
 	}
 
 	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
@@ -4621,19 +4688,19 @@ func (s *Service) VoteOnReferral( //nolint:cyclop,funlen
 
 	voteID := string(s.idGenerator())
 
-	vote, err := s.repo.UpsertReferralVote(
-		ctx, voteID, referralID, voterMembership.ID, score, comment,
+	vote, err := s.repo.UpsertCandidateVote(
+		ctx, voteID, candidateID, voterMembership.ID, score, comment,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
-	_ = s.repo.UpdateReferralVoteCount(ctx, referralID)
+	_ = s.repo.UpdateCandidateVoteCount(ctx, candidateID)
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.ProfileReferralVoted,
-		EntityType: "referral",
-		EntityID:   referralID,
+		EventType:  events.ProfileCandidateVoted,
+		EntityType: "candidate",
+		EntityID:   candidateID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
 		SessionID:  nil,
@@ -4646,14 +4713,14 @@ func (s *Service) VoteOnReferral( //nolint:cyclop,funlen
 	return vote, nil
 }
 
-// GetReferralVotes gets all votes for a referral. Member+ only.
-func (s *Service) GetReferralVotes(
+// GetCandidateVotes gets all votes for a candidate. Member+ only.
+func (s *Service) GetCandidateVotes(
 	ctx context.Context,
 	localeCode string,
 	userID string,
 	profileSlug string,
-	referralID string,
-) ([]*ReferralVote, error) {
+	candidateID string,
+) ([]*CandidateVote, error) {
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
@@ -4664,16 +4731,16 @@ func (s *Service) GetReferralVotes(
 		return nil, err
 	}
 
-	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	candidate, err := s.repo.GetProfileMembershipCandidateByID(ctx, candidateID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+		return nil, fmt.Errorf("%w: %w", ErrCandidateNotFound, err)
 	}
 
-	if referral.ProfileID != profileID {
-		return nil, ErrReferralNotFound
+	if candidate.ProfileID != profileID {
+		return nil, ErrCandidateNotFound
 	}
 
-	votes, err := s.repo.ListReferralVotes(ctx, localeCode, referralID)
+	votes, err := s.repo.ListCandidateVotes(ctx, localeCode, candidateID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
@@ -4681,23 +4748,24 @@ func (s *Service) GetReferralVotes(
 	return votes, nil
 }
 
-// validReferralTransitions defines allowed status transitions.
-var validReferralTransitions = map[ReferralStatus][]ReferralStatus{ //nolint:gochecknoglobals
-	ReferralStatusVoting: {
-		ReferralStatusFrozen,
-		ReferralStatusReferenceRejected,
-		ReferralStatusInvitationPendingResponse,
+// validCandidateTransitions defines allowed status transitions.
+var validCandidateTransitions = map[CandidateStatus][]CandidateStatus{ //nolint:gochecknoglobals
+	CandidateStatusVoting: {
+		CandidateStatusFrozen,
+		CandidateStatusReferenceRejected,
+		CandidateStatusInvitationPendingResponse,
+		CandidateStatusApplicationAccepted,
 	},
-	ReferralStatusFrozen: {
-		ReferralStatusVoting,
-		ReferralStatusReferenceRejected,
+	CandidateStatusFrozen: {
+		CandidateStatusVoting,
+		CandidateStatusReferenceRejected,
 	},
 	// invitation_pending_response, reference_rejected, invitation_accepted,
-	// invitation_rejected are terminal or managed by mailbox.
+	// invitation_rejected, application_accepted are terminal or managed by mailbox.
 }
 
-func isValidReferralTransition(from, target ReferralStatus) bool {
-	allowed, ok := validReferralTransitions[from]
+func isValidCandidateTransition(from, target CandidateStatus) bool {
+	allowed, ok := validCandidateTransitions[from]
 	if !ok {
 		return false
 	}
@@ -4711,13 +4779,13 @@ func isValidReferralTransition(from, target ReferralStatus) bool {
 	return false
 }
 
-// UpdateReferralStatus changes the status of a referral. Requires lead+ access.
-func (s *Service) UpdateReferralStatus(
+// UpdateCandidateStatus changes the status of a candidate. Requires lead+ access.
+func (s *Service) UpdateCandidateStatus(
 	ctx context.Context,
 	userID string,
 	profileSlug string,
-	referralID string,
-	newStatus ReferralStatus,
+	candidateID string,
+	newStatus CandidateStatus,
 ) error {
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
@@ -4729,39 +4797,39 @@ func (s *Service) UpdateReferralStatus(
 		return err
 	}
 
-	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	candidate, err := s.repo.GetProfileMembershipCandidateByID(ctx, candidateID)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+		return fmt.Errorf("%w: %w", ErrCandidateNotFound, err)
 	}
 
-	if referral.ProfileID != profileID {
-		return ErrReferralNotFound
+	if candidate.ProfileID != profileID {
+		return ErrCandidateNotFound
 	}
 
-	if !isValidReferralTransition(referral.Status, newStatus) {
+	if !isValidCandidateTransition(candidate.Status, newStatus) {
 		return fmt.Errorf(
 			"%w: cannot transition from %s to %s",
 			ErrInvalidStatusTransition,
-			referral.Status,
+			candidate.Status,
 			newStatus,
 		)
 	}
 
-	err = s.repo.UpdateReferralStatus(ctx, referralID, profileID, newStatus)
+	err = s.repo.UpdateCandidateStatus(ctx, candidateID, profileID, newStatus)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.ProfileReferralStatusChanged,
-		EntityType: "referral",
-		EntityID:   referralID,
+		EventType:  events.ProfileCandidateStatusChanged,
+		EntityType: "candidate",
+		EntityID:   candidateID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
 		SessionID:  nil,
 		Payload: map[string]any{
 			"profile_id": profileID,
-			"old_status": string(referral.Status),
+			"old_status": string(candidate.Status),
 			"new_status": string(newStatus),
 		},
 	})
@@ -4769,17 +4837,17 @@ func (s *Service) UpdateReferralStatus(
 	return nil
 }
 
-// GetReferralByID returns a referral by its ID. No access check.
-func (s *Service) GetReferralByID(
+// GetCandidateByID returns a candidate by its ID. No access check.
+func (s *Service) GetCandidateByID(
 	ctx context.Context,
-	referralID string,
-) (*ProfileMembershipReferral, error) {
-	referral, err := s.repo.GetProfileMembershipReferralByID(ctx, referralID)
+	candidateID string,
+) (*ProfileMembershipCandidate, error) {
+	candidate, err := s.repo.GetProfileMembershipCandidateByID(ctx, candidateID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrReferralNotFound, err)
+		return nil, fmt.Errorf("%w: %w", ErrCandidateNotFound, err)
 	}
 
-	return referral, nil
+	return candidate, nil
 }
 
 // GetBySlugInternal returns a profile by slug using the default locale. No access check.
@@ -4787,23 +4855,23 @@ func (s *Service) GetBySlugInternal(ctx context.Context, slug string) (*Profile,
 	return s.GetBySlug(ctx, "en", slug)
 }
 
-// UpdateReferralStatusInternal changes the status of a referral without access checks.
+// UpdateCandidateStatusInternal changes the status of a candidate without access checks.
 // Used by system callbacks (e.g. mailbox acceptance/rejection).
-func (s *Service) UpdateReferralStatusInternal(
+func (s *Service) UpdateCandidateStatusInternal(
 	ctx context.Context,
-	referralID string,
+	candidateID string,
 	profileID string,
-	newStatus ReferralStatus,
+	newStatus CandidateStatus,
 ) error {
-	err := s.repo.UpdateReferralStatus(ctx, referralID, profileID, newStatus)
+	err := s.repo.UpdateCandidateStatus(ctx, candidateID, profileID, newStatus)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.ProfileReferralStatusChanged,
-		EntityType: "referral",
-		EntityID:   referralID,
+		EventType:  events.ProfileCandidateStatusChanged,
+		EntityType: "candidate",
+		EntityID:   candidateID,
 		ActorID:    nil,
 		ActorKind:  events.ActorSystem,
 		SessionID:  nil,
@@ -4817,23 +4885,23 @@ func (s *Service) UpdateReferralStatusInternal(
 	return nil
 }
 
-// EnsureMembershipFromReferralInternal handles the membership+teams logic when
-// a referral invitation is accepted. No access checks (system-initiated).
+// EnsureMembershipFromCandidateInternal handles the membership+teams logic when
+// a candidate invitation is accepted. No access checks (system-initiated).
 //
 // Membership: keeps existing member+ memberships, upgrades follower/sponsor to member, or creates new.
-// Teams: merges existing membership teams with the referral's suggested teams (union, no duplicates).
-func (s *Service) EnsureMembershipFromReferralInternal(
+// Teams: merges existing membership teams with the candidate's suggested teams (union, no duplicates).
+func (s *Service) EnsureMembershipFromCandidateInternal(
 	ctx context.Context,
 	profileID string,
 	memberProfileID string,
-	referralID string,
+	candidateID string,
 ) (string, error) {
 	membershipID, err := s.ensureMinMemberMembership(ctx, profileID, memberProfileID)
 	if err != nil {
 		return "", err
 	}
 
-	teamsErr := s.mergeReferralTeams(ctx, membershipID, referralID)
+	teamsErr := s.mergeCandidateTeams(ctx, membershipID, candidateID)
 	if teamsErr != nil {
 		return membershipID, teamsErr
 	}
@@ -4866,7 +4934,7 @@ func (s *Service) ensureMinMemberMembership(
 				existing.ID,
 				map[string]any{
 					"profile_id": profileID, "member_profile_id": memberProfileID,
-					"old_kind": existing.Kind, "new_kind": string(MembershipKindMember), "source": "referral",
+					"old_kind": existing.Kind, "new_kind": string(MembershipKindMember), "source": "candidate",
 				},
 			)
 		}
@@ -4890,20 +4958,20 @@ func (s *Service) ensureMinMemberMembership(
 
 	s.recordSystemMembershipAudit(ctx, events.ProfileMembershipCreated, newID, map[string]any{
 		"profile_id": profileID, "member_profile_id": memberProfileID,
-		"kind": string(MembershipKindMember), "source": "referral",
+		"kind": string(MembershipKindMember), "source": "candidate",
 	})
 
 	return newID, nil
 }
 
-// mergeReferralTeams merges a referral's suggested teams into the membership's existing teams.
-func (s *Service) mergeReferralTeams(
+// mergeCandidateTeams merges a candidate's suggested teams into the membership's existing teams.
+func (s *Service) mergeCandidateTeams(
 	ctx context.Context,
 	membershipID string,
-	referralID string,
+	candidateID string,
 ) error {
-	referralTeams, _ := s.repo.ListReferralTeams(ctx, referralID)
-	if len(referralTeams) == 0 {
+	candidateTeams, _ := s.repo.ListCandidateTeams(ctx, candidateID)
+	if len(candidateTeams) == 0 {
 		return nil
 	}
 
@@ -4916,7 +4984,7 @@ func (s *Service) mergeReferralTeams(
 
 	var teamsAdded []string
 
-	for _, t := range referralTeams {
+	for _, t := range candidateTeams {
 		if _, exists := existingSet[t.ID]; !exists {
 			teamsAdded = append(teamsAdded, t.ID)
 		}
@@ -4945,25 +5013,25 @@ func (s *Service) mergeReferralTeams(
 		events.ProfileMembershipUpdated,
 		membershipID,
 		map[string]any{
-			"teams_added": teamsAdded, "source": "referral", "referral_id": referralID,
+			"teams_added": teamsAdded, "source": "candidate", "candidate_id": candidateID,
 		},
 	)
 
 	return nil
 }
 
-// RecordReferralInvitationSent records an audit event when a referral invitation is sent.
-func (s *Service) RecordReferralInvitationSent(
+// RecordCandidateInvitationSent records an audit event when a candidate invitation is sent.
+func (s *Service) RecordCandidateInvitationSent(
 	ctx context.Context,
 	userID string,
-	referralID string,
+	candidateID string,
 	profileID string,
 	referredProfileID string,
 ) {
 	s.auditService.Record(ctx, events.AuditParams{
-		EventType:  events.ProfileReferralInvitationSent,
-		EntityType: "referral",
-		EntityID:   referralID,
+		EventType:  events.ProfileCandidateInvitationSent,
+		EntityType: "candidate",
+		EntityID:   candidateID,
 		ActorID:    &userID,
 		ActorKind:  events.ActorUser,
 		SessionID:  nil,
@@ -5005,4 +5073,310 @@ func (s *Service) GetMembershipKindBetween(
 	}
 
 	return string(kind), nil
+}
+
+// --- Application Form Methods ---
+
+// GetApplicationForm returns the active application form for a profile.
+// Public access — anyone can see the form to know what questions will be asked.
+func (s *Service) GetApplicationForm(
+	ctx context.Context,
+	profileSlug string,
+) (*ApplicationForm, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	form, featureApplications, err := s.repo.GetApplicationFormByProfileID(ctx, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrNoApplicationForm, err)
+	}
+
+	if featureApplications == string(ModuleVisibilityDisabled) {
+		return nil, ErrApplicationsNotEnabled
+	}
+
+	return form, nil
+}
+
+// UpsertApplicationForm creates or updates the application form for a profile.
+// Requires lead+ access. If a preset key is provided, preset fields are used as initial fields
+// but the org can customize them afterward.
+func (s *Service) UpsertApplicationForm( //nolint:cyclop,gocognit,funlen
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	presetKey *string,
+	fields []ApplicationFormFieldInput,
+	responsesVisibility string,
+) (*ApplicationForm, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindLead)
+	if err != nil {
+		return nil, err
+	}
+
+	if responsesVisibility != "members" && responsesVisibility != "leads" {
+		return nil, ErrInvalidResponsesVisibility
+	}
+
+	// Validate field types
+	validFieldTypes := map[string]bool{"short_text": true, "long_text": true, "url": true}
+	for _, field := range fields {
+		if !validFieldTypes[field.FieldType] {
+			return nil, fmt.Errorf("%w: %s", ErrInvalidFieldType, field.FieldType)
+		}
+	}
+
+	// If preset is given and no explicit fields, use preset fields
+	if presetKey != nil && len(fields) == 0 {
+		preset, ok := ApplicationPresets[*presetKey]
+		if ok {
+			fields = make([]ApplicationFormFieldInput, 0, len(preset.Fields))
+			for i, presetField := range preset.Fields {
+				var placeholder *string
+				if presetField.Placeholder != "" {
+					placeholder = &presetField.Placeholder
+				}
+
+				fields = append(fields, ApplicationFormFieldInput{
+					Label:       presetField.Label,
+					FieldType:   presetField.FieldType,
+					IsRequired:  presetField.IsRequired,
+					SortOrder:   i,
+					Placeholder: placeholder,
+				})
+			}
+		}
+	}
+
+	// Check if an active form already exists
+	existingForm, _ := s.repo.GetActiveApplicationForm(ctx, profileID)
+
+	if existingForm != nil { //nolint:nestif
+		// Update existing form
+		err = s.repo.UpdateApplicationForm(ctx, existingForm.ID, presetKey, responsesVisibility)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
+		}
+
+		// Replace fields: delete old, create new
+		err = s.repo.DeleteApplicationFormFields(ctx, existingForm.ID)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToDeleteRecord, err)
+		}
+
+		for _, field := range fields {
+			fieldID := string(s.idGenerator())
+
+			_, fieldErr := s.repo.CreateApplicationFormField(
+				ctx, fieldID, existingForm.ID,
+				field.Label, field.FieldType, field.IsRequired,
+				field.SortOrder, field.Placeholder,
+			)
+			if fieldErr != nil {
+				return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, fieldErr)
+			}
+		}
+	} else {
+		// Create new form
+		formID := string(s.idGenerator())
+
+		_, err = s.repo.CreateApplicationForm(ctx, formID, profileID, presetKey, responsesVisibility)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+		}
+
+		for _, field := range fields {
+			fieldID := string(s.idGenerator())
+
+			_, fieldErr := s.repo.CreateApplicationFormField(
+				ctx, fieldID, formID,
+				field.Label, field.FieldType, field.IsRequired,
+				field.SortOrder, field.Placeholder,
+			)
+			if fieldErr != nil {
+				return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, fieldErr)
+			}
+		}
+	}
+
+	// Re-fetch final form with all fields populated
+	form, err := s.repo.GetActiveApplicationForm(ctx, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	return form, nil
+}
+
+// CreateApplication creates a self-nominated candidate (application).
+// Requires: authenticated user, feature_applications enabled, active form exists.
+func (s *Service) CreateApplication( //nolint:cyclop,funlen
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	applicantMessage *string,
+	formResponses map[string]string,
+) (*ProfileMembershipCandidate, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	// Check feature flag
+	form, featureApplications, err := s.repo.GetApplicationFormByProfileID(ctx, profileID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrNoApplicationForm, err)
+	}
+
+	if featureApplications == string(ModuleVisibilityDisabled) {
+		return nil, ErrApplicationsNotEnabled
+	}
+
+	// Get the applicant's individual profile
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if userInfo.IndividualProfileID == nil {
+		return nil, fmt.Errorf("%w: %w", ErrInsufficientAccess, ErrNoIndividualProfile)
+	}
+
+	applicantProfileID := *userInfo.IndividualProfileID
+
+	// Cannot apply if already a member (member+)
+	existingMembership, _ := s.repo.GetProfileMembershipByProfileAndMember(
+		ctx, profileID, applicantProfileID,
+	)
+	if existingMembership != nil &&
+		GetMembershipKindLevel()[MembershipKind(existingMembership.Kind)] >= GetMembershipKindLevel()[MembershipKindMember] {
+		return nil, ErrCannotReferExistingMember
+	}
+
+	// Cannot apply if already has a pending candidate record
+	existingCandidate, _ := s.repo.GetProfileMembershipCandidateByProfileAndReferred(
+		ctx, profileID, applicantProfileID,
+	)
+	if existingCandidate != nil {
+		return nil, ErrAlreadyApplied
+	}
+
+	// Validate required fields
+	for _, field := range form.Fields {
+		if field.IsRequired {
+			value, exists := formResponses[field.ID]
+			if !exists || value == "" {
+				return nil, fmt.Errorf("%w: %s", ErrMissingRequiredField, field.Label)
+			}
+		}
+	}
+
+	// Create candidate with source=application
+	candidateID := string(s.idGenerator())
+
+	candidate, err := s.repo.CreateProfileMembershipCandidate(
+		ctx, candidateID, profileID, applicantProfileID, nil,
+		string(CandidateSourceApplication), applicantMessage,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	}
+
+	// Save form responses
+	for fieldID, value := range formResponses {
+		responseID := string(s.idGenerator())
+
+		responseErr := s.repo.CreateCandidateResponse(ctx, responseID, candidateID, fieldID, value)
+		if responseErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, responseErr)
+		}
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileCandidateCreated,
+		EntityType: "candidate",
+		EntityID:   candidateID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_id": profileID,
+			"source":     string(CandidateSourceApplication),
+		},
+	})
+
+	return candidate, nil
+}
+
+// GetMyApplication returns the current user's candidate record for a profile (if any).
+// Used for applicant status tracking on the frontend.
+func (s *Service) GetMyApplication(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+) (*ProfileMembershipCandidate, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	userInfo, err := s.repo.GetUserBriefInfo(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, err)
+	}
+
+	if userInfo.IndividualProfileID == nil {
+		return nil, fmt.Errorf("%w: %w", ErrInsufficientAccess, ErrNoIndividualProfile)
+	}
+
+	candidate, err := s.repo.GetProfileMembershipCandidateByProfileAndReferred(
+		ctx, profileID, *userInfo.IndividualProfileID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrCandidateNotFound, err)
+	}
+
+	return candidate, nil
+}
+
+// GetCandidateFormResponses returns form responses for a candidate.
+// Access is gated by the form's responses_visibility setting:
+// "members" → member+ can see, "leads" → lead+ only.
+func (s *Service) GetCandidateFormResponses(
+	ctx context.Context,
+	userID string,
+	profileSlug string,
+	candidateID string,
+) ([]*CandidateFormResponse, error) {
+	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
+	}
+
+	// Determine minimum access level from form's visibility setting
+	requiredLevel := MembershipKindMember
+
+	form, _ := s.repo.GetActiveApplicationForm(ctx, profileID)
+	if form != nil && form.ResponsesVisibility == "leads" {
+		requiredLevel = MembershipKindLead
+	}
+
+	err = s.ensureUserCanProfileAccess(ctx, profileID, userID, requiredLevel)
+	if err != nil {
+		return nil, err
+	}
+
+	responses, err := s.repo.ListCandidateResponses(ctx, candidateID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return responses, nil
 }

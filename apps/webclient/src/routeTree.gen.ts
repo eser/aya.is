@@ -67,7 +67,8 @@ import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$
 import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
 import { Route as LocaleSlugSettingsBulletinsRouteImport } from './routes/$locale/$slug/settings/bulletins'
 import { Route as LocaleSlugSettingsAccessRouteImport } from './routes/$locale/$slug/settings/access'
-import { Route as LocaleSlugMembersReferralsRouteImport } from './routes/$locale/$slug/members/referrals'
+import { Route as LocaleSlugMembersCandidatesRouteImport } from './routes/$locale/$slug/members/candidates'
+import { Route as LocaleSlugMembersApplyRouteImport } from './routes/$locale/$slug/members/apply'
 import { Route as LocaleSlugPageslugEditRouteImport } from './routes/$locale/$slug/$pageslug/edit'
 import { Route as LocaleAdminProfilesSlugRouteRouteImport } from './routes/$locale/admin/profiles/$slug/route'
 import { Route as LocaleSlugStoriesStoryslugRouteRouteImport } from './routes/$locale/$slug/stories/$storyslug/route'
@@ -380,12 +381,17 @@ const LocaleSlugSettingsAccessRoute =
     path: '/access',
     getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
-const LocaleSlugMembersReferralsRoute =
-  LocaleSlugMembersReferralsRouteImport.update({
-    id: '/referrals',
-    path: '/referrals',
+const LocaleSlugMembersCandidatesRoute =
+  LocaleSlugMembersCandidatesRouteImport.update({
+    id: '/candidates',
+    path: '/candidates',
     getParentRoute: () => LocaleSlugMembersRouteRoute,
   } as any)
+const LocaleSlugMembersApplyRoute = LocaleSlugMembersApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => LocaleSlugMembersRouteRoute,
+} as any)
 const LocaleSlugPageslugEditRoute = LocaleSlugPageslugEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -483,7 +489,8 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/admin/profiles/$slug': typeof LocaleAdminProfilesSlugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
-  '/$locale/$slug/members/referrals': typeof LocaleSlugMembersReferralsRoute
+  '/$locale/$slug/members/apply': typeof LocaleSlugMembersApplyRoute
+  '/$locale/$slug/members/candidates': typeof LocaleSlugMembersCandidatesRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
   '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
@@ -538,7 +545,8 @@ export interface FileRoutesByTo {
   '/$locale/series': typeof LocaleSeriesIndexRoute
   '/$locale/stories': typeof LocaleStoriesIndexRoute
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
-  '/$locale/$slug/members/referrals': typeof LocaleSlugMembersReferralsRoute
+  '/$locale/$slug/members/apply': typeof LocaleSlugMembersApplyRoute
+  '/$locale/$slug/members/candidates': typeof LocaleSlugMembersCandidatesRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
   '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
@@ -609,7 +617,8 @@ export interface FileRoutesById {
   '/$locale/$slug/stories/$storyslug': typeof LocaleSlugStoriesStoryslugRouteRouteWithChildren
   '/$locale/admin/profiles/$slug': typeof LocaleAdminProfilesSlugRouteRouteWithChildren
   '/$locale/$slug/$pageslug/edit': typeof LocaleSlugPageslugEditRoute
-  '/$locale/$slug/members/referrals': typeof LocaleSlugMembersReferralsRoute
+  '/$locale/$slug/members/apply': typeof LocaleSlugMembersApplyRoute
+  '/$locale/$slug/members/candidates': typeof LocaleSlugMembersCandidatesRoute
   '/$locale/$slug/settings/access': typeof LocaleSlugSettingsAccessRoute
   '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
@@ -681,7 +690,8 @@ export interface FileRouteTypes {
     | '/$locale/$slug/stories/$storyslug'
     | '/$locale/admin/profiles/$slug'
     | '/$locale/$slug/$pageslug/edit'
-    | '/$locale/$slug/members/referrals'
+    | '/$locale/$slug/members/apply'
+    | '/$locale/$slug/members/candidates'
     | '/$locale/$slug/settings/access'
     | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
@@ -736,7 +746,8 @@ export interface FileRouteTypes {
     | '/$locale/series'
     | '/$locale/stories'
     | '/$locale/$slug/$pageslug/edit'
-    | '/$locale/$slug/members/referrals'
+    | '/$locale/$slug/members/apply'
+    | '/$locale/$slug/members/candidates'
     | '/$locale/$slug/settings/access'
     | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
@@ -806,7 +817,8 @@ export interface FileRouteTypes {
     | '/$locale/$slug/stories/$storyslug'
     | '/$locale/admin/profiles/$slug'
     | '/$locale/$slug/$pageslug/edit'
-    | '/$locale/$slug/members/referrals'
+    | '/$locale/$slug/members/apply'
+    | '/$locale/$slug/members/candidates'
     | '/$locale/$slug/settings/access'
     | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
@@ -1249,11 +1261,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsAccessRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
-    '/$locale/$slug/members/referrals': {
-      id: '/$locale/$slug/members/referrals'
-      path: '/referrals'
-      fullPath: '/$locale/$slug/members/referrals'
-      preLoaderRoute: typeof LocaleSlugMembersReferralsRouteImport
+    '/$locale/$slug/members/candidates': {
+      id: '/$locale/$slug/members/candidates'
+      path: '/candidates'
+      fullPath: '/$locale/$slug/members/candidates'
+      preLoaderRoute: typeof LocaleSlugMembersCandidatesRouteImport
+      parentRoute: typeof LocaleSlugMembersRouteRoute
+    }
+    '/$locale/$slug/members/apply': {
+      id: '/$locale/$slug/members/apply'
+      path: '/apply'
+      fullPath: '/$locale/$slug/members/apply'
+      preLoaderRoute: typeof LocaleSlugMembersApplyRouteImport
       parentRoute: typeof LocaleSlugMembersRouteRoute
     }
     '/$locale/$slug/$pageslug/edit': {
@@ -1339,13 +1358,15 @@ const LocaleSlugPageslugRouteRouteWithChildren =
   )
 
 interface LocaleSlugMembersRouteRouteChildren {
-  LocaleSlugMembersReferralsRoute: typeof LocaleSlugMembersReferralsRoute
+  LocaleSlugMembersApplyRoute: typeof LocaleSlugMembersApplyRoute
+  LocaleSlugMembersCandidatesRoute: typeof LocaleSlugMembersCandidatesRoute
   LocaleSlugMembersIndexRoute: typeof LocaleSlugMembersIndexRoute
 }
 
 const LocaleSlugMembersRouteRouteChildren: LocaleSlugMembersRouteRouteChildren =
   {
-    LocaleSlugMembersReferralsRoute: LocaleSlugMembersReferralsRoute,
+    LocaleSlugMembersApplyRoute: LocaleSlugMembersApplyRoute,
+    LocaleSlugMembersCandidatesRoute: LocaleSlugMembersCandidatesRoute,
     LocaleSlugMembersIndexRoute: LocaleSlugMembersIndexRoute,
   }
 

@@ -428,6 +428,8 @@ func (r *Repository) GetProfileByID(
 		FeatureLinks:                    row.Profile.FeatureLinks,
 		FeatureQA:                       row.Profile.FeatureQa,
 		FeatureDiscussions:              row.Profile.FeatureDiscussions,
+		FeatureCandidates:               row.Profile.FeatureCandidates,
+		FeatureApplications:             row.Profile.FeatureApplications,
 		OptionStoryDiscussionsByDefault: row.Profile.OptionStoryDiscussionsByDefault,
 	}
 
@@ -471,6 +473,8 @@ func mapListProfileRows(rows []*ListProfilesRow) []*profiles.Profile {
 			FeatureLinks:                    row.Profile.FeatureLinks,
 			FeatureQA:                       row.Profile.FeatureQa,
 			FeatureDiscussions:              row.Profile.FeatureDiscussions,
+			FeatureCandidates:               row.Profile.FeatureCandidates,
+			FeatureApplications:             row.Profile.FeatureApplications,
 			OptionStoryDiscussionsByDefault: false,
 		}
 	}
@@ -760,7 +764,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 			FinishedAt:      vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties:      vars.ToObject(row.ProfileMembership.Properties),
 			Teams:           nil,
-			Profile: &profiles.Profile{
+			Profile: &profiles.Profile{ //nolint:dupl
 				ID:                              row.Profile.ID,
 				Slug:                            row.Profile.Slug,
 				Kind:                            row.Profile.Kind,
@@ -780,6 +784,8 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 				FeatureLinks:                    "",
 				FeatureQA:                       "",
 				FeatureDiscussions:              "",
+				FeatureCandidates:               "",
+				FeatureApplications:             "",
 				OptionStoryDiscussionsByDefault: false,
 			},
 			MemberProfile: &profiles.Profile{
@@ -802,6 +808,8 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 				FeatureLinks:                    "",
 				FeatureQA:                       "",
 				FeatureDiscussions:              "",
+				FeatureCandidates:               "",
+				FeatureApplications:             "",
 				OptionStoryDiscussionsByDefault: false,
 			},
 		}
@@ -816,7 +824,7 @@ func (r *Repository) ListProfileContributions( //nolint:funlen
 	return wrappedResponse, nil
 }
 
-//nolint:funlen,dupl
+//nolint:funlen
 func (r *Repository) ListProfileMembers(
 	ctx context.Context,
 	localeCode string,
@@ -845,7 +853,7 @@ func (r *Repository) ListProfileMembers(
 	}
 
 	profileMemberships := make([]*profiles.ProfileMembership, len(rows))
-	for i, row := range rows {
+	for i, row := range rows { //nolint:dupl
 		profileMemberships[i] = &profiles.ProfileMembership{
 			ID:              row.ProfileMembership.ID,
 			ProfileID:       "",
@@ -855,7 +863,7 @@ func (r *Repository) ListProfileMembers(
 			FinishedAt:      vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties:      vars.ToObject(row.ProfileMembership.Properties),
 			Teams:           nil,
-			Profile: &profiles.Profile{
+			Profile: &profiles.Profile{ //nolint:dupl
 				ID:                              row.Profile.ID,
 				Slug:                            row.Profile.Slug,
 				Kind:                            row.Profile.Kind,
@@ -875,6 +883,8 @@ func (r *Repository) ListProfileMembers(
 				FeatureLinks:                    "",
 				FeatureQA:                       "",
 				FeatureDiscussions:              "",
+				FeatureCandidates:               "",
+				FeatureApplications:             "",
 				OptionStoryDiscussionsByDefault: false,
 			},
 			MemberProfile: &profiles.Profile{
@@ -897,6 +907,8 @@ func (r *Repository) ListProfileMembers(
 				FeatureLinks:                    "",
 				FeatureQA:                       "",
 				FeatureDiscussions:              "",
+				FeatureCandidates:               "",
+				FeatureApplications:             "",
 				OptionStoryDiscussionsByDefault: false,
 			},
 		}
@@ -937,7 +949,7 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 			StartedAt:       vars.ToTimePtr(row.StartedAt),
 			FinishedAt:      vars.ToTimePtr(row.FinishedAt),
 			Properties:      vars.ToObject(row.MembershipProperties),
-			Profile: &profiles.Profile{
+			Profile: &profiles.Profile{ //nolint:dupl
 				ID:                              row.Profile.ID,
 				Slug:                            row.Profile.Slug,
 				Kind:                            row.Profile.Kind,
@@ -957,6 +969,8 @@ func (r *Repository) GetProfileMembershipsByMemberProfileID(
 				FeatureLinks:                    "",
 				FeatureQA:                       "",
 				FeatureDiscussions:              "",
+				FeatureCandidates:               "",
+				FeatureApplications:             "",
 				OptionStoryDiscussionsByDefault: false,
 			},
 			// MemberProfile is not needed for this use case since we're filtering by member profile ID
@@ -2119,6 +2133,8 @@ func (r *Repository) ListAllProfilesForAdmin(
 			FeatureLinks:                    "",
 			FeatureQA:                       "",
 			FeatureDiscussions:              "",
+			FeatureCandidates:               "",
+			FeatureApplications:             "",
 			OptionStoryDiscussionsByDefault: false,
 			CreatedAt:                       row.CreatedAt,
 			UpdatedAt:                       vars.ToTimePtr(row.UpdatedAt),
@@ -2184,6 +2200,8 @@ func (r *Repository) GetAdminProfileBySlug(
 		FeatureLinks:                    "",
 		FeatureQA:                       "",
 		FeatureDiscussions:              "",
+		FeatureCandidates:               "",
+		FeatureApplications:             "",
 		OptionStoryDiscussionsByDefault: false,
 		CreatedAt:                       row.CreatedAt,
 		UpdatedAt:                       vars.ToTimePtr(row.UpdatedAt),

@@ -165,12 +165,39 @@ export const profilePageQueryOptions = (locale: string, slug: string, pageSlug: 
     queryFn: () => backend.getProfilePage(locale, slug, pageSlug),
   });
 
-// === Referrals ===
+// === Candidates ===
 
-export const referralsQueryOptions = (locale: string, slug: string) =>
+export const candidatesQueryOptions = (locale: string, slug: string) =>
   queryOptions({
-    queryKey: ["referrals", locale, slug],
-    queryFn: () => backend.listReferrals(locale, slug),
+    queryKey: ["candidates", locale, slug],
+    queryFn: () => backend.listCandidates(locale, slug),
+  });
+
+// === Application Forms ===
+
+export const applicationFormQueryOptions = (locale: string, slug: string) =>
+  queryOptions({
+    queryKey: ["application-form", locale, slug],
+    queryFn: () => backend.getApplicationForm(locale, slug),
+  });
+
+export const applicationPresetsQueryOptions = (locale: string, slug: string) =>
+  queryOptions({
+    queryKey: ["application-presets", locale, slug],
+    queryFn: () => backend.listApplicationPresets(locale, slug),
+  });
+
+export const myApplicationQueryOptions = (locale: string, slug: string) =>
+  queryOptions({
+    queryKey: ["my-application", locale, slug],
+    queryFn: () => backend.getMyApplication(locale, slug),
+    retry: false,
+  });
+
+export const candidateResponsesQueryOptions = (locale: string, slug: string, candidateId: string) =>
+  queryOptions({
+    queryKey: ["candidate-responses", locale, slug, candidateId],
+    queryFn: () => backend.getCandidateResponses(locale, slug, candidateId),
   });
 
 // === Interactions ===

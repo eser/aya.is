@@ -139,7 +139,7 @@ type InvitationProperties struct {
 	GroupName        string  `json:"group_name,omitempty"`
 	InviteLink       *string `json:"invite_link,omitempty"`
 	// profile_join fields:
-	ReferralID  string `json:"referral_id,omitempty"`
+	CandidateID string `json:"candidate_id,omitempty"`
 	ProfileID   string `json:"profile_id,omitempty"`
 	ProfileSlug string `json:"profile_slug,omitempty"`
 }

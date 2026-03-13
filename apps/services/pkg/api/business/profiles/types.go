@@ -115,10 +115,12 @@ type Profile struct {
 	DefaultLocale                   string     `json:"default_locale"`
 	Points                          uint64     `json:"points"`
 	HasTranslation                  bool       `json:"has_translation"`
-	FeatureRelations                string     `json:"feature_relations"`   // Visibility of Members/Contributions module
-	FeatureLinks                    string     `json:"feature_links"`       // Visibility of Links module
-	FeatureQA                       string     `json:"feature_qa"`          // Visibility of Q&A module
-	FeatureDiscussions              string     `json:"feature_discussions"` // Visibility of Discussions module
+	FeatureRelations                string     `json:"feature_relations"`    // Visibility of Members/Contributions module
+	FeatureLinks                    string     `json:"feature_links"`        // Visibility of Links module
+	FeatureQA                       string     `json:"feature_qa"`           // Visibility of Q&A module
+	FeatureDiscussions              string     `json:"feature_discussions"`  // Visibility of Discussions module
+	FeatureCandidates               string     `json:"feature_candidates"`   // Visibility of Candidates module
+	FeatureApplications             string     `json:"feature_applications"` // Visibility of Applications module
 	OptionStoryDiscussionsByDefault bool       `json:"option_story_discussions_by_default"`
 }
 
@@ -335,47 +337,104 @@ type UserSearchResult struct {
 	Profile             *ProfileBrief `json:"profile"`
 }
 
-// ReferralStatus represents the current status of a membership referral.
-type ReferralStatus string
+// CandidateStatus represents the current status of a membership candidate.
+type CandidateStatus string
 
 const (
-	ReferralStatusVoting                    ReferralStatus = "voting"
-	ReferralStatusFrozen                    ReferralStatus = "frozen"
-	ReferralStatusReferenceRejected         ReferralStatus = "reference_rejected"
-	ReferralStatusInvitationPendingResponse ReferralStatus = "invitation_pending_response"
-	ReferralStatusInvitationAccepted        ReferralStatus = "invitation_accepted"
-	ReferralStatusInvitationRejected        ReferralStatus = "invitation_rejected"
+	CandidateStatusVoting                    CandidateStatus = "voting"
+	CandidateStatusFrozen                    CandidateStatus = "frozen"
+	CandidateStatusReferenceRejected         CandidateStatus = "reference_rejected"
+	CandidateStatusInvitationPendingResponse CandidateStatus = "invitation_pending_response"
+	CandidateStatusInvitationAccepted        CandidateStatus = "invitation_accepted"
+	CandidateStatusInvitationRejected        CandidateStatus = "invitation_rejected"
+	CandidateStatusApplicationAccepted       CandidateStatus = "application_accepted"
 )
 
-// ProfileMembershipReferral represents a referral for a potential new member.
-type ProfileMembershipReferral struct {
-	ReferrerProfile      *ProfileBrief  `json:"referrer_profile"`
-	ReferredProfile      *ProfileBrief  `json:"referred_profile"`
-	Teams                []*ProfileTeam `json:"teams"`
-	ViewerVoteComment    *string        `json:"viewer_vote_comment"`
-	ViewerVoteScore      *int16         `json:"viewer_vote_score"`
-	UpdatedAt            *time.Time     `json:"updated_at"`
-	CreatedAt            time.Time      `json:"created_at"`
-	ID                   string         `json:"id"`
-	ProfileID            string         `json:"profile_id"`
-	ReferredProfileID    string         `json:"referred_profile_id"`
-	ReferrerMembershipID string         `json:"referrer_membership_id"`
-	Status               ReferralStatus `json:"status"`
-	AverageScore         float64        `json:"average_score"`
-	TotalVotes           int64          `json:"total_votes"`
-	VoteCount            int            `json:"vote_count"`
+// CandidateSource represents how a candidate was created.
+type CandidateSource string
+
+const (
+	CandidateSourceReferral    CandidateSource = "referral"
+	CandidateSourceApplication CandidateSource = "application"
+)
+
+// ApplicationForm represents an organization's application form configuration.
+type ApplicationForm struct {
+	UpdatedAt           *time.Time              `json:"updated_at"`
+	PresetKey           *string                 `json:"preset_key"`
+	CreatedAt           time.Time               `json:"created_at"`
+	ID                  string                  `json:"id"`
+	ProfileID           string                  `json:"profile_id"`
+	ResponsesVisibility string                  `json:"responses_visibility"`
+	IsActive            bool                    `json:"is_active"`
+	Fields              []*ApplicationFormField `json:"fields"`
 }
 
-// ReferralVote represents a single vote on a referral.
-type ReferralVote struct {
-	VoterProfile                *ProfileBrief `json:"voter_profile"`
-	Comment                     *string       `json:"comment"`
-	UpdatedAt                   *time.Time    `json:"updated_at"`
-	CreatedAt                   time.Time     `json:"created_at"`
-	ID                          string        `json:"id"`
-	ProfileMembershipReferralID string        `json:"profile_membership_referral_id"`
-	VoterMembershipID           string        `json:"voter_membership_id"`
-	Score                       int16         `json:"score"`
+// ApplicationFormField represents a single question/field in an application form.
+type ApplicationFormField struct {
+	Placeholder *string   `json:"placeholder"`
+	CreatedAt   time.Time `json:"created_at"`
+	ID          string    `json:"id"`
+	FormID      string    `json:"form_id"`
+	Label       string    `json:"label"`
+	FieldType   string    `json:"field_type"`
+	SortOrder   int       `json:"sort_order"`
+	IsRequired  bool      `json:"is_required"`
+}
+
+// ApplicationFormFieldInput is the input for creating/updating a form field.
+type ApplicationFormFieldInput struct {
+	Placeholder *string `json:"placeholder"`
+	Label       string  `json:"label"`
+	FieldType   string  `json:"field_type"`
+	SortOrder   int     `json:"sort_order"`
+	IsRequired  bool    `json:"is_required"`
+}
+
+// CandidateFormResponse represents a single form response from an applicant.
+type CandidateFormResponse struct {
+	ID          string `json:"id"`
+	CandidateID string `json:"candidate_id"`
+	FormFieldID string `json:"form_field_id"`
+	FieldLabel  string `json:"field_label"`
+	FieldType   string `json:"field_type"`
+	Value       string `json:"value"`
+	SortOrder   int    `json:"sort_order"`
+	IsRequired  bool   `json:"is_required"`
+}
+
+// ProfileMembershipCandidate represents a candidate for a potential new member.
+type ProfileMembershipCandidate struct {
+	ReferrerProfile      *ProfileBrief            `json:"referrer_profile"`
+	ReferredProfile      *ProfileBrief            `json:"referred_profile"`
+	Teams                []*ProfileTeam           `json:"teams"`
+	ViewerVoteComment    *string                  `json:"viewer_vote_comment"`
+	ViewerVoteScore      *int16                   `json:"viewer_vote_score"`
+	ApplicantMessage     *string                  `json:"applicant_message"`
+	UpdatedAt            *time.Time               `json:"updated_at"`
+	CreatedAt            time.Time                `json:"created_at"`
+	ID                   string                   `json:"id"`
+	ProfileID            string                   `json:"profile_id"`
+	ReferredProfileID    string                   `json:"referred_profile_id"`
+	ReferrerMembershipID string                   `json:"referrer_membership_id"`
+	Source               string                   `json:"source"`
+	Status               CandidateStatus          `json:"status"`
+	AverageScore         float64                  `json:"average_score"`
+	TotalVotes           int64                    `json:"total_votes"`
+	VoteCount            int                      `json:"vote_count"`
+	FormResponses        []*CandidateFormResponse `json:"form_responses"`
+}
+
+// CandidateVote represents a single vote on a candidate.
+type CandidateVote struct {
+	VoterProfile                 *ProfileBrief `json:"voter_profile"`
+	Comment                      *string       `json:"comment"`
+	UpdatedAt                    *time.Time    `json:"updated_at"`
+	CreatedAt                    time.Time     `json:"created_at"`
+	ID                           string        `json:"id"`
+	ProfileMembershipCandidateID string        `json:"profile_membership_candidate_id"`
+	VoterMembershipID            string        `json:"voter_membership_id"`
+	Score                        int16         `json:"score"`
 }
 
 type ExternalPost struct {

@@ -24,6 +24,8 @@ export interface Profile {
   feature_links?: string; // Visibility of Links module
   feature_qa?: string; // Visibility of Q&A module
   feature_discussions?: string; // Visibility of Discussions module
+  feature_candidates?: string; // Visibility of Candidates module
+  feature_applications?: string; // Visibility of Applications module
   option_story_discussions_by_default?: boolean;
   created_at: string;
   updated_at: string;
@@ -163,24 +165,27 @@ export interface ProfileTeam {
   resource_count: number;
 }
 
-// Referral status
-export type ReferralStatus =
+// Candidate status
+export type CandidateStatus =
   | "voting"
   | "frozen"
   | "reference_rejected"
   | "invitation_pending_response"
   | "invitation_accepted"
-  | "invitation_rejected";
+  | "invitation_rejected"
+  | "application_accepted";
 
-export type ReferralVoteScore = 1 | 2 | 3 | 4 | 5;
+export type CandidateVoteScore = 1 | 2 | 3 | 4 | 5;
 
-// Profile membership referral
-export interface ProfileMembershipReferral {
+// Profile membership candidate
+export interface ProfileMembershipCandidate {
   id: string;
   profile_id: string;
   referred_profile_id: string;
   referrer_membership_id: string;
-  status: ReferralStatus;
+  status: CandidateStatus;
+  source: string;
+  applicant_message: string | null;
   vote_count: number;
   created_at: string;
   updated_at?: string | null;
@@ -189,16 +194,61 @@ export interface ProfileMembershipReferral {
   teams: ProfileTeam[];
   total_votes: number;
   average_score: number;
-  viewer_vote_score?: ReferralVoteScore | null;
+  viewer_vote_score?: CandidateVoteScore | null;
   viewer_vote_comment?: string | null;
 }
 
-// Referral vote
-export interface ReferralVote {
+// Application form types
+export interface ApplicationFormField {
   id: string;
-  profile_membership_referral_id: string;
+  form_id: string;
+  label: string;
+  field_type: "short_text" | "long_text" | "url";
+  is_required: boolean;
+  sort_order: number;
+  placeholder: string | null;
+  created_at: string;
+}
+
+export interface ApplicationForm {
+  id: string;
+  profile_id: string;
+  preset_key: string | null;
+  is_active: boolean;
+  responses_visibility: "members" | "leads";
+  fields: ApplicationFormField[];
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface ApplicationPreset {
+  key: string;
+  label: string;
+  fields: {
+    label: string;
+    field_type: string;
+    is_required: boolean;
+    placeholder: string;
+  }[];
+}
+
+export interface CandidateFormResponse {
+  id: string;
+  candidate_id: string;
+  form_field_id: string;
+  field_label: string;
+  field_type: string;
+  value: string;
+  sort_order: number;
+  is_required: boolean;
+}
+
+// Candidate vote
+export interface CandidateVote {
+  id: string;
+  candidate_id: string;
   voter_membership_id: string;
-  score: ReferralVoteScore;
+  score: CandidateVoteScore;
   comment?: string | null;
   created_at: string;
   updated_at?: string | null;

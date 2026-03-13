@@ -1,18 +1,18 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
-import type { ReferralStatus } from "../types";
+import type { CandidateStatus } from "../types";
 
-export async function updateReferralStatus(
+export async function updateCandidateStatus(
   locale: string,
   slug: string,
-  referralId: string,
-  status: ReferralStatus,
+  candidateId: string,
+  status: CandidateStatus,
 ): Promise<boolean> {
   const token = getAuthToken();
   if (token === null) return false;
 
   const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_referrals/${referralId}/status`,
+    `${getBackendUri()}/${locale}/profiles/${slug}/_candidates/${candidateId}/status`,
     {
       method: "PATCH",
       headers: {

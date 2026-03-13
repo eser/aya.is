@@ -1,11 +1,11 @@
-// Profile membership referrals page
+// Profile membership candidates page
 import { createFileRoute } from "@tanstack/react-router";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
-import { profilePermissionsQueryOptions, profileQueryOptions, referralsQueryOptions } from "@/modules/backend/queries";
+import { candidatesQueryOptions, profilePermissionsQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import i18next from "i18next";
 import { NotFoundContent } from "./route";
-import { ReferralsPageClient } from "./-components/referrals-page-client";
+import { CandidatesPageClient } from "./-components/candidates-page-client";
 
 const MEMBER_PLUS_KINDS = new Set([
   "member",
@@ -15,7 +15,7 @@ const MEMBER_PLUS_KINDS = new Set([
   "owner",
 ]);
 
-export const Route = createFileRoute("/$locale/$slug/members/referrals")({
+export const Route = createFileRoute("/$locale/$slug/members/candidates")({
   loader: async ({ params, context }) => {
     const { locale, slug } = params;
     const [profile, permissions] = await Promise.all([
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
 
     if (profile?.feature_relations === "disabled" || !isMemberPlus) {
       return {
-        referrals: null,
+        candidates: null,
         locale,
         slug,
         translatedTitle: "",
@@ -38,17 +38,17 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       };
     }
 
-    const referrals = await context.queryClient.ensureQueryData(referralsQueryOptions(locale, slug));
+    const candidates = await context.queryClient.ensureQueryData(candidatesQueryOptions(locale, slug));
 
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
-    const translatedTitle = `${t("Layout.Referrals")} - ${profile?.title ?? slug}`;
+    const translatedTitle = `${t("Layout.Candidates")} - ${profile?.title ?? slug}`;
     const translatedDescription = t(
-      "Referrals.Referral proposals for new members.",
+      "Candidates.Candidate proposals for new members.",
     );
 
     return {
-      referrals: referrals ?? [],
+      candidates: candidates ?? [],
       locale,
       slug,
       viewerMembershipKind: permissions?.viewer_membership_kind ?? null,
@@ -68,31 +68,31 @@ export const Route = createFileRoute("/$locale/$slug/members/referrals")({
       meta: generateMetaTags({
         title: translatedTitle,
         description: translatedDescription,
-        url: buildUrl(locale, slug, "members/referrals"),
+        url: buildUrl(locale, slug, "members/candidates"),
         locale,
         type: "website",
       }),
       links: [
-        generateCanonicalLink(buildUrl(locale, slug, "members/referrals")),
+        generateCanonicalLink(buildUrl(locale, slug, "members/candidates")),
       ],
     };
   },
   errorComponent: QueryError,
-  component: ReferralsPage,
+  component: CandidatesPage,
 });
 
-function ReferralsPage() {
+function CandidatesPage() {
   const loaderData = Route.useLoaderData();
 
   if (loaderData.notFound) {
     return <NotFoundContent />;
   }
 
-  const { referrals, locale, slug, viewerMembershipKind } = loaderData;
+  const { candidates, locale, slug, viewerMembershipKind } = loaderData;
 
   return (
-    <ReferralsPageClient
-      referrals={referrals}
+    <CandidatesPageClient
+      candidates={candidates}
       locale={locale}
       slug={slug}
       viewerMembershipKind={viewerMembershipKind}

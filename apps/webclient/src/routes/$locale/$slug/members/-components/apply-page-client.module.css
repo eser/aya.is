@@ -1,0 +1,101 @@
+@reference "@/theme.css";
+
+.container {
+  @apply space-y-6;
+}
+
+.header h2 {
+  @apply font-serif text-2xl font-bold text-foreground;
+}
+
+.header p {
+  @apply text-muted-foreground mt-1;
+}
+
+.form {
+  @apply space-y-5;
+}
+
+.fieldGroup {
+  @apply space-y-1.5;
+}
+
+.fieldLabel {
+  @apply block text-sm font-medium text-foreground;
+}
+
+.requiredMark {
+  @apply text-destructive ml-0.5;
+}
+
+.fieldInput {
+  @apply w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground
+    placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring;
+}
+
+.fieldTextarea {
+  @apply w-full px-3 py-2 text-sm border border-input rounded-md bg-background text-foreground
+    placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none;
+}
+
+.messageField {
+  @apply space-y-1.5;
+}
+
+.formActions {
+  @apply flex justify-end gap-2 pt-2;
+}
+
+.cancelButton {
+  @apply px-4 py-2 text-sm font-medium rounded-md border border-input bg-background text-foreground hover:bg-accent
+    transition-colors;
+}
+
+.submitButton {
+  @apply px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90
+    transition-colors;
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed hover:bg-primary;
+  }
+}
+
+.errorMessage {
+  @apply text-sm text-destructive;
+}
+
+.successState {
+  @apply flex flex-col items-center justify-center py-12 text-center space-y-3;
+}
+
+.successTitle {
+  @apply text-lg font-semibold text-foreground;
+}
+
+.successDescription {
+  @apply text-muted-foreground;
+}
+
+.infoBox {
+  @apply border rounded-lg p-4 text-sm text-muted-foreground;
+}
+
+.signInPrompt {
+  @apply flex flex-col items-center justify-center py-12 text-center space-y-3;
+}
+
+.statusCard {
+  @apply border rounded-lg p-4 space-y-2;
+}
+
+.statusLabel {
+  @apply text-sm font-medium text-foreground;
+}
+
+.statusBadge {
+  @apply px-2 py-0.5 text-xs font-medium rounded-full bg-muted text-muted-foreground;
+}
+
+.statusDate {
+  @apply text-xs text-muted-foreground;
+}

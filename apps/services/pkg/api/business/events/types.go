@@ -50,12 +50,12 @@ const (
 	ProfileMembershipDeleted EventType = "profile_membership_deleted"
 )
 
-// Profile referral events.
+// Profile candidate events.
 const (
-	ProfileReferralCreated        EventType = "profile_referral_created"
-	ProfileReferralVoted          EventType = "profile_referral_voted"
-	ProfileReferralStatusChanged  EventType = "profile_referral_status_changed"
-	ProfileReferralInvitationSent EventType = "profile_referral_invitation_sent"
+	ProfileCandidateCreated        EventType = "profile_candidate_created"
+	ProfileCandidateVoted          EventType = "profile_candidate_voted"
+	ProfileCandidateStatusChanged  EventType = "profile_candidate_status_changed"
+	ProfileCandidateInvitationSent EventType = "profile_candidate_invitation_sent"
 )
 
 // Profile question events.

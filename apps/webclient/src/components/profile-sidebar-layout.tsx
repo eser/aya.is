@@ -202,7 +202,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
               <DropdownMenuContent align="end" className="whitespace-nowrap">
                 {isMemberPlus && (
                   <DropdownMenuItem
-                    render={<LocaleLink to={`/${props.slug}/members/referrals`} className="no-underline" />}
+                    render={<LocaleLink to={`/${props.slug}/members/candidates`} className="no-underline" />}
                   >
                     <UserPlus size="14" />
                     {t("Profile.Invite someone")}

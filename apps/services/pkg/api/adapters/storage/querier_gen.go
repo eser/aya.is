@@ -318,6 +318,34 @@ type Querier interface {
 	//      AND (mp.last_read_at IS NULL OR me.created_at > mp.last_read_at)
 	//  )
 	CountUnreadConversations(ctx context.Context, arg CountUnreadConversationsParams) (int32, error)
+	//CreateApplicationForm
+	//
+	//  INSERT INTO "profile_application_form" (
+	//    id, profile_id, preset_key, is_active, responses_visibility, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    TRUE,
+	//    $4,
+	//    NOW()
+	//  ) RETURNING id, profile_id, preset_key, is_active, responses_visibility, created_at, updated_at
+	CreateApplicationForm(ctx context.Context, arg CreateApplicationFormParams) (*ProfileApplicationForm, error)
+	//CreateApplicationFormField
+	//
+	//  INSERT INTO "profile_application_form_field" (
+	//    id, form_id, label, field_type, is_required, sort_order, placeholder, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    $6,
+	//    $7,
+	//    NOW()
+	//  ) RETURNING id, form_id, label, field_type, is_required, sort_order, placeholder, created_at
+	CreateApplicationFormField(ctx context.Context, arg CreateApplicationFormFieldParams) (*ProfileApplicationFormField, error)
 	// Records a bulletin send attempt.
 	//
 	//  INSERT INTO "bulletin_log" (
@@ -331,6 +359,18 @@ type Querier interface {
 	//    NOW()
 	//  )
 	CreateBulletinLog(ctx context.Context, arg CreateBulletinLogParams) error
+	//CreateCandidateResponse
+	//
+	//  INSERT INTO "profile_candidate_response" (
+	//    id, candidate_id, form_field_id, value, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    NOW()
+	//  ) RETURNING id, candidate_id, form_field_id, value, created_at
+	CreateCandidateResponse(ctx context.Context, arg CreateCandidateResponseParams) (*ProfileCandidateResponse, error)
 	//CreateCustomDomain
 	//
 	//  INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
@@ -517,19 +557,21 @@ type Querier interface {
 	//    NOW()
 	//  )
 	CreateProfileMembership(ctx context.Context, arg CreateProfileMembershipParams) error
-	//CreateProfileMembershipReferral
+	//CreateProfileMembershipCandidate
 	//
-	//  INSERT INTO "profile_membership_referral" (
-	//    id, profile_id, referred_profile_id, referrer_membership_id, status, created_at
+	//  INSERT INTO "profile_membership_candidate" (
+	//    id, profile_id, referred_profile_id, referrer_membership_id, source, applicant_message, status, created_at
 	//  ) VALUES (
 	//    $1,
 	//    $2,
 	//    $3,
 	//    $4,
+	//    $5,
+	//    $6,
 	//    'voting',
 	//    NOW()
-	//  ) RETURNING id, profile_id, referred_profile_id, referrer_membership_id, status, vote_count, created_at, updated_at, deleted_at
-	CreateProfileMembershipReferral(ctx context.Context, arg CreateProfileMembershipReferralParams) (*ProfileMembershipReferral, error)
+	//  ) RETURNING id, profile_id, referred_profile_id, referrer_membership_id, status, vote_count, created_at, updated_at, deleted_at, source, applicant_message
+	CreateProfileMembershipCandidate(ctx context.Context, arg CreateProfileMembershipCandidateParams) (*ProfileMembershipCandidate, error)
 	//CreateProfilePage
 	//
 	//  INSERT INTO "profile_page" (
@@ -673,6 +715,14 @@ type Querier interface {
 	//      $17
 	//    )
 	CreateUser(ctx context.Context, arg CreateUserParams) error
+	//DeactivateApplicationForms
+	//
+	//  UPDATE "profile_application_form"
+	//  SET is_active = FALSE,
+	//      updated_at = NOW()
+	//  WHERE profile_id = $1
+	//    AND is_active = TRUE
+	DeactivateApplicationForms(ctx context.Context, arg DeactivateApplicationFormsParams) error
 	//DecrementDiscussionCommentReplyCount
 	//
 	//  UPDATE "discussion_comment"
@@ -721,6 +771,11 @@ type Querier interface {
 	//  DELETE FROM "story_date_proposal_vote"
 	//  WHERE proposal_id = $1
 	DeleteAllVotesForProposal(ctx context.Context, arg DeleteAllVotesForProposalParams) error
+	//DeleteApplicationFormFields
+	//
+	//  DELETE FROM "profile_application_form_field"
+	//  WHERE form_id = $1
+	DeleteApplicationFormFields(ctx context.Context, arg DeleteApplicationFormFieldsParams) error
 	// Soft-deletes a subscription.
 	//
 	//  UPDATE "bulletin_subscription"
@@ -918,6 +973,12 @@ type Querier interface {
 	//    AND pl.deleted_at IS NULL
 	//  LIMIT 1
 	FindProfileLinkProfileByKindAndRemoteID(ctx context.Context, arg FindProfileLinkProfileByKindAndRemoteIDParams) (string, error)
+	//GetActiveApplicationForm
+	//
+	//  SELECT id, profile_id, preset_key, is_active, responses_visibility, created_at, updated_at FROM "profile_application_form"
+	//  WHERE profile_id = $1
+	//    AND is_active = TRUE
+	GetActiveApplicationForm(ctx context.Context, arg GetActiveApplicationFormParams) (*ProfileApplicationForm, error)
 	// Returns active bulletin subscriptions whose preferred_time matches the given UTC hour
 	// and whose last_bulletin_at respects the frequency-based cooldown.
 	//
@@ -976,6 +1037,14 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetAdminProfileBySlug(ctx context.Context, arg GetAdminProfileBySlugParams) (*GetAdminProfileBySlugRow, error)
+	//GetApplicationFormByProfileID
+	//
+	//  SELECT f.id, f.profile_id, f.preset_key, f.is_active, f.responses_visibility, f.created_at, f.updated_at, p.feature_applications
+	//  FROM "profile_application_form" f
+	//    INNER JOIN "profile" p ON p.id = f.profile_id
+	//  WHERE f.profile_id = $1
+	//    AND f.is_active = TRUE
+	GetApplicationFormByProfileID(ctx context.Context, arg GetApplicationFormByProfileIDParams) (*GetApplicationFormByProfileIDRow, error)
 	// Returns a single subscription by ID.
 	//
 	//  SELECT
@@ -1007,6 +1076,14 @@ type Querier interface {
 	//    AND bs.deleted_at IS NULL
 	//  ORDER BY bs.created_at
 	GetBulletinSubscriptionsByProfileID(ctx context.Context, arg GetBulletinSubscriptionsByProfileIDParams) ([]*GetBulletinSubscriptionsByProfileIDRow, error)
+	//GetCandidateVoteBreakdown
+	//
+	//  SELECT score, COUNT(*)::BIGINT AS count
+	//  FROM "profile_membership_candidate_vote"
+	//  WHERE candidate_id = $1
+	//  GROUP BY score
+	//  ORDER BY score
+	GetCandidateVoteBreakdown(ctx context.Context, arg GetCandidateVoteBreakdownParams) ([]*GetCandidateVoteBreakdownRow, error)
 	//GetCustomDomainByDomain
 	//
 	//  SELECT pcd.id, pcd.profile_id, pcd.domain, pcd.default_locale,
@@ -1374,7 +1451,7 @@ type Querier interface {
 	GetPendingAwardsStatsByEventType(ctx context.Context) ([]*GetPendingAwardsStatsByEventTypeRow, error)
 	//GetProfileByID
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -1523,18 +1600,18 @@ type Querier interface {
 	//    AND pm.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	GetProfileMembershipByProfileAndMember(ctx context.Context, arg GetProfileMembershipByProfileAndMemberParams) (*GetProfileMembershipByProfileAndMemberRow, error)
-	//GetProfileMembershipReferralByID
+	//GetProfileMembershipCandidateByID
 	//
-	//  SELECT id, profile_id, referred_profile_id, referrer_membership_id, status, vote_count, created_at, updated_at, deleted_at FROM "profile_membership_referral"
+	//  SELECT id, profile_id, referred_profile_id, referrer_membership_id, status, vote_count, created_at, updated_at, deleted_at, source, applicant_message FROM "profile_membership_candidate"
 	//  WHERE id = $1 AND deleted_at IS NULL
-	GetProfileMembershipReferralByID(ctx context.Context, arg GetProfileMembershipReferralByIDParams) (*ProfileMembershipReferral, error)
-	//GetProfileMembershipReferralByProfileAndReferred
+	GetProfileMembershipCandidateByID(ctx context.Context, arg GetProfileMembershipCandidateByIDParams) (*ProfileMembershipCandidate, error)
+	//GetProfileMembershipCandidateByProfileAndReferred
 	//
-	//  SELECT id, profile_id, referred_profile_id, referrer_membership_id, status, vote_count, created_at, updated_at, deleted_at FROM "profile_membership_referral"
+	//  SELECT id, profile_id, referred_profile_id, referrer_membership_id, status, vote_count, created_at, updated_at, deleted_at, source, applicant_message FROM "profile_membership_candidate"
 	//  WHERE profile_id = $1
 	//    AND referred_profile_id = $2
 	//    AND deleted_at IS NULL
-	GetProfileMembershipReferralByProfileAndReferred(ctx context.Context, arg GetProfileMembershipReferralByProfileAndReferredParams) (*ProfileMembershipReferral, error)
+	GetProfileMembershipCandidateByProfileAndReferred(ctx context.Context, arg GetProfileMembershipCandidateByProfileAndReferredParams) (*ProfileMembershipCandidate, error)
 	//GetProfileMembershipsByMemberProfileID
 	//
 	//  SELECT
@@ -1543,7 +1620,7 @@ type Querier interface {
 	//    pm.started_at,
 	//    pm.finished_at,
 	//    pm.properties as membership_properties,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM
 	//    "profile_membership" pm
@@ -1719,7 +1796,7 @@ type Querier interface {
 	GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDParams) ([]*GetProfileTxByIDRow, error)
 	//GetProfilesByIDs
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -1735,14 +1812,6 @@ type Querier interface {
 	//  WHERE p.id = ANY($2::TEXT[])
 	//    AND p.deleted_at IS NULL
 	GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsParams) ([]*GetProfilesByIDsRow, error)
-	//GetReferralVoteBreakdown
-	//
-	//  SELECT score, COUNT(*)::BIGINT AS count
-	//  FROM "profile_membership_referral_vote"
-	//  WHERE profile_membership_referral_id = $1
-	//  GROUP BY score
-	//  ORDER BY score
-	GetReferralVoteBreakdown(ctx context.Context, arg GetReferralVoteBreakdownParams) ([]*GetReferralVoteBreakdownRow, error)
 	//GetRuntimeState
 	//
 	//  SELECT key, value, updated_at
@@ -1823,7 +1892,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -2182,6 +2251,17 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	IncrementProfileQuestionVoteCount(ctx context.Context, arg IncrementProfileQuestionVoteCountParams) error
+	//InsertCandidateTeam
+	//
+	//  INSERT INTO "profile_membership_candidate_team" (
+	//    id, candidate_id, profile_team_id, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    NOW()
+	//  ) RETURNING id, candidate_id, profile_team_id, created_at, deleted_at
+	InsertCandidateTeam(ctx context.Context, arg InsertCandidateTeamParams) (*ProfileMembershipCandidateTeam, error)
 	//InsertDiscussionComment
 	//
 	//  INSERT INTO "discussion_comment" (
@@ -2300,17 +2380,6 @@ type Querier interface {
 	//    NOW()
 	//  ) RETURNING id, question_id, user_id, score, created_at
 	InsertProfileQuestionVote(ctx context.Context, arg InsertProfileQuestionVoteParams) (*ProfileQuestionVote, error)
-	//InsertReferralTeam
-	//
-	//  INSERT INTO "profile_membership_referral_team" (
-	//    id, profile_membership_referral_id, profile_team_id, created_at
-	//  ) VALUES (
-	//    $1,
-	//    $2,
-	//    $3,
-	//    NOW()
-	//  ) RETURNING id, profile_membership_referral_id, profile_team_id, created_at, deleted_at
-	InsertReferralTeam(ctx context.Context, arg InsertReferralTeamParams) (*ProfileMembershipReferralTeam, error)
 	//InsertStory
 	//
 	//  INSERT INTO "story" (
@@ -2450,7 +2519,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -2577,6 +2646,59 @@ type Querier interface {
 	//  LIMIT $4
 	//  OFFSET $3
 	ListAllProfilesForAdmin(ctx context.Context, arg ListAllProfilesForAdminParams) ([]*ListAllProfilesForAdminRow, error)
+	//ListApplicationFormFields
+	//
+	//  SELECT id, form_id, label, field_type, is_required, sort_order, placeholder, created_at FROM "profile_application_form_field"
+	//  WHERE form_id = $1
+	//  ORDER BY sort_order ASC
+	ListApplicationFormFields(ctx context.Context, arg ListApplicationFormFieldsParams) ([]*ProfileApplicationFormField, error)
+	//ListCandidateResponses
+	//
+	//  SELECT
+	//    cr.id, cr.candidate_id, cr.form_field_id, cr.value, cr.created_at,
+	//    ff.label AS field_label,
+	//    ff.field_type,
+	//    ff.is_required,
+	//    ff.sort_order
+	//  FROM "profile_candidate_response" cr
+	//    INNER JOIN "profile_application_form_field" ff ON ff.id = cr.form_field_id
+	//  WHERE cr.candidate_id = $1
+	//  ORDER BY ff.sort_order ASC
+	ListCandidateResponses(ctx context.Context, arg ListCandidateResponsesParams) ([]*ListCandidateResponsesRow, error)
+	//ListCandidateTeams
+	//
+	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at FROM "profile_team" pt
+	//  JOIN "profile_membership_candidate_team" pmrt
+	//    ON pmrt.profile_team_id = pt.id AND pmrt.deleted_at IS NULL
+	//  WHERE pmrt.candidate_id = $1
+	//    AND pt.deleted_at IS NULL
+	//  ORDER BY pt.name ASC
+	ListCandidateTeams(ctx context.Context, arg ListCandidateTeamsParams) ([]*ProfileTeam, error)
+	//ListCandidateVotes
+	//
+	//  SELECT
+	//    v.id, v.candidate_id, v.voter_membership_id, v.score, v.comment, v.created_at, v.updated_at,
+	//    vp.slug AS voter_profile_slug,
+	//    vp.kind AS voter_profile_kind,
+	//    vp.profile_picture_uri AS voter_profile_picture_uri,
+	//    vpt.title AS voter_profile_title
+	//  FROM "profile_membership_candidate_vote" v
+	//    INNER JOIN "profile_membership" vm ON vm.id = v.voter_membership_id
+	//    INNER JOIN "profile" vp ON vp.id = vm.member_profile_id AND vp.deleted_at IS NULL
+	//    INNER JOIN "profile_tx" vpt ON vpt.profile_id = vp.id
+	//      AND vpt.locale_code = (
+	//        SELECT vptf.locale_code FROM "profile_tx" vptf
+	//        WHERE vptf.profile_id = vp.id
+	//        ORDER BY CASE
+	//          WHEN vptf.locale_code = $1 THEN 0
+	//          WHEN vptf.locale_code = vp.default_locale THEN 1
+	//          ELSE 2
+	//        END
+	//        LIMIT 1
+	//      )
+	//  WHERE v.candidate_id = $2
+	//  ORDER BY v.created_at DESC
+	ListCandidateVotes(ctx context.Context, arg ListCandidateVotesParams) ([]*ListCandidateVotesRow, error)
 	//ListChildDiscussionComments
 	//
 	//  SELECT
@@ -3022,10 +3144,10 @@ type Querier interface {
 	//    AND pl.deleted_at IS NULL
 	//  ORDER BY pl."order"
 	ListProfileLinksForKind(ctx context.Context, arg ListProfileLinksForKindParams) ([]*ListProfileLinksForKindRow, error)
-	//ListProfileMembershipReferralsByProfileID
+	//ListProfileMembershipCandidatesByProfileID
 	//
 	//  SELECT
-	//    pmr.id, pmr.profile_id, pmr.referred_profile_id, pmr.referrer_membership_id, pmr.status, pmr.vote_count, pmr.created_at, pmr.updated_at, pmr.deleted_at,
+	//    pmr.id, pmr.profile_id, pmr.referred_profile_id, pmr.referrer_membership_id, pmr.status, pmr.vote_count, pmr.created_at, pmr.updated_at, pmr.deleted_at, pmr.source, pmr.applicant_message,
 	//    ref_p.slug AS referrer_profile_slug,
 	//    ref_p.kind AS referrer_profile_kind,
 	//    ref_p.profile_picture_uri AS referrer_profile_picture_uri,
@@ -3034,22 +3156,22 @@ type Querier interface {
 	//    tgt_p.kind AS referred_profile_kind,
 	//    tgt_p.profile_picture_uri AS referred_profile_picture_uri,
 	//    tgt_pt.title AS referred_profile_title,
-	//    (SELECT COUNT(*) FROM "profile_membership_referral_vote" v
-	//     WHERE v.profile_membership_referral_id = pmr.id)::BIGINT AS total_votes,
-	//    COALESCE((SELECT AVG(v.score)::NUMERIC(3,2) FROM "profile_membership_referral_vote" v
-	//     WHERE v.profile_membership_referral_id = pmr.id), 0)::TEXT AS average_score,
-	//    COALESCE((SELECT v.score FROM "profile_membership_referral_vote" v
-	//     WHERE v.profile_membership_referral_id = pmr.id
+	//    (SELECT COUNT(*) FROM "profile_membership_candidate_vote" v
+	//     WHERE v.candidate_id = pmr.id)::BIGINT AS total_votes,
+	//    COALESCE((SELECT AVG(v.score)::NUMERIC(3,2) FROM "profile_membership_candidate_vote" v
+	//     WHERE v.candidate_id = pmr.id), 0)::TEXT AS average_score,
+	//    COALESCE((SELECT v.score FROM "profile_membership_candidate_vote" v
+	//     WHERE v.candidate_id = pmr.id
 	//       AND v.voter_membership_id = $1
 	//    ), -1)::SMALLINT AS viewer_vote_score,
-	//    (SELECT v.comment FROM "profile_membership_referral_vote" v
-	//     WHERE v.profile_membership_referral_id = pmr.id
+	//    (SELECT v.comment FROM "profile_membership_candidate_vote" v
+	//     WHERE v.candidate_id = pmr.id
 	//       AND v.voter_membership_id = $1
 	//    ) AS viewer_vote_comment
-	//  FROM "profile_membership_referral" pmr
-	//    INNER JOIN "profile_membership" ref_pm ON ref_pm.id = pmr.referrer_membership_id
-	//    INNER JOIN "profile" ref_p ON ref_p.id = ref_pm.member_profile_id AND ref_p.deleted_at IS NULL
-	//    INNER JOIN "profile_tx" ref_pt ON ref_pt.profile_id = ref_p.id
+	//  FROM "profile_membership_candidate" pmr
+	//    LEFT JOIN "profile_membership" ref_pm ON ref_pm.id = pmr.referrer_membership_id
+	//    LEFT JOIN "profile" ref_p ON ref_p.id = ref_pm.member_profile_id AND ref_p.deleted_at IS NULL
+	//    LEFT JOIN "profile_tx" ref_pt ON ref_pt.profile_id = ref_p.id
 	//      AND ref_pt.locale_code = (
 	//        SELECT rptf.locale_code FROM "profile_tx" rptf
 	//        WHERE rptf.profile_id = ref_p.id
@@ -3075,10 +3197,10 @@ type Querier interface {
 	//  WHERE pmr.profile_id = $3
 	//    AND pmr.deleted_at IS NULL
 	//    AND NOT (
-	//      pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected')
+	//      pmr.status IN ('reference_rejected', 'invitation_accepted', 'invitation_rejected', 'application_accepted')
 	//      AND pmr.updated_at < NOW() - INTERVAL '1 month'
 	//    )
-	//    -- Hide referrals about the viewer themselves
+	//    -- Hide candidates about the viewer themselves
 	//    AND (
 	//      $1 IS NULL
 	//      OR pmr.referred_profile_id != (
@@ -3087,14 +3209,14 @@ type Querier interface {
 	//      )
 	//    )
 	//  ORDER BY pmr.created_at DESC
-	ListProfileMembershipReferralsByProfileID(ctx context.Context, arg ListProfileMembershipReferralsByProfileIDParams) ([]*ListProfileMembershipReferralsByProfileIDRow, error)
+	ListProfileMembershipCandidatesByProfileID(ctx context.Context, arg ListProfileMembershipCandidatesByProfileIDParams) ([]*ListProfileMembershipCandidatesByProfileIDRow, error)
 	//ListProfileMemberships
 	//
 	//  SELECT
 	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.deleted_at,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default,
+	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default, p2.feature_candidates, p2.feature_applications,
 	//    p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 	//  FROM
 	//  	"profile_membership" pm
@@ -3143,7 +3265,7 @@ type Querier interface {
 	//    pm.properties,
 	//    pm.started_at,
 	//    pm.finished_at,
-	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default,
+	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default, mp.feature_candidates, mp.feature_applications,
 	//    mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 	//  FROM "profile_membership" pm
 	//  INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -3342,7 +3464,7 @@ type Querier interface {
 	ListProfileTeamsWithMemberCount(ctx context.Context, arg ListProfileTeamsWithMemberCountParams) ([]*ListProfileTeamsWithMemberCountRow, error)
 	//ListProfiles
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -3385,40 +3507,6 @@ type Querier interface {
 	//  WHERE mr.envelope_id = $1
 	//  ORDER BY mr.created_at
 	ListReactionsByEnvelope(ctx context.Context, arg ListReactionsByEnvelopeParams) ([]*ListReactionsByEnvelopeRow, error)
-	//ListReferralTeams
-	//
-	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at FROM "profile_team" pt
-	//  JOIN "profile_membership_referral_team" pmrt
-	//    ON pmrt.profile_team_id = pt.id AND pmrt.deleted_at IS NULL
-	//  WHERE pmrt.profile_membership_referral_id = $1
-	//    AND pt.deleted_at IS NULL
-	//  ORDER BY pt.name ASC
-	ListReferralTeams(ctx context.Context, arg ListReferralTeamsParams) ([]*ProfileTeam, error)
-	//ListReferralVotes
-	//
-	//  SELECT
-	//    v.id, v.profile_membership_referral_id, v.voter_membership_id, v.score, v.comment, v.created_at, v.updated_at,
-	//    vp.slug AS voter_profile_slug,
-	//    vp.kind AS voter_profile_kind,
-	//    vp.profile_picture_uri AS voter_profile_picture_uri,
-	//    vpt.title AS voter_profile_title
-	//  FROM "profile_membership_referral_vote" v
-	//    INNER JOIN "profile_membership" vm ON vm.id = v.voter_membership_id
-	//    INNER JOIN "profile" vp ON vp.id = vm.member_profile_id AND vp.deleted_at IS NULL
-	//    INNER JOIN "profile_tx" vpt ON vpt.profile_id = vp.id
-	//      AND vpt.locale_code = (
-	//        SELECT vptf.locale_code FROM "profile_tx" vptf
-	//        WHERE vptf.profile_id = vp.id
-	//        ORDER BY CASE
-	//          WHEN vptf.locale_code = $1 THEN 0
-	//          WHEN vptf.locale_code = vp.default_locale THEN 1
-	//          ELSE 2
-	//        END
-	//        LIMIT 1
-	//      )
-	//  WHERE v.profile_membership_referral_id = $2
-	//  ORDER BY v.created_at DESC
-	ListReferralVotes(ctx context.Context, arg ListReferralVotesParams) ([]*ListReferralVotesRow, error)
 	//ListResourceTeams
 	//
 	//  SELECT pt.id, pt.profile_id, pt.name, pt.description, pt.created_at, pt.deleted_at FROM "profile_team" pt
@@ -3466,7 +3554,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3522,7 +3610,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3588,7 +3676,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3644,7 +3732,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3704,7 +3792,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -4254,7 +4342,7 @@ type Querier interface {
 	//    u.email,
 	//    u.name,
 	//    u.individual_profile_id,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "user" u
 	//  INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -4358,6 +4446,12 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	SetUserIndividualProfileID(ctx context.Context, arg SetUserIndividualProfileIDParams) (int64, error)
+	//SoftDeleteCandidate
+	//
+	//  UPDATE "profile_membership_candidate"
+	//  SET deleted_at = NOW()
+	//  WHERE id = $1 AND deleted_at IS NULL
+	SoftDeleteCandidate(ctx context.Context, arg SoftDeleteCandidateParams) (int64, error)
 	//SoftDeleteDiscussionComment
 	//
 	//  UPDATE "discussion_comment"
@@ -4374,12 +4468,6 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	SoftDeleteProfileResource(ctx context.Context, arg SoftDeleteProfileResourceParams) (int64, error)
-	//SoftDeleteReferral
-	//
-	//  UPDATE "profile_membership_referral"
-	//  SET deleted_at = NOW()
-	//  WHERE id = $1 AND deleted_at IS NULL
-	SoftDeleteReferral(ctx context.Context, arg SoftDeleteReferralParams) (int64, error)
 	//SoftDeleteStoryDateProposal
 	//
 	//  UPDATE "story_date_proposal"
@@ -4409,6 +4497,14 @@ type Querier interface {
 	//
 	//  SELECT pg_try_advisory_lock($1::BIGINT) AS acquired
 	TryAdvisoryLock(ctx context.Context, arg TryAdvisoryLockParams) (bool, error)
+	//UpdateApplicationForm
+	//
+	//  UPDATE "profile_application_form"
+	//  SET preset_key = $1,
+	//      responses_visibility = $2,
+	//      updated_at = NOW()
+	//  WHERE id = $3
+	UpdateApplicationForm(ctx context.Context, arg UpdateApplicationFormParams) error
 	// Updates the last_bulletin_at timestamp after successfully sending a bulletin.
 	//
 	//  UPDATE "bulletin_subscription"
@@ -4425,6 +4521,24 @@ type Querier interface {
 	//  WHERE id = $3
 	//    AND deleted_at IS NULL
 	UpdateBulletinSubscriptionPreferences(ctx context.Context, arg UpdateBulletinSubscriptionPreferencesParams) error
+	//UpdateCandidateStatus
+	//
+	//  UPDATE "profile_membership_candidate"
+	//  SET status = $1,
+	//      updated_at = NOW()
+	//  WHERE id = $2
+	//    AND profile_id = $3
+	//    AND deleted_at IS NULL
+	UpdateCandidateStatus(ctx context.Context, arg UpdateCandidateStatusParams) error
+	//UpdateCandidateVoteCount
+	//
+	//  UPDATE "profile_membership_candidate"
+	//  SET vote_count = (
+	//    SELECT COUNT(*) FROM "profile_membership_candidate_vote"
+	//    WHERE candidate_id = $1
+	//  ), updated_at = NOW()
+	//  WHERE id = $1 AND deleted_at IS NULL
+	UpdateCandidateVoteCount(ctx context.Context, arg UpdateCandidateVoteCountParams) error
 	//UpdateConversationTimestamp
 	//
 	//  UPDATE "mailbox_conversation"
@@ -4733,24 +4847,6 @@ type Querier interface {
 	//  WHERE profile_id = $4
 	//    AND locale_code = $5
 	UpdateProfileTx(ctx context.Context, arg UpdateProfileTxParams) (int64, error)
-	//UpdateReferralStatus
-	//
-	//  UPDATE "profile_membership_referral"
-	//  SET status = $1,
-	//      updated_at = NOW()
-	//  WHERE id = $2
-	//    AND profile_id = $3
-	//    AND deleted_at IS NULL
-	UpdateReferralStatus(ctx context.Context, arg UpdateReferralStatusParams) error
-	//UpdateReferralVoteCount
-	//
-	//  UPDATE "profile_membership_referral"
-	//  SET vote_count = (
-	//    SELECT COUNT(*) FROM "profile_membership_referral_vote"
-	//    WHERE profile_membership_referral_id = $1
-	//  ), updated_at = NOW()
-	//  WHERE id = $1 AND deleted_at IS NULL
-	UpdateReferralVoteCount(ctx context.Context, arg UpdateReferralVoteCountParams) error
 	//UpdateSessionActivity
 	//
 	//  UPDATE
@@ -4887,6 +4983,24 @@ type Querier interface {
 	//    updated_at = NOW()
 	//  RETURNING id, profile_id, channel, preferred_time, last_bulletin_at, created_at, updated_at, deleted_at, frequency
 	UpsertBulletinSubscription(ctx context.Context, arg UpsertBulletinSubscriptionParams) (*BulletinSubscription, error)
+	//UpsertCandidateVote
+	//
+	//  INSERT INTO "profile_membership_candidate_vote" (
+	//    id, candidate_id, voter_membership_id, score, comment, created_at
+	//  ) VALUES (
+	//    $1,
+	//    $2,
+	//    $3,
+	//    $4,
+	//    $5,
+	//    NOW()
+	//  ) ON CONFLICT (candidate_id, voter_membership_id)
+	//  DO UPDATE SET
+	//    score = EXCLUDED.score,
+	//    comment = EXCLUDED.comment,
+	//    updated_at = NOW()
+	//  RETURNING id, candidate_id, voter_membership_id, score, comment, created_at, updated_at
+	UpsertCandidateVote(ctx context.Context, arg UpsertCandidateVoteParams) (*ProfileMembershipCandidateVote, error)
 	//UpsertProfileLinkTx
 	//
 	//  INSERT INTO "profile_link_tx" (
@@ -4938,24 +5052,6 @@ type Querier interface {
 	//    description = EXCLUDED.description,
 	//    properties = EXCLUDED.properties
 	UpsertProfileTx(ctx context.Context, arg UpsertProfileTxParams) error
-	//UpsertReferralVote
-	//
-	//  INSERT INTO "profile_membership_referral_vote" (
-	//    id, profile_membership_referral_id, voter_membership_id, score, comment, created_at
-	//  ) VALUES (
-	//    $1,
-	//    $2,
-	//    $3,
-	//    $4,
-	//    $5,
-	//    NOW()
-	//  ) ON CONFLICT (profile_membership_referral_id, voter_membership_id)
-	//  DO UPDATE SET
-	//    score = EXCLUDED.score,
-	//    comment = EXCLUDED.comment,
-	//    updated_at = NOW()
-	//  RETURNING id, profile_membership_referral_id, voter_membership_id, score, comment, created_at, updated_at
-	UpsertReferralVote(ctx context.Context, arg UpsertReferralVoteParams) (*ProfileMembershipReferralVote, error)
 	//UpsertSessionRateLimit
 	//
 	//  INSERT INTO

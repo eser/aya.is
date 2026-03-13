@@ -15,6 +15,20 @@ Project-specific configuration and quick reference. For detailed rules, see `.cl
 | CI/CD                | `ci-cd-practices`         |
 | Tooling              | `tooling-standards`       |
 
+## gstack
+
+Use the `/browse` skill from gstack for all web browsing. **Never use `mcp__claude-in-chrome__*` tools.**
+
+Available skills:
+- `/browse` — Web browsing and page interaction (Playwright-based)
+- `/plan-ceo-review` — CEO-level plan review
+- `/plan-eng-review` — Engineering plan review
+- `/review` — Code review
+- `/ship` — Ship code (commit, PR, deploy workflow)
+- `/qa` — Quality assurance testing
+- `/setup-browser-cookies` — Import browser cookies for authenticated browsing
+- `/retro` — Retrospective analysis
+
 ## Project Structure
 
 ```

@@ -534,11 +534,11 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 			a.MailboxService,
 			a.Logger,
 		)
-		referralAccepter := profilesadapter.NewReferralAutoAccepter(a.ProfileService, a.Logger)
+		candidateAccepter := profilesadapter.NewCandidateAutoAccepter(a.ProfileService, a.Logger)
 
 		a.MailboxService.SetOnAccepted(func(ctx context.Context, envelope *mailbox.Envelope) {
 			telegramRedeemer(ctx, envelope)
-			referralAccepter(ctx, envelope)
+			candidateAccepter(ctx, envelope)
 		})
 
 		// Set up webhook or clear it for polling mode
@@ -564,14 +564,14 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 			slog.String("module", "appcontext"),
 			slog.String("bot_username", a.Config.Telegram.BotUsername))
 	} else {
-		// When Telegram is not configured, register only the referral callbacks.
-		referralAccepter := profilesadapter.NewReferralAutoAccepter(a.ProfileService, a.Logger)
-		a.MailboxService.SetOnAccepted(referralAccepter)
+		// When Telegram is not configured, register only the candidate callbacks.
+		candidateAccepter := profilesadapter.NewCandidateAutoAccepter(a.ProfileService, a.Logger)
+		a.MailboxService.SetOnAccepted(candidateAccepter)
 	}
 
-	// Referral rejection callback — always registered regardless of Telegram.
+	// Candidate rejection callback — always registered regardless of Telegram.
 	a.MailboxService.SetOnRejected(
-		profilesadapter.NewReferralAutoRejecter(a.ProfileService, a.Logger),
+		profilesadapter.NewCandidateAutoRejecter(a.ProfileService, a.Logger),
 	)
 
 	// ----------------------------------------------------
