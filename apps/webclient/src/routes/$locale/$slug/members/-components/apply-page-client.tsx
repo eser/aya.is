@@ -40,6 +40,13 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
       day: "numeric",
     });
 
+    const hasFormResponses = props.existingApplication.form_responses !== undefined &&
+      props.existingApplication.form_responses !== null &&
+      props.existingApplication.form_responses.length > 0;
+
+    const hasApplicantMessage = props.existingApplication.applicant_message !== null &&
+      props.existingApplication.applicant_message !== undefined;
+
     return (
       <div className={styles.container}>
         <div className={styles.header}>
@@ -57,11 +64,28 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
             </span>
             <span className={styles.statusDate}>{formattedDate}</span>
           </div>
-          {props.existingApplication.applicant_message !== null &&
-            props.existingApplication.applicant_message !== undefined && (
-            <p className="text-sm text-muted-foreground mt-2">
-              {props.existingApplication.applicant_message}
-            </p>
+
+          {/* Show form responses + additional message as unified list */}
+          {(hasFormResponses || hasApplicantMessage) && (
+            <div className="mt-3 space-y-3">
+              {hasFormResponses &&
+                props.existingApplication.form_responses.map((response) => (
+                  <div key={response.id} className="text-sm">
+                    <div className="text-muted-foreground text-xs">
+                      {t(`ApplicationFields.${response.field_label}`, response.field_label)}
+                    </div>
+                    <div className="text-foreground">{response.value}</div>
+                  </div>
+                ))}
+              {hasApplicantMessage && (
+                <div className="text-sm">
+                  <div className="text-muted-foreground text-xs">
+                    {t("Applications.Additional message")}
+                  </div>
+                  <div className="text-foreground">{props.existingApplication.applicant_message}</div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

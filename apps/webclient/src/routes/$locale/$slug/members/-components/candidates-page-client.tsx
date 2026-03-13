@@ -429,17 +429,6 @@ function CandidateCard(props: CandidateCardProps) {
           )}
         </div>
         <div className={styles.statusActions}>
-          {props.candidate.source === "application"
-            ? (
-              <span className={styles.sourceBadgeApplication}>
-                {t("Candidates.Source.application")}
-              </span>
-            )
-            : (
-              <span className={styles.sourceBadgeReferral}>
-                {t("Candidates.Source.referral")}
-              </span>
-            )}
           <span className={styles.statusBadge}>
             {t(`Candidates.Status.${props.candidate.status}`)}
           </span>
@@ -456,12 +445,6 @@ function CandidateCard(props: CandidateCardProps) {
         ? (
           <div className={styles.referrerInfo}>
             {t("Candidates.Applied on")} {formattedDate}
-            {props.candidate.applicant_message !== null &&
-              props.candidate.applicant_message !== undefined && (
-              <p className="mt-1 text-xs text-muted-foreground italic">
-                &ldquo;{props.candidate.applicant_message}&rdquo;
-              </p>
-            )}
           </div>
         )
         : referrer !== undefined && referrer !== null && (
@@ -496,6 +479,7 @@ function CandidateCard(props: CandidateCardProps) {
           locale={props.locale}
           slug={props.slug}
           candidateId={props.candidate.id}
+          applicantMessage={props.candidate.applicant_message ?? null}
         />
       )}
 
@@ -774,6 +758,7 @@ type FormResponsesViewerProps = {
   locale: string;
   slug: string;
   candidateId: string;
+  applicantMessage: string | null;
 };
 
 function FormResponsesViewer(props: FormResponsesViewerProps) {
@@ -821,22 +806,32 @@ function FormResponsesViewer(props: FormResponsesViewerProps) {
         </p>
       )}
 
-      {expanded && responses !== null && responses.length > 0 && (
+      {expanded && responses !== null && (responses.length > 0 || props.applicantMessage !== null) && (
         <div className={styles.formResponsesList}>
           {responses.map((response) => (
             <div key={response.id} className={styles.formResponseItem}>
               <div className={styles.formResponseLabel}>
-                {response.field_label}
+                {t(`ApplicationFields.${response.field_label}`, response.field_label)}
               </div>
               <div className={styles.formResponseValue}>
                 {response.value.length > 0 ? response.value : <span className="italic">{t("Common.Empty")}</span>}
               </div>
             </div>
           ))}
+          {props.applicantMessage !== null && (
+            <div className={styles.formResponseItem}>
+              <div className={styles.formResponseLabel}>
+                {t("Applications.Additional message")}
+              </div>
+              <div className={styles.formResponseValue}>
+                {props.applicantMessage}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {expanded && responses !== null && responses.length === 0 && (
+      {expanded && responses !== null && responses.length === 0 && props.applicantMessage === null && (
         <p className="text-xs text-muted-foreground mt-2">
           {t("Candidates.No form responses")}
         </p>

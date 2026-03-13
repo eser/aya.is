@@ -5416,6 +5416,12 @@ func (s *Service) GetMyApplication(
 		return nil, fmt.Errorf("%w: %w", ErrCandidateNotFound, err)
 	}
 
+	// Include form responses so the applicant can see what they submitted
+	responses, responsesErr := s.repo.ListCandidateResponses(ctx, candidate.ID)
+	if responsesErr == nil && len(responses) > 0 {
+		candidate.FormResponses = responses
+	}
+
 	return candidate, nil
 }
 
