@@ -2,17 +2,17 @@ package profiles
 
 // PresetField defines a single field in an application form preset.
 type PresetField struct {
-	Label       string
-	FieldType   string // short_text, long_text, url
-	IsRequired  bool
-	Placeholder string
+	Label       string `json:"label"`
+	FieldType   string `json:"field_type"` // short_text, long_text, url
+	IsRequired  bool   `json:"is_required"`
+	Placeholder string `json:"placeholder"`
 }
 
 // ApplicationPresetDef defines a preset template for application forms.
 type ApplicationPresetDef struct {
-	Key    string
-	Label  string
-	Fields []PresetField
+	Key    string        `json:"key"`
+	Label  string        `json:"label"`
+	Fields []PresetField `json:"fields"`
 }
 
 // ApplicationPresets contains the built-in application form templates.
