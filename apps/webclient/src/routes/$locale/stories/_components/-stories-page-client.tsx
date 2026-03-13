@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
