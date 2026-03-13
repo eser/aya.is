@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "C'è qualcos'altro che vorresti condividere con il team?",
     "Back to members": "Torna ai membri",
     "Send a message to apply": "Invia un messaggio per candidarti a questa organizzazione."
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "Perché vuoi unirti?",
+    "How did you hear about us?": "Come hai saputo di noi?",
+    "Which area interests you?": "Quale area ti interessa?",
+    "Relevant experience": "Esperienza rilevante",
+    "Current role & company": "Ruolo attuale e azienda"
   }
 }

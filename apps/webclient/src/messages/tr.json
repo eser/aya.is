@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "Ekiple paylaşmak istediğiniz başka bir şey var mı?",
     "Back to members": "Üyelere dön",
     "Send a message to apply": "Bu organizasyona katılmak için bir mesaj gönderin."
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "Neden katılmak istiyorsunuz?",
+    "How did you hear about us?": "Bizi nereden duydunuz?",
+    "Which area interests you?": "Hangi alan ilginizi çekiyor?",
+    "Relevant experience": "İlgili deneyimleriniz",
+    "Current role & company": "Mevcut pozisyon ve şirket"
   }
 }

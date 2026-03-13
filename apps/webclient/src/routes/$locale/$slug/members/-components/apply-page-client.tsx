@@ -217,12 +217,14 @@ type ApplicationFieldProps = {
 };
 
 function ApplicationField(props: ApplicationFieldProps) {
+  const { t } = useTranslation();
   const fieldId = `field-${props.field.id}`;
+  const translatedLabel = t(`ApplicationFields.${props.field.label}`, props.field.label);
 
   return (
     <div className={styles.fieldGroup}>
       <label htmlFor={fieldId} className={styles.fieldLabel}>
-        {props.field.label}
+        {translatedLabel}
         {props.field.is_required && <span className={styles.requiredMark}>*</span>}
       </label>
 

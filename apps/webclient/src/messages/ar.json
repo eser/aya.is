@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "هل هناك أي شيء آخر تود مشاركته مع الفريق؟",
     "Back to members": "العودة إلى الأعضاء",
     "Send a message to apply": "أرسل رسالة للتقدم للانضمام إلى هذه المنظمة."
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "لماذا تريد الانضمام؟",
+    "How did you hear about us?": "كيف سمعت عنا؟",
+    "Which area interests you?": "ما المجال الذي يهمك؟",
+    "Relevant experience": "الخبرة ذات الصلة",
+    "Current role & company": "الدور الحالي والشركة"
   }
 }

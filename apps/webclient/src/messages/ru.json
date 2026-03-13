@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "Хотите ли вы поделиться чем-нибудь ещё с командой?",
     "Back to members": "Вернуться к участникам",
     "Send a message to apply": "Отправьте сообщение, чтобы подать заявку на вступление в эту организацию."
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "Почему вы хотите присоединиться?",
+    "How did you hear about us?": "Как вы о нас узнали?",
+    "Which area interests you?": "Какая область вас интересует?",
+    "Relevant experience": "Соответствующий опыт",
+    "Current role & company": "Текущая должность и компания"
   }
 }

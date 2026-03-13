@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "チームに共有したいことは他にありますか？",
     "Back to members": "メンバー一覧に戻る",
     "Send a message to apply": "メッセージを送信して、この組織への参加を申請してください。"
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "参加したい理由は？",
+    "How did you hear about us?": "どこで知りましたか？",
+    "Which area interests you?": "興味のある分野は？",
+    "Relevant experience": "関連する経験",
+    "Current role & company": "現在の役職と会社"
   }
 }

@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "Is er nog iets dat u met het team wilt delen?",
     "Back to members": "Terug naar leden",
     "Send a message to apply": "Stuur een bericht om lid te worden van deze organisatie."
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "Waarom wilt u lid worden?",
+    "How did you hear about us?": "Hoe heeft u van ons gehoord?",
+    "Which area interests you?": "Welk gebied interesseert u?",
+    "Relevant experience": "Relevante ervaring",
+    "Current role & company": "Huidige functie en bedrijf"
   }
 }

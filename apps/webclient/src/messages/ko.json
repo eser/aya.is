@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "팀에 공유하고 싶은 다른 내용이 있나요?",
     "Back to members": "멤버 목록으로 돌아가기",
     "Send a message to apply": "메시지를 보내 이 조직에 가입을 신청하세요."
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "가입하려는 이유는?",
+    "How did you hear about us?": "어떻게 알게 되셨나요?",
+    "Which area interests you?": "관심 있는 분야는?",
+    "Relevant experience": "관련 경험",
+    "Current role & company": "현재 직책 및 회사"
   }
 }

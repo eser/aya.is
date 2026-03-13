@@ -1282,5 +1282,12 @@
     "Anything else you want to share?": "您还有什么想与团队分享的吗？",
     "Back to members": "返回成员列表",
     "Send a message to apply": "发送消息以申请加入此组织。"
+  },
+  "ApplicationFields": {
+    "Why do you want to join?": "为什么想加入？",
+    "How did you hear about us?": "你是怎么知道我们的？",
+    "Which area interests you?": "你对哪个领域感兴趣？",
+    "Relevant experience": "相关经验",
+    "Current role & company": "当前职位和公司"
   }
 }
