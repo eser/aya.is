@@ -45,9 +45,10 @@ const (
 
 // Profile membership events.
 const (
-	ProfileMembershipCreated EventType = "profile_membership_created"
-	ProfileMembershipUpdated EventType = "profile_membership_updated"
-	ProfileMembershipDeleted EventType = "profile_membership_deleted"
+	ProfileMembershipCreated      EventType = "profile_membership_created"
+	ProfileMembershipUpdated      EventType = "profile_membership_updated"
+	ProfileMembershipDeleted      EventType = "profile_membership_deleted"
+	ProfileMembershipTeamsUpdated EventType = "profile_membership_teams_updated"
 )
 
 // Profile candidate events.

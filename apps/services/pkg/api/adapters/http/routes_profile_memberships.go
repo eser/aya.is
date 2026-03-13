@@ -203,7 +203,7 @@ func RegisterHTTPRoutesForProfileMemberships( //nolint:gocognit,gocyclo,cyclop,f
 				)
 			}
 
-			err = profileService.AddMembership(
+			membershipID, err := profileService.AddMembership(
 				ctx.Request.Context(),
 				*session.LoggedInUserID,
 				user.Kind,
@@ -226,7 +226,7 @@ func RegisterHTTPRoutesForProfileMemberships( //nolint:gocognit,gocyclo,cyclop,f
 			}
 
 			return ctx.Results.JSON(map[string]any{
-				"data":  map[string]string{"status": "ok"},
+				"data":  map[string]string{"id": membershipID},
 				"error": nil,
 			})
 		},

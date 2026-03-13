@@ -11,9 +11,9 @@ export async function addProfileMembership(
   locale: string,
   slug: string,
   input: AddMembershipInput,
-): Promise<boolean> {
+): Promise<{ id: string } | null> {
   const token = getAuthToken();
-  if (token === null) return false;
+  if (token === null) return null;
 
   const response = await fetch(
     `${getBackendUri()}/${locale}/profiles/${slug}/_memberships`,
@@ -28,5 +28,7 @@ export async function addProfileMembership(
     },
   );
 
-  return response.ok;
+  if (!response.ok) return null;
+  const result = await response.json();
+  return result.data ?? null;
 }

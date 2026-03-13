@@ -3734,7 +3734,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	profileSlug string,
 	memberProfileID string,
 	kind string,
-) error {
+) (string, error) {
 	roleLevel := getMembershipRoleLevel()
 
 	// Validate kind
@@ -3744,7 +3744,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		string(MembershipKindSponsor): true, string(MembershipKindFollower): true,
 	}
 	if !validKinds[kind] {
-		return ErrInvalidMembershipKind
+		return "", ErrInvalidMembershipKind
 	}
 
 	// Check authorization
@@ -3752,21 +3752,21 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 
 	// SECURITY: Only admins can assign sponsor or follower roles
 	if !isAdmin && (kind == "sponsor" || kind == "follower") {
-		return ErrInvalidMembershipKind
+		return "", ErrInvalidMembershipKind
 	}
 
 	profileID, err := s.repo.GetProfileIDBySlug(ctx, profileSlug)
 	if err != nil {
-		return fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
+		return "", fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, profileSlug, err)
 	}
 
 	if profileID == "" {
-		return ErrProfileNotFound
+		return "", ErrProfileNotFound
 	}
 
 	accessErr := s.ensureUserCanProfileAccess(ctx, profileID, userID, MembershipKindMaintainer)
 	if accessErr != nil {
-		return accessErr
+		return "", accessErr
 	}
 
 	// SECURITY: Non-admin users can only assign roles at or below their own level
@@ -3778,7 +3778,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 			*userIndividualProfileID,
 		)
 		if membershipErr != nil {
-			return fmt.Errorf("%w: %w", ErrFailedToGetRecord, membershipErr)
+			return "", fmt.Errorf("%w: %w", ErrFailedToGetRecord, membershipErr)
 		}
 
 		userLevel := 0
@@ -3792,7 +3792,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		// Check: Cannot assign a role higher than your own
 		newRoleLevel := roleLevel[kind]
 		if newRoleLevel > userLevel {
-			return ErrCannotAssignHigherRole
+			return "", ErrCannotAssignHigherRole
 		}
 	}
 
@@ -3801,11 +3801,16 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 	if kind == string(MembershipKindOwner) {
 		profile, profileErr := s.repo.GetProfileByID(ctx, "en", profileID)
 		if profileErr != nil {
-			return fmt.Errorf("%w(profileID: %s): %w", ErrFailedToGetRecord, profileID, profileErr)
+			return "", fmt.Errorf(
+				"%w(profileID: %s): %w",
+				ErrFailedToGetRecord,
+				profileID,
+				profileErr,
+			)
 		}
 
 		if profile.Kind == ProfileKindIndividual {
-			return fmt.Errorf(
+			return "", fmt.Errorf(
 				"%w: cannot add 'owner' to individual profiles",
 				ErrInvalidMembershipKind,
 			)
@@ -3819,14 +3824,19 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		memberProfileID,
 	)
 	if existingErr != nil {
-		return fmt.Errorf("%w: %w", ErrFailedToGetRecord, existingErr)
+		return "", fmt.Errorf("%w: %w", ErrFailedToGetRecord, existingErr)
 	}
 
 	if existing != nil {
 		// Existing membership found — promote it to the new kind
 		err = s.repo.UpdateProfileMembership(ctx, existing.ID, kind)
 		if err != nil {
-			return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, existing.ID, err)
+			return "", fmt.Errorf(
+				"%w(membershipID: %s): %w",
+				ErrFailedToUpdateRecord,
+				existing.ID,
+				err,
+			)
 		}
 
 		_ = s.repo.InvalidateMembershipKindCache(ctx, profileID, memberProfileID)
@@ -3848,7 +3858,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 			},
 		})
 
-		return nil
+		return existing.ID, nil
 	}
 
 	// Create a new membership
@@ -3863,7 +3873,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		nil,
 	)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+		return "", fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
 	s.auditService.Record(ctx, events.AuditParams{
@@ -3880,7 +3890,7 @@ func (s *Service) AddMembership( //nolint:cyclop,funlen
 		},
 	})
 
-	return nil
+	return string(membershipID), nil
 }
 
 // FollowProfile creates a follower membership for the viewer on the given profile.
@@ -4427,6 +4437,19 @@ func (s *Service) SetMembershipTeams(
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, err)
 	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileMembershipTeamsUpdated,
+		EntityType: "membership",
+		EntityID:   membershipID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_id": profileID,
+			"team_ids":   teamIDs,
+		},
+	})
 
 	return nil
 }

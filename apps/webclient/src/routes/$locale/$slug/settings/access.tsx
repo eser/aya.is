@@ -276,6 +276,7 @@ function AccessSettingsPage() {
   const [isSearching, setIsSearching] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<UserSearchResult | null>(null);
   const [selectedKind, setSelectedKind] = React.useState<MembershipKind>("contributor");
+  const [selectedTeamIds, setSelectedTeamIds] = React.useState<string[]>([]);
 
   // Edit dialog state
   const [editKind, setEditKind] = React.useState<MembershipKind>("contributor");
@@ -368,7 +369,8 @@ function AccessSettingsPage() {
     setSearchQuery("");
     setSearchResults([]);
     setSelectedUser(null);
-    setSelectedKind("contributor");
+    setSelectedKind("member");
+    setSelectedTeamIds([]);
     setIsAddDialogOpen(true);
   };
 
@@ -395,12 +397,22 @@ function AccessSettingsPage() {
 
     setIsSaving(true);
     const profileId = selectedUser.individual_profile_id;
-    const success = await backend.addProfileMembership(params.locale, params.slug, {
+    const result = await backend.addProfileMembership(params.locale, params.slug, {
       member_profile_id: profileId,
       kind: selectedKind,
     });
 
-    if (success) {
+    if (result !== null) {
+      // Assign teams if any selected (separate audit event)
+      if (selectedTeamIds.length > 0) {
+        await backend.setMembershipTeams(
+          params.locale,
+          params.slug,
+          result.id,
+          selectedTeamIds,
+        );
+      }
+
       toast.success(t("Profile.Member added successfully"));
       setIsAddDialogOpen(false);
       loadMemberships();
@@ -487,6 +499,10 @@ function AccessSettingsPage() {
 
   const handleToggleEditTeam = (teamId: string) => {
     setEditTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
+  };
+
+  const handleToggleAddTeam = (teamId: string) => {
+    setSelectedTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
   };
 
   const visibilityOptions: VisibilityOption[] = [
@@ -791,6 +807,23 @@ function AccessSettingsPage() {
                 kinds={availableKinds}
               />
             </div>
+
+            {teams.length > 0 && (
+              <div className={styles.kindField}>
+                <label className={styles.kindLabel}>{t("Profile.Assign Teams")}</label>
+                <div className={styles.teamCheckboxList}>
+                  {teams.map((team) => (
+                    <label key={team.id} className={styles.teamCheckboxItem}>
+                      <Checkbox
+                        checked={selectedTeamIds.includes(team.id)}
+                        onCheckedChange={() => handleToggleAddTeam(team.id)}
+                      />
+                      <span className="text-sm">{team.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
