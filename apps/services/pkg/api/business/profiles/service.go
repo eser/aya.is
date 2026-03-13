@@ -5222,7 +5222,8 @@ func (s *Service) UpsertApplicationForm( //nolint:cyclop,gocognit,funlen
 }
 
 // CreateApplication creates a self-nominated candidate (application).
-// Requires: authenticated user, feature_applications enabled, active form exists.
+// Requires: authenticated user, feature_applications enabled.
+// If no application form is configured, accepts the application with just the message.
 func (s *Service) CreateApplication( //nolint:cyclop,funlen
 	ctx context.Context,
 	userID string,
@@ -5235,10 +5236,17 @@ func (s *Service) CreateApplication( //nolint:cyclop,funlen
 		return nil, fmt.Errorf("%w: %w", ErrProfileNotFound, err)
 	}
 
-	// Check feature flag
-	form, featureApplications, err := s.repo.GetApplicationFormByProfileID(ctx, profileID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrNoApplicationForm, err)
+	// Try to get application form (also returns feature flag)
+	form, featureApplications, formErr := s.repo.GetApplicationFormByProfileID(ctx, profileID)
+	if formErr != nil {
+		// No form configured — check feature flag from profile directly
+		profile, profileErr := s.repo.GetProfileByID(ctx, "en", profileID)
+		if profileErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToGetRecord, profileErr)
+		}
+
+		featureApplications = profile.FeatureApplications
+		form = nil
 	}
 
 	if featureApplications == string(ModuleVisibilityDisabled) {
@@ -5274,12 +5282,14 @@ func (s *Service) CreateApplication( //nolint:cyclop,funlen
 		return nil, ErrAlreadyApplied
 	}
 
-	// Validate required fields
-	for _, field := range form.Fields {
-		if field.IsRequired {
-			value, exists := formResponses[field.ID]
-			if !exists || value == "" {
-				return nil, fmt.Errorf("%w: %s", ErrMissingRequiredField, field.Label)
+	// Validate required fields (only when a form is configured)
+	if form != nil {
+		for _, field := range form.Fields {
+			if field.IsRequired {
+				value, exists := formResponses[field.ID]
+				if !exists || value == "" {
+					return nil, fmt.Errorf("%w: %s", ErrMissingRequiredField, field.Label)
+				}
 			}
 		}
 	}
@@ -5295,13 +5305,21 @@ func (s *Service) CreateApplication( //nolint:cyclop,funlen
 		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
 	}
 
-	// Save form responses
-	for fieldID, value := range formResponses {
-		responseID := string(s.idGenerator())
+	// Save form responses (only when a form is configured)
+	if form != nil {
+		for fieldID, value := range formResponses {
+			responseID := string(s.idGenerator())
 
-		responseErr := s.repo.CreateCandidateResponse(ctx, responseID, candidateID, fieldID, value)
-		if responseErr != nil {
-			return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, responseErr)
+			responseErr := s.repo.CreateCandidateResponse(
+				ctx,
+				responseID,
+				candidateID,
+				fieldID,
+				value,
+			)
+			if responseErr != nil {
+				return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, responseErr)
+			}
 		}
 	}
 

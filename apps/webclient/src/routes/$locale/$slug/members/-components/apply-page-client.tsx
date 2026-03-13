@@ -12,7 +12,7 @@ import type { ApplicationForm, ApplicationFormField, ProfileMembershipCandidate 
 import styles from "./apply-page-client.module.css";
 
 type ApplyPageClientProps = {
-  form: ApplicationForm;
+  form: ApplicationForm | null;
   locale: string;
   slug: string;
   existingApplication: ProfileMembershipCandidate | null;
@@ -105,9 +105,7 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
     );
   }
 
-  const sortedFields = [...props.form.fields].sort(
-    (a, b) => a.sort_order - b.sort_order,
-  );
+  const sortedFields = props.form !== null ? [...props.form.fields].sort((a, b) => a.sort_order - b.sort_order) : [];
 
   const handleFieldChange = (fieldId: string, value: string) => {
     setResponses((prev) => ({ ...prev, [fieldId]: value }));
@@ -154,11 +152,15 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
     <div className={styles.container}>
       <div className={styles.header}>
         <h2>{t("Applications.Application Form")}</h2>
-        <p>{t("Applications.Fill out the form below to apply")}</p>
+        <p>
+          {sortedFields.length > 0
+            ? t("Applications.Fill out the form below to apply")
+            : t("Applications.Send a message to apply")}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        {sortedFields.map((field) => (
+        {sortedFields.length > 0 && sortedFields.map((field) => (
           <ApplicationField
             key={field.id}
             field={field}

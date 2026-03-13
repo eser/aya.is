@@ -17,11 +17,10 @@ export const Route = createFileRoute("/$locale/$slug/members/apply")({
       ).catch(() => null),
     ]);
 
-    // Applications must be enabled and a form must exist
+    // Applications must be enabled
     if (
       profile === null ||
-      profile.feature_applications === "disabled" ||
-      form === null
+      profile.feature_applications === "disabled"
     ) {
       return {
         form: null,
@@ -83,7 +82,7 @@ export const Route = createFileRoute("/$locale/$slug/members/apply")({
 function ApplyPage() {
   const loaderData = Route.useLoaderData();
 
-  if (loaderData.notFound || loaderData.form === null) {
+  if (loaderData.notFound) {
     return <NotFoundContent />;
   }
 

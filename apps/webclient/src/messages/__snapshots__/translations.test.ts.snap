@@ -126,6 +126,7 @@ snapshot[`translations - English key set baseline 1`] = `
   "Applications.Failed to submit application",
   "Applications.Fill out the form below to apply",
   "Applications.Please fill in all required fields",
+  "Applications.Send a message to apply",
   "Applications.Sign in to apply",
   "Applications.Submit Application",
   "Applications.Submitting...",
