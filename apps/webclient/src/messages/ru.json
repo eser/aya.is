@@ -255,7 +255,8 @@
     "Individuals and organizations that are members of this profile.": "Частные лица и организации, являющиеся участниками этого профиля.",
     "No members found.": "Участники не найдены.",
     "Commits": "Коммиты",
-    "Stars": "Звёзды"
+    "Stars": "Звёзды",
+    "Already joined": "Уже участник"
   },
   "Links": {
     "All links associated with this profile.": "Все ссылки, связанные с этим профилем.",

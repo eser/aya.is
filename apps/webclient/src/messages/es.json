@@ -255,7 +255,8 @@
     "Individuals and organizations that are members of this profile.": "Individuos y organizaciones que son miembros de este perfil.",
     "No members found.": "No se encontraron miembros.",
     "Commits": "Commits",
-    "Stars": "Estrellas"
+    "Stars": "Estrellas",
+    "Already joined": "Ya es miembro"
   },
   "Links": {
     "All links associated with this profile.": "Todos los enlaces asociados con este perfil.",

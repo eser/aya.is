@@ -255,7 +255,8 @@
     "Individuals and organizations that are members of this profile.": "الأفراد والمنظمات الأعضاء في هذا الملف الشخصي.",
     "No members found.": "لم يتم العثور على أعضاء.",
     "Commits": "الإيداعات",
-    "Stars": "النجوم"
+    "Stars": "النجوم",
+    "Already joined": "عضو بالفعل"
   },
   "Links": {
     "All links associated with this profile.": "جميع الروابط المرتبطة بهذا الملف الشخصي.",

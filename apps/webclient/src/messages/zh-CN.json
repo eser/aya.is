@@ -255,7 +255,8 @@
     "Individuals and organizations that are members of this profile.": "此个人资料的成员（个人和组织）。",
     "No members found.": "未找到任何成员。",
     "Commits": "提交",
-    "Stars": "星标"
+    "Stars": "星标",
+    "Already joined": "已加入"
   },
   "Links": {
     "All links associated with this profile.": "与此个人资料关联的所有链接。",

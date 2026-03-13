@@ -1,7 +1,8 @@
 // Profile members list page
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Send } from "lucide-react";
+import { Check, Send } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-context";
 import { profileMembersQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import { MemberCard } from "@/components/userland/member-card/member-card";
@@ -92,6 +93,7 @@ function MembersPage() {
   const { profile, permissions } = parentRoute.useLoaderData();
   const { t } = useTranslation();
   const params = Route.useParams();
+  const { isAuthenticated, login } = useAuth();
 
   if (loaderData.notFound || loaderData.members === null || profile === null) {
     return <NotFoundContent />;
@@ -103,8 +105,7 @@ function MembersPage() {
     permissions.viewer_membership_kind !== null &&
     MEMBER_KINDS.has(permissions.viewer_membership_kind);
 
-  const showApplyButton = profile.feature_applications !== "disabled" &&
-    !isMember;
+  const applicationsEnabled = profile.feature_applications !== "disabled";
 
   return (
     <>
@@ -119,14 +120,34 @@ function MembersPage() {
             )}
           </p>
         </div>
-        {showApplyButton && (
-          <LocaleLink
-            to={`/${params.slug}/members/apply`}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors no-underline"
-          >
-            <Send className="size-4" />
-            {t("Applications.Apply to Join")}
-          </LocaleLink>
+        {applicationsEnabled && (
+          isMember
+            ? (
+              <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-muted text-muted-foreground cursor-default">
+                <Check className="size-4" />
+                {t("Members.Already joined")}
+              </span>
+            )
+            : isAuthenticated
+            ? (
+              <LocaleLink
+                to={`/${params.slug}/members/apply`}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors no-underline"
+              >
+                <Send className="size-4" />
+                {t("Applications.Apply to Join")}
+              </LocaleLink>
+            )
+            : (
+              <button
+                type="button"
+                onClick={() => login(`/${params.locale}/${params.slug}/members/apply`)}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-0 cursor-pointer"
+              >
+                <Send className="size-4" />
+                {t("Applications.Apply to Join")}
+              </button>
+            )
         )}
       </div>
 

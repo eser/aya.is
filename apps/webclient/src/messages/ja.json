@@ -255,7 +255,8 @@
     "Individuals and organizations that are members of this profile.": "このプロフィールのメンバーである個人および組織。",
     "No members found.": "メンバーが見つかりませんでした。",
     "Commits": "コミット",
-    "Stars": "スター"
+    "Stars": "スター",
+    "Already joined": "参加済み"
   },
   "Links": {
     "All links associated with this profile.": "このプロフィールに関連するすべてのリンク。",

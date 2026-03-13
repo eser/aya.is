@@ -255,7 +255,8 @@
     "Individuals and organizations that are members of this profile.": "Bu profilin üyeleri, kişiler ve organizasyonlar.",
     "No members found.": "Üye bulunamadı.",
     "Commits": "Commit",
-    "Stars": "Yıldız"
+    "Stars": "Yıldızlar",
+    "Already joined": "Zaten üye"
   },
   "Links": {
     "All links associated with this profile.": "Bu profille ilişkili tüm bağlantılar.",

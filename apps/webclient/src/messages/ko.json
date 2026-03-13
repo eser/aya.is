@@ -255,7 +255,8 @@
     "Individuals and organizations that are members of this profile.": "이 프로필의 멤버인 개인 및 조직.",
     "No members found.": "멤버를 찾을 수 없습니다.",
     "Commits": "커밋",
-    "Stars": "스타"
+    "Stars": "스타",
+    "Already joined": "이미 가입됨"
   },
   "Links": {
     "All links associated with this profile.": "이 프로필에 연결된 모든 링크.",
