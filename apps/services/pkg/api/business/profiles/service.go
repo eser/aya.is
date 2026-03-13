@@ -738,6 +738,11 @@ type Repository interface { //nolint:interfacebloat
 		profileID string,
 		status CandidateStatus,
 	) error
+	UpdateCandidateApplicantMessage(
+		ctx context.Context,
+		candidateID string,
+		applicantMessage *string,
+	) error
 	SoftDeleteCandidate(ctx context.Context, candidateID string) error
 
 	// Application form methods
@@ -5274,11 +5279,13 @@ func (s *Service) CreateApplication( //nolint:cyclop,funlen
 		return nil, ErrCannotReferExistingMember
 	}
 
-	// Cannot apply if already has a pending candidate record
+	// Check if user already has a pending candidate record
 	existingCandidate, _ := s.repo.GetProfileMembershipCandidateByProfileAndReferred(
 		ctx, profileID, applicantProfileID,
 	)
-	if existingCandidate != nil {
+
+	if existingCandidate != nil && existingCandidate.Source == string(CandidateSourceApplication) {
+		// Already applied via application — reject
 		return nil, ErrAlreadyApplied
 	}
 
@@ -5294,15 +5301,34 @@ func (s *Service) CreateApplication( //nolint:cyclop,funlen
 		}
 	}
 
-	// Create candidate with source=application
-	candidateID := string(s.idGenerator())
+	var candidate *ProfileMembershipCandidate
 
-	candidate, err := s.repo.CreateProfileMembershipCandidate(
-		ctx, candidateID, profileID, applicantProfileID, nil,
-		string(CandidateSourceApplication), applicantMessage,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, err)
+	var candidateID string
+
+	if existingCandidate != nil && existingCandidate.Source == string(CandidateSourceReferral) {
+		// Referred candidate is now also applying — update with their message
+		candidateID = existingCandidate.ID
+
+		msgErr := s.repo.UpdateCandidateApplicantMessage(ctx, candidateID, applicantMessage)
+		if msgErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToUpdateRecord, msgErr)
+		}
+
+		candidate = existingCandidate
+		candidate.ApplicantMessage = applicantMessage
+	} else {
+		// New application — create candidate record
+		candidateID = string(s.idGenerator())
+
+		var createErr error
+
+		candidate, createErr = s.repo.CreateProfileMembershipCandidate(
+			ctx, candidateID, profileID, applicantProfileID, nil,
+			string(CandidateSourceApplication), applicantMessage,
+		)
+		if createErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrFailedToCreateRecord, createErr)
+		}
 	}
 
 	// Save form responses (only when a form is configured)

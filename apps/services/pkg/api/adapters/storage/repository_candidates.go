@@ -381,6 +381,17 @@ func (r *Repository) UpdateCandidateStatus(
 	})
 }
 
+func (r *Repository) UpdateCandidateApplicantMessage(
+	ctx context.Context,
+	candidateID string,
+	applicantMessage *string,
+) error {
+	return r.queries.UpdateCandidateApplicantMessage(ctx, UpdateCandidateApplicantMessageParams{
+		ApplicantMessage: vars.ToSQLNullString(applicantMessage),
+		ID:               candidateID,
+	})
+}
+
 func (r *Repository) GetCandidateVoteBreakdown(
 	ctx context.Context,
 	candidateID string,

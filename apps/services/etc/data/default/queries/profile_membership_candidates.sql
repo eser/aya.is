@@ -169,6 +169,13 @@ WHERE id = sqlc.arg(id)
   AND profile_id = sqlc.arg(profile_id)
   AND deleted_at IS NULL;
 
+-- name: UpdateCandidateApplicantMessage :exec
+UPDATE "profile_membership_candidate"
+SET applicant_message = sqlc.arg(applicant_message),
+    updated_at = NOW()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL;
+
 -- name: SoftDeleteCandidate :execrows
 UPDATE "profile_membership_candidate"
 SET deleted_at = NOW()

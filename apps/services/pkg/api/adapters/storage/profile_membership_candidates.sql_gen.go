@@ -618,6 +618,31 @@ func (q *Queries) SoftDeleteCandidate(ctx context.Context, arg SoftDeleteCandida
 	return result.RowsAffected()
 }
 
+const updateCandidateApplicantMessage = `-- name: UpdateCandidateApplicantMessage :exec
+UPDATE "profile_membership_candidate"
+SET applicant_message = $1,
+    updated_at = NOW()
+WHERE id = $2
+  AND deleted_at IS NULL
+`
+
+type UpdateCandidateApplicantMessageParams struct {
+	ApplicantMessage sql.NullString `db:"applicant_message" json:"applicant_message"`
+	ID               string         `db:"id" json:"id"`
+}
+
+// UpdateCandidateApplicantMessage
+//
+//	UPDATE "profile_membership_candidate"
+//	SET applicant_message = $1,
+//	    updated_at = NOW()
+//	WHERE id = $2
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateCandidateApplicantMessage(ctx context.Context, arg UpdateCandidateApplicantMessageParams) error {
+	_, err := q.db.ExecContext(ctx, updateCandidateApplicantMessage, arg.ApplicantMessage, arg.ID)
+	return err
+}
+
 const updateCandidateStatus = `-- name: UpdateCandidateStatus :exec
 UPDATE "profile_membership_candidate"
 SET status = $1,

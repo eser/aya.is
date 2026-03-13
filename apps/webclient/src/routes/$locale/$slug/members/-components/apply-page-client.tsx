@@ -21,31 +21,17 @@ type ApplyPageClientProps = {
 export function ApplyPageClient(props: ApplyPageClientProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading, login } = useAuth();
   const [responses, setResponses] = React.useState<Record<string, string>>({});
   const [applicantMessage, setApplicantMessage] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [submitted, setSubmitted] = React.useState(false);
 
-  // If user is not authenticated, show sign-in prompt
-  if (user === null || user === undefined) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h2>{t("Applications.Application Form")}</h2>
-        </div>
-        <div className={styles.signInPrompt}>
-          <p className="text-muted-foreground">
-            {t("Applications.Sign in to apply")}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const isAuthenticated = user !== null && user !== undefined;
 
-  // If user already applied, show their application status
-  if (props.existingApplication !== null) {
+  // If user already applied (not just referred), show their application status
+  if (isAuthenticated && props.existingApplication !== null && props.existingApplication.source === "application") {
     const formattedDate = new Date(
       props.existingApplication.created_at,
     ).toLocaleDateString(props.locale, {
@@ -187,6 +173,18 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
 
         {error !== null && <p className={styles.errorMessage}>{error}</p>}
 
+        {!isAuthLoading && !isAuthenticated && (
+          <div className={styles.signInPrompt}>
+            <button
+              type="button"
+              onClick={() => login(`/${props.locale}/${props.slug}/members/apply`)}
+              className={styles.submitButton}
+            >
+              {t("Applications.Sign in to apply")}
+            </button>
+          </div>
+        )}
+
         <div className={styles.formActions}>
           <LocaleLink
             to={`/${props.slug}/members`}
@@ -194,13 +192,15 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
           >
             {t("Common.Cancel")}
           </LocaleLink>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={styles.submitButton}
-          >
-            {isSubmitting ? t("Applications.Submitting...") : t("Applications.Submit Application")}
-          </button>
+          {(isAuthenticated || isAuthLoading) && (
+            <button
+              type="submit"
+              disabled={isSubmitting || isAuthLoading}
+              className={styles.submitButton}
+            >
+              {isSubmitting ? t("Applications.Submitting...") : t("Applications.Submit Application")}
+            </button>
+          )}
         </div>
       </form>
     </div>

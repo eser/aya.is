@@ -4521,6 +4521,14 @@ type Querier interface {
 	//  WHERE id = $3
 	//    AND deleted_at IS NULL
 	UpdateBulletinSubscriptionPreferences(ctx context.Context, arg UpdateBulletinSubscriptionPreferencesParams) error
+	//UpdateCandidateApplicantMessage
+	//
+	//  UPDATE "profile_membership_candidate"
+	//  SET applicant_message = $1,
+	//      updated_at = NOW()
+	//  WHERE id = $2
+	//    AND deleted_at IS NULL
+	UpdateCandidateApplicantMessage(ctx context.Context, arg UpdateCandidateApplicantMessageParams) error
 	//UpdateCandidateStatus
 	//
 	//  UPDATE "profile_membership_candidate"
