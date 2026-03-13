@@ -8,7 +8,7 @@ export type UpdateProfileRequest = {
   feature_relations?: string;
   feature_links?: string;
   feature_qa?: string;
-  feature_candidates?: string;
+  feature_referrals?: string;
   feature_applications?: string;
   option_story_discussions_by_default?: boolean;
 };

@@ -135,20 +135,11 @@ function PagesSettingsPage() {
   const [featureQA, setFeatureQA] = React.useState<ModuleVisibility>(
     (initialProfile.feature_qa as ModuleVisibility) ?? "disabled",
   );
-  const [featureCandidates, setFeatureCandidates] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_candidates as ModuleVisibility) ?? "disabled",
-  );
-  const [featureApplications, setFeatureApplications] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_applications as ModuleVisibility) ?? "disabled",
-  );
-
   // Sync dialog state when profile changes
   React.useEffect(() => {
     setFeatureRelations((initialProfile.feature_relations as ModuleVisibility) ?? "public");
     setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? "disabled");
     setFeatureQA((initialProfile.feature_qa as ModuleVisibility) ?? "disabled");
-    setFeatureCandidates((initialProfile.feature_candidates as ModuleVisibility) ?? "disabled");
-    setFeatureApplications((initialProfile.feature_applications as ModuleVisibility) ?? "disabled");
   }, [initialProfile]);
 
   // Drag and drop state
@@ -284,8 +275,6 @@ function PagesSettingsPage() {
         feature_relations: featureRelations,
         feature_links: featureLinks,
         feature_qa: featureQA,
-        feature_candidates: featureCandidates,
-        feature_applications: featureApplications,
       });
 
       if (result === null) {
@@ -408,30 +397,6 @@ function PagesSettingsPage() {
                     options={visibilityOptions}
                   />
                 </Field>
-
-                {/* Candidates — org/product only */}
-                {isOrgOrProduct && (
-                  <Field>
-                    <FieldLabel>{t("Profile.Candidates Visibility")}</FieldLabel>
-                    <VisibilitySelect
-                      value={featureCandidates}
-                      onChange={setFeatureCandidates}
-                      options={visibilityOptions}
-                    />
-                  </Field>
-                )}
-
-                {/* Applications — org/product only, requires candidates enabled */}
-                {isOrgOrProduct && featureCandidates !== "disabled" && (
-                  <Field>
-                    <FieldLabel>{t("Profile.Applications Visibility")}</FieldLabel>
-                    <VisibilitySelect
-                      value={featureApplications}
-                      onChange={setFeatureApplications}
-                      options={visibilityOptions}
-                    />
-                  </Field>
-                )}
               </div>
 
               <DialogFooter>

@@ -1274,7 +1274,7 @@ func (q *Queries) GetMembershipsByProfilePairs(ctx context.Context, arg GetMembe
 }
 
 const getProfileByID = `-- name: GetProfileByID :one
-SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = (
@@ -1304,7 +1304,7 @@ type GetProfileByIDRow struct {
 
 // GetProfileByID
 //
-//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = (
@@ -1341,7 +1341,7 @@ func (q *Queries) GetProfileByID(ctx context.Context, arg GetProfileByIDParams) 
 		&i.Profile.FeatureQa,
 		&i.Profile.FeatureDiscussions,
 		&i.Profile.OptionStoryDiscussionsByDefault,
-		&i.Profile.FeatureCandidates,
+		&i.Profile.FeatureReferrals,
 		&i.Profile.FeatureApplications,
 		&i.ProfileTx.ProfileID,
 		&i.ProfileTx.LocaleCode,
@@ -1852,7 +1852,7 @@ SELECT
   pm.started_at,
   pm.finished_at,
   pm.properties as membership_properties,
-  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications,
+  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM
   "profile_membership" pm
@@ -1901,7 +1901,7 @@ type GetProfileMembershipsByMemberProfileIDRow struct {
 //	  pm.started_at,
 //	  pm.finished_at,
 //	  pm.properties as membership_properties,
-//	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications,
+//	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM
 //	  "profile_membership" pm
@@ -1957,7 +1957,7 @@ func (q *Queries) GetProfileMembershipsByMemberProfileID(ctx context.Context, ar
 			&i.Profile.FeatureQa,
 			&i.Profile.FeatureDiscussions,
 			&i.Profile.OptionStoryDiscussionsByDefault,
-			&i.Profile.FeatureCandidates,
+			&i.Profile.FeatureReferrals,
 			&i.Profile.FeatureApplications,
 			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
@@ -2427,7 +2427,7 @@ func (q *Queries) GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDPara
 }
 
 const getProfilesByIDs = `-- name: GetProfilesByIDs :many
-SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = (
@@ -2456,7 +2456,7 @@ type GetProfilesByIDsRow struct {
 
 // GetProfilesByIDs
 //
-//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = (
@@ -2498,7 +2498,7 @@ func (q *Queries) GetProfilesByIDs(ctx context.Context, arg GetProfilesByIDsPara
 			&i.Profile.FeatureQa,
 			&i.Profile.FeatureDiscussions,
 			&i.Profile.OptionStoryDiscussionsByDefault,
-			&i.Profile.FeatureCandidates,
+			&i.Profile.FeatureReferrals,
 			&i.Profile.FeatureApplications,
 			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
@@ -3682,9 +3682,9 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 const listProfileMemberships = `-- name: ListProfileMemberships :many
 SELECT
   pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.deleted_at,
-  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
+  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
   p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-  p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default, p2.feature_candidates, p2.feature_applications,
+  p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default, p2.feature_referrals, p2.feature_applications,
   p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 FROM
 	"profile_membership" pm
@@ -3745,9 +3745,9 @@ type ListProfileMembershipsRow struct {
 //
 //	SELECT
 //	  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.deleted_at,
-//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_candidates, p1.feature_applications,
+//	  p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
 //	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-//	  p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default, p2.feature_candidates, p2.feature_applications,
+//	  p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default, p2.feature_referrals, p2.feature_applications,
 //	  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 //	FROM
 //		"profile_membership" pm
@@ -3827,7 +3827,7 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.Profile.FeatureQa,
 			&i.Profile.FeatureDiscussions,
 			&i.Profile.OptionStoryDiscussionsByDefault,
-			&i.Profile.FeatureCandidates,
+			&i.Profile.FeatureReferrals,
 			&i.Profile.FeatureApplications,
 			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
@@ -3852,7 +3852,7 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.Profile_2.FeatureQa,
 			&i.Profile_2.FeatureDiscussions,
 			&i.Profile_2.OptionStoryDiscussionsByDefault,
-			&i.Profile_2.FeatureCandidates,
+			&i.Profile_2.FeatureReferrals,
 			&i.Profile_2.FeatureApplications,
 			&i.ProfileTx_2.ProfileID,
 			&i.ProfileTx_2.LocaleCode,
@@ -3883,7 +3883,7 @@ SELECT
   pm.properties,
   pm.started_at,
   pm.finished_at,
-  mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default, mp.feature_candidates, mp.feature_applications,
+  mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default, mp.feature_referrals, mp.feature_applications,
   mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 FROM "profile_membership" pm
 INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -3943,7 +3943,7 @@ type ListProfileMembershipsForSettingsRow struct {
 //	  pm.properties,
 //	  pm.started_at,
 //	  pm.finished_at,
-//	  mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default, mp.feature_candidates, mp.feature_applications,
+//	  mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default, mp.feature_referrals, mp.feature_applications,
 //	  mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 //	FROM "profile_membership" pm
 //	INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -4008,7 +4008,7 @@ func (q *Queries) ListProfileMembershipsForSettings(ctx context.Context, arg Lis
 			&i.Profile.FeatureQa,
 			&i.Profile.FeatureDiscussions,
 			&i.Profile.OptionStoryDiscussionsByDefault,
-			&i.Profile.FeatureCandidates,
+			&i.Profile.FeatureReferrals,
 			&i.Profile.FeatureApplications,
 			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
@@ -4455,7 +4455,7 @@ func (q *Queries) ListProfileResourcesByProfileID(ctx context.Context, arg ListP
 }
 
 const listProfiles = `-- name: ListProfiles :many
-SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = (
@@ -4495,7 +4495,7 @@ type ListProfilesRow struct {
 
 // ListProfiles
 //
-//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+//	SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = (
@@ -4551,7 +4551,7 @@ func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*
 			&i.Profile.FeatureQa,
 			&i.Profile.FeatureDiscussions,
 			&i.Profile.OptionStoryDiscussionsByDefault,
-			&i.Profile.FeatureCandidates,
+			&i.Profile.FeatureReferrals,
 			&i.Profile.FeatureApplications,
 			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
@@ -4968,7 +4968,7 @@ SELECT
   u.email,
   u.name,
   u.individual_profile_id,
-  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications,
+  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications,
   pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 FROM "user" u
 INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -5028,7 +5028,7 @@ type SearchUsersForMembershipRow struct {
 //	  u.email,
 //	  u.name,
 //	  u.individual_profile_id,
-//	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_candidates, p.feature_applications,
+//	  p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications,
 //	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 //	FROM "user" u
 //	INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -5095,7 +5095,7 @@ func (q *Queries) SearchUsersForMembership(ctx context.Context, arg SearchUsersF
 			&i.Profile.FeatureQa,
 			&i.Profile.FeatureDiscussions,
 			&i.Profile.OptionStoryDiscussionsByDefault,
-			&i.Profile.FeatureCandidates,
+			&i.Profile.FeatureReferrals,
 			&i.Profile.FeatureApplications,
 			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
@@ -5252,7 +5252,7 @@ SET
   feature_links = COALESCE($5, feature_links),
   feature_qa = COALESCE($6, feature_qa),
   feature_discussions = COALESCE($7, feature_discussions),
-  feature_candidates = COALESCE($8, feature_candidates),
+  feature_referrals = COALESCE($8, feature_referrals),
   feature_applications = COALESCE($9, feature_applications),
   option_story_discussions_by_default = COALESCE($10, option_story_discussions_by_default),
   updated_at = NOW()
@@ -5268,7 +5268,7 @@ type UpdateProfileParams struct {
 	FeatureLinks                    sql.NullString        `db:"feature_links" json:"feature_links"`
 	FeatureQa                       sql.NullString        `db:"feature_qa" json:"feature_qa"`
 	FeatureDiscussions              sql.NullString        `db:"feature_discussions" json:"feature_discussions"`
-	FeatureCandidates               sql.NullString        `db:"feature_candidates" json:"feature_candidates"`
+	FeatureReferrals                sql.NullString        `db:"feature_referrals" json:"feature_referrals"`
 	FeatureApplications             sql.NullString        `db:"feature_applications" json:"feature_applications"`
 	OptionStoryDiscussionsByDefault sql.NullBool          `db:"option_story_discussions_by_default" json:"option_story_discussions_by_default"`
 	ID                              string                `db:"id" json:"id"`
@@ -5289,7 +5289,7 @@ type UpdateProfileParams struct {
 //	  feature_links = COALESCE($5, feature_links),
 //	  feature_qa = COALESCE($6, feature_qa),
 //	  feature_discussions = COALESCE($7, feature_discussions),
-//	  feature_candidates = COALESCE($8, feature_candidates),
+//	  feature_referrals = COALESCE($8, feature_referrals),
 //	  feature_applications = COALESCE($9, feature_applications),
 //	  option_story_discussions_by_default = COALESCE($10, option_story_discussions_by_default),
 //	  updated_at = NOW()
@@ -5304,7 +5304,7 @@ func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (i
 		arg.FeatureLinks,
 		arg.FeatureQa,
 		arg.FeatureDiscussions,
-		arg.FeatureCandidates,
+		arg.FeatureReferrals,
 		arg.FeatureApplications,
 		arg.OptionStoryDiscussionsByDefault,
 		arg.ID,

@@ -1,15 +1,18 @@
 // Profile access/memberships settings
 import * as React from "react";
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+  CheckIcon,
   Crown,
   Heart,
+  Loader2,
   MoreHorizontal,
   Pencil,
   Plus,
   Search,
+  Settings2,
   Shield,
   Star,
   Trash2,
@@ -30,7 +33,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { Select as SelectPrimitive } from "@base-ui/react/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +42,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -50,6 +55,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -124,6 +130,69 @@ function MemberCard(props: MemberCardProps) {
         </p>
       </div>
     </div>
+  );
+}
+
+type ModuleVisibility = "public" | "hidden" | "disabled";
+
+type VisibilityOption = {
+  value: ModuleVisibility;
+  label: string;
+  description: string;
+};
+
+function VisibilitySelectItem(props: { option: VisibilityOption }) {
+  return (
+    <SelectPrimitive.Item
+      value={props.option.value}
+      className="focus:bg-accent focus:text-accent-foreground gap-2 rounded-sm py-2 pr-8 pl-2 text-sm relative flex w-full cursor-default items-start outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+    >
+      <SelectPrimitive.ItemIndicator
+        render={
+          <span className="pointer-events-none absolute right-2 top-2.5 flex size-4 items-center justify-center" />
+        }
+      >
+        <CheckIcon className="size-4 pointer-events-none" />
+      </SelectPrimitive.ItemIndicator>
+      <div className="flex flex-col gap-0.5">
+        <SelectPrimitive.ItemText className="font-medium">
+          {props.option.label}
+        </SelectPrimitive.ItemText>
+        <span className="text-xs text-muted-foreground">
+          {props.option.description}
+        </span>
+      </div>
+    </SelectPrimitive.Item>
+  );
+}
+
+function VisibilitySelect(props: {
+  value: ModuleVisibility;
+  onChange: (value: ModuleVisibility) => void;
+  options: VisibilityOption[];
+}) {
+  const labelMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const option of props.options) {
+      map.set(option.value, option.label);
+    }
+    return map;
+  }, [props.options]);
+
+  return (
+    <Select
+      value={props.value}
+      onValueChange={(val: string) => props.onChange(val as ModuleVisibility)}
+    >
+      <SelectTrigger>
+        <SelectValue>
+          {(value: string) => labelMap.get(value) ?? value}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        {props.options.map((option) => <VisibilitySelectItem key={option.value} option={option} />)}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -218,6 +287,18 @@ function AccessSettingsPage() {
   const [newTeamName, setNewTeamName] = React.useState("");
   const [isTeamSaving, setIsTeamSaving] = React.useState(false);
 
+  // Membership settings dialog state
+  const [membershipDialogOpen, setMembershipDialogOpen] = React.useState(false);
+  const [isSavingMembership, setIsSavingMembership] = React.useState(false);
+  const [featureReferrals, setFeatureReferrals] = React.useState<ModuleVisibility>(
+    (profile?.feature_referrals as ModuleVisibility) ?? "disabled",
+  );
+  const [featureApplications, setFeatureApplications] = React.useState<ModuleVisibility>(
+    (profile?.feature_applications as ModuleVisibility) ?? "disabled",
+  );
+
+  const router = useRouter();
+
   // Debounce search
   const searchTimeoutRef = React.useRef<number | null>(null);
 
@@ -225,6 +306,11 @@ function AccessSettingsPage() {
   React.useEffect(() => {
     loadMemberships();
   }, [params.locale, params.slug]);
+
+  React.useEffect(() => {
+    setFeatureReferrals((profile?.feature_referrals as ModuleVisibility) ?? "disabled");
+    setFeatureApplications((profile?.feature_applications as ModuleVisibility) ?? "disabled");
+  }, [profile]);
 
   const loadTeams = async () => {
     const result = await backend.listProfileTeams(params.locale, params.slug);
@@ -403,6 +489,47 @@ function AccessSettingsPage() {
     setEditTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
   };
 
+  const visibilityOptions: VisibilityOption[] = [
+    {
+      value: "public",
+      label: t("Profile.Public"),
+      description: t("Profile.Visible in navigation and accessible by everyone."),
+    },
+    {
+      value: "hidden",
+      label: t("Profile.Hidden"),
+      description: t("Profile.Not shown in navigation, but accessible via direct link."),
+    },
+    {
+      value: "disabled",
+      label: t("Profile.Disabled"),
+      description: t("Profile.Page is completely disabled and returns 404."),
+    },
+  ];
+
+  const handleSaveMembership = async () => {
+    setIsSavingMembership(true);
+    try {
+      const result = await backend.updateProfile(params.locale, params.slug, {
+        feature_referrals: featureReferrals,
+        feature_applications: featureApplications,
+      });
+
+      if (result === null) {
+        toast.error(t("Profile.Failed to update profile"));
+        return;
+      }
+
+      toast.success(t("Profile.Preferences saved"));
+      router.invalidate();
+      setMembershipDialogOpen(false);
+    } catch {
+      toast.error(t("Profile.Failed to update profile"));
+    } finally {
+      setIsSavingMembership(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className={styles.card}>
@@ -442,6 +569,56 @@ function AccessSettingsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {!isIndividual && (
+            <Dialog open={membershipDialogOpen} onOpenChange={setMembershipDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Settings2 className="size-4 mr-1" />
+                  {t("Profile.Membership...")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{t("Profile.Membership")}</DialogTitle>
+                  <DialogDescription>
+                    {t("Profile.Control membership features for your organization.")}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-2">
+                  <Field>
+                    <FieldLabel>{t("Profile.Referral System")}</FieldLabel>
+                    <VisibilitySelect
+                      value={featureReferrals}
+                      onChange={setFeatureReferrals}
+                      options={visibilityOptions}
+                    />
+                  </Field>
+
+                  {featureReferrals !== "disabled" && (
+                    <Field>
+                      <FieldLabel>{t("Profile.Applications")}</FieldLabel>
+                      <VisibilitySelect
+                        value={featureApplications}
+                        onChange={setFeatureApplications}
+                        options={visibilityOptions}
+                      />
+                    </Field>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    onClick={handleSaveMembership}
+                    disabled={isSavingMembership}
+                  >
+                    {isSavingMembership && <Loader2 className="mr-2 size-4 animate-spin" />}
+                    {isSavingMembership ? t("Common.Saving...") : t("Common.Save")}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
           <Button variant="outline" onClick={() => setIsTeamsDialogOpen(true)}>
             <Users className="size-4 mr-1" />
             {t("Profile.Teams...")}

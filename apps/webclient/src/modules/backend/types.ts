@@ -24,7 +24,7 @@ export interface Profile {
   feature_links?: string; // Visibility of Links module
   feature_qa?: string; // Visibility of Q&A module
   feature_discussions?: string; // Visibility of Discussions module
-  feature_candidates?: string; // Visibility of Candidates module
+  feature_referrals?: string; // Visibility of Referrals module
   feature_applications?: string; // Visibility of Applications module
   option_story_discussions_by_default?: boolean;
   created_at: string;

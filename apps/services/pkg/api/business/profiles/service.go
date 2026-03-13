@@ -319,7 +319,7 @@ type Repository interface { //nolint:interfacebloat
 		featureLinks *string,
 		featureQA *string,
 		featureDiscussions *string,
-		featureCandidates *string,
+		featureReferrals *string,
 		featureApplications *string,
 		optionStoryDiscussionsByDefault *bool,
 	) error
@@ -1872,7 +1872,7 @@ func (s *Service) Update( //nolint:cyclop,funlen
 	featureLinks *string,
 	featureQA *string,
 	featureDiscussions *string,
-	featureCandidates *string,
+	featureReferrals *string,
 	featureApplications *string,
 	optionStoryDiscussionsByDefault *bool,
 ) (*Profile, error) {
@@ -1908,7 +1908,7 @@ func (s *Service) Update( //nolint:cyclop,funlen
 	}
 
 	// Validate module visibility values
-	for _, v := range []*string{featureRelations, featureLinks, featureQA, featureDiscussions, featureCandidates, featureApplications} {
+	for _, v := range []*string{featureRelations, featureLinks, featureQA, featureDiscussions, featureReferrals, featureApplications} {
 		if v != nil {
 			switch ModuleVisibility(*v) {
 			case ModuleVisibilityPublic, ModuleVisibilityHidden, ModuleVisibilityDisabled:
@@ -1929,7 +1929,7 @@ func (s *Service) Update( //nolint:cyclop,funlen
 		featureLinks,
 		featureQA,
 		featureDiscussions,
-		featureCandidates,
+		featureReferrals,
 		featureApplications,
 		optionStoryDiscussionsByDefault,
 	)

@@ -119,7 +119,7 @@ type Profile struct {
 	FeatureLinks                    string     `json:"feature_links"`        // Visibility of Links module
 	FeatureQA                       string     `json:"feature_qa"`           // Visibility of Q&A module
 	FeatureDiscussions              string     `json:"feature_discussions"`  // Visibility of Discussions module
-	FeatureCandidates               string     `json:"feature_candidates"`   // Visibility of Candidates module
+	FeatureReferrals                string     `json:"feature_referrals"`    // Visibility of Referral System module
 	FeatureApplications             string     `json:"feature_applications"` // Visibility of Applications module
 	OptionStoryDiscussionsByDefault bool       `json:"option_story_discussions_by_default"`
 }

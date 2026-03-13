@@ -755,7 +755,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 				FeatureLinks                    *string        `json:"feature_links"`
 				FeatureQA                       *string        `json:"feature_qa"`
 				FeatureDiscussions              *string        `json:"feature_discussions"`
-				FeatureCandidates               *string        `json:"feature_candidates"`
+				FeatureReferrals                *string        `json:"feature_referrals"`
 				FeatureApplications             *string        `json:"feature_applications"`
 				OptionStoryDiscussionsByDefault *bool          `json:"option_story_discussions_by_default"`
 			}
@@ -797,7 +797,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 				requestBody.FeatureLinks,
 				requestBody.FeatureQA,
 				requestBody.FeatureDiscussions,
-				requestBody.FeatureCandidates,
+				requestBody.FeatureReferrals,
 				requestBody.FeatureApplications,
 				requestBody.OptionStoryDiscussionsByDefault,
 			)

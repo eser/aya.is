@@ -220,7 +220,7 @@ type Profile struct {
 	FeatureQa                       string                `db:"feature_qa" json:"feature_qa"`
 	FeatureDiscussions              string                `db:"feature_discussions" json:"feature_discussions"`
 	OptionStoryDiscussionsByDefault bool                  `db:"option_story_discussions_by_default" json:"option_story_discussions_by_default"`
-	FeatureCandidates               string                `db:"feature_candidates" json:"feature_candidates"`
+	FeatureReferrals                string                `db:"feature_referrals" json:"feature_referrals"`
 	FeatureApplications             string                `db:"feature_applications" json:"feature_applications"`
 }
 
