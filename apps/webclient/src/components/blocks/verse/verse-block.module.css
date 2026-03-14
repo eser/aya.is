@@ -1,0 +1,6 @@
+@reference "@/theme.css";
+
+.verse {
+  @apply my-4 px-6 py-4 font-serif text-base leading-relaxed;
+  white-space: pre-wrap;
+}

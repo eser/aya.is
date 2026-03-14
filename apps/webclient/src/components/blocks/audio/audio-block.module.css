@@ -1,0 +1,17 @@
+@reference "@/theme.css";
+
+.audio {
+  @apply my-4 rounded-lg border p-4;
+}
+
+.title {
+  @apply text-sm font-medium mb-2;
+}
+
+.player {
+  @apply w-full;
+}
+
+.caption {
+  @apply text-xs text-muted-foreground mt-2;
+}

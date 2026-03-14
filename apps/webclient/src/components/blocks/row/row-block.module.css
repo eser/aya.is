@@ -1,0 +1,20 @@
+@reference "@/theme.css";
+
+.row {
+  @apply my-4 flex flex-row;
+
+  &[data-gap="sm"] { @apply gap-2; }
+  &[data-gap="md"] { @apply gap-4; }
+  &[data-gap="lg"] { @apply gap-8; }
+  &[data-align="start"] { @apply items-start; }
+  &[data-align="center"] { @apply items-center; }
+  &[data-align="end"] { @apply items-end; }
+  &[data-align="stretch"] { @apply items-stretch; }
+  &[data-justify="start"] { @apply justify-start; }
+  &[data-justify="center"] { @apply justify-center; }
+  &[data-justify="end"] { @apply justify-end; }
+  &[data-justify="between"] { @apply justify-between; }
+  &[data-justify="around"] { @apply justify-around; }
+  &[data-wrap="true"] { @apply flex-wrap; }
+  &[data-wrap="false"] { @apply flex-nowrap; }
+}

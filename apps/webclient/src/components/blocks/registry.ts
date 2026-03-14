@@ -2,6 +2,10 @@ import type { BlockCategory, BlockDefinition, BlockPattern } from "./types.ts";
 import { generateContainerMdx, generateSelfClosingMdx } from "./mdx-template.ts";
 import {
   AlertTriangle,
+  AlignCenter,
+  ArrowDownUp,
+  ArrowRightLeft,
+  BookOpen,
   ChevronDown,
   Code,
   Columns2,
@@ -9,11 +13,13 @@ import {
   CreditCard,
   ExternalLink,
   FileText,
+  Frame,
   GitCompareArrows,
   Grid3X3,
   Heading2,
   HelpCircle,
   Image,
+  Images,
   LayoutGrid,
   LayoutTemplate,
   Link,
@@ -21,10 +27,16 @@ import {
   MessageSquareQuote,
   Minus,
   MousePointerClick,
+  Music,
+  PanelLeft,
   PanelTop,
   Quote,
   Space,
+  Square,
+  Table2,
+  TextQuote,
   Twitter,
+  Video,
   Youtube,
 } from "lucide-react";
 
@@ -185,6 +197,55 @@ const blockDefinitions: BlockDefinition[] = [
     },
   },
 
+  {
+    id: "table",
+    name: "Table",
+    description: "Structured data table",
+    icon: Table2,
+    category: "text",
+    keywords: ["table", "data", "grid", "rows", "columns"],
+    props: [],
+    generateMdx: () => {
+      return `\n| Column 1 | Column 2 | Column 3 |\n| --- | --- | --- |\n| Cell 1 | Cell 2 | Cell 3 |\n| Cell 4 | Cell 5 | Cell 6 |\n`;
+    },
+  },
+  {
+    id: "pullquote",
+    name: "Pullquote",
+    description: "Emphasized quote with decorative styling",
+    icon: TextQuote,
+    category: "text",
+    keywords: ["pullquote", "quote", "emphasis", "highlight", "cite"],
+    props: [
+      {
+        name: "citation",
+        type: "string",
+        label: "Citation",
+        required: false,
+        defaultValue: "",
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (typeof values.citation === "string" && values.citation !== "") {
+        props.citation = values.citation;
+      }
+      return generateContainerMdx("Pullquote", props, "Your emphasized quote here.");
+    },
+  },
+  {
+    id: "verse",
+    name: "Verse",
+    description: "Poetry and verse with preserved formatting",
+    icon: BookOpen,
+    category: "text",
+    keywords: ["verse", "poetry", "poem", "lyrics", "preformatted"],
+    props: [],
+    generateMdx: () => {
+      return generateContainerMdx("Verse", {}, "Line one\nLine two\nLine three");
+    },
+  },
+
   // ---- media ----
   {
     id: "image",
@@ -213,6 +274,143 @@ const blockDefinitions: BlockDefinition[] = [
       const src = typeof values.src === "string" ? values.src : "";
       const alt = typeof values.alt === "string" && values.alt !== "" ? values.alt : "Alt text";
       return `\n![${alt}](${src})\n`;
+    },
+  },
+
+  {
+    id: "gallery",
+    name: "Gallery",
+    description: "Image gallery grid",
+    icon: Images,
+    category: "media",
+    keywords: ["gallery", "images", "photos", "grid"],
+    props: [
+      {
+        name: "cols",
+        type: "select",
+        label: "Columns",
+        required: false,
+        defaultValue: "3",
+        options: [
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+        ],
+      },
+    ],
+    generateMdx: (values) => {
+      const cols = typeof values.cols === "string" ? Number(values.cols) : 3;
+      return `\n<Gallery cols={${cols}}>\n\n![Image 1](url1)\n![Image 2](url2)\n![Image 3](url3)\n\n</Gallery>\n`;
+    },
+  },
+  {
+    id: "audio",
+    name: "Audio",
+    description: "Audio player",
+    icon: Music,
+    category: "media",
+    keywords: ["audio", "music", "sound", "podcast", "mp3"],
+    props: [
+      {
+        name: "src",
+        type: "string",
+        label: "Source URL",
+        required: true,
+        defaultValue: "",
+        placeholder: "https://example.com/audio.mp3",
+      },
+      {
+        name: "title",
+        type: "string",
+        label: "Title",
+        required: false,
+        defaultValue: "",
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (typeof values.src === "string") {
+        props.src = values.src;
+      }
+      if (typeof values.title === "string" && values.title !== "") {
+        props.title = values.title;
+      }
+      return generateSelfClosingMdx("Audio", props);
+    },
+  },
+  {
+    id: "video",
+    name: "Video",
+    description: "Video player",
+    icon: Video,
+    category: "media",
+    keywords: ["video", "movie", "film", "mp4", "media"],
+    props: [
+      {
+        name: "src",
+        type: "string",
+        label: "Source URL",
+        required: true,
+        defaultValue: "",
+        placeholder: "https://example.com/video.mp4",
+      },
+      {
+        name: "poster",
+        type: "string",
+        label: "Poster URL",
+        required: false,
+        defaultValue: "",
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (typeof values.src === "string") {
+        props.src = values.src;
+      }
+      if (typeof values.poster === "string" && values.poster !== "") {
+        props.poster = values.poster;
+      }
+      return generateSelfClosingMdx("Video", props);
+    },
+  },
+  {
+    id: "cover",
+    name: "Cover",
+    description: "Background image with text overlay",
+    icon: Frame,
+    category: "media",
+    keywords: ["cover", "hero", "banner", "background", "overlay"],
+    props: [
+      {
+        name: "src",
+        type: "string",
+        label: "Source URL",
+        required: true,
+        defaultValue: "",
+        placeholder: "https://example.com/bg.jpg",
+      },
+      {
+        name: "overlay",
+        type: "select",
+        label: "Overlay",
+        required: false,
+        defaultValue: "dark",
+        options: [
+          { value: "dark", label: "Dark" },
+          { value: "light", label: "Light" },
+          { value: "none", label: "None" },
+        ],
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (typeof values.src === "string") {
+        props.src = values.src;
+      }
+      if (values.overlay !== undefined && values.overlay !== "dark") {
+        props.overlay = values.overlay;
+      }
+      return generateContainerMdx("Cover", props, "## Your heading here\n\nOverlay text content");
     },
   },
 
@@ -318,6 +516,241 @@ const blockDefinitions: BlockDefinition[] = [
     props: [],
     generateMdx: () => {
       return `\n<Cards>\n\n<Card title="Card 1" description="Description" />\n\n<Card title="Card 2" description="Description" />\n\n</Cards>\n`;
+    },
+  },
+
+  {
+    id: "media-text",
+    name: "Media & Text",
+    description: "Image alongside text content",
+    icon: PanelLeft,
+    category: "layout",
+    keywords: ["media", "text", "image", "side", "split", "layout"],
+    props: [
+      {
+        name: "src",
+        type: "string",
+        label: "Source URL",
+        required: true,
+        defaultValue: "",
+        placeholder: "https://example.com/image.jpg",
+      },
+      {
+        name: "mediaPosition",
+        type: "select",
+        label: "Media Position",
+        required: false,
+        defaultValue: "left",
+        options: [
+          { value: "left", label: "Left" },
+          { value: "right", label: "Right" },
+        ],
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (typeof values.src === "string") {
+        props.src = values.src;
+      }
+      if (values.mediaPosition !== undefined && values.mediaPosition !== "left") {
+        props.mediaPosition = values.mediaPosition;
+      }
+      return generateContainerMdx("MediaText", props, "Your text content alongside the media.");
+    },
+  },
+  {
+    id: "row",
+    name: "Row",
+    description: "Horizontal flex layout",
+    icon: ArrowRightLeft,
+    category: "layout",
+    keywords: ["row", "horizontal", "flex", "inline", "layout"],
+    props: [
+      {
+        name: "gap",
+        type: "select",
+        label: "Gap",
+        required: false,
+        defaultValue: "md",
+        options: [
+          { value: "sm", label: "Small" },
+          { value: "md", label: "Medium" },
+          { value: "lg", label: "Large" },
+        ],
+      },
+      {
+        name: "justify",
+        type: "select",
+        label: "Justify",
+        required: false,
+        defaultValue: "start",
+        options: [
+          { value: "start", label: "Start" },
+          { value: "center", label: "Center" },
+          { value: "end", label: "End" },
+          { value: "between", label: "Between" },
+          { value: "around", label: "Around" },
+        ],
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (values.gap !== undefined && values.gap !== "md") {
+        props.gap = values.gap;
+      }
+      if (values.justify !== undefined && values.justify !== "start") {
+        props.justify = values.justify;
+      }
+      return generateContainerMdx("Row", props, "Content items here...");
+    },
+  },
+  {
+    id: "stack",
+    name: "Stack",
+    description: "Vertical flex layout",
+    icon: ArrowDownUp,
+    category: "layout",
+    keywords: ["stack", "vertical", "flex", "layout"],
+    props: [
+      {
+        name: "gap",
+        type: "select",
+        label: "Gap",
+        required: false,
+        defaultValue: "md",
+        options: [
+          { value: "sm", label: "Small" },
+          { value: "md", label: "Medium" },
+          { value: "lg", label: "Large" },
+        ],
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (values.gap !== undefined && values.gap !== "md") {
+        props.gap = values.gap;
+      }
+      return generateContainerMdx("Stack", props, "Stacked content here...");
+    },
+  },
+  {
+    id: "grid",
+    name: "Grid",
+    description: "Responsive grid layout",
+    icon: Grid3X3,
+    category: "layout",
+    keywords: ["grid", "auto", "responsive", "layout", "tiles"],
+    props: [
+      {
+        name: "cols",
+        type: "select",
+        label: "Columns",
+        required: false,
+        defaultValue: "2",
+        options: [
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+        ],
+      },
+      {
+        name: "gap",
+        type: "select",
+        label: "Gap",
+        required: false,
+        defaultValue: "md",
+        options: [
+          { value: "sm", label: "Small" },
+          { value: "md", label: "Medium" },
+          { value: "lg", label: "Large" },
+        ],
+      },
+    ],
+    generateMdx: (values) => {
+      const cols = typeof values.cols === "string" ? Number(values.cols) : 2;
+      const props: Record<string, string | number | boolean> = { cols };
+      if (values.gap !== undefined && values.gap !== "md") {
+        props.gap = values.gap;
+      }
+      return generateContainerMdx("Grid", props, "Grid items here...");
+    },
+  },
+  {
+    id: "group",
+    name: "Group",
+    description: "Container with visual styling",
+    icon: Square,
+    category: "layout",
+    keywords: ["group", "container", "box", "section", "wrapper"],
+    props: [
+      {
+        name: "padding",
+        type: "select",
+        label: "Padding",
+        required: false,
+        defaultValue: "md",
+        options: [
+          { value: "none", label: "None" },
+          { value: "sm", label: "Small" },
+          { value: "md", label: "Medium" },
+          { value: "lg", label: "Large" },
+        ],
+      },
+      {
+        name: "background",
+        type: "select",
+        label: "Background",
+        required: false,
+        defaultValue: "none",
+        options: [
+          { value: "none", label: "None" },
+          { value: "muted", label: "Muted" },
+          { value: "card", label: "Card" },
+          { value: "accent", label: "Accent" },
+        ],
+      },
+      {
+        name: "border",
+        type: "boolean",
+        label: "Border",
+        required: false,
+        defaultValue: false,
+      },
+      {
+        name: "rounded",
+        type: "boolean",
+        label: "Rounded",
+        required: false,
+        defaultValue: true,
+      },
+    ],
+    generateMdx: (values) => {
+      const props: Record<string, string | number | boolean> = {};
+      if (values.padding !== undefined && values.padding !== "md") {
+        props.padding = values.padding;
+      }
+      if (values.background !== undefined && values.background !== "none") {
+        props.background = values.background;
+      }
+      if (values.border === true) {
+        props.border = true;
+      }
+      if (values.rounded === false) {
+        props.rounded = false;
+      }
+      return generateContainerMdx("Group", props, "Grouped content here...");
+    },
+  },
+  {
+    id: "center",
+    name: "Center",
+    description: "Center-aligned content",
+    icon: AlignCenter,
+    category: "layout",
+    keywords: ["center", "align", "middle", "layout"],
+    props: [],
+    generateMdx: () => {
+      return generateContainerMdx("Center", {}, "Centered content here...");
     },
   },
 

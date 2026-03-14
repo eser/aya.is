@@ -1,0 +1,22 @@
+@reference "@/theme.css";
+
+.mediaText {
+  @apply my-4 grid gap-6 items-center;
+  @apply grid-cols-1 md:grid-cols-2;
+}
+
+.media {
+  @apply rounded-lg overflow-hidden;
+
+  &[data-position="right"] {
+    @apply md:order-last;
+  }
+}
+
+.media img {
+  @apply w-full h-auto object-cover;
+}
+
+.content {
+  @apply min-w-0;
+}

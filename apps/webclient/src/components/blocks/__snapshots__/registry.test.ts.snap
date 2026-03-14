@@ -2,19 +2,32 @@ export const snapshot = {};
 
 snapshot[`getAllBlocks returns all blocks 1`] = `
 {
-  count: 19,
+  count: 32,
   ids: [
     "callout",
     "details",
     "heading",
     "quote",
     "code-block",
+    "table",
+    "pullquote",
+    "verse",
     "image",
+    "gallery",
+    "audio",
+    "video",
+    "cover",
     "columns-2",
     "columns-3",
     "divider",
     "spacer",
     "cards",
+    "media-text",
+    "row",
+    "stack",
+    "grid",
+    "group",
+    "center",
     "card",
     "site-link",
     "youtube",
@@ -34,12 +47,19 @@ snapshot[`getBlocksByCategory text returns text blocks 1`] = `
   "heading",
   "quote",
   "code-block",
+  "table",
+  "pullquote",
+  "verse",
 ]
 `;
 
 snapshot[`getBlocksByCategory media returns media blocks 1`] = `
 [
   "image",
+  "gallery",
+  "audio",
+  "video",
+  "cover",
 ]
 `;
 
@@ -54,6 +74,7 @@ snapshot[`getBlocksByCategory embed returns embed blocks 1`] = `
 
 snapshot[`searchBlocks video finds youtube 1`] = `
 [
+  "video",
   "youtube",
 ]
 `;

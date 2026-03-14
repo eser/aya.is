@@ -109,8 +109,6 @@ export function EditorToolbar(props: EditorToolbarProps) {
           <TooltipContent>{t("ContentEditor.Insert Image")}</TooltipContent>
         </Tooltip>
 
-        <div className="mx-2 h-4 w-px bg-border" />
-
         <Tooltip>
           <TooltipTrigger
             render={

@@ -1,0 +1,21 @@
+@reference "@/theme.css";
+
+.video {
+  @apply my-4;
+}
+
+.title {
+  @apply text-sm font-medium mb-2;
+}
+
+.wrapper {
+  @apply relative w-full aspect-video rounded-lg overflow-hidden;
+}
+
+.player {
+  @apply absolute top-0 left-0 w-full h-full;
+}
+
+.caption {
+  @apply text-xs text-muted-foreground mt-2;
+}

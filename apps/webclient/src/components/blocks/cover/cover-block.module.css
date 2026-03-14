@@ -1,0 +1,28 @@
+@reference "@/theme.css";
+
+.cover {
+  @apply my-4 relative rounded-lg overflow-hidden bg-cover bg-center flex items-center justify-center;
+}
+
+.overlay {
+  @apply absolute inset-0;
+
+  &[data-overlay="dark"] {
+    @apply bg-black/50;
+  }
+  &[data-overlay="light"] {
+    @apply bg-white/50;
+  }
+}
+
+.content {
+  @apply relative z-10 p-8 text-center;
+}
+
+.coverDark {
+  @apply text-white;
+}
+
+.coverLight {
+  @apply text-foreground;
+}

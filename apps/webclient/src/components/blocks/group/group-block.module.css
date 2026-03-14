@@ -1,0 +1,14 @@
+@reference "@/theme.css";
+
+.group {
+  @apply my-4;
+
+  &[data-padding="sm"] { @apply p-2; }
+  &[data-padding="md"] { @apply p-4; }
+  &[data-padding="lg"] { @apply p-8; }
+  &[data-background="muted"] { @apply bg-muted; }
+  &[data-background="card"] { @apply bg-card; }
+  &[data-background="accent"] { @apply bg-accent; }
+  &[data-border="true"] { @apply border border-border; }
+  &[data-rounded="true"] { @apply rounded-lg; }
+}

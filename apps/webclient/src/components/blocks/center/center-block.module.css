@@ -1,0 +1,5 @@
+@reference "@/theme.css";
+
+.center {
+  @apply my-4 flex flex-col items-center text-center;
+}

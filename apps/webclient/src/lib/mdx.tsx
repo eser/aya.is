@@ -32,15 +32,27 @@ import {
   YouTubeEmbed,
 } from "@/components/userland";
 import {
+  AudioBlock,
   ButtonBlock,
   CalloutBlock,
+  CenterBlock,
   ColumnBlock,
   ColumnsBlock,
+  CoverBlock,
   DetailsBlock,
+  GalleryBlock,
+  GridBlock,
+  GroupBlock,
+  MediaTextBlock,
+  PullquoteBlock,
+  RowBlock,
   SeparatorBlock,
   SpacerBlock,
+  StackBlock,
   TabBlock,
   TabsBlock,
+  VerseBlock,
+  VideoBlock,
 } from "@/components/blocks";
 
 type HeadingTag = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -115,6 +127,18 @@ export function createMdxComponents(
     components.Button = ButtonBlock;
     components.Tabs = TabsBlock;
     components.Tab = TabBlock;
+    components.Gallery = GalleryBlock;
+    components.Audio = AudioBlock;
+    components.Video = VideoBlock;
+    components.Cover = CoverBlock;
+    components.MediaText = MediaTextBlock;
+    components.Row = RowBlock;
+    components.Stack = StackBlock;
+    components.Grid = GridBlock;
+    components.Group = GroupBlock;
+    components.Center = CenterBlock;
+    components.Pullquote = PullquoteBlock;
+    components.Verse = VerseBlock;
   }
 
   return components;

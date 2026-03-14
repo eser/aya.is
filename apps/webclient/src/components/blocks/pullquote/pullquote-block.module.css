@@ -1,0 +1,13 @@
+@reference "@/theme.css";
+
+.pullquote {
+  @apply my-8 border-t-4 border-b-4 border-primary py-6 px-4;
+}
+
+.text {
+  @apply text-xl font-medium text-center italic leading-relaxed;
+}
+
+.citation {
+  @apply text-sm text-muted-foreground text-center mt-4;
+}
