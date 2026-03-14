@@ -27,6 +27,16 @@ function BlockToolbar(props: BlockToolbarProps) {
     }
   }, [props.hint]);
 
+  // Clean up debounce on unmount
+  React.useEffect(() => {
+    return () => {
+      if (debounceRef.current !== null) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  // Early return AFTER all hooks (React requires hooks in consistent order)
   if (props.hint === null) {
     return null;
   }
@@ -65,15 +75,6 @@ function BlockToolbar(props: BlockToolbarProps) {
       applyChange(updated);
     }, 300);
   }
-
-  // Clean up debounce on unmount
-  React.useEffect(() => {
-    return () => {
-      if (debounceRef.current !== null) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
 
   const IconComponent = hint.icon;
 
