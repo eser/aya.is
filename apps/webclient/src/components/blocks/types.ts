@@ -18,6 +18,7 @@ export type BlockDefinition = {
   id: string;
   name: string;
   description: string;
+  preview?: string;
   icon: React.ElementType;
   category: BlockCategory;
   keywords: string[];

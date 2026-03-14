@@ -1,0 +1,42 @@
+export const snapshot = {};
+
+snapshot[`single-line tag with string props 1`] = `
+{
+  blockId: "callout",
+  componentName: "Callout",
+  endOffset: 37,
+  props: {
+    title: "Note",
+    variant: "info",
+  },
+  selfClosing: false,
+  startOffset: 0,
+}
+`;
+
+snapshot[`single-line self-closing tag 1`] = `
+{
+  blockId: "spacer",
+  componentName: "Spacer",
+  endOffset: 20,
+  props: {
+    size: "md",
+  },
+  selfClosing: true,
+  startOffset: 0,
+}
+`;
+
+snapshot[`mixed props 1`] = `
+{
+  blockId: "cover",
+  componentName: "Cover",
+  endOffset: 32,
+  props: {
+    overlay: "dark",
+    src: "url",
+  },
+  selfClosing: false,
+  startOffset: 0,
+}
+`;

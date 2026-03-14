@@ -7,6 +7,8 @@ import { EditorToolbar, type FormatAction, type ViewMode } from "./editor-toolba
 import { BlockInserterPopover } from "./block-inserter-popover";
 import { BlockInserterDialog } from "./block-inserter-dialog";
 import { isSlashCommandContext } from "@/components/blocks/slash-command-tokenizer";
+import { getBlockHintForLine } from "@/components/blocks/block-hint";
+import { BlockToolbar } from "./block-toolbar";
 import { getCaretCoordinates } from "./caret-coordinates";
 import styles from "./content-editor.module.css";
 
@@ -30,6 +32,9 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
   // Block inserter state
   const [inserterMode, setInserterMode] = React.useState<InserterMode>(null);
   const [slashPosition, setSlashPosition] = React.useState<number | null>(null);
+
+  // Cursor line tracking for block hints
+  const [cursorLine, setCursorLine] = React.useState<number>(0);
 
   // Refs
   const internalTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
@@ -192,6 +197,37 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
     };
   }, [viewMode, textareaRef]);
 
+  // Cursor position tracking for block hints
+  const handleCursorChange = React.useCallback(() => {
+    const textarea = textareaRef.current;
+    if (textarea === null) return;
+    const text = textarea.value;
+    const pos = textarea.selectionStart;
+    const lineNumber = text.substring(0, pos).split("\n").length - 1;
+    setCursorLine(lineNumber);
+  }, [textareaRef]);
+
+  // Compute block hint for current line
+  const blockHint = getBlockHintForLine(props.content, cursorLine);
+
+  // Handle toolbar prop changes by replacing the tag text in the textarea
+  const handleToolbarPropsChange = React.useCallback((startOffset: number, endOffset: number, newTag: string) => {
+    const textarea = textareaRef.current;
+    if (textarea === null) return;
+
+    // Re-parse to get fresh offsets (stale offset protection)
+    const freshHint = getBlockHintForLine(textarea.value, cursorLine);
+    if (freshHint === null) return;
+
+    const freshStart = freshHint.parsedBlock.startOffset;
+    const freshEnd = freshHint.parsedBlock.endOffset;
+
+    textarea.focus();
+    textarea.setSelectionRange(freshStart, freshEnd);
+    document.execCommand("insertText", false, newTag);
+    props.onChange(textarea.value);
+  }, [cursorLine, textareaRef, props.onChange]);
+
   return (
     <div className={styles.editorContent}>
       <EditorToolbar
@@ -201,6 +237,11 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
         onImageUpload={props.disabled === true ? undefined : handleImageInsertClick}
         onBlockInsert={props.disabled === true ? undefined : handleBlockInsertClick}
         plusButtonRef={toolbarPlusRef}
+      />
+
+      <BlockToolbar
+        hint={blockHint}
+        onPropsChange={handleToolbarPropsChange}
       />
 
       <div className={styles.editorPanels}>
@@ -217,6 +258,8 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
                   textareaRef={textareaRef}
                   onInput={handleTextareaInput}
                   onKeyDown={handleTextareaKeyDown}
+                  onSelect={handleCursorChange}
+                  onClick={handleCursorChange}
                 />
               </div>
             </ResizablePanel>
@@ -240,6 +283,8 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
               textareaRef={textareaRef}
               onInput={handleTextareaInput}
               onKeyDown={handleTextareaKeyDown}
+              onSelect={handleCursorChange}
+              onClick={handleCursorChange}
             />
           </div>
         )}

@@ -1,0 +1,13 @@
+export const snapshot = {};
+
+snapshot[`string props 1`] = `'<Callout variant="info" title="Note">'`;
+
+snapshot[`boolean prop 1`] = `'<Group border={true} rounded={false} padding="md">'`;
+
+snapshot[`self-closing 1`] = `'<Spacer size="md" />'`;
+
+snapshot[`container 1`] = `'<Callout variant="info">'`;
+
+snapshot[`escape special chars 1`] = `'<Callout title="say &quot;hello&quot;">'`;
+
+snapshot[`empty props 1`] = `"<Verse>"`;

@@ -10,9 +10,14 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
+  getAllBlocks,
   getBlocksByCategory,
   getAllPatterns,
 } from "@/components/blocks/registry";
+import {
+  addRecentBlock,
+  getRecentBlockIds,
+} from "@/components/blocks/recent-blocks";
 import { BLOCK_CATEGORIES } from "@/components/blocks/types";
 import type { BlockDefinition, BlockPattern } from "@/components/blocks/types";
 import { BlockPropEditor } from "./block-prop-editor";
@@ -49,6 +54,9 @@ function BlockInserterContent(props: BlockInserterContentProps) {
   const [editingBlock, setEditingBlock] = useState<BlockDefinition | null>(
     null,
   );
+  const [recentIds, setRecentIds] = useState<string[]>(() =>
+    getRecentBlockIds()
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-focus the CommandInput when the inserter opens
@@ -68,10 +76,14 @@ function BlockInserterContent(props: BlockInserterContentProps) {
   function handleBlockSelect(definition: BlockDefinition) {
     if (hasRequiredPropsWithoutDefaults(definition)) {
       setEditingBlock(definition);
+      addRecentBlock(definition.id);
+      setRecentIds(getRecentBlockIds());
       return;
     }
     const defaultValues = buildDefaultValues(definition);
     onInsert(definition.generateMdx(defaultValues));
+    addRecentBlock(definition.id);
+    setRecentIds(getRecentBlockIds());
   }
 
   function handlePatternSelect(pattern: BlockPattern) {
@@ -106,6 +118,44 @@ function BlockInserterContent(props: BlockInserterContentProps) {
       <CommandList>
         <CommandEmpty>{t("Blocks.No blocks found")}</CommandEmpty>
 
+        {/* Recent blocks */}
+        {recentIds.length > 0 && (
+          <>
+            <CommandGroup heading={t("Blocks.Recent")}>
+              {recentIds.map((id) => {
+                const allBlocks = getAllBlocks();
+                const block = allBlocks.find((b) => b.id === id);
+                if (block === undefined) {
+                  return null;
+                }
+                const IconComponent = block.icon;
+                return (
+                  <CommandItem
+                    key={`recent-${block.id}`}
+                    value={`recent-${block.id}`}
+                    keywords={block.keywords}
+                    onSelect={() => handleBlockSelect(block)}
+                  >
+                    <div className={styles.blockItem}>
+                      <IconComponent size={16} />
+                      <div className={styles.blockInfo}>
+                        <span className={styles.blockName}>{block.name}</span>
+                        <span className={styles.blockDescription}>
+                          {block.description}
+                        </span>
+                        {block.preview !== undefined && (
+                          <span className={styles.blockPreview}>{block.preview}</span>
+                        )}
+                      </div>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
+
         {/* Block categories */}
         {BLOCK_CATEGORIES.map((category) => {
           const blocks = getBlocksByCategory(category.id);
@@ -130,6 +180,9 @@ function BlockInserterContent(props: BlockInserterContentProps) {
                         <span className={styles.blockDescription}>
                           {block.description}
                         </span>
+                        {block.preview !== undefined && (
+                          <span className={styles.blockPreview}>{block.preview}</span>
+                        )}
                       </div>
                     </div>
                   </CommandItem>

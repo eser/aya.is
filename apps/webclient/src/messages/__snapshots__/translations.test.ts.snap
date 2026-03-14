@@ -257,6 +257,7 @@ snapshot[`translations - English key set baseline 1`] = `
   "Blocks.Pullquote",
   "Blocks.Quote",
   "Blocks.Quote with attribution",
+  "Blocks.Recent",
   "Blocks.Responsive grid layout",
   "Blocks.Right",
   "Blocks.Rounded",

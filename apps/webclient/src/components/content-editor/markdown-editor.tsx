@@ -9,6 +9,8 @@ type MarkdownEditorProps = {
   textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
   onInput?: (e: React.FormEvent<HTMLTextAreaElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onSelect?: (e: React.SyntheticEvent<HTMLTextAreaElement>) => void;
+  onClick?: (e: React.MouseEvent<HTMLTextAreaElement>) => void;
 };
 
 export function MarkdownEditor(props: MarkdownEditorProps) {
@@ -64,6 +66,8 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       defaultValue={props.value}
       onInput={handleInput}
       onKeyDown={handleKeyDown}
+      onSelect={props.onSelect}
+      onClick={props.onClick}
       placeholder={props.placeholder ?? "Write your content in markdown..."}
       spellCheck="false"
       disabled={props.disabled}

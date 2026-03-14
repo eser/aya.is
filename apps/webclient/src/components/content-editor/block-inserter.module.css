@@ -16,6 +16,10 @@
   @apply text-xs text-muted-foreground;
 }
 
+.blockPreview {
+  @apply text-[10px] font-mono text-muted-foreground/60 truncate block mt-0.5;
+}
+
 .propEditorHeader {
   @apply flex items-center gap-2 px-3 py-2 border-b;
 }
@@ -58,6 +62,18 @@
 
 .propActions {
   @apply flex justify-end gap-2 pt-2 border-t;
+}
+
+.hintBar {
+  @apply flex items-center gap-2 px-4 py-1 text-xs text-muted-foreground bg-muted/50 border-b;
+}
+
+.hintName {
+  @apply font-medium text-foreground;
+}
+
+.hintProps {
+  @apply font-mono text-[10px];
 }
 
 .popoverContent {
