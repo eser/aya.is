@@ -31,6 +31,17 @@ import {
   TwitterEmbed,
   YouTubeEmbed,
 } from "@/components/userland";
+import {
+  ButtonCTABlock,
+  CalloutBlock,
+  ColumnBlock,
+  ColumnsBlock,
+  DetailsBlock,
+  SeparatorBlock,
+  SpacerBlock,
+  TabBlock,
+  TabsBlock,
+} from "@/components/blocks";
 
 type HeadingTag = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
@@ -93,6 +104,17 @@ export function createMdxComponents(
     components.Story = Story;
     components.TwitterEmbed = TwitterEmbed;
     components.YouTubeEmbed = YouTubeEmbed;
+
+    // Block editor components
+    components.Callout = CalloutBlock;
+    components.Details = DetailsBlock;
+    components.Columns = ColumnsBlock;
+    components.Column = ColumnBlock;
+    components.Divider = SeparatorBlock;
+    components.Spacer = SpacerBlock;
+    components.ButtonCTA = ButtonCTABlock;
+    components.Tabs = TabsBlock;
+    components.Tab = TabBlock;
   }
 
   return components;

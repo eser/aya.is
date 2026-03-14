@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut } from "lucide-react";

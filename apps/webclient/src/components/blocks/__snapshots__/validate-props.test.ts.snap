@@ -1,0 +1,99 @@
+export const snapshot = {};
+
+snapshot[`valid - all required fields present 1`] = `
+{
+  errors: {},
+  valid: true,
+}
+`;
+
+snapshot[`invalid - required field missing 1`] = `
+{
+  errors: {
+    title: "title is required",
+  },
+  valid: false,
+}
+`;
+
+snapshot[`invalid - required field empty string 1`] = `
+{
+  errors: {
+    title: "title is required",
+  },
+  valid: false,
+}
+`;
+
+snapshot[`valid - optional field missing 1`] = `
+{
+  errors: {},
+  valid: true,
+}
+`;
+
+snapshot[`invalid - number field with non-numeric 1`] = `
+{
+  errors: {
+    count: "count must be a number",
+  },
+  valid: false,
+}
+`;
+
+snapshot[`valid - number field with numeric string 1`] = `
+{
+  errors: {},
+  valid: true,
+}
+`;
+
+snapshot[`invalid - boolean field with invalid value 1`] = `
+{
+  errors: {
+    open: "open must be true or false",
+  },
+  valid: false,
+}
+`;
+
+snapshot[`valid - boolean field with true/false string 1`] = `
+{
+  errors: {},
+  valid: true,
+}
+`;
+
+snapshot[`invalid - select field with invalid option 1`] = `
+{
+  errors: {
+    variant: "variant must be one of: info, warning",
+  },
+  valid: false,
+}
+`;
+
+snapshot[`valid - select field with valid option 1`] = `
+{
+  errors: {},
+  valid: true,
+}
+`;
+
+snapshot[`multiple errors returned 1`] = `
+{
+  errors: {
+    count: "count must be a number",
+    open: "open must be true or false",
+    title: "title is required",
+  },
+  valid: false,
+}
+`;
+
+snapshot[`all optional empty is valid 1`] = `
+{
+  errors: {},
+  valid: true,
+}
+`;

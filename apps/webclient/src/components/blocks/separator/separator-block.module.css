@@ -1,0 +1,15 @@
+@reference "@/theme.css";
+
+.separator {
+  @apply my-8;
+
+  &[data-variant="line"] {
+    @apply border-t border-border;
+  }
+  &[data-variant="dots"] {
+    @apply flex justify-center gap-2 text-muted-foreground text-xl tracking-[0.5em] border-none;
+  }
+  &[data-variant="space"] {
+    @apply border-none h-8;
+  }
+}

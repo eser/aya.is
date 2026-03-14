@@ -1,0 +1,10 @@
+export const snapshot = {};
+
+snapshot[`SPACER_SIZES mapping 1`] = `
+{
+  lg: "4rem",
+  md: "2rem",
+  sm: "1rem",
+  xl: "8rem",
+}
+`;

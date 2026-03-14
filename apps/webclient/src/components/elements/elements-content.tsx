@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import type { Profile } from "@/modules/backend/types";
 import { FilterBar, type ProfileKindFilter } from "./filter-bar";

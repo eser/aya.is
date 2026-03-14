@@ -1,0 +1,81 @@
+export const snapshot = {};
+
+snapshot[`escapeForMdxProp - normal string 1`] = `"hello world"`;
+
+snapshot[`escapeForMdxProp - string with quotes 1`] = `"say &quot;hello&quot;"`;
+
+snapshot[`escapeForMdxProp - string with angle brackets 1`] = `"&lt;script&gt;alert(1)&lt;/script&gt;"`;
+
+snapshot[`escapeForMdxProp - string with braces 1`] = `"&#123;expression&#125;"`;
+
+snapshot[`escapeForMdxProp - null returns empty 1`] = `""`;
+
+snapshot[`escapeForMdxProp - undefined returns empty 1`] = `""`;
+
+snapshot[`escapeForMdxProp - empty string 1`] = `""`;
+
+snapshot[`generateSelfClosingMdx - no props 1`] = `
+"
+<Divider />
+"
+`;
+
+snapshot[`generateSelfClosingMdx - string props 1`] = `
+'
+<Spacer size="md" />
+'
+`;
+
+snapshot[`generateSelfClosingMdx - number props 1`] = `
+"
+<Component cols={2} />
+"
+`;
+
+snapshot[`generateSelfClosingMdx - boolean props 1`] = `
+"
+<Component open={true} />
+"
+`;
+
+snapshot[`generateSelfClosingMdx - mixed props 1`] = `
+'
+<Card title="Hello" count={3} />
+'
+`;
+
+snapshot[`generateSelfClosingMdx - filters empty strings 1`] = `
+'
+<Test name="foo" />
+'
+`;
+
+snapshot[`generateContainerMdx - simple 1`] = `
+'
+<Callout variant="info">
+
+Your content here.
+
+</Callout>
+'
+`;
+
+snapshot[`generateContainerMdx - no props 1`] = `
+"
+<Column>
+
+Column content.
+
+</Column>
+"
+`;
+
+snapshot[`generateContainerMdx - multiple props 1`] = `
+'
+<Callout variant="warning" title="Warning">
+
+Be careful!
+
+</Callout>
+'
+`;

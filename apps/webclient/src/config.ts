@@ -98,4 +98,7 @@ export const allowedURIPrefixes = {
     import.meta.env.VITE_ALLOWED_URI_PREFIXES_PROFILES ??
       "https://objects.aya.is/,https://avatars.githubusercontent.com/",
   ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
+
+  // Content links: safe URL protocols for user-facing content (ButtonCTA, etc.)
+  content: ["http://", "https://", "/", "#"],
 };

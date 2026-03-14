@@ -33,10 +33,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import type { ContentVisibility, StoryKind, StoryPublication } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/backend";
 import type { IndividualProfile } from "@/lib/auth/auth-context";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { insertTextAtCursor, MarkdownEditor, wrapSelectedText } from "./markdown-editor";
-import { PreviewPanel } from "./preview-panel";
-import { EditorToolbar, type FormatAction, type ViewMode } from "./editor-toolbar";
+import { insertTextAtCursor } from "./markdown-editor";
+import { EditorWorkspace } from "./editor-workspace";
 import { EditorActions } from "./editor-actions";
 import { PublishDialog } from "./publish-dialog";
 import { LocalizationsDialog } from "./localizations-dialog";
@@ -204,12 +202,7 @@ export function ContentEditor(props: ContentEditorProps) {
     return earliest;
   }, [publications]);
 
-  // Refs for synchronized scrolling in split mode
-  const editorTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
-  const previewScrollRef = React.useRef<HTMLDivElement | null>(null);
-
   // UI state
-  const [viewMode, setViewMode] = React.useState<ViewMode>("split");
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showImageModal, setShowImageModal] = React.useState(false);
@@ -553,35 +546,6 @@ export function ContentEditor(props: ContentEditorProps) {
     }
   };
 
-  const handleFormat = (action: FormatAction) => {
-    const textarea = document.querySelector(
-      `.${styles.markdownTextarea}`,
-    ) as HTMLTextAreaElement | null;
-    if (textarea === null) return;
-
-    const formatMap: Record<
-      FormatAction,
-      { prefix: string; suffix: string } | { insert: string }
-    > = {
-      bold: { prefix: "**", suffix: "**" },
-      italic: { prefix: "_", suffix: "_" },
-      h2: { insert: "\n## " },
-      h3: { insert: "\n### " },
-      ul: { insert: "\n- " },
-      ol: { insert: "\n1. " },
-      link: { prefix: "[", suffix: "](url)" },
-      code: { prefix: "`", suffix: "`" },
-      quote: { insert: "\n> " },
-    };
-
-    const format = formatMap[action];
-    if ("insert" in format) {
-      insertTextAtCursor(textarea, format.insert, setContent);
-    } else {
-      wrapSelectedText(textarea, format.prefix, format.suffix, setContent);
-    }
-  };
-
   const handleImageInsert = (url: string, alt: string) => {
     const textarea = document.querySelector(
       `.${styles.markdownTextarea}`,
@@ -615,47 +579,6 @@ export function ContentEditor(props: ContentEditorProps) {
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
   }, [handleSave, isSaving, hasChanges]);
-
-  // Synchronized scrolling between editor and preview in split mode
-  React.useEffect(() => {
-    if (viewMode !== "split") return;
-
-    const textarea = editorTextareaRef.current;
-    const previewEl = previewScrollRef.current;
-    if (textarea === null || previewEl === null) return;
-
-    let scrollSource: "editor" | "preview" | null = null;
-
-    const syncEditorToPreview = () => {
-      if (scrollSource === "preview") return;
-      scrollSource = "editor";
-      const maxScroll = textarea.scrollHeight - textarea.clientHeight;
-      const ratio = maxScroll > 0 ? textarea.scrollTop / maxScroll : 0;
-      previewEl.scrollTop = ratio * (previewEl.scrollHeight - previewEl.clientHeight);
-      requestAnimationFrame(() => {
-        scrollSource = null;
-      });
-    };
-
-    const syncPreviewToEditor = () => {
-      if (scrollSource === "editor") return;
-      scrollSource = "preview";
-      const maxScroll = previewEl.scrollHeight - previewEl.clientHeight;
-      const ratio = maxScroll > 0 ? previewEl.scrollTop / maxScroll : 0;
-      textarea.scrollTop = ratio * (textarea.scrollHeight - textarea.clientHeight);
-      requestAnimationFrame(() => {
-        scrollSource = null;
-      });
-    };
-
-    textarea.addEventListener("scroll", syncEditorToPreview);
-    previewEl.addEventListener("scroll", syncPreviewToEditor);
-
-    return () => {
-      textarea.removeEventListener("scroll", syncEditorToPreview);
-      previewEl.removeEventListener("scroll", syncPreviewToEditor);
-    };
-  }, [viewMode]);
 
   return (
     <div className={styles.editorContainer}>
@@ -1245,58 +1168,12 @@ export function ContentEditor(props: ContentEditorProps) {
         </div>
 
         {/* Editor Content */}
-        <div className={styles.editorContent}>
-          <EditorToolbar
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            onFormat={txIsManaged ? undefined : handleFormat}
-            onImageUpload={txIsManaged ? undefined : () => setShowImageModal(true)}
-          />
-
-          <div className={styles.editorPanels}>
-            {/* Split View with Resizable Panels */}
-            {viewMode === "split" && (
-              <ResizablePanelGroup direction="horizontal" className="h-full">
-                <ResizablePanel defaultSize={50} minSize={25}>
-                  <div className={styles.editorPanel}>
-                    <MarkdownEditor
-                      value={content}
-                      onChange={setContent}
-                      placeholder={t("ContentEditor.Write your content in markdown...")}
-                      disabled={txIsManaged}
-                      textareaRef={editorTextareaRef}
-                    />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={50} minSize={25}>
-                  <div className={styles.editorPanelScrollable} ref={previewScrollRef}>
-                    <PreviewPanel content={content} />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            )}
-
-            {/* Editor Only */}
-            {viewMode === "editor" && (
-              <div className={styles.editorPanel}>
-                <MarkdownEditor
-                  value={content}
-                  onChange={setContent}
-                  placeholder={t("ContentEditor.Write your content in markdown...")}
-                  disabled={txIsManaged}
-                />
-              </div>
-            )}
-
-            {/* Preview Only */}
-            {viewMode === "preview" && (
-              <div className={styles.editorPanelScrollable}>
-                <PreviewPanel content={content} />
-              </div>
-            )}
-          </div>
-        </div>
+        <EditorWorkspace
+          content={content}
+          onChange={setContent}
+          disabled={txIsManaged}
+          onImageUpload={() => setShowImageModal(true)}
+        />
       </div>
 
       {/* Image Upload Modal for content */}

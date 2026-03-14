@@ -1,0 +1,26 @@
+@reference "@/theme.css";
+
+.details {
+  @apply my-4 rounded-lg border;
+
+  & > summary {
+    @apply cursor-pointer px-4 py-3 font-medium select-none list-none flex items-center gap-2;
+  }
+
+  & > summary::marker,
+  & > summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.chevron {
+  @apply size-4 shrink-0 transition-transform duration-200;
+}
+
+.details[open] > summary > .chevron {
+  @apply rotate-90;
+}
+
+.content {
+  @apply px-4 pb-4 pt-0 text-sm;
+}

@@ -7,6 +7,8 @@ type MarkdownEditorProps = {
   placeholder?: string;
   disabled?: boolean;
   textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
+  onInput?: (e: React.FormEvent<HTMLTextAreaElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 };
 
 export function MarkdownEditor(props: MarkdownEditorProps) {
@@ -43,6 +45,16 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       document.execCommand("insertText", false, "  ");
       syncState();
     }
+    if (props.onKeyDown !== undefined) {
+      props.onKeyDown(e);
+    }
+  };
+
+  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    syncState();
+    if (props.onInput !== undefined) {
+      props.onInput(e);
+    }
   };
 
   return (
@@ -50,7 +62,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       ref={textareaRef}
       className={styles.markdownTextarea}
       defaultValue={props.value}
-      onInput={syncState}
+      onInput={handleInput}
       onKeyDown={handleKeyDown}
       placeholder={props.placeholder ?? "Write your content in markdown..."}
       spellCheck="false"

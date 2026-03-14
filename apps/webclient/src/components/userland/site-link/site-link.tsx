@@ -1,5 +1,3 @@
-"use client";
-
 import { Link } from "@tanstack/react-router";
 import { useNavigation } from "@/modules/navigation/navigation-context";
 

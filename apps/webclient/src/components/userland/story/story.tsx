@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslation } from "react-i18next";
 import { Calendar, Images, Info, Megaphone, Newspaper, PencilLine, Presentation, Tag } from "lucide-react";
 import { LocaleLink } from "@/components/locale-link";

@@ -1,0 +1,21 @@
+@reference "@/theme.css";
+
+.columns {
+  @apply my-4 grid;
+
+  &[data-cols="2"] {
+    @apply grid-cols-1 md:grid-cols-2;
+  }
+  &[data-cols="3"] {
+    @apply grid-cols-1 md:grid-cols-3;
+  }
+  &[data-gap="sm"] {
+    @apply gap-2;
+  }
+  &[data-gap="md"] {
+    @apply gap-4;
+  }
+  &[data-gap="lg"] {
+    @apply gap-8;
+  }
+}

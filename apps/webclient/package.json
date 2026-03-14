@@ -8,9 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "deno run -A .output/server/index.mjs",
-    "test": "deno test --no-check --allow-read --allow-write=. src/",
-    "test:update": "deno test --no-check --allow-read --allow-write=. -- --update src/",
-    "test:ci": "deno test --no-check --allow-read src/"
+    "test": "deno test --no-check --allow-read --allow-env --allow-write=. src/",
+    "test:update": "deno test --no-check --allow-read --allow-env --allow-write=. -- --update src/",
+    "test:ci": "deno test --no-check --allow-read --allow-env src/"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

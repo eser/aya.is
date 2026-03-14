@@ -1,0 +1,26 @@
+@reference "@/theme.css";
+
+.tabs {
+  @apply my-4 rounded-lg border;
+}
+
+.tabList {
+  @apply flex border-b overflow-x-auto;
+}
+
+.tab {
+  @apply px-4 py-2 text-sm font-medium cursor-pointer border-b-2 border-transparent whitespace-nowrap;
+  @apply text-muted-foreground hover:text-foreground;
+
+  &[data-active="true"] {
+    @apply border-primary text-foreground;
+  }
+}
+
+.tabPanel {
+  @apply p-4;
+}
+
+.placeholder {
+  @apply p-4 text-sm text-muted-foreground italic;
+}

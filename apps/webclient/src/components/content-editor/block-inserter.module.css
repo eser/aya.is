@@ -1,0 +1,82 @@
+@reference "@/theme.css";
+
+.inserterTabs {
+  @apply flex border-b px-2 pt-2;
+}
+
+.inserterTab {
+  @apply px-3 py-1.5 text-xs font-medium cursor-pointer rounded-t-md border-b-2 border-transparent;
+  @apply text-muted-foreground hover:text-foreground;
+
+  &[data-active="true"] {
+    @apply border-primary text-foreground;
+  }
+}
+
+.blockItem {
+  @apply flex items-center gap-3;
+}
+
+.blockInfo {
+  @apply flex flex-col;
+}
+
+.blockName {
+  @apply text-sm font-medium;
+}
+
+.blockDescription {
+  @apply text-xs text-muted-foreground;
+}
+
+.propEditorHeader {
+  @apply flex items-center gap-2 px-3 py-2 border-b;
+}
+
+.propEditorForm {
+  @apply p-3 space-y-3;
+}
+
+.propField {
+  @apply space-y-1;
+}
+
+.propLabel {
+  @apply text-xs font-medium text-foreground flex items-center gap-1;
+}
+
+.propRequired {
+  @apply text-destructive;
+}
+
+.propInput {
+  @apply w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm;
+}
+
+.propSelect {
+  @apply w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm;
+}
+
+.propTextarea {
+  @apply w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm min-h-[60px] resize-y;
+}
+
+.propCheckbox {
+  @apply size-4 rounded border border-input;
+}
+
+.propError {
+  @apply text-xs text-destructive;
+}
+
+.propActions {
+  @apply flex justify-end gap-2 pt-2 border-t;
+}
+
+.popoverContent {
+  @apply w-[320px] max-h-[400px] overflow-hidden rounded-lg border bg-popover shadow-md;
+}
+
+.dialogContent {
+  @apply max-w-[500px];
+}

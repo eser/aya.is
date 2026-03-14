@@ -12,6 +12,7 @@ import {
   ListOrdered,
   PanelLeft,
   PanelRight,
+  Plus,
   Quote,
   SplitSquareVertical,
 } from "lucide-react";
@@ -27,6 +28,8 @@ type EditorToolbarProps = {
   onViewModeChange: (mode: ViewMode) => void;
   onFormat?: (format: FormatAction) => void;
   onImageUpload?: () => void;
+  onBlockInsert?: () => void;
+  plusButtonRef?: React.RefObject<HTMLButtonElement | null>;
 };
 
 export type FormatAction =
@@ -61,7 +64,7 @@ const formatButtons: ToolbarButton[] = [
 
 export function EditorToolbar(props: EditorToolbarProps) {
   const { t } = useTranslation();
-  const { viewMode, onViewModeChange, onFormat, onImageUpload } = props;
+  const { viewMode, onViewModeChange, onFormat, onImageUpload, onBlockInsert, plusButtonRef } = props;
 
   return (
     <div className={styles.editorToolbar}>
@@ -104,6 +107,26 @@ export function EditorToolbar(props: EditorToolbarProps) {
             <span className="sr-only">{t("ContentEditor.Insert Image")}</span>
           </TooltipTrigger>
           <TooltipContent>{t("ContentEditor.Insert Image")}</TooltipContent>
+        </Tooltip>
+
+        <div className="mx-2 h-4 w-px bg-border" />
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                ref={plusButtonRef}
+                variant="ghost"
+                size="icon-sm"
+                onClick={onBlockInsert}
+                disabled={onBlockInsert === undefined}
+              />
+            }
+          >
+            <Plus className="size-4" />
+            <span className="sr-only">{t("Blocks.Insert Block")}</span>
+          </TooltipTrigger>
+          <TooltipContent>{t("Blocks.Insert Block")}</TooltipContent>
         </Tooltip>
       </div>
 

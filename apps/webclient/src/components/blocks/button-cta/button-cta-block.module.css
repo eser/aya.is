@@ -1,0 +1,29 @@
+@reference "@/theme.css";
+
+.button {
+  @apply inline-flex items-center justify-center gap-2 rounded-md font-medium no-underline transition-colors;
+
+  &[data-variant="default"] {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  &[data-variant="outline"] {
+    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+  }
+  &[data-variant="secondary"] {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  &[data-size="sm"] {
+    @apply h-8 px-3 text-xs;
+  }
+  &[data-size="default"] {
+    @apply h-10 px-4 py-2 text-sm;
+  }
+  &[data-size="lg"] {
+    @apply h-12 px-6 text-base;
+  }
+}
+
+.plainText {
+  @apply text-muted-foreground;
+}

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import { siteConfig } from "@/config";
 import { useKonamiCode } from "@/hooks/use-secret-code";

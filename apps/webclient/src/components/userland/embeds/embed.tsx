@@ -1,5 +1,3 @@
-"use client";
-
 import { YouTubeEmbed } from "./youtube-embed";
 import { TwitterEmbed } from "./twitter-embed";
 
