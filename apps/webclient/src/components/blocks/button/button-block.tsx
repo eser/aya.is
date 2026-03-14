@@ -1,7 +1,7 @@
 import type React from "react";
-import styles from "./button-cta-block.module.css";
+import styles from "./button-block.module.css";
 
-interface ButtonCTABlockProps {
+interface ButtonBlockProps {
   href: string;
   variant?: "default" | "outline" | "secondary";
   size?: "sm" | "default" | "lg";
@@ -18,7 +18,7 @@ function isExternalHref(href: string): boolean {
   return href.startsWith("http://") || href.startsWith("https://");
 }
 
-function ButtonCTABlock(props: ButtonCTABlockProps) {
+function ButtonBlock(props: ButtonBlockProps) {
   const variant = props.variant ?? "default";
   const size = props.size ?? "default";
 
@@ -43,5 +43,5 @@ function ButtonCTABlock(props: ButtonCTABlockProps) {
   );
 }
 
-export { ButtonCTABlock };
-export type { ButtonCTABlockProps };
+export { ButtonBlock };
+export type { ButtonBlockProps };

@@ -15,32 +15,31 @@ type BlockInserterDialogProps = {
 };
 
 function BlockInserterDialog(props: BlockInserterDialogProps) {
-  const { open, onOpenChange, onInsert } = props;
-
   function handleInsert(mdx: string) {
-    onInsert(mdx);
-    onOpenChange(false);
+    props.onInsert(mdx);
+    props.onOpenChange(false);
   }
 
   function handleClose() {
-    onOpenChange(false);
+    props.onOpenChange(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogHeader className="sr-only">
-        <DialogTitle>Insert Block</DialogTitle>
-        <DialogDescription>
-          Search and insert a content block
-        </DialogDescription>
-      </DialogHeader>
+    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
         className={styles.dialogContent}
         showCloseButton={false}
       >
+        <DialogHeader className="sr-only">
+          <DialogTitle>Insert Block</DialogTitle>
+          <DialogDescription>
+            Search and insert a content block
+          </DialogDescription>
+        </DialogHeader>
         <BlockInserterContent
           onInsert={handleInsert}
           onClose={handleClose}
+          autoFocus
         />
       </DialogContent>
     </Dialog>

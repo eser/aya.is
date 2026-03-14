@@ -32,7 +32,7 @@ import {
   YouTubeEmbed,
 } from "@/components/userland";
 import {
-  ButtonCTABlock,
+  ButtonBlock,
   CalloutBlock,
   ColumnBlock,
   ColumnsBlock,
@@ -112,7 +112,7 @@ export function createMdxComponents(
     components.Column = ColumnBlock;
     components.Divider = SeparatorBlock;
     components.Spacer = SpacerBlock;
-    components.ButtonCTA = ButtonCTABlock;
+    components.Button = ButtonBlock;
     components.Tabs = TabsBlock;
     components.Tab = TabBlock;
   }

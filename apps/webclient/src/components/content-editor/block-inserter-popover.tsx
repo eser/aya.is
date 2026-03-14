@@ -1,5 +1,5 @@
-import type * as React from "react";
-import { Popover, PopoverContent } from "@/components/ui/popover";
+import * as React from "react";
+import { createPortal } from "react-dom";
 import { BlockInserterContent } from "./block-inserter-content";
 import styles from "./block-inserter.module.css";
 
@@ -10,34 +10,89 @@ type BlockInserterPopoverProps = {
   anchorRef: React.RefObject<HTMLElement | null>;
 };
 
+/**
+ * Block inserter rendered as a floating panel anchored to a DOM element.
+ *
+ * Uses a portal + fixed positioning instead of Base UI Popover because
+ * the anchor element (toolbar "+" button or virtual cursor span) lives
+ * outside the Popover component tree, which Base UI doesn't support.
+ */
 function BlockInserterPopover(props: BlockInserterPopoverProps) {
-  const { open, onOpenChange, onInsert, anchorRef } = props;
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const [position, setPosition] = React.useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Calculate position from anchor element
+  React.useEffect(() => {
+    if (!props.open) return;
+
+    const anchor = props.anchorRef.current;
+    if (anchor === null) return;
+
+    const rect = anchor.getBoundingClientRect();
+    setPosition({
+      x: rect.left,
+      y: rect.bottom + 4,
+    });
+  }, [props.open, props.anchorRef]);
+
+  // Click outside detection
+  React.useEffect(() => {
+    if (!props.open) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const panel = panelRef.current;
+      if (panel === null) return;
+      if (!panel.contains(e.target as Node)) {
+        props.onOpenChange(false);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        props.onOpenChange(false);
+      }
+    };
+
+    // Delay adding listener to avoid the click that opened the popover from closing it
+    const timerId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }, 0);
+
+    return () => {
+      clearTimeout(timerId);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [props.open, props.onOpenChange]);
+
+  if (!props.open) {
+    return null;
+  }
 
   function handleInsert(mdx: string) {
-    onInsert(mdx);
-    onOpenChange(false);
+    props.onInsert(mdx);
+    props.onOpenChange(false);
   }
 
   function handleClose() {
-    onOpenChange(false);
+    props.onOpenChange(false);
   }
 
-  return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <span
-        ref={anchorRef as React.RefObject<HTMLSpanElement>}
-        style={{ position: "absolute", pointerEvents: "none" }}
-        data-slot="popover-trigger"
-      />
-      <PopoverContent
-        className={styles.popoverContent}
-        side="bottom"
-        align="start"
-        sideOffset={4}
-      >
-        <BlockInserterContent onInsert={handleInsert} onClose={handleClose} />
-      </PopoverContent>
-    </Popover>
+  return createPortal(
+    <div
+      ref={panelRef}
+      className={styles.popoverContent}
+      style={{
+        position: "fixed",
+        left: position.x,
+        top: position.y,
+        zIndex: 50,
+      }}
+    >
+      <BlockInserterContent onInsert={handleInsert} onClose={handleClose} autoFocus />
+    </div>,
+    document.body,
   );
 }
 

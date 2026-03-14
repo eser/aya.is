@@ -1,18 +1,5 @@
 @reference "@/theme.css";
 
-.inserterTabs {
-  @apply flex border-b px-2 pt-2;
-}
-
-.inserterTab {
-  @apply px-3 py-1.5 text-xs font-medium cursor-pointer rounded-t-md border-b-2 border-transparent;
-  @apply text-muted-foreground hover:text-foreground;
-
-  &[data-active="true"] {
-    @apply border-primary text-foreground;
-  }
-}
-
 .blockItem {
   @apply flex items-center gap-3;
 }
@@ -74,9 +61,9 @@
 }
 
 .popoverContent {
-  @apply w-[320px] max-h-[400px] overflow-hidden rounded-lg border bg-popover shadow-md;
+  @apply w-[320px] max-h-[400px] overflow-hidden rounded-md bg-popover text-popover-foreground shadow-lg;
 }
 
 .dialogContent {
-  @apply max-w-[500px];
+  @apply max-w-[500px] p-0 gap-0 overflow-hidden;
 }

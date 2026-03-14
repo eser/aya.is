@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Command,
@@ -7,6 +7,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import {
   getBlocksByCategory,
@@ -21,9 +22,8 @@ type BlockInserterContentProps = {
   onInsert: (mdx: string) => void;
   onClose: () => void;
   wrapInCommand?: boolean;
+  autoFocus?: boolean;
 };
-
-type ActiveTab = "blocks" | "patterns";
 
 function hasRequiredPropsWithoutDefaults(
   definition: BlockDefinition,
@@ -44,12 +44,26 @@ function buildDefaultValues(
 }
 
 function BlockInserterContent(props: BlockInserterContentProps) {
-  const { onInsert, onClose, wrapInCommand = true } = props;
+  const { onInsert, onClose, wrapInCommand = true, autoFocus = false } = props;
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<ActiveTab>("blocks");
   const [editingBlock, setEditingBlock] = useState<BlockDefinition | null>(
     null,
   );
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-focus the CommandInput when the inserter opens
+  useEffect(() => {
+    if (!autoFocus) return;
+    const timer = setTimeout(() => {
+      const container = containerRef.current;
+      if (container === null) return;
+      const input = container.querySelector<HTMLInputElement>("[data-slot='command-input']");
+      if (input !== null) {
+        input.focus();
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [autoFocus]);
 
   function handleBlockSelect(definition: BlockDefinition) {
     if (hasRequiredPropsWithoutDefaults(definition)) {
@@ -87,99 +101,81 @@ function BlockInserterContent(props: BlockInserterContentProps) {
 
   const content = (
     <>
-      <div className={styles.inserterTabs}>
-        <button
-          type="button"
-          className={styles.inserterTab}
-          data-active={activeTab === "blocks"}
-          onClick={() => setActiveTab("blocks")}
-        >
-          {t("Blocks.Blocks")}
-        </button>
-        <button
-          type="button"
-          className={styles.inserterTab}
-          data-active={activeTab === "patterns"}
-          onClick={() => setActiveTab("patterns")}
-        >
-          {t("Blocks.Patterns")}
-        </button>
-      </div>
-
       <CommandInput placeholder={t("Blocks.Search blocks...")} />
 
-      {activeTab === "blocks" && (
-        <CommandList>
-          <CommandEmpty>{t("Blocks.No blocks found")}</CommandEmpty>
-          {BLOCK_CATEGORIES.map((category) => {
-            const blocks = getBlocksByCategory(category.id);
-            if (blocks.length === 0) {
-              return null;
-            }
-            return (
-              <CommandGroup key={category.id} heading={t(category.labelKey)}>
-                {blocks.map((block) => {
-                  const IconComponent = block.icon;
-                  return (
-                    <CommandItem
-                      key={block.id}
-                      value={block.id}
-                      keywords={block.keywords}
-                      onSelect={() => handleBlockSelect(block)}
-                    >
-                      <div className={styles.blockItem}>
-                        <IconComponent size={16} />
-                        <div className={styles.blockInfo}>
-                          <span className={styles.blockName}>{block.name}</span>
-                          <span className={styles.blockDescription}>
-                            {block.description}
-                          </span>
-                        </div>
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            );
-          })}
-        </CommandList>
-      )}
+      <CommandList>
+        <CommandEmpty>{t("Blocks.No blocks found")}</CommandEmpty>
 
-      {activeTab === "patterns" && (
-        <CommandList>
-          <CommandEmpty>{t("Blocks.No blocks found")}</CommandEmpty>
-          <CommandGroup heading={t("Blocks.Patterns")}>
-            {patterns.map((pattern) => {
-              const IconComponent = pattern.icon;
-              return (
-                <CommandItem
-                  key={pattern.id}
-                  value={pattern.id}
-                  onSelect={() => handlePatternSelect(pattern)}
-                >
-                  <div className={styles.blockItem}>
-                    <IconComponent size={16} />
-                    <div className={styles.blockInfo}>
-                      <span className={styles.blockName}>{pattern.name}</span>
-                      <span className={styles.blockDescription}>
-                        {pattern.description}
-                      </span>
+        {/* Block categories */}
+        {BLOCK_CATEGORIES.map((category) => {
+          const blocks = getBlocksByCategory(category.id);
+          if (blocks.length === 0) {
+            return null;
+          }
+          return (
+            <CommandGroup key={category.id} heading={t(category.labelKey)}>
+              {blocks.map((block) => {
+                const IconComponent = block.icon;
+                return (
+                  <CommandItem
+                    key={block.id}
+                    value={block.id}
+                    keywords={block.keywords}
+                    onSelect={() => handleBlockSelect(block)}
+                  >
+                    <div className={styles.blockItem}>
+                      <IconComponent size={16} />
+                      <div className={styles.blockInfo}>
+                        <span className={styles.blockName}>{block.name}</span>
+                        <span className={styles.blockDescription}>
+                          {block.description}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        </CommandList>
-      )}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          );
+        })}
+
+        {/* Patterns group */}
+        {patterns.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading={t("Blocks.Patterns")}>
+              {patterns.map((pattern) => {
+                const IconComponent = pattern.icon;
+                return (
+                  <CommandItem
+                    key={pattern.id}
+                    value={pattern.id}
+                    onSelect={() => handlePatternSelect(pattern)}
+                  >
+                    <div className={styles.blockItem}>
+                      <IconComponent size={16} />
+                      <div className={styles.blockInfo}>
+                        <span className={styles.blockName}>{pattern.name}</span>
+                        <span className={styles.blockDescription}>
+                          {pattern.description}
+                        </span>
+                      </div>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </>
+        )}
+      </CommandList>
     </>
   );
 
   if (wrapInCommand) {
-    return <Command>{content}</Command>;
+    return <div ref={containerRef}><Command>{content}</Command></div>;
   }
 
-  return <>{content}</>;
+  return <div ref={containerRef}>{content}</div>;
 }
 
 export { BlockInserterContent };

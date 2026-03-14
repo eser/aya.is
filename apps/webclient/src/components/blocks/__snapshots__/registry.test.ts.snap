@@ -21,7 +21,7 @@ snapshot[`getAllBlocks returns all blocks 1`] = `
     "twitter",
     "pdf",
     "embed",
-    "button-cta",
+    "button",
     "tabs",
   ],
 }

@@ -496,8 +496,8 @@ const blockDefinitions: BlockDefinition[] = [
 
   // ---- interactive ----
   {
-    id: "button-cta",
-    name: "Button CTA",
+    id: "button",
+    name: "Button",
     description: "Call-to-action button with a link",
     icon: MousePointerClick,
     category: "interactive",
@@ -529,7 +529,7 @@ const blockDefinitions: BlockDefinition[] = [
       if (values.variant !== undefined && values.variant !== "default") {
         props.variant = values.variant;
       }
-      return generateContainerMdx("ButtonCTA", props, "Click here");
+      return generateContainerMdx("Button", props, "Click here");
     },
   },
   {
@@ -565,11 +565,11 @@ const blockPatterns: BlockPattern[] = [
 
 ![Hero image](https://placehold.co/1200x400)
 
-<ButtonCTA href="/get-started">
+<Button href="/get-started">
 
 Get Started
 
-</ButtonCTA>
+</Button>
 `,
   },
   {
@@ -639,11 +639,11 @@ Answer to the third question goes here.
 
 Join thousands of users who are already building amazing things with our platform.
 
-<ButtonCTA href="/sign-up">
+<Button href="/sign-up">
 
 Sign Up Now
 
-</ButtonCTA>
+</Button>
 `,
   },
   {

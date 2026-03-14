@@ -99,6 +99,6 @@ export const allowedURIPrefixes = {
       "https://objects.aya.is/,https://avatars.githubusercontent.com/",
   ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
 
-  // Content links: safe URL protocols for user-facing content (ButtonCTA, etc.)
+  // Content links: safe URL protocols for user-facing content (Button, etc.)
   content: ["http://", "https://", "/", "#"],
 };
