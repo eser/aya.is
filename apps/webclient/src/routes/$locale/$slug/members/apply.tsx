@@ -1,13 +1,12 @@
 // Application form page — allows non-members to apply to join an organization
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
-import { applicationFormQueryOptions, myApplicationQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import { applicationFormQueryOptions, myApplicationQueryOptions, profilePermissionsQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import i18next from "i18next";
 import { NotFoundContent } from "./route";
 import { ApplyPageClient } from "./-components/apply-page-client";
-
-const parentRoute = getRouteApi("/$locale/$slug");
 
 const MEMBER_KINDS = new Set([
   "member",
@@ -97,7 +96,7 @@ function ApplyPage() {
   }
 
   const { form, existingApplication, locale, slug } = loaderData;
-  const { permissions } = parentRoute.useLoaderData();
+  const { data: permissions } = useQuery(profilePermissionsQueryOptions(locale, slug));
 
   const isMember = permissions?.viewer_membership_kind !== undefined &&
     permissions.viewer_membership_kind !== null &&

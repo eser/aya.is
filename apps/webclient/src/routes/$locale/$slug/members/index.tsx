@@ -2,8 +2,9 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Check, Send } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/auth-context";
-import { profileMembersQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import { profileMembersQueryOptions, profilePermissionsQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import { MemberCard } from "@/components/userland/member-card/member-card";
 import { LocaleLink } from "@/components/locale-link";
@@ -90,9 +91,10 @@ const MEMBER_KINDS = new Set([
 
 function MembersPage() {
   const loaderData = Route.useLoaderData();
-  const { profile, permissions } = parentRoute.useLoaderData();
+  const { profile } = parentRoute.useLoaderData();
   const { t } = useTranslation();
   const params = Route.useParams();
+  const { data: permissions } = useQuery(profilePermissionsQueryOptions(params.locale, params.slug));
   const { isAuthenticated, login } = useAuth();
 
   if (loaderData.notFound || loaderData.members === null || profile === null) {
