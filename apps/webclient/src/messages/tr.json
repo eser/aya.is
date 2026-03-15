@@ -1429,6 +1429,7 @@
     "Additional message": "Ek mesaj (isteğe bağlı)",
     "Anything else you want to share?": "Ekiple paylaşmak istediğiniz başka bir şey var mı?",
     "Back to members": "Üyelere dön",
+    "You are already a member of this organization": "Zaten bu kuruluşun bir üyesisiniz.",
     "Send a message to apply": "Bu organizasyona katılmak için bir mesaj gönderin."
   },
   "ApplicationFields": {

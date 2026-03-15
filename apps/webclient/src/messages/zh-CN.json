@@ -1429,6 +1429,7 @@
     "Additional message": "附加信息（可选）",
     "Anything else you want to share?": "您还有什么想与团队分享的吗？",
     "Back to members": "返回成员列表",
+    "You are already a member of this organization": "您已经是此组织的成员。",
     "Send a message to apply": "发送消息以申请加入此组织。"
   },
   "ApplicationFields": {

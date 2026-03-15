@@ -1429,6 +1429,7 @@
     "Additional message": "Zusätzliche Nachricht (optional)",
     "Anything else you want to share?": "Möchten Sie dem Team noch etwas mitteilen?",
     "Back to members": "Zurück zu Mitgliedern",
+    "You are already a member of this organization": "Sie sind bereits Mitglied dieser Organisation.",
     "Send a message to apply": "Senden Sie eine Nachricht, um sich dieser Organisation anzuschließen."
   },
   "ApplicationFields": {

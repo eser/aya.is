@@ -1429,6 +1429,7 @@
     "Additional message": "Дополнительное сообщение (необязательно)",
     "Anything else you want to share?": "Хотите ли вы поделиться чем-нибудь ещё с командой?",
     "Back to members": "Вернуться к участникам",
+    "You are already a member of this organization": "Вы уже являетесь участником этой организации.",
     "Send a message to apply": "Отправьте сообщение, чтобы подать заявку на вступление в эту организацию."
   },
   "ApplicationFields": {

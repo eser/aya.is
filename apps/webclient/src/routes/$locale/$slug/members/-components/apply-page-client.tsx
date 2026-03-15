@@ -14,6 +14,7 @@ type ApplyPageClientProps = {
   locale: string;
   slug: string;
   existingApplication: ProfileMembershipCandidate | null;
+  isMember: boolean;
 };
 
 export function ApplyPageClient(props: ApplyPageClientProps) {
@@ -27,6 +28,32 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
   const [submitted, setSubmitted] = React.useState(false);
 
   const isAuthenticated = user !== null && user !== undefined;
+
+  // If user is already a member, don't show the apply form
+  if (props.isMember) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h2>{t("Applications.Application Form")}</h2>
+        </div>
+        <div className={styles.successState}>
+          <CheckCircle2 className="size-12 text-primary" />
+          <p className={styles.successTitle}>
+            {t("Members.Already joined")}
+          </p>
+          <p className={styles.successDescription}>
+            {t("Applications.You are already a member of this organization")}
+          </p>
+          <LocaleLink
+            to={`/${props.slug}/members`}
+            className="text-sm text-primary hover:underline mt-2"
+          >
+            {t("Applications.Back to members")}
+          </LocaleLink>
+        </div>
+      </div>
+    );
+  }
 
   // If user already applied (not just referred), show their application status
   if (isAuthenticated && props.existingApplication !== null && props.existingApplication.source === "application") {

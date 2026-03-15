@@ -1429,6 +1429,7 @@
     "Additional message": "رسالة إضافية (اختياري)",
     "Anything else you want to share?": "هل هناك أي شيء آخر تود مشاركته مع الفريق؟",
     "Back to members": "العودة إلى الأعضاء",
+    "You are already a member of this organization": "أنت بالفعل عضو في هذه المنظمة.",
     "Send a message to apply": "أرسل رسالة للتقدم للانضمام إلى هذه المنظمة."
   },
   "ApplicationFields": {

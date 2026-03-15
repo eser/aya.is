@@ -1429,6 +1429,7 @@
     "Additional message": "Additional message (optional)",
     "Anything else you want to share?": "Anything else you'd like to share with the team?",
     "Back to members": "Back to members",
+    "You are already a member of this organization": "You are already a member of this organization.",
     "Send a message to apply": "Send a message to apply to join this organization."
   },
   "ApplicationFields": {
