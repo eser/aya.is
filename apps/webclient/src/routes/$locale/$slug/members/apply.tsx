@@ -42,6 +42,15 @@ export const Route = createFileRoute("/$locale/$slug/members/apply")({
       };
     }
 
+    // Check permissions for membership (works during SSR on aya.is where cookies are forwarded)
+    const permissions = await context.queryClient.ensureQueryData(
+      profilePermissionsQueryOptions(locale, slug),
+    ).catch(() => null);
+
+    const ssrIsMember = permissions?.viewer_membership_kind !== undefined &&
+      permissions.viewer_membership_kind !== null &&
+      MEMBER_KINDS.has(permissions.viewer_membership_kind);
+
     // Check if user already applied (optional — null if not authenticated)
     const existingApplication = await context.queryClient.ensureQueryData(
       myApplicationQueryOptions(locale, slug),
@@ -57,6 +66,7 @@ export const Route = createFileRoute("/$locale/$slug/members/apply")({
     return {
       form,
       existingApplication,
+      ssrIsMember,
       locale,
       slug,
       translatedTitle,
@@ -95,12 +105,15 @@ function ApplyPage() {
     return <NotFoundContent />;
   }
 
-  const { form, existingApplication, locale, slug } = loaderData;
-  const { data: permissions } = useQuery(profilePermissionsQueryOptions(locale, slug));
+  const { form, existingApplication, ssrIsMember, locale, slug } = loaderData;
 
-  const isMember = permissions?.viewer_membership_kind !== undefined &&
+  // Live query for client-side updates (handles custom domains where SSR lacks auth cookies)
+  const { data: permissions } = useQuery(profilePermissionsQueryOptions(locale, slug));
+  const queryIsMember = permissions?.viewer_membership_kind !== undefined &&
     permissions.viewer_membership_kind !== null &&
     MEMBER_KINDS.has(permissions.viewer_membership_kind);
+
+  const isMember = ssrIsMember || queryIsMember;
 
   return (
     <ApplyPageClient
