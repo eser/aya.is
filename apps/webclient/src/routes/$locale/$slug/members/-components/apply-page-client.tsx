@@ -29,6 +29,18 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
 
   const isAuthenticated = user !== null && user !== undefined;
 
+  // Wait for auth to resolve before rendering — prevents SSR flash on custom domains
+  // where session cookies aren't available during server-side rendering
+  if (isAuthLoading && !props.isMember) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h2>{t("Applications.Application Form")}</h2>
+        </div>
+      </div>
+    );
+  }
+
   // If user is already a member, don't show the apply form
   if (props.isMember) {
     return (
