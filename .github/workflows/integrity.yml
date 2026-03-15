@@ -36,8 +36,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  integration:
-    name: Integration
+  services:
+    name: Services
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
+    permissions:
+      contents: read # Needed to clone the repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          # - windows-latest
+          # - macOS-latest
+        golang-version:
+          - 1.25.8
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Setup Golang ${{ matrix.golang-version }}
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.golang-version }}
+          cache: true
+          cache-dependency-path: ./apps/services/go.sum
+
+      - name: Lint services
+        working-directory: ./apps/services/
+        run: make lint
+
+      - name: Check services
+        working-directory: ./apps/services/
+        run: make check
+
+      - name: Test services
+        working-directory: ./apps/services/
+        run: make test
+
+      - name: Build services
+        working-directory: ./apps/services/
+        run: go build -v ./...
+
+  webclient:
+    name: Webclient
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
 
@@ -53,38 +101,38 @@ jobs:
           # - macOS-latest
         deno-version:
           - 2.4.1
-        golang-version:
-          - 1.25.7
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 2
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.x"
+          persist-credentials: false
 
       - name: Setup Deno ${{ matrix.deno-version }}
         uses: denoland/setup-deno@v2
         with:
           deno-version: ${{ matrix.deno-version }}
 
-      - name: Setup Golang ${{ matrix.golang-version }}
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ matrix.golang-version }}
-          cache: true
-          cache-dependency-path: ./apps/services/go.sum
+      - name: Install dependencies (webclient)
+        working-directory: ./apps/webclient/
+        run: deno install --allow-scripts=npm:msw@2.12.10
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
+      - name: Check formatting (webclient)
+        working-directory: ./apps/webclient/
+        run: deno fmt --check
 
-      - name: Build services
-        working-directory: ./apps/services/
-        run: go build -v ./...
+      - name: Lint (webclient)
+        working-directory: ./apps/webclient/
+        run: deno lint
+
+      - name: Type check (webclient)
+        working-directory: ./apps/webclient/
+        run: deno check --unstable-sloppy-imports
+
+      - name: Test (webclient)
+        working-directory: ./apps/webclient/
+        run: deno task test:ci
 
       # - name: Generate webclient coverage report
       #   run: deno task test:coverage-gen

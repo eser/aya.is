@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -3625,66 +3626,90 @@ func (s *Service) DeleteMembership( //nolint:cyclop,funlen
 	// If already a follower, perform a real delete.
 	// Otherwise, demote to follower so they still follow the organization.
 	if membership.Kind == string(MembershipKindFollower) {
-		err = s.repo.DeleteProfileMembership(ctx, membershipID)
-		if err != nil {
-			return fmt.Errorf(
-				"%w(membershipID: %s): %w",
-				ErrFailedToDeleteRecord,
-				membershipID,
-				err,
-			)
-		}
-
-		if membership.MemberProfileID != nil {
-			_ = s.repo.InvalidateMembershipKindCache(
-				ctx,
-				membership.ProfileID,
-				*membership.MemberProfileID,
-			)
-		}
-
-		s.auditService.Record(ctx, events.AuditParams{
-			EventType:  events.ProfileMembershipDeleted,
-			EntityType: "membership",
-			EntityID:   membershipID,
-			ActorID:    &userID,
-			ActorKind:  events.ActorUser,
-			SessionID:  nil,
-			Payload: map[string]any{
-				"profile_id":        membership.ProfileID,
-				"member_profile_id": membership.MemberProfileID,
-				"last_properties": map[string]any{
-					"kind": membership.Kind,
-				},
-			},
-		})
-	} else {
-		err = s.repo.UpdateProfileMembership(ctx, membershipID, string(MembershipKindFollower))
-		if err != nil {
-			return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, membershipID, err)
-		}
-
-		if membership.MemberProfileID != nil {
-			_ = s.repo.InvalidateMembershipKindCache(ctx, membership.ProfileID, *membership.MemberProfileID)
-		}
-
-		s.auditService.Record(ctx, events.AuditParams{
-			EventType:  events.ProfileMembershipUpdated,
-			EntityType: "membership",
-			EntityID:   membershipID,
-			ActorID:    &userID,
-			ActorKind:  events.ActorUser,
-			SessionID:  nil,
-			Payload: map[string]any{
-				"profile_id":        membership.ProfileID,
-				"member_profile_id": membership.MemberProfileID,
-				"kind":              string(MembershipKindFollower),
-				"last_properties": map[string]any{
-					"kind": membership.Kind,
-				},
-			},
-		})
+		return s.deleteFollowerMembership(ctx, userID, membershipID, membership)
 	}
+
+	return s.demoteMembershipToFollower(ctx, userID, membershipID, membership)
+}
+
+func (s *Service) deleteFollowerMembership(
+	ctx context.Context,
+	userID string,
+	membershipID string,
+	membership *ProfileMembership,
+) error {
+	err := s.repo.DeleteProfileMembership(ctx, membershipID)
+	if err != nil {
+		return fmt.Errorf(
+			"%w(membershipID: %s): %w",
+			ErrFailedToDeleteRecord,
+			membershipID,
+			err,
+		)
+	}
+
+	if membership.MemberProfileID != nil {
+		_ = s.repo.InvalidateMembershipKindCache(
+			ctx,
+			membership.ProfileID,
+			*membership.MemberProfileID,
+		)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileMembershipDeleted,
+		EntityType: "membership",
+		EntityID:   membershipID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_id":        membership.ProfileID,
+			"member_profile_id": membership.MemberProfileID,
+			"last_properties": map[string]any{
+				"kind": membership.Kind,
+			},
+		},
+	})
+
+	return nil
+}
+
+func (s *Service) demoteMembershipToFollower(
+	ctx context.Context,
+	userID string,
+	membershipID string,
+	membership *ProfileMembership,
+) error {
+	err := s.repo.UpdateProfileMembership(ctx, membershipID, string(MembershipKindFollower))
+	if err != nil {
+		return fmt.Errorf("%w(membershipID: %s): %w", ErrFailedToUpdateRecord, membershipID, err)
+	}
+
+	if membership.MemberProfileID != nil {
+		_ = s.repo.InvalidateMembershipKindCache(
+			ctx,
+			membership.ProfileID,
+			*membership.MemberProfileID,
+		)
+	}
+
+	s.auditService.Record(ctx, events.AuditParams{
+		EventType:  events.ProfileMembershipUpdated,
+		EntityType: "membership",
+		EntityID:   membershipID,
+		ActorID:    &userID,
+		ActorKind:  events.ActorUser,
+		SessionID:  nil,
+		Payload: map[string]any{
+			"profile_id":        membership.ProfileID,
+			"member_profile_id": membership.MemberProfileID,
+			"kind":              string(MembershipKindFollower),
+			"last_properties": map[string]any{
+				"kind": membership.Kind,
+			},
+		},
+	})
 
 	return nil
 }
@@ -4804,13 +4829,7 @@ func isValidCandidateTransition(from, target CandidateStatus) bool {
 		return false
 	}
 
-	for _, status := range allowed {
-		if status == target {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(allowed, target)
 }
 
 // UpdateCandidateStatus changes the status of a candidate. Requires lead+ access.
