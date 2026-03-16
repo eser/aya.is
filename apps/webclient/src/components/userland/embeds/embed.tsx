@@ -1,3 +1,4 @@
+import { ExternalLink } from "@/components/external-link";
 import { YouTubeEmbed } from "./youtube-embed";
 import { TwitterEmbed } from "./twitter-embed";
 
@@ -31,9 +32,9 @@ export function Embed(props: EmbedProps) {
   // Fallback: render as a link
   return (
     <div className="my-4 p-4 border rounded-lg bg-muted">
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+      <ExternalLink href={url} className="text-primary hover:underline">
         {url}
-      </a>
+      </ExternalLink>
     </div>
   );
 }

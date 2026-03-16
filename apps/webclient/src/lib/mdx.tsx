@@ -31,6 +31,7 @@ import {
   TwitterEmbed,
   YouTubeEmbed,
 } from "@/components/userland";
+import { ExternalLink } from "@/components/external-link";
 import {
   AudioBlock,
   ButtonBlock,
@@ -92,6 +93,9 @@ export function createMdxComponents(
   includeUserlandComponents: boolean = true,
 ): Record<string, React.ComponentType<Record<string, unknown>>> {
   const components: Record<string, React.ComponentType<Record<string, unknown>>> = {};
+
+  // Override <a> to enable app deep linking on touch devices
+  components.a = ExternalLink;
 
   // Add heading components with offset
   for (let i = 0; i < headingTags.length; i++) {

@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Radio } from "lucide-react";
+import { ExternalLink } from "@/components/external-link";
 import { SiteAvatar } from "@/components/userland";
 import { LocaleLink } from "@/components/locale-link";
 import type { LiveStreamInfo } from "@/modules/backend/types";
@@ -109,15 +110,13 @@ function LiveStreamCard(props: LiveStreamCardProps) {
           </LocaleLink>
         </div>
 
-        <a
+        <ExternalLink
           href={broadcastUrl}
-          target="_blank"
-          rel="noopener noreferrer"
           className={styles.watchButton}
         >
           <Radio className="size-4" />
           {t("Home.Watch Live")}
-        </a>
+        </ExternalLink>
       </div>
     </div>
   );

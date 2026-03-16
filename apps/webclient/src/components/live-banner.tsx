@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Radio } from "lucide-react";
+import { ExternalLink } from "@/components/external-link";
 import type { ProfileLink } from "@/modules/backend/types";
 import styles from "./live-banner.module.css";
 
@@ -73,15 +74,13 @@ export function LiveBanner(props: LiveBannerProps) {
         {liveLink.title}
         {onlineTitle !== null && <span className={styles.streamTitle}>· {onlineTitle}</span>}
       </span>
-      <a
+      <ExternalLink
         href={liveUrl}
-        target="_blank"
-        rel="noopener noreferrer"
         className={styles.watchLink}
       >
         <Radio className="size-3.5" />
         {t("Profile.Watch Live")}
-      </a>
+      </ExternalLink>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronDown, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
+import { ExternalLink } from "@/components/external-link";
 import { useQuery } from "@tanstack/react-query";
 import { backend, type Profile } from "@/modules/backend/backend";
 import { profilePermissionsQueryOptions } from "@/modules/backend/queries";
@@ -258,16 +259,14 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             {props.profile.links.map((link) => {
               const Icon = findIcon(link.kind);
               return (
-                <a
+                <ExternalLink
                   key={link.id}
-                  href={link.uri ?? undefined}
+                  href={link.uri ?? ""}
                   title={link.title !== null && link.title !== undefined ? link.title : link.kind}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="no-underline"
                 >
                   <Icon className="transition-colors hover:text-foreground h-5 w-5" />
-                </a>
+                </ExternalLink>
               );
             })}
           </div>
