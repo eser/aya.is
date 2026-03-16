@@ -244,7 +244,7 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
             field={field}
             value={responses[field.id] ?? ""}
             onChange={(value) => handleFieldChange(field.id, value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isAuthenticated}
           />
         ))}
 
@@ -259,7 +259,7 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
             placeholder={t("Applications.Anything else you want to share?")}
             className={styles.fieldTextarea}
             rows={3}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isAuthenticated}
           />
         </div>
 

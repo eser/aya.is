@@ -105,10 +105,12 @@ function ApplyPage() {
     return <NotFoundContent />;
   }
 
-  const { form, existingApplication, ssrIsMember, locale, slug } = loaderData;
+  const { form, ssrIsMember, locale, slug } = loaderData;
 
-  // Live query for client-side updates (handles custom domains where SSR lacks auth cookies)
+  // Isomorphic queries — read from SSR-hydrated cache, auto-refetch on client
   const { data: permissions } = useQuery(profilePermissionsQueryOptions(locale, slug));
+  const { data: existingApplication } = useQuery(myApplicationQueryOptions(locale, slug));
+
   const queryIsMember = permissions?.viewer_membership_kind !== undefined &&
     permissions.viewer_membership_kind !== null &&
     MEMBER_KINDS.has(permissions.viewer_membership_kind);
@@ -120,7 +122,7 @@ function ApplyPage() {
       form={form}
       locale={locale}
       slug={slug}
-      existingApplication={existingApplication}
+      existingApplication={existingApplication ?? null}
       isMember={isMember}
     />
   );

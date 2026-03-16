@@ -177,6 +177,18 @@ export type CandidateStatus =
 
 export type CandidateVoteScore = 1 | 2 | 3 | 4 | 5;
 
+// Candidate form response (from application form submission)
+export interface CandidateFormResponse {
+  id: string;
+  candidate_id: string;
+  form_field_id: string;
+  field_label: string;
+  field_type: string;
+  value: string;
+  sort_order: number;
+  is_required: boolean;
+}
+
 // Profile membership candidate
 export interface ProfileMembershipCandidate {
   id: string;
@@ -196,6 +208,7 @@ export interface ProfileMembershipCandidate {
   average_score: number;
   viewer_vote_score?: CandidateVoteScore | null;
   viewer_vote_comment?: string | null;
+  form_responses: CandidateFormResponse[];
 }
 
 // Application form types
