@@ -6,8 +6,17 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
 import { LocaleLink } from "@/components/locale-link";
 import { backend } from "@/modules/backend/backend";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ApplicationForm, ApplicationFormField, ProfileMembershipCandidate } from "@/modules/backend/types";
 import styles from "./apply-page-client.module.css";
+
+const MEMBER_KINDS = new Set([
+  "member",
+  "contributor",
+  "maintainer",
+  "lead",
+  "owner",
+]);
 
 type ApplyPageClientProps = {
   form: ApplicationForm | null;
@@ -29,20 +38,42 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
 
   const isAuthenticated = user !== null && user !== undefined;
 
-  // Wait for auth to resolve before rendering — prevents SSR flash on custom domains
-  // where session cookies aren't available during server-side rendering
-  if (isAuthLoading && !props.isMember) {
+  // Instant membership check from auth context — available as soon as auth resolves,
+  // no need to wait for a separate permissions API refetch
+  const isMemberFromAuth = isAuthenticated &&
+    user.accessible_profiles !== undefined &&
+    user.accessible_profiles.some(
+      (p) => p.slug === props.slug && MEMBER_KINDS.has(p.membership_kind),
+    );
+
+  const isMember = props.isMember || isMemberFromAuth;
+
+  // Show skeleton while auth is loading — prevents form flash on custom domains
+  // where SSR can't authenticate (SameSite cookie restriction)
+  if (isAuthLoading && !isMember) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
           <h2>{t("Applications.Application Form")}</h2>
+        </div>
+        <div className={styles.form}>
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-20 w-full" />
+          <div className="flex justify-end gap-2 pt-2">
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 w-36" />
+          </div>
         </div>
       </div>
     );
   }
 
   // If user is already a member, don't show the apply form
-  if (props.isMember) {
+  if (isMember) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
