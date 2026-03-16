@@ -1338,7 +1338,7 @@ type Querier interface {
 	//  FROM "profile_link"
 	//  WHERE profile_id = $1
 	//    AND deleted_at IS NULL
-	GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileLinkOrderParams) (interface{}, error)
+	GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileLinkOrderParams) (any, error)
 	// For a given member profile, find all non-individual profiles they belong to
 	// and return the telegram links on those profiles (visibility filtering happens in Go).
 	//
@@ -1959,7 +1959,7 @@ type Querier interface {
 	//  WHERE story_id = $1
 	//    AND deleted_at IS NULL
 	//    AND published_at IS NOT NULL
-	GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirstPublishedAtParams) (interface{}, error)
+	GetStoryFirstPublishedAt(ctx context.Context, arg GetStoryFirstPublishedAtParams) (any, error)
 	// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 	// The returned locale_code indicates which translation was actually found.
 	// Includes is_managed flag (tx_is_managed) to protect synced stories from editing.
