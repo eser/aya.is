@@ -192,6 +192,7 @@ export const myApplicationQueryOptions = (locale: string, slug: string) =>
     queryKey: ["my-application", locale, slug],
     queryFn: () => backend.getMyApplication(locale, slug),
     retry: false,
+    staleTime: 0, // Always refetch — SSR may lack auth on custom domains
   });
 
 export const candidateResponsesQueryOptions = (locale: string, slug: string, candidateId: string) =>
