@@ -1,5 +1,5 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-import { getAllBlocks } from "./registry";
+import { getAllBlocks } from "./registry.ts";
 import type { BlockDefinition } from "./types";
 import { MDX_NAMES, parseBlockProps, type ParsedBlockProps } from "./parse-block-props";
 
