@@ -49,7 +49,7 @@
           ];
 
           shellHook = ''
-            deno install -gAf jsr:@eser/cli > /dev/null 2>&1
+            deno install -gAf --name eser jsr:@eser/cli > /dev/null 2>&1
             eser codebase install > /dev/null 2>&1
             echo "AYA dev shell ready."
             echo "- Web client: cd apps/webclient && deno task dev"

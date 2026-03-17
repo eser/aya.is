@@ -15,7 +15,7 @@ dep: ## Downloads dependencies.
 
 .PHONY: init-tools
 init-tools: ## Initializes tools.
-	command -v eser >/dev/null || deno install -gAf jsr:@eser/cli
+	command -v eser >/dev/null || deno install -gAf --name eser jsr:@eser/cli
 	eser codebase install
 	command -v act >/dev/null || brew install act
 	go tool -n air >/dev/null || go get -tool github.com/air-verse/air@latest

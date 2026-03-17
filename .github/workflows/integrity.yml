@@ -75,7 +75,7 @@ jobs:
           cache-dependency-path: ./apps/services/go.sum
 
       - name: Install eser CLI
-        run: deno install -gAf jsr:@eser/cli
+        run: deno install -gAf --name eser jsr:@eser/cli
 
       - name: Run integrity checks
         run: eser ok
