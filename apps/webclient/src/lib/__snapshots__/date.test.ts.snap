@@ -16,10 +16,6 @@ snapshot[`formatDateTimeLong 1`] = `"January 28, 2026 at 02:30 PM"`;
 
 snapshot[`formatDateTimeShort 1`] = `"Jan 28, 2026, 02:30 PM"`;
 
-snapshot[`formatDateTimeRange - same day 1`] = `"Feb 23, 2026, 8:30 – 9:30 PM"`;
-
-snapshot[`formatDateTimeRange - different days 1`] = `"Feb 23, 2026, 8:30 PM – Feb 24, 2026, 1:30 AM"`;
-
 snapshot[`formatMonthYear 1`] = `"January 2026"`;
 
 snapshot[`formatMonthYear 2`] = `"Ocak 2026"`;
@@ -27,10 +23,6 @@ snapshot[`formatMonthYear 2`] = `"Ocak 2026"`;
 snapshot[`formatMonthShort 1`] = `"Jan"`;
 
 snapshot[`formatTime 1`] = `"02:30 PM"`;
-
-snapshot[`formatTimeString - valid and null 1`] = `"05:30 PM"`;
-
-snapshot[`formatTimeString - valid and null 2`] = `""`;
 
 snapshot[`formatDateString - valid and null 1`] = `"Jan 28, 2026"`;
 
