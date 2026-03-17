@@ -6,41 +6,41 @@ import (
 
 // LinkImport represents an imported item from a profile link.
 type LinkImport struct {
+	CreatedAt     time.Time
+	Properties    map[string]any
+	UpdatedAt     *time.Time
+	DeletedAt     *time.Time
 	ID            string
 	ProfileLinkID string
 	RemoteID      string
-	Properties    map[string]any
-	CreatedAt     time.Time
-	UpdatedAt     *time.Time
-	DeletedAt     *time.Time
 }
 
 // ManagedLink represents a profile link with OAuth tokens for syncing.
 type ManagedLink struct {
+	AuthAccessTokenExpiresAt *time.Time
+	AuthRefreshToken         *string
 	ID                       string
 	ProfileID                string
 	Kind                     string
 	RemoteID                 string
 	AuthAccessToken          string
-	AuthAccessTokenExpiresAt *time.Time
-	AuthRefreshToken         *string
 	IsOnline                 bool
 }
 
 // SyncResult represents the result of syncing a single link.
 type SyncResult struct {
+	Error        error
 	LinkID       string
 	ItemsAdded   int
 	ItemsUpdated int
 	ItemsDeleted int
-	Error        error
 }
 
 // RemoteStoryItem represents a story item fetched from a remote provider.
 type RemoteStoryItem struct {
-	RemoteID    string
 	PublishedAt time.Time
 	Properties  map[string]any
+	RemoteID    string
 }
 
 // LinkImportForStoryCreation represents an import record ready for story creation.
@@ -56,15 +56,15 @@ type LinkImportForStoryCreation struct {
 
 // LinkImportWithStory represents an import that has a corresponding managed story (for reconciliation).
 type LinkImportWithStory struct {
+	CreatedAt            time.Time
+	Properties           map[string]any
+	PublicationID        *string
 	ID                   string
 	ProfileLinkID        string
 	RemoteID             string
-	Properties           map[string]any
-	CreatedAt            time.Time
 	ProfileID            string
 	ProfileDefaultLocale string
 	StoryID              string
-	PublicationID        *string
 }
 
 // PublicManagedLink represents a managed link without OAuth tokens (e.g. SpeakerDeck).
@@ -79,7 +79,7 @@ type PublicManagedLink struct {
 
 // TokenRefreshResult contains the result of a token refresh.
 type TokenRefreshResult struct {
-	AccessToken          string
 	AccessTokenExpiresAt *time.Time
 	RefreshToken         *string
+	AccessToken          string
 }

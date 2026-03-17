@@ -6,9 +6,9 @@ import "strings"
 type Config struct {
 	APIKey            string `conf:"api_key"`
 	FromAddress       string `conf:"from_address"       default:"bulletin@aya.is"`
+	SandboxRecipients string `conf:"sandbox_recipients"`
 	Enabled           bool   `conf:"enabled"            default:"false"`
 	SandboxMode       bool   `conf:"sandbox_mode"       default:"false"`
-	SandboxRecipients string `conf:"sandbox_recipients"`
 }
 
 // IsConfigured returns true if the Resend API key is set and enabled.

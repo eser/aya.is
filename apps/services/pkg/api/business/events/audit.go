@@ -22,26 +22,26 @@ const (
 
 // AuditEntry is an immutable record of a business event.
 type AuditEntry struct {
+	CreatedAt  time.Time
+	ActorID    *string
+	SessionID  *string
+	Payload    map[string]any
 	ID         string
 	EventType  EventType
 	EntityType string
 	EntityID   string
-	ActorID    *string
 	ActorKind  ActorKind
-	SessionID  *string
-	Payload    map[string]any
-	CreatedAt  time.Time
 }
 
 // AuditParams holds parameters for recording an audit entry.
 type AuditParams struct {
+	ActorID    *string
+	SessionID  *string
+	Payload    map[string]any
 	EventType  EventType
 	EntityType string
 	EntityID   string
-	ActorID    *string
 	ActorKind  ActorKind
-	SessionID  *string
-	Payload    map[string]any
 }
 
 // IdempotentAuditParams extends AuditParams with a caller-provided ID and timestamp
@@ -49,8 +49,9 @@ type AuditParams struct {
 type IdempotentAuditParams struct {
 	AuditParams
 
-	ID        string
 	CreatedAt time.Time
+
+	ID string
 }
 
 // AuditRepository defines storage operations for audit entries (port).

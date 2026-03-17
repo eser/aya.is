@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
 
 import { cn } from "@/lib/utils";

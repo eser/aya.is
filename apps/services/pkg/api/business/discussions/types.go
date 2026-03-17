@@ -42,46 +42,46 @@ func DefaultIDGenerator() string {
 
 // Thread represents a discussion thread anchored to a story or profile.
 type Thread struct {
-	ID           string     `json:"id"`
+	CreatedAt    time.Time  `json:"created_at"`
 	StoryID      *string    `json:"story_id"`
 	ProfileID    *string    `json:"profile_id"`
-	IsLocked     bool       `json:"is_locked"`
-	CommentCount int        `json:"comment_count"`
-	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    *time.Time `json:"updated_at"`
+	ID           string     `json:"id"`
+	CommentCount int        `json:"comment_count"`
+	IsLocked     bool       `json:"is_locked"`
 }
 
 // Comment represents a discussion comment (supports nesting via ParentID).
 type Comment struct {
-	ID                      string     `json:"id"`
-	ThreadID                string     `json:"thread_id"`
+	CreatedAt               time.Time  `json:"created_at"`
 	ParentID                *string    `json:"parent_id"`
-	AuthorUserID            string     `json:"-"`
 	AuthorProfileID         *string    `json:"author_profile_id"`
 	AuthorProfileSlug       *string    `json:"author_profile_slug"`
 	AuthorProfileTitle      *string    `json:"author_profile_title"`
 	AuthorProfilePictureURI *string    `json:"author_profile_picture_uri"`
+	UpdatedAt               *time.Time `json:"updated_at"`
+	ID                      string     `json:"id"`
+	ThreadID                string     `json:"thread_id"`
+	AuthorUserID            string     `json:"-"`
 	Content                 string     `json:"content"`
 	Depth                   int        `json:"depth"`
 	VoteScore               int        `json:"vote_score"`
 	UpvoteCount             int        `json:"upvote_count"`
 	DownvoteCount           int        `json:"downvote_count"`
 	ReplyCount              int        `json:"reply_count"`
+	ViewerVoteDirection     int        `json:"viewer_vote_direction"`
 	IsPinned                bool       `json:"is_pinned"`
 	IsHidden                bool       `json:"is_hidden"`
 	IsEdited                bool       `json:"is_edited"`
-	ViewerVoteDirection     int        `json:"viewer_vote_direction"`
-	CreatedAt               time.Time  `json:"created_at"`
-	UpdatedAt               *time.Time `json:"updated_at"`
 }
 
 // CommentVote represents a user's vote on a comment.
 type CommentVote struct {
+	CreatedAt time.Time `json:"created_at"`
 	ID        string    `json:"id"`
 	CommentID string    `json:"comment_id"`
 	UserID    string    `json:"user_id"`
 	Direction int       `json:"direction"`
-	CreatedAt time.Time `json:"created_at"`
 }
 
 // CreateCommentParams holds parameters for creating a new comment.
@@ -141,14 +141,14 @@ type LockThreadParams struct {
 
 // ListCommentsParams holds parameters for listing comments.
 type ListCommentsParams struct {
-	ThreadID      string
 	ParentID      *string
-	Locale        string
 	ViewerUserID  *string
-	IncludeHidden bool
+	ThreadID      string
+	Locale        string
 	Sort          SortMode
 	Limit         int
 	Offset        int
+	IncludeHidden bool
 }
 
 // ListResponse wraps the thread and comments for API responses.

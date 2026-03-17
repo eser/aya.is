@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";

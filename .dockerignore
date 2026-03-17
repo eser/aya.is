@@ -29,7 +29,7 @@
 **/.dockerignore
 
 # Config files not needed in build
-**/.pre-commit-config.yaml
+**/.manifest.yml
 **/LICENSE
 
 # Documentation (not needed in builds)

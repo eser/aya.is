@@ -1,0 +1,187 @@
+stack:
+  - javascript
+  - golang
+
+workflows:
+  - id: default
+    on: [precommit, prepush]
+    steps:
+      # Internal validators
+      - validate-eof
+      - validate-trailing-whitespace
+      - validate-bom
+      - validate-line-endings
+      - validate-large-files:
+          maxKb: 2048
+      - validate-case-conflict
+      - validate-merge-conflict
+      - validate-json:
+          exclude:
+            - "apps/webclient.old/"
+      - validate-toml
+      - validate-yaml:
+          allowMultipleDocuments: true
+      - validate-symlinks
+      - validate-shebangs
+      - validate-secrets:
+          allowMissingCredentials: true
+          exclude:
+            - ".claude/skills/"
+      - validate-filenames:
+          rules:
+            - directory: "apps/webclient/"
+              convention: "kebab-case"
+              exclude:
+                - "src/messages/"
+                - "src/routes/"
+                - "src/routeTree.gen.ts"
+                - "public/assets/"
+                - "Dockerfile"
+                - "README.md"
+                - "*__snapshots__*"
+            - directory: "apps/services/"
+              convention: "snake_case"
+              exclude:
+                - "Dockerfile"
+                - "Makefile"
+                - "README.md"
+                - "apps/services/etc/locales/"
+                - "pkg/ajan/*/README.md"
+            - directory: "*"
+              convention: "kebab-case"
+              exclude:
+                - ".claude/"
+                - ".cursor/"
+                - ".github/"
+                - ".git/COMMIT_EDITMSG"
+                - "apps/apple/"
+                - "apps/services/"
+                - "apps/webclient/"
+                - "docs/"
+                - "scripts/"
+                - "CHANGELOG.md"
+                - "CLAUDE.md"
+                - "Dockerfile"
+                - "LICENSE"
+                - "Makefile"
+                - "README.md"
+                - "README.en.md"
+                - "VERSION"
+                - "MEMORY.md"
+      - validate-submodules
+      - validate-licenses
+
+      # Frontend (Deno) checks
+      - shell:
+          name: deno-formatter
+          command: deno fmt --check
+          fixCommand: deno fmt
+      - shell:
+          name: deno-linter
+          command: deno lint
+          fixCommand: deno lint --fix
+      - shell:
+          name: webclient-tests
+          command: deno task test:ci
+          workingDirectory: ./apps/webclient/
+          timeout: 120
+
+      # Backend (Go) checks — mirrors apps/services/Makefile ok target
+      - shell:
+          name: go-vet
+          command: go vet ./...
+          workingDirectory: ./apps/services/
+          timeout: 60
+      - shell:
+          name: go-build
+          command: go build -v ./...
+          workingDirectory: ./apps/services/
+          timeout: 120
+      - shell:
+          name: go-lint
+          command: "go tool golangci-lint run ./..."
+          fixCommand: "gofmt -w . && go tool golangci-lint run --fix ./..."
+          workingDirectory: ./apps/services/
+          timeout: 120
+      - shell:
+          name: go-vulncheck
+          command: "go tool govulncheck ./..."
+          workingDirectory: ./apps/services/
+          timeout: 120
+      - shell:
+          name: go-betteralign
+          command: "go tool betteralign ./..."
+          fixCommand: "go tool betteralign -apply ./..."
+          workingDirectory: ./apps/services/
+          timeout: 60
+      - shell:
+          name: go-modernize
+          command: "go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./..."
+          fixCommand: "go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix ./..."
+          workingDirectory: ./apps/services/
+          timeout: 120
+      - shell:
+          name: go-tests
+          command: "go test -failfast -race -count 1 ./..."
+          workingDirectory: ./apps/services/
+          timeout: 300
+
+  - id: commit-validation
+    on: [commitmsg]
+    steps:
+      - validate-commit-msg:
+          strict: true
+          types:
+            - ci
+            - chore
+            - docs
+            - feat
+            - fix
+            - perf
+            - refactor
+            - revert
+            - test
+
+scripts:
+  # Validation
+  ok: eser workflows run -e precommit
+  fix: eser workflows run -e precommit --fix
+
+  # Setup
+  init: deno install && eser codebase install
+
+  # Frontend
+  dev:
+    command: deno task dev
+    workingDirectory: ./apps/webclient/
+    description: Start webclient dev server
+  test:
+    command: deno task test
+    workingDirectory: ./apps/webclient/
+    description: Run frontend tests
+  lint: deno lint
+  fmt: deno fmt
+
+  # Backend
+  go-dev:
+    command: make dev
+    workingDirectory: ./apps/services/
+    description: Start services in dev mode
+  go-ok:
+    command: make ok
+    workingDirectory: ./apps/services/
+  go-test:
+    command: make test
+    workingDirectory: ./apps/services/
+  go-lint:
+    command: make lint
+    workingDirectory: ./apps/services/
+  go-build:
+    command: make build
+    workingDirectory: ./apps/services/
+
+  # Docker
+  up: docker compose up --detach
+  down: docker compose down
+  restart: docker compose restart
+  logs: docker compose logs --follow

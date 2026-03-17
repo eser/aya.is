@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { useCallback, useState } from "react";
 import type { StoryEx } from "@/modules/backend/types";
 import { ShareActions } from "./share-actions";

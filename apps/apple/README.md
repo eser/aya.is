@@ -76,12 +76,12 @@ Sources/
 
 ### Targets
 
-| Target | Platform | Bundle ID | Min OS |
-|--------|----------|-----------|--------|
-| AYA-iOS | iPhone | `is.aya.ios` | iOS 18.0 |
-| AYA-macOS | Mac | `is.aya.mac` | macOS 15.0 |
-| AYA-iOS-UITests | iPhone | `is.aya.ios.uitests` | iOS 18.0 |
-| AYA-macOS-UITests | Mac | `is.aya.mac.uitests` | macOS 15.0 |
+| Target            | Platform | Bundle ID            | Min OS     |
+| ----------------- | -------- | -------------------- | ---------- |
+| AYA-iOS           | iPhone   | `is.aya.ios`         | iOS 18.0   |
+| AYA-macOS         | Mac      | `is.aya.mac`         | macOS 15.0 |
+| AYA-iOS-UITests   | iPhone   | `is.aya.ios.uitests` | iOS 18.0   |
+| AYA-macOS-UITests | Mac      | `is.aya.mac.uitests` | macOS 15.0 |
 
 ## Prerequisites
 
@@ -111,34 +111,34 @@ make check          # Lint + tests
 
 ## Make Commands
 
-| Command | Description |
-|---------|-------------|
-| `make project` | Generate `.xcodeproj` via XcodeGen |
-| `make build-ios` | Build iOS target for simulator |
-| `make build-macos` | Build macOS target |
-| `make build` | Build both targets |
-| `make test` | Run SPM unit + snapshot tests |
-| `make test-ios` | Run tests via Xcode (iOS simulator) |
-| `make test-macos` | Run tests via Xcode (macOS) |
-| `make uitest-ios` | Run UI tests (iOS simulator) |
-| `make uitest-macos` | Run UI tests (macOS) |
-| `make lint` | Verify code conventions |
-| `make check` | Lint + test |
-| `make format` | Format Swift code |
-| `make clean` | Clean build artifacts and derived data |
+| Command             | Description                            |
+| ------------------- | -------------------------------------- |
+| `make project`      | Generate `.xcodeproj` via XcodeGen     |
+| `make build-ios`    | Build iOS target for simulator         |
+| `make build-macos`  | Build macOS target                     |
+| `make build`        | Build both targets                     |
+| `make test`         | Run SPM unit + snapshot tests          |
+| `make test-ios`     | Run tests via Xcode (iOS simulator)    |
+| `make test-macos`   | Run tests via Xcode (macOS)            |
+| `make uitest-ios`   | Run UI tests (iOS simulator)           |
+| `make uitest-macos` | Run UI tests (macOS)                   |
+| `make lint`         | Verify code conventions                |
+| `make check`        | Lint + test                            |
+| `make format`       | Format Swift code                      |
+| `make clean`        | Clean build artifacts and derived data |
 
 ### Fastlane
 
-| Command | Description |
-|---------|-------------|
-| `make fastlane-setup` | Install Ruby dependencies |
-| `make fastlane-ios-build` | Build iOS via Fastlane |
-| `make fastlane-macos-build` | Build macOS via Fastlane |
-| `make fastlane-ios-test` | Test iOS via Fastlane |
-| `make fastlane-macos-test` | Test macOS via Fastlane |
-| `make fastlane-ios-archive` | Archive iOS for App Store |
-| `make fastlane-macos-archive` | Archive macOS for App Store |
-| `make fastlane-beta` | Upload to TestFlight (requires credentials) |
+| Command                       | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| `make fastlane-setup`         | Install Ruby dependencies                   |
+| `make fastlane-ios-build`     | Build iOS via Fastlane                      |
+| `make fastlane-macos-build`   | Build macOS via Fastlane                    |
+| `make fastlane-ios-test`      | Test iOS via Fastlane                       |
+| `make fastlane-macos-test`    | Test macOS via Fastlane                     |
+| `make fastlane-ios-archive`   | Archive iOS for App Store                   |
+| `make fastlane-macos-archive` | Archive macOS for App Store                 |
+| `make fastlane-beta`          | Upload to TestFlight (requires credentials) |
 
 ## API
 
@@ -172,21 +172,21 @@ All data is fetched from `https://api.aya.is`. Endpoints:
 
 Strings files are in `Resources/{platform}/{locale}.lproj/Localizable.strings`. Supported languages:
 
-| Language | Code | RTL |
-|----------|------|-----|
-| English | `en` | No |
-| Türkçe | `tr` | No |
-| Français | `fr` | No |
-| Deutsch | `de` | No |
-| Español | `es` | No |
-| Português (Portugal) | `pt-PT` | No |
-| Italiano | `it` | No |
-| Nederlands | `nl` | No |
-| 日本語 | `ja` | No |
-| 한국어 | `ko` | No |
-| Русский | `ru` | No |
-| 简体中文 | `zh-Hans` | No |
-| العربية | `ar` | Yes |
+| Language             | Code      | RTL |
+| -------------------- | --------- | --- |
+| English              | `en`      | No  |
+| Türkçe               | `tr`      | No  |
+| Français             | `fr`      | No  |
+| Deutsch              | `de`      | No  |
+| Español              | `es`      | No  |
+| Português (Portugal) | `pt-PT`   | No  |
+| Italiano             | `it`      | No  |
+| Nederlands           | `nl`      | No  |
+| 日本語               | `ja`      | No  |
+| 한국어               | `ko`      | No  |
+| Русский              | `ru`      | No  |
+| 简体中文             | `zh-Hans` | No  |
+| العربية              | `ar`      | Yes |
 
 ## Testing
 

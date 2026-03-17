@@ -42,8 +42,8 @@ type PresignedURLRequest struct {
 
 // PresignedURLResponse contains the response data for a presigned URL request.
 type PresignedURLResponse struct {
+	ExpiresAt time.Time `json:"expires_at"`
 	UploadURL string    `json:"upload_url"`
 	Key       string    `json:"key"`
 	PublicURL string    `json:"public_url"`
-	ExpiresAt time.Time `json:"expires_at"`
 }

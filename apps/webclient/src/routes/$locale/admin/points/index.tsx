@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Admin points dashboard - statistics overview and pending awards management
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LocaleLink } from "@/components/locale-link";

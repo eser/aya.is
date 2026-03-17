@@ -53,42 +53,43 @@ var AllowedReactions = map[string]bool{ //nolint:gochecknoglobals
 
 // Conversation represents a messaging thread between participants.
 type Conversation struct {
-	ID                 string     `json:"id"`
-	Kind               string     `json:"kind"`
+	CreatedAt          time.Time  `json:"created_at"`
 	Title              *string    `json:"title"`
 	CreatedByProfileID *string    `json:"created_by_profile_id"`
-	CreatedAt          time.Time  `json:"created_at"`
 	UpdatedAt          *time.Time `json:"updated_at"`
 
-	// Populated via queries.
-	Participants []*Participant   `json:"participants,omitempty"`
 	LastEnvelope *EnvelopePreview `json:"last_envelope,omitempty"`
-	UnreadCount  int              `json:"unread_count"`
+	ID           string           `json:"id"`
+	Kind         string           `json:"kind"`
+
+	// Populated via queries.
+	Participants []*Participant `json:"participants,omitempty"`
+	UnreadCount  int            `json:"unread_count"`
 }
 
 // EnvelopePreview is a summary of the latest envelope in a conversation.
 type EnvelopePreview struct {
 	Message         *string `json:"message"`
+	SenderProfileID *string `json:"sender_profile_id"`
 	Kind            string  `json:"kind"`
 	CreatedAt       string  `json:"created_at"`
-	SenderProfileID *string `json:"sender_profile_id"`
 }
 
 // Participant represents a profile's membership in a conversation.
 type Participant struct {
-	ID             string     `json:"id"`
-	ConversationID string     `json:"conversation_id"`
-	ProfileID      string     `json:"profile_id"`
-	LastReadAt     *time.Time `json:"last_read_at"`
-	IsArchived     bool       `json:"is_archived"`
-	JoinedAt       time.Time  `json:"joined_at"`
-	LeftAt         *time.Time `json:"left_at"`
+	JoinedAt   time.Time  `json:"joined_at"`
+	LastReadAt *time.Time `json:"last_read_at"`
+	LeftAt     *time.Time `json:"left_at"`
 
 	// Populated via JOINs.
 	ProfileSlug       *string `json:"profile_slug,omitempty"`
 	ProfileTitle      *string `json:"profile_title,omitempty"`
 	ProfilePictureURI *string `json:"profile_picture_uri,omitempty"`
 	ProfileKind       *string `json:"profile_kind,omitempty"`
+	ID                string  `json:"id"`
+	ConversationID    string  `json:"conversation_id"`
+	ProfileID         string  `json:"profile_id"`
+	IsArchived        bool    `json:"is_archived"`
 }
 
 // Envelope represents an inbox item (message, invitation, badge, pass).
@@ -121,27 +122,27 @@ type Envelope struct {
 
 // Reaction represents an emoji reaction on an envelope.
 type Reaction struct {
-	ID         string    `json:"id"`
-	EnvelopeID string    `json:"envelope_id"`
-	ProfileID  string    `json:"profile_id"`
-	Emoji      string    `json:"emoji"`
-	CreatedAt  time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 
 	ProfileSlug  *string `json:"profile_slug,omitempty"`
 	ProfileTitle *string `json:"profile_title,omitempty"`
+	ID           string  `json:"id"`
+	EnvelopeID   string  `json:"envelope_id"`
+	ProfileID    string  `json:"profile_id"`
+	Emoji        string  `json:"emoji"`
 }
 
 // InvitationProperties holds kind-specific data for invitation envelopes.
 type InvitationProperties struct {
+	InviteLink       *string `json:"invite_link,omitempty"`
 	InvitationKind   string  `json:"invitation_kind"`
-	TelegramChatID   int64   `json:"telegram_chat_id,omitempty"`
 	GroupProfileSlug string  `json:"group_profile_slug,omitempty"`
 	GroupName        string  `json:"group_name,omitempty"`
-	InviteLink       *string `json:"invite_link,omitempty"`
 	// profile_join fields:
-	CandidateID string `json:"candidate_id,omitempty"`
-	ProfileID   string `json:"profile_id,omitempty"`
-	ProfileSlug string `json:"profile_slug,omitempty"`
+	CandidateID    string `json:"candidate_id,omitempty"`
+	ProfileID      string `json:"profile_id,omitempty"`
+	ProfileSlug    string `json:"profile_slug,omitempty"`
+	TelegramChatID int64  `json:"telegram_chat_id,omitempty"`
 }
 
 // SendMessageParams contains parameters for sending a message or system envelope.

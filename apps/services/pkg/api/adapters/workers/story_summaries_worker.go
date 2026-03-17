@@ -24,8 +24,8 @@ const (
 
 // trackedBatchJob is the JSON structure stored in runtime_state for each pending batch.
 type trackedBatchJob struct {
-	JobID       string    `json:"job_id"`
 	SubmittedAt time.Time `json:"submitted_at"`
+	JobID       string    `json:"job_id"`
 	ItemCount   int       `json:"item_count"`
 }
 

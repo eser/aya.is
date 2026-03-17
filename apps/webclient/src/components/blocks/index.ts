@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 export { AudioBlock } from "./audio/audio-block";
 export { ButtonBlock } from "./button/button-block";
 export { CalloutBlock } from "./callout/callout-block";
@@ -14,7 +15,7 @@ export { RowBlock } from "./row/row-block";
 export { SeparatorBlock } from "./separator/separator-block";
 export { SpacerBlock } from "./spacer/spacer-block";
 export { StackBlock } from "./stack/stack-block";
-export { TabsBlock, TabBlock } from "./tabs/tabs-block";
+export { TabBlock, TabsBlock } from "./tabs/tabs-block";
 export { VideoBlock } from "./video/video-block";
 export { PullquoteBlock } from "./pullquote/pullquote-block";
 export { VerseBlock } from "./verse/verse-block";

@@ -36,10 +36,10 @@ var AllowedPreferenceKeys = map[string]bool{ //nolint:gochecknoglobals
 
 // SessionPreference represents a single session preference.
 type SessionPreference struct {
+	UpdatedAt time.Time `json:"updated_at"`
 	SessionID string    `json:"session_id"`
 	Key       string    `json:"key"`
 	Value     string    `json:"value"`
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // SessionPreferences is a map of preference key to value.

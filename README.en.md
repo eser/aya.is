@@ -118,8 +118,8 @@ $ nix develop
 
 The Nix shell provides Go 1.24, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint, and all other required tools.
 
-Set up the environment variables for the backend service (the default database connection to `localhost:5432` is
-already defined in `config.json`):
+Set up the environment variables for the backend service (the default database connection to `localhost:5432` is already
+defined in `config.json`):
 
 ```bash
 $ cat > apps/services/.env.local << EOF

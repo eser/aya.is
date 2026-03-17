@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Individual story page (handles all story kinds including activities)
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";

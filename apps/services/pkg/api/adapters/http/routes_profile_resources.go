@@ -273,13 +273,13 @@ func RegisterHTTPRoutesForProfileResources( //nolint:gocognit,gocyclo,cyclop,fun
 			}
 
 			var reqBody struct {
+				Description *string        `json:"description"`
+				Properties  map[string]any `json:"properties"`
 				Kind        string         `json:"kind"`
 				RemoteID    string         `json:"remote_id"`
 				PublicID    string         `json:"public_id"`
 				URL         string         `json:"url"`
 				Title       string         `json:"title"`
-				Description *string        `json:"description"`
-				Properties  map[string]any `json:"properties"`
 			}
 
 			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)

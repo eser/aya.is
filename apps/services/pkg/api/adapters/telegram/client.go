@@ -47,9 +47,9 @@ type HTTPClient interface {
 
 // Update represents a Telegram update.
 type Update struct {
-	UpdateID      int64          `json:"update_id"`
 	Message       *Message       `json:"message"`
 	CallbackQuery *CallbackQuery `json:"callback_query"`
+	UpdateID      int64          `json:"update_id"`
 }
 
 // CallbackQuery represents a Telegram callback query from an inline keyboard button.
@@ -74,35 +74,35 @@ type InlineKeyboardButton struct {
 
 // Message represents a Telegram message.
 type Message struct {
-	MessageID int64  `json:"message_id"`
 	From      *User  `json:"from"`
 	Chat      *Chat  `json:"chat"`
 	Text      string `json:"text"`
+	MessageID int64  `json:"message_id"`
 	Date      int64  `json:"date"`
 }
 
 // User represents a Telegram user.
 type User struct {
-	ID        int64  `json:"id"`
-	IsBot     bool   `json:"is_bot"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Username  string `json:"username"`
+	ID        int64  `json:"id"`
+	IsBot     bool   `json:"is_bot"`
 }
 
 // Chat represents a Telegram chat.
 type Chat struct {
-	ID    int64  `json:"id"`
 	Type  string `json:"type"`  // "private", "group", "supergroup", "channel"
 	Title string `json:"title"` // group/supergroup/channel title
+	ID    int64  `json:"id"`
 }
 
 // BotInfo represents bot identity information.
 type BotInfo struct {
-	ID        int64  `json:"id"`
-	IsBot     bool   `json:"is_bot"`
 	FirstName string `json:"first_name"`
 	Username  string `json:"username"`
+	ID        int64  `json:"id"`
+	IsBot     bool   `json:"is_bot"`
 }
 
 // ChatMember represents a Telegram chat member with their status.
@@ -121,9 +121,9 @@ type ChatInviteLink struct {
 
 // apiResponse wraps the standard Telegram Bot API response envelope.
 type apiResponse struct {
-	OK          bool            `json:"ok"`
 	Description string          `json:"description"`
 	Result      json.RawMessage `json:"result"`
+	OK          bool            `json:"ok"`
 }
 
 // Client provides Telegram Bot API operations.

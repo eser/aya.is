@@ -250,8 +250,8 @@ func RegisterHTTPRoutesForDiscussions( //nolint:funlen,cyclop,maintidx
 			threadID := ctx.Request.PathValue("threadId")
 
 			var body struct {
-				IsLocked    bool   `json:"is_locked"`
 				ProfileSlug string `json:"profile_slug"`
+				IsLocked    bool   `json:"is_locked"`
 			}
 
 			err = json.NewDecoder(ctx.Request.Body).Decode(&body)
@@ -360,8 +360,8 @@ func createDiscussionComment(
 	slugParam := ctx.Request.PathValue("slug")
 
 	var body struct {
-		Content  string  `json:"content"`
 		ParentID *string `json:"parent_id"`
+		Content  string  `json:"content"`
 	}
 
 	decodeErr := json.NewDecoder(ctx.Request.Body).Decode(&body)
@@ -411,9 +411,9 @@ func handleCommentModeration(
 	commentID := ctx.Request.PathValue("commentId")
 
 	var body struct {
+		ProfileSlug string `json:"profile_slug"`
 		IsHidden    bool   `json:"is_hidden"`
 		IsPinned    bool   `json:"is_pinned"`
-		ProfileSlug string `json:"profile_slug"`
 	}
 
 	decodeErr := json.NewDecoder(ctx.Request.Body).Decode(&body)

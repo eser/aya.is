@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 export { ContentEditor, type ContentEditorData, type ContentType } from "./content-editor";
 export { PublishDialog } from "./publish-dialog";
 export { MarkdownEditor } from "./markdown-editor";

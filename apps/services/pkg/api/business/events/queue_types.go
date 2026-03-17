@@ -28,28 +28,28 @@ const (
 
 // QueueItem represents an item in the event queue.
 type QueueItem struct {
-	ID                    string
-	Type                  QueueItemType
-	Payload               map[string]any
-	Status                QueueItemStatus
-	RetryCount            int
-	MaxRetries            int
 	VisibleAt             time.Time
-	VisibilityTimeoutSecs int
+	CreatedAt             time.Time
+	Payload               map[string]any
 	StartedAt             *time.Time
 	CompletedAt           *time.Time
 	FailedAt              *time.Time
-	CreatedAt             time.Time
 	UpdatedAt             *time.Time
 	ErrorMessage          *string
 	WorkerID              *string
+	ID                    string
+	Type                  QueueItemType
+	Status                QueueItemStatus
+	RetryCount            int
+	MaxRetries            int
+	VisibilityTimeoutSecs int
 }
 
 // QueueEnqueueParams holds parameters for enqueueing a new item.
 type QueueEnqueueParams struct {
-	Type                  QueueItemType
 	Payload               map[string]any
-	MaxRetries            int        // 0 means use default (3)
-	VisibilityTimeoutSecs int        // 0 means use default (300 = 5 minutes)
 	ScheduledAt           *time.Time // nil means now (immediately eligible)
+	Type                  QueueItemType
+	MaxRetries            int // 0 means use default (3)
+	VisibilityTimeoutSecs int // 0 means use default (300 = 5 minutes)
 }

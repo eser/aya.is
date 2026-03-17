@@ -4,8 +4,8 @@ import "sync"
 
 // Registry collects worker runners for centralized status querying.
 type Registry struct {
-	mu      sync.RWMutex
 	runners map[string]*Runner
+	mu      sync.RWMutex
 }
 
 // NewRegistry creates a new worker registry.

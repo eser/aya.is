@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Profile route - loads profile data and passes through to children
 import { CatchNotFound, createFileRoute, getRouteApi, Outlet, useMatches } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";

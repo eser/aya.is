@@ -179,8 +179,8 @@ func RegisterHTTPRoutesForAdminProfiles( //nolint:gocognit,cyclop,funlen,maintid
 
 				// Parse request body
 				var body struct {
-					Amount      uint64 `json:"amount"`
 					Description string `json:"description"`
+					Amount      uint64 `json:"amount"`
 				}
 
 				err = json.NewDecoder(ctx.Request.Body).Decode(&body)

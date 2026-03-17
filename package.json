@@ -3,5 +3,8 @@
   "dependencies": {
     "@std/fs": "npm:@jsr/std__fs@^1",
     "@std/path": "npm:@jsr/std__path@^1"
+  },
+  "devDependencies": {
+    "@eser/cli": "npm:@jsr/eser__cli@^4"
   }
 }

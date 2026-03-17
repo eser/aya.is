@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Strip all markdown formatting from text, returning plain text.
  * Useful for rendering titles that may contain accidental markdown.

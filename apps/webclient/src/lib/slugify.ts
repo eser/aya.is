@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Convert a string to a URL-friendly slug.
  * - Normalizes accented characters (é -> e, ü -> u, etc.)

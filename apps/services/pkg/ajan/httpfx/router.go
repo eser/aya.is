@@ -20,11 +20,12 @@ type routeTable struct {
 // Router provides HTTP routing with immutable route tables for safe concurrent access.
 // Routes are registered during initialization and frozen when the server starts.
 type Router struct {
-	mux  *http.ServeMux
-	path string
+	mux *http.ServeMux
 
 	// Atomic pointer to immutable route table for lock-free reads
 	table atomic.Pointer[routeTable]
+
+	path string
 
 	// Mutex for write operations (route registration)
 	mu sync.RWMutex

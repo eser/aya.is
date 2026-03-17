@@ -84,8 +84,8 @@ func (f *anthropicModelFactory) CreateModel(
 
 // AnthropicModel implements LanguageModel and BatchCapableModel for Anthropic.
 type AnthropicModel struct {
-	client anthropic.Client
 	config *ConfigTarget
+	client anthropic.Client
 }
 
 func (m *AnthropicModel) GetCapabilities() []ProviderCapability {

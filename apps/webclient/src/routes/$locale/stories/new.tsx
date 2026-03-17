@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Create new story page
 import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";

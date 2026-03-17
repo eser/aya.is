@@ -136,7 +136,7 @@ This section complements the general frontend guidelines with specific practices
         - Formatting: Line width 120 characters.
 - **TypeScript Strict Mode:** Ensure all TypeScript code adheres to strict mode. This is enabled via `compilerOptions.strict: true` in `deno.json` and `tsconfig.json`.
 - **Path Aliases:** Use the `@/` alias for imports from the `src` directory (e.g., `import { MyComponent } from "@/components/my-component.tsx";`). This is configured in `deno.json` and `tsconfig.json`.
-- **Pre-commit Hooks:** Hooks are in place (see `.pre-commit-config.yaml`); ensure commits pass these checks.
+- **Git Hooks:** Hooks are managed by `@eser/cli` (see `.manifest.yml`); ensure commits pass these checks.
 - **Cutting-Edge Versions:** The project is comfortable using canary releases of Next.js, unstable Deno features and early adaptations of JavaScript/ECMAScript standards. Be mindful of potential breaking changes and test thoroughly.
 
 ## Next.js Specifics

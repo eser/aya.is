@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Elements domain - markdown generation utilities
  * Elements shows profiles of individuals and organizations

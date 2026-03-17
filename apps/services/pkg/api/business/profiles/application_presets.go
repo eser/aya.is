@@ -4,8 +4,8 @@ package profiles
 type PresetField struct {
 	Label       string `json:"label"`
 	FieldType   string `json:"field_type"` // short_text, long_text, url
-	IsRequired  bool   `json:"is_required"`
 	Placeholder string `json:"placeholder"`
+	IsRequired  bool   `json:"is_required"`
 }
 
 // ApplicationPresetDef defines a preset template for application forms.
@@ -116,16 +116,16 @@ var presetTranslations = map[string]map[string]presetTx{
 	},
 	"ja": {
 		"developer_community": {
-			Label:  "開発者コミュニティ",
-			Fields: []string{"参加したい理由は？", "どこで知りましたか？"},
+			Label:  "開発者コミュニティ",                         //nolint:gosmopolitan // Japanese
+			Fields: []string{"参加したい理由は？", "どこで知りましたか？"}, //nolint:gosmopolitan // Japanese
 		},
 		"open_source_project": {
 			Label:  "オープンソースプロジェクト",
-			Fields: []string{"興味のある分野は？", "関連する経験"},
+			Fields: []string{"興味のある分野は？", "関連する経験"}, //nolint:gosmopolitan // Japanese
 		},
 		"professional_organization": {
-			Label:  "専門組織",
-			Fields: []string{"現在の役職と会社", "参加したい理由は？"},
+			Label:  "専門組織",                            //nolint:gosmopolitan // Japanese
+			Fields: []string{"現在の役職と会社", "参加したい理由は？"}, //nolint:gosmopolitan // Japanese
 		},
 	},
 	"ko": {
@@ -200,16 +200,16 @@ var presetTranslations = map[string]map[string]presetTx{
 	},
 	"zh-CN": {
 		"developer_community": {
-			Label:  "开发者社区",
-			Fields: []string{"为什么想加入？", "你是怎么知道我们的？"},
+			Label:  "开发者社区",                           //nolint:gosmopolitan // Chinese
+			Fields: []string{"为什么想加入？", "你是怎么知道我们的？"}, //nolint:gosmopolitan // Chinese
 		},
 		"open_source_project": {
-			Label:  "开源项目",
-			Fields: []string{"你对哪个领域感兴趣？", "相关经验"},
+			Label:  "开源项目",                         //nolint:gosmopolitan // Chinese
+			Fields: []string{"你对哪个领域感兴趣？", "相关经验"}, //nolint:gosmopolitan // Chinese
 		},
 		"professional_organization": {
-			Label:  "专业组织",
-			Fields: []string{"当前职位和公司", "为什么想加入？"},
+			Label:  "专业组织",                         //nolint:gosmopolitan // Chinese
+			Fields: []string{"当前职位和公司", "为什么想加入？"}, //nolint:gosmopolitan // Chinese
 		},
 	},
 }
@@ -272,13 +272,13 @@ func init() {
 }
 
 func buildPreset(key string, locale string) ApplicationPresetDef {
-	tx, ok := presetTranslations[locale]
-	if !ok {
-		tx = presetTranslations["en"]
+	translation, found := presetTranslations[locale]
+	if !found {
+		translation = presetTranslations["en"]
 	}
 
-	ptx, ok := tx[key]
-	if !ok {
+	ptx, found := translation[key]
+	if !found {
 		ptx = presetTranslations["en"][key]
 	}
 
@@ -299,12 +299,12 @@ func buildPreset(key string, locale string) ApplicationPresetDef {
 	}
 
 	if base == nil {
-		return ApplicationPresetDef{Key: key, Label: key}
+		return ApplicationPresetDef{Key: key, Label: key, Fields: nil}
 	}
 
 	fields := make([]PresetField, 0, len(base.Fields))
 
-	for i, bf := range base.Fields {
+	for i, baseField := range base.Fields {
 		label := ""
 		if i < len(ptx.Fields) {
 			label = ptx.Fields[i]
@@ -312,8 +312,8 @@ func buildPreset(key string, locale string) ApplicationPresetDef {
 
 		fields = append(fields, PresetField{
 			Label:       label,
-			FieldType:   bf.FieldType,
-			IsRequired:  bf.IsRequired,
+			FieldType:   baseField.FieldType,
+			IsRequired:  baseField.IsRequired,
 			Placeholder: "",
 		})
 	}

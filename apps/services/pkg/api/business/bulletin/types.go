@@ -38,6 +38,7 @@ type DigestStory struct {
 	PublishedAt             *time.Time
 	StoryPictureURI         *string
 	SummaryAI               *string
+	AuthorProfilePictureURI *string
 	StoryID                 string
 	Slug                    string
 	Kind                    string
@@ -47,7 +48,6 @@ type DigestStory struct {
 	AuthorProfileID         string
 	AuthorSlug              string
 	AuthorTitle             string
-	AuthorProfilePictureURI *string
 }
 
 // DigestGroup groups stories by the followed profile (author).

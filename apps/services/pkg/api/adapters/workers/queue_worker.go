@@ -25,12 +25,12 @@ type QueueWorkerConfig struct {
 
 // QueueWorker polls and dispatches items from the queue.
 type QueueWorker struct {
+	repo          events.QueueRepository
 	config        *QueueWorkerConfig
 	logger        *logfx.Logger
-	repo          events.QueueRepository
 	registry      *events.HandlerRegistry
-	workerID      string
 	runtimeStates *runtime_states.Service
+	workerID      string
 }
 
 // NewQueueWorker creates a new queue worker.

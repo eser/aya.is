@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { visit } from "unist-util-visit";
 import type { Link, Node, Paragraph, Root, Text } from "mdast";
 

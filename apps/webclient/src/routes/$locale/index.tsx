@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Homepage for locale - shows landing page with parallax hero and latest stories
 // On custom domain, server-side URL rewriting redirects to profile page
 import * as React from "react";

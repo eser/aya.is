@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import * as React from "react";
 import type { Profile } from "@/modules/backend/types";
 import { FilterBar, type ProfileKindFilter } from "./filter-bar";

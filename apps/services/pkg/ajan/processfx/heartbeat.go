@@ -18,9 +18,9 @@ const (
 
 // Heartbeat represents a liveness signal from a worker.
 type Heartbeat struct {
-	Type      HeartbeatType
 	Timestamp time.Time
 	WorkerID  string
+	Type      HeartbeatType
 	Progress  int64 // items processed since last heartbeat
 }
 

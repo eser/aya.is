@@ -10,20 +10,20 @@ import (
 
 // WorkerHealthStatus represents the health status of a single worker.
 type WorkerHealthStatus struct {
-	State          string    `json:"state"`
 	LastHeartbeat  time.Time `json:"last_heartbeat"`
+	State          string    `json:"state"`
+	Uptime         string    `json:"uptime,omitempty"`
+	Error          string    `json:"error,omitempty"`
 	RestartCount   int       `json:"restart_count"`
 	TotalRestarts  int       `json:"total_restarts"`
 	ItemsProcessed int64     `json:"items_processed"`
-	Uptime         string    `json:"uptime,omitempty"`
-	Error          string    `json:"error,omitempty"`
 }
 
 // HealthResponse represents the full health check response.
 type HealthResponse struct {
-	Status  string                        `json:"status"`
 	Workers map[string]WorkerHealthStatus `json:"workers,omitempty"`
 	Summary *HealthSummary                `json:"summary,omitempty"`
+	Status  string                        `json:"status"`
 }
 
 // HealthSummary provides aggregate worker health statistics.

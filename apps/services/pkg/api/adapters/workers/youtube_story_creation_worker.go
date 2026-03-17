@@ -479,11 +479,11 @@ func checkMetadataPrivacy(
 
 // videoMetadata holds extracted metadata from YouTube video properties.
 type videoMetadata struct {
+	thumbnails           map[string]any
 	title                string
 	description          string
 	defaultLanguage      string
 	defaultAudioLanguage string
-	thumbnails           map[string]any
 }
 
 // extractVideoMetadata extracts video metadata from import properties.

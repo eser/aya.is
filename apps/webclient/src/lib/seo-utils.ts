@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Pure SEO utility functions — no import.meta.env dependency
 // Extracted from seo.ts for testability with Deno's test runner
 

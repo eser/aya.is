@@ -47,21 +47,22 @@ type XOAuthConfig struct {
 type Config struct {
 	GitHub    GitHubAuthProviderConfig `conf:"github"`
 	Apple     AppleAuthProviderConfig  `conf:"apple"`
-	YouTube   YouTubeOAuthConfig       `conf:"youtube"`
 	LinkedIn  LinkedInOAuthConfig      `conf:"linkedin"`
 	X         XOAuthConfig             `conf:"x"`
-	JwtSecret string                   `conf:"jwt_secret"`                 // Required - no default for security
-	TokenTTL  time.Duration            `conf:"token_ttl"  default:"8760h"` // 365 days in hours (Go doesn't support "d")
+	YouTube   YouTubeOAuthConfig       `conf:"youtube"`
+	JwtSecret string                   `conf:"jwt_secret"` // Required - no default for security
 
 	// Cookie settings for cross-domain SSO
 	CookieDomain string `conf:"cookie_domain" default:".aya.is"`
 	CookieName   string `conf:"cookie_name"   default:"aya_session"`
-	SecureCookie bool   `conf:"secure_cookie" default:"true"`
 
 	// CORS settings (comma-separated)
-	CorsAllowedOrigins string `conf:"cors_allowed_origins" default:"https://aya.is,https://www.aya.is,http://localhost:3000,http://localhost:5173,http://localhost:4173"` //nolint:lll // struct tag
-	CorsAllowedHeaders string `conf:"cors_allowed_headers" default:"Accept,Authorization,Content-Type,Origin,X-Requested-With,Traceparent,Tracestate"`                    //nolint:lll // struct tag
-	CorsAllowedMethods string `conf:"cors_allowed_methods" default:"GET,POST,PUT,DELETE,PATCH,HEAD,OPTIONS"`
+	CorsAllowedOrigins string        `conf:"cors_allowed_origins" default:"https://aya.is,https://www.aya.is,http://localhost:3000,http://localhost:5173,http://localhost:4173"` //nolint:lll // struct tag
+	CorsAllowedHeaders string        `conf:"cors_allowed_headers" default:"Accept,Authorization,Content-Type,Origin,X-Requested-With,Traceparent,Tracestate"`                    //nolint:lll // struct tag
+	CorsAllowedMethods string        `conf:"cors_allowed_methods" default:"GET,POST,PUT,DELETE,PATCH,HEAD,OPTIONS"`
+	TokenTTL           time.Duration `conf:"token_ttl"            default:"8760h"` //nolint:lll // 365 days (Go needs hours)
+
+	SecureCookie bool `conf:"secure_cookie" default:"true"`
 }
 
 // GetCorsAllowedOrigins parses comma-separated origins into a slice.

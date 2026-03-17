@@ -16,11 +16,11 @@ var ErrFailedToCheckLiveBroadcasts = errors.New("failed to check live broadcasts
 
 // LiveBroadcastResult contains information about an active live broadcast.
 type LiveBroadcastResult struct {
-	IsLive       bool
+	StartedAt    *time.Time
 	BroadcastID  string
 	Title        string
-	StartedAt    *time.Time
 	ThumbnailURL string
+	IsLive       bool
 }
 
 // CheckLiveBroadcasts checks if the authenticated user has any active live broadcasts.

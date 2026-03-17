@@ -48,19 +48,19 @@ type HTTPClient interface {
 type TokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
 	IDToken      string `json:"id_token"`
+	ExpiresIn    int    `json:"expires_in"`
 }
 
 // IDTokenClaims represents the claims in Apple's id_token JWT.
 type IDTokenClaims struct {
 	jwt.RegisteredClaims
 
-	Sub            string `json:"sub"`
-	Email          string `json:"email"`
 	EmailVerified  any    `json:"email_verified"` // Can be bool or string
 	IsPrivateEmail any    `json:"is_private_email"`
+	Sub            string `json:"sub"`
+	Email          string `json:"email"`
 }
 
 // IsEmailVerified returns whether the email is verified.

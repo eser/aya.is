@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { updateSessionPreferences } from "@/modules/backend/backend";
 import { useAuth } from "@/lib/auth/auth-context";

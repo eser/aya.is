@@ -17,13 +17,13 @@ const (
 
 // ParsedFrontmatter holds metadata extracted from a markdown file's frontmatter.
 type ParsedFrontmatter struct {
-	Title       string
 	Date        *time.Time
+	Extra       map[string]any // All other fields
+	Title       string
 	Slug        string
-	Tags        []string
 	Language    string // Detected locale code (e.g., "en", "tr")
 	Description string
-	Extra       map[string]any // All other fields
+	Tags        []string
 }
 
 // ParseMarkdownFile splits frontmatter from body and parses metadata.

@@ -9,15 +9,15 @@ const disabledStateValue = "true"
 
 // YouTubeSyncConfig holds configuration for the YouTube sync workers.
 type YouTubeSyncConfig struct {
-	FullSyncEnabled         bool          `conf:"full_sync_enabled"         default:"true"`
 	FullSyncInterval        time.Duration `conf:"full_sync_interval"        default:"6h"`
-	IncrementalSyncEnabled  bool          `conf:"incremental_sync_enabled"  default:"true"`
 	IncrementalSyncInterval time.Duration `conf:"incremental_sync_interval" default:"15m"`
 	CheckInterval           time.Duration `conf:"check_interval"            default:"1m"`
 	BatchSize               int           `conf:"batch_size"                default:"10"`
 	StoriesPerLink          int           `conf:"stories_per_link"          default:"50"`
 	FullSyncMaxStories      int           `conf:"full_sync_max_stories"     default:"1000"`
 	TokenRefreshBuffer      time.Duration `conf:"token_refresh_buffer"      default:"5m"`
+	FullSyncEnabled         bool          `conf:"full_sync_enabled"         default:"true"`
+	IncrementalSyncEnabled  bool          `conf:"incremental_sync_enabled"  default:"true"`
 }
 
 // SpeakerDeckSyncConfig holds configuration for the SpeakerDeck sync worker.
@@ -38,9 +38,9 @@ type ExternalSiteSyncConfig struct {
 
 // DomainSyncConfig holds configuration for the custom domain sync worker.
 type DomainSyncConfig struct {
-	Enabled      bool          `conf:"enabled"       default:"false"`
-	SyncInterval time.Duration `conf:"sync_interval" default:"5m"`
 	BaseDomains  string        `conf:"base_domains"`
+	SyncInterval time.Duration `conf:"sync_interval" default:"5m"`
+	Enabled      bool          `conf:"enabled"       default:"false"`
 }
 
 // BulletinConfig holds configuration for the bulletin digest worker.
@@ -68,14 +68,14 @@ type YouTubeLiveStatusConfig struct {
 
 // Config holds all worker configurations.
 type Config struct {
+	DomainSync        DomainSyncConfig         `conf:"domain_sync"`
 	YouTubeSync       YouTubeSyncConfig        `conf:"youtube_sync"`
 	YouTubeLiveStatus YouTubeLiveStatusConfig  `conf:"youtube_live_status"`
 	GitHubSync        GitHubSyncConfig         `conf:"github_sync"`
 	SpeakerDeckSync   SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
 	ExternalSiteSync  ExternalSiteSyncConfig   `conf:"external_site_sync"`
-	DomainSync        DomainSyncConfig         `conf:"domain_sync"`
+	StorySummaries    StorySummariesConfig     `conf:"story_summaries"`
 	Queue             QueueWorkerConfig        `conf:"queue"`
 	TelegramBot       TelegramBotPollingConfig `conf:"telegram_bot"`
 	Bulletin          BulletinConfig           `conf:"bulletin"`
-	StorySummaries    StorySummariesConfig     `conf:"story_summaries"`
 }

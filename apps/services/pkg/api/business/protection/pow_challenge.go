@@ -18,21 +18,21 @@ var (
 
 // POWChallenge represents a proof-of-work challenge.
 type POWChallenge struct {
-	ID         string    `json:"id"`
-	Prefix     string    `json:"prefix"`
-	Difficulty int       `json:"difficulty"`
-	IPHash     string    `json:"-"` // Not exposed to client
-	Used       bool      `json:"-"` // Not exposed to client
 	ExpiresAt  time.Time `json:"expires_at"`
 	CreatedAt  time.Time `json:"-"` // Not exposed to client
+	ID         string    `json:"id"`
+	Prefix     string    `json:"prefix"`
+	IPHash     string    `json:"-"` // Not exposed to client
+	Difficulty int       `json:"difficulty"`
+	Used       bool      `json:"-"` // Not exposed to client
 }
 
 // POWChallengeResponse is the response sent to the client.
 type POWChallengeResponse struct {
+	ExpiresAt      time.Time `json:"expires_at"`
 	POWChallengeID string    `json:"pow_challenge_id"`
 	Prefix         string    `json:"prefix"`
 	Difficulty     int       `json:"difficulty"`
-	ExpiresAt      time.Time `json:"expires_at"`
 }
 
 // ToResponse converts a POWChallenge to a POWChallengeResponse.

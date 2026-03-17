@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // PoW Solver Web Worker
 // Runs in a separate thread to avoid blocking the UI
 

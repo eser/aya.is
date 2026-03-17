@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,15 +10,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import {
-  getAllBlocks,
-  getBlocksByCategory,
-  getAllPatterns,
-} from "@/components/blocks/registry";
-import {
-  addRecentBlock,
-  getRecentBlockIds,
-} from "@/components/blocks/recent-blocks";
+import { getAllBlocks, getAllPatterns, getBlocksByCategory } from "@/components/blocks/registry";
+import { addRecentBlock, getRecentBlockIds } from "@/components/blocks/recent-blocks";
 import { BLOCK_CATEGORIES } from "@/components/blocks/types";
 import type { BlockDefinition, BlockPattern } from "@/components/blocks/types";
 import { BlockPropEditor } from "./block-prop-editor";
@@ -49,14 +43,12 @@ function buildDefaultValues(
 }
 
 function BlockInserterContent(props: BlockInserterContentProps) {
-  const { onInsert, onClose, wrapInCommand = true, autoFocus = false } = props;
+  const { onInsert, onClose: _onClose, wrapInCommand = true, autoFocus = false } = props;
   const { t } = useTranslation();
   const [editingBlock, setEditingBlock] = useState<BlockDefinition | null>(
     null,
   );
-  const [recentIds, setRecentIds] = useState<string[]>(() =>
-    getRecentBlockIds()
-  );
+  const [recentIds, setRecentIds] = useState<string[]>(() => getRecentBlockIds());
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-focus the CommandInput when the inserter opens
@@ -143,9 +135,7 @@ function BlockInserterContent(props: BlockInserterContentProps) {
                         <span className={styles.blockDescription}>
                           {block.description}
                         </span>
-                        {block.preview !== undefined && (
-                          <span className={styles.blockPreview}>{block.preview}</span>
-                        )}
+                        {block.preview !== undefined && <span className={styles.blockPreview}>{block.preview}</span>}
                       </div>
                     </div>
                   </CommandItem>
@@ -180,9 +170,7 @@ function BlockInserterContent(props: BlockInserterContentProps) {
                         <span className={styles.blockDescription}>
                           {block.description}
                         </span>
-                        {block.preview !== undefined && (
-                          <span className={styles.blockPreview}>{block.preview}</span>
-                        )}
+                        {block.preview !== undefined && <span className={styles.blockPreview}>{block.preview}</span>}
                       </div>
                     </div>
                   </CommandItem>
@@ -225,7 +213,11 @@ function BlockInserterContent(props: BlockInserterContentProps) {
   );
 
   if (wrapInCommand) {
-    return <div ref={containerRef}><Command>{content}</Command></div>;
+    return (
+      <div ref={containerRef}>
+        <Command>{content}</Command>
+      </div>
+    );
   }
 
   return <div ref={containerRef}>{content}</div>;

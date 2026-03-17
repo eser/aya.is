@@ -1,8 +1,14 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Application form page — allows non-members to apply to join an organization
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
-import { applicationFormQueryOptions, myApplicationQueryOptions, profilePermissionsQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import {
+  applicationFormQueryOptions,
+  myApplicationQueryOptions,
+  profilePermissionsQueryOptions,
+  profileQueryOptions,
+} from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import i18next from "i18next";
 import { NotFoundContent } from "./route";

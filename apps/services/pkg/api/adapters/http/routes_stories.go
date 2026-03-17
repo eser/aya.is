@@ -179,16 +179,16 @@ func RegisterHTTPRoutesForStories( //nolint:funlen,cyclop,gocognit,gocyclo,maint
 			profileSlugParam := ctx.Request.PathValue("slug")
 
 			var requestBody struct {
+				StoryPictureURI   *string        `json:"story_picture_uri"`
+				Properties        map[string]any `json:"properties"`
+				FeatDiscussions   *bool          `json:"feat_discussions"`
 				Slug              string         `json:"slug"`
 				Kind              string         `json:"kind"`
 				Title             string         `json:"title"`
 				Summary           string         `json:"summary"`
 				Content           string         `json:"content"`
-				StoryPictureURI   *string        `json:"story_picture_uri"`
-				PublishToProfiles []string       `json:"publish_to_profiles"`
-				Properties        map[string]any `json:"properties"`
 				Visibility        string         `json:"visibility"`
-				FeatDiscussions   *bool          `json:"feat_discussions"`
+				PublishToProfiles []string       `json:"publish_to_profiles"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)
@@ -422,13 +422,13 @@ func RegisterHTTPRoutesForStories( //nolint:funlen,cyclop,gocognit,gocyclo,maint
 			storyIDParam := ctx.Request.PathValue("storyId")
 
 			var requestBody struct {
-				Slug            string         `json:"slug"`
 				StoryPictureURI *string        `json:"story_picture_uri"`
 				Properties      map[string]any `json:"properties"`
-				Visibility      string         `json:"visibility"`
 				FeatDiscussions *bool          `json:"feat_discussions"`
 				SeriesID        *string        `json:"series_id"`
 				SortOrder       *int32         `json:"sort_order"`
+				Slug            string         `json:"slug"`
+				Visibility      string         `json:"visibility"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)

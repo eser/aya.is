@@ -189,7 +189,7 @@ func (s *Service) ListProposals(
 }
 
 // checkViewerAccess determines whether the viewer can propose dates and/or vote.
-func (s *Service) checkViewerAccess(
+func (s *Service) checkViewerAccess( //nolint:nonamedreturns // named returns clarify the two bool outputs
 	ctx context.Context,
 	storyID string,
 	viewerProfileID *string,

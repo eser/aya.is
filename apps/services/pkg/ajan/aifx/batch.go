@@ -26,15 +26,15 @@ type BatchRequestItem struct {
 
 // BatchJob represents the status of a submitted batch job.
 type BatchJob struct {
-	ID          string
-	Status      BatchStatus
 	CreatedAt   time.Time
 	CompletedAt *time.Time
+	Storage     *BatchStorage // provider-specific storage reference
+	ID          string
+	Status      BatchStatus
+	Error       string
 	TotalCount  int
 	DoneCount   int
 	FailedCount int
-	Storage     *BatchStorage // provider-specific storage reference
-	Error       string
 }
 
 // BatchResult holds the result for a single item in a batch.
@@ -46,14 +46,14 @@ type BatchResult struct {
 
 // BatchStorage holds provider-specific storage references for batch data.
 type BatchStorage struct {
+	Properties map[string]any // provider-specific extras (bucket, project, etc.)
 	Type       string         // "openai_file", "cloud_storage", "inline"
 	InputRef   string         // file ID, GCS URI, etc.
 	OutputRef  string         // file ID, GCS URI, etc.
-	Properties map[string]any // provider-specific extras (bucket, project, etc.)
 }
 
 // ListBatchOptions configures batch listing requests.
 type ListBatchOptions struct {
-	Limit int
 	After string // cursor for pagination
+	Limit int
 }

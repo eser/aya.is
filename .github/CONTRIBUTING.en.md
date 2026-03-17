@@ -20,7 +20,8 @@ Just React, Next, JavaScript, Web Development Essentials and Git.
 
 ### Conventions
 
-Using Deno Formatter should be fine for now. Also you need to run pre-commit hooks before committing your changes.
+Using Deno Formatter should be fine for now. Git hooks are managed by `@eser/cli` (see `.manifest.yml`). To install
+hooks: `eser codebase install`.
 
 ### Design Decisions
 

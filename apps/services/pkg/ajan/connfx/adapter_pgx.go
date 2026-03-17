@@ -27,11 +27,11 @@ type PgxConnection struct {
 	lastHealth        time.Time
 	pool              *pgxpool.Pool
 	config            *pgxpool.Config
-	protocol          string
-	state             int32 // atomic field for connection state
-	preparedStmtCache sync.Map
-	mu                sync.RWMutex
 	queryLogger       func(ctx context.Context, query string, args []any)
+	preparedStmtCache sync.Map
+	protocol          string
+	mu                sync.RWMutex
+	state             int32 // atomic field for connection state
 }
 
 // PgxConnectionFactory creates pgx connections.

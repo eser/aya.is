@@ -134,12 +134,12 @@ func RegisterHTTPRoutesForProfileEnvelopes( //nolint:funlen,cyclop,gocognit,gocy
 				}
 
 				var body struct {
+					Properties        any    `json:"properties"`
 					Kind              string `json:"kind"`
 					TargetProfileID   string `json:"target_profile_id"`
 					ConversationTitle string `json:"conversation_title"`
 					Message           string `json:"message"`
 					InviteCode        string `json:"invite_code"`
-					Properties        any    `json:"properties"`
 				}
 
 				err := json.NewDecoder(ctx.Request.Body).Decode(&body)

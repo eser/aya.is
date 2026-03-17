@@ -157,9 +157,9 @@ type OrgPageInfo struct {
 type tokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
 	TokenType    string `json:"token_type"`
 	Scope        string `json:"scope"`
+	ExpiresIn    int64  `json:"expires_in"`
 }
 
 func (p *Provider) buildAuthURL(redirectURI, state, scope string) string {
@@ -385,9 +385,9 @@ func (p *Provider) FetchOrganizationPages( //nolint:funlen
 	var orgResp struct {
 		Elements []struct {
 			Organization struct {
-				ID            int64  `json:"id"`
 				LocalizedName string `json:"localizedName"`
 				VanityName    string `json:"vanityName"`
+				ID            int64  `json:"id"`
 			} `json:"organization~"`
 		} `json:"elements"`
 	}

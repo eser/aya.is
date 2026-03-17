@@ -10,9 +10,9 @@ bir pull request ile değişiklik önermekten geri durmayın.
 
 ### Davranış Kuralları
 
-Bu proje ve katılımcıları [Katkıcı Ahdi Topluluk Sözleşmesi](https://aya.is/aya/policies)ne uymakla mükelleftir.
-Katkı sağladığınız an bu kuralları kabul etmiş sayılırsınız. Lütfen yönergede tarif edilen tolere edilemeyecek
-davranışları [info@aya.is](mailto:info@aya.is) adresine bildirin.
+Bu proje ve katılımcıları [Katkıcı Ahdi Topluluk Sözleşmesi](https://aya.is/aya/policies)ne uymakla mükelleftir. Katkı
+sağladığınız an bu kuralları kabul etmiş sayılırsınız. Lütfen yönergede tarif edilen tolere edilemeyecek davranışları
+[info@aya.is](mailto:info@aya.is) adresine bildirin.
 
 ### Teknik Gereklilikler
 
@@ -20,8 +20,8 @@ Yalnızca React, Next, JavaScript, Web Geliştirme Temelleri ve Git.
 
 ### Konvansiyonlar
 
-Şimdilik Deno Formatter'ı kullanabilirsiniz. Aynı zamanda değişikliklerinizi commit etmeden önce pre-commit hookları
-çalıştırmanız gerekmektedir.
+Şimdilik Deno Formatter'ı kullanabilirsiniz. Git hookları `@eser/cli` ile yönetilmektedir (bkz. `.manifest.yml`).
+Hookları kurmak için: `eser codebase install`.
 
 ### Tasarım Kararları
 
@@ -30,7 +30,7 @@ için, önerilen tasarımı önce tartışmak üzere yeni bir konu açın.
 
 ## Nasıl Katkıda Bulunabilirim?
 
-Her türlü katkıya açığız. İlk adımı atmak için birkaç öneri:
+Her türlü katkıya açığız. İlk adımı atmak için birkaç öneri:
 
 - Hataların bildirimi
 - Yeni özellik ve geliştirmeler önerme

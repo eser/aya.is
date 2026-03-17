@@ -21,12 +21,12 @@ const (
 
 // GitHubRepoInfoResult holds the repo data fetched from GitHub API.
 type GitHubRepoInfoResult struct {
-	ID          int64  `json:"id"`
 	FullName    string `json:"full_name"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	HTMLURL     string `json:"html_url"`
 	Language    string `json:"language"`
+	ID          int64  `json:"id"`
 	Stars       int    `json:"stargazers_count"`
 	Forks       int    `json:"forks_count"`
 	Private     bool   `json:"private"`
@@ -34,8 +34,8 @@ type GitHubRepoInfoResult struct {
 
 // GitHubContributorResult holds a contributor's basic info from GitHub API.
 type GitHubContributorResult struct {
-	ID            int64  `json:"id"`
 	Login         string `json:"login"`
+	ID            int64  `json:"id"`
 	Contributions int    `json:"contributions"`
 }
 
@@ -173,16 +173,16 @@ type membershipStatsAccumulator struct {
 type contributorRepoStats struct {
 	owner       string
 	repo        string
+	accessToken string
 	stars       int
 	commits     int
-	accessToken string
 }
 
 // contributorInfo tracks a contributor's appearances across all resources.
 type contributorInfo struct {
-	login string
 	// Key: resource profileID → repos this contributor appeared in under that profile.
 	reposByProfile map[string][]contributorRepoStats
+	login          string
 }
 
 // executeSync runs the actual sync cycle using a batch-match-first approach:

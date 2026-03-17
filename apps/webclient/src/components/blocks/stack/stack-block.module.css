@@ -3,11 +3,25 @@
 .stack {
   @apply my-4 flex flex-col;
 
-  &[data-gap="sm"] { @apply gap-2; }
-  &[data-gap="md"] { @apply gap-4; }
-  &[data-gap="lg"] { @apply gap-8; }
-  &[data-align="start"] { @apply items-start; }
-  &[data-align="center"] { @apply items-center; }
-  &[data-align="end"] { @apply items-end; }
-  &[data-align="stretch"] { @apply items-stretch; }
+  &[data-gap="sm"] {
+    @apply gap-2;
+  }
+  &[data-gap="md"] {
+    @apply gap-4;
+  }
+  &[data-gap="lg"] {
+    @apply gap-8;
+  }
+  &[data-align="start"] {
+    @apply items-start;
+  }
+  &[data-align="center"] {
+    @apply items-center;
+  }
+  &[data-align="end"] {
+    @apply items-end;
+  }
+  &[data-align="stretch"] {
+    @apply items-stretch;
+  }
 }

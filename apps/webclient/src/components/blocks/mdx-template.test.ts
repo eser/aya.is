@@ -1,10 +1,7 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /// <reference lib="deno.ns" />
 import { assertSnapshot } from "@std/testing/snapshot";
-import {
-  escapeForMdxProp,
-  generateContainerMdx,
-  generateSelfClosingMdx,
-} from "./mdx-template.ts";
+import { escapeForMdxProp, generateContainerMdx, generateSelfClosingMdx } from "./mdx-template.ts";
 
 // escapeForMdxProp tests
 

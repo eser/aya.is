@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Profile Q&A page
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { profileQueryOptions, profileQuestionsQueryOptions } from "@/modules/backend/queries";

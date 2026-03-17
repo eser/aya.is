@@ -1025,6 +1025,13 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 	}
 
 	var publicationProfiles []struct {
+		ProfileTx struct {
+			Properties  *json.RawMessage `db:"properties"  json:"properties"`
+			ProfileID   string           `db:"profile_id"  json:"profile_id"`
+			LocaleCode  string           `db:"locale_code" json:"locale_code"`
+			Title       string           `db:"title"       json:"title"`
+			Description string           `db:"description" json:"description"`
+		} `json:"profile_tx"`
 		Profile struct {
 			CreatedAt         time.Time        `db:"created_at"          json:"created_at"`
 			ProfilePictureURI *string          `db:"profile_picture_uri" json:"profile_picture_uri"`
@@ -1037,13 +1044,6 @@ func (r *Repository) parseStoryWithChildren( //nolint:funlen
 			Kind              string           `db:"kind"                json:"kind"`
 			Points            uint64           `db:"points"              json:"points"`
 		} `json:"profile"`
-		ProfileTx struct {
-			Properties  *json.RawMessage `db:"properties"  json:"properties"`
-			ProfileID   string           `db:"profile_id"  json:"profile_id"`
-			LocaleCode  string           `db:"locale_code" json:"locale_code"`
-			Title       string           `db:"title"       json:"title"`
-			Description string           `db:"description" json:"description"`
-		} `json:"profile_tx"`
 	}
 
 	if !publications.Valid || len(publications.RawMessage) == 0 {

@@ -134,9 +134,9 @@ type UserInfo struct {
 type tokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
 	TokenType    string `json:"token_type"`
 	Scope        string `json:"scope"`
+	ExpiresIn    int64  `json:"expires_in"`
 }
 
 func (p *Provider) buildAuthURL(redirectURI, state, scope, codeChallenge string) string {

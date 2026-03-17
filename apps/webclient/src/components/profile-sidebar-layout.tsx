@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Profile sidebar layout wrapper - use this in profile child routes that need the sidebar
 import * as React from "react";
 import { useTranslation } from "react-i18next";

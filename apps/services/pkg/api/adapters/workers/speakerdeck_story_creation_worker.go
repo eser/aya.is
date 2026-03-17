@@ -84,13 +84,13 @@ func (w *SpeakerDeckStoryProcessor) ProcessStories(ctx context.Context) error {
 
 // speakerDeckImportMeta holds extracted metadata from a SpeakerDeck import.
 type speakerDeckImportMeta struct {
+	publishedAt     time.Time
+	storyPictureURI *string
 	title           string
 	description     string
 	thumbnailURL    string
 	link            string
 	pdfURL          string
-	publishedAt     time.Time
-	storyPictureURI *string
 }
 
 // extractImportMeta extracts metadata from an import's properties.

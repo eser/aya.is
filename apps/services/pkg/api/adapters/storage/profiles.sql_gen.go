@@ -983,7 +983,7 @@ type GetAdminProfileBySlugRow struct {
 	Points            int32                 `db:"points" json:"points"`
 	Title             string                `db:"title" json:"title"`
 	Description       string                `db:"description" json:"description"`
-	HasTranslation    interface{}           `db:"has_translation" json:"has_translation"`
+	HasTranslation    any           `db:"has_translation" json:"has_translation"`
 }
 
 // GetAdminProfileBySlug
@@ -1153,9 +1153,9 @@ type GetMaxProfileLinkOrderParams struct {
 //	FROM "profile_link"
 //	WHERE profile_id = $1
 //	  AND deleted_at IS NULL
-func (q *Queries) GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileLinkOrderParams) (interface{}, error) {
+func (q *Queries) GetMaxProfileLinkOrder(ctx context.Context, arg GetMaxProfileLinkOrderParams) (any, error) {
 	row := q.db.QueryRowContext(ctx, getMaxProfileLinkOrder, arg.ProfileID)
-	var max_order interface{}
+	var max_order any
 	err := row.Scan(&max_order)
 	return max_order, err
 }
@@ -2132,7 +2132,7 @@ type GetProfilePageByProfileIDAndSlugRow struct {
 	Title            string         `db:"title" json:"title"`
 	Summary          string         `db:"summary" json:"summary"`
 	Content          string         `db:"content" json:"content"`
-	SearchVector     interface{}    `db:"search_vector" json:"search_vector"`
+	SearchVector     any    `db:"search_vector" json:"search_vector"`
 }
 
 // GetProfilePageByProfileIDAndSlug
@@ -2232,7 +2232,7 @@ type GetProfilePageByProfileIDAndSlugForViewerRow struct {
 	Title            string         `db:"title" json:"title"`
 	Summary          string         `db:"summary" json:"summary"`
 	Content          string         `db:"content" json:"content"`
-	SearchVector     interface{}    `db:"search_vector" json:"search_vector"`
+	SearchVector     any    `db:"search_vector" json:"search_vector"`
 }
 
 // Returns a page by slug filtered by visibility:
@@ -2872,7 +2872,7 @@ type ListAllProfilesForAdminRow struct {
 	Points            int32                 `db:"points" json:"points"`
 	Title             string                `db:"title" json:"title"`
 	Description       string                `db:"description" json:"description"`
-	HasTranslation    interface{}           `db:"has_translation" json:"has_translation"`
+	HasTranslation    any           `db:"has_translation" json:"has_translation"`
 }
 
 // ListAllProfilesForAdmin
@@ -4117,7 +4117,7 @@ type ListProfilePagesByProfileIDRow struct {
 	Title                    string         `db:"title" json:"title"`
 	Summary                  string         `db:"summary" json:"summary"`
 	Content                  string         `db:"content" json:"content"`
-	SearchVector             interface{}    `db:"search_vector" json:"search_vector"`
+	SearchVector             any    `db:"search_vector" json:"search_vector"`
 	AddedBySlug              sql.NullString `db:"added_by_slug" json:"added_by_slug"`
 	AddedByKind              sql.NullString `db:"added_by_kind" json:"added_by_kind"`
 	AddedByTitle             string         `db:"added_by_title" json:"added_by_title"`
@@ -4258,7 +4258,7 @@ type ListProfilePagesByProfileIDForViewerRow struct {
 	Title                    string         `db:"title" json:"title"`
 	Summary                  string         `db:"summary" json:"summary"`
 	Content                  string         `db:"content" json:"content"`
-	SearchVector             interface{}    `db:"search_vector" json:"search_vector"`
+	SearchVector             any    `db:"search_vector" json:"search_vector"`
 	AddedBySlug              sql.NullString `db:"added_by_slug" json:"added_by_slug"`
 	AddedByKind              sql.NullString `db:"added_by_kind" json:"added_by_kind"`
 	AddedByTitle             string         `db:"added_by_title" json:"added_by_title"`

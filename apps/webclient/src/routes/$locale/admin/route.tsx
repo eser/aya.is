@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Admin layout - handles admin permission check
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";

@@ -46,13 +46,13 @@
             pkgs.gotools
             pkgs.betteralign
             pkgs.gcov2lcov
-            pkgs.pre-commit
           ];
 
           shellHook = ''
-            pre-commit install --install-hooks > /dev/null 2>&1
+            deno install -gAf jsr:@eser/cli > /dev/null 2>&1
+            eser codebase install > /dev/null 2>&1
             echo "AYA dev shell ready."
-            echo "- Web client: cd apps/webclient && deno task dev (or npm run dev)"
+            echo "- Web client: cd apps/webclient && deno task dev"
             echo "- Services : cd apps/services && make dev"
           '';
         };

@@ -102,6 +102,7 @@ func (w *ExternalSiteStoryProcessor) ProcessStories(ctx context.Context) error {
 
 // externalSiteImportMeta holds extracted metadata from an external site import.
 type externalSiteImportMeta struct {
+	publishedAt time.Time
 	title       string
 	description string
 	content     string
@@ -111,7 +112,6 @@ type externalSiteImportMeta struct {
 	siteURL     string
 	sourcePath  string
 	storyKind   string
-	publishedAt time.Time
 }
 
 // extractExternalSiteImportMeta extracts metadata from an external site import's properties.

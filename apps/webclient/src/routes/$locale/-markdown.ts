@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Locale index domain - markdown generation utilities
  * Provides an overview of the locale with links to main sections

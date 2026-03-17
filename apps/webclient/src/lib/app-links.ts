@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Registry of domains that support mobile app deep linking
  * (Universal Links on iOS, App Links on Android).

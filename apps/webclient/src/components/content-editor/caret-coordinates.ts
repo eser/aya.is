@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Get screen coordinates of the cursor position in a textarea
  * using the "mirror div" technique.
@@ -66,10 +67,8 @@ export function getCaretCoordinates(
   document.body.appendChild(mirror);
 
   const rect = textarea.getBoundingClientRect();
-  const x =
-    rect.left + caretSpan.offsetLeft - textarea.scrollLeft;
-  const y =
-    rect.top + caretSpan.offsetTop - textarea.scrollTop;
+  const x = rect.left + caretSpan.offsetLeft - textarea.scrollLeft;
+  const y = rect.top + caretSpan.offsetTop - textarea.scrollTop;
 
   document.body.removeChild(mirror);
 

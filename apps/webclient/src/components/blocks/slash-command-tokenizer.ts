@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * MDX-aware tokenizer that determines whether the cursor is in a "safe"
  * context for the slash command inserter to open.

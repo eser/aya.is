@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import type React from "react";
 import styles from "./button-block.module.css";
 
@@ -26,9 +27,7 @@ function ButtonBlock(props: ButtonBlockProps) {
     return <span className={styles.plainText}>{props.children}</span>;
   }
 
-  const externalProps = isExternalHref(props.href)
-    ? { target: "_blank" as const, rel: "noopener noreferrer" }
-    : {};
+  const externalProps = isExternalHref(props.href) ? { target: "_blank" as const, rel: "noopener noreferrer" } : {};
 
   return (
     <a

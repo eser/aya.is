@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -211,7 +212,7 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
   const blockHint = getBlockHintForLine(props.content, cursorLine);
 
   // Handle toolbar prop changes by replacing the tag text in the textarea
-  const handleToolbarPropsChange = React.useCallback((startOffset: number, endOffset: number, newTag: string) => {
+  const handleToolbarPropsChange = React.useCallback((_startOffset: number, _endOffset: number, newTag: string) => {
     const textarea = textareaRef.current;
     if (textarea === null) return;
 

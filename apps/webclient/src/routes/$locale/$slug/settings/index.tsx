@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Profile settings index (general settings)
 import * as React from "react";
 import { createFileRoute, getRouteApi, useRouter } from "@tanstack/react-router";

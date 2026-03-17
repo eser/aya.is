@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Conversation-based Mailbox — lists conversations, shows detail + messages
 import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";

@@ -1,13 +1,8 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /// <reference lib="deno.ns" />
 import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals, assertNotEquals } from "@std/assert";
-import {
-  getAllBlocks,
-  getAllPatterns,
-  getBlocksByCategory,
-  searchBlocks,
-  searchPatterns,
-} from "./registry.ts";
+import { assertEquals } from "@std/assert";
+import { getAllBlocks, getAllPatterns, getBlocksByCategory, searchBlocks, searchPatterns } from "./registry.ts";
 
 Deno.test("getAllBlocks returns all blocks", async (t) => {
   const blocks = getAllBlocks();

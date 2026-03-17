@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import React, { useState } from "react";
 import styles from "./tabs-block.module.css";
 
@@ -19,8 +20,7 @@ function TabsBlock(props: TabsBlockProps) {
 
   const childArray = React.Children.toArray(props.children);
   const tabs = childArray.filter(
-    (child): child is React.ReactElement<TabBlockProps> =>
-      React.isValidElement(child) && child.type === TabBlock,
+    (child): child is React.ReactElement<TabBlockProps> => React.isValidElement(child) && child.type === TabBlock,
   );
 
   if (tabs.length === 0) {
@@ -37,12 +37,11 @@ function TabsBlock(props: TabsBlockProps) {
     <div className={styles.tabs}>
       <div className={styles.tabList} role="tablist">
         {tabs.map((tab, index) => {
-          const label =
-            tab.props.label !== undefined &&
-            tab.props.label !== null &&
-            tab.props.label !== ""
-              ? tab.props.label
-              : `Tab ${index + 1}`;
+          const label = tab.props.label !== undefined &&
+              tab.props.label !== null &&
+              tab.props.label !== ""
+            ? tab.props.label
+            : `Tab ${index + 1}`;
 
           return (
             <button
@@ -66,5 +65,5 @@ function TabsBlock(props: TabsBlockProps) {
   );
 }
 
-export { TabsBlock, TabBlock };
-export type { TabsBlockProps, TabBlockProps };
+export { TabBlock, TabsBlock };
+export type { TabBlockProps, TabsBlockProps };

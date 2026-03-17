@@ -68,9 +68,9 @@ func (c *Config) GetAllowedURIPrefixes() []string {
 
 // slugValidationResult holds the result of slug format validation.
 type slugValidationResult struct {
-	Valid    bool
 	Message  string
 	Severity string
+	Valid    bool
 }
 
 // validateSlugLength checks if the slug meets the minimum length requirement.
@@ -168,9 +168,9 @@ const (
 
 // SlugAvailabilityResult holds the result of a slug availability check.
 type SlugAvailabilityResult struct {
-	Available bool   `json:"available"`
 	Message   string `json:"message,omitempty"`
 	Severity  string `json:"severity,omitempty"` // "error" | "warning" | ""
+	Available bool   `json:"available"`
 }
 
 type Repository interface { //nolint:interfacebloat

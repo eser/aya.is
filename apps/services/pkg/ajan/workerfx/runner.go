@@ -25,9 +25,9 @@ var (
 type Runner struct {
 	worker    Worker
 	logger    *logfx.Logger
+	triggerCh chan struct{}
 	status    WorkerStatus
 	mu        sync.RWMutex
-	triggerCh chan struct{}
 }
 
 // NewRunner creates a new worker runner.

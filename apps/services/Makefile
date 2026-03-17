@@ -15,8 +15,8 @@ dep: ## Downloads dependencies.
 
 .PHONY: init-tools
 init-tools: ## Initializes tools.
-	command -v pre-commit >/dev/null || brew install pre-commit
-	[ -f .git/hooks/pre-commit ] || pre-commit install
+	command -v eser >/dev/null || deno install -gAf jsr:@eser/cli
+	eser codebase install
 	command -v act >/dev/null || brew install act
 	go tool -n air >/dev/null || go get -tool github.com/air-verse/air@latest
 

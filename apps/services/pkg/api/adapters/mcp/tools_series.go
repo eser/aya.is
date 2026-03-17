@@ -14,10 +14,10 @@ type listSeriesInput struct {
 }
 
 type seriesBrief struct {
+	SeriesPictureURI *string `json:"series_picture_uri,omitempty"`
 	Slug             string  `json:"slug"`
 	Title            string  `json:"title"`
 	Description      string  `json:"description"`
-	SeriesPictureURI *string `json:"series_picture_uri,omitempty"`
 }
 
 type listSeriesOutput struct {

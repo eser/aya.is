@@ -15,24 +15,24 @@ var ErrNewsNotFound = errors.New("news item not found")
 const newsKind = "news"
 
 type listNewsInput struct {
-	Locale          string  `json:"locale,omitempty"           jsonschema:"Locale code (default: en)"`
 	PublicationSlug *string `json:"publication_slug,omitempty" jsonschema:"Filter by publication profile slug"`
-	Limit           int     `json:"limit,omitempty"            jsonschema:"Maximum results (default 20, max 100)"`
 	Cursor          *string `json:"cursor,omitempty"           jsonschema:"Pagination cursor for next page"`
+	Locale          string  `json:"locale,omitempty"           jsonschema:"Locale code (default: en)"`
+	Limit           int     `json:"limit,omitempty"            jsonschema:"Maximum results (default 20, max 100)"`
 }
 
 type newsBrief struct {
-	Slug            string  `json:"slug"`
-	Title           string  `json:"title"`
-	Summary         string  `json:"summary"`
 	StoryPictureURI *string `json:"story_picture_uri,omitempty"`
 	AuthorName      *string `json:"author_name,omitempty"`
 	AuthorSlug      *string `json:"author_slug,omitempty"`
+	Slug            string  `json:"slug"`
+	Title           string  `json:"title"`
+	Summary         string  `json:"summary"`
 }
 
 type listNewsOutput struct {
-	News       []newsBrief `json:"news"`
 	NextCursor *string     `json:"next_cursor,omitempty"`
+	News       []newsBrief `json:"news"`
 }
 
 type getNewsInput struct {

@@ -17,18 +17,18 @@ const (
 )
 
 type listProfilesInput struct {
+	Cursor *string `json:"cursor,omitempty" jsonschema:"Pagination cursor for next page"`
 	Locale string  `json:"locale,omitempty" jsonschema:"Locale code (default: en)"`
 	Kind   string  `json:"kind,omitempty"   jsonschema:"Filter by kind: individual, organization, product"`
 	Limit  int     `json:"limit,omitempty"  jsonschema:"Maximum results (default 20, max 100)"`
-	Cursor *string `json:"cursor,omitempty" jsonschema:"Pagination cursor for next page"`
 }
 
 type profileBrief struct {
+	ProfilePictureURI *string `json:"profile_picture_uri,omitempty"`
 	Slug              string  `json:"slug"`
 	Name              string  `json:"name"`
 	Description       string  `json:"description"`
 	Kind              string  `json:"kind"`
-	ProfilePictureURI *string `json:"profile_picture_uri,omitempty"`
 }
 
 type pageBrief struct {
@@ -44,8 +44,8 @@ type linkBrief struct {
 }
 
 type listProfilesOutput struct {
-	Profiles   []profileBrief `json:"profiles"`
 	NextCursor *string        `json:"next_cursor,omitempty"`
+	Profiles   []profileBrief `json:"profiles"`
 }
 
 type getProfileInput struct {
@@ -71,11 +71,11 @@ type getProfilePageInput struct {
 }
 
 type getProfilePageOutput struct {
+	CoverPictureURI *string `json:"cover_picture_uri,omitempty"`
 	Slug            string  `json:"slug"`
 	Title           string  `json:"title"`
 	Summary         string  `json:"summary"`
 	Content         string  `json:"content"`
-	CoverPictureURI *string `json:"cover_picture_uri,omitempty"`
 }
 
 func registerProfileTools(server *mcp.Server, profileService *profiles.Service) {

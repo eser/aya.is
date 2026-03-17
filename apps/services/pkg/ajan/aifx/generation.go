@@ -62,18 +62,18 @@ type Usage struct {
 
 // GenerateTextOptions configures a text generation request.
 type GenerateTextOptions struct {
-	Messages       []Message
-	Tools          []ToolDefinition
-	System         string
-	MaxTokens      int
 	Temperature    *float64
 	TopP           *float64
-	StopWords      []string
-	ToolChoice     ToolChoice      // "auto", "none", "required"
 	ResponseFormat *ResponseFormat // structured output (JSON schema)
 	ThinkingBudget *int            // reasoning/thinking token budget
-	SafetySettings []SafetySetting // Google providers: harm category thresholds
 	Extensions     map[string]any  // provider-specific extra options
+	System         string
+	ToolChoice     ToolChoice // "auto", "none", "required"
+	Messages       []Message
+	Tools          []ToolDefinition
+	StopWords      []string
+	SafetySettings []SafetySetting // Google providers: harm category thresholds
+	MaxTokens      int
 }
 
 // StreamTextOptions configures a streaming text generation request.
@@ -82,12 +82,12 @@ type StreamTextOptions = GenerateTextOptions
 
 // GenerateTextResult contains the result of a text generation request.
 type GenerateTextResult struct {
-	Content     []ContentBlock
-	StopReason  StopReason
-	Usage       Usage
-	ModelID     string
 	RawRequest  any // provider-specific raw request (for debugging)
 	RawResponse any // provider-specific raw response (for debugging)
+	StopReason  StopReason
+	ModelID     string
+	Content     []ContentBlock
+	Usage       Usage
 }
 
 // Text returns concatenated text from all text content blocks.
@@ -128,12 +128,12 @@ const (
 
 // StreamEvent represents a single event in a streaming response.
 type StreamEvent struct {
+	Error      error
+	ToolCall   *ToolCall
+	Usage      *Usage
 	Type       StreamEventType
 	TextDelta  string
-	ToolCall   *ToolCall
 	StopReason StopReason
-	Usage      *Usage
-	Error      error
 }
 
 // newStreamEventContentDelta creates a content delta stream event.
@@ -199,12 +199,12 @@ func newStreamEventError(err error) StreamEvent {
 // StreamIterator provides a pull-based API for consuming stream events.
 // Follows the Go iterator pattern (similar to sql.Rows).
 type StreamIterator struct {
+	err     error
 	eventCh <-chan StreamEvent
 	cancel  context.CancelFunc
 	current StreamEvent
-	err     error
-	done    bool
 	mu      sync.Mutex
+	done    bool
 }
 
 // NewStreamIterator creates a new stream iterator from an event channel.

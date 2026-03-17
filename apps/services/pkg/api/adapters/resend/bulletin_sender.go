@@ -46,15 +46,15 @@ var kindEmoji = map[string]string{ //nolint:gochecknoglobals
 
 // BulletinSender sends bulletin digests via email using the Resend API.
 type BulletinSender struct {
-	client         *Client
 	emailResolver  bulletinbiz.UserEmailResolver
+	client         *Client
 	logger         *logfx.Logger
 	localizer      *i18nfx.Localizer
+	tmpl           *template.Template
+	sandboxAllowed map[string]bool
 	fromAddress    string
 	frontendURI    string
-	tmpl           *template.Template
 	sandboxMode    bool
-	sandboxAllowed map[string]bool
 }
 
 // NewBulletinSender creates a new email bulletin channel adapter.

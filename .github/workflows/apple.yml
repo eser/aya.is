@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/apple/**'
-      - '.github/workflows/apple.yml'
+      - "apps/apple/**"
+      - ".github/workflows/apple.yml"
   pull_request:
     branches: [main]
     paths:
-      - 'apps/apple/**'
-      - '.github/workflows/apple.yml'
+      - "apps/apple/**"
+      - ".github/workflows/apple.yml"
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  XCODE_VERSION: '26.2'
+  XCODE_VERSION: "26.2"
 
 jobs:
   test-ios:
@@ -58,7 +58,6 @@ jobs:
             -skip-testing:AYA-Tests/FeaturedStoryCardSnapshotTests \
             -skip-testing:AYA-Tests/ActivityCardSnapshotTests \
             CODE_SIGNING_ALLOWED=NO
-
 
   build-ios:
     name: Build iOS

@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Profile index - shows profile stories/timeline with date grouping and pagination
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";

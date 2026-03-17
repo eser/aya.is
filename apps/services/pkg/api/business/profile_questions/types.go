@@ -12,9 +12,7 @@ const (
 
 // Question represents a Q&A question on a profile.
 type Question struct {
-	ID                     string     `json:"id"`
-	ProfileID              string     `json:"profile_id"`
-	Content                string     `json:"content"`
+	CreatedAt              time.Time  `json:"created_at"`
 	AuthorProfileID        *string    `json:"author_profile_id"`
 	AuthorProfileSlug      *string    `json:"author_profile_slug"`
 	AuthorProfileTitle     *string    `json:"author_profile_title"`
@@ -25,21 +23,23 @@ type Question struct {
 	AnsweredByProfileID    *string    `json:"answered_by_profile_id"`
 	AnsweredByProfileSlug  *string    `json:"answered_by_profile_slug"`
 	AnsweredByProfileTitle *string    `json:"answered_by_profile_title"`
+	UpdatedAt              *time.Time `json:"updated_at"`
+	ID                     string     `json:"id"`
+	ProfileID              string     `json:"profile_id"`
+	Content                string     `json:"content"`
 	VoteCount              int        `json:"vote_count"`
 	IsAnonymous            bool       `json:"is_anonymous"`
 	IsHidden               bool       `json:"is_hidden"`
 	HasViewerVote          bool       `json:"has_viewer_vote"`
-	CreatedAt              time.Time  `json:"created_at"`
-	UpdatedAt              *time.Time `json:"updated_at"`
 }
 
 // Vote represents a user's vote on a question.
 type Vote struct {
+	CreatedAt  time.Time `json:"created_at"`
 	ID         string    `json:"id"`
 	QuestionID string    `json:"question_id"`
 	UserID     string    `json:"user_id"`
 	Score      int       `json:"score"`
-	CreatedAt  time.Time `json:"created_at"`
 }
 
 // CreateQuestionParams holds parameters for creating a new question.
@@ -52,13 +52,13 @@ type CreateQuestionParams struct {
 
 // AnswerQuestionParams holds parameters for answering a question.
 type AnswerQuestionParams struct {
+	AnswerURI         *string
+	AnswerKind        *string
 	ProfileSlug       string
 	QuestionID        string
 	UserID            string
 	AnswererProfileID string
 	AnswerContent     string
-	AnswerURI         *string
-	AnswerKind        *string
 }
 
 // VoteParams holds parameters for toggling a vote on a question.

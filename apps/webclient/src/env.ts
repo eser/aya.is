@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 

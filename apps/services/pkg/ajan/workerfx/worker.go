@@ -31,12 +31,12 @@ type WorkerConfig struct {
 
 // WorkerStatus tracks worker execution state.
 type WorkerStatus struct {
+	LastRun      time.Time
+	LastError    error
 	Name         string
 	StateKey     string
 	Interval     time.Duration
-	LastRun      time.Time
 	LastDuration time.Duration
-	LastError    error
 	SuccessCount int64
 	SkipCount    int64
 	ErrorCount   int64

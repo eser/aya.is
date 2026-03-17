@@ -134,14 +134,23 @@ func (s WorkerState) IsHealthy() bool {
 
 // WorkerStatus provides observable state for a supervised worker.
 type WorkerStatus struct {
+	// LastHeartbeat is when the last heartbeat was received.
+	LastHeartbeat time.Time
+
+	// StartedAt is when the worker was first started.
+	StartedAt time.Time
+
+	// LastRestartAt is when the worker was last restarted.
+	LastRestartAt time.Time
+
+	// LastError is the most recent error from the worker.
+	LastError error
+
 	// Name identifies the worker.
 	Name string
 
 	// State is the current worker state.
 	State WorkerState
-
-	// LastHeartbeat is when the last heartbeat was received.
-	LastHeartbeat time.Time
 
 	// RestartCount is the number of consecutive restarts without healthy heartbeat.
 	RestartCount int
@@ -149,17 +158,8 @@ type WorkerStatus struct {
 	// TotalRestarts is the total number of restarts since process start.
 	TotalRestarts int
 
-	// LastError is the most recent error from the worker.
-	LastError error
-
 	// ItemsProcessed is the total items processed (from progress heartbeats).
 	ItemsProcessed int64
-
-	// StartedAt is when the worker was first started.
-	StartedAt time.Time
-
-	// LastRestartAt is when the worker was last restarted.
-	LastRestartAt time.Time
 }
 
 // Uptime returns how long the worker has been running.

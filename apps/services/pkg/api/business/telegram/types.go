@@ -5,21 +5,21 @@ import "time"
 // ExternalCode represents a short-lived code tied to an external system (e.g. Telegram, Discord).
 // All platform-specific data lives in the Properties map (JSONB in the database).
 type ExternalCode struct {
+	CreatedAt      time.Time
+	ExpiresAt      time.Time
+	Properties     map[string]any
+	ConsumedAt     *time.Time
 	ID             string
 	Code           string
 	ExternalSystem string
-	Properties     map[string]any
-	CreatedAt      time.Time
-	ExpiresAt      time.Time
-	ConsumedAt     *time.Time
 }
 
 // LinkResult contains the result of a successful account linking.
 type LinkResult struct {
 	ProfileID        string
 	ProfileSlug      string
-	TelegramUserID   int64
 	TelegramUsername string
+	TelegramUserID   int64
 }
 
 // ProfileLinkInfo represents a linked Telegram account.
@@ -54,17 +54,17 @@ type GroupTelegramLink struct {
 
 // GroupRegisterCodeData contains the resolved data from a group registration code.
 type GroupRegisterCodeData struct {
-	ChatID    int64
 	ChatTitle string
+	ChatID    int64
 }
 
 // EligibleTelegramGroup represents a Telegram group resource the user can join via team membership.
 type EligibleTelegramGroup struct {
 	ResourceID   string
 	GroupTitle   string
-	ChatID       int64
 	ProfileSlug  string
 	ProfileTitle string
+	ChatID       int64
 }
 
 // CreateProfileLinkParams contains parameters for creating a telegram profile link.
@@ -74,7 +74,7 @@ type CreateProfileLinkParams struct {
 	RemoteID         string // Telegram user ID as string
 	PublicID         string // Telegram username
 	URI              string // https://t.me/<username>
-	Order            int
 	Visibility       string // Link visibility (public, followers, etc.)
 	AddedByProfileID string
+	Order            int
 }

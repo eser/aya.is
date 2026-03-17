@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import type React from "react";
 import { cn } from "@/lib/utils";
 import styles from "./cover-block.module.css";
@@ -17,9 +18,7 @@ function CoverBlock(props: CoverBlockProps) {
     <div
       className={cn(
         styles.cover,
-        overlay === "dark" || overlay === undefined
-          ? styles.coverDark
-          : styles.coverLight,
+        overlay === "dark" || overlay === undefined ? styles.coverDark : styles.coverLight,
       )}
       style={{
         backgroundImage: `url(${props.src})`,
@@ -28,9 +27,7 @@ function CoverBlock(props: CoverBlockProps) {
       role="img"
       aria-label={props.alt ?? ""}
     >
-      {overlay !== "none" && (
-        <div className={styles.overlay} data-overlay={overlay} />
-      )}
+      {overlay !== "none" && <div className={styles.overlay} data-overlay={overlay} />}
       <div className={styles.content}>{props.children}</div>
     </div>
   );

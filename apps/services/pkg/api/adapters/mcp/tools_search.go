@@ -9,21 +9,21 @@ import (
 )
 
 type searchInput struct {
+	Profile *string `json:"profile,omitempty" jsonschema:"Optional profile slug to scope search within"`
 	Locale  string  `json:"locale,omitempty"  jsonschema:"Locale code (default: en)"`
 	Query   string  `json:"query"             jsonschema:"required,Search query text"`
-	Profile *string `json:"profile,omitempty" jsonschema:"Optional profile slug to scope search within"`
 	Limit   int     `json:"limit,omitempty"   jsonschema:"Maximum results (default 20, max 100)"`
 }
 
 type searchResultBrief struct {
-	Type         string  `json:"type"`
-	Slug         string  `json:"slug"`
-	Title        string  `json:"title"`
 	Summary      *string `json:"summary,omitempty"`
 	Kind         *string `json:"kind,omitempty"`
 	ImageURI     *string `json:"image_uri,omitempty"`
 	ProfileSlug  *string `json:"profile_slug,omitempty"`
 	ProfileTitle *string `json:"profile_title,omitempty"`
+	Type         string  `json:"type"`
+	Slug         string  `json:"slug"`
+	Title        string  `json:"title"`
 }
 
 type searchOutput struct {

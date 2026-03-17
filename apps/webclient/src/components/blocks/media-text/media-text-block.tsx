@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import type React from "react";
 import styles from "./media-text-block.module.css";
 
@@ -12,15 +13,11 @@ type MediaTextBlockProps = {
 function MediaTextBlock(props: MediaTextBlockProps) {
   const position = props.mediaPosition ?? "left";
 
-  const gridStyle: React.CSSProperties =
-    props.mediaWidth !== undefined
-      ? {
-          gridTemplateColumns:
-            position === "left"
-              ? `${props.mediaWidth} 1fr`
-              : `1fr ${props.mediaWidth}`,
-        }
-      : {};
+  const gridStyle: React.CSSProperties = props.mediaWidth !== undefined
+    ? {
+      gridTemplateColumns: position === "left" ? `${props.mediaWidth} 1fr` : `1fr ${props.mediaWidth}`,
+    }
+    : {};
 
   return (
     <div className={styles.mediaText} style={gridStyle}>

@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Locale layout - handles locale validation and i18n sync
 import { CatchNotFound, createFileRoute, notFound, Outlet, redirect } from "@tanstack/react-router";
 import { isValidLocale, type SupportedLocaleCode } from "@/config";

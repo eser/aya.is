@@ -388,8 +388,8 @@ func RegisterHTTPRoutesForAdminPoints( //nolint:gocognit,gocyclo,cyclop,funlen,m
 				}
 
 				var body struct {
-					IDs    []string `json:"ids"`
 					Reason string   `json:"reason"`
+					IDs    []string `json:"ids"`
 				}
 
 				err = json.NewDecoder(ctx.Request.Body).Decode(&body)

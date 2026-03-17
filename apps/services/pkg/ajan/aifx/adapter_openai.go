@@ -88,8 +88,8 @@ func (f *openAIModelFactory) CreateModel(
 
 // OpenAIModel implements LanguageModel and BatchCapableModel for OpenAI.
 type OpenAIModel struct {
-	client openai.Client
 	config *ConfigTarget
+	client openai.Client
 }
 
 func (m *OpenAIModel) GetCapabilities() []ProviderCapability {
@@ -717,24 +717,24 @@ func (m *OpenAIModel) buildBatchJSONL(req *BatchRequest) ([]byte, error) {
 
 // openAIBatchRequestLine represents a single line in the JSONL batch input file.
 type openAIBatchRequestLine struct {
+	Body     openai.ChatCompletionNewParams `json:"body"`
 	CustomID string                         `json:"custom_id"`
 	Method   string                         `json:"method"`
 	URL      string                         `json:"url"`
-	Body     openai.ChatCompletionNewParams `json:"body"`
 }
 
 // openAIBatchResponseLine represents a single line in the JSONL batch output file.
 type openAIBatchResponseLine struct {
-	ID       string `json:"id"`
-	CustomID string `json:"custom_id"`
-	Response struct {
-		StatusCode int             `json:"status_code"`
-		Body       json.RawMessage `json:"body"`
-	} `json:"response"`
 	Error *struct {
 		Code    string `json:"code"`
 		Message string `json:"message"`
 	} `json:"error"`
+	ID       string `json:"id"`
+	CustomID string `json:"custom_id"`
+	Response struct {
+		Body       json.RawMessage `json:"body"`
+		StatusCode int             `json:"status_code"`
+	} `json:"response"`
 }
 
 // parseBatchResults parses the JSONL output from a completed batch.

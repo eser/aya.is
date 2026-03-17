@@ -35,19 +35,20 @@ type ExternalsConfig struct {
 type AppConfig struct {
 	ajan.BaseConfig
 
-	Auth       auth.Config            `conf:"auth"`
-	Sessions   sessions.Config        `conf:"sessions"`
-	Protection protection.Config      `conf:"protection"`
-	Profiles   profiles.Config        `conf:"profiles"`
-	Stories    stories.Config         `conf:"stories"`
-	Data       DataConfig             `conf:"data"`
-	S3         s3client.Config        `conf:"s3"`
-	Externals  ExternalsConfig        `conf:"externals"`
-	Workers    workers.Config         `conf:"workers"`
-	Coolify    coolify.Config         `conf:"coolify"`
+	Auth      auth.Config        `conf:"auth"`
+	Externals ExternalsConfig    `conf:"externals"`
+	S3        s3client.Config    `conf:"s3"`
+	Profiles  profiles.Config    `conf:"profiles"`
+	Data      DataConfig         `conf:"data"`
+	Bulletin  bulletinbiz.Config `conf:"bulletin"`
+	Stories   stories.Config     `conf:"stories"`
+	SiteURI   string             `conf:"site_uri"  default:"http://localhost:8080"`
+
 	Telegram   telegramadapter.Config `conf:"telegram"`
-	Bulletin   bulletinbiz.Config     `conf:"bulletin"`
-	SiteURI    string                 `conf:"site_uri"   default:"http://localhost:8080"`
+	Coolify    coolify.Config         `conf:"coolify"`
+	Workers    workers.Config         `conf:"workers"`
+	Protection protection.Config      `conf:"protection"`
+	Sessions   sessions.Config        `conf:"sessions"`
 
 	Features FeatureFlags `conf:"features"`
 }

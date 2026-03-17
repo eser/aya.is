@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Profile page layout - renders child routes
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 

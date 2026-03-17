@@ -64,12 +64,13 @@ AUTH__JWT_SECRET=herhangi-bir-gizli-anahtar
 EOF
 ```
 
-> **Not:** `AUTH__JWT_SECRET` kimlik doğrulama için zorunludur. Geliştirme ortamında herhangi bir değer kullanabilirsiniz.
+> **Not:** `AUTH__JWT_SECRET` kimlik doğrulama için zorunludur. Geliştirme ortamında herhangi bir değer
+> kullanabilirsiniz.
 
 #### Telegram Bot (İsteğe Bağlı)
 
-Telegram entegrasyonunu etkinleştirmek için [@BotFather](https://t.me/BotFather) üzerinden bir bot oluşturun ve aşağıdaki
-ortam değişkenlerini ekleyin:
+Telegram entegrasyonunu etkinleştirmek için [@BotFather](https://t.me/BotFather) üzerinden bir bot oluşturun ve
+aşağıdaki ortam değişkenlerini ekleyin:
 
 ```bash
 # Geliştirme ortamı (polling modu — public URL gerektirmez)
@@ -173,8 +174,8 @@ Proje aşağıdaki ana veri yapılarını kullanır:
 
 ## Nasıl Katkıda Bulunabilirsin?
 
-Herkesten katkı bekliyoruz. Başlamak için lütfen [katkıda bulunma kılavuzumuzu](.github/CONTRIBUTING.md) okuyun. Yardım etmek
-isterseniz [issue'lara](https://github.com/eser/aya.is/issues) göz atabilirsiniz. Herhangi bir sorunuz varsa
+Herkesten katkı bekliyoruz. Başlamak için lütfen [katkıda bulunma kılavuzumuzu](.github/CONTRIBUTING.md) okuyun. Yardım
+etmek isterseniz [issue'lara](https://github.com/eser/aya.is/issues) göz atabilirsiniz. Herhangi bir sorunuz varsa
 [Discord sunucumuza](https://discord.gg/itdepremyardim) katılmaktan çekinmeyin. Herhangi bir noktada takılırsanız,
 GitHub Issues veya Discord üzerinden yardım istemekten çekinmeyin.
 

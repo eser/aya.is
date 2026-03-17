@@ -37,22 +37,22 @@ type HTTPClient interface {
 
 // UserInfo represents GitHub user information.
 type UserInfo struct {
-	ID      int64  `json:"id"`
 	Login   string `json:"login"`
 	Name    string `json:"name"`
 	Email   string `json:"email"`
 	Avatar  string `json:"avatar_url"`
 	HTMLURL string `json:"html_url"`
+	ID      int64  `json:"id"`
 }
 
 // OrgInfo represents GitHub organization information.
 type OrgInfo struct {
-	ID          int64  `json:"id"`
 	Login       string `json:"login"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	Avatar      string `json:"avatar_url"`
 	HTMLURL     string `json:"html_url"`
+	ID          int64  `json:"id"`
 }
 
 // TokenResponse represents GitHub's token endpoint response.
@@ -333,24 +333,24 @@ func (c *Client) FetchUserOrganizations(
 
 // GitHubRepoInfo represents a GitHub repository.
 type GitHubRepoInfo struct {
-	ID          int64  `json:"id"`
 	FullName    string `json:"full_name"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	HTMLURL     string `json:"html_url"`
 	Language    string `json:"language"`
-	Stars       int    `json:"stargazers_count"`
-	Forks       int    `json:"forks_count"`
-	Private     bool   `json:"private"`
 	Owner       struct {
 		Login string `json:"login"`
 	} `json:"owner"`
+	ID      int64 `json:"id"`
+	Stars   int   `json:"stargazers_count"`
+	Forks   int   `json:"forks_count"`
+	Private bool  `json:"private"`
 }
 
 // GitHubContributorInfo represents a GitHub contributor.
 type GitHubContributorInfo struct {
-	ID            int64  `json:"id"`
 	Login         string `json:"login"`
+	ID            int64  `json:"id"`
 	Contributions int    `json:"contributions"`
 }
 

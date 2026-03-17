@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { validateBlockProps } from "@/components/blocks/validate-props";
@@ -51,9 +52,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
   }
 
   function renderLabel(prop: BlockPropField) {
-    const labelText = prop.label.includes(".")
-      ? t(prop.label)
-      : prop.label;
+    const labelText = prop.label.includes(".") ? t(prop.label) : prop.label;
     return labelText;
   }
 
@@ -76,9 +75,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
               placeholder={prop.placeholder ?? ""}
               onChange={(e) => handleValueChange(prop.name, e.target.value)}
             />
-            {error !== undefined && (
-              <span className={styles.propError}>{error}</span>
-            )}
+            {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>
         );
 
@@ -100,9 +97,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
                   e.target.value === "" ? "" : Number(e.target.value),
                 )}
             />
-            {error !== undefined && (
-              <span className={styles.propError}>{error}</span>
-            )}
+            {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>
         );
 
@@ -114,15 +109,12 @@ function BlockPropEditor(props: BlockPropEditorProps) {
                 type="checkbox"
                 className={styles.propCheckbox}
                 checked={value === true || value === "true"}
-                onChange={(e) =>
-                  handleValueChange(prop.name, e.target.checked)}
+                onChange={(e) => handleValueChange(prop.name, e.target.checked)}
               />
               {renderLabel(prop)}
               {prop.required && <span className={styles.propRequired}>*</span>}
             </label>
-            {error !== undefined && (
-              <span className={styles.propError}>{error}</span>
-            )}
+            {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>
         );
 
@@ -144,9 +136,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
                 </option>
               ))}
             </select>
-            {error !== undefined && (
-              <span className={styles.propError}>{error}</span>
-            )}
+            {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>
         );
 
@@ -163,9 +153,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
               value={typeof value === "string" ? value : "#000000"}
               onChange={(e) => handleValueChange(prop.name, e.target.value)}
             />
-            {error !== undefined && (
-              <span className={styles.propError}>{error}</span>
-            )}
+            {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>
         );
 
@@ -182,9 +170,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
               value={typeof value === "string" ? value : ""}
               onChange={(e) => handleValueChange(prop.name, e.target.value)}
             />
-            {error !== undefined && (
-              <span className={styles.propError}>{error}</span>
-            )}
+            {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>
         );
 
@@ -201,9 +187,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
               placeholder={prop.placeholder ?? ""}
               onChange={(e) => handleValueChange(prop.name, e.target.value)}
             />
-            {error !== undefined && (
-              <span className={styles.propError}>{error}</span>
-            )}
+            {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>
         );
     }

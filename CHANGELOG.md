@@ -3,8 +3,11 @@
 ## 0.1.0 - 2026-03-08
 
 ### Added
-- Multi-profile system with individual, organization, and product profile types, slug-based routing, and custom domain support.
-- Full internationalization across 13 locales (ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN) with 3-tier locale fallback.
+
+- Multi-profile system with individual, organization, and product profile types, slug-based routing, and custom domain
+  support.
+- Full internationalization across 13 locales (ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN) with 3-tier
+  locale fallback.
 - Story management system supporting articles, announcements, and other content kinds with Markdown/MDX editing.
 - Story series for grouping related stories with ordering and navigation.
 - Story discussions with threaded comments.
@@ -31,7 +34,9 @@
 - SEO improvements with metadata, reading time, and Open Graph support.
 
 ### Improved
-- Migrated frontend from Next.js to TanStack Start with file-based routing and SSR via React Query dehydration/hydration.
+
+- Migrated frontend from Next.js to TanStack Start with file-based routing and SSR via React Query
+  dehydration/hydration.
 - Migrated backend to Go hexagonal architecture with connfx/aifx patterns and goose migrations.
 - Adopted CSS Modules with Tailwind @apply for component styling.
 - Implemented 88 Deno snapshot tests for pure utility functions.
@@ -41,6 +46,7 @@
 - Multi-stage Docker builds with distroless images for production deployment.
 
 ### Fixed
+
 - Locale switching and locale fallback reliability.
 - Story card aspect ratio rendering.
 - Cross-domain navigation and custom domain link handling.
@@ -48,4 +54,6 @@
 - Dropdown menu interactions and form validation.
 
 ### Notes
-- This is the initial changelog entry summarizing the project's full development history. Future entries will document changes incrementally per release.
+
+- This is the initial changelog entry summarizing the project's full development history. Future entries will document
+  changes incrementally per release.

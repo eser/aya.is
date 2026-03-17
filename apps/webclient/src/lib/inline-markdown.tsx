@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Render inline markdown (bold, italic, links, code, strikethrough)
  * as HTML. Escapes raw HTML first to prevent XSS, then applies

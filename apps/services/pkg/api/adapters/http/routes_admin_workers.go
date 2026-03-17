@@ -15,16 +15,16 @@ import (
 )
 
 type adminWorkerResponse struct {
-	Name         string  `json:"name"`
-	IsRunning    bool    `json:"is_running"`
-	IsEnabled    bool    `json:"is_enabled"`
 	LastRun      *string `json:"last_run"`
 	NextRun      *string `json:"next_run"`
 	LastError    *string `json:"last_error"`
+	Name         string  `json:"name"`
+	Interval     string  `json:"interval"`
 	SuccessCount int64   `json:"success_count"`
 	SkipCount    int64   `json:"skip_count"`
 	ErrorCount   int64   `json:"error_count"`
-	Interval     string  `json:"interval"`
+	IsRunning    bool    `json:"is_running"`
+	IsEnabled    bool    `json:"is_enabled"`
 }
 
 func RegisterHTTPRoutesForAdminWorkers( //nolint:gocognit,cyclop,funlen

@@ -95,9 +95,9 @@ type Repository interface { //nolint:interfacebloat
 
 // PendingAwardsStats holds statistics about pending awards.
 type PendingAwardsStats struct {
+	ByEventType   map[string]uint64 `json:"by_event_type"`
 	TotalPending  uint64            `json:"total_pending"`
 	TotalApproved uint64            `json:"total_approved"`
 	TotalRejected uint64            `json:"total_rejected"`
 	PointsAwarded uint64            `json:"points_awarded"`
-	ByEventType   map[string]uint64 `json:"by_event_type"`
 }

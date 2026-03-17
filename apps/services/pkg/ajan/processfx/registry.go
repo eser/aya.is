@@ -84,13 +84,13 @@ func (r *SupervisorRegistry) IsHealthy() bool {
 
 // HealthSummary returns a summary of worker health states.
 type HealthSummary struct {
+	Supervisors map[string]WorkerStatus
 	Total       int
 	Healthy     int
 	Stuck       int
 	Restarting  int
 	Failed      int
 	IsHealthy   bool
-	Supervisors map[string]WorkerStatus
 }
 
 // Summary returns a summary of all supervisor health states.

@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Upload a file directly to S3/R2 using a pre-signed URL
  * This bypasses our backend - the file goes directly to storage

@@ -179,8 +179,8 @@ func RegisterHTTPRoutesForStorySeries( //nolint:funlen,cyclop,gocognit,maintidx
 				idParam := ctx.Request.PathValue("id")
 
 				var requestBody struct {
-					Slug             string  `json:"slug"`
 					SeriesPictureURI *string `json:"series_picture_uri"`
+					Slug             string  `json:"slug"`
 				}
 
 				parseErr := ctx.ParseJSONBody(&requestBody)

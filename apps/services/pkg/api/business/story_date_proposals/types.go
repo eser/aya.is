@@ -45,46 +45,46 @@ type AccessChecker interface {
 
 // DateProposal represents a proposed date for an activity.
 type DateProposal struct {
+	DatetimeStart     time.Time  `json:"datetime_start"`
+	CreatedAt         time.Time  `json:"created_at"`
+	DatetimeEnd       *time.Time `json:"datetime_end"`
+	UpdatedAt         *time.Time `json:"updated_at"`
 	ID                string     `json:"id"`
 	StoryID           string     `json:"story_id"`
 	ProposerProfileID string     `json:"proposer_profile_id"`
-	DatetimeStart     time.Time  `json:"datetime_start"`
-	DatetimeEnd       *time.Time `json:"datetime_end"`
-	IsFinalized       bool       `json:"is_finalized"`
 	VoteScore         int        `json:"vote_score"`
 	UpvoteCount       int        `json:"upvote_count"`
 	DownvoteCount     int        `json:"downvote_count"`
-	CreatedAt         time.Time  `json:"created_at"`
-	UpdatedAt         *time.Time `json:"updated_at"`
+	IsFinalized       bool       `json:"is_finalized"`
 }
 
 // DateProposalWithProfile extends DateProposal with proposer's profile display info.
 type DateProposalWithProfile struct {
+	DatetimeStart             time.Time  `json:"datetime_start"`
+	CreatedAt                 time.Time  `json:"created_at"`
+	DatetimeEnd               *time.Time `json:"datetime_end"`
+	UpdatedAt                 *time.Time `json:"updated_at"`
+	ProposerProfilePictureURI *string    `json:"proposer_profile_picture_uri"`
 	ID                        string     `json:"id"`
 	StoryID                   string     `json:"story_id"`
 	ProposerProfileID         string     `json:"proposer_profile_id"`
-	DatetimeStart             time.Time  `json:"datetime_start"`
-	DatetimeEnd               *time.Time `json:"datetime_end"`
-	IsFinalized               bool       `json:"is_finalized"`
+	ProposerProfileSlug       string     `json:"proposer_profile_slug"`
+	ProposerProfileTitle      string     `json:"proposer_profile_title"`
+	ProposerProfileKind       string     `json:"proposer_profile_kind"`
 	VoteScore                 int        `json:"vote_score"`
 	UpvoteCount               int        `json:"upvote_count"`
 	DownvoteCount             int        `json:"downvote_count"`
-	CreatedAt                 time.Time  `json:"created_at"`
-	UpdatedAt                 *time.Time `json:"updated_at"`
-	ProposerProfileSlug       string     `json:"proposer_profile_slug"`
-	ProposerProfileTitle      string     `json:"proposer_profile_title"`
-	ProposerProfilePictureURI *string    `json:"proposer_profile_picture_uri"`
-	ProposerProfileKind       string     `json:"proposer_profile_kind"`
 	ViewerVoteDirection       int        `json:"viewer_vote_direction"`
+	IsFinalized               bool       `json:"is_finalized"`
 }
 
 // DateProposalVote represents a user's vote on a proposal.
 type DateProposalVote struct {
+	CreatedAt      time.Time `json:"created_at"`
 	ID             string    `json:"id"`
 	ProposalID     string    `json:"proposal_id"`
 	VoterProfileID string    `json:"voter_profile_id"`
 	Direction      int       `json:"direction"`
-	CreatedAt      time.Time `json:"created_at"`
 }
 
 // DateProposalListResponse wraps the proposals list with viewer permission flags.

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -88,9 +89,9 @@ const minSlugLength = 2
 
 // SlugAvailabilityResult holds the result of a slug availability check.
 type SlugAvailabilityResult struct {
-	Available bool   `json:"available"`
 	Message   string `json:"message,omitempty"`
 	Severity  string `json:"severity,omitempty"` // "error" | "warning" | ""
+	Available bool   `json:"available"`
 }
 
 // Config holds the profiles service configuration.
@@ -1908,7 +1909,15 @@ func (s *Service) Update( //nolint:cyclop,funlen
 	}
 
 	// Validate module visibility values
-	for _, v := range []*string{featureRelations, featureLinks, featureQA, featureDiscussions, featureReferrals, featureApplications} {
+	visibilityFields := []*string{
+		featureRelations,
+		featureLinks,
+		featureQA,
+		featureDiscussions,
+		featureReferrals,
+		featureApplications,
+	}
+	for _, v := range visibilityFields {
 		if v != nil {
 			switch ModuleVisibility(*v) {
 			case ModuleVisibilityPublic, ModuleVisibilityHidden, ModuleVisibilityDisabled:
@@ -3624,7 +3633,9 @@ func (s *Service) DeleteMembership( //nolint:cyclop,funlen
 
 	// If already a follower, perform a real delete.
 	// Otherwise, demote to follower so they still follow the organization.
-	if membership.Kind == string(MembershipKindFollower) {
+	if membership.Kind == string( //nolint:nestif // leave/unfollow logic requires nested checks
+		MembershipKindFollower,
+	) {
 		err = s.repo.DeleteProfileMembership(ctx, membershipID)
 		if err != nil {
 			return fmt.Errorf(
@@ -4804,13 +4815,7 @@ func isValidCandidateTransition(from, target CandidateStatus) bool {
 		return false
 	}
 
-	for _, status := range allowed {
-		if status == target {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(allowed, target)
 }
 
 // UpdateCandidateStatus changes the status of a candidate. Requires lead+ access.
@@ -5252,7 +5257,7 @@ func (s *Service) UpsertApplicationForm( //nolint:cyclop,gocognit,funlen
 // CreateApplication creates a self-nominated candidate (application).
 // Requires: authenticated user, feature_applications enabled.
 // If no application form is configured, accepts the application with just the message.
-func (s *Service) CreateApplication( //nolint:cyclop,funlen
+func (s *Service) CreateApplication( //nolint:cyclop,funlen,gocognit
 	ctx context.Context,
 	userID string,
 	profileSlug string,

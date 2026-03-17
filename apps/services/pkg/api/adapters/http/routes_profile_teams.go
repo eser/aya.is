@@ -97,8 +97,8 @@ func RegisterHTTPRoutesForProfileTeams( //nolint:gocognit,cyclop,funlen,maintidx
 			}
 
 			var input struct {
-				Name        string  `json:"name"`
 				Description *string `json:"description"`
+				Name        string  `json:"name"`
 			}
 
 			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
@@ -162,8 +162,8 @@ func RegisterHTTPRoutesForProfileTeams( //nolint:gocognit,cyclop,funlen,maintidx
 			}
 
 			var input struct {
-				Name        string  `json:"name"`
 				Description *string `json:"description"`
+				Name        string  `json:"name"`
 			}
 
 			err := json.NewDecoder(ctx.Request.Body).Decode(&input)

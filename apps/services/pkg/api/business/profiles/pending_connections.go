@@ -11,8 +11,8 @@ const pendingConnectionExpiryMinutes = 10
 
 // PendingConnectionStore stores temporary OAuth connections awaiting account selection.
 type PendingConnectionStore struct {
-	mu          sync.RWMutex
 	connections map[string]*PendingOAuthConnection
+	mu          sync.RWMutex
 }
 
 // NewPendingConnectionStore creates a new pending connection store.

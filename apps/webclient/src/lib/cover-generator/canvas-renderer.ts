@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Canvas Renderer for Cover Generator
 // Pure functions for drawing covers on HTML Canvas
 

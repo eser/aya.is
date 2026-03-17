@@ -12,6 +12,7 @@ import (
 type BaseConfig struct {
 	Conn       connfx.Config `conf:"conn"`
 	AI         aifx.Config   `conf:"ai"`
+	I18n       i18nfx.Config `conf:"i18n"`
 	AppName    string        `conf:"name"    default:"ajansvc"`
 	AppEnv     string        `conf:"env"     default:"development"`
 	AppVersion string        `conf:"version" default:"0.0.0"`
@@ -22,5 +23,4 @@ type BaseConfig struct {
 	Log        logfx.Config      `conf:"log"`
 	HTTP       httpfx.Config     `conf:"http"`
 	HTTPClient httpclient.Config `conf:"http_client"`
-	I18n       i18nfx.Config     `conf:"i18n"`
 }

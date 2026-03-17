@@ -53,21 +53,21 @@ type PhotoUser struct {
 
 // Photo represents an Unsplash photo.
 type Photo struct {
+	URLs        PhotoURLs `json:"urls"`
+	User        PhotoUser `json:"user"`
 	ID          string    `json:"id"`
 	Description string    `json:"description"`
 	AltDesc     string    `json:"alt_description"`
+	Color       string    `json:"color"`
 	Width       int       `json:"width"`
 	Height      int       `json:"height"`
-	Color       string    `json:"color"`
-	URLs        PhotoURLs `json:"urls"`
-	User        PhotoUser `json:"user"`
 }
 
 // SearchResult represents the search API response.
 type SearchResult struct {
+	Results    []Photo `json:"results"`
 	Total      int     `json:"total"`
 	TotalPages int     `json:"total_pages"`
-	Results    []Photo `json:"results"`
 }
 
 // Client provides Unsplash API operations.

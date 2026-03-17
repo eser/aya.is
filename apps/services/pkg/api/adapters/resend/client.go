@@ -23,8 +23,8 @@ var ErrResendAPI = errors.New("resend API error")
 
 // Client is an HTTP client for the Resend email API.
 type Client struct {
-	apiKey     string
 	httpClient *http.Client
+	apiKey     string
 }
 
 // NewClient creates a new Resend API client.
@@ -39,15 +39,15 @@ func NewClient(apiKey string) *Client {
 
 type sendEmailRequest struct {
 	From    string   `json:"from"`
-	To      []string `json:"to"`
 	Subject string   `json:"subject"`
 	HTML    string   `json:"html"`
+	To      []string `json:"to"`
 }
 
 type apiError struct {
-	StatusCode int    `json:"statusCode"`
 	Name       string `json:"name"`
 	Message    string `json:"message"`
+	StatusCode int    `json:"statusCode"`
 }
 
 // SendEmail sends an email via the Resend API.

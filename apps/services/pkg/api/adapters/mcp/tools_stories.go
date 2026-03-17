@@ -13,25 +13,25 @@ import (
 var ErrStoryNotFound = errors.New("story not found")
 
 type listStoriesInput struct {
-	Locale          string  `json:"locale,omitempty"           jsonschema:"Locale code (default: en)"`
 	PublicationSlug *string `json:"publication_slug,omitempty" jsonschema:"Filter by publication profile slug"`
-	Limit           int     `json:"limit,omitempty"            jsonschema:"Maximum results (default 20, max 100)"`
 	Cursor          *string `json:"cursor,omitempty"           jsonschema:"Pagination cursor for next page"`
+	Locale          string  `json:"locale,omitempty"           jsonschema:"Locale code (default: en)"`
+	Limit           int     `json:"limit,omitempty"            jsonschema:"Maximum results (default 20, max 100)"`
 }
 
 type storyBrief struct {
+	StoryPictureURI *string `json:"story_picture_uri,omitempty"`
+	AuthorName      *string `json:"author_name,omitempty"`
+	AuthorSlug      *string `json:"author_slug,omitempty"`
 	Slug            string  `json:"slug"`
 	Title           string  `json:"title"`
 	Summary         string  `json:"summary"`
 	Kind            string  `json:"kind"`
-	StoryPictureURI *string `json:"story_picture_uri,omitempty"`
-	AuthorName      *string `json:"author_name,omitempty"`
-	AuthorSlug      *string `json:"author_slug,omitempty"`
 }
 
 type listStoriesOutput struct {
-	Stories    []storyBrief `json:"stories"`
 	NextCursor *string      `json:"next_cursor,omitempty"`
+	Stories    []storyBrief `json:"stories"`
 }
 
 type getStoryInput struct {

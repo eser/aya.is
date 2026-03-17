@@ -407,8 +407,8 @@ func RegisterHTTPRoutesForBulletin( //nolint:funlen,cyclop,gocognit,gocyclo,main
 
 			var input struct {
 				Frequency     string   `json:"frequency"`
-				PreferredTime int      `json:"preferred_time"`
 				Channels      []string `json:"channels"`
+				PreferredTime int      `json:"preferred_time"`
 			}
 
 			decodeErr := json.NewDecoder(ctx.Request.Body).Decode(&input)

@@ -37,16 +37,17 @@ type WorkerFunc func(ctx context.Context, hb HeartbeatSender) error
 
 // Supervisor monitors and restarts unhealthy workers based on heartbeat signals.
 type Supervisor struct {
-	config     SupervisedWorkerConfig
+	status  WorkerStatus
+	metrics SupervisorMetrics
+
 	heartbeats chan Heartbeat
-	status     WorkerStatus
-	statusMux  sync.RWMutex
 	logger     *logfx.Logger
-	metrics    SupervisorMetrics
 
 	// Worker factory for restart.
-	workerFn WorkerFunc
-	cancelFn context.CancelFunc
+	workerFn  WorkerFunc
+	cancelFn  context.CancelFunc
+	config    SupervisedWorkerConfig
+	statusMux sync.RWMutex
 }
 
 // NewSupervisor creates a new worker supervisor.

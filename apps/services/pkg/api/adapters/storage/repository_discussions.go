@@ -489,15 +489,18 @@ func (r *Repository) commentRowToComment(row *GetDiscussionCommentRow) *discussi
 
 // commentFieldSet holds the common fields extracted from various discussion comment row types.
 type commentFieldSet struct {
+	CreatedAt               time.Time
+	UpdatedAt               sql.NullTime
 	ID                      string
 	ThreadID                string
-	ParentID                sql.NullString
 	AuthorUserID            string
+	Content                 string
+	ParentID                sql.NullString
 	AuthorProfileID         sql.NullString
 	AuthorProfileSlug       sql.NullString
 	AuthorProfileTitle      sql.NullString
 	AuthorProfilePictureURI sql.NullString
-	Content                 string
+	ViewerVoteDirection     int64
 	Depth                   int32
 	VoteScore               int32
 	UpvoteCount             int32
@@ -506,9 +509,6 @@ type commentFieldSet struct {
 	IsPinned                bool
 	IsHidden                bool
 	IsEdited                bool
-	ViewerVoteDirection     int64
-	CreatedAt               time.Time
-	UpdatedAt               sql.NullTime
 }
 
 // commentFieldSetToComment converts a commentFieldSet to a domain Comment.

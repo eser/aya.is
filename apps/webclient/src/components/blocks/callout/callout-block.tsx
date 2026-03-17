@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import type React from "react";
 import { AlertTriangle, Info, Lightbulb, XCircle } from "lucide-react";
 import styles from "./callout-block.module.css";
@@ -25,9 +26,7 @@ function CalloutBlock(props: CalloutBlockProps) {
     <div className={styles.callout} data-variant={variant} role="note">
       <IconComponent className={styles.icon} size={20} />
       <div className={styles.content}>
-        {props.title !== undefined && props.title !== null && (
-          <div className={styles.title}>{props.title}</div>
-        )}
+        {props.title !== undefined && props.title !== null && <div className={styles.title}>{props.title}</div>}
         <div className={styles.body}>{props.children}</div>
       </div>
     </div>

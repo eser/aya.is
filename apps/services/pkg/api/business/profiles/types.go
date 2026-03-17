@@ -113,14 +113,14 @@ type Profile struct {
 	Title                           string     `json:"title"`
 	Description                     string     `json:"description"`
 	DefaultLocale                   string     `json:"default_locale"`
-	Points                          uint64     `json:"points"`
-	HasTranslation                  bool       `json:"has_translation"`
 	FeatureRelations                string     `json:"feature_relations"`    // Visibility of Members/Contributions module
 	FeatureLinks                    string     `json:"feature_links"`        // Visibility of Links module
 	FeatureQA                       string     `json:"feature_qa"`           // Visibility of Q&A module
 	FeatureDiscussions              string     `json:"feature_discussions"`  // Visibility of Discussions module
 	FeatureReferrals                string     `json:"feature_referrals"`    // Visibility of Referral System module
 	FeatureApplications             string     `json:"feature_applications"` // Visibility of Applications module
+	Points                          uint64     `json:"points"`
+	HasTranslation                  bool       `json:"has_translation"`
 	OptionStoryDiscussionsByDefault bool       `json:"option_story_discussions_by_default"`
 }
 
@@ -182,70 +182,70 @@ type ProfilePageBrief struct {
 }
 
 type ProfileLink struct {
-	ID               string         `json:"id"`
-	Kind             string         `json:"kind"`
-	ProfileID        string         `json:"profile_id"`
-	Order            int            `json:"order"`
-	IsManaged        bool           `json:"is_managed"`
-	IsVerified       bool           `json:"is_verified"`
-	IsFeatured       bool           `json:"is_featured"`
-	IsOnline         bool           `json:"is_online"`
-	Visibility       LinkVisibility `json:"visibility"`
+	CreatedAt        time.Time      `json:"created_at"`
 	RemoteID         *string        `json:"remote_id"`
 	PublicID         *string        `json:"public_id"`
 	URI              *string        `json:"uri"`
 	Properties       map[string]any `json:"properties,omitempty"`
-	Title            string         `json:"title"`       // From profile_link_tx
 	Icon             *string        `json:"icon"`        // From profile_link_tx - custom emoticon or initials
 	Group            *string        `json:"group"`       // From profile_link_tx
 	Description      *string        `json:"description"` // From profile_link_tx
 	AddedByProfileID *string        `json:"added_by_profile_id"`
 	AddedByProfile   *ProfileBrief  `json:"added_by_profile,omitempty"`
-	CreatedAt        time.Time      `json:"created_at"`
 	UpdatedAt        *time.Time     `json:"updated_at"`
 	DeletedAt        *time.Time     `json:"deleted_at"`
+	ID               string         `json:"id"`
+	Kind             string         `json:"kind"`
+	ProfileID        string         `json:"profile_id"`
+	Visibility       LinkVisibility `json:"visibility"`
+	Title            string         `json:"title"` // From profile_link_tx
+	Order            int            `json:"order"`
+	IsManaged        bool           `json:"is_managed"`
+	IsVerified       bool           `json:"is_verified"`
+	IsFeatured       bool           `json:"is_featured"`
+	IsOnline         bool           `json:"is_online"`
 	CanRemove        bool           `json:"can_remove"`
 }
 
 type ProfileLinkBrief struct {
+	Properties  map[string]any `json:"properties"`
 	ID          string         `json:"id"`
 	Kind        string         `json:"kind"`
-	Order       int            `json:"order"`
 	PublicID    string         `json:"public_id"`
 	URI         string         `json:"uri"`
 	Title       string         `json:"title"`       // From profile_link_tx
 	Icon        string         `json:"icon"`        // From profile_link_tx - custom emoticon or initials
 	Group       string         `json:"group"`       // From profile_link_tx
 	Description string         `json:"description"` // From profile_link_tx
+	Visibility  LinkVisibility `json:"visibility"`
+	Order       int            `json:"order"`
 	IsManaged   bool           `json:"is_managed"`
 	IsVerified  bool           `json:"is_verified"`
 	IsFeatured  bool           `json:"is_featured"`
 	IsOnline    bool           `json:"is_online"`
-	Properties  map[string]any `json:"properties"`
-	Visibility  LinkVisibility `json:"visibility"`
 }
 
 // LiveStreamInfo represents a currently active live stream for the homepage.
 type LiveStreamInfo struct {
+	Properties        map[string]any `json:"properties"`
+	ProfilePictureURI *string        `json:"profile_picture_uri"`
 	LinkID            string         `json:"link_id"`
 	LinkKind          string         `json:"link_kind"`
 	LinkTitle         string         `json:"link_title"`
 	URI               string         `json:"uri"`
-	Properties        map[string]any `json:"properties"`
 	ProfileSlug       string         `json:"profile_slug"`
 	ProfileTitle      string         `json:"profile_title"`
-	ProfilePictureURI *string        `json:"profile_picture_uri"`
 }
 
 // ProfileLinkState contains state for profile link OAuth flows.
 // This extends the basic OAuth state with profile-specific data.
 type ProfileLinkState struct {
+	ExpiresAt      time.Time `json:"expires_at"`
 	State          string    `json:"state"`
 	ProfileSlug    string    `json:"profile_slug"`
 	ProfileKind    string    `json:"profile_kind"`
 	Locale         string    `json:"locale"`
 	RedirectOrigin string    `json:"redirect_origin"`
-	ExpiresAt      time.Time `json:"expires_at"`
 }
 
 // GitHubAccount represents a GitHub account (user or organization) for selection.
@@ -262,13 +262,13 @@ type GitHubAccount struct {
 // PendingOAuthConnection stores temporary OAuth data for account selection.
 // Used by providers that support organization/page account selection (GitHub, LinkedIn).
 type PendingOAuthConnection struct {
+	ExpiresAt   time.Time `json:"expires_at"`
 	Provider    string    `json:"provider"` // "github" or "linkedin"
 	AccessToken string    `json:"access_token"`
 	Scope       string    `json:"scope"`
 	ProfileSlug string    `json:"profile_slug"`
 	ProfileKind string    `json:"profile_kind"`
 	Locale      string    `json:"locale"`
-	ExpiresAt   time.Time `json:"expires_at"`
 }
 
 // LinkedInAccount represents a LinkedIn account (personal or organization page) for selection.
@@ -286,13 +286,13 @@ type ProfileMembership struct {
 	Properties      any            `json:"properties"`
 	Profile         *Profile       `json:"profile"`
 	MemberProfile   *Profile       `json:"member_profile"`
-	Teams           []*ProfileTeam `json:"teams,omitempty"`
 	StartedAt       *time.Time     `json:"started_at"`
 	FinishedAt      *time.Time     `json:"finished_at"`
+	MemberProfileID *string        `json:"member_profile_id"`
 	ID              string         `json:"id"`
 	ProfileID       string         `json:"profile_id"`
-	MemberProfileID *string        `json:"member_profile_id"`
 	Kind            string         `json:"kind"`
+	Teams           []*ProfileTeam `json:"teams,omitempty"`
 }
 
 // ProfileBrief is a lightweight profile representation for lists and references.
@@ -307,10 +307,10 @@ type ProfileBrief struct {
 
 // ProfileTeam represents a team within a profile for organizing members.
 type ProfileTeam struct {
+	Description   *string `json:"description"`
 	ID            string  `json:"id"`
 	ProfileID     string  `json:"profile_id"`
 	Name          string  `json:"name"`
-	Description   *string `json:"description"`
 	MemberCount   int64   `json:"member_count"`
 	ResourceCount int64   `json:"resource_count"`
 }
@@ -330,11 +330,11 @@ type ProfileMembershipWithMember struct {
 
 // UserSearchResult represents a user search result for adding memberships.
 type UserSearchResult struct {
-	UserID              string        `json:"user_id"`
-	Email               string        `json:"email"`
 	Name                *string       `json:"name"`
 	IndividualProfileID *string       `json:"individual_profile_id"`
 	Profile             *ProfileBrief `json:"profile"`
+	UserID              string        `json:"user_id"`
+	Email               string        `json:"email"`
 }
 
 // CandidateStatus represents the current status of a membership candidate.
@@ -360,14 +360,14 @@ const (
 
 // ApplicationForm represents an organization's application form configuration.
 type ApplicationForm struct {
+	CreatedAt           time.Time               `json:"created_at"`
 	UpdatedAt           *time.Time              `json:"updated_at"`
 	PresetKey           *string                 `json:"preset_key"`
-	CreatedAt           time.Time               `json:"created_at"`
 	ID                  string                  `json:"id"`
 	ProfileID           string                  `json:"profile_id"`
 	ResponsesVisibility string                  `json:"responses_visibility"`
-	IsActive            bool                    `json:"is_active"`
 	Fields              []*ApplicationFormField `json:"fields"`
+	IsActive            bool                    `json:"is_active"`
 }
 
 // ApplicationFormField represents a single question/field in an application form.
@@ -405,24 +405,24 @@ type CandidateFormResponse struct {
 
 // ProfileMembershipCandidate represents a candidate for a potential new member.
 type ProfileMembershipCandidate struct {
+	CreatedAt            time.Time                `json:"created_at"`
 	ReferrerProfile      *ProfileBrief            `json:"referrer_profile"`
 	ReferredProfile      *ProfileBrief            `json:"referred_profile"`
-	Teams                []*ProfileTeam           `json:"teams"`
 	ViewerVoteComment    *string                  `json:"viewer_vote_comment"`
 	ViewerVoteScore      *int16                   `json:"viewer_vote_score"`
 	ApplicantMessage     *string                  `json:"applicant_message"`
 	UpdatedAt            *time.Time               `json:"updated_at"`
-	CreatedAt            time.Time                `json:"created_at"`
 	ID                   string                   `json:"id"`
 	ProfileID            string                   `json:"profile_id"`
 	ReferredProfileID    string                   `json:"referred_profile_id"`
 	ReferrerMembershipID string                   `json:"referrer_membership_id"`
 	Source               string                   `json:"source"`
 	Status               CandidateStatus          `json:"status"`
+	Teams                []*ProfileTeam           `json:"teams"`
+	FormResponses        []*CandidateFormResponse `json:"form_responses"`
 	AverageScore         float64                  `json:"average_score"`
 	TotalVotes           int64                    `json:"total_votes"`
 	VoteCount            int                      `json:"vote_count"`
-	FormResponses        []*CandidateFormResponse `json:"form_responses"`
 }
 
 // CandidateVote represents a single vote on a candidate.
@@ -454,8 +454,8 @@ type ProfileOwnership struct {
 
 // UserBriefInfo holds the minimum user information needed for access control checks.
 type UserBriefInfo struct {
-	Kind                string  `json:"kind"`
 	IndividualProfileID *string `json:"individual_profile_id"`
+	Kind                string  `json:"kind"`
 }
 
 type ProfilePermission struct {
@@ -467,20 +467,20 @@ type ProfilePermission struct {
 }
 
 type ProfileTx struct {
+	Properties  any    `json:"properties"`
 	ProfileID   string `json:"profile_id"`
 	LocaleCode  string `json:"locale_code"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
-	Properties  any    `json:"properties"`
 }
 
 type ProfileLinkTx struct {
-	ProfileLinkID string  `json:"profile_link_id"`
-	LocaleCode    string  `json:"locale_code"`
-	Title         string  `json:"title"`
 	Icon          *string `json:"icon"`
 	Group         *string `json:"group"`
 	Description   *string `json:"description"`
+	ProfileLinkID string  `json:"profile_link_id"`
+	LocaleCode    string  `json:"locale_code"`
+	Title         string  `json:"title"`
 }
 
 // SpotlightItem represents an item in the spotlight section.
@@ -492,43 +492,43 @@ type SpotlightItem struct {
 
 // SearchResult represents a unified search result across profiles, stories, and pages.
 type SearchResult struct {
-	Type         string  `json:"type"`
-	ID           string  `json:"id"`
-	Slug         string  `json:"slug"`
-	Title        string  `json:"title"`
 	Summary      *string `json:"summary"`
 	ImageURI     *string `json:"image_uri"`
 	ProfileSlug  *string `json:"profile_slug"`
 	ProfileTitle *string `json:"profile_title"`
 	Kind         *string `json:"kind"`
+	Type         string  `json:"type"`
+	ID           string  `json:"id"`
+	Slug         string  `json:"slug"`
+	Title        string  `json:"title"`
 	Rank         float32 `json:"rank"`
 }
 
 // ProfileResource represents an external resource linked to a profile (e.g. GitHub repo).
 type ProfileResource struct {
-	ID               string         `json:"id"`
-	ProfileID        string         `json:"profile_id"`
-	Kind             string         `json:"kind"`
-	IsManaged        bool           `json:"is_managed"`
+	CreatedAt        time.Time      `json:"created_at"`
+	Properties       any            `json:"properties"`
 	RemoteID         *string        `json:"remote_id"`
 	PublicID         *string        `json:"public_id"`
 	URL              *string        `json:"url"`
-	Title            string         `json:"title"`
 	Description      *string        `json:"description"`
-	Properties       any            `json:"properties"`
-	AddedByProfileID string         `json:"added_by_profile_id"`
 	AddedByProfile   *ProfileBrief  `json:"added_by_profile,omitempty"`
-	CreatedAt        time.Time      `json:"created_at"`
 	UpdatedAt        *time.Time     `json:"updated_at"`
 	DeletedAt        *time.Time     `json:"deleted_at"`
-	CanRemove        bool           `json:"can_remove"`
+	ID               string         `json:"id"`
+	ProfileID        string         `json:"profile_id"`
+	Kind             string         `json:"kind"`
+	Title            string         `json:"title"`
+	AddedByProfileID string         `json:"added_by_profile_id"`
 	Teams            []*ProfileTeam `json:"teams"`
+	IsManaged        bool           `json:"is_managed"`
+	CanRemove        bool           `json:"can_remove"`
 }
 
 // ManagedGitHubLink holds the access token data for a managed GitHub profile link.
 type ManagedGitHubLink struct {
+	AuthAccessTokenScope *string `json:"-"` // OAuth scope granted for this link
 	ID                   string  `json:"id"`
 	ProfileID            string  `json:"profile_id"`
 	AuthAccessToken      string  `json:"-"` // Never expose tokens via JSON
-	AuthAccessTokenScope *string `json:"-"` // OAuth scope granted for this link
 }

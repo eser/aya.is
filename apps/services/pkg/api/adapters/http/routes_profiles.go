@@ -853,9 +853,9 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 
 			// Parse request body
 			var requestBody struct {
+				Properties  map[string]any `json:"properties"`
 				Title       string         `json:"title"`
 				Description string         `json:"description"`
-				Properties  map[string]any `json:"properties"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)
@@ -1136,14 +1136,14 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 
 			// Parse request body
 			var requestBody struct {
-				Kind        string  `json:"kind"`
 				URI         *string `json:"uri"`
-				Title       string  `json:"title"`
 				Icon        *string `json:"icon"`
 				Group       *string `json:"group"`
 				Description *string `json:"description"`
-				IsFeatured  bool    `json:"is_featured"`
+				Kind        string  `json:"kind"`
+				Title       string  `json:"title"`
 				Visibility  string  `json:"visibility"`
+				IsFeatured  bool    `json:"is_featured"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)
@@ -1271,15 +1271,15 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 
 			// Parse request body
 			var requestBody struct {
-				Kind        string  `json:"kind"`
-				Order       int     `json:"order"`
 				URI         *string `json:"uri"`
-				Title       string  `json:"title"`
 				Icon        *string `json:"icon"`
 				Group       *string `json:"group"`
 				Description *string `json:"description"`
-				IsFeatured  bool    `json:"is_featured"`
+				Kind        string  `json:"kind"`
+				Title       string  `json:"title"`
 				Visibility  string  `json:"visibility"`
+				Order       int     `json:"order"`
+				IsFeatured  bool    `json:"is_featured"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)
@@ -1705,11 +1705,11 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 
 			// Parse request body
 			var requestBody struct {
-				Slug            string  `json:"slug"`
-				Order           int     `json:"order"`
 				CoverPictureURI *string `json:"cover_picture_uri"`
 				PublishedAt     *string `json:"published_at"`
+				Slug            string  `json:"slug"`
 				Visibility      string  `json:"visibility"`
+				Order           int     `json:"order"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)

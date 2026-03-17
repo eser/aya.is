@@ -62,11 +62,6 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.x"
-
       - name: Setup Deno ${{ matrix.deno-version }}
         uses: denoland/setup-deno@v2
         with:
@@ -79,8 +74,11 @@ jobs:
           cache: true
           cache-dependency-path: ./apps/services/go.sum
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
+      - name: Install eser CLI
+        run: deno install -gAf jsr:@eser/cli
+
+      - name: Run integrity checks
+        run: eser ok
 
       - name: Build services
         working-directory: ./apps/services/

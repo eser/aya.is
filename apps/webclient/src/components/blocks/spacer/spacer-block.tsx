@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 interface SpacerBlockProps {
   size?: "sm" | "md" | "lg" | "xl";
 }
@@ -16,5 +17,5 @@ function SpacerBlock(props: SpacerBlockProps) {
   return <div style={{ height }} aria-hidden="true" />;
 }
 
-export { SpacerBlock, SPACER_SIZES };
+export { SPACER_SIZES, SpacerBlock };
 export type { SpacerBlockProps };

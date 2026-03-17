@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import process from "node:process";
 import { DEFAULT_LOCALE, isValidLocale } from "@/config";
 import { isMainDomain } from "@/shared.ts";

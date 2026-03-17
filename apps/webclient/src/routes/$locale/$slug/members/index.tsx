@@ -1,10 +1,15 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Profile members list page
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Check, Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/auth-context";
-import { profileMembersQueryOptions, profilePermissionsQueryOptions, profileQueryOptions } from "@/modules/backend/queries";
+import {
+  profileMembersQueryOptions,
+  profilePermissionsQueryOptions,
+  profileQueryOptions,
+} from "@/modules/backend/queries";
 import { QueryError } from "@/components/query-error";
 import { MemberCard } from "@/components/userland/member-card/member-card";
 import { LocaleLink } from "@/components/locale-link";

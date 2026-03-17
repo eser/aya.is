@@ -19,14 +19,14 @@ const (
 
 // pkceEntry holds a code verifier with an expiry time.
 type pkceEntry struct {
-	CodeVerifier string
 	ExpiresAt    time.Time
+	CodeVerifier string
 }
 
 // PKCEStore stores PKCE code verifiers between OAuth initiate and callback.
 type PKCEStore struct {
-	mu        sync.RWMutex
 	verifiers map[string]*pkceEntry
+	mu        sync.RWMutex
 }
 
 // NewPKCEStore creates a new PKCE store with automatic cleanup.

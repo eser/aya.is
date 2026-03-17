@@ -37,13 +37,13 @@ type Message struct {
 
 // ContentBlock represents a single piece of content within a message.
 type ContentBlock struct {
-	Type       ContentBlockType
-	Text       string
 	Image      *ImagePart
 	Audio      *AudioPart
 	File       *FilePart
 	ToolCall   *ToolCall
 	ToolResult *ToolResult
+	Type       ContentBlockType
+	Text       string
 }
 
 // ToolCall represents a function/tool call made by the model.

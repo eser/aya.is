@@ -20,6 +20,7 @@ Project-specific configuration and quick reference. For detailed rules, see `.cl
 Use the `/browse` skill from gstack for all web browsing. **Never use `mcp__claude-in-chrome__*` tools.**
 
 Available skills:
+
 - `/browse` — Web browsing and page interaction (Playwright-based)
 - `/plan-ceo-review` — CEO-level plan review
 - `/plan-eng-review` — Engineering plan review
@@ -142,12 +143,15 @@ export function buildUrl(locale: string) { return `${siteConfig.host}/${locale}`
 - 13 locales: ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN
 - Translation keys use English text: `t("Section", "English text")`
 - Messages in `/apps/webclient/src/messages/[locale].json`
-- **NEVER put English text in non-English locale files** — every value in a locale file MUST be translated to that locale's language. When adding new i18n keys, always provide proper translations for ALL 13 locales.
-- All `_tx` tables use `CHAR(12)` for `locale_code` — **always `strings.TrimRight(value, " ")` when mapping to Go business types**
+- **NEVER put English text in non-English locale files** — every value in a locale file MUST be translated to that
+  locale's language. When adding new i18n keys, always provide proper translations for ALL 13 locales.
+- All `_tx` tables use `CHAR(12)` for `locale_code` — **always `strings.TrimRight(value, " ")` when mapping to Go
+  business types**
 
 #### 3-Tier Locale Fallback Pattern
 
-All `_tx` table joins (story_tx, profile_tx, profile_page_tx, profile_link_tx) MUST use the 3-tier fallback subquery — never restrict with `AND (locale = X OR locale = Y)`:
+All `_tx` table joins (story_tx, profile_tx, profile_page_tx, profile_link_tx) MUST use the 3-tier fallback subquery —
+never restrict with `AND (locale = X OR locale = Y)`:
 
 ```sql
 -- CORRECT: 3-tier fallback — always finds a translation if one exists
@@ -167,13 +171,17 @@ AND (stx.locale_code = sqlc.arg(locale_code) OR stx.locale_code = <default>)
 ORDER BY CASE WHEN stx.locale_code = sqlc.arg(locale_code) THEN 0 ELSE 1 END
 ```
 
-For stories, `<default_locale_reference>` is `(SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id)`. For profiles/pages/links, it's `p.default_locale` directly.
+For stories, `<default_locale_reference>` is
+`(SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id)`. For profiles/pages/links,
+it's `p.default_locale` directly.
 
 ### React Query with SSR (CRITICAL)
 
-All route data fetching uses **TanStack Query (React Query)** with SSR dehydration/hydration via `@tanstack/react-router-ssr-query`.
+All route data fetching uses **TanStack Query (React Query)** with SSR dehydration/hydration via
+`@tanstack/react-router-ssr-query`.
 
 **Infrastructure:**
+
 - `QueryClient` created in `src/router.tsx` with `staleTime: 60_000` and `retry: 2`
 - `setupRouterSsrQueryIntegration({ router, queryClient })` handles dehydrate/hydrate/provider automatically
 - Query option factories centralized in `src/modules/backend/queries.ts`
@@ -269,7 +277,7 @@ For menu items that navigate, use `render` prop with `LocaleLink` (renders a rea
 ```tsx
 <SelectValue>
   {(value: string) => labelMap.get(value) ?? value}
-</SelectValue>
+</SelectValue>;
 ```
 
 For rich items with descriptions, use `SelectPrimitive.Item` directly — label in `ItemText`, description outside it.
@@ -280,4 +288,5 @@ For rich items with descriptions, use `SelectPrimitive.Item` directly — label 
 - **Business logic stays dependency-free** (hexagonal architecture)
 - **Sentinel errors in Go** - no `fmt.Errorf("message")` without wrapping
 - Use Chrome DevTools to debug and verify
-- **NEVER claim "not deployed" without evidence** — always verify the live site first (curl, browser). When the user reports something broken, investigate the actual cause instead of assuming deployment state
+- **NEVER claim "not deployed" without evidence** — always verify the live site first (curl, browser). When the user
+  reports something broken, investigate the actual cause instead of assuming deployment state

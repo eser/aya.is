@@ -261,8 +261,8 @@ func RegisterHTTPRoutesForProfileCandidates( //nolint:gocognit,gocyclo,cyclop,fu
 			}
 
 			var input struct {
-				Score   int16   `json:"score"`
 				Comment *string `json:"comment"`
+				Score   int16   `json:"score"`
 			}
 
 			err := json.NewDecoder(ctx.Request.Body).Decode(&input)
@@ -494,8 +494,8 @@ func RegisterHTTPRoutesForProfileCandidates( //nolint:gocognit,gocyclo,cyclop,fu
 
 			var input struct {
 				PresetKey           *string                              `json:"preset_key"`
-				Fields              []profiles.ApplicationFormFieldInput `json:"fields"`
 				ResponsesVisibility string                               `json:"responses_visibility"`
+				Fields              []profiles.ApplicationFormFieldInput `json:"fields"`
 			}
 
 			err := json.NewDecoder(ctx.Request.Body).Decode(&input)

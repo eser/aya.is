@@ -6,14 +6,14 @@ import (
 
 // StorySeries represents a group of stories (article series, activity series, etc.).
 type StorySeries struct {
+	CreatedAt        time.Time  `json:"created_at"`
+	SeriesPictureURI *string    `json:"series_picture_uri"`
+	UpdatedAt        *time.Time `json:"updated_at"`
 	ID               string     `json:"id"`
 	Slug             string     `json:"slug"`
-	SeriesPictureURI *string    `json:"series_picture_uri"`
 	LocaleCode       string     `json:"locale_code"`
 	Title            string     `json:"title"`
 	Description      string     `json:"description"`
-	CreatedAt        time.Time  `json:"created_at"`
-	UpdatedAt        *time.Time `json:"updated_at"`
 }
 
 // CreateParams holds parameters for creating a new series.
@@ -27,8 +27,8 @@ type CreateParams struct {
 
 // UpdateParams holds parameters for updating series base fields.
 type UpdateParams struct {
-	Slug             string
 	SeriesPictureURI *string
+	Slug             string
 }
 
 // TranslationParams holds parameters for upserting a series translation.

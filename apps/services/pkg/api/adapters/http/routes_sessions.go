@@ -22,9 +22,9 @@ const defaultSessionExpiryHours = 24
 
 // CreateSessionRequest is the request body for creating a new session.
 type CreateSessionRequest struct {
+	Preferences    sessions.SessionPreferences `json:"preferences"`
 	POWChallengeID string                      `json:"pow_challenge_id"`
 	Nonce          string                      `json:"nonce"`
-	Preferences    sessions.SessionPreferences `json:"preferences"`
 }
 
 // UpdatePreferencesRequest is the request body for updating session preferences.

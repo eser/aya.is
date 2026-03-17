@@ -315,9 +315,9 @@ func questionAnswerHandler( //nolint:funlen
 		questionID := ctx.Request.PathValue("id")
 
 		var body struct {
-			AnswerContent string  `json:"answer_content"`
 			AnswerURI     *string `json:"answer_uri"`
 			AnswerKind    *string `json:"answer_kind"`
+			AnswerContent string  `json:"answer_content"`
 		}
 
 		decErr := json.NewDecoder(ctx.Request.Body).Decode(&body)

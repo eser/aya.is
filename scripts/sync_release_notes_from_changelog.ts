@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import * as path from "@std/path";
 import { readTextFileSync } from "@std/fs/unstable-read-text-file";
 import { writeTextFile } from "@std/fs/unstable-write-text-file";

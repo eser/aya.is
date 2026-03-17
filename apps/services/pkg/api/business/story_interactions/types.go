@@ -32,12 +32,12 @@ func IsRSVPKind(kind InteractionKind) bool {
 
 // StoryInteraction represents a profile-to-story interaction.
 type StoryInteraction struct {
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
 	ID        string     `json:"id"`
 	StoryID   string     `json:"story_id"`
 	ProfileID string     `json:"profile_id"`
 	Kind      string     `json:"kind"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt *time.Time `json:"updated_at"`
 }
 
 // InteractionWithProfile extends StoryInteraction with profile display info.

@@ -15,15 +15,15 @@ const (
 
 // Transaction represents a single point transaction record.
 type Transaction struct {
+	CreatedAt       time.Time       `json:"created_at"`
+	OriginProfileID *string         `json:"origin_profile_id"`
+	TriggeringEvent *string         `json:"triggering_event"`
 	ID              string          `json:"id"`
 	TargetProfileID string          `json:"target_profile_id"`
-	OriginProfileID *string         `json:"origin_profile_id"`
 	TransactionType TransactionType `json:"transaction_type"`
-	TriggeringEvent *string         `json:"triggering_event"`
 	Description     string          `json:"description"`
 	Amount          uint64          `json:"amount"`
 	BalanceAfter    uint64          `json:"balance_after"`
-	CreatedAt       time.Time       `json:"created_at"`
 }
 
 // Balance represents a profile's current point balance.
@@ -34,11 +34,11 @@ type Balance struct {
 
 // GainParams holds parameters for awarding points.
 type GainParams struct {
+	TriggeringEvent *string
 	ActorID         string
 	TargetProfileID string
-	Amount          uint64
-	TriggeringEvent *string
 	Description     string
+	Amount          uint64
 }
 
 // TransferParams holds parameters for transferring points.
@@ -46,17 +46,17 @@ type TransferParams struct {
 	ActorID         string
 	OriginProfileID string
 	TargetProfileID string
-	Amount          uint64
 	Description     string
+	Amount          uint64
 }
 
 // SpendParams holds parameters for spending points.
 type SpendParams struct {
+	TriggeringEvent *string
 	ActorID         string
 	TargetProfileID string
-	Amount          uint64
-	TriggeringEvent *string
 	Description     string
+	Amount          uint64
 }
 
 // IDGenerator is a function that generates unique IDs.
@@ -79,35 +79,35 @@ type ProfileInfo struct {
 
 // PendingAward represents a point award that requires approval.
 type PendingAward struct {
-	ID              string             `json:"id"`
-	TargetProfileID string             `json:"target_profile_id"`
+	CreatedAt       time.Time          `json:"created_at"`
 	TargetProfile   *ProfileInfo       `json:"target_profile,omitempty"`
-	TriggeringEvent string             `json:"triggering_event"`
-	Description     string             `json:"description"`
-	Amount          uint64             `json:"amount"`
-	Status          PendingAwardStatus `json:"status"`
 	ReviewedBy      *string            `json:"reviewed_by"`
 	ReviewedAt      *time.Time         `json:"reviewed_at"`
 	RejectionReason *string            `json:"rejection_reason"`
 	Metadata        map[string]any     `json:"metadata"`
-	CreatedAt       time.Time          `json:"created_at"`
+	ID              string             `json:"id"`
+	TargetProfileID string             `json:"target_profile_id"`
+	TriggeringEvent string             `json:"triggering_event"`
+	Description     string             `json:"description"`
+	Status          PendingAwardStatus `json:"status"`
+	Amount          uint64             `json:"amount"`
 }
 
 // CreatePendingAwardParams holds parameters for creating a pending award.
 type CreatePendingAwardParams struct {
+	Metadata        map[string]any
 	TargetProfileID string
 	TriggeringEvent string
 	Description     string
 	Amount          uint64
-	Metadata        map[string]any
 }
 
 // AwardCategory defines the configuration for a type of point award.
 type AwardCategory struct {
 	Event       string
+	Description string
 	Amount      uint64
 	AutoApprove bool
-	Description string
 }
 
 // Spend costs.

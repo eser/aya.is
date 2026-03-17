@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { useRef } from "react";
 import { flushSync } from "react-dom";
 import { Monitor, Moon, SunMedium } from "lucide-react";

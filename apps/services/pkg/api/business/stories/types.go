@@ -138,8 +138,9 @@ type StoryForEdit struct {
 type StoryForEditWithPublications struct {
 	*StoryForEdit
 
-	IsFallback   bool                `json:"is_fallback"`
 	Publications []*StoryPublication `json:"publications"`
+
+	IsFallback bool `json:"is_fallback"`
 }
 
 // StoryPublication represents a publication of a story to a profile.

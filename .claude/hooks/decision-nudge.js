@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * decision-nudge.js — Claude Code PostToolUse hook
  *
@@ -13,7 +14,7 @@
  * Bu yüzden mesaj kasıtlı olarak çok kısa tutulmuştur.
  */
 
-import { readFileSync } from "node:fs";
+import process from "node:process";
 
 // stdin'den hook verilerini oku
 let inputData = "";
@@ -39,8 +40,7 @@ process.stdin.on("end", () => {
   }
 
   const nudge = {
-    additionalContext:
-      "KARAR HATIRLATMA: Bu değişiklik mimari bir karar içeriyorsa (teknoloji seçimi, " +
+    additionalContext: "KARAR HATIRLATMA: Bu değişiklik mimari bir karar içeriyorsa (teknoloji seçimi, " +
       "yaklaşım tercihi, API tasarımı, güvenlik kararı) `log_decision` MCP aracını hemen çağır. " +
       "Sıradan kod değişikliklerinde çağırma.",
   };

@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Upload Helper for Cover Generator
 // Converts canvas to blob and uploads via presigned URL
 

@@ -317,12 +317,12 @@ func RegisterHTTPRoutesForMailbox( //nolint:funlen,cyclop,gocognit,gocyclo,maint
 				}
 
 				var body struct {
+					Message           *string `json:"message"`
+					ReplyToID         *string `json:"reply_to_id"`
 					SenderProfileSlug string  `json:"sender_profile_slug"`
 					TargetProfileSlug string  `json:"target_profile_slug"`
 					Kind              string  `json:"kind"`
 					ConversationTitle string  `json:"conversation_title"`
-					Message           *string `json:"message"`
-					ReplyToID         *string `json:"reply_to_id"`
 				}
 
 				err := json.NewDecoder(ctx.Request.Body).Decode(&body)

@@ -92,8 +92,8 @@ func RegisterHTTPRoutesForStoryDateProposals( //nolint:funlen,gocognit,gocyclo,c
 			slugParam := ctx.Request.PathValue("slug")
 
 			var requestBody struct {
-				DatetimeStart string  `json:"datetime_start"`
 				DatetimeEnd   *string `json:"datetime_end"`
+				DatetimeStart string  `json:"datetime_start"`
 			}
 
 			err := ctx.ParseJSONBody(&requestBody)
