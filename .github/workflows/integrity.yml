@@ -74,6 +74,10 @@ jobs:
           cache: true
           cache-dependency-path: ./apps/services/go.sum
 
+      - name: Install dependencies
+        run: deno install
+        working-directory: ./apps/webclient/
+
       - name: Install eser CLI
         run: deno install -gAf --name eser jsr:@eser/cli
 
