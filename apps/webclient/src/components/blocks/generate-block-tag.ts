@@ -1,6 +1,6 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-import { escapeForMdxProp } from "./mdx-template";
-import type { BlockDefinition } from "./types";
+import { escapeForMdxProp } from "./mdx-template.ts";
+import type { BlockDefinition } from "./types.ts";
 
 /**
  * Regenerates an MDX opening tag from component name + prop values.

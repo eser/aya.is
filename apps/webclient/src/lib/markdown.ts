@@ -2,7 +2,7 @@
 /**
  * Shared markdown utilities for .md routes
  */
-import { formatDateShort, parseDateFromSlug } from "@/lib/date";
+import { formatDateShort, parseDateFromSlug } from "@/lib/date.ts";
 import { isValidLocale, type SupportedLocaleCode, supportedLocales } from "@/lib/locale-utils.ts";
 
 /**

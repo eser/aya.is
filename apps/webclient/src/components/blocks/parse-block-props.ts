@@ -1,6 +1,6 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-import { getAllBlocks } from "./registry";
-import type { BlockDefinition } from "./types";
+import { getAllBlocks } from "./registry.ts";
+import type { BlockDefinition } from "./types.ts";
 
 // MDX component name -> block ID mapping
 const MDX_NAMES: Record<string, string> = {
