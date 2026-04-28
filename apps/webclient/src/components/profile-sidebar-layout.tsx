@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Globe, Instagram, Link, Linkedin, SquarePen, UserMinus, UserPlus, Youtube } from "lucide-react";
 import { toast } from "sonner";
-import { Bsky, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
+import { Bsky, Devto, Discord, GitHub, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { ExternalLink } from "@/components/external-link";
 import { useQuery } from "@tanstack/react-query";
 import { backend, type Profile } from "@/modules/backend/backend";
@@ -54,6 +54,8 @@ function findIcon(kind: string) {
       return Telegram;
     case "speakerdeck":
       return SpeakerDeck;
+    case "devto":
+      return Devto;
     case "website":
       return Globe;
     default:

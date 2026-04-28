@@ -22,7 +22,7 @@ import {
   Trash2,
   Youtube,
 } from "lucide-react";
-import { Bsky, Discord, GitHub, Icon, SpeakerDeck, Telegram, X } from "@/components/icons";
+import { Bsky, Devto, Discord, GitHub, Icon, SpeakerDeck, Telegram, X } from "@/components/icons";
 import {
   backend,
   type GitHubAccount,
@@ -84,6 +84,7 @@ const LINK_TYPES: LinkTypeConfig[] = [
   { kind: "linkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/in/username" },
   { kind: "instagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/username" },
   { kind: "youtube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/@channel" },
+  { kind: "devto", label: "Dev.to", icon: Devto, placeholder: "https://dev.to/username" },
   { kind: "speakerdeck", label: "SpeakerDeck", icon: SpeakerDeck, placeholder: "https://speakerdeck.com/username" },
   { kind: "bsky", label: "Bluesky", icon: Bsky, placeholder: "https://bsky.app/profile/handle" },
   { kind: "discord", label: "Discord", icon: Discord, placeholder: "https://discord.gg/invite" },
@@ -184,6 +185,11 @@ function LinksSettingsPage() {
   const [isSpeakerDeckDialogOpen, setIsSpeakerDeckDialogOpen] = React.useState(false);
   const [speakerDeckUrl, setSpeakerDeckUrl] = React.useState("");
   const [isConnectingSpeakerDeck, setIsConnectingSpeakerDeck] = React.useState(false);
+
+  // Dev.to connect state
+  const [isDevtoDialogOpen, setIsDevtoDialogOpen] = React.useState(false);
+  const [devtoUrl, setDevtoUrl] = React.useState("");
+  const [isConnectingDevto, setIsConnectingDevto] = React.useState(false);
 
   // External site connect state
   const [isExternalSiteDialogOpen, setIsExternalSiteDialogOpen] = React.useState(false);
@@ -578,6 +584,35 @@ function LinksSettingsPage() {
     setIsConnectingSpeakerDeck(false);
   };
 
+  const handleConnectDevto = () => {
+    setDevtoUrl("");
+    setIsDevtoDialogOpen(true);
+  };
+
+  const handleSubmitDevto = async () => {
+    if (devtoUrl.trim() === "") {
+      toast.error(t("Profile.URL is required"));
+      return;
+    }
+
+    setIsConnectingDevto(true);
+    const result = await backend.connectDevto(
+      params.locale,
+      params.slug,
+      devtoUrl,
+    );
+
+    if (result !== null) {
+      toast.success(t("Profile.Connected successfully", { provider: "devto" }));
+      setIsDevtoDialogOpen(false);
+      setDevtoUrl("");
+      loadLinks();
+    } else {
+      toast.error(t("Profile.Dev.to profile not found"));
+    }
+    setIsConnectingDevto(false);
+  };
+
   const handleConnectExternalSite = (existingLink?: ProfileLink) => {
     if (existingLink !== undefined && existingLink.properties !== null && existingLink.properties !== undefined) {
       setExternalSiteSystem((existingLink.properties.system as string) ?? "jekyll-hugo-zola");
@@ -712,6 +747,8 @@ function LinksSettingsPage() {
       handleConnectYouTube();
     } else if (link.kind === "speakerdeck") {
       handleConnectSpeakerDeck();
+    } else if (link.kind === "devto") {
+      handleConnectDevto();
     } else if (link.kind === "telegram") {
       handleConnectTelegram();
     } else if (link.kind === "linkedin") {
@@ -896,6 +933,10 @@ function LinksSettingsPage() {
             <DropdownMenuItem onClick={() => handleConnectSpeakerDeck()}>
               <SpeakerDeck className="size-4 mr-2" />
               {t("Profile.Connect SpeakerDeck...")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleConnectDevto()}>
+              <Devto className="size-4 mr-2" />
+              {t("Profile.Connect Dev.to...")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleConnectTelegram()}>
               <Telegram className="size-4 mr-2" />
@@ -1499,6 +1540,61 @@ function LinksSettingsPage() {
               disabled={isConnectingSpeakerDeck || speakerDeckUrl.trim() === ""}
             >
               {isConnectingSpeakerDeck ? t("Common.Connecting...") : t("Profile.Connect")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dev.to Connect Dialog */}
+      <Dialog
+        open={isDevtoDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isConnectingDevto) {
+            setIsDevtoDialogOpen(false);
+            setDevtoUrl("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Devto className="size-5" />
+              {t("Profile.Connect Dev.to...")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("Profile.Enter your Dev.to profile URL to connect.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Field>
+              <FieldLabel htmlFor="devto-url">{t("Profile.Enter Dev.to URL")}</FieldLabel>
+              <Input
+                id="devto-url"
+                value={devtoUrl}
+                onChange={(e) => setDevtoUrl(e.target.value)}
+                placeholder="https://dev.to/username"
+                disabled={isConnectingDevto}
+              />
+            </Field>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDevtoDialogOpen(false);
+                setDevtoUrl("");
+              }}
+              disabled={isConnectingDevto}
+            >
+              {t("Common.Cancel")}
+            </Button>
+            <Button
+              onClick={handleSubmitDevto}
+              disabled={isConnectingDevto || devtoUrl.trim() === ""}
+            >
+              {isConnectingDevto ? t("Common.Connecting...") : t("Profile.Connect")}
             </Button>
           </DialogFooter>
         </DialogContent>

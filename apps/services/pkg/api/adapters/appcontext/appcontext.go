@@ -19,6 +19,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is/services/pkg/api/adapters/auth_tokens"
 	"github.com/eser/aya.is/services/pkg/api/adapters/coolify"
+	"github.com/eser/aya.is/services/pkg/api/adapters/devto"
 	"github.com/eser/aya.is/services/pkg/api/adapters/externalsite"
 	"github.com/eser/aya.is/services/pkg/api/adapters/github"
 	"github.com/eser/aya.is/services/pkg/api/adapters/linkedin"
@@ -87,6 +88,7 @@ type AppContext struct {
 	LinkedInProvider     *linkedin.Provider
 	YouTubeProvider      *youtube.Provider
 	SpeakerDeckProvider  *speakerdeck.Provider
+	DevtoProvider        *devto.Provider
 	ExternalSiteProvider *externalsite.Provider
 	XProvider            *xadapter.Provider
 	PKCEStore            *profiles.PKCEStore
@@ -473,6 +475,13 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 		a.HTTPClient,
 	)
 	a.SiteImporterService.RegisterProvider(a.SpeakerDeckProvider)
+
+	// Dev.to provider (for profile links - no OAuth, Dev.to API-based)
+	a.DevtoProvider = devto.NewProvider(
+		a.Logger,
+		a.HTTPClient,
+	)
+	a.SiteImporterService.RegisterProvider(a.DevtoProvider)
 
 	// External site provider (for profile links - no OAuth, GitHub-based)
 	a.ExternalSiteProvider = externalsite.NewProvider(

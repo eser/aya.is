@@ -30,6 +30,7 @@ import { finalizeGitHubConnection } from "./profiles/finalize-github-connection"
 import { getLinkedInAccounts } from "./profiles/get-linkedin-accounts";
 import { finalizeLinkedInConnection } from "./profiles/finalize-linkedin-connection";
 import { connectSpeakerDeck } from "./profiles/connect-speakerdeck";
+import { connectDevto } from "./profiles/connect-devto";
 import { connectExternalSite } from "./profiles/connect-external-site";
 import { verifyTelegramCode } from "./profiles/verify-telegram-code";
 import { listProfilePages } from "./profiles/list-profile-pages";
@@ -240,6 +241,7 @@ export const backend = {
   finalizeGitHubConnection,
   getLinkedInAccounts,
   finalizeLinkedInConnection,
+  connectDevto,
   connectSpeakerDeck,
   connectExternalSite,
   verifyTelegramCode,
@@ -456,6 +458,7 @@ export {
   checkProfileSlug,
   checkStorySlug,
   connectExternalSite,
+  connectDevto,
   connectSpeakerDeck,
   createApplication,
   createCandidate,

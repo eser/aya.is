@@ -1314,6 +1314,205 @@ func RegisterHTTPRoutesForProfileLinks( //nolint:funlen,cyclop,gocognit,gocyclo,
 		HasDescription("Connect a SpeakerDeck account to a profile by validating the RSS feed.").
 		HasResponse(http.StatusOK)
 
+	// Connect Dev.to (non-OAuth, API-based)
+	routes.Route(
+		"POST /{locale}/profiles/{slug}/_links/connect/devto",
+		AuthMiddleware(authService, userService),
+		func(ctx *httpfx.Context) httpfx.Result {
+			// Get session ID from context
+			sessionID, ok := ctx.Request.Context().Value(ContextKeySessionID).(string)
+			if !ok {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Session ID not found in context"),
+				)
+			}
+
+			// Get variables from path
+			_, localeOk := validateLocale(ctx)
+			if !localeOk {
+				return ctx.Results.BadRequest(httpfx.WithErrorMessage("unsupported locale"))
+			}
+			slugParam := ctx.Request.PathValue("slug")
+
+			// Get user ID from session
+			session, sessionErr := userService.GetSessionByID(ctx.Request.Context(), sessionID)
+			if sessionErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to get session information"),
+				)
+			}
+
+			canEdit, permErr := profileService.HasUserAccessToProfile(
+				ctx.Request.Context(),
+				*session.LoggedInUserID,
+				slugParam,
+				profiles.MembershipKindMaintainer,
+			)
+			if permErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithSanitizedError(permErr),
+				)
+			}
+
+			if !canEdit {
+				return ctx.Results.Error(
+					http.StatusForbidden,
+					httpfx.WithErrorMessage("You do not have permission to edit this profile"),
+				)
+			}
+
+			// Parse request body
+			var reqBody struct {
+				URL string `json:"url"`
+			}
+
+			err := json.NewDecoder(ctx.Request.Body).Decode(&reqBody)
+			if err != nil {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("Invalid request body"),
+				)
+			}
+
+			if reqBody.URL == "" {
+				return ctx.Results.BadRequest(
+					httpfx.WithErrorMessage("URL is required"),
+				)
+			}
+
+			// Check connection via SiteImporter
+			if providers.SiteImporter == nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Dev.to integration not configured"),
+				)
+			}
+
+			checkResult, err := providers.SiteImporter.CheckConnection(
+				ctx.Request.Context(),
+				"devto",
+				reqBody.URL,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Dev.to check failed",
+					slog.String("error", err.Error()),
+					slog.String("url", reqBody.URL))
+
+				return ctx.Results.Error(
+					http.StatusBadRequest,
+					httpfx.WithErrorMessage("Dev.to profile not found"),
+				)
+			}
+
+			// Get profile ID
+			profileID, err := profileService.GetProfileIDBySlug(
+				ctx.Request.Context(),
+				slugParam,
+			)
+			if err != nil || profileID == "" {
+				return ctx.Results.Error(
+					http.StatusNotFound,
+					httpfx.WithErrorMessage("Profile not found"),
+				)
+			}
+
+			// Check for duplicate
+			existingLink, err := profileService.GetProfileLinkByRemoteID(
+				ctx.Request.Context(),
+				profileID,
+				"devto",
+				checkResult.Username,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to check existing link",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to check existing link"),
+				)
+			}
+
+			if existingLink != nil {
+				return ctx.Results.Error(
+					http.StatusConflict,
+					httpfx.WithErrorMessage("Dev.to is already connected"),
+				)
+			}
+
+			// Check if this remote_id is already used by another profile
+			inUse, checkErr := profileService.IsManagedProfileLinkRemoteIDInUse(
+				ctx.Request.Context(),
+				"devto",
+				checkResult.Username,
+				profileID,
+			)
+			if checkErr != nil {
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to check remote ID"),
+				)
+			}
+
+			if inUse {
+				return ctx.Results.Error(
+					http.StatusConflict,
+					httpfx.WithErrorMessage(
+						"This Dev.to account is already connected to another profile",
+					),
+				)
+			}
+
+			// Create profile link (non-OAuth, no tokens)
+			linkID := lib.IDsGenerateUnique()
+			maxOrder, _ := profileService.GetMaxProfileLinkOrder(ctx.Request.Context(), profileID)
+
+			_, err = profileService.CreateOAuthProfileLink(
+				ctx.Request.Context(),
+				linkID,
+				"devto",
+				profileID,
+				maxOrder+1,
+				"en",
+				checkResult.Username,
+				checkResult.Username,
+				checkResult.URI,
+				checkResult.Title,
+				"devto",
+				"",
+				"",
+				nil,
+				nil,
+				nil,
+			)
+			if err != nil {
+				logger.ErrorContext(ctx.Request.Context(), "Failed to create Dev.to link",
+					slog.String("error", err.Error()))
+
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithErrorMessage("Failed to create link"),
+				)
+			}
+
+			logger.DebugContext(ctx.Request.Context(), "Connected Dev.to",
+				slog.String("profile_slug", slugParam),
+				slog.String("username", checkResult.Username))
+
+			return ctx.Results.JSON(map[string]any{
+				"data": map[string]string{
+					"status": "connected",
+				},
+				"error": nil,
+			})
+		},
+	).
+		HasSummary("Connect Dev.to").
+		HasDescription("Connect a Dev.to account to a profile by validating the API profile.").
+		HasResponse(http.StatusOK)
+
 	// Connect External Site (non-OAuth, GitHub repo-based)
 	routes.Route(
 		"POST /{locale}/profiles/{slug}/_links/connect/external-site",

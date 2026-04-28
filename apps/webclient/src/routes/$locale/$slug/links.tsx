@@ -10,7 +10,7 @@ import { profileLinksQueryOptions, profileQueryOptions } from "@/modules/backend
 import { QueryError } from "@/components/query-error";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
 import { buildUrl, generateCanonicalLink, generateMetaTags } from "@/lib/seo";
-import { Bsky, Discord, GitHub, Icon, SpeakerDeck, Telegram, X } from "@/components/icons";
+import { Bsky, Devto, Discord, GitHub, Icon, SpeakerDeck, Telegram, X } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 
 const parentRoute = getRouteApi("/$locale/$slug");
@@ -27,6 +27,7 @@ const LINK_TYPES: LinkTypeConfig[] = [
   { kind: "linkedin", label: "LinkedIn", icon: Linkedin },
   { kind: "instagram", label: "Instagram", icon: Instagram },
   { kind: "youtube", label: "YouTube", icon: Youtube },
+  { kind: "devto", label: "Dev.to", icon: Devto },
   { kind: "speakerdeck", label: "SpeakerDeck", icon: SpeakerDeck },
   { kind: "bsky", label: "Bluesky", icon: Bsky },
   { kind: "discord", label: "Discord", icon: Discord },
