@@ -206,7 +206,7 @@ function RootDocument(props: Readonly<RootDocumentProps>) {
 })();
 
 globalThis.__REQUEST_CONTEXT__ = ${
-    JSON.stringify(requestContext).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/\//g, "\\u002f")
+    JSON.stringify(requestContext ?? null).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/\//g, "\\u002f")
   };
 `;
 
