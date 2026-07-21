@@ -58,6 +58,32 @@ export const SpeakerDeck: Icon = (props: IconProps) => (
   </svg>
 );
 
+export const Devto: Icon = (props: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <title>Dev.to</title>
+    <rect
+      x="2.5"
+      y="2.5"
+      width="19"
+      height="19"
+      rx="2"
+      ry="2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+    <text
+      x="5"
+      y="16"
+      fontSize="7"
+      fontFamily="Arial, sans-serif"
+      fill="currentColor"
+    >
+      DEV
+    </text>
+  </svg>
+);
+
 export const Apple: Icon = (props: IconProps) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
     <title>Apple</title>

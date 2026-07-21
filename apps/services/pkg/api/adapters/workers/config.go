@@ -28,6 +28,14 @@ type SpeakerDeckSyncConfig struct {
 	BatchSize        int           `conf:"batch_size"         default:"10"`
 }
 
+// DevtoSyncConfig holds configuration for the Dev.to sync worker.
+type DevtoSyncConfig struct {
+	FullSyncEnabled  bool          `conf:"full_sync_enabled"  default:"true"`
+	FullSyncInterval time.Duration `conf:"full_sync_interval" default:"6h"`
+	CheckInterval    time.Duration `conf:"check_interval"     default:"1m"`
+	BatchSize        int           `conf:"batch_size"         default:"10"`
+}
+
 // ExternalSiteSyncConfig holds configuration for the external site sync worker.
 type ExternalSiteSyncConfig struct {
 	FullSyncEnabled  bool          `conf:"full_sync_enabled"  default:"true"`
@@ -73,6 +81,7 @@ type Config struct {
 	YouTubeLiveStatus YouTubeLiveStatusConfig  `conf:"youtube_live_status"`
 	GitHubSync        GitHubSyncConfig         `conf:"github_sync"`
 	SpeakerDeckSync   SpeakerDeckSyncConfig    `conf:"speakerdeck_sync"`
+	DevtoSync         DevtoSyncConfig          `conf:"devto_sync"`
 	ExternalSiteSync  ExternalSiteSyncConfig   `conf:"external_site_sync"`
 	StorySummaries    StorySummariesConfig     `conf:"story_summaries"`
 	Queue             QueueWorkerConfig        `conf:"queue"`

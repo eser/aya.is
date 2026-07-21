@@ -229,6 +229,35 @@ func startWorkers( //nolint:cyclop,funlen,maintidx
 		})
 	}
 
+	// Dev.to sync worker
+	if appContext.Config.Workers.DevtoSync.FullSyncEnabled {
+		devtoStoryProcessor := workers.NewDevtoStoryProcessor(
+			&appContext.Config.Workers.DevtoSync,
+			appContext.Logger,
+			appContext.ProfileLinkSyncService,
+			appContext.Repository,
+			idGen,
+		)
+
+		devtoSyncWorker := workers.NewDevtoSyncWorker(
+			&appContext.Config.Workers.DevtoSync,
+			appContext.Logger,
+			appContext.ProfileLinkSyncService,
+			appContext.SiteImporterService,
+			devtoStoryProcessor,
+			appContext.RuntimeStateService,
+			idGen,
+		)
+
+		runner := workerfx.NewRunner(devtoSyncWorker, appContext.Logger)
+		runner.SetStateKey("devto.sync.full_sync_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("devto-full-sync-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
 	// External site sync worker
 	if appContext.Config.Workers.ExternalSiteSync.FullSyncEnabled {
 		externalSiteStoryProcessor := workers.NewExternalSiteStoryProcessor(
