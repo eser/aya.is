@@ -71,6 +71,12 @@ RUN --mount=type=cache,target=/root/.cache/deno \
 # ------------------------------------------------------------
 FROM base AS runner
 
+# curl is required by the container healthcheck (must be installed as root,
+# before switching to the 'deno' user). The base image ships neither curl nor wget.
+RUN apt-get update && apt-get -y install --no-install-recommends \
+  curl \
+  && rm -rf /var/lib/apt/lists/*
+
 # Run as non-root user (Deno image provides 'deno' user)
 USER deno
 
