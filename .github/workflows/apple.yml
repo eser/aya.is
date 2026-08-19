@@ -48,7 +48,7 @@ jobs:
           xcodebuild test \
             -project AYA.xcodeproj \
             -scheme AYA-iOS \
-            -destination 'platform=iOS Simulator,name=iPhone 16e' \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
             -skipPackagePluginValidation \
             -skip-testing:AYA-Tests/RTLSnapshotTests \
             -skip-testing:AYA-Tests/UtilityViewsSnapshotTests \
@@ -137,7 +137,7 @@ jobs:
           xcodebuild test \
             -project AYA.xcodeproj \
             -scheme AYA-iOS-UITests \
-            -destination 'platform=iOS Simulator,name=iPhone 16e' \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
