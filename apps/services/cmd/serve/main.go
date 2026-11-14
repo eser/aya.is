@@ -71,6 +71,7 @@ func startHTTPServer(process *processfx.Process, appContext *appcontext.AppConte
 			appContext.WorkerRegistry,
 			appContext.AuditService,
 			appContext.BulletinService,
+			appContext.PrivacyService,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(
@@ -304,6 +305,24 @@ func startWorkers( //nolint:cyclop,funlen,maintidx
 		appContext.WorkerRegistry.Register(runner)
 
 		process.StartGoroutine("queue-worker", func(ctx context.Context) error {
+			return runner.Run(ctx)
+		})
+	}
+
+	// Privacy: remove personal data archives past their retention period
+	if appContext.Config.Workers.PrivacyCleanup.Enabled && appContext.PrivacyService != nil {
+		privacyCleanupWorker := workers.NewPrivacyCleanupWorker(
+			&appContext.Config.Workers.PrivacyCleanup,
+			appContext.Logger,
+			appContext.PrivacyService,
+			appContext.RuntimeStateService,
+		)
+
+		runner := workerfx.NewRunner(privacyCleanupWorker, appContext.Logger)
+		runner.SetStateKey("privacy.cleanup_worker")
+		appContext.WorkerRegistry.Register(runner)
+
+		process.StartGoroutine("privacy-cleanup-worker", func(ctx context.Context) error {
 			return runner.Run(ctx)
 		})
 	}

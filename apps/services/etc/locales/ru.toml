@@ -93,3 +93,18 @@ other = "ноя"
 
 [MonthShort12]
 other = "дек"
+
+[PrivacyExportReadySubject]
+other = "Архив ваших персональных данных aya.is готов"
+
+[PrivacyExportReadyHeading]
+other = "Архив ваших персональных данных готов"
+
+[PrivacyExportReadyBody]
+other = "Запрошенный вами архив готов к загрузке. Он будет доступен в течение {{.Days}} дн."
+
+[PrivacyExportReadyButton]
+other = "Перейти в настройки конфиденциальности"
+
+[PrivacyExportReadyFooter]
+other = "Вы получили это письмо, потому что для вашей учётной записи aya.is был запрошен архив персональных данных. Если это были не вы, защитите свою учётную запись."

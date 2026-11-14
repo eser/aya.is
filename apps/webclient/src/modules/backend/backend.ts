@@ -171,12 +171,26 @@ import { toggleAdminWorker } from "./admin/toggle-admin-worker";
 import { triggerAdminWorker } from "./admin/trigger-admin-worker";
 import { getBulletinPreferences } from "./bulletins/get-bulletin-preferences";
 import { updateBulletinPreferences } from "./bulletins/update-bulletin-preferences";
+import { deletePrivacyAccount } from "./privacy/delete-privacy-account";
+import { getPrivacyExportDownloadUrl } from "./privacy/get-privacy-export-download-url";
+import { getPrivacyState } from "./privacy/get-privacy-state";
+import { hidePrivacyProfile } from "./privacy/hide-privacy-profile";
+import { requestPrivacyExport } from "./privacy/request-privacy-export";
 import { shareWizardAiAssist } from "./share-wizard/ai-assist";
 
 // Re-export types
 export * from "./types";
 export type { AdminWorkerStatus } from "./admin/get-admin-workers";
 export type { BulletinPreferences, UpdateBulletinPreferencesRequest } from "./bulletins/types";
+export type {
+  DeleteAccountRequest,
+  PrivacyErrorCode,
+  PrivacyExportState,
+  PrivacyExportStatus,
+  PrivacyOwnedProfile,
+  PrivacyState,
+  RequestedPrivacyExport,
+} from "./privacy/types";
 export type { ShareWizardAiAssistRequest, ShareWizardAiAssistResponse } from "./share-wizard/ai-assist";
 export type { AccessibleProfile } from "./sessions/types";
 export type { ToggleWorkerResult } from "./admin/toggle-admin-worker";
@@ -435,6 +449,13 @@ export const backend = {
   getBulletinPreferences,
   updateBulletinPreferences,
 
+  // Privacy
+  getPrivacyState,
+  requestPrivacyExport,
+  getPrivacyExportDownloadUrl,
+  hidePrivacyProfile,
+  deletePrivacyAccount,
+
   // Share Wizard
   shareWizardAiAssist,
 };
@@ -474,6 +495,7 @@ export {
   createSession,
   createStoryComment,
   deleteDiscussionComment,
+  deletePrivacyAccount,
   deleteProfileLink,
   deleteProfileMembership,
   deleteProfilePage,
@@ -512,6 +534,8 @@ export {
   getPendingAwardsStats,
   getPOWChallenge,
   getPresignedURL,
+  getPrivacyExportDownloadUrl,
+  getPrivacyState,
   getProfile,
   getProfileAuthoredStories,
   getProfileContributions,
@@ -542,6 +566,7 @@ export {
   getUsers,
   handleAuthCallback,
   hideDiscussionComment,
+  hidePrivacyProfile,
   hideQuestion,
   insertStory,
   isPOWSolverSupported,
@@ -573,6 +598,7 @@ export {
   removeReaction,
   removeStory,
   removeUpload,
+  requestPrivacyExport,
   search,
   searchBackgroundImages,
   searchUsersForMembership,

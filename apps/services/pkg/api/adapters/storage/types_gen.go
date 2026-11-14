@@ -222,6 +222,8 @@ type Profile struct {
 	OptionStoryDiscussionsByDefault bool                  `db:"option_story_discussions_by_default" json:"option_story_discussions_by_default"`
 	FeatureReferrals                string                `db:"feature_referrals" json:"feature_referrals"`
 	FeatureApplications             string                `db:"feature_applications" json:"feature_applications"`
+	HiddenAt                        sql.NullTime          `db:"hidden_at" json:"hidden_at"`
+	RedactedAt                      sql.NullTime          `db:"redacted_at" json:"redacted_at"`
 }
 
 type ProfileApplicationForm struct {
@@ -266,6 +268,23 @@ type ProfileCustomDomain struct {
 	ExpiredAt          sql.NullTime   `db:"expired_at" json:"expired_at"`
 	WebserverSynced    bool           `db:"webserver_synced" json:"webserver_synced"`
 	WwwPrefix          bool           `db:"www_prefix" json:"www_prefix"`
+}
+
+type ProfileDataExport struct {
+	ID           string         `db:"id" json:"id"`
+	UserID       string         `db:"user_id" json:"user_id"`
+	ProfileID    string         `db:"profile_id" json:"profile_id"`
+	Status       string         `db:"status" json:"status"`
+	RequestedAt  time.Time      `db:"requested_at" json:"requested_at"`
+	StartedAt    sql.NullTime   `db:"started_at" json:"started_at"`
+	CompletedAt  sql.NullTime   `db:"completed_at" json:"completed_at"`
+	ExpiresAt    sql.NullTime   `db:"expires_at" json:"expires_at"`
+	NotifiedAt   sql.NullTime   `db:"notified_at" json:"notified_at"`
+	StorageKey   sql.NullString `db:"storage_key" json:"storage_key"`
+	SizeBytes    sql.NullInt64  `db:"size_bytes" json:"size_bytes"`
+	ErrorMessage sql.NullString `db:"error_message" json:"error_message"`
+	CreatedAt    time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt    sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
 
 type ProfileLink struct {
@@ -379,12 +398,12 @@ type ProfilePage struct {
 }
 
 type ProfilePageTx struct {
-	ProfilePageID string      `db:"profile_page_id" json:"profile_page_id"`
-	LocaleCode    string      `db:"locale_code" json:"locale_code"`
-	Title         string      `db:"title" json:"title"`
-	Summary       string      `db:"summary" json:"summary"`
-	Content       string      `db:"content" json:"content"`
-	SearchVector  any `db:"search_vector" json:"search_vector"`
+	ProfilePageID string `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode    string `db:"locale_code" json:"locale_code"`
+	Title         string `db:"title" json:"title"`
+	Summary       string `db:"summary" json:"summary"`
+	Content       string `db:"content" json:"content"`
+	SearchVector  any    `db:"search_vector" json:"search_vector"`
 }
 
 type ProfilePointPendingAward struct {
@@ -479,7 +498,7 @@ type ProfileTx struct {
 	Title        string                `db:"title" json:"title"`
 	Description  string                `db:"description" json:"description"`
 	Properties   pqtype.NullRawMessage `db:"properties" json:"properties"`
-	SearchVector any           `db:"search_vector" json:"search_vector"`
+	SearchVector any                   `db:"search_vector" json:"search_vector"`
 }
 
 type ProtectionPowChallenge struct {
@@ -640,7 +659,7 @@ type StoryTx struct {
 	Title        string         `db:"title" json:"title"`
 	Summary      string         `db:"summary" json:"summary"`
 	Content      string         `db:"content" json:"content"`
-	SearchVector any    `db:"search_vector" json:"search_vector"`
+	SearchVector any            `db:"search_vector" json:"search_vector"`
 	IsManaged    bool           `db:"is_managed" json:"is_managed"`
 	SummaryAi    sql.NullString `db:"summary_ai" json:"summary_ai"`
 }
@@ -663,4 +682,5 @@ type User struct {
 	DeletedAt           sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	AppleRemoteID       sql.NullString `db:"apple_remote_id" json:"apple_remote_id"`
 	ProfilePictureURI   sql.NullString `db:"profile_picture_uri" json:"profile_picture_uri"`
+	RedactedAt          sql.NullTime   `db:"redacted_at" json:"redacted_at"`
 }

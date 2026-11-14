@@ -72,6 +72,27 @@ type Service struct {
 	providers           map[string]Provider
 	userService         *users.Service
 	customDomainChecker CustomDomainChecker
+	loginHooks          []LoginHook
+}
+
+// LoginHook runs after a user authenticated and before their session is created. A returned error aborts the
+// login, so hooks must only do work the login genuinely depends on.
+type LoginHook func(ctx context.Context, user *users.User) error
+
+// AddLoginHook registers a hook to run on every successful login.
+func (s *Service) AddLoginHook(hook LoginHook) {
+	s.loginHooks = append(s.loginHooks, hook)
+}
+
+func (s *Service) runLoginHooks(ctx context.Context, user *users.User) error {
+	for _, hook := range s.loginHooks {
+		err := hook(ctx, user)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToHandleCallback, err)
+		}
+	}
+
+	return nil
 }
 
 func NewService(
@@ -88,6 +109,7 @@ func NewService(
 		providers:           map[string]Provider{},
 		userService:         userService,
 		customDomainChecker: customDomainChecker,
+		loginHooks:          nil,
 	}
 }
 
@@ -220,6 +242,11 @@ func (s *Service) AuthHandleCallback( //nolint:funlen
 
 	// Create/update user (provider-aware)
 	user, err := s.upsertUserFromOAuth(ctx, providerName, accountInfo)
+	if err != nil {
+		return AuthResult{}, err
+	}
+
+	err = s.runLoginHooks(ctx, user)
 	if err != nil {
 		return AuthResult{}, err
 	}

@@ -132,6 +132,16 @@ type Querier interface {
 	//    WHERE slug = $1
 	//  ) AS exists
 	CheckProfileSlugExistsIncludingDeleted(ctx context.Context, arg CheckProfileSlugExistsIncludingDeletedParams) (bool, error)
+	// Moves a pending (or stuck processing) export to processing; returns 0 rows if someone else already finished it.
+	//
+	//  UPDATE "profile_data_export"
+	//  SET status = 'processing',
+	//    started_at = NOW(),
+	//    error_message = NULL,
+	//    updated_at = NOW()
+	//  WHERE id = $1
+	//    AND status IN ('pending', 'processing')
+	ClaimDataExport(ctx context.Context, arg ClaimDataExportParams) (int64, error)
 	// CTE-based claim: atomically selects + locks + updates.
 	// Picks up both pending items that are due AND stale processing items
 	// past their visibility timeout (crash recovery built into the claim).
@@ -376,6 +386,17 @@ type Querier interface {
 	//  INSERT INTO "profile_custom_domain" (id, profile_id, domain, default_locale)
 	//  VALUES ($1, $2, $3, $4)
 	CreateCustomDomain(ctx context.Context, arg CreateCustomDomainParams) error
+	//CreateDataExport
+	//
+	//  INSERT INTO "profile_data_export" (id, user_id, profile_id, status, requested_at)
+	//  VALUES (
+	//      $1,
+	//      $2,
+	//      $3,
+	//      'pending',
+	//      NOW()
+	//    )
+	CreateDataExport(ctx context.Context, arg CreateDataExportParams) error
 	//CreateExternalCode
 	//
 	//  INSERT INTO "external_code" (id, code, external_system, properties, created_at, expires_at)
@@ -800,6 +821,11 @@ type Querier interface {
 	//  DELETE FROM "profile_custom_domain"
 	//  WHERE id = $1
 	DeleteCustomDomain(ctx context.Context, arg DeleteCustomDomainParams) (int64, error)
+	//DeleteDataExportsByUserID
+	//
+	//  DELETE FROM "profile_data_export"
+	//  WHERE user_id = $1
+	DeleteDataExportsByUserID(ctx context.Context, arg DeleteDataExportsByUserIDParams) error
 	//DeleteDiscussionCommentVote
 	//
 	//  DELETE FROM "discussion_comment_vote"
@@ -1093,6 +1119,12 @@ type Querier interface {
 	//  WHERE pcd.domain = $1
 	//  LIMIT 1
 	GetCustomDomainByDomain(ctx context.Context, arg GetCustomDomainByDomainParams) (*GetCustomDomainByDomainRow, error)
+	//GetDataExportByID
+	//
+	//  SELECT id, user_id, profile_id, status, requested_at, started_at, completed_at, expires_at, notified_at, storage_key, size_bytes, error_message, created_at, updated_at
+	//  FROM "profile_data_export"
+	//  WHERE id = $1
+	GetDataExportByID(ctx context.Context, arg GetDataExportByIDParams) (*ProfileDataExport, error)
 	//GetDiscussionComment
 	//
 	//  SELECT
@@ -1276,6 +1308,14 @@ type Querier interface {
 	//    AND updated_at > $2
 	//  LIMIT 1
 	GetFromCacheSince(ctx context.Context, arg GetFromCacheSinceParams) (*GetFromCacheSinceRow, error)
+	//GetLatestDataExportByUserID
+	//
+	//  SELECT id, user_id, profile_id, status, requested_at, started_at, completed_at, expires_at, notified_at, storage_key, size_bytes, error_message, created_at, updated_at
+	//  FROM "profile_data_export"
+	//  WHERE user_id = $1
+	//  ORDER BY requested_at DESC
+	//  LIMIT 1
+	GetLatestDataExportByUserID(ctx context.Context, arg GetLatestDataExportByUserIDParams) (*ProfileDataExport, error)
 	//GetLatestImportByLinkID
 	//
 	//  SELECT id, profile_link_id, remote_id, properties, created_at, updated_at, deleted_at
@@ -1449,9 +1489,33 @@ type Querier interface {
 	//  WHERE status = 'pending'
 	//  GROUP BY triggering_event
 	GetPendingAwardsStatsByEventType(ctx context.Context) ([]*GetPendingAwardsStatsByEventTypeRow, error)
+	//GetPrivacyContactByUserID
+	//
+	//  SELECT u.email,
+	//    p.slug,
+	//    p.default_locale
+	//  FROM "user" u
+	//    INNER JOIN "profile" p ON p.id = u.individual_profile_id
+	//  WHERE u.id = $1
+	GetPrivacyContactByUserID(ctx context.Context, arg GetPrivacyContactByUserIDParams) (*GetPrivacyContactByUserIDRow, error)
+	//GetPrivacyStateByUserID
+	//
+	//  SELECT
+	//    u.id AS user_id,
+	//    p.id AS profile_id,
+	//    p.slug AS profile_slug,
+	//    p.hidden_at,
+	//    p.deleted_at AS profile_deleted_at,
+	//    p.redacted_at AS profile_redacted_at,
+	//    u.deleted_at AS user_deleted_at,
+	//    u.redacted_at AS user_redacted_at
+	//  FROM "user" u
+	//    INNER JOIN "profile" p ON p.id = u.individual_profile_id
+	//  WHERE u.id = $1
+	GetPrivacyStateByUserID(ctx context.Context, arg GetPrivacyStateByUserIDParams) (*GetPrivacyStateByUserIDRow, error)
 	//GetProfileByID
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, p.hidden_at, p.redacted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -1620,7 +1684,7 @@ type Querier interface {
 	//    pm.started_at,
 	//    pm.finished_at,
 	//    pm.properties as membership_properties,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, p.hidden_at, p.redacted_at,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM
 	//    "profile_membership" pm
@@ -1796,7 +1860,7 @@ type Querier interface {
 	GetProfileTxByID(ctx context.Context, arg GetProfileTxByIDParams) ([]*GetProfileTxByIDRow, error)
 	//GetProfilesByIDs
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, p.hidden_at, p.redacted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -1892,7 +1956,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, p.hidden_at, p.redacted_at,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -2147,7 +2211,7 @@ type Querier interface {
 	GetUserBriefInfoByID(ctx context.Context, arg GetUserBriefInfoByIDParams) (*GetUserBriefInfoByIDRow, error)
 	//GetUserByAppleRemoteID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri, redacted_at
 	//  FROM "user"
 	//  WHERE apple_remote_id = $1
 	//    AND deleted_at IS NULL
@@ -2155,7 +2219,7 @@ type Querier interface {
 	GetUserByAppleRemoteID(ctx context.Context, arg GetUserByAppleRemoteIDParams) (*User, error)
 	//GetUserByEmail
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri, redacted_at
 	//  FROM "user"
 	//  WHERE email = $1
 	//    AND deleted_at IS NULL
@@ -2163,7 +2227,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (*User, error)
 	//GetUserByGitHubRemoteID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri, redacted_at
 	//  FROM "user"
 	//  WHERE github_remote_id = $1
 	//    AND deleted_at IS NULL
@@ -2171,7 +2235,7 @@ type Querier interface {
 	GetUserByGitHubRemoteID(ctx context.Context, arg GetUserByGitHubRemoteIDParams) (*User, error)
 	//GetUserByID
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri, redacted_at
 	//  FROM "user"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
@@ -2224,6 +2288,16 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//    AND (pm.finished_at IS NULL OR pm.finished_at > NOW())
 	GetUserProfilePermissions(ctx context.Context, arg GetUserProfilePermissionsParams) ([]*GetUserProfilePermissionsRow, error)
+	//HideProfileByID
+	//
+	//  UPDATE "profile"
+	//  SET deleted_at = NOW(),
+	//    hidden_at = NOW(),
+	//    updated_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	//    AND redacted_at IS NULL
+	HideProfileByID(ctx context.Context, arg HideProfileByIDParams) (int64, error)
 	//IncrementDiscussionCommentReplyCount
 	//
 	//  UPDATE "discussion_comment"
@@ -2519,7 +2593,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications, p1.hidden_at, p1.redacted_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -2793,6 +2867,12 @@ type Querier interface {
 	//  WHERE pcd.profile_id = $1
 	//  ORDER BY pcd.created_at
 	ListCustomDomainsByProfileID(ctx context.Context, arg ListCustomDomainsByProfileIDParams) ([]*ListCustomDomainsByProfileIDRow, error)
+	//ListDataExportsByUserID
+	//
+	//  SELECT id, user_id, profile_id, status, requested_at, started_at, completed_at, expires_at, notified_at, storage_key, size_bytes, error_message, created_at, updated_at
+	//  FROM "profile_data_export"
+	//  WHERE user_id = $1
+	ListDataExportsByUserID(ctx context.Context, arg ListDataExportsByUserIDParams) ([]*ProfileDataExport, error)
 	//ListEnvelopesByConversation
 	//
 	//  SELECT
@@ -2818,6 +2898,15 @@ type Querier interface {
 	//  ORDER BY created_at DESC
 	//  LIMIT $3
 	ListEventAuditByEntity(ctx context.Context, arg ListEventAuditByEntityParams) ([]*EventAudit, error)
+	//ListExpiredDataExports
+	//
+	//  SELECT id, user_id, profile_id, status, requested_at, started_at, completed_at, expires_at, notified_at, storage_key, size_bytes, error_message, created_at, updated_at
+	//  FROM "profile_data_export"
+	//  WHERE status = 'ready'
+	//    AND expires_at < NOW()
+	//  ORDER BY expires_at
+	//  LIMIT $1
+	ListExpiredDataExports(ctx context.Context, arg ListExpiredDataExportsParams) ([]*ProfileDataExport, error)
 	//ListFeaturedProfileLinksByProfileID
 	//
 	//  SELECT
@@ -3214,9 +3303,9 @@ type Querier interface {
 	//
 	//  SELECT
 	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.deleted_at,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications, p1.hidden_at, p1.redacted_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
-	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default, p2.feature_referrals, p2.feature_applications,
+	//    p2.id, p2.slug, p2.kind, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at, p2.approved_at, p2.points, p2.feature_relations, p2.feature_links, p2.default_locale, p2.feature_qa, p2.feature_discussions, p2.option_story_discussions_by_default, p2.feature_referrals, p2.feature_applications, p2.hidden_at, p2.redacted_at,
 	//    p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties, p2t.search_vector
 	//  FROM
 	//  	"profile_membership" pm
@@ -3265,7 +3354,7 @@ type Querier interface {
 	//    pm.properties,
 	//    pm.started_at,
 	//    pm.finished_at,
-	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default, mp.feature_referrals, mp.feature_applications,
+	//    mp.id, mp.slug, mp.kind, mp.profile_picture_uri, mp.pronouns, mp.properties, mp.created_at, mp.updated_at, mp.deleted_at, mp.approved_at, mp.points, mp.feature_relations, mp.feature_links, mp.default_locale, mp.feature_qa, mp.feature_discussions, mp.option_story_discussions_by_default, mp.feature_referrals, mp.feature_applications, mp.hidden_at, mp.redacted_at,
 	//    mpt.profile_id, mpt.locale_code, mpt.title, mpt.description, mpt.properties, mpt.search_vector
 	//  FROM "profile_membership" pm
 	//  INNER JOIN "profile" mp ON mp.id = pm.member_profile_id
@@ -3464,7 +3553,7 @@ type Querier interface {
 	ListProfileTeamsWithMemberCount(ctx context.Context, arg ListProfileTeamsWithMemberCountParams) ([]*ListProfileTeamsWithMemberCountRow, error)
 	//ListProfiles
 	//
-	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
+	//  SELECT p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, p.hidden_at, p.redacted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = (
@@ -3483,6 +3572,7 @@ type Querier interface {
 	//         OR normalize_text(pt.description) LIKE '%' || normalize_text($3::TEXT) || '%')
 	//    AND p.approved_at IS NOT NULL
 	//    AND p.deleted_at IS NULL
+	//    AND p.redacted_at IS NULL -- the "deleted user" placeholder is not a person to discover
 	//  ORDER BY md5(p.id || $4)
 	//  LIMIT $6
 	//  OFFSET $5
@@ -3547,6 +3637,39 @@ type Querier interface {
 	//    last_activity_at DESC NULLS LAST,
 	//    created_at DESC
 	ListSessionsByUserID(ctx context.Context, arg ListSessionsByUserIDParams) ([]*ListSessionsByUserIDRow, error)
+	// Profiles (other than the user's own) that would be left without any owner if this profile left them.
+	//
+	//  SELECT
+	//    p.id,
+	//    p.slug,
+	//    p.kind,
+	//    (
+	//      SELECT ptx.title
+	//      FROM "profile_tx" ptx
+	//      WHERE ptx.profile_id = p.id
+	//      ORDER BY CASE WHEN ptx.locale_code = p.default_locale THEN 0 ELSE 1 END
+	//      LIMIT 1
+	//    ) AS title
+	//  FROM "profile_membership" pm
+	//    INNER JOIN "profile" p ON p.id = pm.profile_id
+	//  WHERE pm.member_profile_id = $1
+	//    AND pm.profile_id <> $1
+	//    AND pm.kind = 'owner'
+	//    AND pm.finished_at IS NULL
+	//    AND pm.deleted_at IS NULL
+	//    AND p.deleted_at IS NULL
+	//    AND p.kind <> 'individual'
+	//    AND NOT EXISTS (
+	//      SELECT 1
+	//      FROM "profile_membership" other
+	//      WHERE other.profile_id = pm.profile_id
+	//        AND other.member_profile_id <> pm.member_profile_id
+	//        AND other.kind = 'owner'
+	//        AND other.finished_at IS NULL
+	//        AND other.deleted_at IS NULL
+	//    )
+	//  ORDER BY p.slug
+	ListSoleOwnedProfiles(ctx context.Context, arg ListSoleOwnedProfilesParams) ([]*ListSoleOwnedProfilesRow, error)
 	// Lists all stories authored by a profile, including unpublished ones.
 	// Uses locale fallback: prefers the requested locale, falls back to author's default locale.
 	// Publications are included as optional data (LEFT JOIN).
@@ -3554,7 +3677,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications, p1.hidden_at, p1.redacted_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3610,7 +3733,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications, p1.hidden_at, p1.redacted_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3676,7 +3799,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications, p1.hidden_at, p1.redacted_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3732,7 +3855,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications, p1.hidden_at, p1.redacted_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -3792,7 +3915,7 @@ type Querier interface {
 	//  SELECT
 	//    s.id, s.author_profile_id, s.slug, s.kind, s.story_picture_uri, s.properties, s.created_at, s.updated_at, s.deleted_at, s.is_managed, s.remote_id, s.series_id, s.visibility, s.feat_discussions, s.sort_order,
 	//    st.story_id, st.locale_code, st.title, st.summary, st.content, st.search_vector, st.is_managed, st.summary_ai,
-	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications,
+	//    p1.id, p1.slug, p1.kind, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at, p1.approved_at, p1.points, p1.feature_relations, p1.feature_links, p1.default_locale, p1.feature_qa, p1.feature_discussions, p1.option_story_discussions_by_default, p1.feature_referrals, p1.feature_applications, p1.hidden_at, p1.redacted_at,
 	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties, p1t.search_vector,
 	//    pb.publications,
 	//    (SELECT MIN(sp3.published_at) FROM story_publication sp3 WHERE sp3.story_id = s.id AND sp3.deleted_at IS NULL) AS published_at
@@ -4039,7 +4162,7 @@ type Querier interface {
 	ListTopLevelDiscussionComments(ctx context.Context, arg ListTopLevelDiscussionCommentsParams) ([]*ListTopLevelDiscussionCommentsRow, error)
 	//ListUsers
 	//
-	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri
+	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at, apple_remote_id, profile_picture_uri, redacted_at
 	//  FROM "user"
 	//  WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND deleted_at IS NULL
@@ -4053,6 +4176,41 @@ type Querier interface {
 	//  WHERE pcd.verification_status IN ('verified', 'expired')
 	//  ORDER BY pcd.created_at
 	ListVerifiedCustomDomains(ctx context.Context) ([]*ListVerifiedCustomDomainsRow, error)
+	//MarkDataExportExpired
+	//
+	//  UPDATE "profile_data_export"
+	//  SET status = 'expired',
+	//    storage_key = NULL,
+	//    updated_at = NOW()
+	//  WHERE id = $1
+	MarkDataExportExpired(ctx context.Context, arg MarkDataExportExpiredParams) error
+	//MarkDataExportFailed
+	//
+	//  UPDATE "profile_data_export"
+	//  SET status = 'failed',
+	//    error_message = $1,
+	//    updated_at = NOW()
+	//  WHERE id = $2
+	MarkDataExportFailed(ctx context.Context, arg MarkDataExportFailedParams) error
+	//MarkDataExportNotified
+	//
+	//  UPDATE "profile_data_export"
+	//  SET notified_at = NOW(),
+	//    updated_at = NOW()
+	//  WHERE id = $1
+	MarkDataExportNotified(ctx context.Context, arg MarkDataExportNotifiedParams) error
+	//MarkDataExportReady
+	//
+	//  UPDATE "profile_data_export"
+	//  SET status = 'ready',
+	//    completed_at = NOW(),
+	//    expires_at = $1,
+	//    storage_key = $2,
+	//    size_bytes = $3,
+	//    error_message = NULL,
+	//    updated_at = NOW()
+	//  WHERE id = $4
+	MarkDataExportReady(ctx context.Context, arg MarkDataExportReadyParams) error
 	//MarkLinkImportsDeletedExcept
 	//
 	//  UPDATE "profile_link_import"
@@ -4279,6 +4437,7 @@ type Querier interface {
 	//         OR normalize_text(pt.description) LIKE '%' || normalize_text($1) || '%')
 	//    AND p.approved_at IS NOT NULL
 	//    AND p.deleted_at IS NULL
+	//    AND p.redacted_at IS NULL
 	//    AND ($3::TEXT IS NULL OR p.slug = $3::TEXT)
 	//  ORDER BY rank DESC
 	//  LIMIT $4
@@ -4342,7 +4501,7 @@ type Querier interface {
 	//    u.email,
 	//    u.name,
 	//    u.individual_profile_id,
-	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications,
+	//    p.id, p.slug, p.kind, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, p.approved_at, p.points, p.feature_relations, p.feature_links, p.default_locale, p.feature_qa, p.feature_discussions, p.option_story_discussions_by_default, p.feature_referrals, p.feature_applications, p.hidden_at, p.redacted_at,
 	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties, pt.search_vector
 	//  FROM "user" u
 	//  INNER JOIN "profile" p ON p.id = u.individual_profile_id
@@ -4359,6 +4518,7 @@ type Querier interface {
 	//      LIMIT 1
 	//    )
 	//  WHERE u.deleted_at IS NULL
+	//    AND u.redacted_at IS NULL
 	//    AND u.individual_profile_id IS NOT NULL
 	//    AND (
 	//      u.email ILIKE '%' || $2 || '%'
@@ -4482,6 +4642,14 @@ type Querier interface {
 	//    AND remote_id = $1
 	//    AND deleted_at IS NULL
 	SoftDeleteTelegramProfileLink(ctx context.Context, arg SoftDeleteTelegramProfileLinkParams) (int64, error)
+	//TerminateActiveSessionsByUserID
+	//
+	//  UPDATE "session"
+	//  SET status = 'terminated',
+	//    updated_at = NOW()
+	//  WHERE logged_in_user_id = $1
+	//    AND status = 'active'
+	TerminateActiveSessionsByUserID(ctx context.Context, arg TerminateActiveSessionsByUserIDParams) (int64, error)
 	//TerminateSession
 	//
 	//  UPDATE
@@ -4497,6 +4665,20 @@ type Querier interface {
 	//
 	//  SELECT pg_try_advisory_lock($1::BIGINT) AS acquired
 	TryAdvisoryLock(ctx context.Context, arg TryAdvisoryLockParams) (bool, error)
+	//UnhideProfileByUserID
+	//
+	//  UPDATE "profile"
+	//  SET deleted_at = NULL,
+	//    hidden_at = NULL,
+	//    updated_at = NOW()
+	//  WHERE id = (
+	//      SELECT u.individual_profile_id
+	//      FROM "user" u
+	//      WHERE u.id = $1
+	//    )
+	//    AND hidden_at IS NOT NULL
+	//    AND redacted_at IS NULL
+	UnhideProfileByUserID(ctx context.Context, arg UnhideProfileByUserIDParams) (int64, error)
 	//UpdateApplicationForm
 	//
 	//  UPDATE "profile_application_form"

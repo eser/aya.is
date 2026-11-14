@@ -93,3 +93,18 @@ other = "11月"
 
 [MonthShort12]
 other = "12月"
+
+[PrivacyExportReadySubject]
+other = "aya.is の個人データアーカイブの準備ができました"
+
+[PrivacyExportReadyHeading]
+other = "個人データアーカイブの準備ができました"
+
+[PrivacyExportReadyBody]
+other = "リクエストされたアーカイブをダウンロードできます。{{.Days}}日間ご利用いただけます。"
+
+[PrivacyExportReadyButton]
+other = "プライバシー設定へ"
+
+[PrivacyExportReadyFooter]
+other = "aya.is アカウントの個人データのコピーがリクエストされたため、このメールをお送りしています。お心当たりがない場合は、アカウントの安全を確保してください。"

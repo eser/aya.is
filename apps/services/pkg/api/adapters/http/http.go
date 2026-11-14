@@ -19,6 +19,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/discussions"
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
+	"github.com/eser/aya.is/services/pkg/api/business/privacy"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -69,6 +70,7 @@ func Run( //nolint:funlen
 	workerRegistry *workerfx.Registry,
 	auditService *events.AuditService,
 	bulletinService *bulletinbiz.Service,
+	privacyService *privacy.Service,
 ) (func(), error) {
 	httpfx.SetDiscloseErrors(discloseErrors)
 
@@ -147,6 +149,13 @@ func Run( //nolint:funlen
 		aiModels,
 		bulletinService,
 		auditService,
+	)
+	RegisterHTTPRoutesForPrivacy( //nolint:contextcheck
+		routes,
+		logger,
+		authService,
+		userService,
+		privacyService,
 	)
 	RegisterHTTPRoutesForProfilePoints( //nolint:contextcheck
 		routes,

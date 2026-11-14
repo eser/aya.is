@@ -93,3 +93,18 @@ other = "11月"
 
 [MonthShort12]
 other = "12月"
+
+[PrivacyExportReadySubject]
+other = "您的 aya.is 个人数据存档已准备就绪"
+
+[PrivacyExportReadyHeading]
+other = "您的个人数据存档已准备就绪"
+
+[PrivacyExportReadyBody]
+other = "您请求的存档已可下载，将在 {{.Days}} 天内保持可用。"
+
+[PrivacyExportReadyButton]
+other = "前往隐私设置"
+
+[PrivacyExportReadyFooter]
+other = "您收到此邮件是因为有人为您的 aya.is 账户请求了个人数据副本。如果不是您本人操作，请保护好您的账户。"

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { LocaleLink } from "@/components/locale-link";
 import { backend } from "@/modules/backend/backend";
 import { ProfileSidebarLayout } from "@/components/profile-sidebar-layout";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/$locale/$slug/settings")({
   ssr: false,
@@ -36,10 +37,14 @@ function SettingsLayout() {
   const params = Route.useParams();
   const { permissions, profile, locale, slug } = Route.useLoaderData();
   const matches = useMatches();
+  const { user } = useAuth();
 
   if (profile === null) {
     return null;
   }
+
+  // The privacy tab acts on the signed-in user's own account, so it only shows on their own individual profile.
+  const showPrivacyTab = profile.kind === "individual" && user !== null && user.individual_profile_slug === slug;
 
   // Check if we're on a full-width route (edit/new pages need full screen without sidebar)
   const isFullWidthRoute = matches.some((match) =>
@@ -148,6 +153,18 @@ function SettingsLayout() {
           >
             {t("Common.Bulletins")}
           </LocaleLink>
+          {showPrivacyTab && (
+            <LocaleLink
+              to={`/${params.slug}/settings/privacy`}
+              className="relative pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+              activeProps={{
+                className:
+                  "relative pb-2 text-sm font-medium text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground",
+              }}
+            >
+              {t("Privacy.Privacy")}
+            </LocaleLink>
+          )}
         </nav>
 
         <Outlet />

@@ -292,6 +292,29 @@ exact versions) while source code still imports `@tanstack/react-router`. The sw
 - Supports: individual, organization, product profile types
 - Slug-based routing: `/{locale}/{profile-slug}`
 
+### Privacy (export, hide, delete)
+
+Self-service tab at `/{locale}/{slug}/settings/privacy` (own individual profile only). Backend: `pkg/api/business/privacy`,
+routes in `adapters/http/routes_privacy.go`, redaction/export SQL in `adapters/storage/repository_privacy*.go` and
+`privacy_datasets.go`.
+
+- **Hide** reuses `profile.deleted_at` plus `hidden_at`; a login hook restores only rows with `hidden_at` set (admin
+  deletions stay deleted). Hiding ends every session.
+- **Delete** runs ordered `redactionSteps` in one transaction: secrets are hard-deleted, personal text becomes
+  `**redacted**`, kept content moves to the `deleted-user` placeholder (`TombstoneUserID`), the slug becomes
+  `deleted-<id>` so the username is free again. Sole owners of organizations/products are blocked until they transfer
+  ownership. Steps and datasets are skipped when a table does not exist (production still has `legacy_question*`).
+- **New table or personal column? Update both** `privacy_datasets.go` (export) and `redactionSteps` (delete), otherwise
+  the data is missing from the archive or survives deletion. Secrets belong in `secretColumns`.
+- **Export** archives are zipped JSON, stored in a **private** bucket (`S3_EXPORT__BUCKET_NAME`, plus
+  `S3_EXPORT__ACCESS_KEY_ID` / `S3_EXPORT__SECRET_ACCESS_KEY`; endpoint and region fall back to the `S3__*` values). The
+  bucket must have no public domain; downloads use 10-minute presigned URLs. Kept 7 days, one request per 30 days, user
+  is e-mailed through Resend. Without the bucket the feature reports `export_unavailable`.
+- i18n lookup keys must **not contain a colon** (i18next treats it as a namespace separator); `lib/privacy.test.ts`
+  enforces this.
+- Real-DB tests are gated: `PRIVACY_TEST_DSN` (storage) and `S3_TEST_ENDPOINT/BUCKET/KEY/SECRET` (use RustFS, not moto:
+  moto does not verify signatures).
+
 ### Accessibility
 
 - Use `data-slot="card"` (NOT `role="card"`) as CSS hook for card links — `role="card"` is not a valid ARIA role

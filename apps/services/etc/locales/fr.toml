@@ -93,3 +93,18 @@ other = "nov"
 
 [MonthShort12]
 other = "déc"
+
+[PrivacyExportReadySubject]
+other = "Votre archive de données personnelles aya.is est prête"
+
+[PrivacyExportReadyHeading]
+other = "Votre archive de données personnelles est prête"
+
+[PrivacyExportReadyBody]
+other = "L'archive que vous avez demandée est prête à être téléchargée. Elle reste disponible pendant {{.Days}} jours."
+
+[PrivacyExportReadyButton]
+other = "Aller aux paramètres de confidentialité"
+
+[PrivacyExportReadyFooter]
+other = "Vous recevez cet e-mail parce qu'une copie de vos données personnelles a été demandée pour votre compte aya.is. Si ce n'était pas vous, sécurisez votre compte."

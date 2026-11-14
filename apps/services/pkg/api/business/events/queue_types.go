@@ -24,6 +24,9 @@ const (
 	QueueItemTypeStoryUpdated QueueItemType = "STORY_UPDATED"
 	QueueItemTypeProfileSync  QueueItemType = "PROFILE_SYNC"
 	QueueItemTypeNotification QueueItemType = "NOTIFICATION"
+
+	// QueueItemTypePrivacyExport builds a user's personal data archive.
+	QueueItemTypePrivacyExport QueueItemType = "PRIVACY_EXPORT"
 )
 
 // QueueItem represents an item in the event queue.

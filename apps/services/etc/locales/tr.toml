@@ -93,3 +93,18 @@ other = "Kas"
 
 [MonthShort12]
 other = "Ara"
+
+[PrivacyExportReadySubject]
+other = "aya.is kişisel veri arşiviniz hazır"
+
+[PrivacyExportReadyHeading]
+other = "Kişisel veri arşiviniz hazır"
+
+[PrivacyExportReadyBody]
+other = "Talep ettiğiniz arşiv indirilmeye hazır. {{.Days}} gün boyunca indirilebilir."
+
+[PrivacyExportReadyButton]
+other = "Gizlilik ayarlarına git"
+
+[PrivacyExportReadyFooter]
+other = "Bu e-postayı, aya.is hesabınız için kişisel verilerinizin bir kopyası talep edildiği için aldınız. Bu talebi siz yapmadıysanız lütfen hesabınızın güvenliğini sağlayın."

@@ -62,6 +62,7 @@ import { Route as LocaleSlugSettingsAccessRouteImport } from './routes/$locale/$
 import { Route as LocaleSlugSettingsBulletinsRouteImport } from './routes/$locale/$slug/settings/bulletins'
 import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
 import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$slug/settings/points'
+import { Route as LocaleSlugSettingsPrivacyRouteImport } from './routes/$locale/$slug/settings/privacy'
 import { Route as LocaleSlugSettingsResourcesRouteImport } from './routes/$locale/$slug/settings/resources'
 import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/$slug/settings/stories'
 import { Route as LocaleSlugStoriesIndexRouteImport } from './routes/$locale/$slug/stories/index'
@@ -343,6 +344,12 @@ const LocaleSlugSettingsPointsRoute =
     path: '/points',
     getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
+const LocaleSlugSettingsPrivacyRoute =
+  LocaleSlugSettingsPrivacyRouteImport.update({
+    id: '/privacy',
+    path: '/privacy',
+    getParentRoute: () => LocaleSlugSettingsRouteRoute,
+  } as any)
 const LocaleSlugSettingsResourcesRoute =
   LocaleSlugSettingsResourcesRouteImport.update({
     id: '/resources',
@@ -505,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
+  '/$locale/$slug/settings/privacy': typeof LocaleSlugSettingsPrivacyRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
@@ -562,6 +570,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
+  '/$locale/$slug/settings/privacy': typeof LocaleSlugSettingsPrivacyRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
@@ -635,6 +644,7 @@ export interface FileRoutesById {
   '/$locale/$slug/settings/bulletins': typeof LocaleSlugSettingsBulletinsRoute
   '/$locale/$slug/settings/links': typeof LocaleSlugSettingsLinksRoute
   '/$locale/$slug/settings/points': typeof LocaleSlugSettingsPointsRoute
+  '/$locale/$slug/settings/privacy': typeof LocaleSlugSettingsPrivacyRoute
   '/$locale/$slug/settings/resources': typeof LocaleSlugSettingsResourcesRoute
   '/$locale/$slug/settings/stories': typeof LocaleSlugSettingsStoriesRoute
   '/$locale/stories/$storyslug/cover': typeof LocaleStoriesStoryslugCoverRoute
@@ -709,6 +719,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
+    | '/$locale/$slug/settings/privacy'
     | '/$locale/$slug/settings/resources'
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
@@ -766,6 +777,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
+    | '/$locale/$slug/settings/privacy'
     | '/$locale/$slug/settings/resources'
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
@@ -838,6 +850,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug/settings/bulletins'
     | '/$locale/$slug/settings/links'
     | '/$locale/$slug/settings/points'
+    | '/$locale/$slug/settings/privacy'
     | '/$locale/$slug/settings/resources'
     | '/$locale/$slug/settings/stories'
     | '/$locale/stories/$storyslug/cover'
@@ -1227,6 +1240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsPointsRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
+    '/$locale/$slug/settings/privacy': {
+      id: '/$locale/$slug/settings/privacy'
+      path: '/privacy'
+      fullPath: '/$locale/$slug/settings/privacy'
+      preLoaderRoute: typeof LocaleSlugSettingsPrivacyRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
     '/$locale/$slug/settings/resources': {
       id: '/$locale/$slug/settings/resources'
       path: '/resources'
@@ -1415,6 +1435,7 @@ interface LocaleSlugSettingsRouteRouteChildren {
   LocaleSlugSettingsBulletinsRoute: typeof LocaleSlugSettingsBulletinsRoute
   LocaleSlugSettingsLinksRoute: typeof LocaleSlugSettingsLinksRoute
   LocaleSlugSettingsPointsRoute: typeof LocaleSlugSettingsPointsRoute
+  LocaleSlugSettingsPrivacyRoute: typeof LocaleSlugSettingsPrivacyRoute
   LocaleSlugSettingsResourcesRoute: typeof LocaleSlugSettingsResourcesRoute
   LocaleSlugSettingsStoriesRoute: typeof LocaleSlugSettingsStoriesRoute
   LocaleSlugSettingsIndexRoute: typeof LocaleSlugSettingsIndexRoute
@@ -1428,6 +1449,7 @@ const LocaleSlugSettingsRouteRouteChildren: LocaleSlugSettingsRouteRouteChildren
     LocaleSlugSettingsBulletinsRoute: LocaleSlugSettingsBulletinsRoute,
     LocaleSlugSettingsLinksRoute: LocaleSlugSettingsLinksRoute,
     LocaleSlugSettingsPointsRoute: LocaleSlugSettingsPointsRoute,
+    LocaleSlugSettingsPrivacyRoute: LocaleSlugSettingsPrivacyRoute,
     LocaleSlugSettingsResourcesRoute: LocaleSlugSettingsResourcesRoute,
     LocaleSlugSettingsStoriesRoute: LocaleSlugSettingsStoriesRoute,
     LocaleSlugSettingsIndexRoute: LocaleSlugSettingsIndexRoute,

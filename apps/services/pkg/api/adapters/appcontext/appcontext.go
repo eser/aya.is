@@ -39,6 +39,7 @@ import (
 	"github.com/eser/aya.is/services/pkg/api/business/events"
 	"github.com/eser/aya.is/services/pkg/api/business/linksync"
 	"github.com/eser/aya.is/services/pkg/api/business/mailbox"
+	"github.com/eser/aya.is/services/pkg/api/business/privacy"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_points"
 	"github.com/eser/aya.is/services/pkg/api/business/profile_questions"
 	"github.com/eser/aya.is/services/pkg/api/business/profiles"
@@ -122,6 +123,7 @@ type AppContext struct {
 	WorkerRegistry             *workerfx.Registry
 	BulletinService            *bulletinbiz.Service
 	StorySummarizer            *aiadapter.StorySummarizer
+	PrivacyService             *privacy.Service
 
 	// Infrastructure
 	WebserverSyncer profiles.WebserverSyncer
@@ -269,6 +271,11 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 			slog.String("endpoint", a.Config.S3.Endpoint),
 			slog.String("bucket", a.Config.S3.BucketName),
 		)
+	}
+
+	exportStorage, err := a.newExportStorage(ctx)
+	if err != nil {
+		return err
 	}
 
 	// ----------------------------------------------------
@@ -655,6 +662,8 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 			slog.Int("channels", len(bulletinChannels)))
 	}
 
+	a.initPrivacy(ctx, exportStorage)
+
 	// ----------------------------------------------------
 	// AI: Story Summarizer (optional — batch API)
 	// ----------------------------------------------------
@@ -682,4 +691,98 @@ func (a *AppContext) Init(ctx context.Context) error { //nolint:funlen,gocognit,
 	a.AuthService.RegisterProvider("apple", a.AppleProvider)
 
 	return nil
+}
+
+// newExportStorage creates the client of the private bucket for personal data archives. It returns nil when no
+// bucket is configured, which disables the export feature.
+func (a *AppContext) newExportStorage(ctx context.Context) (*s3client.Client, error) {
+	if a.Config.S3Export.BucketName == "" {
+		return nil, nil //nolint:nilnil // "not configured" is a valid state, not an error
+	}
+
+	exportConfig := a.Config.S3Export
+
+	if exportConfig.Endpoint == "" {
+		exportConfig.Endpoint = a.Config.S3.Endpoint
+	}
+
+	if exportConfig.Region == "" {
+		exportConfig.Region = a.Config.S3.Region
+	}
+
+	if exportConfig.AccessKeyID == "" {
+		exportConfig.AccessKeyID = a.Config.S3.AccessKeyID
+		exportConfig.SecretAccessKey = a.Config.S3.SecretAccessKey
+	}
+
+	// Archives are never served from a public URL, only through short-lived signed links.
+	exportConfig.PublicURL = ""
+
+	client, err := s3client.New(ctx, exportConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to create export S3 client: %w", ErrInitFailed, err)
+	}
+
+	a.Logger.DebugContext(
+		ctx,
+		"[AppContext] Export S3 client initialized",
+		slog.String("module", "appcontext"),
+		slog.String("bucket", exportConfig.BucketName),
+	)
+
+	return client, nil
+}
+
+// initPrivacy wires the privacy service: hiding a profile, personal data export and account deletion.
+func (a *AppContext) initPrivacy(ctx context.Context, exportStorage *s3client.Client) {
+	privacyConfig := a.Config.Privacy
+	if privacyConfig.FrontendURI == "" {
+		privacyConfig.FrontendURI = a.Config.Bulletin.FrontendURI
+	}
+
+	// Assigning a nil *s3client.Client to the interface would make it non-nil, so only pass it when set.
+	var privacyStorage privacy.ObjectStorage
+	if exportStorage != nil {
+		privacyStorage = exportStorage
+	}
+
+	var privacyMailer privacy.Mailer
+
+	if a.Config.Externals.Resend.IsConfigured() {
+		mailer, mailerErr := resend.NewPrivacyMailer(
+			resend.NewClient(a.Config.Externals.Resend.APIKey),
+			a.Logger,
+			a.Localizer,
+			&a.Config.Externals.Resend,
+		)
+		if mailerErr != nil {
+			a.Logger.WarnContext(ctx, "[AppContext] Failed to initialize privacy mailer",
+				slog.String("module", "appcontext"),
+				slog.String("error", mailerErr.Error()))
+		} else {
+			privacyMailer = mailer
+		}
+	}
+
+	a.PrivacyService = privacy.NewService(
+		a.Logger,
+		&privacyConfig,
+		a.Repository,
+		privacyStorage,
+		a.QueueService,
+		privacyMailer,
+		a.AuditService,
+	)
+
+	workers.NewPrivacyExportHandler(a.Logger, a.PrivacyService).RegisterHandlers(a.QueueRegistry)
+
+	// A profile its owner hid comes back the moment they log in again.
+	a.AuthService.AddLoginHook(func(hookCtx context.Context, user *users.User) error {
+		return a.PrivacyService.UnhideOnLogin(hookCtx, user.ID)
+	})
+
+	a.Logger.DebugContext(ctx, "[AppContext] Privacy service initialized",
+		slog.String("module", "appcontext"),
+		slog.Bool("export_enabled", privacyStorage != nil),
+		slog.Bool("export_email_enabled", privacyMailer != nil))
 }

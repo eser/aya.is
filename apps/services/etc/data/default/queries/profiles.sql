@@ -147,6 +147,7 @@ WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc
        OR normalize_text(pt.description) LIKE '%' || normalize_text(sqlc.narg(filter_q)::TEXT) || '%')
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
+  AND p.redacted_at IS NULL -- the "deleted user" placeholder is not a person to discover
 ORDER BY md5(p.id || sqlc.arg(seed))
 LIMIT sqlc.arg(page_limit)
 OFFSET sqlc.arg(page_offset);
@@ -733,6 +734,7 @@ WHERE (normalize_text(pt.title) LIKE '%' || normalize_text(sqlc.arg(query)) || '
        OR normalize_text(pt.description) LIKE '%' || normalize_text(sqlc.arg(query)) || '%')
   AND p.approved_at IS NOT NULL
   AND p.deleted_at IS NULL
+  AND p.redacted_at IS NULL
   AND (sqlc.narg(filter_profile_slug)::TEXT IS NULL OR p.slug = sqlc.narg(filter_profile_slug)::TEXT)
 ORDER BY rank DESC
 LIMIT sqlc.arg(limit_count);
@@ -964,6 +966,7 @@ INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
     LIMIT 1
   )
 WHERE u.deleted_at IS NULL
+  AND u.redacted_at IS NULL
   AND u.individual_profile_id IS NOT NULL
   AND (
     u.email ILIKE '%' || sqlc.arg(query) || '%'

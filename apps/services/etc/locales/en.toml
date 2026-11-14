@@ -93,3 +93,18 @@ other = "Nov"
 
 [MonthShort12]
 other = "Dec"
+
+[PrivacyExportReadySubject]
+other = "Your personal data archive from aya.is is ready"
+
+[PrivacyExportReadyHeading]
+other = "Your personal data archive is ready"
+
+[PrivacyExportReadyBody]
+other = "The archive you requested is ready to download. It stays available for {{.Days}} days."
+
+[PrivacyExportReadyButton]
+other = "Go to privacy settings"
+
+[PrivacyExportReadyFooter]
+other = "You received this because a copy of your personal data was requested for your aya.is account. If this was not you, please secure your account."

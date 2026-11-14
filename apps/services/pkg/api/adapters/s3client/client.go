@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"mime"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -17,6 +19,7 @@ var (
 	ErrFailedToCreateClient = errors.New("failed to create S3 client")
 	ErrFailedToPresignURL   = errors.New("failed to generate presigned URL")
 	ErrFailedToRemoveObject = errors.New("failed to remove object")
+	ErrFailedToPutObject    = errors.New("failed to put object")
 )
 
 // Config holds the S3 client configuration.
@@ -111,6 +114,54 @@ func (c *Client) GeneratePresignedDownloadURL(
 	input := &s3.GetObjectInput{ //nolint:exhaustruct
 		Bucket: aws.String(c.bucketName),
 		Key:    aws.String(key),
+	}
+
+	presignedReq, err := c.presigner.PresignGetObject(ctx, input,
+		s3.WithPresignExpires(expiresIn),
+	)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrFailedToPresignURL, err)
+	}
+
+	return presignedReq.URL, nil
+}
+
+// PutObject stores the content of body under key. The body must be seekable so the request can be signed.
+func (c *Client) PutObject(
+	ctx context.Context,
+	key string,
+	contentType string,
+	body io.ReadSeeker,
+) error {
+	input := &s3.PutObjectInput{ //nolint:exhaustruct
+		Bucket:      aws.String(c.bucketName),
+		Key:         aws.String(key),
+		ContentType: aws.String(contentType),
+		Body:        body,
+	}
+
+	_, err := c.s3Client.PutObject(ctx, input)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToPutObject, err)
+	}
+
+	return nil
+}
+
+// PresignedDownloadURL is like GeneratePresignedDownloadURL but makes the browser save the response as an
+// attachment named filename.
+func (c *Client) PresignedDownloadURL(
+	ctx context.Context,
+	key string,
+	filename string,
+	expiresIn time.Duration,
+) (string, error) {
+	input := &s3.GetObjectInput{ //nolint:exhaustruct
+		Bucket: aws.String(c.bucketName),
+		Key:    aws.String(key),
+		ResponseContentDisposition: aws.String(
+			mime.FormatMediaType("attachment", map[string]string{"filename": filename}),
+		),
 	}
 
 	presignedReq, err := c.presigner.PresignGetObject(ctx, input,

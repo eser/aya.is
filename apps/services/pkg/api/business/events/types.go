@@ -139,6 +139,15 @@ const (
 	OAuthScopeGranted EventType = "oauth_scope_granted"
 )
 
+// Privacy events. Payloads must never carry personal data (names, e-mail addresses, ...), only identifiers.
+const (
+	PrivacyProfileHidden   EventType = "privacy_profile_hidden"
+	PrivacyProfileUnhidden EventType = "privacy_profile_unhidden"
+	PrivacyExportRequested EventType = "privacy_export_requested"
+	PrivacyExportCompleted EventType = "privacy_export_completed"
+	PrivacyAccountDeleted  EventType = "privacy_account_deleted"
+)
+
 // Telegram events.
 const (
 	TelegramInviteLinkGenerated EventType = "telegram_invite_link_generated"

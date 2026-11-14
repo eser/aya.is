@@ -87,4 +87,5 @@ type Config struct {
 	Queue             QueueWorkerConfig        `conf:"queue"`
 	TelegramBot       TelegramBotPollingConfig `conf:"telegram_bot"`
 	Bulletin          BulletinConfig           `conf:"bulletin"`
+	PrivacyCleanup    PrivacyCleanupConfig     `conf:"privacy_cleanup"`
 }

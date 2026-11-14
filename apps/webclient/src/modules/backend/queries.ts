@@ -216,3 +216,20 @@ export const interactionCountsQueryOptions = (locale: string, storySlug: string)
     queryKey: ["interaction-counts", locale, storySlug],
     queryFn: () => backend.getInteractionCounts(locale, storySlug),
   });
+
+// === Privacy ===
+
+// While an export is being prepared the page polls so the user sees it become ready without reloading.
+const PRIVACY_POLL_INTERVAL_MS = 5_000;
+
+export const privacyStateQueryOptions = (locale: string) =>
+  queryOptions({
+    queryKey: ["privacy", locale],
+    queryFn: () => backend.getPrivacyState(locale),
+    staleTime: 0, // Personal state: always fresh
+    refetchInterval: (query) => {
+      const status = query.state.data?.export.status;
+
+      return status === "pending" || status === "processing" ? PRIVACY_POLL_INTERVAL_MS : false;
+    },
+  });
