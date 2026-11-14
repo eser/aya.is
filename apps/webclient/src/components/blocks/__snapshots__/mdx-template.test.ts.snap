@@ -1,66 +1,30 @@
-export const snapshot = {};
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-snapshot[`escapeForMdxProp - normal string 1`] = `"hello world"`;
+exports[`escapeForMdxProp - empty string 1`] = `""`;
 
-snapshot[`escapeForMdxProp - string with quotes 1`] = `"say &quot;hello&quot;"`;
+exports[`escapeForMdxProp - normal string 1`] = `"hello world"`;
 
-snapshot[`escapeForMdxProp - string with angle brackets 1`] = `"&lt;script&gt;alert(1)&lt;/script&gt;"`;
+exports[`escapeForMdxProp - null returns empty 1`] = `""`;
 
-snapshot[`escapeForMdxProp - string with braces 1`] = `"&#123;expression&#125;"`;
+exports[`escapeForMdxProp - string with angle brackets 1`] = `"&lt;script&gt;alert(1)&lt;/script&gt;"`;
 
-snapshot[`escapeForMdxProp - null returns empty 1`] = `""`;
+exports[`escapeForMdxProp - string with braces 1`] = `"&#123;expression&#125;"`;
 
-snapshot[`escapeForMdxProp - undefined returns empty 1`] = `""`;
+exports[`escapeForMdxProp - string with quotes 1`] = `"say &quot;hello&quot;"`;
 
-snapshot[`escapeForMdxProp - empty string 1`] = `""`;
+exports[`escapeForMdxProp - undefined returns empty 1`] = `""`;
 
-snapshot[`generateSelfClosingMdx - no props 1`] = `
+exports[`generateContainerMdx - multiple props 1`] = `
 "
-<Divider />
-"
-`;
+<Callout variant="warning" title="Warning">
 
-snapshot[`generateSelfClosingMdx - string props 1`] = `
-'
-<Spacer size="md" />
-'
-`;
-
-snapshot[`generateSelfClosingMdx - number props 1`] = `
-"
-<Component cols={2} />
-"
-`;
-
-snapshot[`generateSelfClosingMdx - boolean props 1`] = `
-"
-<Component open={true} />
-"
-`;
-
-snapshot[`generateSelfClosingMdx - mixed props 1`] = `
-'
-<Card title="Hello" count={3} />
-'
-`;
-
-snapshot[`generateSelfClosingMdx - filters empty strings 1`] = `
-'
-<Test name="foo" />
-'
-`;
-
-snapshot[`generateContainerMdx - simple 1`] = `
-'
-<Callout variant="info">
-
-Your content here.
+Be careful!
 
 </Callout>
-'
+"
 `;
 
-snapshot[`generateContainerMdx - no props 1`] = `
+exports[`generateContainerMdx - no props 1`] = `
 "
 <Column>
 
@@ -70,12 +34,48 @@ Column content.
 "
 `;
 
-snapshot[`generateContainerMdx - multiple props 1`] = `
-'
-<Callout variant="warning" title="Warning">
+exports[`generateContainerMdx - simple 1`] = `
+"
+<Callout variant="info">
 
-Be careful!
+Your content here.
 
 </Callout>
-'
+"
+`;
+
+exports[`generateSelfClosingMdx - boolean props 1`] = `
+"
+<Component open={true} />
+"
+`;
+
+exports[`generateSelfClosingMdx - filters empty strings 1`] = `
+"
+<Test name="foo" />
+"
+`;
+
+exports[`generateSelfClosingMdx - mixed props 1`] = `
+"
+<Card title="Hello" count={3} />
+"
+`;
+
+exports[`generateSelfClosingMdx - no props 1`] = `
+"
+<Divider />
+"
+`;
+
+exports[`generateSelfClosingMdx - number props 1`] = `
+"
+<Component cols={2} />
+"
+`;
+
+exports[`generateSelfClosingMdx - string props 1`] = `
+"
+<Spacer size="md" />
+"
 `;

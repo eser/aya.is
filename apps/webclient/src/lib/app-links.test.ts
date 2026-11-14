@@ -1,45 +1,44 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { isAppLinkableUrl } from "./app-links.ts";
 
 // YouTube domains
-Deno.test("isAppLinkableUrl - youtube.com variants", () => {
-  assertEquals(isAppLinkableUrl("https://youtube.com/watch?v=abc123"), true);
-  assertEquals(isAppLinkableUrl("https://www.youtube.com/watch?v=abc123"), true);
-  assertEquals(isAppLinkableUrl("https://m.youtube.com/watch?v=abc123"), true);
-  assertEquals(isAppLinkableUrl("https://youtu.be/abc123"), true);
-  assertEquals(isAppLinkableUrl("https://music.youtube.com/watch?v=abc123"), true);
+test("isAppLinkableUrl - youtube.com variants", () => {
+  expect(isAppLinkableUrl("https://youtube.com/watch?v=abc123")).toEqual(true);
+  expect(isAppLinkableUrl("https://www.youtube.com/watch?v=abc123")).toEqual(true);
+  expect(isAppLinkableUrl("https://m.youtube.com/watch?v=abc123")).toEqual(true);
+  expect(isAppLinkableUrl("https://youtu.be/abc123")).toEqual(true);
+  expect(isAppLinkableUrl("https://music.youtube.com/watch?v=abc123")).toEqual(true);
 });
 
-Deno.test("isAppLinkableUrl - YouTube channels and playlists", () => {
-  assertEquals(isAppLinkableUrl("https://www.youtube.com/@channel"), true);
-  assertEquals(isAppLinkableUrl("https://www.youtube.com/playlist?list=PLabc"), true);
-  assertEquals(isAppLinkableUrl("https://www.youtube.com/shorts/abc123"), true);
-  assertEquals(isAppLinkableUrl("https://www.youtube.com/live/abc123"), true);
+test("isAppLinkableUrl - YouTube channels and playlists", () => {
+  expect(isAppLinkableUrl("https://www.youtube.com/@channel")).toEqual(true);
+  expect(isAppLinkableUrl("https://www.youtube.com/playlist?list=PLabc")).toEqual(true);
+  expect(isAppLinkableUrl("https://www.youtube.com/shorts/abc123")).toEqual(true);
+  expect(isAppLinkableUrl("https://www.youtube.com/live/abc123")).toEqual(true);
 });
 
-Deno.test("isAppLinkableUrl - YouTube with query params", () => {
-  assertEquals(isAppLinkableUrl("https://www.youtube.com/watch?v=abc123&si=xyz&t=42"), true);
-  assertEquals(isAppLinkableUrl("https://youtu.be/abc123?feature=share"), true);
+test("isAppLinkableUrl - YouTube with query params", () => {
+  expect(isAppLinkableUrl("https://www.youtube.com/watch?v=abc123&si=xyz&t=42")).toEqual(true);
+  expect(isAppLinkableUrl("https://youtu.be/abc123?feature=share")).toEqual(true);
 });
 
 // Non-YouTube domains
-Deno.test("isAppLinkableUrl - non-app-linkable domains", () => {
-  assertEquals(isAppLinkableUrl("https://github.com/user/repo"), false);
-  assertEquals(isAppLinkableUrl("https://twitter.com/user"), false);
-  assertEquals(isAppLinkableUrl("https://example.com"), false);
-  assertEquals(isAppLinkableUrl("https://notyoutube.com/watch"), false);
+test("isAppLinkableUrl - non-app-linkable domains", () => {
+  expect(isAppLinkableUrl("https://github.com/user/repo")).toEqual(false);
+  expect(isAppLinkableUrl("https://twitter.com/user")).toEqual(false);
+  expect(isAppLinkableUrl("https://example.com")).toEqual(false);
+  expect(isAppLinkableUrl("https://notyoutube.com/watch")).toEqual(false);
 });
 
 // Edge cases
-Deno.test("isAppLinkableUrl - empty and invalid URLs", () => {
-  assertEquals(isAppLinkableUrl(""), false);
-  assertEquals(isAppLinkableUrl("not-a-url"), false);
-  assertEquals(isAppLinkableUrl("javascript:alert(1)"), false);
+test("isAppLinkableUrl - empty and invalid URLs", () => {
+  expect(isAppLinkableUrl("")).toEqual(false);
+  expect(isAppLinkableUrl("not-a-url")).toEqual(false);
+  expect(isAppLinkableUrl("javascript:alert(1)")).toEqual(false);
 });
 
-Deno.test("isAppLinkableUrl - protocol variations", () => {
-  assertEquals(isAppLinkableUrl("http://www.youtube.com/watch?v=abc123"), true);
-  assertEquals(isAppLinkableUrl("https://www.youtube.com/watch?v=abc123"), true);
+test("isAppLinkableUrl - protocol variations", () => {
+  expect(isAppLinkableUrl("http://www.youtube.com/watch?v=abc123")).toEqual(true);
+  expect(isAppLinkableUrl("https://www.youtube.com/watch?v=abc123")).toEqual(true);
 });

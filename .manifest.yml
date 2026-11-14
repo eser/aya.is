@@ -73,30 +73,30 @@ workflows:
       - validate-submodules
       - validate-licenses
 
-      # Frontend (Deno) checks
+      # Frontend (Node) checks
       - shell:
           name: oxfmt
-          command: deno task fmt:check
-          fixCommand: deno task fmt
+          command: pnpm fmt:check
+          fixCommand: pnpm fmt
           timeout: 120
       - shell:
           name: oxlint
-          command: deno task lint
-          fixCommand: deno task lint:fix
+          command: pnpm lint
+          fixCommand: pnpm lint:fix
           workingDirectory: ./apps/webclient/
           timeout: 120
       - shell:
           name: oxlint-scripts
-          command: deno task lint:scripts
+          command: pnpm lint:scripts
           timeout: 60
       - shell:
           name: webclient-typecheck
-          command: deno task typecheck
+          command: pnpm typecheck
           workingDirectory: ./apps/webclient/
           timeout: 180
       - shell:
           name: webclient-tests
-          command: deno task test:ci
+          command: pnpm test:ci
           workingDirectory: ./apps/webclient/
           timeout: 120
 
@@ -162,19 +162,19 @@ scripts:
   fix: eser workflows run -e precommit --fix
 
   # Setup
-  init: deno install && eser codebase install
+  init: pnpm install && eser codebase install
 
   # Frontend
   dev:
-    command: deno task dev
+    command: pnpm dev
     workingDirectory: ./apps/webclient/
     description: Start webclient dev server
   test:
-    command: deno task test
+    command: pnpm test
     workingDirectory: ./apps/webclient/
     description: Run frontend tests
-  lint: deno lint
-  fmt: deno fmt
+  lint: pnpm lint
+  fmt: pnpm fmt
 
   # Backend
   go-dev:

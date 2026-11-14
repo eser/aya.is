@@ -1,74 +1,73 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
+import { expect, test } from "vitest";
 import { escapeForMdxProp, generateContainerMdx, generateSelfClosingMdx } from "./mdx-template.ts";
 
 // escapeForMdxProp tests
 
-Deno.test("escapeForMdxProp - normal string", async (t) => {
-  await assertSnapshot(t, escapeForMdxProp("hello world"));
+test("escapeForMdxProp - normal string", () => {
+  expect(escapeForMdxProp("hello world")).toMatchSnapshot();
 });
 
-Deno.test("escapeForMdxProp - string with quotes", async (t) => {
-  await assertSnapshot(t, escapeForMdxProp('say "hello"'));
+test("escapeForMdxProp - string with quotes", () => {
+  expect(escapeForMdxProp('say "hello"')).toMatchSnapshot();
 });
 
-Deno.test("escapeForMdxProp - string with angle brackets", async (t) => {
-  await assertSnapshot(t, escapeForMdxProp("<script>alert(1)</script>"));
+test("escapeForMdxProp - string with angle brackets", () => {
+  expect(escapeForMdxProp("<script>alert(1)</script>")).toMatchSnapshot();
 });
 
-Deno.test("escapeForMdxProp - string with braces", async (t) => {
-  await assertSnapshot(t, escapeForMdxProp("{expression}"));
+test("escapeForMdxProp - string with braces", () => {
+  expect(escapeForMdxProp("{expression}")).toMatchSnapshot();
 });
 
-Deno.test("escapeForMdxProp - null returns empty", async (t) => {
-  await assertSnapshot(t, escapeForMdxProp(null));
+test("escapeForMdxProp - null returns empty", () => {
+  expect(escapeForMdxProp(null)).toMatchSnapshot();
 });
 
-Deno.test("escapeForMdxProp - undefined returns empty", async (t) => {
-  await assertSnapshot(t, escapeForMdxProp(undefined));
+test("escapeForMdxProp - undefined returns empty", () => {
+  expect(escapeForMdxProp(undefined)).toMatchSnapshot();
 });
 
-Deno.test("escapeForMdxProp - empty string", async (t) => {
-  await assertSnapshot(t, escapeForMdxProp(""));
+test("escapeForMdxProp - empty string", () => {
+  expect(escapeForMdxProp("")).toMatchSnapshot();
 });
 
 // generateSelfClosingMdx tests
 
-Deno.test("generateSelfClosingMdx - no props", async (t) => {
-  await assertSnapshot(t, generateSelfClosingMdx("Divider", {}));
+test("generateSelfClosingMdx - no props", () => {
+  expect(generateSelfClosingMdx("Divider", {})).toMatchSnapshot();
 });
 
-Deno.test("generateSelfClosingMdx - string props", async (t) => {
-  await assertSnapshot(t, generateSelfClosingMdx("Spacer", { size: "md" }));
+test("generateSelfClosingMdx - string props", () => {
+  expect(generateSelfClosingMdx("Spacer", { size: "md" })).toMatchSnapshot();
 });
 
-Deno.test("generateSelfClosingMdx - number props", async (t) => {
-  await assertSnapshot(t, generateSelfClosingMdx("Component", { cols: 2 }));
+test("generateSelfClosingMdx - number props", () => {
+  expect(generateSelfClosingMdx("Component", { cols: 2 })).toMatchSnapshot();
 });
 
-Deno.test("generateSelfClosingMdx - boolean props", async (t) => {
-  await assertSnapshot(t, generateSelfClosingMdx("Component", { open: true }));
+test("generateSelfClosingMdx - boolean props", () => {
+  expect(generateSelfClosingMdx("Component", { open: true })).toMatchSnapshot();
 });
 
-Deno.test("generateSelfClosingMdx - mixed props", async (t) => {
-  await assertSnapshot(t, generateSelfClosingMdx("Card", { title: "Hello", count: 3 }));
+test("generateSelfClosingMdx - mixed props", () => {
+  expect(generateSelfClosingMdx("Card", { title: "Hello", count: 3 })).toMatchSnapshot();
 });
 
-Deno.test("generateSelfClosingMdx - filters empty strings", async (t) => {
-  await assertSnapshot(t, generateSelfClosingMdx("Test", { name: "foo", empty: "" }));
+test("generateSelfClosingMdx - filters empty strings", () => {
+  expect(generateSelfClosingMdx("Test", { name: "foo", empty: "" })).toMatchSnapshot();
 });
 
 // generateContainerMdx tests
 
-Deno.test("generateContainerMdx - simple", async (t) => {
-  await assertSnapshot(t, generateContainerMdx("Callout", { variant: "info" }, "Your content here."));
+test("generateContainerMdx - simple", () => {
+  expect(generateContainerMdx("Callout", { variant: "info" }, "Your content here.")).toMatchSnapshot();
 });
 
-Deno.test("generateContainerMdx - no props", async (t) => {
-  await assertSnapshot(t, generateContainerMdx("Column", {}, "Column content."));
+test("generateContainerMdx - no props", () => {
+  expect(generateContainerMdx("Column", {}, "Column content.")).toMatchSnapshot();
 });
 
-Deno.test("generateContainerMdx - multiple props", async (t) => {
-  await assertSnapshot(t, generateContainerMdx("Callout", { variant: "warning", title: "Warning" }, "Be careful!"));
+test("generateContainerMdx - multiple props", () => {
+  expect(generateContainerMdx("Callout", { variant: "warning", title: "Warning" }, "Be careful!")).toMatchSnapshot();
 });

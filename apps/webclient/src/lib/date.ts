@@ -2,51 +2,68 @@
 // Date utility functions - locale-aware date formatting
 
 /**
+ * Intl output differs between runtimes: Node (server) puts thin spaces (U+2009) around the range dash and may use a
+ * narrow no-break space (U+202F) before AM/PM, while Chrome (browser) uses plain spaces. Rendering both on the server
+ * and the client then fails React hydration, so every formatter returns plain spaces.
+ */
+export function normalizeSpaces(value: string): string {
+  return value.replace(/[\u2009\u202f\u00a0]/g, " ");
+}
+
+/**
  * Format date in long format (e.g., "January 28, 2026")
  */
 export function formatDateLong(date: Date, locale: string): string {
-  return date.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return normalizeSpaces(
+    date.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+  );
 }
 
 /**
  * Format date in short format (e.g., "Jan 28, 2026")
  */
 export function formatDateShort(date: Date, locale: string): string {
-  return date.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return normalizeSpaces(
+    date.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+  );
 }
 
 /**
  * Format datetime in long format (e.g., "January 28, 2026, 14:30")
  */
 export function formatDateTimeLong(date: Date, locale: string): string {
-  return date.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return normalizeSpaces(
+    date.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  );
 }
 
 /**
  * Format datetime in short format (e.g., "Jan 28, 2026, 14:30")
  */
 export function formatDateTimeShort(date: Date, locale: string): string {
-  return date.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return normalizeSpaces(
+    date.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  );
 }
 
 /**
@@ -63,36 +80,42 @@ export function formatDateTimeRange(start: Date, end: Date, locale: string): str
     minute: "2-digit",
   });
 
-  return formatter.formatRange(start, end);
+  return normalizeSpaces(formatter.formatRange(start, end));
 }
 
 /**
  * Format month and year (e.g., "January 2026")
  */
 export function formatMonthYear(date: Date, locale: string): string {
-  return date.toLocaleDateString(locale, {
-    year: "numeric",
-    month: "long",
-  });
+  return normalizeSpaces(
+    date.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "long",
+    }),
+  );
 }
 
 /**
  * Format month short name (e.g., "Jan")
  */
 export function formatMonthShort(date: Date, locale: string): string {
-  return date.toLocaleDateString(locale, {
-    month: "short",
-  });
+  return normalizeSpaces(
+    date.toLocaleDateString(locale, {
+      month: "short",
+    }),
+  );
 }
 
 /**
  * Format time only (e.g., "14:30")
  */
 export function formatTime(date: Date, locale: string): string {
-  return date.toLocaleTimeString(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return normalizeSpaces(
+    date.toLocaleTimeString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  );
 }
 
 /**

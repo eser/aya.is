@@ -1,93 +1,72 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { getAllBlocks, getAllPatterns, getBlocksByCategory, searchBlocks, searchPatterns } from "./registry.ts";
 
-Deno.test("getAllBlocks returns all blocks", async (t) => {
+test("getAllBlocks returns all blocks", () => {
   const blocks = getAllBlocks();
-  await assertSnapshot(t, {
+  expect({
     count: blocks.length,
     ids: blocks.map((b) => b.id),
-  });
+  }).toMatchSnapshot();
 });
 
-Deno.test("all blocks have unique IDs", () => {
+test("all blocks have unique IDs", () => {
   const blocks = getAllBlocks();
   const ids = blocks.map((b) => b.id);
   const uniqueIds = new Set(ids);
-  assertEquals(uniqueIds.size, ids.length);
+  expect(uniqueIds.size).toEqual(ids.length);
 });
 
-Deno.test("all blocks have valid categories", () => {
+test("all blocks have valid categories", () => {
   const validCategories = ["text", "media", "layout", "data", "embed", "interactive"];
   const blocks = getAllBlocks();
   for (const block of blocks) {
-    assertEquals(
+    expect(
       validCategories.includes(block.category),
-      true,
       `Block "${block.id}" has invalid category "${block.category}"`,
-    );
+    ).toEqual(true);
   }
 });
 
-Deno.test("getBlocksByCategory text returns text blocks", async (t) => {
+test("getBlocksByCategory text returns text blocks", () => {
   const textBlocks = getBlocksByCategory("text");
-  await assertSnapshot(
-    t,
-    textBlocks.map((b) => b.id),
-  );
+  expect(textBlocks.map((b) => b.id)).toMatchSnapshot();
 });
 
-Deno.test("getBlocksByCategory media returns media blocks", async (t) => {
+test("getBlocksByCategory media returns media blocks", () => {
   const mediaBlocks = getBlocksByCategory("media");
-  await assertSnapshot(
-    t,
-    mediaBlocks.map((b) => b.id),
-  );
+  expect(mediaBlocks.map((b) => b.id)).toMatchSnapshot();
 });
 
-Deno.test("getBlocksByCategory embed returns embed blocks", async (t) => {
+test("getBlocksByCategory embed returns embed blocks", () => {
   const embedBlocks = getBlocksByCategory("embed");
-  await assertSnapshot(
-    t,
-    embedBlocks.map((b) => b.id),
-  );
+  expect(embedBlocks.map((b) => b.id)).toMatchSnapshot();
 });
 
-Deno.test("searchBlocks video finds youtube", async (t) => {
+test("searchBlocks video finds youtube", () => {
   const results = searchBlocks("video");
-  await assertSnapshot(
-    t,
-    results.map((b) => b.id),
-  );
+  expect(results.map((b) => b.id)).toMatchSnapshot();
 });
 
-Deno.test("searchBlocks callout finds callout", async (t) => {
+test("searchBlocks callout finds callout", () => {
   const results = searchBlocks("callout");
-  await assertSnapshot(
-    t,
-    results.map((b) => b.id),
-  );
+  expect(results.map((b) => b.id)).toMatchSnapshot();
 });
 
-Deno.test("searchBlocks nonexistent returns empty", () => {
+test("searchBlocks nonexistent returns empty", () => {
   const results = searchBlocks("xyznonexistent");
-  assertEquals(results.length, 0);
+  expect(results.length).toEqual(0);
 });
 
-Deno.test("getAllPatterns returns patterns", async (t) => {
+test("getAllPatterns returns patterns", () => {
   const patterns = getAllPatterns();
-  await assertSnapshot(t, {
+  expect({
     count: patterns.length,
     ids: patterns.map((p) => p.id),
-  });
+  }).toMatchSnapshot();
 });
 
-Deno.test("searchPatterns hero finds hero pattern", async (t) => {
+test("searchPatterns hero finds hero pattern", () => {
   const results = searchPatterns("hero");
-  await assertSnapshot(
-    t,
-    results.map((p) => p.id),
-  );
+  expect(results.map((p) => p.id)).toMatchSnapshot();
 });

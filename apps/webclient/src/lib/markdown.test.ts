@@ -1,46 +1,42 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
+import { expect, test } from "vitest";
 import { formatFrontmatter, formatStoryListItem } from "./markdown.ts";
 
 // formatFrontmatter
-Deno.test("formatFrontmatter - simple values", async (t) => {
-  await assertSnapshot(
-    t,
+test("formatFrontmatter - simple values", () => {
+  expect(
     formatFrontmatter({
       title: "Hello World",
       date: "2026-01-28",
       draft: false,
       count: 42,
     }),
-  );
+  ).toMatchSnapshot();
 });
 
-Deno.test("formatFrontmatter - strings needing quotes", async (t) => {
-  await assertSnapshot(
-    t,
+test("formatFrontmatter - strings needing quotes", () => {
+  expect(
     formatFrontmatter({
       title: 'Title with "quotes"',
       subtitle: "Has: colon in value",
       multiline: "First line\nSecond line",
       padded: " leading space",
     }),
-  );
+  ).toMatchSnapshot();
 });
 
-Deno.test("formatFrontmatter - null/undefined values skipped", async (t) => {
-  await assertSnapshot(
-    t,
+test("formatFrontmatter - null/undefined values skipped", () => {
+  expect(
     formatFrontmatter({
       title: "Present",
       missing: null,
       absent: undefined,
     }),
-  );
+  ).toMatchSnapshot();
 });
 
 // formatStoryListItem
-Deno.test("formatStoryListItem - full story with all fields", async (t) => {
+test("formatStoryListItem - full story with all fields", () => {
   const story = {
     title: "Microsoft's Vision",
     slug: "20160610-microsoftun-yari-vizyonu",
@@ -48,19 +44,19 @@ Deno.test("formatStoryListItem - full story with all fields", async (t) => {
     locale_code: "tr",
     author_profile: { title: "Eser Ozvataf" },
   };
-  await assertSnapshot(t, formatStoryListItem(story, "en", "eser/stories"));
+  expect(formatStoryListItem(story, "en", "eser/stories")).toMatchSnapshot();
 });
 
-Deno.test("formatStoryListItem - minimal story", async (t) => {
+test("formatStoryListItem - minimal story", () => {
   const story = {
     title: null,
     slug: null,
     summary: null,
   };
-  await assertSnapshot(t, formatStoryListItem(story, "en", "stories"));
+  expect(formatStoryListItem(story, "en", "stories")).toMatchSnapshot();
 });
 
-Deno.test("formatStoryListItem - same locale (no badge)", async (t) => {
+test("formatStoryListItem - same locale (no badge)", () => {
   const story = {
     title: "Turkish Article",
     slug: "20260128-turkish-article",
@@ -68,15 +64,15 @@ Deno.test("formatStoryListItem - same locale (no badge)", async (t) => {
     locale_code: "tr",
     author_profile: { title: "Author" },
   };
-  await assertSnapshot(t, formatStoryListItem(story, "tr", "stories"));
+  expect(formatStoryListItem(story, "tr", "stories")).toMatchSnapshot();
 });
 
-Deno.test("formatStoryListItem - no date in slug", async (t) => {
+test("formatStoryListItem - no date in slug", () => {
   const story = {
     title: "About Page",
     slug: "about-us",
     summary: null,
     locale_code: "en",
   };
-  await assertSnapshot(t, formatStoryListItem(story, "en", "pages"));
+  expect(formatStoryListItem(story, "en", "pages")).toMatchSnapshot();
 });

@@ -35,12 +35,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: denoland/setup-deno@v2
+      - uses: actions/setup-node@v7
         with:
-          deno-version: v2.x
-
-      - name: Install dependencies
-        run: deno install
+          node-version: 24
 
       - name: Sync release body from changelog
         env:
@@ -71,4 +68,4 @@ jobs:
             args+=(--create-if-missing)
           fi
 
-          deno run --allow-read --allow-write --allow-run=gh --allow-env scripts/sync_release_notes_from_changelog.ts "${args[@]}"
+          node scripts/sync_release_notes_from_changelog.ts "${args[@]}"

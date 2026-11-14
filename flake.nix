@@ -20,7 +20,7 @@
         };
 
         go = pkgs.go_1_27;
-        nodejs = pkgs.nodejs_20;
+        nodejs = pkgs.nodejs_24;
       in
       {
         formatter = pkgs.nixfmt;
@@ -52,7 +52,7 @@
             deno install -gAf --name eser jsr:@eser/cli > /dev/null 2>&1
             eser codebase install > /dev/null 2>&1
             echo "AYA dev shell ready."
-            echo "- Web client: cd apps/webclient && deno task dev"
+            echo "- Web client: cd apps/webclient && pnpm dev"
             echo "- Services : cd apps/services && make dev"
           '';
         };

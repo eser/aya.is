@@ -1,39 +1,27 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-import * as path from "@std/path";
-import { readTextFileSync } from "@std/fs/unstable-read-text-file";
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import * as path from "node:path";
 
 const rootDir = path.resolve(import.meta.dirname ?? ".", "..");
 const versionPath = path.join(rootDir, "VERSION");
 
 function run(cmd: string, args: string[]): void {
-  const command = new Deno.Command(cmd, {
-    args,
-    cwd: rootDir,
-    stdin: "inherit",
-    stdout: "inherit",
-    stderr: "inherit",
-  });
-  const output = command.outputSync();
-  if (!output.success) {
-    throw new Error(`${cmd} ${args.join(" ")} failed with exit code ${output.code}`);
+  const result = spawnSync(cmd, args, { cwd: rootDir, stdio: "inherit" });
+  if (result.status !== 0) {
+    throw new Error(`${cmd} ${args.join(" ")} failed with exit code ${result.status}`);
   }
 }
 
 function runQuiet(cmd: string, args: string[]): string {
-  const command = new Deno.Command(cmd, {
-    args,
-    cwd: rootDir,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const output = command.outputSync();
-  if (!output.success) {
-    throw new Error(`${cmd} ${args.join(" ")} failed with exit code ${output.code}`);
+  const result = spawnSync(cmd, args, { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  if (result.status !== 0) {
+    throw new Error(`${cmd} ${args.join(" ")} failed with exit code ${result.status}`);
   }
-  return new TextDecoder().decode(output.stdout).trim();
+  return result.stdout.trim();
 }
 
-const version = readTextFileSync(versionPath).trim();
+const version = readFileSync(versionPath, "utf8").trim();
 if (version === "") {
   throw new Error("VERSION file must contain a valid version string");
 }

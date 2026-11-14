@@ -1,6 +1,5 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { addRecentBlock, getRecentBlockIds } from "./recent-blocks.ts";
 
 function createMockLocalStorage(): Storage {
@@ -35,7 +34,7 @@ function createMockLocalStorage(): Storage {
   };
 }
 
-Deno.test("getRecentBlockIds returns empty when no storage", () => {
+test("getRecentBlockIds returns empty when no storage", () => {
   const original = globalThis.localStorage;
   const mock = createMockLocalStorage();
   Object.defineProperty(globalThis, "localStorage", {
@@ -45,7 +44,7 @@ Deno.test("getRecentBlockIds returns empty when no storage", () => {
   });
   try {
     const result = getRecentBlockIds();
-    assertEquals(result, []);
+    expect(result).toEqual([]);
   } finally {
     Object.defineProperty(globalThis, "localStorage", {
       value: original,
@@ -55,7 +54,7 @@ Deno.test("getRecentBlockIds returns empty when no storage", () => {
   }
 });
 
-Deno.test("addRecentBlock and getRecentBlockIds round trip", () => {
+test("addRecentBlock and getRecentBlockIds round trip", () => {
   const original = globalThis.localStorage;
   const mock = createMockLocalStorage();
   Object.defineProperty(globalThis, "localStorage", {
@@ -67,7 +66,7 @@ Deno.test("addRecentBlock and getRecentBlockIds round trip", () => {
     addRecentBlock("callout");
     addRecentBlock("image");
     const result = getRecentBlockIds();
-    assertEquals(result, ["image", "callout"]);
+    expect(result).toEqual(["image", "callout"]);
   } finally {
     Object.defineProperty(globalThis, "localStorage", {
       value: original,
@@ -77,7 +76,7 @@ Deno.test("addRecentBlock and getRecentBlockIds round trip", () => {
   }
 });
 
-Deno.test("addRecentBlock deduplicates and moves to front", () => {
+test("addRecentBlock deduplicates and moves to front", () => {
   const original = globalThis.localStorage;
   const mock = createMockLocalStorage();
   Object.defineProperty(globalThis, "localStorage", {
@@ -91,7 +90,7 @@ Deno.test("addRecentBlock deduplicates and moves to front", () => {
     addRecentBlock("button");
     addRecentBlock("callout");
     const result = getRecentBlockIds();
-    assertEquals(result, ["callout", "button", "image"]);
+    expect(result).toEqual(["callout", "button", "image"]);
   } finally {
     Object.defineProperty(globalThis, "localStorage", {
       value: original,
@@ -101,7 +100,7 @@ Deno.test("addRecentBlock deduplicates and moves to front", () => {
   }
 });
 
-Deno.test("addRecentBlock trims to 5", () => {
+test("addRecentBlock trims to 5", () => {
   const original = globalThis.localStorage;
   const mock = createMockLocalStorage();
   Object.defineProperty(globalThis, "localStorage", {
@@ -117,8 +116,8 @@ Deno.test("addRecentBlock trims to 5", () => {
     addRecentBlock("block-5");
     addRecentBlock("block-6");
     const result = getRecentBlockIds();
-    assertEquals(result.length, 5);
-    assertEquals(result, ["block-6", "block-5", "block-4", "block-3", "block-2"]);
+    expect(result.length).toEqual(5);
+    expect(result).toEqual(["block-6", "block-5", "block-4", "block-3", "block-2"]);
   } finally {
     Object.defineProperty(globalThis, "localStorage", {
       value: original,

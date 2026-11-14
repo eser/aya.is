@@ -1,6 +1,7 @@
 {
   "printWidth": 120,
   "ignorePatterns": [
+    "pnpm-lock.yaml",
     "**/*.gen.ts",
     "**/__snapshots__/**",
     ".agents/skills/**",

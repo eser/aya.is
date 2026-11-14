@@ -1,6 +1,5 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
+import { expect, test } from "vitest";
 import {
   buildUrl,
   computeContentLanguage,
@@ -17,9 +16,8 @@ const TEST_DEFAULTS = {
 };
 
 // generateMetaTags
-Deno.test("generateMetaTags - basic website", async (t) => {
-  await assertSnapshot(
-    t,
+test("generateMetaTags - basic website", () => {
+  expect(
     generateMetaTags(
       {
         title: "Home",
@@ -27,12 +25,11 @@ Deno.test("generateMetaTags - basic website", async (t) => {
       },
       TEST_DEFAULTS,
     ),
-  );
+  ).toMatchSnapshot();
 });
 
-Deno.test("generateMetaTags - article with dates and author", async (t) => {
-  await assertSnapshot(
-    t,
+test("generateMetaTags - article with dates and author", () => {
+  expect(
     generateMetaTags(
       {
         title: "My Article",
@@ -46,12 +43,11 @@ Deno.test("generateMetaTags - article with dates and author", async (t) => {
       },
       TEST_DEFAULTS,
     ),
-  );
+  ).toMatchSnapshot();
 });
 
-Deno.test("generateMetaTags - noIndex", async (t) => {
-  await assertSnapshot(
-    t,
+test("generateMetaTags - noIndex", () => {
+  expect(
     generateMetaTags(
       {
         title: "Draft",
@@ -60,12 +56,11 @@ Deno.test("generateMetaTags - noIndex", async (t) => {
       },
       TEST_DEFAULTS,
     ),
-  );
+  ).toMatchSnapshot();
 });
 
-Deno.test("generateMetaTags - custom image", async (t) => {
-  await assertSnapshot(
-    t,
+test("generateMetaTags - custom image", () => {
+  expect(
     generateMetaTags(
       {
         title: "With Image",
@@ -74,12 +69,11 @@ Deno.test("generateMetaTags - custom image", async (t) => {
       },
       TEST_DEFAULTS,
     ),
-  );
+  ).toMatchSnapshot();
 });
 
-Deno.test("generateMetaTags - null image", async (t) => {
-  await assertSnapshot(
-    t,
+test("generateMetaTags - null image", () => {
+  expect(
     generateMetaTags(
       {
         title: "No Image",
@@ -88,12 +82,11 @@ Deno.test("generateMetaTags - null image", async (t) => {
       },
       TEST_DEFAULTS,
     ),
-  );
+  ).toMatchSnapshot();
 });
 
-Deno.test("generateMetaTags - title matches siteName (no duplication)", async (t) => {
-  await assertSnapshot(
-    t,
+test("generateMetaTags - title matches siteName (no duplication)", () => {
+  expect(
     generateMetaTags(
       {
         title: "AYA",
@@ -102,73 +95,73 @@ Deno.test("generateMetaTags - title matches siteName (no duplication)", async (t
       },
       TEST_DEFAULTS,
     ),
-  );
+  ).toMatchSnapshot();
 });
 
 // buildUrl
-Deno.test("buildUrl - various combinations", async (t) => {
-  await assertSnapshot(t, buildUrl("https://aya.is", "en"));
-  await assertSnapshot(t, buildUrl("https://aya.is", "tr", "stories"));
-  await assertSnapshot(t, buildUrl("https://aya.is", "en", "eser", "stories", "my-story"));
-  await assertSnapshot(t, buildUrl("https://aya.is", "fr", "", "about")); // empty segment filtered
+test("buildUrl - various combinations", () => {
+  expect(buildUrl("https://aya.is", "en")).toMatchSnapshot();
+  expect(buildUrl("https://aya.is", "tr", "stories")).toMatchSnapshot();
+  expect(buildUrl("https://aya.is", "en", "eser", "stories", "my-story")).toMatchSnapshot();
+  expect(buildUrl("https://aya.is", "fr", "", "about")).toMatchSnapshot(); // empty segment filtered
 });
 
 // generateCanonicalLink
-Deno.test("generateCanonicalLink", async (t) => {
-  await assertSnapshot(t, generateCanonicalLink("https://aya.is/en/about"));
+test("generateCanonicalLink", () => {
+  expect(generateCanonicalLink("https://aya.is/en/about")).toMatchSnapshot();
 });
 
 // computeStoryCanonicalUrl
-Deno.test("computeStoryCanonicalUrl - managed story with source_url", async (t) => {
+test("computeStoryCanonicalUrl - managed story with source_url", () => {
   const story = {
     is_managed: true,
     properties: { source_url: "https://medium.com/original-article" },
     locale_code: "en",
     slug: "my-story",
   };
-  await assertSnapshot(t, computeStoryCanonicalUrl("https://aya.is", story, "en", "eser", "stories"));
+  expect(computeStoryCanonicalUrl("https://aya.is", story, "en", "eser", "stories")).toMatchSnapshot();
 });
 
-Deno.test("computeStoryCanonicalUrl - regular story", async (t) => {
+test("computeStoryCanonicalUrl - regular story", () => {
   const story = {
     is_managed: false,
     properties: null,
     locale_code: "tr",
     slug: "20260128-test-story",
   };
-  await assertSnapshot(t, computeStoryCanonicalUrl("https://aya.is", story, "en", "eser", "stories"));
+  expect(computeStoryCanonicalUrl("https://aya.is", story, "en", "eser", "stories")).toMatchSnapshot();
 });
 
-Deno.test("computeStoryCanonicalUrl - fallback to viewer locale", async (t) => {
+test("computeStoryCanonicalUrl - fallback to viewer locale", () => {
   const story = {
     is_managed: false,
     properties: null,
     locale_code: "  ",
     slug: "my-story",
   };
-  await assertSnapshot(t, computeStoryCanonicalUrl("https://aya.is", story, "en", "stories"));
+  expect(computeStoryCanonicalUrl("https://aya.is", story, "en", "stories")).toMatchSnapshot();
 });
 
 // computeContentLanguage
-Deno.test("computeContentLanguage - same locale", async (t) => {
-  await assertSnapshot(t, computeContentLanguage("en", "en"));
+test("computeContentLanguage - same locale", () => {
+  expect(computeContentLanguage("en", "en")).toMatchSnapshot();
 });
 
-Deno.test("computeContentLanguage - different locales", async (t) => {
-  await assertSnapshot(t, computeContentLanguage("en", "tr"));
+test("computeContentLanguage - different locales", () => {
+  expect(computeContentLanguage("en", "tr")).toMatchSnapshot();
 });
 
-Deno.test("computeContentLanguage - undefined content locale", async (t) => {
-  await assertSnapshot(t, computeContentLanguage("en", undefined));
+test("computeContentLanguage - undefined content locale", () => {
+  expect(computeContentLanguage("en", undefined)).toMatchSnapshot();
 });
 
 // truncateDescription
-Deno.test("truncateDescription - various cases", async (t) => {
+test("truncateDescription - various cases", () => {
   const fallback = "Default description";
-  await assertSnapshot(t, truncateDescription(null, fallback));
-  await assertSnapshot(t, truncateDescription(undefined, fallback));
-  await assertSnapshot(t, truncateDescription("", fallback));
-  await assertSnapshot(t, truncateDescription("Short text", fallback));
-  await assertSnapshot(t, truncateDescription("A".repeat(160), fallback)); // exactly 160
-  await assertSnapshot(t, truncateDescription("B".repeat(200), fallback)); // truncated
+  expect(truncateDescription(null, fallback)).toMatchSnapshot();
+  expect(truncateDescription(undefined, fallback)).toMatchSnapshot();
+  expect(truncateDescription("", fallback)).toMatchSnapshot();
+  expect(truncateDescription("Short text", fallback)).toMatchSnapshot();
+  expect(truncateDescription("A".repeat(160), fallback)).toMatchSnapshot(); // exactly 160
+  expect(truncateDescription("B".repeat(200), fallback)).toMatchSnapshot(); // truncated
 });

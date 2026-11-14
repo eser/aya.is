@@ -1,0 +1,66 @@
+diff --git a/dist/BaseTanStackRouterDevtoolsPanel-CDq3ZkLG.cjs b/dist/BaseTanStackRouterDevtoolsPanel-CDq3ZkLG.cjs
+index 4f82ae55061bdd7cea5c38dbcaf742bffe49ec01..2b951d5c754d56e4211c87ab3f2e1ccb37f57fea 100644
+--- a/dist/BaseTanStackRouterDevtoolsPanel-CDq3ZkLG.cjs
++++ b/dist/BaseTanStackRouterDevtoolsPanel-CDq3ZkLG.cjs
+@@ -1647,23 +1647,24 @@ var BaseTanStackRouterDevtoolsPanel = function BaseTanStackRouterDevtoolsPanel({
+ 		const matches = routerState().matches;
+ 		return matches.some((match) => match.status === "pending") ? matches : [];
+ 	};
++	const cacheValues = (value) => value instanceof Map ? [...value.values()] : Object.values(value);
+ 	let cache = router()._cache;
+-	let cacheMatches = [...cache.values()];
++	let cacheMatches = cacheValues(cache);
+ 	const [cachedMatches, setCachedMatches] = require_context.createSignal(cacheMatches);
+ 	require_context.createEffect(() => {
+ 		const refreshCache = () => {
+ 			const next = router()._cache;
+-			let valuesChanged = next.size !== cacheMatches.length;
++			let valuesChanged = cacheValues(next).length !== cacheMatches.length;
+ 			if (!valuesChanged) {
+ 				let index = 0;
+-				for (const match of next.values()) if (match !== cacheMatches[index++]) {
++				for (const match of cacheValues(next)) if (match !== cacheMatches[index++]) {
+ 					valuesChanged = true;
+ 					break;
+ 				}
+ 			}
+ 			if (next !== cache || valuesChanged) {
+ 				cache = next;
+-				cacheMatches = [...next.values()];
++				cacheMatches = cacheValues(next);
+ 				setCachedMatches(cacheMatches);
+ 			}
+ 		};
+diff --git a/dist/BaseTanStackRouterDevtoolsPanel-fP2H3uLR.js b/dist/BaseTanStackRouterDevtoolsPanel-fP2H3uLR.js
+index 9628dbab360484c70009be2f37a272b53badadc7..ae6330b447fad2c0a63b2ee89af781f8d321c08e 100644
+--- a/dist/BaseTanStackRouterDevtoolsPanel-fP2H3uLR.js
++++ b/dist/BaseTanStackRouterDevtoolsPanel-fP2H3uLR.js
+@@ -1624,23 +1624,24 @@ var BaseTanStackRouterDevtoolsPanel = function BaseTanStackRouterDevtoolsPanel({
+ 		const matches = routerState().matches;
+ 		return matches.some((match) => match.status === "pending") ? matches : [];
+ 	};
++	const cacheValues = (value) => value instanceof Map ? [...value.values()] : Object.values(value);
+ 	let cache = router()._cache;
+-	let cacheMatches = [...cache.values()];
++	let cacheMatches = cacheValues(cache);
+ 	const [cachedMatches, setCachedMatches] = createSignal(cacheMatches);
+ 	createEffect(() => {
+ 		const refreshCache = () => {
+ 			const next = router()._cache;
+-			let valuesChanged = next.size !== cacheMatches.length;
++			let valuesChanged = cacheValues(next).length !== cacheMatches.length;
+ 			if (!valuesChanged) {
+ 				let index = 0;
+-				for (const match of next.values()) if (match !== cacheMatches[index++]) {
++				for (const match of cacheValues(next)) if (match !== cacheMatches[index++]) {
+ 					valuesChanged = true;
+ 					break;
+ 				}
+ 			}
+ 			if (next !== cache || valuesChanged) {
+ 				cache = next;
+-				cacheMatches = [...next.values()];
++				cacheMatches = cacheValues(next);
+ 				setCachedMatches(cacheMatches);
+ 			}
+ 		};

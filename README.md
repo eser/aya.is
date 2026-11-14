@@ -36,7 +36,7 @@ amaçlıyoruz.
 
 Bu bir Docker Compose tabanlı monorepo projesidir. Aşağıdaki bileşenleri içerir:
 
-- **Frontend (webclient)**: Deno, TanStack Start, Vite ve Shadcn UI kullanır
+- **Frontend (webclient)**: Node.js, pnpm, TanStack Start, Vite ve Shadcn UI kullanır
 - **Backend (services)**: Go dilinde yazılmış REST API servisleri
 - **Veritabanı**: PostgreSQL
 
@@ -120,7 +120,7 @@ $ nix develop
 
 > **İpucu:** [direnv](https://direnv.net/) kullanıyorsanız `direnv allow` komutu ile shell otomatik olarak etkinleşir.
 
-Nix shell, Go 1.27, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint ve diğer tüm gerekli araçları sağlar.
+Nix shell, Go 1.27, Node.js 24, pnpm, Deno (yalnızca `eser` CLI için), sqlc, air, golangci-lint ve diğer tüm gerekli araçları sağlar.
 
 Backend servisi için ortam değişkenlerini ayarlayın (varsayılan veritabanı bağlantısı `config.json` dosyasında
 `localhost:5432` olarak tanımlıdır):
@@ -141,7 +141,7 @@ $ docker compose up -d postgres
 $ cd apps/services && make dev
 
 # 3. Frontend
-$ cd apps/webclient && deno task dev
+$ cd apps/webclient && pnpm dev
 ```
 
 API `http://localhost:8080`, frontend `http://localhost:3000` adresinde erişilebilir olacaktır.

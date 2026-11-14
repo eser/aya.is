@@ -1,62 +1,61 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
+import { expect, test } from "vitest";
 import { stripMarkdown } from "./strip-markdown.ts";
 
-Deno.test("stripMarkdown - bold removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("This is **bold** text"));
-  await assertSnapshot(t, stripMarkdown("This is __bold__ text"));
+test("stripMarkdown - bold removal", () => {
+  expect(stripMarkdown("This is **bold** text")).toMatchSnapshot();
+  expect(stripMarkdown("This is __bold__ text")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - italic removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("This is *italic* text"));
-  await assertSnapshot(t, stripMarkdown("This is _italic_ text"));
+test("stripMarkdown - italic removal", () => {
+  expect(stripMarkdown("This is *italic* text")).toMatchSnapshot();
+  expect(stripMarkdown("This is _italic_ text")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - strikethrough removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("This is ~~deleted~~ text"));
+test("stripMarkdown - strikethrough removal", () => {
+  expect(stripMarkdown("This is ~~deleted~~ text")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - link removal keeps text", async (t) => {
-  await assertSnapshot(t, stripMarkdown("Visit [our site](https://aya.is) today"));
+test("stripMarkdown - link removal keeps text", () => {
+  expect(stripMarkdown("Visit [our site](https://aya.is) today")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - image removal keeps alt text", async (t) => {
-  await assertSnapshot(t, stripMarkdown("Look at ![a cat](https://example.com/cat.png) here"));
+test("stripMarkdown - image removal keeps alt text", () => {
+  expect(stripMarkdown("Look at ![a cat](https://example.com/cat.png) here")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - code block removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("Before ```const x = 1;``` after"));
+test("stripMarkdown - code block removal", () => {
+  expect(stripMarkdown("Before ```const x = 1;``` after")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - inline code removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("Use `console.log()` for debugging"));
+test("stripMarkdown - inline code removal", () => {
+  expect(stripMarkdown("Use `console.log()` for debugging")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - heading markers removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("# Heading 1"));
-  await assertSnapshot(t, stripMarkdown("## Heading 2"));
-  await assertSnapshot(t, stripMarkdown("### Heading 3"));
+test("stripMarkdown - heading markers removal", () => {
+  expect(stripMarkdown("# Heading 1")).toMatchSnapshot();
+  expect(stripMarkdown("## Heading 2")).toMatchSnapshot();
+  expect(stripMarkdown("### Heading 3")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - blockquote removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("> This is a quote"));
+test("stripMarkdown - blockquote removal", () => {
+  expect(stripMarkdown("> This is a quote")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - list markers removal", async (t) => {
-  await assertSnapshot(t, stripMarkdown("- Item one"));
-  await assertSnapshot(t, stripMarkdown("* Item two"));
-  await assertSnapshot(t, stripMarkdown("+ Item three"));
-  await assertSnapshot(t, stripMarkdown("1. Ordered item"));
+test("stripMarkdown - list markers removal", () => {
+  expect(stripMarkdown("- Item one")).toMatchSnapshot();
+  expect(stripMarkdown("* Item two")).toMatchSnapshot();
+  expect(stripMarkdown("+ Item three")).toMatchSnapshot();
+  expect(stripMarkdown("1. Ordered item")).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - combined formatting", async (t) => {
+test("stripMarkdown - combined formatting", () => {
   const complex = "## **Bold heading** with [a link](https://x.com) and `code`";
-  await assertSnapshot(t, stripMarkdown(complex));
+  expect(stripMarkdown(complex)).toMatchSnapshot();
 });
 
-Deno.test("stripMarkdown - edge cases", async (t) => {
-  await assertSnapshot(t, stripMarkdown(""));
-  await assertSnapshot(t, stripMarkdown("Plain text with no markdown"));
-  await assertSnapshot(t, stripMarkdown("  leading and trailing whitespace  "));
+test("stripMarkdown - edge cases", () => {
+  expect(stripMarkdown("")).toMatchSnapshot();
+  expect(stripMarkdown("Plain text with no markdown")).toMatchSnapshot();
+  expect(stripMarkdown("  leading and trailing whitespace  ")).toMatchSnapshot();
 });

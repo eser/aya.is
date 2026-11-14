@@ -1,10 +1,10 @@
 # AYA Web Client
 
-The frontend application for the [AYA platform](https://aya.is), built with TanStack Start on the Deno runtime.
+The frontend application for the [AYA platform](https://aya.is), built with TanStack Start on Node.js (pnpm workspace).
 
 ## Tech Stack
 
-- **Deno** - Runtime (uses `nodeModulesDir: "auto"` for npm compatibility)
+- **Node.js 24+ / pnpm** - Runtime and package manager (workspace rooted at the repository root)
 - **TanStack Start** - Full-stack React framework with file-based routing
 - **Vite** - Bundler (with Nitro as the server engine)
 - **React** - UI library
@@ -15,20 +15,20 @@ The frontend application for the [AYA platform](https://aya.is), built with TanS
 ## Getting Started
 
 ```bash
-# Install dependencies
-deno install
+# Install dependencies (from the repository root)
+pnpm install
 
 # Start development server (port 3000)
-deno task dev
+pnpm dev
 
 # Build for production
-deno task build
+pnpm build
 
 # Preview production build
-deno task preview
+pnpm preview
 
-# Lint and type check (format from the repo root with `deno task fmt`)
-deno task lint && deno task typecheck
+# Lint, type check and test (format from the repo root with `pnpm fmt`)
+pnpm lint && pnpm typecheck && pnpm test
 ```
 
 ## Project Structure

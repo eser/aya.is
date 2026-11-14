@@ -1,9 +1,10 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-import * as path from "@std/path";
-import { readTextFileSync } from "@std/fs/unstable-read-text-file";
-import { writeTextFile } from "@std/fs/unstable-write-text-file";
-import { makeTempDir } from "@std/fs/unstable-make-temp-dir";
-import { remove } from "@std/fs/unstable-remove";
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import process from "node:process";
+import * as path from "node:path";
 
 const headingPattern = /^##\s+\[?([^\]\s]+)\]?\s*-\s*([0-9]{4}-[0-9]{2}-[0-9]{2})\s*$/;
 
@@ -23,7 +24,7 @@ type ParsedArgs = {
 
 function usageAndExit(code = 1): never {
   const usage = `
-Usage: deno run --allow-read --allow-write=/tmp --allow-run=gh --allow-env scripts/sync_release_notes_from_changelog.ts [options]
+Usage: node scripts/sync_release_notes_from_changelog.ts [options]
 
 Options:
   --repo <owner/repo>       Repository slug. Defaults to $GITHUB_REPOSITORY.
@@ -31,12 +32,12 @@ Options:
   --create-if-missing       Create release if it does not already exist.
 `;
   console.error(usage.trimStart());
-  Deno.exit(code);
+  process.exit(code);
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
   const args: ParsedArgs = {
-    repo: Deno.env.get("GITHUB_REPOSITORY") ?? "",
+    repo: process.env.GITHUB_REPOSITORY ?? "",
     tag: "",
     createIfMissing: false,
   };
@@ -132,33 +133,21 @@ function parseChangelog(changelogText: string): ChangelogEntry[] {
 }
 
 function runGh(args: string[]): void {
-  const command = new Deno.Command("gh", {
-    args,
-    stdin: "inherit",
-    stdout: "inherit",
-    stderr: "inherit",
-  });
-  const output = command.outputSync();
-  if (!output.success) {
-    throw new Error(`gh command failed with exit code ${output.code}`);
+  const result = spawnSync("gh", args, { stdio: "inherit" });
+  if (result.status !== 0) {
+    throw new Error(`gh command failed with exit code ${result.status}`);
   }
 }
 
 function hasRelease(tag: string, repo: string): boolean {
-  const command = new Deno.Command("gh", {
-    args: ["release", "view", tag, "--repo", repo],
-    stdin: "null",
-    stdout: "null",
-    stderr: "null",
-  });
-  const output = command.outputSync();
-  return output.success;
+  const result = spawnSync("gh", ["release", "view", tag, "--repo", repo], { stdio: "ignore" });
+  return result.status === 0;
 }
 
 async function main(): Promise<void> {
-  const args = parseArgs(Deno.args);
+  const args = parseArgs(process.argv.slice(2));
   const changelogPath = path.resolve("CHANGELOG.md");
-  const changelogText = readTextFileSync(changelogPath);
+  const changelogText = readFileSync(changelogPath, "utf8");
   const entries = parseChangelog(changelogText);
 
   const targetTag = args.tag !== "" ? normalizeTag(args.tag) : entries[0].tag;
@@ -168,9 +157,9 @@ async function main(): Promise<void> {
     throw new Error(`No matching changelog section found for ${targetTag}.`);
   }
 
-  const tempDir = await makeTempDir({ prefix: "aya-release-notes-" });
+  const tempDir = await mkdtemp(path.join(tmpdir(), "aya-release-notes-"));
   const notesPath = path.join(tempDir, `${targetTag}-notes.md`);
-  await writeTextFile(notesPath, targetEntry.notes);
+  await writeFile(notesPath, targetEntry.notes, "utf8");
 
   try {
     if (hasRelease(targetTag, args.repo)) {
@@ -210,7 +199,7 @@ async function main(): Promise<void> {
       }
     }
   } finally {
-    await remove(tempDir, { recursive: true });
+    await rm(tempDir, { recursive: true, force: true });
   }
 }
 

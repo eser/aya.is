@@ -20,8 +20,8 @@ Yalnızca React, Next, JavaScript, Web Geliştirme Temelleri ve Git.
 
 ### Konvansiyonlar
 
-Şimdilik Deno Formatter'ı kullanabilirsiniz. Git hookları `@eser/cli` ile yönetilmektedir (bkz. `.manifest.yml`).
-Hookları kurmak için: `eser codebase install`.
+Biçimlendirme için `pnpm fmt` (oxfmt) kullanın. Git hookları `@eser/cli` ile yönetilmektedir (bkz. `.manifest.yml`), bu
+araç Deno gerektirir: `deno install -gAf --name eser jsr:@eser/cli`. Hookları kurmak için: `eser codebase install`.
 
 ### Tasarım Kararları
 

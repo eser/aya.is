@@ -1,16 +1,14 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { SPACER_SIZES } from "./spacer/spacer-block.tsx";
 
-Deno.test("SPACER_SIZES mapping", async (t) => {
-  await assertSnapshot(t, SPACER_SIZES);
+test("SPACER_SIZES mapping", () => {
+  expect(SPACER_SIZES).toMatchSnapshot();
 });
 
-Deno.test("SPACER_SIZES has all sizes", () => {
-  assertEquals("sm" in SPACER_SIZES, true);
-  assertEquals("md" in SPACER_SIZES, true);
-  assertEquals("lg" in SPACER_SIZES, true);
-  assertEquals("xl" in SPACER_SIZES, true);
+test("SPACER_SIZES has all sizes", () => {
+  expect("sm" in SPACER_SIZES).toEqual(true);
+  expect("md" in SPACER_SIZES).toEqual(true);
+  expect("lg" in SPACER_SIZES).toEqual(true);
+  expect("xl" in SPACER_SIZES).toEqual(true);
 });

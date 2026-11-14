@@ -1,0 +1,14 @@
+diff --git a/dist/esm/index.js b/dist/esm/index.js
+index bd4b864549e20e8c6b75b72ec096c55fc67376be..c305b383339331e667ab1e61718ae39c04cf9765 100644
+--- a/dist/esm/index.js
++++ b/dist/esm/index.js
+@@ -91,8 +91,8 @@ function setupCoreRouterSsrQueryIntegration({ router, queryClient, dehydrateOpti
+ 			if (dehydrated.dehydratedQueryClient) hydrate(queryClient, dehydrated.dehydratedQueryClient, hydrateOptions);
+ 			const reader = dehydrated.queryStream.getReader();
+ 			reader.read().then(async function handle({ done, value }) {
+-				hydrate(queryClient, value, hydrateOptions);
+ 				if (done) return;
++				hydrate(queryClient, value, hydrateOptions);
+ 				return handle(await reader.read());
+ 			}).catch((err) => {
+ 				console.error("Error reading query stream:", err);

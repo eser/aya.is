@@ -3,6 +3,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import resourcesToBackend from "i18next-resources-to-backend";
 import { useNavigate } from "@tanstack/react-router";
+import { normalizeSpaces } from "@/lib/date";
 import { localizedUrl, parseLocaleFromPath } from "@/lib/url";
 
 import { DEFAULT_LOCALE, FALLBACK_LOCALE, isValidLocale, SUPPORTED_LOCALES, supportedLocales } from "@/config";
@@ -86,7 +87,7 @@ i18n
 for (const [name, formatDate] of Object.entries(dateFormatters)) {
   i18n.services.formatter?.add(name, (value, lng) => {
     if (value instanceof Date) {
-      return formatDate(value, lng ?? DEFAULT_LOCALE);
+      return normalizeSpaces(formatDate(value, lng ?? DEFAULT_LOCALE));
     }
 
     return String(value);

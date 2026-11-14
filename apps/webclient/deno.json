@@ -1,7 +1,0 @@
-{
-  "nodeModulesDir": "auto",
-  "imports": {
-    "@/": "./src/"
-  },
-  "exclude": ["**/node_modules/*", "**/.tanstack/*", "**/*.gen.ts"]
-}

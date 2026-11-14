@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CommentForm } from "./comment-form";
 import { CommentTree } from "./comment-tree";
 import styles from "./comment-card.module.css";
+import { normalizeSpaces } from "@/lib/date";
 
 type CommentCardProps = {
   comment: DiscussionComment;
@@ -56,13 +57,15 @@ export function CommentCard(props: CommentCardProps) {
   const isHidden = props.comment.is_hidden;
   const isOwn = props.viewerProfileId !== null && props.comment.author_profile_id === props.viewerProfileId;
 
-  const formattedDate = new Date(props.comment.created_at).toLocaleString(props.locale, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const formattedDate = normalizeSpaces(
+    new Date(props.comment.created_at).toLocaleString(props.locale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  );
 
   const handleUpvote = React.useCallback(async () => {
     await props.onVote(props.comment.id, 1);
@@ -192,13 +195,15 @@ export function CommentCard(props: CommentCardProps) {
                 <PopoverContent side="top" className="w-auto px-3 py-2">
                   <span className="text-xs text-muted-foreground">
                     {props.comment.updated_at !== null
-                      ? new Date(props.comment.updated_at).toLocaleString(props.locale, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                      ? normalizeSpaces(
+                          new Date(props.comment.updated_at).toLocaleString(props.locale, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }),
+                        )
                       : ""}
                   </span>
                 </PopoverContent>

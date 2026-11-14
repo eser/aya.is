@@ -19,12 +19,12 @@ ok: ## Checks if the code is ok.
 	cd ./apps/services && \
   make ok && \
   cd ../../apps/webclient && \
-  deno task lint && \
-  deno task typecheck && \
-  deno task test:ci && \
+  pnpm lint && \
+  pnpm typecheck && \
+  pnpm test:ci && \
   cd ../../ && \
-  deno task fmt:check && \
-  deno task lint:scripts
+  pnpm fmt:check && \
+  pnpm lint:scripts
 
 .PHONY: build
 build: ## (Re)builds the containers.
@@ -64,11 +64,11 @@ cli: ## Opens a shell in the containers.
 
 .PHONY: tag
 tag: ## Creates and pushes a release tag from VERSION file.
-	deno run --allow-read --allow-run=git --allow-net scripts/push_current_release_tag.ts
+	node scripts/push_current_release_tag.ts
 
 .PHONY: release
 release: ## Syncs latest CHANGELOG.md entry to GitHub Releases.
-	deno run --allow-read --allow-write --allow-run=gh --allow-env scripts/sync_release_notes_from_changelog.ts --repo eser/aya.is
+	node scripts/sync_release_notes_from_changelog.ts --repo eser/aya.is
 
 %:
 	@:

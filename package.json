@@ -1,17 +1,23 @@
 {
   "private": true,
+  "type": "module",
   "scripts": {
+    "dev": "pnpm --filter @aya/webclient dev",
+    "build": "pnpm --filter @aya/webclient build",
+    "start": "pnpm --filter @aya/webclient start",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint:scripts": "oxlint scripts"
-  },
-  "dependencies": {
-    "@std/fs": "npm:@jsr/std__fs@^1.0.24",
-    "@std/path": "npm:@jsr/std__path@^1.1.6"
+    "lint": "pnpm --filter @aya/webclient lint && pnpm lint:scripts",
+    "lint:scripts": "oxlint scripts",
+    "typecheck": "pnpm --filter @aya/webclient typecheck",
+    "test": "pnpm --filter @aya/webclient test"
   },
   "devDependencies": {
-    "@eser/cli": "npm:@jsr/eser__cli@^4.1.56",
     "oxfmt": "0.78.0",
     "oxlint": "1.93.0"
-  }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.18.0"
 }

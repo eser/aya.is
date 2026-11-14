@@ -1,67 +1,65 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { getAlternateUrls, localizedUrl, parseLocaleFromPath, sanitizeImageSrc } from "./url.ts";
 
 // sanitizeImageSrc — security-critical
-Deno.test("sanitizeImageSrc - safe protocols", async (t) => {
-  await assertSnapshot(t, sanitizeImageSrc("https://example.com/image.png"));
-  await assertSnapshot(t, sanitizeImageSrc("http://example.com/image.png"));
-  await assertSnapshot(t, sanitizeImageSrc("data:image/png;base64,abc123"));
-  await assertSnapshot(t, sanitizeImageSrc("blob:https://example.com/abc"));
+test("sanitizeImageSrc - safe protocols", () => {
+  expect(sanitizeImageSrc("https://example.com/image.png")).toMatchSnapshot();
+  expect(sanitizeImageSrc("http://example.com/image.png")).toMatchSnapshot();
+  expect(sanitizeImageSrc("data:image/png;base64,abc123")).toMatchSnapshot();
+  expect(sanitizeImageSrc("blob:https://example.com/abc")).toMatchSnapshot();
 });
 
-Deno.test("sanitizeImageSrc - blocks dangerous protocols", () => {
-  assertEquals(sanitizeImageSrc("javascript:alert(1)"), "");
-  assertEquals(sanitizeImageSrc("vbscript:msgbox"), "");
-  assertEquals(sanitizeImageSrc("file:///etc/passwd"), "");
+test("sanitizeImageSrc - blocks dangerous protocols", () => {
+  expect(sanitizeImageSrc("javascript:alert(1)")).toEqual("");
+  expect(sanitizeImageSrc("vbscript:msgbox")).toEqual("");
+  expect(sanitizeImageSrc("file:///etc/passwd")).toEqual("");
 });
 
-Deno.test("sanitizeImageSrc - null/empty/undefined", () => {
-  assertEquals(sanitizeImageSrc(null), "");
-  assertEquals(sanitizeImageSrc(undefined), "");
-  assertEquals(sanitizeImageSrc(""), "");
+test("sanitizeImageSrc - null/empty/undefined", () => {
+  expect(sanitizeImageSrc(null)).toEqual("");
+  expect(sanitizeImageSrc(undefined)).toEqual("");
+  expect(sanitizeImageSrc("")).toEqual("");
 });
 
-Deno.test("sanitizeImageSrc - relative paths", () => {
-  assertEquals(sanitizeImageSrc("/images/logo.png"), "/images/logo.png");
+test("sanitizeImageSrc - relative paths", () => {
+  expect(sanitizeImageSrc("/images/logo.png")).toEqual("/images/logo.png");
   // Protocol-relative URLs resolve to https: via the base URL, so they pass the check
-  assertEquals(sanitizeImageSrc("//evil.com/image.png"), "//evil.com/image.png");
+  expect(sanitizeImageSrc("//evil.com/image.png")).toEqual("//evil.com/image.png");
 });
 
 // localizedUrl
-Deno.test("localizedUrl - basic paths", async (t) => {
-  await assertSnapshot(t, localizedUrl("/about", { locale: "en" }));
-  await assertSnapshot(t, localizedUrl("/about", { locale: "tr" }));
-  await assertSnapshot(t, localizedUrl("/", { locale: "fr" }));
-  await assertSnapshot(t, localizedUrl("about", { locale: "de" })); // without leading slash
+test("localizedUrl - basic paths", () => {
+  expect(localizedUrl("/about", { locale: "en" })).toMatchSnapshot();
+  expect(localizedUrl("/about", { locale: "tr" })).toMatchSnapshot();
+  expect(localizedUrl("/", { locale: "fr" })).toMatchSnapshot();
+  expect(localizedUrl("about", { locale: "de" })).toMatchSnapshot(); // without leading slash
 });
 
-Deno.test("localizedUrl - defaults to en", async (t) => {
-  await assertSnapshot(t, localizedUrl("/about"));
-  await assertSnapshot(t, localizedUrl("/about", {}));
+test("localizedUrl - defaults to en", () => {
+  expect(localizedUrl("/about")).toMatchSnapshot();
+  expect(localizedUrl("/about", {})).toMatchSnapshot();
 });
 
-Deno.test("localizedUrl - uses currentLocale as fallback", async (t) => {
-  await assertSnapshot(t, localizedUrl("/about", { currentLocale: "ja" }));
+test("localizedUrl - uses currentLocale as fallback", () => {
+  expect(localizedUrl("/about", { currentLocale: "ja" })).toMatchSnapshot();
 });
 
 // parseLocaleFromPath
-Deno.test("parseLocaleFromPath - valid locales", async (t) => {
-  await assertSnapshot(t, parseLocaleFromPath("/en/about"));
-  await assertSnapshot(t, parseLocaleFromPath("/tr/stories/my-story"));
-  await assertSnapshot(t, parseLocaleFromPath("/pt-PT/page"));
-  await assertSnapshot(t, parseLocaleFromPath("/zh-CN/"));
+test("parseLocaleFromPath - valid locales", () => {
+  expect(parseLocaleFromPath("/en/about")).toMatchSnapshot();
+  expect(parseLocaleFromPath("/tr/stories/my-story")).toMatchSnapshot();
+  expect(parseLocaleFromPath("/pt-PT/page")).toMatchSnapshot();
+  expect(parseLocaleFromPath("/zh-CN/")).toMatchSnapshot();
 });
 
-Deno.test("parseLocaleFromPath - invalid locale in path", async (t) => {
-  await assertSnapshot(t, parseLocaleFromPath("/xx/about"));
-  await assertSnapshot(t, parseLocaleFromPath("/about"));
-  await assertSnapshot(t, parseLocaleFromPath("/"));
+test("parseLocaleFromPath - invalid locale in path", () => {
+  expect(parseLocaleFromPath("/xx/about")).toMatchSnapshot();
+  expect(parseLocaleFromPath("/about")).toMatchSnapshot();
+  expect(parseLocaleFromPath("/")).toMatchSnapshot();
 });
 
 // getAlternateUrls
-Deno.test("getAlternateUrls - generates for all locales", async (t) => {
-  await assertSnapshot(t, getAlternateUrls("/about"));
+test("getAlternateUrls - generates for all locales", () => {
+  expect(getAlternateUrls("/about")).toMatchSnapshot();
 });

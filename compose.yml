@@ -32,7 +32,7 @@ services:
         - action: rebuild
           path: ./apps/webclient/package.json
         - action: rebuild
-          path: ./apps/webclient/deno.json
+          path: ./pnpm-lock.yaml
     environment:
       # Vite client-side variables (bundled at build time)
       VITE_BACKEND_URI: http://localhost:8080

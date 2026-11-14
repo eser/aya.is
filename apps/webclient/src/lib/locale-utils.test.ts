@@ -1,7 +1,5 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import {
   DEFAULT_LOCALE,
   FALLBACK_LOCALE,
@@ -13,66 +11,66 @@ import {
 } from "./locale-utils.ts";
 
 // Snapshot the supported locales array — catches accidental additions/removals
-Deno.test("SUPPORTED_LOCALES - complete list", async (t) => {
-  await assertSnapshot(t, SUPPORTED_LOCALES);
+test("SUPPORTED_LOCALES - complete list", () => {
+  expect(SUPPORTED_LOCALES).toMatchSnapshot();
 });
 
 // Snapshot the full locale record structure — catches property changes
-Deno.test("supportedLocales - all entries", async (t) => {
-  await assertSnapshot(t, supportedLocales);
+test("supportedLocales - all entries", () => {
+  expect(supportedLocales).toMatchSnapshot();
 });
 
-Deno.test("DEFAULT_LOCALE and FALLBACK_LOCALE", () => {
-  assertEquals(DEFAULT_LOCALE, "en");
-  assertEquals(FALLBACK_LOCALE, "en");
+test("DEFAULT_LOCALE and FALLBACK_LOCALE", () => {
+  expect(DEFAULT_LOCALE).toEqual("en");
+  expect(FALLBACK_LOCALE).toEqual("en");
 });
 
 // isValidLocale
-Deno.test("isValidLocale - all valid locales return true", () => {
+test("isValidLocale - all valid locales return true", () => {
   for (const locale of SUPPORTED_LOCALES) {
-    assertEquals(isValidLocale(locale), true, `Expected ${locale} to be valid`);
+    expect(isValidLocale(locale), `Expected ${locale} to be valid`).toEqual(true);
   }
 });
 
-Deno.test("isValidLocale - invalid locales return false", () => {
-  assertEquals(isValidLocale("xx"), false);
-  assertEquals(isValidLocale(""), false);
-  assertEquals(isValidLocale("EN"), false); // case-sensitive
-  assertEquals(isValidLocale("pt"), false); // only pt-PT is valid
-  assertEquals(isValidLocale("zh"), false); // only zh-CN is valid
+test("isValidLocale - invalid locales return false", () => {
+  expect(isValidLocale("xx")).toEqual(false);
+  expect(isValidLocale("")).toEqual(false);
+  expect(isValidLocale("EN")).toEqual(false); // case-sensitive
+  expect(isValidLocale("pt")).toEqual(false); // only pt-PT is valid
+  expect(isValidLocale("zh")).toEqual(false); // only zh-CN is valid
 });
 
 // getLocaleData
-Deno.test("getLocaleData - returns data for valid locale", async (t) => {
-  await assertSnapshot(t, getLocaleData("en"));
-  await assertSnapshot(t, getLocaleData("ar")); // RTL locale
-  await assertSnapshot(t, getLocaleData("pt-PT")); // hyphenated locale
+test("getLocaleData - returns data for valid locale", () => {
+  expect(getLocaleData("en")).toMatchSnapshot();
+  expect(getLocaleData("ar")).toMatchSnapshot(); // RTL locale
+  expect(getLocaleData("pt-PT")).toMatchSnapshot(); // hyphenated locale
 });
 
-Deno.test("getLocaleData - returns undefined for invalid locale", () => {
-  assertEquals(getLocaleData("invalid"), undefined);
-  assertEquals(getLocaleData(""), undefined);
+test("getLocaleData - returns undefined for invalid locale", () => {
+  expect(getLocaleData("invalid")).toEqual(undefined);
+  expect(getLocaleData("")).toEqual(undefined);
 });
 
 // isAllowedURI
-Deno.test("isAllowedURI - null/empty/undefined are allowed", () => {
-  assertEquals(isAllowedURI(null, ["https://example.com/"]), true);
-  assertEquals(isAllowedURI(undefined, ["https://example.com/"]), true);
-  assertEquals(isAllowedURI("", ["https://example.com/"]), true);
+test("isAllowedURI - null/empty/undefined are allowed", () => {
+  expect(isAllowedURI(null, ["https://example.com/"])).toEqual(true);
+  expect(isAllowedURI(undefined, ["https://example.com/"])).toEqual(true);
+  expect(isAllowedURI("", ["https://example.com/"])).toEqual(true);
 });
 
-Deno.test("isAllowedURI - matching prefix", () => {
+test("isAllowedURI - matching prefix", () => {
   const prefixes = ["https://objects.aya.is/", "https://avatars.githubusercontent.com/"];
-  assertEquals(isAllowedURI("https://objects.aya.is/image.png", prefixes), true);
-  assertEquals(isAllowedURI("https://avatars.githubusercontent.com/u/123", prefixes), true);
+  expect(isAllowedURI("https://objects.aya.is/image.png", prefixes)).toEqual(true);
+  expect(isAllowedURI("https://avatars.githubusercontent.com/u/123", prefixes)).toEqual(true);
 });
 
-Deno.test("isAllowedURI - non-matching prefix", () => {
+test("isAllowedURI - non-matching prefix", () => {
   const prefixes = ["https://objects.aya.is/"];
-  assertEquals(isAllowedURI("https://evil.com/hack.png", prefixes), false);
-  assertEquals(isAllowedURI("http://objects.aya.is/image.png", prefixes), false); // http vs https
+  expect(isAllowedURI("https://evil.com/hack.png", prefixes)).toEqual(false);
+  expect(isAllowedURI("http://objects.aya.is/image.png", prefixes)).toEqual(false); // http vs https
 });
 
-Deno.test("isAllowedURI - empty prefix list allows all", () => {
-  assertEquals(isAllowedURI("https://anything.com/file.png", []), true);
+test("isAllowedURI - empty prefix list allows all", () => {
+  expect(isAllowedURI("https://anything.com/file.png", [])).toEqual(true);
 });

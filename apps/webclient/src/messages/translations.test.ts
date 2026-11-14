@@ -1,7 +1,6 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { readFile } from "node:fs/promises";
+import { expect, test } from "vitest";
 
 const LOCALES = ["en", "tr", "fr", "de", "es", "pt-PT", "it", "nl", "ja", "ko", "ru", "zh-CN", "ar"] as const;
 
@@ -9,7 +8,7 @@ type TranslationData = Record<string, Record<string, string>>;
 
 async function loadTranslations(locale: string): Promise<TranslationData> {
   const filePath = new URL(`./${locale}.json`, import.meta.url);
-  const text = await Deno.readTextFile(filePath);
+  const text = await readFile(filePath, "utf8");
   return JSON.parse(text);
 }
 
@@ -24,13 +23,13 @@ function extractKeys(data: TranslationData): string[] {
 }
 
 // Snapshot the English key set as baseline — any addition/removal is visible in diff
-Deno.test("translations - English key set baseline", async (t) => {
+test("translations - English key set baseline", async () => {
   const en = await loadTranslations("en");
-  await assertSnapshot(t, extractKeys(en));
+  expect(extractKeys(en)).toMatchSnapshot();
 });
 
 // Snapshot section names across all locales
-Deno.test("translations - all locales have same sections as English", async () => {
+test("translations - all locales have same sections as English", async () => {
   const en = await loadTranslations("en");
   const enSections = Object.keys(en).sort();
 
@@ -38,18 +37,17 @@ Deno.test("translations - all locales have same sections as English", async () =
     if (locale === "en") continue;
     const data = await loadTranslations(locale);
     const sections = Object.keys(data).sort();
-    assertEquals(
+    expect(
       sections,
-      enSections,
       `Locale "${locale}" has different sections than English. Missing: ${enSections
         .filter((s) => !sections.includes(s))
         .join(", ")}. Extra: ${sections.filter((s) => !enSections.includes(s)).join(", ")}`,
-    );
+    ).toEqual(enSections);
   }
 });
 
 // Check that every key in English exists in all other locales
-Deno.test("translations - all locales have all English keys", async () => {
+test("translations - all locales have all English keys", async () => {
   const en = await loadTranslations("en");
   const enKeys = extractKeys(en);
 
@@ -78,7 +76,7 @@ Deno.test("translations - all locales have all English keys", async () => {
 });
 
 // Check for orphan keys (exist in locale but not in English)
-Deno.test("translations - no orphan keys in non-English locales", async () => {
+test("translations - no orphan keys in non-English locales", async () => {
   const en = await loadTranslations("en");
   const enKeys = new Set(extractKeys(en));
 

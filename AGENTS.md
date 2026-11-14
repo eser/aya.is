@@ -35,7 +35,7 @@ Available skills:
 ```
 aya.is/
 ├── apps/
-│   ├── webclient/                # TanStack Start frontend (Deno)
+│   ├── webclient/                # TanStack Start frontend (Node.js + pnpm)
 │   │   └── src/
 │   │       ├── routes/           # File-based routing
 │   │       ├── components/       # UI components (shadcn in ui/)
@@ -53,13 +53,13 @@ aya.is/
 
 ```bash
 # Frontend (in /apps/webclient)
-deno task dev         # Start dev server
-deno task build       # Build for production
-deno task lint        # Lint (oxlint, type-aware)
-deno task typecheck   # Type check (TypeScript 7 native tsc)
-deno task test        # Run snapshot tests (writes snapshots)
-deno task test:update # Regenerate snapshots after intentional changes
-deno task test:ci     # Run tests read-only (CI mode, used by make ok)
+pnpm dev               # Start dev server
+pnpm build             # Build for production
+pnpm lint              # Lint (oxlint, type-aware)
+pnpm typecheck         # Type check (TypeScript 7 native tsc)
+pnpm test              # Run tests (Vitest; writes new snapshots)
+pnpm test:update       # Regenerate snapshots after intentional changes
+pnpm test:ci           # Run tests read-only (CI mode, used by make ok)
 
 # Backend (in /apps/services)
 make restart          # Restart after changes
@@ -67,20 +67,22 @@ make lint             # Run golangci-lint
 make test             # Run tests
 
 # Root
-deno task fmt         # Format everything (oxfmt)
-deno task fmt:check   # Check formatting (used by make ok)
+pnpm fmt               # Format everything (oxfmt, from the repo root)
+pnpm fmt:check         # Check formatting (used by make ok)
 make ok               # All quality checks (includes frontend tests)
 ```
 
 ### Tooling override (this project)
 
-This project uses **oxlint**, **oxfmt** and the native **TypeScript 7** `tsc` instead of `deno lint` / `deno fmt`. Where a
-skill under `.agents/skills` says to use Deno's built-in formatter or linter, this section takes precedence.
+This project runs on **Node.js (24+) and pnpm** (workspace: root + `apps/webclient`). It uses **oxlint**, **oxfmt**, the
+native **TypeScript 7** `tsc` and **Vitest** instead of Deno's built-in tooling. Deno is only used to install and run the
+`eser` CLI (git hook runner, published on JSR), nothing else. Where a skill under `.agents/skills` says to use Deno tooling
+(`deno install/fmt/lint/test/task`), this section takes precedence.
 
-- Lint: `deno task lint` in `apps/webclient` (oxlint, type-aware; config in `apps/webclient/.oxlintrc.json`)
-- Type check: `deno task typecheck` in `apps/webclient` (TypeScript 7 `tsc --noEmit`; test files are excluded, they run
-  under Deno)
-- Format: `deno task fmt` / `deno task fmt:check` from the repo root (oxfmt, `printWidth: 120`; config in `.oxfmtrc.json`)
+- Lint: `pnpm lint` in `apps/webclient` (oxlint, type-aware; config in `apps/webclient/.oxlintrc.json`)
+- Type check: `pnpm typecheck` in `apps/webclient` (TypeScript 7 `tsc --noEmit`, test files included)
+- Tests: `pnpm test` in `apps/webclient` (Vitest; snapshots live in `__snapshots__/*.snap`; `pnpm test:ci` never writes)
+- Format: `pnpm fmt` / `pnpm fmt:check` from the repo root (oxfmt, `printWidth: 120`; config in `.oxfmtrc.json`)
 - oxfmt writes files in place by default; always use `--check` (or `fmt:check`) for verification
 - `oxlint` and `oxfmt` are pinned to exact versions on purpose (oxfmt is pre-1.0), bump them deliberately
 
@@ -159,7 +161,7 @@ function Component({ title }: Props) {}
 ### Pure Function Extraction for Testability
 
 ```typescript
-// Correct - pure logic in separate file, testable with Deno
+// Correct - pure logic in separate file, testable with Vitest
 // locale-utils.ts (pure, no import.meta.env)
 export function isValidLocale(locale: string) { ... }
 
@@ -270,6 +272,19 @@ const permissions = await context.queryClient
 // Live streams — optional, auto-refetch in component
 await context.queryClient.prefetchQuery(liveNowQueryOptions(locale));
 ```
+
+### Router (speedy-router)
+
+The webclient runs on [`speedy-router`](https://github.com/anonrig/router) (a TanStack Router API clone, pre-1.0, pinned to
+exact versions) while source code still imports `@tanstack/react-router`. The swap happens only in `apps/webclient/vite.config.ts`
+(`resolve.alias` for `@tanstack/react-router`, `@tanstack/router-core`, `@tanstack/history`, plus `ssr.noExternal` for
+`@tanstack/*`, so TanStack Start does not load its own copy of the real router on the server).
+
+- TanStack Start, `@tanstack/react-router-ssr-query` and the route-tree generator are still TanStack; types also still come
+  from `@tanstack/react-router`.
+- To switch back to TanStack Router: delete those three alias lines and the `ssr` block from `vite.config.ts`, remove the
+  `speedy-router*` dependencies from `apps/webclient/package.json`, run `pnpm install`.
+- Bugs found in speedy-router are worth reporting or fixing upstream (https://github.com/anonrig/router/issues).
 
 ### Profile System
 

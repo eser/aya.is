@@ -1,6 +1,6 @@
-export const snapshot = {};
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-snapshot[`translations - English key set baseline 1`] = `
+exports[`translations - English key set baseline 1`] = `
 [
   "Activities.Activity",
   "Activities.Activity Kind",

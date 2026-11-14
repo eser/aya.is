@@ -62,7 +62,8 @@ export const siteConfig: SiteConfig = {
 
 export const getBackendUri = (): string => {
   // Only allow localStorage override in development to prevent SSRF via XSS
-  if (siteConfig.environment === "development" && typeof globalThis.localStorage !== "undefined") {
+  // Node 25+ exposes a globalThis.localStorage on the server (and warns when it is touched), so gate on `document`.
+  if (siteConfig.environment === "development" && typeof globalThis.document !== "undefined") {
     const backendUriFromLocalStorage = globalThis.localStorage.getItem("backendUri");
     if (backendUriFromLocalStorage !== null) {
       return backendUriFromLocalStorage;

@@ -1,13 +1,13 @@
-export const snapshot = {};
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-snapshot[`string props 1`] = `'<Callout variant="info" title="Note">'`;
+exports[`boolean prop 1`] = `"<Group border={true} rounded={false} padding="md">"`;
 
-snapshot[`boolean prop 1`] = `'<Group border={true} rounded={false} padding="md">'`;
+exports[`container 1`] = `"<Callout variant="info">"`;
 
-snapshot[`self-closing 1`] = `'<Spacer size="md" />'`;
+exports[`empty props 1`] = `"<Verse>"`;
 
-snapshot[`container 1`] = `'<Callout variant="info">'`;
+exports[`escape special chars 1`] = `"<Callout title="say &quot;hello&quot;">"`;
 
-snapshot[`escape special chars 1`] = `'<Callout title="say &quot;hello&quot;">'`;
+exports[`self-closing 1`] = `"<Spacer size="md" />"`;
 
-snapshot[`empty props 1`] = `"<Verse>"`;
+exports[`string props 1`] = `"<Callout variant="info" title="Note">"`;

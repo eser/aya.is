@@ -1,37 +1,36 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { getBlockHintForLine } from "./block-hint.ts";
 
-Deno.test("getBlockHintForLine returns hint for <Callout", () => {
+test("getBlockHintForLine returns hint for <Callout", () => {
   const result = getBlockHintForLine("<Callout", 0);
-  assertEquals(result !== null, true);
-  assertEquals(result!.blockId, "callout");
+  expect(result !== null).toEqual(true);
+  expect(result!.blockId).toEqual("callout");
 });
 
-Deno.test("getBlockHintForLine returns null for <UnknownComponent", () => {
+test("getBlockHintForLine returns null for <UnknownComponent", () => {
   const result = getBlockHintForLine("<UnknownComponent", 0);
-  assertEquals(result, null);
+  expect(result).toEqual(null);
 });
 
-Deno.test("getBlockHintForLine returns null for regular text", () => {
+test("getBlockHintForLine returns null for regular text", () => {
   const result = getBlockHintForLine("Hello world", 0);
-  assertEquals(result, null);
+  expect(result).toEqual(null);
 });
 
-Deno.test("getBlockHintForLine returns null for closing tag </Callout>", () => {
+test("getBlockHintForLine returns null for closing tag </Callout>", () => {
   const result = getBlockHintForLine("</Callout>", 0);
-  assertEquals(result, null);
+  expect(result).toEqual(null);
 });
 
-Deno.test('getBlockHintForLine returns hint for <Button href="..."', () => {
+test('getBlockHintForLine returns hint for <Button href="..."', () => {
   const result = getBlockHintForLine('<Button href="...">', 0);
-  assertEquals(result !== null, true);
-  assertEquals(result!.blockId, "button");
+  expect(result !== null).toEqual(true);
+  expect(result!.blockId).toEqual("button");
 });
 
-Deno.test("getBlockHintForLine handles leading whitespace", () => {
+test("getBlockHintForLine handles leading whitespace", () => {
   const result = getBlockHintForLine('  <Row gap="md">', 0);
-  assertEquals(result !== null, true);
-  assertEquals(result!.blockId, "row");
+  expect(result !== null).toEqual(true);
+  expect(result!.blockId).toEqual("row");
 });

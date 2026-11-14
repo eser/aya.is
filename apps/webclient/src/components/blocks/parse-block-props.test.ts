@@ -1,92 +1,90 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { parseBlockProps } from "./parse-block-props.ts";
 
-Deno.test("single-line tag with string props", async (t) => {
+test("single-line tag with string props", () => {
   const result = parseBlockProps('<Callout variant="info" title="Note">', 0);
-  assertEquals(result !== null, true);
-  await assertSnapshot(t, {
+  expect(result !== null).toEqual(true);
+  expect({
     componentName: result!.componentName,
     blockId: result!.blockId,
     props: result!.props,
     selfClosing: result!.selfClosing,
     startOffset: result!.startOffset,
     endOffset: result!.endOffset,
-  });
+  }).toMatchSnapshot();
 });
 
-Deno.test("single-line self-closing tag", async (t) => {
+test("single-line self-closing tag", () => {
   const result = parseBlockProps('<Spacer size="md" />', 0);
-  assertEquals(result !== null, true);
-  assertEquals(result!.selfClosing, true);
-  await assertSnapshot(t, {
+  expect(result !== null).toEqual(true);
+  expect(result!.selfClosing).toEqual(true);
+  expect({
     componentName: result!.componentName,
     blockId: result!.blockId,
     props: result!.props,
     selfClosing: result!.selfClosing,
     startOffset: result!.startOffset,
     endOffset: result!.endOffset,
-  });
+  }).toMatchSnapshot();
 });
 
-Deno.test("JSX expression prop", () => {
+test("JSX expression prop", () => {
   const result = parseBlockProps("<Columns cols={2}>", 0);
-  assertEquals(result !== null, true);
-  assertEquals(result!.props.cols, "2");
+  expect(result !== null).toEqual(true);
+  expect(result!.props.cols).toEqual("2");
 });
 
-Deno.test("bare boolean prop", () => {
+test("bare boolean prop", () => {
   const result = parseBlockProps("<Details open>", 0);
-  assertEquals(result !== null, true);
-  assertEquals(result!.props.open, "true");
+  expect(result !== null).toEqual(true);
+  expect(result!.props.open).toEqual("true");
 });
 
-Deno.test("mixed props", async (t) => {
+test("mixed props", () => {
   const result = parseBlockProps('<Cover src="url" overlay="dark">', 0);
-  assertEquals(result !== null, true);
-  await assertSnapshot(t, {
+  expect(result !== null).toEqual(true);
+  expect({
     componentName: result!.componentName,
     blockId: result!.blockId,
     props: result!.props,
     selfClosing: result!.selfClosing,
     startOffset: result!.startOffset,
     endOffset: result!.endOffset,
-  });
+  }).toMatchSnapshot();
 });
 
-Deno.test("no tag", () => {
+test("no tag", () => {
   const result = parseBlockProps("Hello world", 0);
-  assertEquals(result, null);
+  expect(result).toEqual(null);
 });
 
-Deno.test("closing tag", () => {
+test("closing tag", () => {
   const result = parseBlockProps("</Callout>", 0);
-  assertEquals(result, null);
+  expect(result).toEqual(null);
 });
 
-Deno.test("multi-line tag", () => {
+test("multi-line tag", () => {
   const result = parseBlockProps('<Cover\n  src="url"\n  overlay="dark">', 0);
-  assertEquals(result !== null, true);
-  assertEquals(result!.props.src, "url");
-  assertEquals(result!.props.overlay, "dark");
+  expect(result !== null).toEqual(true);
+  expect(result!.props.src).toEqual("url");
+  expect(result!.props.overlay).toEqual("dark");
 });
 
-Deno.test("empty props", () => {
+test("empty props", () => {
   const result = parseBlockProps("<Verse>", 0);
-  assertEquals(result !== null, true);
-  assertEquals(Object.keys(result!.props).length, 0);
+  expect(result !== null).toEqual(true);
+  expect(Object.keys(result!.props).length).toEqual(0);
 });
 
-Deno.test("tag with content before it", () => {
+test("tag with content before it", () => {
   const result = parseBlockProps('some text\n<Callout variant="info">', 1);
-  assertEquals(result !== null, true);
-  assertEquals(result!.blockId, "callout");
-  assertEquals(result!.props.variant, "info");
+  expect(result !== null).toEqual(true);
+  expect(result!.blockId).toEqual("callout");
+  expect(result!.props.variant).toEqual("info");
 });
 
-Deno.test("unknown component", () => {
+test("unknown component", () => {
   const result = parseBlockProps('<UnknownThing prop="val">', 0);
-  assertEquals(result, null);
+  expect(result).toEqual(null);
 });

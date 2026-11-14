@@ -1,10 +1,10 @@
-export const snapshot = {};
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-snapshot[`SPACER_SIZES mapping 1`] = `
+exports[`SPACER_SIZES mapping 1`] = `
 {
-  lg: "4rem",
-  md: "2rem",
-  sm: "1rem",
-  xl: "8rem",
+  "lg": "4rem",
+  "md": "2rem",
+  "sm": "1rem",
+  "xl": "8rem",
 }
 `;

@@ -1,7 +1,5 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import {
   formatDateLong,
   formatDateShort,
@@ -13,115 +11,129 @@ import {
   formatMonthYear,
   formatTime,
   formatTimeString,
+  normalizeSpaces,
   parseDateFromSlug,
 } from "./date.ts";
 
 // Use a fixed date for deterministic snapshots
 const FIXED_DATE = new Date(2026, 0, 28, 14, 30, 0); // Jan 28, 2026, 14:30
 
-Deno.test("formatDateLong - multiple locales", async (t) => {
-  await assertSnapshot(t, formatDateLong(FIXED_DATE, "en"));
-  await assertSnapshot(t, formatDateLong(FIXED_DATE, "tr"));
-  await assertSnapshot(t, formatDateLong(FIXED_DATE, "ja"));
+test("formatDateLong - multiple locales", () => {
+  expect(formatDateLong(FIXED_DATE, "en")).toMatchSnapshot();
+  expect(formatDateLong(FIXED_DATE, "tr")).toMatchSnapshot();
+  expect(formatDateLong(FIXED_DATE, "ja")).toMatchSnapshot();
 });
 
-Deno.test("formatDateShort - multiple locales", async (t) => {
-  await assertSnapshot(t, formatDateShort(FIXED_DATE, "en"));
-  await assertSnapshot(t, formatDateShort(FIXED_DATE, "tr"));
-  await assertSnapshot(t, formatDateShort(FIXED_DATE, "de"));
+test("formatDateShort - multiple locales", () => {
+  expect(formatDateShort(FIXED_DATE, "en")).toMatchSnapshot();
+  expect(formatDateShort(FIXED_DATE, "tr")).toMatchSnapshot();
+  expect(formatDateShort(FIXED_DATE, "de")).toMatchSnapshot();
 });
 
-Deno.test("formatDateTimeLong", async (t) => {
-  await assertSnapshot(t, formatDateTimeLong(FIXED_DATE, "en"));
+test("formatDateTimeLong", () => {
+  expect(formatDateTimeLong(FIXED_DATE, "en")).toMatchSnapshot();
 });
 
-Deno.test("formatDateTimeShort", async (t) => {
-  await assertSnapshot(t, formatDateTimeShort(FIXED_DATE, "en"));
+test("formatDateTimeShort", () => {
+  expect(formatDateTimeShort(FIXED_DATE, "en")).toMatchSnapshot();
 });
 
-Deno.test("formatDateTimeRange - same day", () => {
+test("formatDateTimeRange - same day", () => {
   const start = new Date(2026, 1, 23, 20, 30);
   const end = new Date(2026, 1, 23, 21, 30);
   const result = formatDateTimeRange(start, end, "en");
   // Intl.DateTimeFormat.formatRange output varies by platform ICU data
-  assertEquals(typeof result, "string");
-  assertEquals(result.length > 0, true);
-  assertEquals(result.includes("23"), true);
+  expect(typeof result).toEqual("string");
+  expect(result.length > 0).toEqual(true);
+  expect(result.includes("23")).toEqual(true);
 });
 
-Deno.test("formatDateTimeRange - different days", () => {
+test("formatDateTimeRange - different days", () => {
   const start = new Date(2026, 1, 23, 20, 30);
   const end = new Date(2026, 1, 24, 1, 30);
   const result = formatDateTimeRange(start, end, "en");
-  assertEquals(typeof result, "string");
-  assertEquals(result.length > 0, true);
-  assertEquals(result.includes("23"), true);
-  assertEquals(result.includes("24"), true);
+  expect(typeof result).toEqual("string");
+  expect(result.length > 0).toEqual(true);
+  expect(result.includes("23")).toEqual(true);
+  expect(result.includes("24")).toEqual(true);
 });
 
-Deno.test("formatMonthYear", async (t) => {
-  await assertSnapshot(t, formatMonthYear(FIXED_DATE, "en"));
-  await assertSnapshot(t, formatMonthYear(FIXED_DATE, "tr"));
+test("formatMonthYear", () => {
+  expect(formatMonthYear(FIXED_DATE, "en")).toMatchSnapshot();
+  expect(formatMonthYear(FIXED_DATE, "tr")).toMatchSnapshot();
 });
 
-Deno.test("formatMonthShort", async (t) => {
-  await assertSnapshot(t, formatMonthShort(FIXED_DATE, "en"));
+test("formatMonthShort", () => {
+  expect(formatMonthShort(FIXED_DATE, "en")).toMatchSnapshot();
 });
 
-Deno.test("formatTime", async (t) => {
-  await assertSnapshot(t, formatTime(FIXED_DATE, "en"));
+test("formatTime", () => {
+  expect(formatTime(FIXED_DATE, "en")).toMatchSnapshot();
 });
 
-Deno.test("formatTimeString - valid and null", () => {
+test("formatTimeString - valid and null", () => {
   const result = formatTimeString("2026-01-28T14:30:00Z", "en");
   // Time format varies by platform ICU data (e.g. "2:30 PM" vs "2:30 pm")
-  assertEquals(typeof result, "string");
-  assertEquals(result.length > 0, true);
-  assertEquals(result.includes("30"), true);
-  assertEquals(formatTimeString(null, "en"), "");
+  expect(typeof result).toEqual("string");
+  expect(result.length > 0).toEqual(true);
+  expect(result.includes("30")).toEqual(true);
+  expect(formatTimeString(null, "en")).toEqual("");
 });
 
-Deno.test("formatDateString - valid and null", async (t) => {
-  await assertSnapshot(t, formatDateString("2026-01-28T14:30:00Z", "en"));
-  await assertSnapshot(t, formatDateString(null, "en"));
+test("formatDateString - valid and null", () => {
+  expect(formatDateString("2026-01-28T14:30:00Z", "en")).toMatchSnapshot();
+  expect(formatDateString(null, "en")).toMatchSnapshot();
 });
 
 // parseDateFromSlug — unit tests with exact assertions (not snapshot)
 // because Date objects don't serialize deterministically across locales
 
-Deno.test("parseDateFromSlug - valid slug", () => {
+test("parseDateFromSlug - valid slug", () => {
   const result = parseDateFromSlug("20160610-microsoftun-yari-vizyonu");
-  assertEquals(result !== null, true);
-  assertEquals(result!.getFullYear(), 2016);
-  assertEquals(result!.getMonth(), 5); // June = 5
-  assertEquals(result!.getDate(), 10);
+  expect(result !== null).toEqual(true);
+  expect(result!.getFullYear()).toEqual(2016);
+  expect(result!.getMonth()).toEqual(5); // June = 5
+  expect(result!.getDate()).toEqual(10);
 });
 
-Deno.test("parseDateFromSlug - valid slug with only date", () => {
+test("parseDateFromSlug - valid slug with only date", () => {
   const result = parseDateFromSlug("20260128");
-  assertEquals(result !== null, true);
-  assertEquals(result!.getFullYear(), 2026);
-  assertEquals(result!.getMonth(), 0); // January = 0
-  assertEquals(result!.getDate(), 28);
+  expect(result !== null).toEqual(true);
+  expect(result!.getFullYear()).toEqual(2026);
+  expect(result!.getMonth()).toEqual(0); // January = 0
+  expect(result!.getDate()).toEqual(28);
 });
 
-Deno.test("parseDateFromSlug - null input", () => {
-  assertEquals(parseDateFromSlug(null), null);
+test("parseDateFromSlug - null input", () => {
+  expect(parseDateFromSlug(null)).toEqual(null);
 });
 
-Deno.test("parseDateFromSlug - empty string", () => {
-  assertEquals(parseDateFromSlug(""), null);
+test("parseDateFromSlug - empty string", () => {
+  expect(parseDateFromSlug("")).toEqual(null);
 });
 
-Deno.test("parseDateFromSlug - no date prefix", () => {
-  assertEquals(parseDateFromSlug("hello-world"), null);
+test("parseDateFromSlug - no date prefix", () => {
+  expect(parseDateFromSlug("hello-world")).toEqual(null);
 });
 
-Deno.test("parseDateFromSlug - invalid date (Feb 31)", () => {
-  assertEquals(parseDateFromSlug("20260231-invalid"), null);
+test("parseDateFromSlug - invalid date (Feb 31)", () => {
+  expect(parseDateFromSlug("20260231-invalid")).toEqual(null);
 });
 
-Deno.test("parseDateFromSlug - year out of range", () => {
-  assertEquals(parseDateFromSlug("18990101-too-old"), null);
-  assertEquals(parseDateFromSlug("21010101-too-far"), null);
+test("parseDateFromSlug - year out of range", () => {
+  expect(parseDateFromSlug("18990101-too-old")).toEqual(null);
+  expect(parseDateFromSlug("21010101-too-far")).toEqual(null);
+});
+
+test("normalizeSpaces - replaces thin, narrow no-break and no-break spaces with plain spaces", () => {
+  expect(normalizeSpaces("10:00\u202fAM\u2009\u2013\u2009noon\u00a0today")).toBe("10:00 AM \u2013 noon today");
+});
+
+test("formatDateTimeRange - output never contains runtime-specific spaces (hydration safety)", () => {
+  const start = new Date(2026, 6, 10, 10, 0, 0);
+  const end = new Date(2026, 6, 12, 17, 0, 0);
+
+  for (const locale of ["en", "tr", "de", "fr", "ja", "ar"]) {
+    expect(formatDateTimeRange(start, end, locale)).not.toMatch(/[\u2009\u202f\u00a0]/);
+  }
 });

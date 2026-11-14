@@ -1,9 +1,9 @@
-export const snapshot = {};
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-snapshot[`getAllBlocks returns all blocks 1`] = `
+exports[`getAllBlocks returns all blocks 1`] = `
 {
-  count: 32,
-  ids: [
+  "count": 32,
+  "ids": [
     "callout",
     "details",
     "heading",
@@ -40,7 +40,40 @@ snapshot[`getAllBlocks returns all blocks 1`] = `
 }
 `;
 
-snapshot[`getBlocksByCategory text returns text blocks 1`] = `
+exports[`getAllPatterns returns patterns 1`] = `
+{
+  "count": 6,
+  "ids": [
+    "hero-section",
+    "feature-grid",
+    "faq",
+    "testimonial",
+    "cta-section",
+    "comparison-columns",
+  ],
+}
+`;
+
+exports[`getBlocksByCategory embed returns embed blocks 1`] = `
+[
+  "youtube",
+  "twitter",
+  "pdf",
+  "embed",
+]
+`;
+
+exports[`getBlocksByCategory media returns media blocks 1`] = `
+[
+  "image",
+  "gallery",
+  "audio",
+  "video",
+  "cover",
+]
+`;
+
+exports[`getBlocksByCategory text returns text blocks 1`] = `
 [
   "callout",
   "details",
@@ -53,54 +86,21 @@ snapshot[`getBlocksByCategory text returns text blocks 1`] = `
 ]
 `;
 
-snapshot[`getBlocksByCategory media returns media blocks 1`] = `
-[
-  "image",
-  "gallery",
-  "audio",
-  "video",
-  "cover",
-]
-`;
-
-snapshot[`getBlocksByCategory embed returns embed blocks 1`] = `
-[
-  "youtube",
-  "twitter",
-  "pdf",
-  "embed",
-]
-`;
-
-snapshot[`searchBlocks video finds youtube 1`] = `
-[
-  "video",
-  "youtube",
-]
-`;
-
-snapshot[`searchBlocks callout finds callout 1`] = `
+exports[`searchBlocks callout finds callout 1`] = `
 [
   "callout",
   "quote",
 ]
 `;
 
-snapshot[`getAllPatterns returns patterns 1`] = `
-{
-  count: 6,
-  ids: [
-    "hero-section",
-    "feature-grid",
-    "faq",
-    "testimonial",
-    "cta-section",
-    "comparison-columns",
-  ],
-}
+exports[`searchBlocks video finds youtube 1`] = `
+[
+  "video",
+  "youtube",
+]
 `;
 
-snapshot[`searchPatterns hero finds hero pattern 1`] = `
+exports[`searchPatterns hero finds hero pattern 1`] = `
 [
   "hero-section",
 ]

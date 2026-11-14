@@ -1,6 +1,34 @@
-export const snapshot = {};
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-snapshot[`createProfileSchema - shape snapshot 1`] = `
+exports[`checkSlugSchema - shape snapshot 1`] = `
+[
+  "slug",
+]
+`;
+
+exports[`createProfileSchema - invalid kind 1`] = `
+[
+  {
+    "message": "Invalid option: expected one of "individual"|"organization"|"product"",
+    "path": [
+      "kind",
+    ],
+  },
+]
+`;
+
+exports[`createProfileSchema - missing title 1`] = `
+[
+  {
+    "message": "Title is required",
+    "path": [
+      "title",
+    ],
+  },
+]
+`;
+
+exports[`createProfileSchema - shape snapshot 1`] = `
 [
   "slug",
   "title",
@@ -9,7 +37,29 @@ snapshot[`createProfileSchema - shape snapshot 1`] = `
 ]
 `;
 
-snapshot[`updateProfileSchema - shape snapshot 1`] = `
+exports[`createProfileSchema - slug too short 1`] = `
+[
+  {
+    "message": "Slug must be at least 2 characters",
+    "path": [
+      "slug",
+    ],
+  },
+]
+`;
+
+exports[`createProfileSchema - slug with special chars 1`] = `
+[
+  {
+    "message": "Slug can only contain lowercase letters, numbers, and hyphens",
+    "path": [
+      "slug",
+    ],
+  },
+]
+`;
+
+exports[`updateProfileSchema - shape snapshot 1`] = `
 [
   "title",
   "description",
@@ -17,61 +67,11 @@ snapshot[`updateProfileSchema - shape snapshot 1`] = `
 ]
 `;
 
-snapshot[`checkSlugSchema - shape snapshot 1`] = `
-[
-  "slug",
-]
-`;
-
-snapshot[`createProfileSchema - slug too short 1`] = `
+exports[`updateProfileSchema - title too long 1`] = `
 [
   {
-    message: "Slug must be at least 2 characters",
-    path: [
-      "slug",
-    ],
-  },
-]
-`;
-
-snapshot[`createProfileSchema - slug with special chars 1`] = `
-[
-  {
-    message: "Slug can only contain lowercase letters, numbers, and hyphens",
-    path: [
-      "slug",
-    ],
-  },
-]
-`;
-
-snapshot[`createProfileSchema - missing title 1`] = `
-[
-  {
-    message: "Title is required",
-    path: [
-      "title",
-    ],
-  },
-]
-`;
-
-snapshot[`createProfileSchema - invalid kind 1`] = `
-[
-  {
-    message: 'Invalid option: expected one of "individual"|"organization"|"product"',
-    path: [
-      "kind",
-    ],
-  },
-]
-`;
-
-snapshot[`updateProfileSchema - title too long 1`] = `
-[
-  {
-    message: "Too big: expected string to have <=100 characters",
-    path: [
+    "message": "Too big: expected string to have <=100 characters",
+    "path": [
       "title",
     ],
   },

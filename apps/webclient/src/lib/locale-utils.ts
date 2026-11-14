@@ -1,6 +1,6 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 // Pure locale utilities — no import.meta.env dependency
-// Extracted from config.ts for testability with Deno's test runner
+// Extracted from config.ts for testability with the Vitest runner
 
 export interface Locale {
   code: string;

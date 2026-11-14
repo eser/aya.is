@@ -1,4 +1,4 @@
-# This workflow will build a deno project
+# Integrity checks (Node.js + pnpm for the project, Deno only hosts the eser CLI)
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
 name: Integrity Pipeline
@@ -51,8 +51,10 @@ jobs:
           - ubuntu-latest
           # - windows-latest
           # - macOS-latest
-        deno-version:
+        deno-version: # only used to install the eser CLI, which is published on JSR
           - 2.9.5
+        node-version:
+          - 24
         golang-version:
           - 1.27.4
 
@@ -62,7 +64,7 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup Deno ${{ matrix.deno-version }}
+      - name: Setup Deno ${{ matrix.deno-version }} (eser CLI host)
         uses: denoland/setup-deno@v2
         with:
           deno-version: ${{ matrix.deno-version }}
@@ -74,12 +76,17 @@ jobs:
           cache: true
           cache-dependency-path: ./apps/services/go.sum
 
-      - name: Install root dependencies
-        run: deno install
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
 
       - name: Install dependencies
-        run: deno install
-        working-directory: ./apps/webclient/
+        run: pnpm install --frozen-lockfile
 
       - name: Install eser CLI
         run: deno install -gAf --name eser jsr:@eser/cli
@@ -92,7 +99,7 @@ jobs:
         run: go build -v ./...
 
       # - name: Generate webclient coverage report
-      #   run: deno task test:coverage-gen
+      #   run: pnpm --filter @aya/webclient test:coverage-gen
 
       # - name: Upload webclient coverage
       #   uses: codecov/codecov-action@v4

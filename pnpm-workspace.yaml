@@ -1,0 +1,41 @@
+packages:
+  - apps/webclient
+
+# speedy-router (https://github.com/anonrig/router) mirrors a specific TanStack release set (router-core 1.171.25,
+# react-router 1.170.30, history 1.162.1) and requires react ~19.2. Newer TanStack Start packages import router-core exports
+# it does not have yet (isPromise, composeSsrBodyScripts, getSsrBodyScriptParts, getRouteSegments, getUrlScheme,
+# hasMissingPathParams, _isRouteDeparting), which crashes SSR. Keep the whole TanStack router/start family on the last
+# verified set. Remove these overrides (and the speedy-router aliases in apps/webclient/vite.config.ts) to go back to TanStack
+# Router, then update the family together.
+overrides:
+  "@tanstack/history": 1.162.1
+  "@tanstack/react-router": 1.170.30
+  "@tanstack/react-router-devtools": 1.167.1
+  "@tanstack/react-router-ssr-query": 1.167.1
+  "@tanstack/react-start": 1.168.47
+  "@tanstack/react-start-client": 1.168.28
+  "@tanstack/react-start-rsc": 0.1.46
+  "@tanstack/react-start-server": 1.167.35
+  "@tanstack/router-core": 1.171.25
+  "@tanstack/router-devtools-core": 1.168.1
+  "@tanstack/router-generator": 1.167.31
+  "@tanstack/router-plugin": 1.168.33
+  "@tanstack/router-ssr-query-core": 1.169.1
+  "@tanstack/router-utils": 1.162.2
+  "@tanstack/start-client-core": 1.170.25
+  "@tanstack/start-fn-stubs": 1.162.0
+  "@tanstack/start-plugin-core": 1.171.37
+  "@tanstack/start-server-core": 1.169.29
+  "@tanstack/start-storage-context": 1.167.27
+  "@tanstack/virtual-file-routes": 1.162.0
+
+# router-ssr-query-core 1.169.1 calls hydrate(queryClient, undefined) when the query stream ends, which throws and logs
+# "Error reading query stream" on every page load. Fixed upstream in 1.169.3, but that release needs router-core >=1.171.28
+# and speedy-router-core mirrors 1.171.25. Drop this patch together with the pin once both move up.
+#
+# router-devtools-core 1.168.1 reads router._cache as a Map (.values(), .size), but speedy-router-core keeps it as a plain
+# object, so the devtools panel threw "cache.values is not a function". The patch accepts both shapes. Drop it once
+# speedy-router-core exposes a Map or the devtools stop reading the private field.
+patchedDependencies:
+  "@tanstack/router-devtools-core@1.168.1": patches/@tanstack__router-devtools-core@1.168.1.patch
+  "@tanstack/router-ssr-query-core@1.169.1": patches/@tanstack__router-ssr-query-core@1.169.1.patch

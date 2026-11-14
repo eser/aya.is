@@ -1,120 +1,103 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-/// <reference lib="deno.ns" />
-import { assertSnapshot } from "@std/testing/snapshot";
-import { assertEquals } from "@std/assert";
+import { expect, test } from "vitest";
 import { checkSlugSchema, createProfileSchema, updateProfileSchema } from "./profile.ts";
 
 // Snapshot schema shapes to detect validation rule changes
-Deno.test("createProfileSchema - shape snapshot", async (t) => {
-  await assertSnapshot(t, Object.keys(createProfileSchema.shape));
+test("createProfileSchema - shape snapshot", () => {
+  expect(Object.keys(createProfileSchema.shape)).toMatchSnapshot();
 });
 
-Deno.test("updateProfileSchema - shape snapshot", async (t) => {
-  await assertSnapshot(t, Object.keys(updateProfileSchema.shape));
+test("updateProfileSchema - shape snapshot", () => {
+  expect(Object.keys(updateProfileSchema.shape)).toMatchSnapshot();
 });
 
-Deno.test("checkSlugSchema - shape snapshot", async (t) => {
-  await assertSnapshot(t, Object.keys(checkSlugSchema.shape));
+test("checkSlugSchema - shape snapshot", () => {
+  expect(Object.keys(checkSlugSchema.shape)).toMatchSnapshot();
 });
 
 // createProfileSchema - valid input
-Deno.test("createProfileSchema - valid input passes", () => {
+test("createProfileSchema - valid input passes", () => {
   const result = createProfileSchema.safeParse({
     slug: "my-profile",
     title: "My Profile",
     description: "A test profile",
     kind: "individual",
   });
-  assertEquals(result.success, true);
+  expect(result.success).toEqual(true);
 });
 
 // createProfileSchema - invalid cases
-Deno.test("createProfileSchema - slug too short", async (t) => {
+test("createProfileSchema - slug too short", () => {
   const result = createProfileSchema.safeParse({
     slug: "a",
     title: "Title",
     kind: "individual",
   });
-  assertEquals(result.success, false);
+  expect(result.success).toEqual(false);
   if (!result.success) {
-    await assertSnapshot(
-      t,
-      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
-    );
+    expect(result.error.issues.map((i) => ({ path: i.path, message: i.message }))).toMatchSnapshot();
   }
 });
 
-Deno.test("createProfileSchema - slug with special chars", async (t) => {
+test("createProfileSchema - slug with special chars", () => {
   const result = createProfileSchema.safeParse({
     slug: "My Profile!",
     title: "Title",
     kind: "individual",
   });
-  assertEquals(result.success, false);
+  expect(result.success).toEqual(false);
   if (!result.success) {
-    await assertSnapshot(
-      t,
-      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
-    );
+    expect(result.error.issues.map((i) => ({ path: i.path, message: i.message }))).toMatchSnapshot();
   }
 });
 
-Deno.test("createProfileSchema - missing title", async (t) => {
+test("createProfileSchema - missing title", () => {
   const result = createProfileSchema.safeParse({
     slug: "valid-slug",
     title: "",
     kind: "individual",
   });
-  assertEquals(result.success, false);
+  expect(result.success).toEqual(false);
   if (!result.success) {
-    await assertSnapshot(
-      t,
-      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
-    );
+    expect(result.error.issues.map((i) => ({ path: i.path, message: i.message }))).toMatchSnapshot();
   }
 });
 
-Deno.test("createProfileSchema - invalid kind", async (t) => {
+test("createProfileSchema - invalid kind", () => {
   const result = createProfileSchema.safeParse({
     slug: "valid-slug",
     title: "Title",
     kind: "invalid",
   });
-  assertEquals(result.success, false);
+  expect(result.success).toEqual(false);
   if (!result.success) {
-    await assertSnapshot(
-      t,
-      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
-    );
+    expect(result.error.issues.map((i) => ({ path: i.path, message: i.message }))).toMatchSnapshot();
   }
 });
 
-Deno.test("createProfileSchema - valid kinds", () => {
+test("createProfileSchema - valid kinds", () => {
   for (const kind of ["individual", "organization", "product"]) {
     const result = createProfileSchema.safeParse({
       slug: "valid-slug",
       title: "Title",
       kind,
     });
-    assertEquals(result.success, true, `Expected kind "${kind}" to be valid`);
+    expect(result.success, `Expected kind "${kind}" to be valid`).toEqual(true);
   }
 });
 
 // updateProfileSchema - all optional
-Deno.test("updateProfileSchema - empty input passes", () => {
+test("updateProfileSchema - empty input passes", () => {
   const result = updateProfileSchema.safeParse({});
-  assertEquals(result.success, true);
+  expect(result.success).toEqual(true);
 });
 
-Deno.test("updateProfileSchema - title too long", async (t) => {
+test("updateProfileSchema - title too long", () => {
   const result = updateProfileSchema.safeParse({
     title: "T".repeat(101),
   });
-  assertEquals(result.success, false);
+  expect(result.success).toEqual(false);
   if (!result.success) {
-    await assertSnapshot(
-      t,
-      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
-    );
+    expect(result.error.issues.map((i) => ({ path: i.path, message: i.message }))).toMatchSnapshot();
   }
 });

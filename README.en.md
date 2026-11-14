@@ -33,7 +33,7 @@ resources, we strive to make a positive impact and foster sustainable developmen
 
 This is a Docker Compose-based monorepo project. It includes the following components:
 
-- **Frontend (webclient)**: Built with Deno, TanStack Start, Vite, and Shadcn UI
+- **Frontend (webclient)**: Built with Node.js, pnpm, TanStack Start, Vite, and Shadcn UI
 - **Backend (services)**: REST API services written in Go
 - **Database**: PostgreSQL
 
@@ -116,7 +116,7 @@ $ nix develop
 
 > **Tip:** If you use [direnv](https://direnv.net/), run `direnv allow` and the shell will activate automatically.
 
-The Nix shell provides Go 1.27, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint, and all other required tools.
+The Nix shell provides Go 1.27, Node.js 24, pnpm, Deno (only for the `eser` CLI), sqlc, air, golangci-lint, and all other required tools.
 
 Set up the environment variables for the backend service (the default database connection to `localhost:5432` is already
 defined in `config.json`):
@@ -137,7 +137,7 @@ $ docker compose up -d postgres
 $ cd apps/services && make dev
 
 # 3. Frontend
-$ cd apps/webclient && deno task dev
+$ cd apps/webclient && pnpm dev
 ```
 
 The API will be available at `http://localhost:8080`, the frontend at `http://localhost:3000`.

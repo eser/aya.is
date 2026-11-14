@@ -20,7 +20,7 @@ const HTTP_STATUS_SERVER_ERROR_THRESHOLD = 500;
 
 /**
  * Check if we are running in a browser environment.
- * Deno has globalThis.localStorage available on the server, so checking
+ * Node.js (25+) and Deno expose a globalThis.localStorage on the server, so checking
  * localStorage alone is not enough. `document` is only present in browsers.
  */
 function isBrowserEnvironment(): boolean {

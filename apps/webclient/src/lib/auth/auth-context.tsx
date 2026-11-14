@@ -5,7 +5,13 @@ import type { SessionPreferences } from "@/modules/backend/types";
 import type { AccessibleProfile } from "@/modules/backend/backend";
 import { getCurrentLocale } from "@/modules/i18n/i18n";
 import { getBackendUri } from "@/config";
-import { clearAuthData, isTokenExpiringSoon, refreshTokenRequest, setAuthToken } from "@/modules/backend/fetcher";
+import {
+  clearAuthData,
+  getAuthToken,
+  isTokenExpiringSoon,
+  refreshTokenRequest,
+  setAuthToken,
+} from "@/modules/backend/fetcher";
 
 export type IndividualProfile = {
   id: string;
@@ -69,6 +75,7 @@ export function AuthProvider(props: AuthProviderProps) {
     }
 
     const locale = getCurrentLocale();
+    const tokenAtStart = getAuthToken();
 
     // Single consolidated call: validates session cookie, returns auth + preferences
     const result = await getSessionCurrent(locale);
@@ -112,8 +119,12 @@ export function AuthProvider(props: AuthProviderProps) {
       });
     } else {
       // User is NOT authenticated - clear any stale local data
-      // This ensures logout on one domain propagates to all domains
-      clearAuthData();
+      // This ensures logout on one domain propagates to all domains.
+      // Skip it when the stored token changed while the request was in flight: the OAuth callback page stores a fresh
+      // token and navigates away while this call (made without it) is still pending, and wiping it would undo the login.
+      if (getAuthToken() === tokenAtStart) {
+        clearAuthData();
+      }
       setState({
         isLoading: false,
         isAuthenticated: false,

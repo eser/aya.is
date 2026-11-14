@@ -1,6 +1,6 @@
 # ------------------------------------------------------------
 # Monorepo Webclient Dockerfile (TanStack Start + Vite + Nitro)
-# Runtime: Deno
+# Runtime: Node.js (pnpm workspace)
 # Build context: repository root (not apps/webclient/)
 # Usage: docker build -f apps/webclient/Dockerfile .
 # ------------------------------------------------------------
@@ -8,7 +8,13 @@
 # ------------------------------------------------------------
 # Base image
 # ------------------------------------------------------------
-FROM denoland/deno:2.6.5 AS base
+# speedy-router requires Node >= 24.
+FROM node:24-bookworm-slim AS base
+
+# pnpm is pinned through the root package.json "packageManager" field (activated by corepack)
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable
 
 # ------------------------------------------------------------
 # Dependencies stage (shared by development and builder)
@@ -22,21 +28,16 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 
 WORKDIR /monorepo
 
-# Copy root deno.json (shared lint/fmt settings)
-COPY ./deno.json ./
+# Workspace manifests first (better layer caching): lockfile, workspace file, registry config and package manifests
+COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./.npmrc ./
+COPY ./patches ./patches
+COPY ./apps/webclient/package.json ./apps/webclient/package.json
 
-# Install root dependencies (if any)
-RUN --mount=type=cache,target=/root/.cache/deno \
-    deno install
+# Install the webclient workspace package and its dependencies (store cached across builds)
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile --filter @aya/webclient...
 
 WORKDIR /monorepo/apps/webclient
-
-# Copy webclient package files (no lock file - let Deno resolve all transitive deps)
-COPY ./apps/webclient/.npmrc ./apps/webclient/package.json ./apps/webclient/deno.json ./
-
-# Install webclient dependencies (cached across builds)
-RUN --mount=type=cache,target=/root/.cache/deno \
-    deno install
 
 # ------------------------------------------------------------
 # Development stage (with hot reload)
@@ -49,7 +50,7 @@ COPY ./apps/webclient/ ./
 EXPOSE 3000
 
 # Development server with hot reload (uses package.json scripts)
-CMD ["deno", "task", "dev"]
+CMD ["pnpm", "dev"]
 
 # ------------------------------------------------------------
 # Builder stage
@@ -62,32 +63,31 @@ COPY ./apps/webclient/ ./
 # Give Vite/Rolldown enough heap for SSR transform on memory-constrained builders
 ENV NODE_OPTIONS=--max-old-space-size=4096
 
-# Build the application (with Deno cache)
-RUN --mount=type=cache,target=/root/.cache/deno \
-    deno task build
+# Build the application
+RUN pnpm build
 
 # ------------------------------------------------------------
-# Production runner (Deno)
+# Production runner (Node.js)
 # ------------------------------------------------------------
-FROM base AS runner
+FROM node:24-bookworm-slim AS runner
 
 # curl is required by the container healthcheck (must be installed as root,
-# before switching to the 'deno' user). The base image ships neither curl nor wget.
+# before switching to the 'node' user). The base image ships neither curl nor wget.
 RUN apt-get update && apt-get -y install --no-install-recommends \
   curl \
   && rm -rf /var/lib/apt/lists/*
 
-# Run as non-root user (Deno image provides 'deno' user)
-USER deno
+# Run as non-root user (the Node image provides 'node')
+USER node
 
 WORKDIR /app
 
 # Copy built output from builder (self-contained Nitro server)
-COPY --from=builder /monorepo/apps/webclient/.output ./
+COPY --from=builder --chown=node:node /monorepo/apps/webclient/.output ./
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOST=::
 
 # Start the Nitro server directly
-CMD ["deno", "run", "-A", "server/index.mjs"]
+CMD ["node", "server/index.mjs"]

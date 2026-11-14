@@ -20,8 +20,8 @@ Just React, Next, JavaScript, Web Development Essentials and Git.
 
 ### Conventions
 
-Using Deno Formatter should be fine for now. Git hooks are managed by `@eser/cli` (see `.manifest.yml`). To install
-hooks: `eser codebase install`.
+Format with `pnpm fmt` (oxfmt). Git hooks are managed by `@eser/cli` (see `.manifest.yml`), which needs Deno:
+`deno install -gAf --name eser jsr:@eser/cli`. To install hooks: `eser codebase install`.
 
 ### Design Decisions
 
