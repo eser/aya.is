@@ -1,6 +1,6 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import type { BetterAuthPlugin } from "better-auth";
-import { createAuthEndpoint } from "better-auth/plugins";
+import { createAuthEndpoint } from "better-auth/api";
 import { DEFAULT_LOCALE, getBackendUri } from "@/config";
 
 const BEARER_PREFIX = "Bearer ";
@@ -49,12 +49,7 @@ export const ayaBackendPlugin = () => {
           // Redirect to api.aya.is OAuth endpoint
           const loginUrl = `${backendUri}/${locale}/auth/github/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-          return new Response(null, {
-            status: 302,
-            headers: {
-              Location: loginUrl,
-            },
-          });
+          throw ctx.redirect(loginUrl);
         },
       ),
 

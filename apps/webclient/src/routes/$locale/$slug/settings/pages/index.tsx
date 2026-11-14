@@ -352,11 +352,9 @@ function PagesSettingsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings2 className="mr-1.5 size-4" />
-                {t("Profile.Predefined Pages...")}
-              </Button>
+            <DialogTrigger render={<Button variant="outline" size="sm" />}>
+              <Settings2 className="mr-1.5 size-4" />
+              {t("Profile.Predefined Pages...")}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -413,12 +411,10 @@ function PagesSettingsPage() {
           </Dialog>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" disabled={isGenerating}>
-                <Sparkles className="mr-1.5 size-4" />
-                {isGenerating ? t("Profile.Generating...") : t("Profile.Generate")}
-                <ChevronDown className="ml-1.5 size-3" />
-              </Button>
+            <DropdownMenuTrigger render={<Button variant="outline" size="sm" disabled={isGenerating} />}>
+              <Sparkles className="mr-1.5 size-4" />
+              {isGenerating ? t("Profile.Generating...") : t("Profile.Generate")}
+              <ChevronDown className="ml-1.5 size-3" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="whitespace-nowrap">
               <DropdownMenuItem onClick={handleGenerateCVFromLinkedIn}>

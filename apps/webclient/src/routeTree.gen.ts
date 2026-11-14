@@ -1,4 +1,5 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
+
 /* eslint-disable */
 
 // @ts-nocheck
@@ -10,85 +11,85 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as LocaleIndexRouteImport } from './routes/$locale/index'
-import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as LocaleSlugRouteRouteImport } from './routes/$locale/$slug/route'
+import { Route as LocaleActivitiesRouteRouteImport } from './routes/$locale/activities/route'
+import { Route as LocaleAdminRouteRouteImport } from './routes/$locale/admin/route'
+import { Route as LocaleElementsRouteRouteImport } from './routes/$locale/elements/route'
 import { Route as LocaleMailboxRouteImport } from './routes/$locale/mailbox'
 import { Route as LocaleStoriesRouteRouteImport } from './routes/$locale/stories/route'
-import { Route as LocaleElementsRouteRouteImport } from './routes/$locale/elements/route'
-import { Route as LocaleAdminRouteRouteImport } from './routes/$locale/admin/route'
-import { Route as LocaleActivitiesRouteRouteImport } from './routes/$locale/activities/route'
-import { Route as LocaleSlugRouteRouteImport } from './routes/$locale/$slug/route'
-import { Route as LocaleStoriesIndexRouteImport } from './routes/$locale/stories/index'
-import { Route as LocaleSeriesIndexRouteImport } from './routes/$locale/series/index'
-import { Route as LocaleSearchIndexRouteImport } from './routes/$locale/search/index'
-import { Route as LocaleProductsIndexRouteImport } from './routes/$locale/products/index'
-import { Route as LocaleNewsIndexRouteImport } from './routes/$locale/news/index'
-import { Route as LocaleElementsIndexRouteImport } from './routes/$locale/elements/index'
-import { Route as LocaleContentsIndexRouteImport } from './routes/$locale/contents/index'
-import { Route as LocaleArticlesIndexRouteImport } from './routes/$locale/articles/index'
-import { Route as LocaleActivitiesIndexRouteImport } from './routes/$locale/activities/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as LocaleSlugIndexRouteImport } from './routes/$locale/$slug/index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as LocaleStoriesNewRouteImport } from './routes/$locale/stories/new'
-import { Route as LocaleProductsNewRouteImport } from './routes/$locale/products/new'
-import { Route as LocaleNewsNewRouteImport } from './routes/$locale/news/new'
-import { Route as LocaleElementsNewRouteImport } from './routes/$locale/elements/new'
-import { Route as LocaleContentsNewRouteImport } from './routes/$locale/contents/new'
-import { Route as LocaleArticlesNewRouteImport } from './routes/$locale/articles/new'
-import { Route as LocaleActivitiesNewRouteImport } from './routes/$locale/activities/new'
-import { Route as LocaleSlugLinksRouteImport } from './routes/$locale/$slug/links'
-import { Route as LocaleSlugContributionsRouteImport } from './routes/$locale/$slug/contributions'
 import { Route as LocaleSlugSplatRouteImport } from './routes/$locale/$slug/$'
-import { Route as LocaleStoriesStoryslugRouteRouteImport } from './routes/$locale/stories/$storyslug/route'
-import { Route as LocaleAdminWorkersRouteRouteImport } from './routes/$locale/admin/workers/route'
-import { Route as LocaleAdminPointsRouteRouteImport } from './routes/$locale/admin/points/route'
-import { Route as LocaleSlugStoriesRouteRouteImport } from './routes/$locale/$slug/stories/route'
-import { Route as LocaleSlugSettingsRouteRouteImport } from './routes/$locale/$slug/settings/route'
-import { Route as LocaleSlugQaRouteRouteImport } from './routes/$locale/$slug/qa/route'
-import { Route as LocaleSlugMembersRouteRouteImport } from './routes/$locale/$slug/members/route'
 import { Route as LocaleSlugPageslugRouteRouteImport } from './routes/$locale/$slug/$pageslug/route'
-import { Route as LocaleStoriesStoryslugIndexRouteImport } from './routes/$locale/stories/$storyslug/index'
-import { Route as LocaleSeriesSeriesSlugIndexRouteImport } from './routes/$locale/series/$seriesSlug/index'
-import { Route as LocaleAdminWorkersIndexRouteImport } from './routes/$locale/admin/workers/index'
-import { Route as LocaleAdminProfilesIndexRouteImport } from './routes/$locale/admin/profiles/index'
-import { Route as LocaleAdminPointsIndexRouteImport } from './routes/$locale/admin/points/index'
-import { Route as LocaleSlugStoriesIndexRouteImport } from './routes/$locale/$slug/stories/index'
-import { Route as LocaleSlugSettingsIndexRouteImport } from './routes/$locale/$slug/settings/index'
-import { Route as LocaleSlugQaIndexRouteImport } from './routes/$locale/$slug/qa/index'
-import { Route as LocaleSlugMembersIndexRouteImport } from './routes/$locale/$slug/members/index'
+import { Route as LocaleSlugContributionsRouteImport } from './routes/$locale/$slug/contributions'
+import { Route as LocaleSlugLinksRouteImport } from './routes/$locale/$slug/links'
+import { Route as LocaleSlugMembersRouteRouteImport } from './routes/$locale/$slug/members/route'
+import { Route as LocaleSlugQaRouteRouteImport } from './routes/$locale/$slug/qa/route'
+import { Route as LocaleSlugSettingsRouteRouteImport } from './routes/$locale/$slug/settings/route'
+import { Route as LocaleSlugStoriesRouteRouteImport } from './routes/$locale/$slug/stories/route'
+import { Route as LocaleActivitiesIndexRouteImport } from './routes/$locale/activities/index'
+import { Route as LocaleActivitiesNewRouteImport } from './routes/$locale/activities/new'
+import { Route as LocaleAdminPointsRouteRouteImport } from './routes/$locale/admin/points/route'
+import { Route as LocaleAdminWorkersRouteRouteImport } from './routes/$locale/admin/workers/route'
+import { Route as LocaleArticlesIndexRouteImport } from './routes/$locale/articles/index'
+import { Route as LocaleArticlesNewRouteImport } from './routes/$locale/articles/new'
+import { Route as LocaleContentsIndexRouteImport } from './routes/$locale/contents/index'
+import { Route as LocaleContentsNewRouteImport } from './routes/$locale/contents/new'
+import { Route as LocaleElementsIndexRouteImport } from './routes/$locale/elements/index'
+import { Route as LocaleElementsNewRouteImport } from './routes/$locale/elements/new'
+import { Route as LocaleNewsIndexRouteImport } from './routes/$locale/news/index'
+import { Route as LocaleNewsNewRouteImport } from './routes/$locale/news/new'
+import { Route as LocaleProductsIndexRouteImport } from './routes/$locale/products/index'
+import { Route as LocaleProductsNewRouteImport } from './routes/$locale/products/new'
+import { Route as LocaleSearchIndexRouteImport } from './routes/$locale/search/index'
+import { Route as LocaleSeriesIndexRouteImport } from './routes/$locale/series/index'
+import { Route as LocaleStoriesIndexRouteImport } from './routes/$locale/stories/index'
+import { Route as LocaleStoriesStoryslugRouteRouteImport } from './routes/$locale/stories/$storyslug/route'
+import { Route as LocaleStoriesNewRouteImport } from './routes/$locale/stories/new'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as LocaleSlugPageslugIndexRouteImport } from './routes/$locale/$slug/$pageslug/index'
-import { Route as LocaleStoriesStoryslugShareRouteImport } from './routes/$locale/stories/$storyslug/share'
-import { Route as LocaleStoriesStoryslugEditRouteImport } from './routes/$locale/stories/$storyslug/edit'
-import { Route as LocaleStoriesStoryslugCoverRouteImport } from './routes/$locale/stories/$storyslug/cover'
-import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/$slug/settings/stories'
-import { Route as LocaleSlugSettingsResourcesRouteImport } from './routes/$locale/$slug/settings/resources'
-import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$slug/settings/points'
-import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
-import { Route as LocaleSlugSettingsBulletinsRouteImport } from './routes/$locale/$slug/settings/bulletins'
-import { Route as LocaleSlugSettingsAccessRouteImport } from './routes/$locale/$slug/settings/access'
-import { Route as LocaleSlugMembersReferralsRouteImport } from './routes/$locale/$slug/members/referrals'
-import { Route as LocaleSlugMembersCandidatesRouteImport } from './routes/$locale/$slug/members/candidates'
-import { Route as LocaleSlugMembersApplyRouteImport } from './routes/$locale/$slug/members/apply'
 import { Route as LocaleSlugPageslugEditRouteImport } from './routes/$locale/$slug/$pageslug/edit'
-import { Route as LocaleAdminProfilesSlugRouteRouteImport } from './routes/$locale/admin/profiles/$slug/route'
+import { Route as LocaleSlugMembersIndexRouteImport } from './routes/$locale/$slug/members/index'
+import { Route as LocaleSlugMembersApplyRouteImport } from './routes/$locale/$slug/members/apply'
+import { Route as LocaleSlugMembersCandidatesRouteImport } from './routes/$locale/$slug/members/candidates'
+import { Route as LocaleSlugMembersReferralsRouteImport } from './routes/$locale/$slug/members/referrals'
+import { Route as LocaleSlugQaIndexRouteImport } from './routes/$locale/$slug/qa/index'
+import { Route as LocaleSlugSettingsIndexRouteImport } from './routes/$locale/$slug/settings/index'
+import { Route as LocaleSlugSettingsAccessRouteImport } from './routes/$locale/$slug/settings/access'
+import { Route as LocaleSlugSettingsBulletinsRouteImport } from './routes/$locale/$slug/settings/bulletins'
+import { Route as LocaleSlugSettingsLinksRouteImport } from './routes/$locale/$slug/settings/links'
+import { Route as LocaleSlugSettingsPointsRouteImport } from './routes/$locale/$slug/settings/points'
+import { Route as LocaleSlugSettingsResourcesRouteImport } from './routes/$locale/$slug/settings/resources'
+import { Route as LocaleSlugSettingsStoriesRouteImport } from './routes/$locale/$slug/settings/stories'
+import { Route as LocaleSlugStoriesIndexRouteImport } from './routes/$locale/$slug/stories/index'
 import { Route as LocaleSlugStoriesStoryslugRouteRouteImport } from './routes/$locale/$slug/stories/$storyslug/route'
-import { Route as LocaleAdminProfilesSlugIndexRouteImport } from './routes/$locale/admin/profiles/$slug/index'
-import { Route as LocaleSlugStoriesStoryslugIndexRouteImport } from './routes/$locale/$slug/stories/$storyslug/index'
+import { Route as LocaleAdminPointsIndexRouteImport } from './routes/$locale/admin/points/index'
+import { Route as LocaleAdminProfilesIndexRouteImport } from './routes/$locale/admin/profiles/index'
+import { Route as LocaleAdminProfilesSlugRouteRouteImport } from './routes/$locale/admin/profiles/$slug/route'
+import { Route as LocaleAdminWorkersIndexRouteImport } from './routes/$locale/admin/workers/index'
+import { Route as LocaleSeriesSeriesSlugIndexRouteImport } from './routes/$locale/series/$seriesSlug/index'
+import { Route as LocaleStoriesStoryslugIndexRouteImport } from './routes/$locale/stories/$storyslug/index'
+import { Route as LocaleStoriesStoryslugCoverRouteImport } from './routes/$locale/stories/$storyslug/cover'
+import { Route as LocaleStoriesStoryslugEditRouteImport } from './routes/$locale/stories/$storyslug/edit'
+import { Route as LocaleStoriesStoryslugShareRouteImport } from './routes/$locale/stories/$storyslug/share'
 import { Route as LocaleSlugSettingsPagesIndexRouteImport } from './routes/$locale/$slug/settings/pages/index'
-import { Route as LocaleAdminProfilesSlugPointsRouteImport } from './routes/$locale/admin/profiles/$slug/points'
-import { Route as LocaleAdminProfilesSlugEnvelopesRouteImport } from './routes/$locale/admin/profiles/$slug/envelopes'
 import { Route as LocaleSlugSettingsPagesNewRouteImport } from './routes/$locale/$slug/settings/pages/new'
+import { Route as LocaleSlugStoriesStoryslugIndexRouteImport } from './routes/$locale/$slug/stories/$storyslug/index'
+import { Route as LocaleAdminProfilesSlugIndexRouteImport } from './routes/$locale/admin/profiles/$slug/index'
+import { Route as LocaleAdminProfilesSlugEnvelopesRouteImport } from './routes/$locale/admin/profiles/$slug/envelopes'
+import { Route as LocaleAdminProfilesSlugPointsRouteImport } from './routes/$locale/admin/profiles/$slug/points'
 
-const LocaleRouteRoute = LocaleRouteRouteImport.update({
-  id: '/$locale',
-  path: '/$locale',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleRouteRoute = LocaleRouteRouteImport.update({
+  id: '/$locale',
+  path: '/$locale',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleIndexRoute = LocaleIndexRouteImport.update({
@@ -96,10 +97,25 @@ const LocaleIndexRoute = LocaleIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LocaleRouteRoute,
 } as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
-  getParentRoute: () => rootRouteImport,
+const LocaleSlugRouteRoute = LocaleSlugRouteRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleActivitiesRouteRoute = LocaleActivitiesRouteRouteImport.update({
+  id: '/activities',
+  path: '/activities',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleAdminRouteRoute = LocaleAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleElementsRouteRoute = LocaleElementsRouteRouteImport.update({
+  id: '/elements',
+  path: '/elements',
+  getParentRoute: () => LocaleRouteRoute,
 } as any)
 const LocaleMailboxRoute = LocaleMailboxRouteImport.update({
   id: '/mailbox',
@@ -111,124 +127,14 @@ const LocaleStoriesRouteRoute = LocaleStoriesRouteRouteImport.update({
   path: '/stories',
   getParentRoute: () => LocaleRouteRoute,
 } as any)
-const LocaleElementsRouteRoute = LocaleElementsRouteRouteImport.update({
-  id: '/elements',
-  path: '/elements',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleAdminRouteRoute = LocaleAdminRouteRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleActivitiesRouteRoute = LocaleActivitiesRouteRouteImport.update({
-  id: '/activities',
-  path: '/activities',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleSlugRouteRoute = LocaleSlugRouteRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleStoriesIndexRoute = LocaleStoriesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleStoriesRouteRoute,
-} as any)
-const LocaleSeriesIndexRoute = LocaleSeriesIndexRouteImport.update({
-  id: '/series/',
-  path: '/series/',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleSearchIndexRoute = LocaleSearchIndexRouteImport.update({
-  id: '/search/',
-  path: '/search/',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleProductsIndexRoute = LocaleProductsIndexRouteImport.update({
-  id: '/products/',
-  path: '/products/',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleNewsIndexRoute = LocaleNewsIndexRouteImport.update({
-  id: '/news/',
-  path: '/news/',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleElementsIndexRoute = LocaleElementsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleElementsRouteRoute,
-} as any)
-const LocaleContentsIndexRoute = LocaleContentsIndexRouteImport.update({
-  id: '/contents/',
-  path: '/contents/',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleArticlesIndexRoute = LocaleArticlesIndexRouteImport.update({
-  id: '/articles/',
-  path: '/articles/',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleActivitiesIndexRoute = LocaleActivitiesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleActivitiesRouteRoute,
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleSlugIndexRoute = LocaleSlugIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => LocaleSlugRouteRoute,
-} as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocaleStoriesNewRoute = LocaleStoriesNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => LocaleStoriesRouteRoute,
-} as any)
-const LocaleProductsNewRoute = LocaleProductsNewRouteImport.update({
-  id: '/products/new',
-  path: '/products/new',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleNewsNewRoute = LocaleNewsNewRouteImport.update({
-  id: '/news/new',
-  path: '/news/new',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleElementsNewRoute = LocaleElementsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => LocaleElementsRouteRoute,
-} as any)
-const LocaleContentsNewRoute = LocaleContentsNewRouteImport.update({
-  id: '/contents/new',
-  path: '/contents/new',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleArticlesNewRoute = LocaleArticlesNewRouteImport.update({
-  id: '/articles/new',
-  path: '/articles/new',
-  getParentRoute: () => LocaleRouteRoute,
-} as any)
-const LocaleActivitiesNewRoute = LocaleActivitiesNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => LocaleActivitiesRouteRoute,
-} as any)
-const LocaleSlugLinksRoute = LocaleSlugLinksRouteImport.update({
-  id: '/links',
-  path: '/links',
-  getParentRoute: () => LocaleSlugRouteRoute,
-} as any)
-const LocaleSlugContributionsRoute = LocaleSlugContributionsRouteImport.update({
-  id: '/contributions',
-  path: '/contributions',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
 const LocaleSlugSplatRoute = LocaleSlugSplatRouteImport.update({
@@ -236,35 +142,19 @@ const LocaleSlugSplatRoute = LocaleSlugSplatRouteImport.update({
   path: '/$',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
-const LocaleStoriesStoryslugRouteRoute =
-  LocaleStoriesStoryslugRouteRouteImport.update({
-    id: '/$storyslug',
-    path: '/$storyslug',
-    getParentRoute: () => LocaleStoriesRouteRoute,
-  } as any)
-const LocaleAdminWorkersRouteRoute = LocaleAdminWorkersRouteRouteImport.update({
-  id: '/workers',
-  path: '/workers',
-  getParentRoute: () => LocaleAdminRouteRoute,
-} as any)
-const LocaleAdminPointsRouteRoute = LocaleAdminPointsRouteRouteImport.update({
-  id: '/points',
-  path: '/points',
-  getParentRoute: () => LocaleAdminRouteRoute,
-} as any)
-const LocaleSlugStoriesRouteRoute = LocaleSlugStoriesRouteRouteImport.update({
-  id: '/stories',
-  path: '/stories',
+const LocaleSlugPageslugRouteRoute = LocaleSlugPageslugRouteRouteImport.update({
+  id: '/$pageslug',
+  path: '/$pageslug',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
-const LocaleSlugSettingsRouteRoute = LocaleSlugSettingsRouteRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const LocaleSlugContributionsRoute = LocaleSlugContributionsRouteImport.update({
+  id: '/contributions',
+  path: '/contributions',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
-const LocaleSlugQaRouteRoute = LocaleSlugQaRouteRouteImport.update({
-  id: '/qa',
-  path: '/qa',
+const LocaleSlugLinksRoute = LocaleSlugLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
 const LocaleSlugMembersRouteRoute = LocaleSlugMembersRouteRouteImport.update({
@@ -272,86 +162,185 @@ const LocaleSlugMembersRouteRoute = LocaleSlugMembersRouteRouteImport.update({
   path: '/members',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
-const LocaleSlugPageslugRouteRoute = LocaleSlugPageslugRouteRouteImport.update({
-  id: '/$pageslug',
-  path: '/$pageslug',
+const LocaleSlugQaRouteRoute = LocaleSlugQaRouteRouteImport.update({
+  id: '/qa',
+  path: '/qa',
   getParentRoute: () => LocaleSlugRouteRoute,
 } as any)
-const LocaleStoriesStoryslugIndexRoute =
-  LocaleStoriesStoryslugIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+const LocaleSlugSettingsRouteRoute = LocaleSlugSettingsRouteRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => LocaleSlugRouteRoute,
+} as any)
+const LocaleSlugStoriesRouteRoute = LocaleSlugStoriesRouteRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => LocaleSlugRouteRoute,
+} as any)
+const LocaleActivitiesIndexRoute = LocaleActivitiesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleActivitiesRouteRoute,
+} as any)
+const LocaleActivitiesNewRoute = LocaleActivitiesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LocaleActivitiesRouteRoute,
+} as any)
+const LocaleAdminPointsRouteRoute = LocaleAdminPointsRouteRouteImport.update({
+  id: '/points',
+  path: '/points',
+  getParentRoute: () => LocaleAdminRouteRoute,
+} as any)
+const LocaleAdminWorkersRouteRoute = LocaleAdminWorkersRouteRouteImport.update({
+  id: '/workers',
+  path: '/workers',
+  getParentRoute: () => LocaleAdminRouteRoute,
+} as any)
+const LocaleArticlesIndexRoute = LocaleArticlesIndexRouteImport.update({
+  id: '/articles/',
+  path: '/articles/',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleArticlesNewRoute = LocaleArticlesNewRouteImport.update({
+  id: '/articles/new',
+  path: '/articles/new',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleContentsIndexRoute = LocaleContentsIndexRouteImport.update({
+  id: '/contents/',
+  path: '/contents/',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleContentsNewRoute = LocaleContentsNewRouteImport.update({
+  id: '/contents/new',
+  path: '/contents/new',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleElementsIndexRoute = LocaleElementsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleElementsRouteRoute,
+} as any)
+const LocaleElementsNewRoute = LocaleElementsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LocaleElementsRouteRoute,
+} as any)
+const LocaleNewsIndexRoute = LocaleNewsIndexRouteImport.update({
+  id: '/news/',
+  path: '/news/',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleNewsNewRoute = LocaleNewsNewRouteImport.update({
+  id: '/news/new',
+  path: '/news/new',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleProductsIndexRoute = LocaleProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleProductsNewRoute = LocaleProductsNewRouteImport.update({
+  id: '/products/new',
+  path: '/products/new',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleSearchIndexRoute = LocaleSearchIndexRouteImport.update({
+  id: '/search/',
+  path: '/search/',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleSeriesIndexRoute = LocaleSeriesIndexRouteImport.update({
+  id: '/series/',
+  path: '/series/',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleStoriesIndexRoute = LocaleStoriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleStoriesRouteRoute,
+} as any)
+const LocaleStoriesStoryslugRouteRoute =
+  LocaleStoriesStoryslugRouteRouteImport.update({
+    id: '/$storyslug',
+    path: '/$storyslug',
+    getParentRoute: () => LocaleStoriesRouteRoute,
   } as any)
-const LocaleSeriesSeriesSlugIndexRoute =
-  LocaleSeriesSeriesSlugIndexRouteImport.update({
-    id: '/series/$seriesSlug/',
-    path: '/series/$seriesSlug/',
-    getParentRoute: () => LocaleRouteRoute,
-  } as any)
-const LocaleAdminWorkersIndexRoute = LocaleAdminWorkersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleAdminWorkersRouteRoute,
+const LocaleStoriesNewRoute = LocaleStoriesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LocaleStoriesRouteRoute,
 } as any)
-const LocaleAdminProfilesIndexRoute =
-  LocaleAdminProfilesIndexRouteImport.update({
-    id: '/profiles/',
-    path: '/profiles/',
-    getParentRoute: () => LocaleAdminRouteRoute,
-  } as any)
-const LocaleAdminPointsIndexRoute = LocaleAdminPointsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleAdminPointsRouteRoute,
-} as any)
-const LocaleSlugStoriesIndexRoute = LocaleSlugStoriesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleSlugStoriesRouteRoute,
-} as any)
-const LocaleSlugSettingsIndexRoute = LocaleSlugSettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleSlugSettingsRouteRoute,
-} as any)
-const LocaleSlugQaIndexRoute = LocaleSlugQaIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleSlugQaRouteRoute,
-} as any)
-const LocaleSlugMembersIndexRoute = LocaleSlugMembersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleSlugMembersRouteRoute,
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleSlugPageslugIndexRoute = LocaleSlugPageslugIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LocaleSlugPageslugRouteRoute,
 } as any)
-const LocaleStoriesStoryslugShareRoute =
-  LocaleStoriesStoryslugShareRouteImport.update({
-    id: '/share',
-    path: '/share',
-    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+const LocaleSlugPageslugEditRoute = LocaleSlugPageslugEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => LocaleSlugPageslugRouteRoute,
+} as any)
+const LocaleSlugMembersIndexRoute = LocaleSlugMembersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleSlugMembersRouteRoute,
+} as any)
+const LocaleSlugMembersApplyRoute = LocaleSlugMembersApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => LocaleSlugMembersRouteRoute,
+} as any)
+const LocaleSlugMembersCandidatesRoute =
+  LocaleSlugMembersCandidatesRouteImport.update({
+    id: '/candidates',
+    path: '/candidates',
+    getParentRoute: () => LocaleSlugMembersRouteRoute,
   } as any)
-const LocaleStoriesStoryslugEditRoute =
-  LocaleStoriesStoryslugEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+const LocaleSlugMembersReferralsRoute =
+  LocaleSlugMembersReferralsRouteImport.update({
+    id: '/referrals',
+    path: '/referrals',
+    getParentRoute: () => LocaleSlugMembersRouteRoute,
   } as any)
-const LocaleStoriesStoryslugCoverRoute =
-  LocaleStoriesStoryslugCoverRouteImport.update({
-    id: '/cover',
-    path: '/cover',
-    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+const LocaleSlugQaIndexRoute = LocaleSlugQaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleSlugQaRouteRoute,
+} as any)
+const LocaleSlugSettingsIndexRoute = LocaleSlugSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleSlugSettingsRouteRoute,
+} as any)
+const LocaleSlugSettingsAccessRoute =
+  LocaleSlugSettingsAccessRouteImport.update({
+    id: '/access',
+    path: '/access',
+    getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
-const LocaleSlugSettingsStoriesRoute =
-  LocaleSlugSettingsStoriesRouteImport.update({
-    id: '/stories',
-    path: '/stories',
+const LocaleSlugSettingsBulletinsRoute =
+  LocaleSlugSettingsBulletinsRouteImport.update({
+    id: '/bulletins',
+    path: '/bulletins',
+    getParentRoute: () => LocaleSlugSettingsRouteRoute,
+  } as any)
+const LocaleSlugSettingsLinksRoute = LocaleSlugSettingsLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
+  getParentRoute: () => LocaleSlugSettingsRouteRoute,
+} as any)
+const LocaleSlugSettingsPointsRoute =
+  LocaleSlugSettingsPointsRouteImport.update({
+    id: '/points',
+    path: '/points',
     getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
 const LocaleSlugSettingsResourcesRoute =
@@ -360,74 +349,74 @@ const LocaleSlugSettingsResourcesRoute =
     path: '/resources',
     getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
-const LocaleSlugSettingsPointsRoute =
-  LocaleSlugSettingsPointsRouteImport.update({
-    id: '/points',
-    path: '/points',
+const LocaleSlugSettingsStoriesRoute =
+  LocaleSlugSettingsStoriesRouteImport.update({
+    id: '/stories',
+    path: '/stories',
     getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
-const LocaleSlugSettingsLinksRoute = LocaleSlugSettingsLinksRouteImport.update({
-  id: '/links',
-  path: '/links',
-  getParentRoute: () => LocaleSlugSettingsRouteRoute,
+const LocaleSlugStoriesIndexRoute = LocaleSlugStoriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleSlugStoriesRouteRoute,
 } as any)
-const LocaleSlugSettingsBulletinsRoute =
-  LocaleSlugSettingsBulletinsRouteImport.update({
-    id: '/bulletins',
-    path: '/bulletins',
-    getParentRoute: () => LocaleSlugSettingsRouteRoute,
-  } as any)
-const LocaleSlugSettingsAccessRoute =
-  LocaleSlugSettingsAccessRouteImport.update({
-    id: '/access',
-    path: '/access',
-    getParentRoute: () => LocaleSlugSettingsRouteRoute,
-  } as any)
-const LocaleSlugMembersReferralsRoute =
-  LocaleSlugMembersReferralsRouteImport.update({
-    id: '/referrals',
-    path: '/referrals',
-    getParentRoute: () => LocaleSlugMembersRouteRoute,
-  } as any)
-const LocaleSlugMembersCandidatesRoute =
-  LocaleSlugMembersCandidatesRouteImport.update({
-    id: '/candidates',
-    path: '/candidates',
-    getParentRoute: () => LocaleSlugMembersRouteRoute,
-  } as any)
-const LocaleSlugMembersApplyRoute = LocaleSlugMembersApplyRouteImport.update({
-  id: '/apply',
-  path: '/apply',
-  getParentRoute: () => LocaleSlugMembersRouteRoute,
-} as any)
-const LocaleSlugPageslugEditRoute = LocaleSlugPageslugEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => LocaleSlugPageslugRouteRoute,
-} as any)
-const LocaleAdminProfilesSlugRouteRoute =
-  LocaleAdminProfilesSlugRouteRouteImport.update({
-    id: '/profiles/$slug',
-    path: '/profiles/$slug',
-    getParentRoute: () => LocaleAdminRouteRoute,
-  } as any)
 const LocaleSlugStoriesStoryslugRouteRoute =
   LocaleSlugStoriesStoryslugRouteRouteImport.update({
     id: '/$storyslug',
     path: '/$storyslug',
     getParentRoute: () => LocaleSlugStoriesRouteRoute,
   } as any)
-const LocaleAdminProfilesSlugIndexRoute =
-  LocaleAdminProfilesSlugIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LocaleAdminProfilesSlugRouteRoute,
+const LocaleAdminPointsIndexRoute = LocaleAdminPointsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleAdminPointsRouteRoute,
+} as any)
+const LocaleAdminProfilesIndexRoute =
+  LocaleAdminProfilesIndexRouteImport.update({
+    id: '/profiles/',
+    path: '/profiles/',
+    getParentRoute: () => LocaleAdminRouteRoute,
   } as any)
-const LocaleSlugStoriesStoryslugIndexRoute =
-  LocaleSlugStoriesStoryslugIndexRouteImport.update({
+const LocaleAdminProfilesSlugRouteRoute =
+  LocaleAdminProfilesSlugRouteRouteImport.update({
+    id: '/profiles/$slug',
+    path: '/profiles/$slug',
+    getParentRoute: () => LocaleAdminRouteRoute,
+  } as any)
+const LocaleAdminWorkersIndexRoute = LocaleAdminWorkersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleAdminWorkersRouteRoute,
+} as any)
+const LocaleSeriesSeriesSlugIndexRoute =
+  LocaleSeriesSeriesSlugIndexRouteImport.update({
+    id: '/series/$seriesSlug/',
+    path: '/series/$seriesSlug/',
+    getParentRoute: () => LocaleRouteRoute,
+  } as any)
+const LocaleStoriesStoryslugIndexRoute =
+  LocaleStoriesStoryslugIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => LocaleSlugStoriesStoryslugRouteRoute,
+    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+  } as any)
+const LocaleStoriesStoryslugCoverRoute =
+  LocaleStoriesStoryslugCoverRouteImport.update({
+    id: '/cover',
+    path: '/cover',
+    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+  } as any)
+const LocaleStoriesStoryslugEditRoute =
+  LocaleStoriesStoryslugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
+  } as any)
+const LocaleStoriesStoryslugShareRoute =
+  LocaleStoriesStoryslugShareRouteImport.update({
+    id: '/share',
+    path: '/share',
+    getParentRoute: () => LocaleStoriesStoryslugRouteRoute,
   } as any)
 const LocaleSlugSettingsPagesIndexRoute =
   LocaleSlugSettingsPagesIndexRouteImport.update({
@@ -435,10 +424,22 @@ const LocaleSlugSettingsPagesIndexRoute =
     path: '/pages/',
     getParentRoute: () => LocaleSlugSettingsRouteRoute,
   } as any)
-const LocaleAdminProfilesSlugPointsRoute =
-  LocaleAdminProfilesSlugPointsRouteImport.update({
-    id: '/points',
-    path: '/points',
+const LocaleSlugSettingsPagesNewRoute =
+  LocaleSlugSettingsPagesNewRouteImport.update({
+    id: '/pages/new',
+    path: '/pages/new',
+    getParentRoute: () => LocaleSlugSettingsRouteRoute,
+  } as any)
+const LocaleSlugStoriesStoryslugIndexRoute =
+  LocaleSlugStoriesStoryslugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleSlugStoriesStoryslugRouteRoute,
+  } as any)
+const LocaleAdminProfilesSlugIndexRoute =
+  LocaleAdminProfilesSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
     getParentRoute: () => LocaleAdminProfilesSlugRouteRoute,
   } as any)
 const LocaleAdminProfilesSlugEnvelopesRoute =
@@ -447,11 +448,11 @@ const LocaleAdminProfilesSlugEnvelopesRoute =
     path: '/envelopes',
     getParentRoute: () => LocaleAdminProfilesSlugRouteRoute,
   } as any)
-const LocaleSlugSettingsPagesNewRoute =
-  LocaleSlugSettingsPagesNewRouteImport.update({
-    id: '/pages/new',
-    path: '/pages/new',
-    getParentRoute: () => LocaleSlugSettingsRouteRoute,
+const LocaleAdminProfilesSlugPointsRoute =
+  LocaleAdminProfilesSlugPointsRouteImport.update({
+    id: '/points',
+    path: '/points',
+    getParentRoute: () => LocaleAdminProfilesSlugRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -869,18 +870,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/$locale': {
-      id: '/$locale'
-      path: '/$locale'
-      fullPath: '/$locale'
-      preLoaderRoute: typeof LocaleRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale': {
+      id: '/$locale'
+      path: '/$locale'
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocaleRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/': {
@@ -890,12 +891,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleIndexRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
+    '/$locale/$slug': {
+      id: '/$locale/$slug'
+      path: '/$slug'
+      fullPath: '/$locale/$slug'
+      preLoaderRoute: typeof LocaleSlugRouteRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/activities': {
+      id: '/$locale/activities'
+      path: '/activities'
+      fullPath: '/$locale/activities'
+      preLoaderRoute: typeof LocaleActivitiesRouteRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/admin': {
+      id: '/$locale/admin'
+      path: '/admin'
+      fullPath: '/$locale/admin'
+      preLoaderRoute: typeof LocaleAdminRouteRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/elements': {
+      id: '/$locale/elements'
+      path: '/elements'
+      fullPath: '/$locale/elements'
+      preLoaderRoute: typeof LocaleElementsRouteRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
     '/$locale/mailbox': {
       id: '/$locale/mailbox'
@@ -911,172 +933,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleStoriesRouteRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
-    '/$locale/elements': {
-      id: '/$locale/elements'
-      path: '/elements'
-      fullPath: '/$locale/elements'
-      preLoaderRoute: typeof LocaleElementsRouteRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/admin': {
-      id: '/$locale/admin'
-      path: '/admin'
-      fullPath: '/$locale/admin'
-      preLoaderRoute: typeof LocaleAdminRouteRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/activities': {
-      id: '/$locale/activities'
-      path: '/activities'
-      fullPath: '/$locale/activities'
-      preLoaderRoute: typeof LocaleActivitiesRouteRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/$slug': {
-      id: '/$locale/$slug'
-      path: '/$slug'
-      fullPath: '/$locale/$slug'
-      preLoaderRoute: typeof LocaleSlugRouteRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/stories/': {
-      id: '/$locale/stories/'
-      path: '/'
-      fullPath: '/$locale/stories/'
-      preLoaderRoute: typeof LocaleStoriesIndexRouteImport
-      parentRoute: typeof LocaleStoriesRouteRoute
-    }
-    '/$locale/series/': {
-      id: '/$locale/series/'
-      path: '/series'
-      fullPath: '/$locale/series/'
-      preLoaderRoute: typeof LocaleSeriesIndexRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/search/': {
-      id: '/$locale/search/'
-      path: '/search'
-      fullPath: '/$locale/search/'
-      preLoaderRoute: typeof LocaleSearchIndexRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/products/': {
-      id: '/$locale/products/'
-      path: '/products'
-      fullPath: '/$locale/products/'
-      preLoaderRoute: typeof LocaleProductsIndexRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/news/': {
-      id: '/$locale/news/'
-      path: '/news'
-      fullPath: '/$locale/news/'
-      preLoaderRoute: typeof LocaleNewsIndexRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/elements/': {
-      id: '/$locale/elements/'
-      path: '/'
-      fullPath: '/$locale/elements/'
-      preLoaderRoute: typeof LocaleElementsIndexRouteImport
-      parentRoute: typeof LocaleElementsRouteRoute
-    }
-    '/$locale/contents/': {
-      id: '/$locale/contents/'
-      path: '/contents'
-      fullPath: '/$locale/contents/'
-      preLoaderRoute: typeof LocaleContentsIndexRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/articles/': {
-      id: '/$locale/articles/'
-      path: '/articles'
-      fullPath: '/$locale/articles/'
-      preLoaderRoute: typeof LocaleArticlesIndexRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/activities/': {
-      id: '/$locale/activities/'
-      path: '/'
-      fullPath: '/$locale/activities/'
-      preLoaderRoute: typeof LocaleActivitiesIndexRouteImport
-      parentRoute: typeof LocaleActivitiesRouteRoute
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$locale/$slug/': {
       id: '/$locale/$slug/'
       path: '/'
       fullPath: '/$locale/$slug/'
       preLoaderRoute: typeof LocaleSlugIndexRouteImport
-      parentRoute: typeof LocaleSlugRouteRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$locale/stories/new': {
-      id: '/$locale/stories/new'
-      path: '/new'
-      fullPath: '/$locale/stories/new'
-      preLoaderRoute: typeof LocaleStoriesNewRouteImport
-      parentRoute: typeof LocaleStoriesRouteRoute
-    }
-    '/$locale/products/new': {
-      id: '/$locale/products/new'
-      path: '/products/new'
-      fullPath: '/$locale/products/new'
-      preLoaderRoute: typeof LocaleProductsNewRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/news/new': {
-      id: '/$locale/news/new'
-      path: '/news/new'
-      fullPath: '/$locale/news/new'
-      preLoaderRoute: typeof LocaleNewsNewRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/elements/new': {
-      id: '/$locale/elements/new'
-      path: '/new'
-      fullPath: '/$locale/elements/new'
-      preLoaderRoute: typeof LocaleElementsNewRouteImport
-      parentRoute: typeof LocaleElementsRouteRoute
-    }
-    '/$locale/contents/new': {
-      id: '/$locale/contents/new'
-      path: '/contents/new'
-      fullPath: '/$locale/contents/new'
-      preLoaderRoute: typeof LocaleContentsNewRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/articles/new': {
-      id: '/$locale/articles/new'
-      path: '/articles/new'
-      fullPath: '/$locale/articles/new'
-      preLoaderRoute: typeof LocaleArticlesNewRouteImport
-      parentRoute: typeof LocaleRouteRoute
-    }
-    '/$locale/activities/new': {
-      id: '/$locale/activities/new'
-      path: '/new'
-      fullPath: '/$locale/activities/new'
-      preLoaderRoute: typeof LocaleActivitiesNewRouteImport
-      parentRoute: typeof LocaleActivitiesRouteRoute
-    }
-    '/$locale/$slug/links': {
-      id: '/$locale/$slug/links'
-      path: '/links'
-      fullPath: '/$locale/$slug/links'
-      preLoaderRoute: typeof LocaleSlugLinksRouteImport
-      parentRoute: typeof LocaleSlugRouteRoute
-    }
-    '/$locale/$slug/contributions': {
-      id: '/$locale/$slug/contributions'
-      path: '/contributions'
-      fullPath: '/$locale/$slug/contributions'
-      preLoaderRoute: typeof LocaleSlugContributionsRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
     '/$locale/$slug/$': {
@@ -1086,46 +954,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSplatRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
-    '/$locale/stories/$storyslug': {
-      id: '/$locale/stories/$storyslug'
-      path: '/$storyslug'
-      fullPath: '/$locale/stories/$storyslug'
-      preLoaderRoute: typeof LocaleStoriesStoryslugRouteRouteImport
-      parentRoute: typeof LocaleStoriesRouteRoute
-    }
-    '/$locale/admin/workers': {
-      id: '/$locale/admin/workers'
-      path: '/workers'
-      fullPath: '/$locale/admin/workers'
-      preLoaderRoute: typeof LocaleAdminWorkersRouteRouteImport
-      parentRoute: typeof LocaleAdminRouteRoute
-    }
-    '/$locale/admin/points': {
-      id: '/$locale/admin/points'
-      path: '/points'
-      fullPath: '/$locale/admin/points'
-      preLoaderRoute: typeof LocaleAdminPointsRouteRouteImport
-      parentRoute: typeof LocaleAdminRouteRoute
-    }
-    '/$locale/$slug/stories': {
-      id: '/$locale/$slug/stories'
-      path: '/stories'
-      fullPath: '/$locale/$slug/stories'
-      preLoaderRoute: typeof LocaleSlugStoriesRouteRouteImport
+    '/$locale/$slug/$pageslug': {
+      id: '/$locale/$slug/$pageslug'
+      path: '/$pageslug'
+      fullPath: '/$locale/$slug/$pageslug'
+      preLoaderRoute: typeof LocaleSlugPageslugRouteRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
-    '/$locale/$slug/settings': {
-      id: '/$locale/$slug/settings'
-      path: '/settings'
-      fullPath: '/$locale/$slug/settings'
-      preLoaderRoute: typeof LocaleSlugSettingsRouteRouteImport
+    '/$locale/$slug/contributions': {
+      id: '/$locale/$slug/contributions'
+      path: '/contributions'
+      fullPath: '/$locale/$slug/contributions'
+      preLoaderRoute: typeof LocaleSlugContributionsRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
-    '/$locale/$slug/qa': {
-      id: '/$locale/$slug/qa'
-      path: '/qa'
-      fullPath: '/$locale/$slug/qa'
-      preLoaderRoute: typeof LocaleSlugQaRouteRouteImport
+    '/$locale/$slug/links': {
+      id: '/$locale/$slug/links'
+      path: '/links'
+      fullPath: '/$locale/$slug/links'
+      preLoaderRoute: typeof LocaleSlugLinksRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
     '/$locale/$slug/members': {
@@ -1135,75 +982,166 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugMembersRouteRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
-    '/$locale/$slug/$pageslug': {
-      id: '/$locale/$slug/$pageslug'
-      path: '/$pageslug'
-      fullPath: '/$locale/$slug/$pageslug'
-      preLoaderRoute: typeof LocaleSlugPageslugRouteRouteImport
+    '/$locale/$slug/qa': {
+      id: '/$locale/$slug/qa'
+      path: '/qa'
+      fullPath: '/$locale/$slug/qa'
+      preLoaderRoute: typeof LocaleSlugQaRouteRouteImport
       parentRoute: typeof LocaleSlugRouteRoute
     }
-    '/$locale/stories/$storyslug/': {
-      id: '/$locale/stories/$storyslug/'
+    '/$locale/$slug/settings': {
+      id: '/$locale/$slug/settings'
+      path: '/settings'
+      fullPath: '/$locale/$slug/settings'
+      preLoaderRoute: typeof LocaleSlugSettingsRouteRouteImport
+      parentRoute: typeof LocaleSlugRouteRoute
+    }
+    '/$locale/$slug/stories': {
+      id: '/$locale/$slug/stories'
+      path: '/stories'
+      fullPath: '/$locale/$slug/stories'
+      preLoaderRoute: typeof LocaleSlugStoriesRouteRouteImport
+      parentRoute: typeof LocaleSlugRouteRoute
+    }
+    '/$locale/activities/': {
+      id: '/$locale/activities/'
       path: '/'
-      fullPath: '/$locale/stories/$storyslug/'
-      preLoaderRoute: typeof LocaleStoriesStoryslugIndexRouteImport
-      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
+      fullPath: '/$locale/activities/'
+      preLoaderRoute: typeof LocaleActivitiesIndexRouteImport
+      parentRoute: typeof LocaleActivitiesRouteRoute
     }
-    '/$locale/series/$seriesSlug/': {
-      id: '/$locale/series/$seriesSlug/'
-      path: '/series/$seriesSlug'
-      fullPath: '/$locale/series/$seriesSlug/'
-      preLoaderRoute: typeof LocaleSeriesSeriesSlugIndexRouteImport
-      parentRoute: typeof LocaleRouteRoute
+    '/$locale/activities/new': {
+      id: '/$locale/activities/new'
+      path: '/new'
+      fullPath: '/$locale/activities/new'
+      preLoaderRoute: typeof LocaleActivitiesNewRouteImport
+      parentRoute: typeof LocaleActivitiesRouteRoute
     }
-    '/$locale/admin/workers/': {
-      id: '/$locale/admin/workers/'
-      path: '/'
-      fullPath: '/$locale/admin/workers/'
-      preLoaderRoute: typeof LocaleAdminWorkersIndexRouteImport
-      parentRoute: typeof LocaleAdminWorkersRouteRoute
-    }
-    '/$locale/admin/profiles/': {
-      id: '/$locale/admin/profiles/'
-      path: '/profiles'
-      fullPath: '/$locale/admin/profiles/'
-      preLoaderRoute: typeof LocaleAdminProfilesIndexRouteImport
+    '/$locale/admin/points': {
+      id: '/$locale/admin/points'
+      path: '/points'
+      fullPath: '/$locale/admin/points'
+      preLoaderRoute: typeof LocaleAdminPointsRouteRouteImport
       parentRoute: typeof LocaleAdminRouteRoute
     }
-    '/$locale/admin/points/': {
-      id: '/$locale/admin/points/'
-      path: '/'
-      fullPath: '/$locale/admin/points/'
-      preLoaderRoute: typeof LocaleAdminPointsIndexRouteImport
-      parentRoute: typeof LocaleAdminPointsRouteRoute
+    '/$locale/admin/workers': {
+      id: '/$locale/admin/workers'
+      path: '/workers'
+      fullPath: '/$locale/admin/workers'
+      preLoaderRoute: typeof LocaleAdminWorkersRouteRouteImport
+      parentRoute: typeof LocaleAdminRouteRoute
     }
-    '/$locale/$slug/stories/': {
-      id: '/$locale/$slug/stories/'
-      path: '/'
-      fullPath: '/$locale/$slug/stories/'
-      preLoaderRoute: typeof LocaleSlugStoriesIndexRouteImport
-      parentRoute: typeof LocaleSlugStoriesRouteRoute
+    '/$locale/articles/': {
+      id: '/$locale/articles/'
+      path: '/articles'
+      fullPath: '/$locale/articles/'
+      preLoaderRoute: typeof LocaleArticlesIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
-    '/$locale/$slug/settings/': {
-      id: '/$locale/$slug/settings/'
-      path: '/'
-      fullPath: '/$locale/$slug/settings/'
-      preLoaderRoute: typeof LocaleSlugSettingsIndexRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    '/$locale/articles/new': {
+      id: '/$locale/articles/new'
+      path: '/articles/new'
+      fullPath: '/$locale/articles/new'
+      preLoaderRoute: typeof LocaleArticlesNewRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
-    '/$locale/$slug/qa/': {
-      id: '/$locale/$slug/qa/'
-      path: '/'
-      fullPath: '/$locale/$slug/qa/'
-      preLoaderRoute: typeof LocaleSlugQaIndexRouteImport
-      parentRoute: typeof LocaleSlugQaRouteRoute
+    '/$locale/contents/': {
+      id: '/$locale/contents/'
+      path: '/contents'
+      fullPath: '/$locale/contents/'
+      preLoaderRoute: typeof LocaleContentsIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
     }
-    '/$locale/$slug/members/': {
-      id: '/$locale/$slug/members/'
+    '/$locale/contents/new': {
+      id: '/$locale/contents/new'
+      path: '/contents/new'
+      fullPath: '/$locale/contents/new'
+      preLoaderRoute: typeof LocaleContentsNewRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/elements/': {
+      id: '/$locale/elements/'
       path: '/'
-      fullPath: '/$locale/$slug/members/'
-      preLoaderRoute: typeof LocaleSlugMembersIndexRouteImport
-      parentRoute: typeof LocaleSlugMembersRouteRoute
+      fullPath: '/$locale/elements/'
+      preLoaderRoute: typeof LocaleElementsIndexRouteImport
+      parentRoute: typeof LocaleElementsRouteRoute
+    }
+    '/$locale/elements/new': {
+      id: '/$locale/elements/new'
+      path: '/new'
+      fullPath: '/$locale/elements/new'
+      preLoaderRoute: typeof LocaleElementsNewRouteImport
+      parentRoute: typeof LocaleElementsRouteRoute
+    }
+    '/$locale/news/': {
+      id: '/$locale/news/'
+      path: '/news'
+      fullPath: '/$locale/news/'
+      preLoaderRoute: typeof LocaleNewsIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/news/new': {
+      id: '/$locale/news/new'
+      path: '/news/new'
+      fullPath: '/$locale/news/new'
+      preLoaderRoute: typeof LocaleNewsNewRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/products/': {
+      id: '/$locale/products/'
+      path: '/products'
+      fullPath: '/$locale/products/'
+      preLoaderRoute: typeof LocaleProductsIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/products/new': {
+      id: '/$locale/products/new'
+      path: '/products/new'
+      fullPath: '/$locale/products/new'
+      preLoaderRoute: typeof LocaleProductsNewRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/search/': {
+      id: '/$locale/search/'
+      path: '/search'
+      fullPath: '/$locale/search/'
+      preLoaderRoute: typeof LocaleSearchIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/series/': {
+      id: '/$locale/series/'
+      path: '/series'
+      fullPath: '/$locale/series/'
+      preLoaderRoute: typeof LocaleSeriesIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/stories/': {
+      id: '/$locale/stories/'
+      path: '/'
+      fullPath: '/$locale/stories/'
+      preLoaderRoute: typeof LocaleStoriesIndexRouteImport
+      parentRoute: typeof LocaleStoriesRouteRoute
+    }
+    '/$locale/stories/$storyslug': {
+      id: '/$locale/stories/$storyslug'
+      path: '/$storyslug'
+      fullPath: '/$locale/stories/$storyslug'
+      preLoaderRoute: typeof LocaleStoriesStoryslugRouteRouteImport
+      parentRoute: typeof LocaleStoriesRouteRoute
+    }
+    '/$locale/stories/new': {
+      id: '/$locale/stories/new'
+      path: '/new'
+      fullPath: '/$locale/stories/new'
+      preLoaderRoute: typeof LocaleStoriesNewRouteImport
+      parentRoute: typeof LocaleStoriesRouteRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$locale/$slug/$pageslug/': {
       id: '/$locale/$slug/$pageslug/'
@@ -1212,81 +1150,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugPageslugIndexRouteImport
       parentRoute: typeof LocaleSlugPageslugRouteRoute
     }
-    '/$locale/stories/$storyslug/share': {
-      id: '/$locale/stories/$storyslug/share'
-      path: '/share'
-      fullPath: '/$locale/stories/$storyslug/share'
-      preLoaderRoute: typeof LocaleStoriesStoryslugShareRouteImport
-      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
-    }
-    '/$locale/stories/$storyslug/edit': {
-      id: '/$locale/stories/$storyslug/edit'
+    '/$locale/$slug/$pageslug/edit': {
+      id: '/$locale/$slug/$pageslug/edit'
       path: '/edit'
-      fullPath: '/$locale/stories/$storyslug/edit'
-      preLoaderRoute: typeof LocaleStoriesStoryslugEditRouteImport
-      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
+      fullPath: '/$locale/$slug/$pageslug/edit'
+      preLoaderRoute: typeof LocaleSlugPageslugEditRouteImport
+      parentRoute: typeof LocaleSlugPageslugRouteRoute
     }
-    '/$locale/stories/$storyslug/cover': {
-      id: '/$locale/stories/$storyslug/cover'
-      path: '/cover'
-      fullPath: '/$locale/stories/$storyslug/cover'
-      preLoaderRoute: typeof LocaleStoriesStoryslugCoverRouteImport
-      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
-    }
-    '/$locale/$slug/settings/stories': {
-      id: '/$locale/$slug/settings/stories'
-      path: '/stories'
-      fullPath: '/$locale/$slug/settings/stories'
-      preLoaderRoute: typeof LocaleSlugSettingsStoriesRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
-    '/$locale/$slug/settings/resources': {
-      id: '/$locale/$slug/settings/resources'
-      path: '/resources'
-      fullPath: '/$locale/$slug/settings/resources'
-      preLoaderRoute: typeof LocaleSlugSettingsResourcesRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
-    '/$locale/$slug/settings/points': {
-      id: '/$locale/$slug/settings/points'
-      path: '/points'
-      fullPath: '/$locale/$slug/settings/points'
-      preLoaderRoute: typeof LocaleSlugSettingsPointsRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
-    '/$locale/$slug/settings/links': {
-      id: '/$locale/$slug/settings/links'
-      path: '/links'
-      fullPath: '/$locale/$slug/settings/links'
-      preLoaderRoute: typeof LocaleSlugSettingsLinksRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
-    '/$locale/$slug/settings/bulletins': {
-      id: '/$locale/$slug/settings/bulletins'
-      path: '/bulletins'
-      fullPath: '/$locale/$slug/settings/bulletins'
-      preLoaderRoute: typeof LocaleSlugSettingsBulletinsRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
-    '/$locale/$slug/settings/access': {
-      id: '/$locale/$slug/settings/access'
-      path: '/access'
-      fullPath: '/$locale/$slug/settings/access'
-      preLoaderRoute: typeof LocaleSlugSettingsAccessRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
-    }
-    '/$locale/$slug/members/referrals': {
-      id: '/$locale/$slug/members/referrals'
-      path: '/referrals'
-      fullPath: '/$locale/$slug/members/referrals'
-      preLoaderRoute: typeof LocaleSlugMembersReferralsRouteImport
-      parentRoute: typeof LocaleSlugMembersRouteRoute
-    }
-    '/$locale/$slug/members/candidates': {
-      id: '/$locale/$slug/members/candidates'
-      path: '/candidates'
-      fullPath: '/$locale/$slug/members/candidates'
-      preLoaderRoute: typeof LocaleSlugMembersCandidatesRouteImport
+    '/$locale/$slug/members/': {
+      id: '/$locale/$slug/members/'
+      path: '/'
+      fullPath: '/$locale/$slug/members/'
+      preLoaderRoute: typeof LocaleSlugMembersIndexRouteImport
       parentRoute: typeof LocaleSlugMembersRouteRoute
     }
     '/$locale/$slug/members/apply': {
@@ -1296,19 +1171,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugMembersApplyRouteImport
       parentRoute: typeof LocaleSlugMembersRouteRoute
     }
-    '/$locale/$slug/$pageslug/edit': {
-      id: '/$locale/$slug/$pageslug/edit'
-      path: '/edit'
-      fullPath: '/$locale/$slug/$pageslug/edit'
-      preLoaderRoute: typeof LocaleSlugPageslugEditRouteImport
-      parentRoute: typeof LocaleSlugPageslugRouteRoute
+    '/$locale/$slug/members/candidates': {
+      id: '/$locale/$slug/members/candidates'
+      path: '/candidates'
+      fullPath: '/$locale/$slug/members/candidates'
+      preLoaderRoute: typeof LocaleSlugMembersCandidatesRouteImport
+      parentRoute: typeof LocaleSlugMembersRouteRoute
     }
-    '/$locale/admin/profiles/$slug': {
-      id: '/$locale/admin/profiles/$slug'
-      path: '/profiles/$slug'
-      fullPath: '/$locale/admin/profiles/$slug'
-      preLoaderRoute: typeof LocaleAdminProfilesSlugRouteRouteImport
-      parentRoute: typeof LocaleAdminRouteRoute
+    '/$locale/$slug/members/referrals': {
+      id: '/$locale/$slug/members/referrals'
+      path: '/referrals'
+      fullPath: '/$locale/$slug/members/referrals'
+      preLoaderRoute: typeof LocaleSlugMembersReferralsRouteImport
+      parentRoute: typeof LocaleSlugMembersRouteRoute
+    }
+    '/$locale/$slug/qa/': {
+      id: '/$locale/$slug/qa/'
+      path: '/'
+      fullPath: '/$locale/$slug/qa/'
+      preLoaderRoute: typeof LocaleSlugQaIndexRouteImport
+      parentRoute: typeof LocaleSlugQaRouteRoute
+    }
+    '/$locale/$slug/settings/': {
+      id: '/$locale/$slug/settings/'
+      path: '/'
+      fullPath: '/$locale/$slug/settings/'
+      preLoaderRoute: typeof LocaleSlugSettingsIndexRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/settings/access': {
+      id: '/$locale/$slug/settings/access'
+      path: '/access'
+      fullPath: '/$locale/$slug/settings/access'
+      preLoaderRoute: typeof LocaleSlugSettingsAccessRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/settings/bulletins': {
+      id: '/$locale/$slug/settings/bulletins'
+      path: '/bulletins'
+      fullPath: '/$locale/$slug/settings/bulletins'
+      preLoaderRoute: typeof LocaleSlugSettingsBulletinsRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/settings/links': {
+      id: '/$locale/$slug/settings/links'
+      path: '/links'
+      fullPath: '/$locale/$slug/settings/links'
+      preLoaderRoute: typeof LocaleSlugSettingsLinksRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/settings/points': {
+      id: '/$locale/$slug/settings/points'
+      path: '/points'
+      fullPath: '/$locale/$slug/settings/points'
+      preLoaderRoute: typeof LocaleSlugSettingsPointsRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/settings/resources': {
+      id: '/$locale/$slug/settings/resources'
+      path: '/resources'
+      fullPath: '/$locale/$slug/settings/resources'
+      preLoaderRoute: typeof LocaleSlugSettingsResourcesRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/settings/stories': {
+      id: '/$locale/$slug/settings/stories'
+      path: '/stories'
+      fullPath: '/$locale/$slug/settings/stories'
+      preLoaderRoute: typeof LocaleSlugSettingsStoriesRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/stories/': {
+      id: '/$locale/$slug/stories/'
+      path: '/'
+      fullPath: '/$locale/$slug/stories/'
+      preLoaderRoute: typeof LocaleSlugStoriesIndexRouteImport
+      parentRoute: typeof LocaleSlugStoriesRouteRoute
     }
     '/$locale/$slug/stories/$storyslug': {
       id: '/$locale/$slug/stories/$storyslug'
@@ -1317,19 +1255,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugStoriesStoryslugRouteRouteImport
       parentRoute: typeof LocaleSlugStoriesRouteRoute
     }
-    '/$locale/admin/profiles/$slug/': {
-      id: '/$locale/admin/profiles/$slug/'
+    '/$locale/admin/points/': {
+      id: '/$locale/admin/points/'
       path: '/'
-      fullPath: '/$locale/admin/profiles/$slug/'
-      preLoaderRoute: typeof LocaleAdminProfilesSlugIndexRouteImport
-      parentRoute: typeof LocaleAdminProfilesSlugRouteRoute
+      fullPath: '/$locale/admin/points/'
+      preLoaderRoute: typeof LocaleAdminPointsIndexRouteImport
+      parentRoute: typeof LocaleAdminPointsRouteRoute
     }
-    '/$locale/$slug/stories/$storyslug/': {
-      id: '/$locale/$slug/stories/$storyslug/'
+    '/$locale/admin/profiles/': {
+      id: '/$locale/admin/profiles/'
+      path: '/profiles'
+      fullPath: '/$locale/admin/profiles/'
+      preLoaderRoute: typeof LocaleAdminProfilesIndexRouteImport
+      parentRoute: typeof LocaleAdminRouteRoute
+    }
+    '/$locale/admin/profiles/$slug': {
+      id: '/$locale/admin/profiles/$slug'
+      path: '/profiles/$slug'
+      fullPath: '/$locale/admin/profiles/$slug'
+      preLoaderRoute: typeof LocaleAdminProfilesSlugRouteRouteImport
+      parentRoute: typeof LocaleAdminRouteRoute
+    }
+    '/$locale/admin/workers/': {
+      id: '/$locale/admin/workers/'
       path: '/'
-      fullPath: '/$locale/$slug/stories/$storyslug/'
-      preLoaderRoute: typeof LocaleSlugStoriesStoryslugIndexRouteImport
-      parentRoute: typeof LocaleSlugStoriesStoryslugRouteRoute
+      fullPath: '/$locale/admin/workers/'
+      preLoaderRoute: typeof LocaleAdminWorkersIndexRouteImport
+      parentRoute: typeof LocaleAdminWorkersRouteRoute
+    }
+    '/$locale/series/$seriesSlug/': {
+      id: '/$locale/series/$seriesSlug/'
+      path: '/series/$seriesSlug'
+      fullPath: '/$locale/series/$seriesSlug/'
+      preLoaderRoute: typeof LocaleSeriesSeriesSlugIndexRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/stories/$storyslug/': {
+      id: '/$locale/stories/$storyslug/'
+      path: '/'
+      fullPath: '/$locale/stories/$storyslug/'
+      preLoaderRoute: typeof LocaleStoriesStoryslugIndexRouteImport
+      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
+    }
+    '/$locale/stories/$storyslug/cover': {
+      id: '/$locale/stories/$storyslug/cover'
+      path: '/cover'
+      fullPath: '/$locale/stories/$storyslug/cover'
+      preLoaderRoute: typeof LocaleStoriesStoryslugCoverRouteImport
+      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
+    }
+    '/$locale/stories/$storyslug/edit': {
+      id: '/$locale/stories/$storyslug/edit'
+      path: '/edit'
+      fullPath: '/$locale/stories/$storyslug/edit'
+      preLoaderRoute: typeof LocaleStoriesStoryslugEditRouteImport
+      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
+    }
+    '/$locale/stories/$storyslug/share': {
+      id: '/$locale/stories/$storyslug/share'
+      path: '/share'
+      fullPath: '/$locale/stories/$storyslug/share'
+      preLoaderRoute: typeof LocaleStoriesStoryslugShareRouteImport
+      parentRoute: typeof LocaleStoriesStoryslugRouteRoute
     }
     '/$locale/$slug/settings/pages/': {
       id: '/$locale/$slug/settings/pages/'
@@ -1338,11 +1325,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugSettingsPagesIndexRouteImport
       parentRoute: typeof LocaleSlugSettingsRouteRoute
     }
-    '/$locale/admin/profiles/$slug/points': {
-      id: '/$locale/admin/profiles/$slug/points'
-      path: '/points'
-      fullPath: '/$locale/admin/profiles/$slug/points'
-      preLoaderRoute: typeof LocaleAdminProfilesSlugPointsRouteImport
+    '/$locale/$slug/settings/pages/new': {
+      id: '/$locale/$slug/settings/pages/new'
+      path: '/pages/new'
+      fullPath: '/$locale/$slug/settings/pages/new'
+      preLoaderRoute: typeof LocaleSlugSettingsPagesNewRouteImport
+      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    }
+    '/$locale/$slug/stories/$storyslug/': {
+      id: '/$locale/$slug/stories/$storyslug/'
+      path: '/'
+      fullPath: '/$locale/$slug/stories/$storyslug/'
+      preLoaderRoute: typeof LocaleSlugStoriesStoryslugIndexRouteImport
+      parentRoute: typeof LocaleSlugStoriesStoryslugRouteRoute
+    }
+    '/$locale/admin/profiles/$slug/': {
+      id: '/$locale/admin/profiles/$slug/'
+      path: '/'
+      fullPath: '/$locale/admin/profiles/$slug/'
+      preLoaderRoute: typeof LocaleAdminProfilesSlugIndexRouteImport
       parentRoute: typeof LocaleAdminProfilesSlugRouteRoute
     }
     '/$locale/admin/profiles/$slug/envelopes': {
@@ -1352,12 +1353,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminProfilesSlugEnvelopesRouteImport
       parentRoute: typeof LocaleAdminProfilesSlugRouteRoute
     }
-    '/$locale/$slug/settings/pages/new': {
-      id: '/$locale/$slug/settings/pages/new'
-      path: '/pages/new'
-      fullPath: '/$locale/$slug/settings/pages/new'
-      preLoaderRoute: typeof LocaleSlugSettingsPagesNewRouteImport
-      parentRoute: typeof LocaleSlugSettingsRouteRoute
+    '/$locale/admin/profiles/$slug/points': {
+      id: '/$locale/admin/profiles/$slug/points'
+      path: '/points'
+      fullPath: '/$locale/admin/profiles/$slug/points'
+      preLoaderRoute: typeof LocaleAdminProfilesSlugPointsRouteImport
+      parentRoute: typeof LocaleAdminProfilesSlugRouteRoute
     }
   }
 }

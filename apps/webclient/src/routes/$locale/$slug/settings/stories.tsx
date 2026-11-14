@@ -183,11 +183,9 @@ function StoriesSettingsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings2 className="mr-1.5 size-4" />
-                {t("Profile.Story Defaults...")}
-              </Button>
+            <DialogTrigger render={<Button variant="outline" size="sm" />}>
+              <Settings2 className="mr-1.5 size-4" />
+              {t("Profile.Story Defaults...")}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>

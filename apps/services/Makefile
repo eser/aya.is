@@ -23,7 +23,7 @@ init-tools: ## Initializes tools.
 .PHONY: init-generators
 init-generators: ## Initializes generators.
 	go tool -n sqlc >/dev/null || go get -tool github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-	go tool -n mockery > /dev/null || go get -tool github.com/vektra/mockery/v2@latest
+	go tool -n mockery > /dev/null || go get -tool github.com/vektra/mockery/v3@latest
 	go tool -n stringer >/dev/null || go get -tool golang.org/x/tools/cmd/stringer@latest
 	go tool -n gcov2lcov >/dev/null || go get -tool github.com/jandelgado/gcov2lcov@latest
 

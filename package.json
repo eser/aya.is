@@ -1,10 +1,10 @@
 {
   "private": true,
   "dependencies": {
-    "@std/fs": "npm:@jsr/std__fs@^1",
-    "@std/path": "npm:@jsr/std__path@^1"
+    "@std/fs": "npm:@jsr/std__fs@^1.0.24",
+    "@std/path": "npm:@jsr/std__path@^1.1.6"
   },
   "devDependencies": {
-    "@eser/cli": "npm:@jsr/eser__cli@^4"
+    "@eser/cli": "npm:@jsr/eser__cli@^4.1.56"
   }
 }

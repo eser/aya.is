@@ -46,7 +46,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
   return (
     <div className={styles.customizationPanel}>
-      <Accordion type="multiple" defaultValue={["colors", "content"]} className="w-full">
+      <Accordion multiple defaultValue={["colors", "content"]} className="w-full">
         {/* Colors Section */}
         <AccordionItem value="colors">
           <AccordionTrigger>{t("CoverDesigner.Colors")}</AccordionTrigger>

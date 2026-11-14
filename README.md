@@ -120,7 +120,7 @@ $ nix develop
 
 > **İpucu:** [direnv](https://direnv.net/) kullanıyorsanız `direnv allow` komutu ile shell otomatik olarak etkinleşir.
 
-Nix shell, Go 1.24, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint ve diğer tüm gerekli araçları sağlar.
+Nix shell, Go 1.27, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint ve diğer tüm gerekli araçları sağlar.
 
 Backend servisi için ortam değişkenlerini ayarlayın (varsayılan veritabanı bağlantısı `config.json` dosyasında
 `localhost:5432` olarak tanımlıdır):

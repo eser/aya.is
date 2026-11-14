@@ -228,27 +228,29 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
 
         {hasImage && (
           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isBusy}
-              >
-                {isRemoving
-                  ? (
-                    <>
-                      <Loader2 className="size-4 mr-2 animate-spin" />
-                      {t("Profile.Removing...")}
-                    </>
-                  )
-                  : (
-                    <>
-                      <Trash2 className="size-4 mr-2" />
-                      {t("Profile.Remove Picture")}
-                    </>
-                  )}
-              </Button>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isBusy}
+                />
+              }
+            >
+              {isRemoving
+                ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    {t("Profile.Removing...")}
+                  </>
+                )
+                : (
+                  <>
+                    <Trash2 className="size-4 mr-2" />
+                    {t("Profile.Remove Picture")}
+                  </>
+                )}
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

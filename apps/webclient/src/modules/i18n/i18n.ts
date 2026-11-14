@@ -38,6 +38,33 @@ const loadResources = resourcesToBackend(
   (language: string) => import(`@/messages/${language}.json`),
 );
 
+// Named date/time formatters, referenced from translation strings as `{{value, date-long}}`.
+const dateFormatters: Record<string, (value: Date, locale: string) => string> = {
+  "date-long": (value, locale) => value.toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
+  "date-short": (value, locale) =>
+    value.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }),
+  "date-only": (value, locale) => value.toLocaleDateString(locale),
+  "datetime-long": (value, locale) =>
+    value.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  "datetime-short": (value, locale) =>
+    value.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  "month-year": (value, locale) => value.toLocaleDateString(locale, { year: "numeric", month: "long" }),
+  "month-short": (value, locale) => value.toLocaleDateString(locale, { month: "short" }),
+  "relative": (value, locale) => formatRelativeTime(value, locale),
+};
+
 i18n
   .use(loadResources)
   .use(initReactI18next)
@@ -45,70 +72,28 @@ i18n
     fallbackLng: FALLBACK_LOCALE,
     supportedLngs: [...SUPPORTED_LOCALES],
     debug: false,
-    showSupportNotice: false,
     lng: DEFAULT_LOCALE, // Default language
 
     interpolation: {
       escapeValue: false, // React already escapes values
-      // Custom format function for date/time formatting
-      format: (value, format, lng) => {
-        if (value instanceof Date) {
-          const locale = lng ?? DEFAULT_LOCALE;
-
-          switch (format) {
-            case "date-long":
-              return value.toLocaleDateString(locale, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              });
-            case "date-short":
-              return value.toLocaleDateString(locale, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              });
-            case "date-only":
-              return value.toLocaleDateString(locale);
-            case "datetime-long":
-              return value.toLocaleDateString(locale, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-            case "datetime-short":
-              return value.toLocaleDateString(locale, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-            case "month-year":
-              return value.toLocaleDateString(locale, {
-                year: "numeric",
-                month: "long",
-              });
-            case "month-short":
-              return value.toLocaleDateString(locale, {
-                month: "short",
-              });
-            case "relative":
-              return formatRelativeTime(value, locale);
-            default:
-              return value.toLocaleDateString(locale);
-          }
-        }
-        return String(value);
-      },
     },
 
     react: {
       useSuspense: true,
     },
   });
+
+// i18next 26 removed `interpolation.format`; custom formats are registered on the
+// formatter service by name instead.
+for (const [name, formatDate] of Object.entries(dateFormatters)) {
+  i18n.services.formatter?.add(name, (value, lng) => {
+    if (value instanceof Date) {
+      return formatDate(value, lng ?? DEFAULT_LOCALE);
+    }
+
+    return String(value);
+  });
+}
 
 export default i18n;
 

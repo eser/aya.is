@@ -176,9 +176,11 @@ func (m *AnthropicModel) SubmitBatch(
 		)
 	}
 
-	batch, err := m.client.Messages.Batches.New(ctx, anthropic.MessageBatchNewParams{
+	batchParams := anthropic.MessageBatchNewParams{ //nolint:exhaustruct
 		Requests: batchRequests,
-	})
+	}
+
+	batch, err := m.client.Messages.Batches.New(ctx, batchParams)
 	if err != nil {
 		return nil, classifyAnthropicError(ErrAnthropicBatchFailed, err)
 	}
@@ -379,7 +381,7 @@ func (m *AnthropicModel) buildMessageParams(
 	}
 
 	params := anthropic.MessageNewParams{ //nolint:exhaustruct
-		Model:     anthropic.Model(m.config.Model),
+		Model:     m.config.Model,
 		Messages:  messages,
 		MaxTokens: maxTokens,
 	}
@@ -741,7 +743,7 @@ func (m *AnthropicModel) mapResponse(msg *anthropic.Message) *GenerateTextResult
 			TotalTokens:    int(msg.Usage.InputTokens) + int(msg.Usage.OutputTokens),
 			ThinkingTokens: 0,
 		},
-		ModelID:     string(msg.Model),
+		ModelID:     msg.Model,
 		RawRequest:  nil,
 		RawResponse: nil,
 	}

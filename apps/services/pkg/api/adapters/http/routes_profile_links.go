@@ -1117,7 +1117,7 @@ func RegisterHTTPRoutesForProfileLinks( //nolint:funlen,cyclop,gocognit,gocyclo,
 		HasResponse(http.StatusOK)
 
 	// Connect SpeakerDeck (non-OAuth, RSS-based)
-	routes.Route(
+	routes.Route( //nolint:dupl // parallel per-provider connect handler
 		"POST /{locale}/profiles/{slug}/_links/connect/speakerdeck",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {
@@ -1315,7 +1315,7 @@ func RegisterHTTPRoutesForProfileLinks( //nolint:funlen,cyclop,gocognit,gocyclo,
 		HasResponse(http.StatusOK)
 
 	// Connect Dev.to (non-OAuth, API-based)
-	routes.Route(
+	routes.Route( //nolint:dupl // parallel per-provider connect handler
 		"POST /{locale}/profiles/{slug}/_links/connect/devto",
 		AuthMiddleware(authService, userService),
 		func(ctx *httpfx.Context) httpfx.Result {

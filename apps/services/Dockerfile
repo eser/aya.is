@@ -8,7 +8,7 @@
 # Versions
 # ------------------------------------------------------------
 
-FROM golang:1-bookworm AS upstream-builder
+FROM golang:1.27-bookworm AS upstream-builder
 # FROM gcr.io/distroless/base-debian12 AS upstream-runner
 FROM debian:bookworm-slim AS upstream-runner
 

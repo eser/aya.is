@@ -629,11 +629,9 @@ function AccessSettingsPage() {
         <div className="flex items-center gap-2">
           {!isIndividual && (
             <Dialog open={membershipDialogOpen} onOpenChange={setMembershipDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Settings2 className="size-4 mr-1" />
-                  {t("Profile.Membership...")}
-                </Button>
+              <DialogTrigger render={<Button variant="outline" />}>
+                <Settings2 className="size-4 mr-1" />
+                {t("Profile.Membership...")}
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

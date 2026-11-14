@@ -12,7 +12,8 @@
       @apply text-primary;
     }
 
-    .image, .imagePlaceholderText {
+    .image,
+    .imagePlaceholderText {
       @apply scale-105;
     }
   }

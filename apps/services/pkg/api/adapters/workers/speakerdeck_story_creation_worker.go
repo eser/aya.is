@@ -37,7 +37,7 @@ func NewSpeakerDeckStoryProcessor(
 }
 
 // ProcessStories creates stories from new imports and reconciles existing stories.
-func (w *SpeakerDeckStoryProcessor) ProcessStories(ctx context.Context) error {
+func (w *SpeakerDeckStoryProcessor) ProcessStories(ctx context.Context) error { //nolint:dupl
 	w.logger.DebugContext(ctx, "Starting SpeakerDeck story creation cycle")
 
 	imports, err := w.syncService.ListImportsForStoryCreation(

@@ -116,7 +116,7 @@ $ nix develop
 
 > **Tip:** If you use [direnv](https://direnv.net/), run `direnv allow` and the shell will activate automatically.
 
-The Nix shell provides Go 1.24, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint, and all other required tools.
+The Nix shell provides Go 1.27, Node.js 20, Deno, pnpm, sqlc, air, golangci-lint, and all other required tools.
 
 Set up the environment variables for the backend service (the default database connection to `localhost:5432` is already
 defined in `config.json`):

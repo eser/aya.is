@@ -270,10 +270,8 @@ function EnvelopeBubble(props: {
                 })
               )}
               <Popover>
-                <PopoverTrigger asChild>
-                  <Button size="sm" variant="ghost" className={styles.reactionButton}>
-                    <SmilePlus className="size-4" />
-                  </Button>
+                <PopoverTrigger render={<Button size="sm" variant="ghost" className={styles.reactionButton} />}>
+                  <SmilePlus className="size-4" />
                 </PopoverTrigger>
                 <PopoverContent className={styles.reactionPicker} align="start">
                   {ALLOWED_REACTIONS.map((emoji) => (
@@ -1150,10 +1148,8 @@ function MailboxPage() {
                       </div>
                       <div className={styles.detailActions}>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Ellipsis className="size-4" />
-                            </Button>
+                          <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+                            <Ellipsis className="size-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="min-w-[200px]">
                             {viewerIsArchived

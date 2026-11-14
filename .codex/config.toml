@@ -1,0 +1,13 @@
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+CLAUDE_CODE_ATTRIBUTION_HEADER = "0"
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
+
+[mcp_servers.shadcn]
+command = "npx"
+args = [
+    "shadcn@latest",
+    "mcp",
+]
