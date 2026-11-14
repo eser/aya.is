@@ -135,9 +135,9 @@ function generateKindBadge(story: StoryData, options: CoverOptions, x: number, y
 
   return `
     <rect x="${x}" y="${y}" width="${badgeWidth}" height="${badgeHeight}" rx="4" fill="${options.accentColor}"/>
-    <text x="${x + paddingX}" y="${y + badgeHeight - paddingY}" font-family="${
-    escapeFontFamily(fontFamilyMap[options.bodyFont])
-  }" font-size="${fontSize}" font-weight="600" fill="#ffffff">${escapeXml(kind)}</text>`;
+    <text x="${x + paddingX}" y="${y + badgeHeight - paddingY}" font-family="${escapeFontFamily(
+      fontFamilyMap[options.bodyFont],
+    )}" font-size="${fontSize}" font-weight="600" fill="#ffffff">${escapeXml(kind)}</text>`;
 }
 
 // Generate author info
@@ -163,9 +163,9 @@ function generateAuthorInfo(
 
   const textX = authorImageDataUrl !== null ? startX + avatarSize + 16 : startX;
   result += `
-    <text x="${textX}" y="${y + avatarSize / 2 + 6}" font-family="${
-    escapeFontFamily(fontFamilyMap[options.bodyFont])
-  }" font-size="18" font-weight="500" fill="${options.textColor}">${escapeXml(story.authorName)}</text>`;
+    <text x="${textX}" y="${y + avatarSize / 2 + 6}" font-family="${escapeFontFamily(
+      fontFamilyMap[options.bodyFont],
+    )}" font-size="18" font-weight="500" fill="${options.textColor}">${escapeXml(story.authorName)}</text>`;
 
   return result;
 }
@@ -182,20 +182,16 @@ function generateDate(story: StoryData, options: CoverOptions, y: number): strin
   });
 
   return `
-    <text x="${COVER_WIDTH - options.padding}" y="${y}" font-family="${
-    escapeFontFamily(fontFamilyMap[options.bodyFont])
-  }" font-size="14" font-weight="400" fill="${options.textColor}" opacity="0.7" text-anchor="end">${
-    escapeXml(formattedDate)
-  }</text>`;
+    <text x="${COVER_WIDTH - options.padding}" y="${y}" font-family="${escapeFontFamily(
+      fontFamilyMap[options.bodyFont],
+    )}" font-size="14" font-weight="400" fill="${options.textColor}" opacity="0.7" text-anchor="end">${escapeXml(
+      formattedDate,
+    )}</text>`;
 }
 
 // === TEMPLATE RENDERERS ===
 
-function renderClassicTemplateSvg(
-  story: StoryData,
-  options: CoverOptions,
-  authorImageDataUrl: string | null,
-): string {
+function renderClassicTemplateSvg(story: StoryData, options: CoverOptions, authorImageDataUrl: string | null): string {
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2;
@@ -216,11 +212,11 @@ function renderClassicTemplateSvg(
   let titleElements = "";
   for (const line of lines) {
     titleElements += `
-      <text x="${COVER_WIDTH / 2}" y="${startY + fontSize}" font-family="${
-      escapeFontFamily(fontFamilyMap[options.headingFont])
-    }" font-size="${fontSize}" font-weight="700" fill="${options.textColor}" text-anchor="middle">${
-      escapeXml(line)
-    }</text>`;
+      <text x="${COVER_WIDTH / 2}" y="${startY + fontSize}" font-family="${escapeFontFamily(
+        fontFamilyMap[options.headingFont],
+      )}" font-size="${fontSize}" font-weight="700" fill="${options.textColor}" text-anchor="middle">${escapeXml(
+        line,
+      )}</text>`;
     startY += titleLineHeight;
   }
 
@@ -233,11 +229,11 @@ function renderClassicTemplateSvg(
     const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth * 0.8);
     for (const line of subtitleLines.slice(0, 2)) {
       subtitleElements += `
-        <text x="${COVER_WIDTH / 2}" y="${startY + options.subtitleSize}" font-family="${
-        escapeFontFamily(fontFamilyMap[options.bodyFont])
-      }" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8" text-anchor="middle">${
-        escapeXml(line)
-      }</text>`;
+        <text x="${COVER_WIDTH / 2}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(
+          fontFamilyMap[options.bodyFont],
+        )}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8" text-anchor="middle">${escapeXml(
+          line,
+        )}</text>`;
       startY += subtitleLineHeight;
     }
   }
@@ -249,11 +245,7 @@ function renderClassicTemplateSvg(
   return kindBadge + titleElements + subtitleElements + authorInfo + dateInfo + logo;
 }
 
-function renderBoldTemplateSvg(
-  story: StoryData,
-  options: CoverOptions,
-  authorImageDataUrl: string | null,
-): string {
+function renderBoldTemplateSvg(story: StoryData, options: CoverOptions, authorImageDataUrl: string | null): string {
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2;
@@ -273,9 +265,9 @@ function renderBoldTemplateSvg(
 
   for (const line of lines) {
     content += `
-      <text x="${padding}" y="${startY + fontSize}" font-family="${
-      escapeFontFamily(fontFamilyMap[options.headingFont])
-    }" font-size="${fontSize}" font-weight="800" fill="${options.textColor}">${escapeXml(line)}</text>`;
+      <text x="${padding}" y="${startY + fontSize}" font-family="${escapeFontFamily(
+        fontFamilyMap[options.headingFont],
+      )}" font-size="${fontSize}" font-weight="800" fill="${options.textColor}">${escapeXml(line)}</text>`;
     startY += titleLineHeight;
   }
 
@@ -291,11 +283,11 @@ function renderBoldTemplateSvg(
     const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth);
     for (const line of subtitleLines.slice(0, 2)) {
       content += `
-        <text x="${padding}" y="${startY + options.subtitleSize}" font-family="${
-        escapeFontFamily(fontFamilyMap[options.bodyFont])
-      }" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8">${
-        escapeXml(line)
-      }</text>`;
+        <text x="${padding}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(
+          fontFamilyMap[options.bodyFont],
+        )}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8">${escapeXml(
+          line,
+        )}</text>`;
       startY += subtitleLineHeight;
     }
   }
@@ -307,11 +299,7 @@ function renderBoldTemplateSvg(
   return content;
 }
 
-function renderMinimalTemplateSvg(
-  story: StoryData,
-  options: CoverOptions,
-  authorImageDataUrl: string | null,
-): string {
+function renderMinimalTemplateSvg(story: StoryData, options: CoverOptions, authorImageDataUrl: string | null): string {
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2;
@@ -330,11 +318,11 @@ function renderMinimalTemplateSvg(
   let startY = (COVER_HEIGHT - totalHeight) / 2 + options.contentOffsetY;
   for (const line of lines) {
     content += `
-      <text x="${COVER_WIDTH / 2}" y="${startY + fontSize}" font-family="${
-      escapeFontFamily(fontFamilyMap[options.headingFont])
-    }" font-size="${fontSize}" font-weight="700" fill="${options.textColor}" text-anchor="middle">${
-      escapeXml(line)
-    }</text>`;
+      <text x="${COVER_WIDTH / 2}" y="${startY + fontSize}" font-family="${escapeFontFamily(
+        fontFamilyMap[options.headingFont],
+      )}" font-size="${fontSize}" font-weight="700" fill="${options.textColor}" text-anchor="middle">${escapeXml(
+        line,
+      )}</text>`;
     startY += titleLineHeight;
   }
 
@@ -346,11 +334,11 @@ function renderMinimalTemplateSvg(
     const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth * 0.8);
     for (const line of subtitleLines.slice(0, 2)) {
       content += `
-        <text x="${COVER_WIDTH / 2}" y="${startY + options.subtitleSize}" font-family="${
-        escapeFontFamily(fontFamilyMap[options.bodyFont])
-      }" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.7" text-anchor="middle">${
-        escapeXml(line)
-      }</text>`;
+        <text x="${COVER_WIDTH / 2}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(
+          fontFamilyMap[options.bodyFont],
+        )}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.7" text-anchor="middle">${escapeXml(
+          line,
+        )}</text>`;
       startY += subtitleLineHeight;
     }
   }
@@ -362,11 +350,7 @@ function renderMinimalTemplateSvg(
   return content;
 }
 
-function renderFeaturedTemplateSvg(
-  story: StoryData,
-  options: CoverOptions,
-  authorImageDataUrl: string | null,
-): string {
+function renderFeaturedTemplateSvg(story: StoryData, options: CoverOptions, authorImageDataUrl: string | null): string {
   const title = options.titleOverride || story.title;
   const padding = options.padding;
   const maxWidth = COVER_WIDTH - padding * 2 - 150;
@@ -386,9 +370,9 @@ function renderFeaturedTemplateSvg(
 
   for (const line of lines.slice(0, 3)) {
     content += `
-      <text x="${padding}" y="${startY + fontSize}" font-family="${
-      escapeFontFamily(fontFamilyMap[options.headingFont])
-    }" font-size="${fontSize}" font-weight="700" fill="${options.textColor}">${escapeXml(line)}</text>`;
+      <text x="${padding}" y="${startY + fontSize}" font-family="${escapeFontFamily(
+        fontFamilyMap[options.headingFont],
+      )}" font-size="${fontSize}" font-weight="700" fill="${options.textColor}">${escapeXml(line)}</text>`;
     startY += titleLineHeight;
   }
 
@@ -400,11 +384,11 @@ function renderFeaturedTemplateSvg(
     const subtitleLines = wrapTextSvg(subtitle, options.subtitleSize, maxWidth);
     for (const line of subtitleLines.slice(0, 2)) {
       content += `
-        <text x="${padding}" y="${startY + options.subtitleSize}" font-family="${
-        escapeFontFamily(fontFamilyMap[options.bodyFont])
-      }" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8">${
-        escapeXml(line)
-      }</text>`;
+        <text x="${padding}" y="${startY + options.subtitleSize}" font-family="${escapeFontFamily(
+          fontFamilyMap[options.bodyFont],
+        )}" font-size="${options.subtitleSize}" font-weight="400" fill="${options.textColor}" opacity="0.8">${escapeXml(
+          line,
+        )}</text>`;
       startY += subtitleLineHeight;
     }
   }
@@ -423,11 +407,11 @@ function renderFeaturedTemplateSvg(
 
     if (story.authorName !== null) {
       content += `
-        <text x="${avatarX + avatarSize / 2}" y="${avatarY + avatarSize + 24}" font-family="${
-        escapeFontFamily(fontFamilyMap[options.bodyFont])
-      }" font-size="16" font-weight="600" fill="${options.textColor}" text-anchor="middle">${
-        escapeXml(story.authorName)
-      }</text>`;
+        <text x="${avatarX + avatarSize / 2}" y="${avatarY + avatarSize + 24}" font-family="${escapeFontFamily(
+          fontFamilyMap[options.bodyFont],
+        )}" font-size="16" font-weight="600" fill="${options.textColor}" text-anchor="middle">${escapeXml(
+          story.authorName,
+        )}</text>`;
     }
   }
 
@@ -453,8 +437,7 @@ export function renderCoverSvg(
   let backgroundImageElement = "";
   if (backgroundImageDataUrl !== null && backgroundImageUrl !== null) {
     const opacity = backgroundImageOpacity / 100;
-    backgroundImageElement =
-      `<image href="${backgroundImageDataUrl}" x="0" y="0" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" preserveAspectRatio="xMidYMid slice" opacity="${opacity}"/>`;
+    backgroundImageElement = `<image href="${backgroundImageDataUrl}" x="0" y="0" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" preserveAspectRatio="xMidYMid slice" opacity="${opacity}"/>`;
   }
 
   // Pattern

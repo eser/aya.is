@@ -21,18 +21,15 @@ export async function createProfileResource(
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_resources`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(input),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_resources`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

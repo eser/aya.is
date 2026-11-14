@@ -31,9 +31,7 @@ export function ShareActions(props: ShareActionsProps) {
           <ArrowLeft className="size-4" />
         </Button>
         <span className="text-base font-semibold truncate">{t("ShareWizard.Share Wizard")}</span>
-        <span className="text-sm text-muted-foreground truncate hidden sm:inline">
-          — {props.storyTitle}
-        </span>
+        <span className="text-sm text-muted-foreground truncate hidden sm:inline">— {props.storyTitle}</span>
       </div>
 
       <div className="flex items-center gap-2">

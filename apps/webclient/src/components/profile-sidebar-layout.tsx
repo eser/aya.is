@@ -111,9 +111,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
 
   const [isUnfollowDialogOpen, setIsUnfollowDialogOpen] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
-  const [localMembershipKind, setLocalMembershipKind] = React.useState<string | null>(
-    effectiveMembershipKind,
-  );
+  const [localMembershipKind, setLocalMembershipKind] = React.useState<string | null>(effectiveMembershipKind);
 
   // Sync when permissions data changes (e.g. navigation between profiles, or client-side refetch)
   React.useEffect(() => {
@@ -178,21 +176,13 @@ function ProfileSidebar(props: ProfileSidebarProps) {
         />
         <div className="absolute bottom-0 right-0 flex gap-1">
           {canEdit && (
-            <LocaleLink
-              to={`/${props.slug}/settings`}
-              className={buttonClass}
-            >
+            <LocaleLink to={`/${props.slug}/settings`} className={buttonClass}>
               <SquarePen size="14" />
               {t("Profile.Edit Profile")}
             </LocaleLink>
           )}
           {showFollowButton && (
-            <button
-              type="button"
-              onClick={handleFollow}
-              disabled={isProcessing}
-              className={buttonClass}
-            >
+            <button type="button" onClick={handleFollow} disabled={isProcessing} className={buttonClass}>
               <UserPlus size="14" />
               {isProcessing ? t("Common.Saving...") : t("Profile.Follow")}
             </button>
@@ -250,14 +240,10 @@ function ProfileSidebar(props: ProfileSidebarProps) {
 
         <div className="mt-0 mb-4 font-sans text-sm font-light leading-none sm:text-base md:text-lg lg:text-xl text-muted-foreground">
           {props.profile.slug}
-          {props.profile.pronouns !== null &&
-            props.profile.pronouns !== undefined &&
-            ` · ${props.profile.pronouns}`}
+          {props.profile.pronouns !== null && props.profile.pronouns !== undefined && ` · ${props.profile.pronouns}`}
         </div>
 
-        {props.profile.links !== null &&
-          props.profile.links !== undefined &&
-          props.profile.links.length > 0 && (
+        {props.profile.links !== null && props.profile.links !== undefined && props.profile.links.length > 0 && (
           <div className="flex gap-4 mb-3 text-sm text-muted-foreground">
             {props.profile.links.map((link) => {
               const Icon = findIcon(link.kind);
@@ -275,8 +261,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
           </div>
         )}
 
-        {props.profile.description !== null &&
-          props.profile.description !== undefined && (
+        {props.profile.description !== null && props.profile.description !== undefined && (
           <InlineMarkdown
             content={props.profile.description}
             className="mt-0 mb-4 font-sans text-sm font-normal leading-snug text-left"
@@ -285,15 +270,13 @@ function ProfileSidebar(props: ProfileSidebarProps) {
       </div>
 
       {/* Points Display */}
-      {
-        /* {props.profile.points > 0 && (
+      {/* {props.profile.points > 0 && (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Coins className="size-4" />
           <span className="font-semibold text-foreground">{props.profile.points.toLocaleString()}</span>
           <span>{t("Profile.points")}</span>
         </div>
-      )} */
-      }
+      )} */}
 
       {/* Navigation */}
       <nav className="flex justify-center font-serif md:justify-start">
@@ -318,8 +301,7 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             </li>
           )}
 
-          {(props.profile.kind === "organization" ||
-            props.profile.kind === "product") && (
+          {(props.profile.kind === "organization" || props.profile.kind === "product") && (
             <>
               {props.profile.feature_relations === "public" && (
                 <li className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none">
@@ -355,23 +337,25 @@ function ProfileSidebar(props: ProfileSidebarProps) {
             </li>
           )}
 
-          {props.profile.pages?.filter((page) => page.visibility === "public").map((page) => (
-            <li
-              key={page.slug}
-              className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none"
-            >
-              <LocaleLink
-                to={`/${props.slug}/${page.slug}`}
-                className="no-underline transition-colors text-muted-foreground hover:text-foreground"
+          {props.profile.pages
+            ?.filter((page) => page.visibility === "public")
+            .map((page) => (
+              <li
+                key={page.slug}
+                className="relative text-base leading-none sm:text-lg md:text-xl lg:text-2xl after:px-2 after:content-['·'] md:after:content-none"
               >
-                {page.title}
-                <LocaleBadge
-                  localeCode={page.locale_code}
-                  className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle"
-                />
-              </LocaleLink>
-            </li>
-          ))}
+                <LocaleLink
+                  to={`/${props.slug}/${page.slug}`}
+                  className="no-underline transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  {page.title}
+                  <LocaleBadge
+                    localeCode={page.locale_code}
+                    className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary ml-2 align-middle"
+                  />
+                </LocaleLink>
+              </li>
+            ))}
         </ul>
       </nav>
     </aside>

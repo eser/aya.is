@@ -104,23 +104,19 @@ function ContributionsPage() {
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Contributions")}</h2>
           <p className="text-muted-foreground">
-            {t(
-              "Contributions.Organizations and products this person contributes to.",
-            )}
+            {t("Contributions.Organizations and products this person contributes to.")}
           </p>
         </div>
 
-        {contributions !== null && contributions.length > 0
-          ? (
-            <div className="flex flex-col gap-4">
-              {contributions.map((membership) => <ContributionCard key={membership.id} membership={membership} />)}
-            </div>
-          )
-          : (
-            <p className="text-muted-foreground">
-              {t("Contributions.No contributions found.")}
-            </p>
-          )}
+        {contributions !== null && contributions.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {contributions.map((membership) => (
+              <ContributionCard key={membership.id} membership={membership} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">{t("Contributions.No contributions found.")}</p>
+        )}
       </div>
     </ProfileSidebarLayout>
   );

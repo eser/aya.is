@@ -20,9 +20,7 @@ export type DatePollProps = {
 
 export function DatePoll(props: DatePollProps) {
   const { t } = useTranslation();
-  const [proposals, setProposals] = React.useState<DateProposal[]>(
-    props.initialProposals ?? [],
-  );
+  const [proposals, setProposals] = React.useState<DateProposal[]>(props.initialProposals ?? []);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [datetimeStart, setDatetimeStart] = React.useState("");
   const [datetimeEnd, setDatetimeEnd] = React.useState("");
@@ -34,12 +32,7 @@ export function DatePoll(props: DatePollProps) {
 
     setIsSubmitting(true);
     try {
-      const result = await backend.voteDateProposal(
-        props.locale,
-        props.storySlug,
-        proposalId,
-        direction,
-      );
+      const result = await backend.voteDateProposal(props.locale, props.storySlug, proposalId, direction);
 
       if (result !== null) {
         setProposals((prev) =>
@@ -60,7 +53,7 @@ export function DatePoll(props: DatePollProps) {
               downvote_count: p.downvote_count + downDelta,
               viewer_vote_direction: result.viewer_vote_direction,
             };
-          })
+          }),
         );
       }
     } finally {
@@ -79,12 +72,7 @@ export function DatePoll(props: DatePollProps) {
       const startISO = new Date(datetimeStart).toISOString();
       const endISO = datetimeEnd !== "" ? new Date(datetimeEnd).toISOString() : undefined;
 
-      const proposal = await backend.createDateProposal(
-        props.locale,
-        props.storySlug,
-        startISO,
-        endISO,
-      );
+      const proposal = await backend.createDateProposal(props.locale, props.storySlug, startISO, endISO);
 
       if (proposal !== null) {
         // Refresh the full list to get profile info
@@ -154,113 +142,103 @@ export function DatePoll(props: DatePollProps) {
         <h3 className={styles.title}>{t("Activities.Date Proposals")}</h3>
       </div>
 
-      {proposals.length === 0
-        ? (
-          <p className={styles.emptyState}>
-            {t("Activities.No proposals yet")}
-          </p>
-        )
-        : (
-          <div className={styles.proposalList}>
-            {proposals.map((proposal) => (
-              <div key={proposal.id} className={styles.proposalCard}>
-                <div className={styles.proposalInfo}>
-                  <span className={styles.proposalDate}>
-                    {proposal.datetime_end !== null
-                      ? formatDateTimeRange(
+      {proposals.length === 0 ? (
+        <p className={styles.emptyState}>{t("Activities.No proposals yet")}</p>
+      ) : (
+        <div className={styles.proposalList}>
+          {proposals.map((proposal) => (
+            <div key={proposal.id} className={styles.proposalCard}>
+              <div className={styles.proposalInfo}>
+                <span className={styles.proposalDate}>
+                  {proposal.datetime_end !== null
+                    ? formatDateTimeRange(
                         new Date(proposal.datetime_start),
                         new Date(proposal.datetime_end),
                         props.locale,
                       )
-                      : formatDateTimeLong(new Date(proposal.datetime_start), props.locale)}
-                  </span>
-                  <span className={styles.proposerInfo}>
-                    {proposal.proposer_profile_picture_uri !== null && (
-                      <img
-                        src={proposal.proposer_profile_picture_uri}
-                        alt=""
-                        className={styles.proposerAvatar}
-                      />
-                    )}
-                    {proposal.proposer_profile_title}
-                  </span>
-                </div>
+                    : formatDateTimeLong(new Date(proposal.datetime_start), props.locale)}
+                </span>
+                <span className={styles.proposerInfo}>
+                  {proposal.proposer_profile_picture_uri !== null && (
+                    <img src={proposal.proposer_profile_picture_uri} alt="" className={styles.proposerAvatar} />
+                  )}
+                  {proposal.proposer_profile_title}
+                </span>
+              </div>
 
-                <div className={styles.voteSection}>
-                  {proposal.is_finalized
-                    ? (
-                      <span className={styles.finalizedBadge}>
-                        <Check className="size-3" />
-                        {t("Activities.Finalized")}
-                      </span>
-                    )
-                    : (
+              <div className={styles.voteSection}>
+                {proposal.is_finalized ? (
+                  <span className={styles.finalizedBadge}>
+                    <Check className="size-3" />
+                    {t("Activities.Finalized")}
+                  </span>
+                ) : (
+                  <>
+                    {props.canVote && (
                       <>
-                        {props.canVote && (
-                          <>
-                            <button
-                              type="button"
-                              className={cn(
-                                styles.voteButton,
-                                proposal.viewer_vote_direction === 1 ? styles.voteActive : styles.voteInactive,
-                              )}
-                              onClick={() => handleVote(proposal.id, 1)}
-                              disabled={isSubmitting}
-                              aria-label={t("Activities.Agree")}
-                            >
-                              <ThumbsUp className="size-3" />
-                              {proposal.upvote_count}
-                            </button>
+                        <button
+                          type="button"
+                          className={cn(
+                            styles.voteButton,
+                            proposal.viewer_vote_direction === 1 ? styles.voteActive : styles.voteInactive,
+                          )}
+                          onClick={() => handleVote(proposal.id, 1)}
+                          disabled={isSubmitting}
+                          aria-label={t("Activities.Agree")}
+                        >
+                          <ThumbsUp className="size-3" />
+                          {proposal.upvote_count}
+                        </button>
 
-                            <button
-                              type="button"
-                              className={cn(
-                                styles.voteButton,
-                                proposal.viewer_vote_direction === -1 ? styles.voteActive : styles.voteInactive,
-                              )}
-                              onClick={() => handleVote(proposal.id, -1)}
-                              disabled={isSubmitting}
-                              aria-label={t("Activities.Disagree")}
-                            >
-                              <ThumbsDown className="size-3" />
-                              {proposal.downvote_count}
-                            </button>
-                          </>
-                        )}
-
-                        <span className={styles.voteScore}>
-                          {proposal.vote_score > 0 ? "+" : ""}
-                          {proposal.vote_score}
-                        </span>
-
-                        {props.canEdit && !hasFinalized && (
-                          <>
-                            <button
-                              type="button"
-                              className={styles.finalizeButton}
-                              onClick={() => handleFinalize(proposal.id)}
-                              disabled={isSubmitting}
-                            >
-                              {t("Activities.Finalize This Date")}
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.removeButton}
-                              onClick={() => handleRemove(proposal.id)}
-                              disabled={isSubmitting}
-                              aria-label={t("Common.Delete")}
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
-                          </>
-                        )}
+                        <button
+                          type="button"
+                          className={cn(
+                            styles.voteButton,
+                            proposal.viewer_vote_direction === -1 ? styles.voteActive : styles.voteInactive,
+                          )}
+                          onClick={() => handleVote(proposal.id, -1)}
+                          disabled={isSubmitting}
+                          aria-label={t("Activities.Disagree")}
+                        >
+                          <ThumbsDown className="size-3" />
+                          {proposal.downvote_count}
+                        </button>
                       </>
                     )}
-                </div>
+
+                    <span className={styles.voteScore}>
+                      {proposal.vote_score > 0 ? "+" : ""}
+                      {proposal.vote_score}
+                    </span>
+
+                    {props.canEdit && !hasFinalized && (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.finalizeButton}
+                          onClick={() => handleFinalize(proposal.id)}
+                          disabled={isSubmitting}
+                        >
+                          {t("Activities.Finalize This Date")}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.removeButton}
+                          onClick={() => handleRemove(proposal.id)}
+                          disabled={isSubmitting}
+                          aria-label={t("Common.Delete")}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Proposal form — only show if viewer can propose and not yet finalized */}
       {props.canPropose && !hasFinalized && (
@@ -292,11 +270,7 @@ export function DatePoll(props: DatePollProps) {
                 onChange={(e) => setDatetimeEnd(e.target.value)}
               />
             </div>
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={isSubmitting || datetimeStart === ""}
-            >
+            <button type="submit" className={styles.submitButton} disabled={isSubmitting || datetimeStart === ""}>
               {t("Activities.Submit Proposal")}
             </button>
           </div>

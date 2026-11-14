@@ -6,19 +6,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-function Tabs({
-  className,
-  orientation = "horizontal",
-  ...props
-}: TabsPrimitive.Root.Props) {
+function Tabs({ className, orientation = "horizontal", ...props }: TabsPrimitive.Root.Props) {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
       data-orientation={orientation}
-      className={cn(
-        "gap-2 group/tabs flex data-[orientation=horizontal]:flex-col",
-        className,
-      )}
+      className={cn("gap-2 group/tabs flex data-[orientation=horizontal]:flex-col", className)}
       {...props}
     />
   );
@@ -72,11 +65,7 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
 
 function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   return (
-    <TabsPrimitive.Panel
-      data-slot="tabs-content"
-      className={cn("text-sm flex-1 outline-none", className)}
-      {...props}
-    />
+    <TabsPrimitive.Panel data-slot="tabs-content" className={cn("text-sm flex-1 outline-none", className)} {...props} />
   );
 }
 

@@ -53,8 +53,5 @@ export async function searchBackgroundImages(
     searchParams.set("per_page", String(params.perPage));
   }
 
-  return await fetcher<UnsplashSearchResult>(
-    locale,
-    `/site/generated-backgrounds/?${searchParams.toString()}`,
-  );
+  return await fetcher<UnsplashSearchResult>(locale, `/site/generated-backgrounds/?${searchParams.toString()}`);
 }

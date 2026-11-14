@@ -83,17 +83,15 @@ function SeriesDetailPage() {
 
           <h2>{t("Series.Stories in this series")}</h2>
 
-          {stories.length === 0
-            ? (
-              <p className="text-muted-foreground">
-                {t("Series.No stories in this series yet")}
-              </p>
-            )
-            : (
-              <div>
-                {stories.map((story) => <Story key={story.id} story={story} />)}
-              </div>
-            )}
+          {stories.length === 0 ? (
+            <p className="text-muted-foreground">{t("Series.No stories in this series yet")}</p>
+          ) : (
+            <div>
+              {stories.map((story) => (
+                <Story key={story.id} story={story} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </PageLayout>

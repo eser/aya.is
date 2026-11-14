@@ -70,9 +70,8 @@ function getErrorMessage(error: unknown): string {
 export function CreateProfileForm(props: CreateProfileFormProps) {
   const { t } = useTranslation();
 
-  const effectiveDefaultKind = props.hasIndividualProfile && props.defaultKind === "individual"
-    ? "organization"
-    : props.defaultKind;
+  const effectiveDefaultKind =
+    props.hasIndividualProfile && props.defaultKind === "individual" ? "organization" : props.defaultKind;
 
   const [selectedKind, setSelectedKind] = React.useState<ProfileKind>(effectiveDefaultKind);
   const [slugValue, setSlugValue] = React.useState("");
@@ -89,7 +88,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     () =>
       z.object({
         kind: z.enum(["individual", "organization", "product"], {
-          error: (issue) => issue.input === undefined ? t("Profile.Please select a profile type") : undefined,
+          error: (issue) => (issue.input === undefined ? t("Profile.Please select a profile type") : undefined),
         }),
         slug: z
           .string()
@@ -181,21 +180,24 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
   };
 
   // Auto-generate slug from title (called on title change)
-  const generateSlugFromTitle = React.useCallback((title: string) => {
-    if (slugManuallyEdited) {
-      return;
-    }
-    if (title.trim() === "") {
-      setSlugValue("");
-      setShowSlugValidation(false);
-      setShowTitleValidation(false);
-      form.setFieldValue("slug", "");
-      return;
-    }
-    const generatedSlug = slugify(title);
-    setSlugValue(generatedSlug);
-    form.setFieldValue("slug", generatedSlug);
-  }, [slugManuallyEdited, form]);
+  const generateSlugFromTitle = React.useCallback(
+    (title: string) => {
+      if (slugManuallyEdited) {
+        return;
+      }
+      if (title.trim() === "") {
+        setSlugValue("");
+        setShowSlugValidation(false);
+        setShowTitleValidation(false);
+        form.setFieldValue("slug", "");
+        return;
+      }
+      const generatedSlug = slugify(title);
+      setSlugValue(generatedSlug);
+      form.setFieldValue("slug", generatedSlug);
+    },
+    [slugManuallyEdited, form],
+  );
 
   const isSlugValid = slugAvailability.isAvailable === true && !slugAvailability.isChecking;
 
@@ -228,12 +230,13 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                 styles.typeCard,
                 isSelected ? styles.typeCardSelected : "",
                 isDisabled ? styles.typeCardDisabled : "",
-              ].filter(Boolean).join(" ");
+              ]
+                .filter(Boolean)
+                .join(" ");
 
-              const iconClasses = [
-                styles.typeCardIcon,
-                isSelected ? styles.typeCardIconSelected : "",
-              ].filter(Boolean).join(" ");
+              const iconClasses = [styles.typeCardIcon, isSelected ? styles.typeCardIconSelected : ""]
+                .filter(Boolean)
+                .join(" ");
 
               return (
                 <button
@@ -245,11 +248,9 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                   aria-pressed={isSelected}
                 >
                   <IconComponent className={iconClasses} />
-                  <span className={styles.typeCardTitle}>
-                    {t(profileType.titleKey)}
-                  </span>
+                  <span className={styles.typeCardTitle}>{t(profileType.titleKey)}</span>
                   <span className={styles.typeCardDesc}>
-                    {(profileType.kind === "individual" && props.hasIndividualProfile)
+                    {profileType.kind === "individual" && props.hasIndividualProfile
                       ? t("Profile.Individual profile exists")
                       : t(profileType.descKey)}
                   </span>
@@ -264,9 +265,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
           <form.Field name="title">
             {(field) => (
               <Field>
-                <FieldLabel htmlFor={field.name}>
-                  {t("Common.Title")}
-                </FieldLabel>
+                <FieldLabel htmlFor={field.name}>{t("Common.Title")}</FieldLabel>
                 <Input
                   id={field.name}
                   value={field.state.value}
@@ -296,9 +295,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
           <form.Field name="description">
             {(field) => (
               <Field>
-                <FieldLabel htmlFor={field.name}>
-                  {t("Common.Description")}
-                </FieldLabel>
+                <FieldLabel htmlFor={field.name}>{t("Common.Description")}</FieldLabel>
                 <Textarea
                   id={field.name}
                   value={field.state.value}
@@ -317,15 +314,13 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
           <form.Field name="slug">
             {(field) => {
               const hasValidationError = showSlugValidation && field.state.meta.errors.length > 0;
-              const isUnavailable = showSlugValidation && !slugAvailability.isChecking &&
-                slugAvailability.isAvailable === false;
+              const isUnavailable =
+                showSlugValidation && !slugAvailability.isChecking && slugAvailability.isAvailable === false;
               const isInvalid = hasValidationError || isUnavailable;
 
               return (
                 <Field data-invalid={isInvalid || undefined}>
-                  <FieldLabel htmlFor={field.name}>
-                    {t("Common.Slug")}
-                  </FieldLabel>
+                  <FieldLabel htmlFor={field.name}>{t("Common.Slug")}</FieldLabel>
                   <InputGroup>
                     <InputGroupAddon>
                       <InputGroupText>https://aya.is/{props.locale}/</InputGroupText>
@@ -373,18 +368,15 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
         <div className={styles.actions}>
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
             {([canSubmit, isSubmitting]) => (
-              <Button
-                type="submit"
-                disabled={!canSubmit || isSubmitting || !isSlugValid}
-              >
-                {isSubmitting
-                  ? (
-                    <>
-                      <Loader2 className="mr-2 size-4 animate-spin" />
-                      {t("Loading.Submitting...")}
-                    </>
-                  )
-                  : t("Profile.Create Profile")}
+              <Button type="submit" disabled={!canSubmit || isSubmitting || !isSlugValid}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    {t("Loading.Submitting...")}
+                  </>
+                ) : (
+                  t("Profile.Create Profile")
+                )}
               </Button>
             )}
           </form.Subscribe>

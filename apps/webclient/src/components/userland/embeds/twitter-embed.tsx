@@ -25,9 +25,7 @@ export function TwitterEmbed(props: TwitterEmbedProps) {
       script.charset = "utf-8";
 
       // Check if script already exists
-      const existingScript = document.querySelector(
-        'script[src="https://platform.twitter.com/widgets.js"]',
-      );
+      const existingScript = document.querySelector('script[src="https://platform.twitter.com/widgets.js"]');
 
       if (existingScript === null) {
         document.body.appendChild(script);

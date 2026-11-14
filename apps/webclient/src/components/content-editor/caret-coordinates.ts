@@ -3,9 +3,7 @@
  * Get screen coordinates of the cursor position in a textarea
  * using the "mirror div" technique.
  */
-export function getCaretCoordinates(
-  textarea: HTMLTextAreaElement,
-): { x: number; y: number } {
+export function getCaretCoordinates(textarea: HTMLTextAreaElement): { x: number; y: number } {
   const mirror = document.createElement("div");
 
   const computed = globalThis.getComputedStyle(textarea);
@@ -52,10 +50,7 @@ export function getCaretCoordinates(
   mirror.style.whiteSpace = "pre-wrap";
   mirror.style.wordWrap = "break-word";
 
-  const textBeforeCursor = textarea.value.substring(
-    0,
-    textarea.selectionStart,
-  );
+  const textBeforeCursor = textarea.value.substring(0, textarea.selectionStart);
 
   const textNode = document.createTextNode(textBeforeCursor);
   mirror.appendChild(textNode);

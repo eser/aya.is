@@ -24,11 +24,7 @@ export function ProfileCard(props: ProfileCardProps) {
 
   if (variant === "cover") {
     return (
-      <LocaleLink
-        data-slot="card"
-        to={`/${profile.slug}`}
-        className={styles.cardLink}
-      >
+      <LocaleLink data-slot="card" to={`/${profile.slug}`} className={styles.cardLink}>
         <div className={styles.coverCard}>
           <div className={styles.coverImageContainer}>
             <img
@@ -59,11 +55,7 @@ export function ProfileCard(props: ProfileCardProps) {
   }
 
   return (
-    <LocaleLink
-      data-slot="card"
-      to={`/${profile.slug}`}
-      className={styles.cardLink}
-    >
+    <LocaleLink data-slot="card" to={`/${profile.slug}`} className={styles.cardLink}>
       <div className={styles.profileCard}>
         <div className={styles.avatarContainer}>
           <SiteAvatar
@@ -78,8 +70,7 @@ export function ProfileCard(props: ProfileCardProps) {
             {stripMarkdown(profile.title ?? "")}
             <LocaleBadge localeCode={profile.locale_code} className={styles.localeBadge} />
           </h3>
-          {profile.description !== null &&
-            profile.description !== undefined && (
+          {profile.description !== null && profile.description !== undefined && (
             <InlineMarkdown content={profile.description} className={styles.description} />
           )}
         </div>

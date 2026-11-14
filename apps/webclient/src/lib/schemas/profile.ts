@@ -7,10 +7,7 @@ export const createProfileSchema = z.object({
     .string()
     .min(2, "Slug must be at least 2 characters")
     .max(50, "Slug must be at most 50 characters")
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
-    ),
+    .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
   description: z.string().max(500, "Description is too long").optional(),
   kind: z.enum(["individual", "organization", "product"], {
@@ -32,10 +29,7 @@ export const checkSlugSchema = z.object({
     .string()
     .min(2, "Slug must be at least 2 characters")
     .max(50, "Slug must be at most 50 characters")
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
-    ),
+    .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
 });
 
 // Type exports

@@ -14,11 +14,7 @@ export type UpdateProfileRequest = {
   option_story_discussions_by_default?: boolean;
 };
 
-export async function updateProfile(
-  locale: string,
-  slug: string,
-  data: UpdateProfileRequest,
-): Promise<Profile | null> {
+export async function updateProfile(locale: string, slug: string, data: UpdateProfileRequest): Promise<Profile | null> {
   return await fetcher<Profile>(locale, `/profiles/${slug}`, {
     method: "PATCH",
     body: JSON.stringify(data),

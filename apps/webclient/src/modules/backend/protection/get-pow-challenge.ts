@@ -6,20 +6,15 @@ import type { POWChallenge, POWChallengeDisabled } from "./types.ts";
  * Get a PoW challenge from the server
  * Returns null if PoW is disabled or an error occurred
  */
-export async function getPOWChallenge(
-  locale: string,
-): Promise<POWChallenge | null> {
+export async function getPOWChallenge(locale: string): Promise<POWChallenge | null> {
   const backendUri = getBackendUri();
-  const response = await fetch(
-    `${backendUri}/${locale}/protection/pow-challenges`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
+  const response = await fetch(`${backendUri}/${locale}/protection/pow-challenges`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    credentials: "include",
+  });
 
   if (!response.ok) {
     console.error("[Protection] Failed to get PoW challenge:", response.status);

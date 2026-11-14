@@ -13,9 +13,7 @@ export interface SendMailboxMessageParams {
   replyToId?: string;
 }
 
-export async function sendMailboxMessage(
-  params: SendMailboxMessageParams,
-): Promise<MailboxEnvelope | null> {
+export async function sendMailboxMessage(params: SendMailboxMessageParams): Promise<MailboxEnvelope | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -41,21 +39,19 @@ export async function sendMailboxMessage(
     body.reply_to_id = params.replyToId;
   }
 
-  const response = await fetch(
-    `${getBackendUri()}/${params.locale}/mailbox/messages`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-      body: JSON.stringify(body),
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${params.locale}/mailbox/messages`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
-    const message = errorBody !== null && typeof errorBody === "object" && "error" in errorBody
-      ? String(errorBody.error)
-      : "Failed to send message";
+    const message =
+      errorBody !== null && typeof errorBody === "object" && "error" in errorBody
+        ? String(errorBody.error)
+        : "Failed to send message";
 
     throw new Error(message);
   }

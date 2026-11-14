@@ -96,18 +96,18 @@ func (s *BulletinSender) buildMessage(digest *bulletinbiz.Digest) (string, *Inli
 	buttons := make([][]InlineKeyboardButton, 0)
 
 	for _, group := range digest.Groups {
-		builder.WriteString(fmt.Sprintf("\n<b>From %s:</b>\n", html.EscapeString(group.Title)))
+		fmt.Fprintf(&builder, "\n<b>From %s:</b>\n", html.EscapeString(group.Title))
 
 		for _, story := range group.Stories {
 			storyURL := fmt.Sprintf("%s/%s/stories/%s", s.siteURI, digest.Locale, story.Slug)
 
-			builder.WriteString(fmt.Sprintf("• <a href=\"%s\">%s</a>\n",
+			fmt.Fprintf(&builder, "• <a href=\"%s\">%s</a>\n",
 				storyURL,
-				html.EscapeString(story.Title)))
+				html.EscapeString(story.Title))
 
 			summary := s.pickSummary(story)
 			if summary != "" {
-				builder.WriteString(fmt.Sprintf("  <i>%s</i>\n", html.EscapeString(summary)))
+				fmt.Fprintf(&builder, "  <i>%s</i>\n", html.EscapeString(summary))
 			}
 
 			buttonText := "Read: " + truncate(story.Title, maxButtonTextLen)

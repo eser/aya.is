@@ -24,9 +24,9 @@ export const Route = createFileRoute("/$locale/$slug")({
     }
 
     // Returns null for unauthenticated users (401 → null via fetcher)
-    const permissions = await context.queryClient.ensureQueryData(
-      profilePermissionsQueryOptions(locale, slug),
-    ).catch(() => null);
+    const permissions = await context.queryClient
+      .ensureQueryData(profilePermissionsQueryOptions(locale, slug))
+      .catch(() => null);
 
     return { profile, notFound: false as const, locale, slug, permissions };
   },
@@ -92,8 +92,8 @@ function ProfileRoute() {
   }
 
   // Check if we're on an edit/new route - these need full-width layout without section wrapper
-  const isFullWidthRoute = matches.some((match) =>
-    match.pathname.endsWith("/edit") || match.pathname.endsWith("/settings/pages/new")
+  const isFullWidthRoute = matches.some(
+    (match) => match.pathname.endsWith("/edit") || match.pathname.endsWith("/settings/pages/new"),
   );
 
   if (isFullWidthRoute) {

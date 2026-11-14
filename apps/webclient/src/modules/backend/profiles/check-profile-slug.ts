@@ -7,17 +7,10 @@ export type CheckProfileSlugResponse = {
   severity?: "error" | "warning" | "";
 };
 
-export async function checkProfileSlug(
-  locale: string,
-  slug: string,
-): Promise<CheckProfileSlugResponse | null> {
-  const result = await fetcher<CheckProfileSlugResponse>(
-    locale,
-    `/profiles/${slug}/_check`,
-    {
-      method: "GET",
-    },
-  );
+export async function checkProfileSlug(locale: string, slug: string): Promise<CheckProfileSlugResponse | null> {
+  const result = await fetcher<CheckProfileSlugResponse>(locale, `/profiles/${slug}/_check`, {
+    method: "GET",
+  });
 
   return result;
 }

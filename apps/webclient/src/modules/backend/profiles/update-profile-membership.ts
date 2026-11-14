@@ -16,18 +16,15 @@ export async function updateProfileMembership(
   const token = getAuthToken();
   if (token === null) return false;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_memberships/${membershipId}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(input),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_memberships/${membershipId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
 
   return response.ok;
 }

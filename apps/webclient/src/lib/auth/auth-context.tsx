@@ -75,39 +75,34 @@ export function AuthProvider(props: AuthProviderProps) {
 
     if (result.authenticated && result.token !== undefined) {
       // User is authenticated - update local storage and state
-      setAuthToken(
-        result.token,
-        result.expires_at ?? Date.now() + 24 * 60 * 60 * 1000,
-      );
+      setAuthToken(result.token, result.expires_at ?? Date.now() + 24 * 60 * 60 * 1000);
 
       // Combine user data with profile slug and accessible profiles
       const individualProfile: IndividualProfile | undefined =
         result.selected_profile !== undefined && result.selected_profile !== null
           ? {
-            id: result.selected_profile.id,
-            slug: result.selected_profile.slug,
-            kind: result.selected_profile.kind,
-            // IndividualProfile.title is required but the session's title is optional
-            title: result.selected_profile.title ?? "",
-            profile_picture_uri: result.selected_profile.profile_picture_uri,
-            points: result.selected_profile.points,
-          }
+              id: result.selected_profile.id,
+              slug: result.selected_profile.slug,
+              kind: result.selected_profile.kind,
+              // IndividualProfile.title is required but the session's title is optional
+              title: result.selected_profile.title ?? "",
+              profile_picture_uri: result.selected_profile.profile_picture_uri,
+              points: result.selected_profile.points,
+            }
           : undefined;
 
-      const userData: User | null = result.user !== undefined && result.user !== null
-        ? {
-          ...result.user,
-          individual_profile_slug: result.selected_profile?.slug,
-          individual_profile: individualProfile,
-          accessible_profiles: result.accessible_profiles,
-          total_pending_envelopes: result.total_pending_envelopes,
-        }
-        : null;
+      const userData: User | null =
+        result.user !== undefined && result.user !== null
+          ? {
+              ...result.user,
+              individual_profile_slug: result.selected_profile?.slug,
+              individual_profile: individualProfile,
+              accessible_profiles: result.accessible_profiles,
+              total_pending_envelopes: result.total_pending_envelopes,
+            }
+          : null;
 
-      localStorage.setItem(
-        "auth_session",
-        JSON.stringify({ user: userData }),
-      );
+      localStorage.setItem("auth_session", JSON.stringify({ user: userData }));
       setState({
         isLoading: false,
         isAuthenticated: true,

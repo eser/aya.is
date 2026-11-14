@@ -33,9 +33,7 @@ function AdminProfileGeneral() {
       <Card>
         <CardHeader>
           <CardTitle>{t("Admin.Profile Information")}</CardTitle>
-          <CardDescription>
-            {t("Admin.Basic profile details")}
-          </CardDescription>
+          <CardDescription>{t("Admin.Basic profile details")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -61,12 +59,7 @@ function AdminProfileGeneral() {
 
           <div className="space-y-2">
             <Label>{t("Common.Description")}</Label>
-            <Textarea
-              value={profile.description ?? ""}
-              readOnly
-              className="bg-muted resize-none"
-              rows={3}
-            />
+            <Textarea value={profile.description ?? ""} readOnly className="bg-muted resize-none" rows={3} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

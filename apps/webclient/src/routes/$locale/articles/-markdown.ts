@@ -11,10 +11,7 @@ import type { StoryEx } from "@/modules/backend/types";
 /**
  * Generate markdown for the article listing page
  */
-export function generateArticlesListingMarkdown(
-  articles: StoryEx[],
-  locale: string,
-): string {
+export function generateArticlesListingMarkdown(articles: StoryEx[], locale: string): string {
   const frontmatter = formatFrontmatter({
     title: "Articles",
     generated_at: new Date().toISOString(),

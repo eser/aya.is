@@ -1,11 +1,13 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
-export type IpParseResult = {
-  version: "unknown";
-} | {
-  version: "IPv4" | "IPv6";
-  normalized: string;
-  isLoopback: boolean;
-};
+export type IpParseResult =
+  | {
+      version: "unknown";
+    }
+  | {
+      version: "IPv4" | "IPv6";
+      normalized: string;
+      isLoopback: boolean;
+    };
 
 export function parseIp(ip: string): IpParseResult {
   let clean = ip;

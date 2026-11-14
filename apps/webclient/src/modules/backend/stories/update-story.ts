@@ -10,13 +10,9 @@ export async function updateStory(
   storyId: string,
   input: UpdateStoryInput,
 ): Promise<Story | null> {
-  const response = await fetcher<UpdateStoryData>(
-    locale,
-    `/profiles/${profileSlug}/_stories/${storyId}`,
-    {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<UpdateStoryData>(locale, `/profiles/${profileSlug}/_stories/${storyId}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
   return response;
 }

@@ -16,17 +16,8 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   );
 }
 
-function PaginationContent({
-  className,
-  ...props
-}: React.ComponentProps<"ul">) {
-  return (
-    <ul
-      data-slot="pagination-content"
-      className={cn("flex flex-row items-center gap-1", className)}
-      {...props}
-    />
-  );
+function PaginationContent({ className, ...props }: React.ComponentProps<"ul">) {
+  return <ul data-slot="pagination-content" className={cn("flex flex-row items-center gap-1", className)} {...props} />;
 }
 
 function PaginationItem({ ...props }: React.ComponentProps<"li">) {
@@ -39,13 +30,7 @@ type PaginationLinkProps = {
   render?: (props: React.ComponentProps<"a"> & { className: string }) => React.ReactNode;
 } & React.ComponentProps<"a">;
 
-function PaginationLink({
-  className,
-  isActive,
-  size = "icon",
-  render,
-  ...props
-}: PaginationLinkProps) {
+function PaginationLink({ className, isActive, size = "icon", render, ...props }: PaginationLinkProps) {
   const combinedClassName = cn(
     buttonVariants({
       variant: isActive ? "outline" : "ghost",
@@ -55,15 +40,13 @@ function PaginationLink({
   );
 
   if (render !== undefined) {
-    return render(
-      {
-        ...props,
-        className: combinedClassName,
-        "aria-current": isActive ? "page" : undefined,
-        "data-slot": "pagination-link",
-        "data-active": isActive,
-      } as React.ComponentProps<"a"> & { className: string },
-    );
+    return render({
+      ...props,
+      className: combinedClassName,
+      "aria-current": isActive ? "page" : undefined,
+      "data-slot": "pagination-link",
+      "data-active": isActive,
+    } as React.ComponentProps<"a"> & { className: string });
   }
 
   return (
@@ -77,12 +60,7 @@ function PaginationLink({
   );
 }
 
-function PaginationPrevious({
-  className,
-  children,
-  render,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+function PaginationPrevious({ className, children, render, ...props }: React.ComponentProps<typeof PaginationLink>) {
   const content = (
     <>
       <ChevronLeftIcon />
@@ -103,12 +81,7 @@ function PaginationPrevious({
   );
 }
 
-function PaginationNext({
-  className,
-  children,
-  render,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+function PaginationNext({ className, children, render, ...props }: React.ComponentProps<typeof PaginationLink>) {
   const content = (
     <>
       <span className="hidden sm:block">{children ?? "Next"}</span>
@@ -129,10 +102,7 @@ function PaginationNext({
   );
 }
 
-function PaginationEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function PaginationEllipsis({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       aria-hidden

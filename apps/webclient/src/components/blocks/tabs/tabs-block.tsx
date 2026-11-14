@@ -37,11 +37,10 @@ function TabsBlock(props: TabsBlockProps) {
     <div className={styles.tabs}>
       <div className={styles.tabList} role="tablist">
         {tabs.map((tab, index) => {
-          const label = tab.props.label !== undefined &&
-              tab.props.label !== null &&
-              tab.props.label !== ""
-            ? tab.props.label
-            : `Tab ${index + 1}`;
+          const label =
+            tab.props.label !== undefined && tab.props.label !== null && tab.props.label !== ""
+              ? tab.props.label
+              : `Tab ${index + 1}`;
 
           return (
             <button

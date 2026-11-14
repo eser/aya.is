@@ -140,30 +140,26 @@ function LinksPage() {
       <div className="space-y-6">
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Links")}</h2>
-          <p className="text-muted-foreground">
-            {t("Links.All links associated with this profile.")}
-          </p>
+          <p className="text-muted-foreground">{t("Links.All links associated with this profile.")}</p>
         </div>
 
-        {links !== null && links.length > 0
-          ? (
-            <div className="space-y-8">
-              {groupNames.map((groupName) => (
-                <div key={groupName || "ungrouped"}>
-                  {/* Only show header for named groups, not for ungrouped */}
-                  {groupName !== "" && <h3 className="text-lg font-semibold mb-4">{groupName}</h3>}
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
-                    {groupedLinks[groupName].map((link) => <LinkCard key={link.id} link={link} t={t} />)}
-                  </div>
+        {links !== null && links.length > 0 ? (
+          <div className="space-y-8">
+            {groupNames.map((groupName) => (
+              <div key={groupName || "ungrouped"}>
+                {/* Only show header for named groups, not for ungrouped */}
+                {groupName !== "" && <h3 className="text-lg font-semibold mb-4">{groupName}</h3>}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
+                  {groupedLinks[groupName].map((link) => (
+                    <LinkCard key={link.id} link={link} t={t} />
+                  ))}
                 </div>
-              ))}
-            </div>
-          )
-          : (
-            <p className="text-muted-foreground">
-              {t("Links.No links found.")}
-            </p>
-          )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">{t("Links.No links found.")}</p>
+        )}
       </div>
     </ProfileSidebarLayout>
   );
@@ -199,9 +195,11 @@ function LinkCard(props: LinkCardProps) {
   const cardContent = (
     <div className="flex items-center gap-3">
       <div className="flex items-center justify-center size-9 rounded-full bg-muted shrink-0">
-        {hasCustomIcon
-          ? <span className="text-base leading-none">{link.icon}</span>
-          : <IconComponent className="size-4" />}
+        {hasCustomIcon ? (
+          <span className="text-base leading-none">{link.icon}</span>
+        ) : (
+          <IconComponent className="size-4" />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -223,22 +221,11 @@ function LinkCard(props: LinkCardProps) {
 
   if (link.uri !== null && link.uri !== "") {
     return (
-      <a
-        href={link.uri}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-      >
-        <Card className="px-3 py-2.5 hover:bg-muted/50 transition-colors cursor-pointer">
-          {cardContent}
-        </Card>
+      <a href={link.uri} target="_blank" rel="noopener noreferrer" className="block">
+        <Card className="px-3 py-2.5 hover:bg-muted/50 transition-colors cursor-pointer">{cardContent}</Card>
       </a>
     );
   }
 
-  return (
-    <Card className="px-3 py-2.5">
-      {cardContent}
-    </Card>
-  );
+  return <Card className="px-3 py-2.5">{cardContent}</Card>;
 }

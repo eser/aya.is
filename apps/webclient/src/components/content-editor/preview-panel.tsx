@@ -13,9 +13,7 @@ type PreviewPanelProps = {
 export function PreviewPanel(props: PreviewPanelProps) {
   const { t } = useTranslation();
   const { content, debounceMs = 300 } = props;
-  const [compiledSource, setCompiledSource] = React.useState<string | null>(
-    null,
-  );
+  const [compiledSource, setCompiledSource] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [isCompiling, setIsCompiling] = React.useState(false);
 
@@ -46,11 +44,7 @@ export function PreviewPanel(props: PreviewPanelProps) {
   }, [content, debounceMs]);
 
   if (content.trim() === "") {
-    return (
-      <div className={styles.previewLoading}>
-        {t("ContentEditor.Start writing to see the preview...")}
-      </div>
-    );
+    return <div className={styles.previewLoading}>{t("ContentEditor.Start writing to see the preview...")}</div>;
   }
 
   if (isCompiling && compiledSource === null) {
@@ -70,11 +64,5 @@ export function PreviewPanel(props: PreviewPanelProps) {
     return <div className={styles.previewLoading}>{t("ContentEditor.Loading preview...")}</div>;
   }
 
-  return (
-    <TextContent
-      compiledContent={compiledSource}
-      headingOffset={1}
-      className={styles.previewPanel}
-    />
-  );
+  return <TextContent compiledContent={compiledSource} headingOffset={1} className={styles.previewPanel} />;
 }

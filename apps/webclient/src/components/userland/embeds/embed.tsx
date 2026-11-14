@@ -15,17 +15,13 @@ export function Embed(props: EmbedProps) {
   const { url } = props;
 
   // YouTube
-  const youtubeMatch = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/,
-  );
+  const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
   if (youtubeMatch !== null) {
     return <YouTubeEmbed videoId={youtubeMatch[1]} />;
   }
 
   // Twitter/X
-  const twitterMatch = url.match(
-    /(?:twitter\.com|x\.com)\/([^/]+)\/status\/(\d+)/,
-  );
+  const twitterMatch = url.match(/(?:twitter\.com|x\.com)\/([^/]+)\/status\/(\d+)/);
   if (twitterMatch !== null) {
     return <TwitterEmbed username={twitterMatch[1]} tweetId={twitterMatch[2]} />;
   }

@@ -2,11 +2,7 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 
-export async function addReaction(
-  locale: string,
-  envelopeId: string,
-  emoji: string,
-): Promise<boolean> {
+export async function addReaction(locale: string, envelopeId: string, emoji: string): Promise<boolean> {
   const token = getAuthToken();
   if (token === null) {
     return false;
@@ -17,15 +13,12 @@ export async function addReaction(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/mailbox/messages/${envelopeId}/reactions`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-      body: JSON.stringify({ emoji }),
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${locale}/mailbox/messages/${envelopeId}/reactions`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify({ emoji }),
+  });
 
   return response.ok;
 }

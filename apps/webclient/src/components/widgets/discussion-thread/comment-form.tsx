@@ -28,27 +28,30 @@ export function CommentForm(props: CommentFormProps) {
     }
   }, [props.isReply]);
 
-  const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = content.trim();
-    if (trimmed.length < minLength) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      await props.onSubmit(trimmed);
-      setContent("");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
+  const handleSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const trimmed = content.trim();
+      if (trimmed.length < minLength) {
+        return;
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [content, minLength, props.onSubmit]);
+
+      setIsSubmitting(true);
+      setError(null);
+
+      try {
+        await props.onSubmit(trimmed);
+        setContent("");
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [content, minLength, props.onSubmit],
+  );
 
   const formClass = props.isReply === true ? styles.form : `${styles.form} ${styles.formCard}`;
 
@@ -69,11 +72,7 @@ export function CommentForm(props: CommentFormProps) {
 
       <div className={styles.footer}>
         {props.onCancel !== undefined && (
-          <button
-            type="button"
-            onClick={props.onCancel}
-            className={styles.cancelButton}
-          >
+          <button type="button" onClick={props.onCancel} className={styles.cancelButton}>
             {t("Common.Cancel")}
           </button>
         )}

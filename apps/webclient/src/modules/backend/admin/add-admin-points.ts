@@ -11,9 +11,7 @@ export interface AddAdminPointsParams {
   description: string;
 }
 
-export async function addAdminPoints(
-  params: AddAdminPointsParams,
-): Promise<ProfilePointTransaction | null> {
+export async function addAdminPoints(params: AddAdminPointsParams): Promise<ProfilePointTransaction | null> {
   const token = getAuthToken();
 
   if (token === null) {

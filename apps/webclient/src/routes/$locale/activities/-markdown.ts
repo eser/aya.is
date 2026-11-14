@@ -10,10 +10,7 @@ import type { StoryEx } from "@/modules/backend/types";
 /**
  * Generate markdown for the activities listing page
  */
-export function generateActivitiesListingMarkdown(
-  activities: StoryEx[],
-  locale: string,
-): string {
+export function generateActivitiesListingMarkdown(activities: StoryEx[], locale: string): string {
   const frontmatter = formatFrontmatter({
     title: "Activities",
     generated_at: new Date().toISOString(),

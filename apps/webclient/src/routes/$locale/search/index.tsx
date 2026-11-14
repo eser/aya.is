@@ -165,57 +165,45 @@ function SearchPage() {
 
           {query.length > 0 && results !== null && (
             <div className="space-y-4">
-              {results.length === 0
-                ? (
-                  <p className="text-muted-foreground">
-                    {t("Search.NoResults", 'No results found for "{{query}}"', { query })}
+              {results.length === 0 ? (
+                <p className="text-muted-foreground">
+                  {t("Search.NoResults", 'No results found for "{{query}}"', { query })}
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {t("Search.ResultCount", "{{count}} results found", { count: results.length })}
                   </p>
-                )
-                : (
-                  <>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {t("Search.ResultCount", "{{count}} results found", { count: results.length })}
-                    </p>
-                    <div className="space-y-3">
-                      {results.map((result) => (
-                        <Link
-                          key={`${result.type}-${result.id}`}
-                          to={getLink(result)}
-                          className="block p-4 border rounded-lg hover:bg-accent transition-colors no-underline"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5">{getIcon(result)}</div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs px-2 py-0.5 bg-muted rounded">
-                                  {getTypeLabel(result)}
-                                </span>
-                                {!isCustomDomain && result.profile_slug !== null && result.type !== "profile" && (
-                                  <span className="text-xs text-muted-foreground">
-                                    @{result.profile_slug}
-                                  </span>
-                                )}
-                              </div>
-                              <h3 className="font-medium truncate">{getTitle(result)}</h3>
-                              {result.summary !== null && (
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                  {result.summary}
-                                </p>
+                  <div className="space-y-3">
+                    {results.map((result) => (
+                      <Link
+                        key={`${result.type}-${result.id}`}
+                        to={getLink(result)}
+                        className="block p-4 border rounded-lg hover:bg-accent transition-colors no-underline"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5">{getIcon(result)}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs px-2 py-0.5 bg-muted rounded">{getTypeLabel(result)}</span>
+                              {!isCustomDomain && result.profile_slug !== null && result.type !== "profile" && (
+                                <span className="text-xs text-muted-foreground">@{result.profile_slug}</span>
                               )}
                             </div>
-                            {result.image_uri !== null && (
-                              <img
-                                src={result.image_uri}
-                                alt=""
-                                className="size-12 rounded object-cover"
-                              />
+                            <h3 className="font-medium truncate">{getTitle(result)}</h3>
+                            {result.summary !== null && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">{result.summary}</p>
                             )}
                           </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </>
-                )}
+                          {result.image_uri !== null && (
+                            <img src={result.image_uri} alt="" className="size-12 rounded object-cover" />
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 

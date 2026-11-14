@@ -6,8 +6,5 @@ export async function getProfileTranslations(
   locale: string,
   profileSlug: string,
 ): Promise<ProfileTranslation[] | null> {
-  return await fetcher<ProfileTranslation[]>(
-    locale,
-    `/profiles/${profileSlug}/_tx`,
-  );
+  return await fetcher<ProfileTranslation[]>(locale, `/profiles/${profileSlug}/_tx`);
 }

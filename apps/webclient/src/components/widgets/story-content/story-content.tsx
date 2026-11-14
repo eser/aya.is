@@ -58,14 +58,16 @@ export function StoryContent(props: StoryContentProps) {
       <TextContent
         compiledContent={compiledContent}
         rawContent={story.content}
-        shareOptions={showShare
-          ? {
-            title: story.title ?? "",
-            summary: story.summary,
-            slug: story.slug,
-            currentUrl,
-          }
-          : undefined}
+        shareOptions={
+          showShare
+            ? {
+                title: story.title ?? "",
+                summary: story.summary,
+                slug: story.slug,
+                currentUrl,
+              }
+            : undefined
+        }
         bare
         headingOffset={headingOffset}
       />

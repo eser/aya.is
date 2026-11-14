@@ -6,11 +6,7 @@
  */
 
 function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 export function renderInlineMarkdown(text: string): string {
@@ -31,10 +27,7 @@ export function renderInlineMarkdown(text: string): string {
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
   // Links: [text](url) — only allow http/https URLs
-  html = html.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-    '<a href="$2" rel="noopener noreferrer">$1</a>',
-  );
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" rel="noopener noreferrer">$1</a>');
 
   return html;
 }
@@ -49,10 +42,5 @@ export function InlineMarkdown(props: InlineMarkdownProps) {
   const Tag = props.as ?? "p";
   const html = renderInlineMarkdown(props.content);
 
-  return (
-    <Tag
-      className={props.className}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
+  return <Tag className={props.className} dangerouslySetInnerHTML={{ __html: html }} />;
 }

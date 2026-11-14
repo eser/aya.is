@@ -14,17 +14,12 @@ function GridBlock(props: GridBlockProps) {
 
   const gridStyle: React.CSSProperties = useAutoFit
     ? {
-      gridTemplateColumns: `repeat(auto-fit, minmax(${props.minWidth}, 1fr))`,
-    }
+        gridTemplateColumns: `repeat(auto-fit, minmax(${props.minWidth}, 1fr))`,
+      }
     : {};
 
   return (
-    <div
-      className={styles.grid}
-      data-cols={useAutoFit ? undefined : props.cols}
-      data-gap={props.gap}
-      style={gridStyle}
-    >
+    <div className={styles.grid} data-cols={useAutoFit ? undefined : props.cols} data-gap={props.gap} style={gridStyle}>
       {props.children}
     </div>
   );

@@ -66,12 +66,14 @@ function SettingsIndexPage() {
 
       // Update local state with new values
       setCurrentProfile((prev) =>
-        prev === null ? prev : {
-          ...prev,
-          title: data.title,
-          description: data.description,
-          pronouns: data.pronouns || null,
-        }
+        prev === null
+          ? prev
+          : {
+              ...prev,
+              title: data.title,
+              description: data.description,
+              pronouns: data.pronouns || null,
+            },
       );
 
       // Invalidate router cache to refresh profile data
@@ -85,7 +87,7 @@ function SettingsIndexPage() {
 
   const handlePictureUpload = (newUri: string) => {
     // Update local state with new picture URI
-    setCurrentProfile((prev) => prev === null ? prev : { ...prev, profile_picture_uri: newUri });
+    setCurrentProfile((prev) => (prev === null ? prev : { ...prev, profile_picture_uri: newUri }));
 
     // Invalidate router cache to refresh profile data
     router.invalidate();
@@ -93,7 +95,7 @@ function SettingsIndexPage() {
 
   const handlePictureRemove = () => {
     // Clear picture URI from local state
-    setCurrentProfile((prev) => prev === null ? prev : { ...prev, profile_picture_uri: null });
+    setCurrentProfile((prev) => (prev === null ? prev : { ...prev, profile_picture_uri: null }));
 
     // Invalidate router cache to refresh profile data
     router.invalidate();
@@ -108,18 +110,14 @@ function SettingsIndexPage() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-serif text-xl font-semibold text-foreground">{t("Common.General")}</h3>
-          {
-            /* <p className="text-muted-foreground text-sm mt-1">
+          {/* <p className="text-muted-foreground text-sm mt-1">
             {t("Profile.Manage your social media links and external websites.")}
-          </p> */
-          }
+          </p> */}
         </div>
-        {
-          /* <Button onClick={handleOpenAddDialog}>
+        {/* <Button onClick={handleOpenAddDialog}>
           <Plus className="size-4 mr-2" />
           {t("Profile.Add Link")}
-        </Button> */
-        }
+        </Button> */}
       </div>
 
       <div className="space-y-8">
@@ -140,11 +138,7 @@ function SettingsIndexPage() {
 
         {/* Profile Form Section */}
         <div>
-          <EditProfileForm
-            profile={currentProfile}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <EditProfileForm profile={currentProfile} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </div>
       </div>
     </Card>

@@ -15,14 +15,10 @@ export async function hideQuestion(
   questionId: string,
   input: HideQuestionInput,
 ): Promise<HideQuestionResult | null> {
-  const response = await fetcher<HideQuestionResult>(
-    locale,
-    `/profiles/${slug}/_questions/${questionId}/hide`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<HideQuestionResult>(locale, `/profiles/${slug}/_questions/${questionId}/hide`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

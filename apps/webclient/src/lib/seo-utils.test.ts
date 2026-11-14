@@ -20,70 +20,88 @@ const TEST_DEFAULTS = {
 Deno.test("generateMetaTags - basic website", async (t) => {
   await assertSnapshot(
     t,
-    generateMetaTags({
-      title: "Home",
-      description: "Welcome to AYA",
-    }, TEST_DEFAULTS),
+    generateMetaTags(
+      {
+        title: "Home",
+        description: "Welcome to AYA",
+      },
+      TEST_DEFAULTS,
+    ),
   );
 });
 
 Deno.test("generateMetaTags - article with dates and author", async (t) => {
   await assertSnapshot(
     t,
-    generateMetaTags({
-      title: "My Article",
-      description: "An article about testing",
-      type: "article",
-      locale: "tr",
-      url: "https://aya.is/tr/stories/my-article",
-      publishedTime: "2026-01-28T14:30:00Z",
-      modifiedTime: "2026-02-01T10:00:00Z",
-      author: "Eser",
-    }, TEST_DEFAULTS),
+    generateMetaTags(
+      {
+        title: "My Article",
+        description: "An article about testing",
+        type: "article",
+        locale: "tr",
+        url: "https://aya.is/tr/stories/my-article",
+        publishedTime: "2026-01-28T14:30:00Z",
+        modifiedTime: "2026-02-01T10:00:00Z",
+        author: "Eser",
+      },
+      TEST_DEFAULTS,
+    ),
   );
 });
 
 Deno.test("generateMetaTags - noIndex", async (t) => {
   await assertSnapshot(
     t,
-    generateMetaTags({
-      title: "Draft",
-      description: "Not for indexing",
-      noIndex: true,
-    }, TEST_DEFAULTS),
+    generateMetaTags(
+      {
+        title: "Draft",
+        description: "Not for indexing",
+        noIndex: true,
+      },
+      TEST_DEFAULTS,
+    ),
   );
 });
 
 Deno.test("generateMetaTags - custom image", async (t) => {
   await assertSnapshot(
     t,
-    generateMetaTags({
-      title: "With Image",
-      description: "Has custom image",
-      image: "https://aya.is/custom.png",
-    }, TEST_DEFAULTS),
+    generateMetaTags(
+      {
+        title: "With Image",
+        description: "Has custom image",
+        image: "https://aya.is/custom.png",
+      },
+      TEST_DEFAULTS,
+    ),
   );
 });
 
 Deno.test("generateMetaTags - null image", async (t) => {
   await assertSnapshot(
     t,
-    generateMetaTags({
-      title: "No Image",
-      description: "Image is null",
-      image: null,
-    }, TEST_DEFAULTS),
+    generateMetaTags(
+      {
+        title: "No Image",
+        description: "Image is null",
+        image: null,
+      },
+      TEST_DEFAULTS,
+    ),
   );
 });
 
 Deno.test("generateMetaTags - title matches siteName (no duplication)", async (t) => {
   await assertSnapshot(
     t,
-    generateMetaTags({
-      title: "AYA",
-      description: "Main page",
-      siteName: "AYA",
-    }, TEST_DEFAULTS),
+    generateMetaTags(
+      {
+        title: "AYA",
+        description: "Main page",
+        siteName: "AYA",
+      },
+      TEST_DEFAULTS,
+    ),
   );
 });
 

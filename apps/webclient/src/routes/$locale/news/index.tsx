@@ -76,10 +76,7 @@ function NewsPage() {
             )}
           </div>
 
-          <StoriesPageClient
-            initialStories={news}
-            basePath={`/${locale}/news`}
-          />
+          <StoriesPageClient initialStories={news} basePath={`/${locale}/news`} />
         </div>
       </section>
     </PageLayout>

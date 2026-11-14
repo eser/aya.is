@@ -1,17 +1,15 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { cn } from "@/lib/utils";
 
-function AspectRatio({
-  ratio,
-  className,
-  ...props
-}: React.ComponentProps<"div"> & { ratio: number }) {
+function AspectRatio({ ratio, className, ...props }: React.ComponentProps<"div"> & { ratio: number }) {
   return (
     <div
       data-slot="aspect-ratio"
-      style={{
-        "--ratio": ratio,
-      } as React.CSSProperties}
+      style={
+        {
+          "--ratio": ratio,
+        } as React.CSSProperties
+      }
       className={cn("relative aspect-(--ratio)", className)}
       {...props}
     />

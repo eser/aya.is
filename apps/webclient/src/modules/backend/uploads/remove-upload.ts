@@ -6,16 +6,9 @@ export interface RemoveUploadResult {
   message: string;
 }
 
-export async function removeUpload(
-  locale: string,
-  key: string,
-): Promise<RemoveUploadResult | null> {
-  const response = await fetcher<RemoveUploadResult>(
-    locale,
-    `/site/uploads/${key}`,
-    {
-      method: "DELETE",
-    },
-  );
+export async function removeUpload(locale: string, key: string): Promise<RemoveUploadResult | null> {
+  const response = await fetcher<RemoveUploadResult>(locale, `/site/uploads/${key}`, {
+    method: "DELETE",
+  });
   return response;
 }

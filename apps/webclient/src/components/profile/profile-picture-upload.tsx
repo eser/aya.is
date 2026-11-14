@@ -81,11 +81,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
       }
 
       // Step 2: Upload file directly to S3/R2
-      const uploadSuccess = await backend.uploadToPresignedURL(
-        presignResponse.upload_url,
-        file,
-        file.type,
-      );
+      const uploadSuccess = await backend.uploadToPresignedURL(presignResponse.upload_url, file, file.type);
 
       if (!uploadSuccess) {
         toast.error(t("Profile.Failed to upload picture"));
@@ -124,11 +120,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
     setIsRemoving(true);
     try {
       // Send empty string to signal "remove picture" to the backend
-      const result = await backend.updateProfilePicture(
-        props.locale,
-        props.profileSlug,
-        "",
-      );
+      const result = await backend.updateProfilePicture(props.locale, props.profileSlug, "");
 
       if (result !== null) {
         toast.success(t("Profile.Picture removed successfully"));
@@ -171,19 +163,13 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
             isBusy && "cursor-not-allowed opacity-50",
           )}
         >
-          {hasImage
-            ? (
-              <img
-                src={sanitizeImageSrc(displayImageUri)}
-                alt={props.profileTitle}
-                className="size-full object-cover"
-              />
-            )
-            : (
-              <div className="size-full flex items-center justify-center bg-muted">
-                <User className="size-12 text-muted-foreground" />
-              </div>
-            )}
+          {hasImage ? (
+            <img src={sanitizeImageSrc(displayImageUri)} alt={props.profileTitle} className="size-full object-cover" />
+          ) : (
+            <div className="size-full flex items-center justify-center bg-muted">
+              <User className="size-12 text-muted-foreground" />
+            </div>
+          )}
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -204,53 +190,34 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleClick}
-          disabled={isBusy}
-        >
-          {isUploading
-            ? (
-              <>
-                <Loader2 className="size-4 mr-2 animate-spin" />
-                {t("Profile.Uploading...")}
-              </>
-            )
-            : (
-              <>
-                <Camera className="size-4 mr-2" />
-                {t("Profile.Change Picture")}
-              </>
-            )}
+        <Button type="button" variant="outline" size="sm" onClick={handleClick} disabled={isBusy}>
+          {isUploading ? (
+            <>
+              <Loader2 className="size-4 mr-2 animate-spin" />
+              {t("Profile.Uploading...")}
+            </>
+          ) : (
+            <>
+              <Camera className="size-4 mr-2" />
+              {t("Profile.Change Picture")}
+            </>
+          )}
         </Button>
 
         {hasImage && (
           <AlertDialog>
-            <AlertDialogTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isBusy}
-                />
-              }
-            >
-              {isRemoving
-                ? (
-                  <>
-                    <Loader2 className="size-4 mr-2 animate-spin" />
-                    {t("Profile.Removing...")}
-                  </>
-                )
-                : (
-                  <>
-                    <Trash2 className="size-4 mr-2" />
-                    {t("Profile.Remove Picture")}
-                  </>
-                )}
+            <AlertDialogTrigger render={<Button type="button" variant="outline" size="sm" disabled={isBusy} />}>
+              {isRemoving ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  {t("Profile.Removing...")}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="size-4 mr-2" />
+                  {t("Profile.Remove Picture")}
+                </>
+              )}
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -261,9 +228,7 @@ export function ProfilePictureUpload(props: ProfilePictureUploadProps) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
-                <AlertDialogAction onClick={handleRemove}>
-                  {t("Profile.Remove Picture")}
-                </AlertDialogAction>
+                <AlertDialogAction onClick={handleRemove}>{t("Profile.Remove Picture")}</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

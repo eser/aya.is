@@ -12,14 +12,10 @@ export async function createStoryComment(
   storySlug: string,
   input: CreateCommentInput,
 ): Promise<DiscussionComment | null> {
-  const response = await fetcher<DiscussionComment>(
-    locale,
-    `/stories/${storySlug}/_discussions`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<DiscussionComment>(locale, `/stories/${storySlug}/_discussions`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

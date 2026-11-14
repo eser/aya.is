@@ -11,12 +11,7 @@ type PageLayoutProps = {
 
 export function PageLayout(props: PageLayoutProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col",
-        props.fullHeight === true ? "h-dvh overflow-hidden" : "min-h-screen",
-      )}
-    >
+    <div className={cn("flex flex-col", props.fullHeight === true ? "h-dvh overflow-hidden" : "min-h-screen")}>
       <Header />
       <main id="main-content" className={cn("flex-1", props.fullHeight === true && "min-h-0 overflow-hidden")}>
         {props.children}

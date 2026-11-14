@@ -46,9 +46,7 @@ function formatHourLabel(utcHour: number): string {
 }
 
 function buildHourLabels(): Map<string, string> {
-  return new Map(
-    Array.from({ length: 24 }, (_, i) => [String(i), formatHourLabel(i)]),
-  );
+  return new Map(Array.from({ length: 24 }, (_, i) => [String(i), formatHourLabel(i)]));
 }
 
 function formatLastBulletinDate(isoDate: string, locale: string): string {
@@ -173,9 +171,7 @@ function BulletinsSettingsPage() {
       <div className={styles.header}>
         <div>
           <h3 className={styles.title}>{t("Common.Bulletins")}</h3>
-          <p className={styles.description}>
-            {t("Bulletin.Manage your digest delivery preferences.")}
-          </p>
+          <p className={styles.description}>{t("Bulletin.Manage your digest delivery preferences.")}</p>
         </div>
       </div>
 
@@ -215,11 +211,7 @@ function BulletinsSettingsPage() {
               />
               <span className={styles.checkboxLabel}>{t("Bulletin.Telegram")}</span>
             </label>
-            {!telegramConnected && (
-              <p className={styles.checkboxHint}>
-                {t("Bulletin.Telegram not connected")}
-              </p>
-            )}
+            {!telegramConnected && <p className={styles.checkboxHint}>{t("Bulletin.Telegram not connected")}</p>}
           </div>
         </div>
 
@@ -237,9 +229,7 @@ function BulletinsSettingsPage() {
               disabled={isDontSend}
             >
               <SelectTrigger className="w-48">
-                <SelectValue>
-                  {(value: string) => hourLabels.get(value) ?? value}
-                </SelectValue>
+                <SelectValue>{(value: string) => hourLabels.get(value) ?? value}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 24 }, (_, i) => (
@@ -253,19 +243,17 @@ function BulletinsSettingsPage() {
         </div>
 
         {/* Email info box */}
-        {email !== null && email.length > 0
-          ? (
-            <div className={styles.infoBox}>
-              <p>{t("Bulletin.Emails delivered to", { email })}</p>
-              <p>{t("Bulletin.Email help")}</p>
-            </div>
-          )
-          : (
-            <div className={styles.infoBoxWarning}>
-              <p>{t("Bulletin.Email not specified")}</p>
-              <p>{t("Bulletin.Email help")}</p>
-            </div>
-          )}
+        {email !== null && email.length > 0 ? (
+          <div className={styles.infoBox}>
+            <p>{t("Bulletin.Emails delivered to", { email })}</p>
+            <p>{t("Bulletin.Email help")}</p>
+          </div>
+        ) : (
+          <div className={styles.infoBoxWarning}>
+            <p>{t("Bulletin.Email not specified")}</p>
+            <p>{t("Bulletin.Email help")}</p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
@@ -273,8 +261,8 @@ function BulletinsSettingsPage() {
         <div className={styles.lastSent}>
           {lastBulletinAt !== null
             ? t("Bulletin.Last digest sent at", {
-              date: formatLastBulletinDate(lastBulletinAt, params.locale),
-            })
+                date: formatLastBulletinDate(lastBulletinAt, params.locale),
+              })
             : t("Bulletin.No digest sent yet")}
         </div>
         <Button onClick={handleSave} disabled={isSaving}>

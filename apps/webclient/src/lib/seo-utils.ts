@@ -64,10 +64,7 @@ export function generateMetaTags(
 
   // Add image only if available
   if (imageUrl !== null && imageUrl !== "") {
-    tags.push(
-      { property: "og:image", content: imageUrl },
-      { property: "og:image:alt", content: title },
-    );
+    tags.push({ property: "og:image", content: imageUrl }, { property: "og:image:alt", content: title });
   }
 
   // Twitter Card

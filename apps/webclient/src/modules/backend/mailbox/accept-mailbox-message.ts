@@ -2,10 +2,7 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 
-export async function acceptMailboxMessage(
-  locale: string,
-  envelopeId: string,
-): Promise<boolean> {
+export async function acceptMailboxMessage(locale: string, envelopeId: string): Promise<boolean> {
   const token = getAuthToken();
   if (token === null) {
     return false;
@@ -16,14 +13,11 @@ export async function acceptMailboxMessage(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/mailbox/messages/${envelopeId}/accept`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${locale}/mailbox/messages/${envelopeId}/accept`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+  });
 
   return response.ok;
 }

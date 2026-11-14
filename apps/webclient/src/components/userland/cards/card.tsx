@@ -17,13 +17,7 @@ export function Card(props: CardProps) {
         {props.category !== undefined && <div className={styles.tags}>{props.category}</div>}
         {props.imageUri !== undefined && props.imageUri !== null && (
           <div className={styles.image}>
-            <img
-              src={props.imageUri}
-              width={220}
-              height={220}
-              alt={props.title}
-              loading="lazy"
-            />
+            <img src={props.imageUri} width={220} height={220} alt={props.title} loading="lazy" />
           </div>
         )}
         <h5 className={styles.title}>{props.title}</h5>

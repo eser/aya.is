@@ -1,8 +1,6 @@
 {
   "coverage-gutters.coverageBaseDir": "./",
-  "coverage-gutters.coverageFileNames": [
-    "cov_profile.lcov"
-  ],
+  "coverage-gutters.coverageFileNames": ["cov_profile.lcov"],
   "coverage-gutters.showGutterCoverage": true,
   "coverage-gutters.showLineCoverage": true,
   "coverage-gutters.showRulerCoverage": true,
@@ -32,15 +30,11 @@
   "typescript.suggest.jsdoc.generateReturns": true,
   "typescript.suggest.paths": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
-  "go.testFlags": [
-    "-failfast"
-  ],
+  "go.testFlags": ["-failfast"],
   "go.toolsManagement.autoUpdate": true,
   "go.useLanguageServer": true,
   "go.vetOnSave": "package",
-  "go.lintFlags": [
-    "--build-tags=integration,unit"
-  ],
+  "go.lintFlags": ["--build-tags=integration,unit"],
   "go.lintOnSave": "package",
   "go.lintTool": "golangci-lint",
   "go.inlayHints.parameterNames": true,
@@ -51,9 +45,7 @@
   "go.inlayHints.compositeLiteralFields": true,
   "go.inlayHints.assignVariableTypes": true,
   "gopls": {
-    "build.buildFlags": [
-      "-tags=integration,unit"
-    ],
+    "build.buildFlags": ["-tags=integration,unit"],
     "ui.semanticTokens": true
   },
   "makefile.configureOnOpen": false,

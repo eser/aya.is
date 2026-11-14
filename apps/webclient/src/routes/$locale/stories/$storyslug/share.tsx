@@ -104,9 +104,7 @@ function ShareWizardPage() {
       <PageLayout>
         <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
           <ShieldX className="size-16 text-muted-foreground" />
-          <h2 className="text-xl font-semibold">
-            {t("ShareWizard.Access Denied")}
-          </h2>
+          <h2 className="text-xl font-semibold">{t("ShareWizard.Access Denied")}</h2>
           <p className="text-muted-foreground max-w-md">
             {t("ShareWizard.You don't have permission to use the share wizard for this story.")}
           </p>
@@ -120,12 +118,7 @@ function ShareWizardPage() {
 
   return (
     <PageLayout>
-      <ShareWizard
-        story={story}
-        locale={params.locale}
-        currentUrl={currentUrl}
-        onBack={handleBack}
-      />
+      <ShareWizard story={story} locale={params.locale} currentUrl={currentUrl} onBack={handleBack} />
     </PageLayout>
   );
 }

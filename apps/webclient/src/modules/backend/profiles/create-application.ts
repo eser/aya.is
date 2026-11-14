@@ -12,21 +12,18 @@ export async function createApplication(
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_candidates/apply`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        applicant_message: applicantMessage,
-        form_responses: formResponses,
-      }),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_candidates/apply`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify({
+      applicant_message: applicantMessage,
+      form_responses: formResponses,
+    }),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

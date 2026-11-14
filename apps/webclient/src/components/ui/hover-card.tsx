@@ -20,12 +20,8 @@ function HoverCardContent({
   align = "center",
   alignOffset = 4,
   ...props
-}:
-  & PreviewCardPrimitive.Popup.Props
-  & Pick<
-    PreviewCardPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset"
-  >) {
+}: PreviewCardPrimitive.Popup.Props &
+  Pick<PreviewCardPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">) {
   return (
     <PreviewCardPrimitive.Portal data-slot="hover-card-portal">
       <PreviewCardPrimitive.Positioner

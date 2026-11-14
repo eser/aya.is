@@ -96,10 +96,7 @@ export type MdxComponentMap = NonNullable<React.ComponentProps<MdxContentCompone
  * are excluded. Useful for user-generated content like Q&A where custom
  * MDX components should not be rendered.
  */
-export function createMdxComponents(
-  offset = 1,
-  includeUserlandComponents = true,
-): MdxComponentMap {
+export function createMdxComponents(offset = 1, includeUserlandComponents = true): MdxComponentMap {
   const components: MdxComponentMap = {};
 
   // Override <a> to enable app deep linking on touch devices
@@ -170,17 +167,19 @@ export const mdxComponents = createMdxComponents(1);
 function preprocessHtmlStyles(source: string): string {
   return source.replace(/style="([^"]*)"/g, (_match, styleStr: string) => {
     const declarations = styleStr.split(";").filter((s: string) => s.trim().length > 0);
-    const entries = declarations.map((decl: string) => {
-      const colonIdx = decl.indexOf(":");
-      if (colonIdx === -1) return null;
+    const entries = declarations
+      .map((decl: string) => {
+        const colonIdx = decl.indexOf(":");
+        if (colonIdx === -1) return null;
 
-      const prop = decl.slice(0, colonIdx).trim();
-      const value = decl.slice(colonIdx + 1).trim();
-      // Convert CSS kebab-case to camelCase (e.g. border-radius → borderRadius)
-      const camelProp = prop.replace(/-([a-z])/g, (_: string, letter: string) => letter.toUpperCase());
+        const prop = decl.slice(0, colonIdx).trim();
+        const value = decl.slice(colonIdx + 1).trim();
+        // Convert CSS kebab-case to camelCase (e.g. border-radius → borderRadius)
+        const camelProp = prop.replace(/-([a-z])/g, (_: string, letter: string) => letter.toUpperCase());
 
-      return `${camelProp}: "${value}"`;
-    }).filter((entry: string | null) => entry !== null);
+        return `${camelProp}: "${value}"`;
+      })
+      .filter((entry: string | null) => entry !== null);
 
     return `style={{${entries.join(", ")}}}`;
   });
@@ -202,13 +201,16 @@ export async function compileMdx(source: string): Promise<string> {
       outputFormat: "function-body",
       remarkPlugins: [remarkEmbed, remarkGfm],
       rehypePlugins: [
-        [rehypeShiki, {
-          themes: {
-            light: "github-light",
-            dark: "github-dark",
+        [
+          rehypeShiki,
+          {
+            themes: {
+              light: "github-light",
+              dark: "github-dark",
+            },
+            defaultColor: false,
           },
-          defaultColor: false,
-        }],
+        ],
         rehypeSlug,
         [rehypeAutolinkHeadings, { behavior: "wrap" }],
         rehypeExternalLinks,
@@ -223,13 +225,16 @@ export async function compileMdx(source: string): Promise<string> {
       format: "md",
       remarkPlugins: [remarkGfm],
       rehypePlugins: [
-        [rehypeShiki, {
-          themes: {
-            light: "github-light",
-            dark: "github-dark",
+        [
+          rehypeShiki,
+          {
+            themes: {
+              light: "github-light",
+              dark: "github-dark",
+            },
+            defaultColor: false,
           },
-          defaultColor: false,
-        }],
+        ],
         rehypeSlug,
         [rehypeAutolinkHeadings, { behavior: "wrap" }],
         rehypeExternalLinks,
@@ -275,9 +280,7 @@ export async function compileMdxLite(source: string): Promise<string> {
  * Runs compiled MDX code synchronously and returns the React component.
  * This can run on both server and client for SSR support.
  */
-export function runMdxSync(
-  compiledCode: string,
-): MdxContentComponent {
+export function runMdxSync(compiledCode: string): MdxContentComponent {
   const { default: MdxContent } = runSync(compiledCode, {
     ...runtime,
     baseUrl: import.meta.url,

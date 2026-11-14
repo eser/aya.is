@@ -7,9 +7,7 @@ import type { SessionCurrentResponse } from "./types.ts";
  * Returns auth state, token, and preferences in a single response.
  * This is the primary session initialization call on app mount.
  */
-export async function getSessionCurrent(
-  locale: string,
-): Promise<SessionCurrentResponse> {
+export async function getSessionCurrent(locale: string): Promise<SessionCurrentResponse> {
   const backendUri = getBackendUri();
 
   try {

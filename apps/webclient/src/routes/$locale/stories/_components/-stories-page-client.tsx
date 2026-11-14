@@ -42,20 +42,19 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
   const groupedStories = React.useMemo(() => {
     if (props.initialStories === null) return [];
 
-    const storiesWithDates = props.initialStories
-      .map((story) => {
-        const slugDate = parseDateFromSlug(story.slug);
-        if (slugDate !== null) {
-          return { story, date: slugDate };
-        }
+    const storiesWithDates = props.initialStories.map((story) => {
+      const slugDate = parseDateFromSlug(story.slug);
+      if (slugDate !== null) {
+        return { story, date: slugDate };
+      }
 
-        // Fall back to published_at or created_at
-        const fallback = story.published_at ?? story.created_at;
-        const parsed = new Date(fallback);
-        const fallbackDate = Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 1900 ? new Date() : parsed;
+      // Fall back to published_at or created_at
+      const fallback = story.published_at ?? story.created_at;
+      const parsed = new Date(fallback);
+      const fallbackDate = Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 1900 ? new Date() : parsed;
 
-        return { story, date: fallbackDate };
-      });
+      return { story, date: fallbackDate };
+    });
 
     storiesWithDates.sort((a, b) => b.date.getTime() - a.date.getTime());
 
@@ -75,9 +74,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
       groups.get(monthYear)!.stories.push(story);
     });
 
-    return Array.from(groups.values()).sort(
-      (a, b) => b.date.getTime() - a.date.getTime(),
-    );
+    return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [props.initialStories, locale]);
 
   const totalStories = props.initialStories !== null ? props.initialStories.length : 0;
@@ -90,7 +87,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
       ...story,
       groupMonthYear: group.monthYear,
       groupDate: group.date,
-    }))
+    })),
   );
   const currentPageStories = allStoriesFlat.slice(currentOffset, endIndex);
 
@@ -111,9 +108,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
       groups.get(monthYear)!.stories.push(story);
     });
 
-    return Array.from(groups.values()).sort(
-      (a, b) => b.date.getTime() - a.date.getTime(),
-    );
+    return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [currentPageStories]);
 
   const handleOffsetChange = (newOffset: number) => {
@@ -122,11 +117,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
   };
 
   if (props.initialStories === null || props.initialStories.length === 0) {
-    return (
-      <p className="text-muted-foreground">
-        {t("Layout.Content not yet available.")}
-      </p>
-    );
+    return <p className="text-muted-foreground">{t("Layout.Content not yet available.")}</p>;
   }
 
   return (
@@ -138,11 +129,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
           </h2>
           <div>
             {group.stories.map((story) => (
-              <Story
-                key={story.id}
-                story={story}
-                profileSlug={props.profileSlug}
-              />
+              <Story key={story.id} story={story} profileSlug={props.profileSlug} />
             ))}
           </div>
         </div>
@@ -158,9 +145,7 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
                   onClick={(e) => {
                     e.preventDefault();
                     if (currentOffset > 0) {
-                      handleOffsetChange(
-                        Math.max(0, currentOffset - ITEMS_PER_PAGE),
-                      );
+                      handleOffsetChange(Math.max(0, currentOffset - ITEMS_PER_PAGE));
                     }
                   }}
                   aria-disabled={currentOffset <= 0}
@@ -170,25 +155,23 @@ export function StoriesPageClient(props: StoriesPageClientProps) {
                 </PaginationPrevious>
               </PaginationItem>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => {
-                  const pageOffset = (page - 1) * ITEMS_PER_PAGE;
-                  return (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleOffsetChange(pageOffset);
-                        }}
-                        isActive={currentPage === page}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                },
-              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                const pageOffset = (page - 1) * ITEMS_PER_PAGE;
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleOffsetChange(pageOffset);
+                      }}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
 
               <PaginationItem>
                 <PaginationNext

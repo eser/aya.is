@@ -60,10 +60,12 @@ type SlugAvailability = {
 const optionalUrlSchema = z.union([
   z.literal(null),
   z.literal(""),
-  z.string().url().refine(
-    (url) => url.startsWith("http://") || url.startsWith("https://"),
-    { message: "URL must use http or https protocol" },
-  ),
+  z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+      message: "URL must use http or https protocol",
+    }),
 ]);
 
 // Known API messages that need translation
@@ -158,18 +160,10 @@ export function ContentEditor(props: ContentEditorProps) {
   const [slug, setSlug] = React.useState(initialData.slug);
   const [summary, setSummary] = React.useState(initialData.summary);
   const [content, setContent] = React.useState(initialData.content);
-  const [storyPictureUri, setStoryPictureUri] = React.useState(
-    initialData.storyPictureUri ?? null,
-  );
-  const [kind, setKind] = React.useState<StoryKind>(
-    initialData.kind ?? "article",
-  );
-  const [visibility, setVisibility] = React.useState<ContentVisibility>(
-    initialData.visibility ?? "public",
-  );
-  const [featDiscussions, setFeatDiscussions] = React.useState(
-    initialData.featDiscussions ?? false,
-  );
+  const [storyPictureUri, setStoryPictureUri] = React.useState(initialData.storyPictureUri ?? null);
+  const [kind, setKind] = React.useState<StoryKind>(initialData.kind ?? "article");
+  const [visibility, setVisibility] = React.useState<ContentVisibility>(initialData.visibility ?? "public");
+  const [featDiscussions, setFeatDiscussions] = React.useState(initialData.featDiscussions ?? false);
 
   // Activity-specific state
   const [activityKind, setActivityKind] = React.useState(initialData.activityKind ?? "meetup");
@@ -364,9 +358,7 @@ export function ContentEditor(props: ContentEditorProps) {
       const prefixes = imageFieldConfig.allowedPrefixes;
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
-        setStoryPictureUriError(
-          t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
-        );
+        setStoryPictureUriError(t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`);
         return;
       }
     }
@@ -379,7 +371,8 @@ export function ContentEditor(props: ContentEditorProps) {
 
   // Check if there are unsaved changes
   const hasChanges = React.useMemo(() => {
-    const baseChanged = title !== savedData.title ||
+    const baseChanged =
+      title !== savedData.title ||
       slug !== savedData.slug ||
       summary !== savedData.summary ||
       content !== savedData.content ||
@@ -390,7 +383,8 @@ export function ContentEditor(props: ContentEditorProps) {
       seriesId !== (savedData.seriesId ?? null);
 
     if (kind === "activity") {
-      return baseChanged ||
+      return (
+        baseChanged ||
         activityKind !== (savedData.activityKind ?? "meetup") ||
         activityTimeStart !== (savedData.activityTimeStart ?? "") ||
         activityTimeEnd !== (savedData.activityTimeEnd ?? "") ||
@@ -399,7 +393,8 @@ export function ContentEditor(props: ContentEditorProps) {
         rsvpMode !== (savedData.rsvpMode ?? "enabled") ||
         dateMode !== (savedData.dateMode ?? "fixed") ||
         dateProposalAccess !== (savedData.dateProposalAccess ?? "anyone") ||
-        dateVoteAccess !== (savedData.dateVoteAccess ?? "anyone");
+        dateVoteAccess !== (savedData.dateVoteAccess ?? "anyone")
+      );
     }
     return baseChanged;
   }, [
@@ -454,16 +449,16 @@ export function ContentEditor(props: ContentEditorProps) {
     seriesId,
     ...(kind === "activity"
       ? {
-        activityKind,
-        activityTimeStart,
-        activityTimeEnd,
-        externalActivityUri,
-        externalAttendanceUri,
-        rsvpMode,
-        dateMode,
-        dateProposalAccess,
-        dateVoteAccess,
-      }
+          activityKind,
+          activityTimeStart,
+          activityTimeEnd,
+          externalActivityUri,
+          externalAttendanceUri,
+          rsvpMode,
+          dateMode,
+          dateProposalAccess,
+          dateVoteAccess,
+        }
       : {}),
   });
 
@@ -478,8 +473,8 @@ export function ContentEditor(props: ContentEditorProps) {
     }
 
     // Check for validation errors - only block on errors, not warnings
-    const hasSlugError = slugError !== null ||
-      (slugAvailability.isAvailable === false && slugAvailability.severity === "error");
+    const hasSlugError =
+      slugError !== null || (slugAvailability.isAvailable === false && slugAvailability.severity === "error");
     if (hasSlugError || titleError !== null) {
       return;
     }
@@ -489,9 +484,7 @@ export function ContentEditor(props: ContentEditorProps) {
       const prefixes = imageFieldConfig.allowedPrefixes;
 
       if (!isAllowedURI(storyPictureUri, prefixes)) {
-        setStoryPictureUriError(
-          t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`,
-        );
+        setStoryPictureUriError(t("ContentEditor.URI must start with allowed prefix") + `: ${prefixes.join(", ")}`);
         return;
       }
     }
@@ -548,9 +541,7 @@ export function ContentEditor(props: ContentEditorProps) {
   };
 
   const handleImageInsert = (url: string, alt: string) => {
-    const textarea = document.querySelector(
-      `.${styles.markdownTextarea}`,
-    ) as HTMLTextAreaElement | null;
+    const textarea = document.querySelector(`.${styles.markdownTextarea}`) as HTMLTextAreaElement | null;
     if (textarea === null) return;
 
     const markdown = `![${alt}](${url})`;
@@ -561,11 +552,14 @@ export function ContentEditor(props: ContentEditorProps) {
     setStoryPictureUri(url);
   };
 
-  const handleLocaleChange = React.useCallback((newLocale: string) => {
-    if (onLocaleChange === undefined) return;
-    if (hasChanges && !globalThis.confirm(t("ContentEditor.Unsaved Changes"))) return;
-    onLocaleChange(newLocale);
-  }, [onLocaleChange, hasChanges, t]);
+  const handleLocaleChange = React.useCallback(
+    (newLocale: string) => {
+      if (onLocaleChange === undefined) return;
+      if (hasChanges && !globalThis.confirm(t("ContentEditor.Unsaved Changes"))) return;
+      onLocaleChange(newLocale);
+    },
+    [onLocaleChange, hasChanges, t],
+  );
 
   // Cmd+S / Ctrl+S to save
   React.useEffect(() => {
@@ -615,9 +609,9 @@ export function ContentEditor(props: ContentEditorProps) {
           onDelete={handleDelete}
           canDelete={!isNew && onDelete !== undefined && isAdmin}
           locale={locale}
-          onOpenLocalizationsDialog={!isNew && onLocaleChange !== undefined
-            ? () => setIsLocalizationsDialogOpen(true)
-            : undefined}
+          onOpenLocalizationsDialog={
+            !isNew && onLocaleChange !== undefined ? () => setIsLocalizationsDialogOpen(true) : undefined
+          }
           onLocaleChange={isNew ? onLocaleChange : undefined}
           onOpenSeriesDialog={contentType === "story" && !isNew ? () => setIsSeriesDialogOpen(true) : undefined}
         />
@@ -630,8 +624,8 @@ export function ContentEditor(props: ContentEditorProps) {
           <span>
             {txIsManaged
               ? t(
-                "ContentEditor.This translation is synced from an external source and cannot be edited. You can add translations in other languages.",
-              )
+                  "ContentEditor.This translation is synced from an external source and cannot be edited. You can add translations in other languages.",
+                )
               : t("ContentEditor.This story is synced from an external source. Some fields cannot be edited.")}
           </span>
         </div>
@@ -640,16 +634,9 @@ export function ContentEditor(props: ContentEditorProps) {
       {/* Main Content */}
       <div className={styles.editorMain}>
         {/* Sidebar - Metadata */}
-        <div
-          className={cn(
-            styles.editorSidebar,
-            sidebarCollapsed && styles.editorSidebarCollapsed,
-          )}
-        >
+        <div className={cn(styles.editorSidebar, sidebarCollapsed && styles.editorSidebarCollapsed)}>
           <div className={styles.sidebarHeader}>
-            <span className={cn(styles.sidebarTitle, sidebarCollapsed && "hidden")}>
-              {t("ContentEditor.Metadata")}
-            </span>
+            <span className={cn(styles.sidebarTitle, sidebarCollapsed && "hidden")}>{t("ContentEditor.Metadata")}</span>
             <Button
               variant="ghost"
               size="icon-sm"
@@ -836,11 +823,13 @@ export function ContentEditor(props: ContentEditorProps) {
                         >
                           <SelectTrigger id="date-proposal-access">
                             <span>
-                              {t(`Activities.${
-                                dateProposalAccess === "anyone"
-                                  ? "Anyone"
-                                  : dateProposalAccess.charAt(0).toUpperCase() + dateProposalAccess.slice(1) + "+"
-                              }`)}
+                              {t(
+                                `Activities.${
+                                  dateProposalAccess === "anyone"
+                                    ? "Anyone"
+                                    : dateProposalAccess.charAt(0).toUpperCase() + dateProposalAccess.slice(1) + "+"
+                                }`,
+                              )}
                             </span>
                           </SelectTrigger>
                           <SelectContent>
@@ -851,9 +840,7 @@ export function ContentEditor(props: ContentEditorProps) {
                             <SelectItem value="maintainer">{t("Activities.Maintainer+")}</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FieldDescription>
-                          {t("Activities.Who can propose dates")}
-                        </FieldDescription>
+                        <FieldDescription>{t("Activities.Who can propose dates")}</FieldDescription>
                       </Field>
 
                       <Field className={styles.metadataField}>
@@ -871,11 +858,13 @@ export function ContentEditor(props: ContentEditorProps) {
                         >
                           <SelectTrigger id="date-vote-access">
                             <span>
-                              {t(`Activities.${
-                                dateVoteAccess === "anyone"
-                                  ? "Anyone"
-                                  : dateVoteAccess.charAt(0).toUpperCase() + dateVoteAccess.slice(1) + "+"
-                              }`)}
+                              {t(
+                                `Activities.${
+                                  dateVoteAccess === "anyone"
+                                    ? "Anyone"
+                                    : dateVoteAccess.charAt(0).toUpperCase() + dateVoteAccess.slice(1) + "+"
+                                }`,
+                              )}
                             </span>
                           </SelectTrigger>
                           <SelectContent>
@@ -886,9 +875,7 @@ export function ContentEditor(props: ContentEditorProps) {
                             <SelectItem value="maintainer">{t("Activities.Maintainer+")}</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FieldDescription>
-                          {t("Activities.Who can vote on proposals")}
-                        </FieldDescription>
+                        <FieldDescription>{t("Activities.Who can vote on proposals")}</FieldDescription>
                       </Field>
                     </>
                   )}
@@ -934,13 +921,15 @@ export function ContentEditor(props: ContentEditorProps) {
                     >
                       <SelectTrigger id="rsvp-mode">
                         <span>
-                          {t(`Activities.RSVP ${
-                            rsvpMode === "enabled"
-                              ? "Enabled"
-                              : rsvpMode === "managed_externally"
-                              ? "Managed Externally"
-                              : "Disabled"
-                          }`)}
+                          {t(
+                            `Activities.RSVP ${
+                              rsvpMode === "enabled"
+                                ? "Enabled"
+                                : rsvpMode === "managed_externally"
+                                  ? "Managed Externally"
+                                  : "Disabled"
+                            }`,
+                          )}
                         </span>
                       </SelectTrigger>
                       <SelectContent>
@@ -994,8 +983,11 @@ export function ContentEditor(props: ContentEditorProps) {
               {/* Slug */}
               <Field
                 className={styles.metadataField}
-                data-invalid={(showSlugValidation && slugError !== null) ||
-                  (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
+                data-invalid={
+                  (showSlugValidation && slugError !== null) ||
+                  (!slugAvailability.isChecking && slugAvailability.severity === "error") ||
+                  undefined
+                }
               >
                 <FieldLabel htmlFor="slug" className={styles.metadataLabel}>
                   {t("Common.Slug")}
@@ -1014,15 +1006,19 @@ export function ContentEditor(props: ContentEditorProps) {
                       if (!showSlugValidation) setShowSlugValidation(true);
                     }}
                     placeholder={t("ContentEditor.url-friendly-slug")}
-                    aria-invalid={(showSlugValidation && slugError !== null) ||
-                      (!slugAvailability.isChecking && slugAvailability.severity === "error") || undefined}
+                    aria-invalid={
+                      (showSlugValidation && slugError !== null) ||
+                      (!slugAvailability.isChecking && slugAvailability.severity === "error") ||
+                      undefined
+                    }
                     className="pr-8"
                     disabled={isManaged}
                   />
                   {showSlugValidation && slug.length >= 3 && (
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                       {slugAvailability.isChecking && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
-                      {!slugAvailability.isChecking && slugAvailability.isAvailable === true &&
+                      {!slugAvailability.isChecking &&
+                        slugAvailability.isAvailable === true &&
                         slugAvailability.severity !== "warning" && <Check className="size-4 text-green-600" />}
                       {!slugAvailability.isChecking && slugAvailability.severity === "warning" && (
                         <AlertTriangle className="size-4 text-amber-500" />
@@ -1031,14 +1027,18 @@ export function ContentEditor(props: ContentEditorProps) {
                   )}
                 </div>
                 {showSlugValidation && slugError !== null && <FieldError>{slugError}</FieldError>}
-                {showSlugValidation && slugError === null && !slugAvailability.isChecking &&
-                  slugAvailability.severity === "error" && slugAvailability.message !== null && (
-                  <FieldError>{slugAvailability.message}</FieldError>
-                )}
-                {showSlugValidation && slugError === null && !slugAvailability.isChecking &&
-                  slugAvailability.severity === "warning" && slugAvailability.message !== null && (
-                  <p className="text-sm text-amber-600 mt-1">{slugAvailability.message}</p>
-                )}
+                {showSlugValidation &&
+                  slugError === null &&
+                  !slugAvailability.isChecking &&
+                  slugAvailability.severity === "error" &&
+                  slugAvailability.message !== null && <FieldError>{slugAvailability.message}</FieldError>}
+                {showSlugValidation &&
+                  slugError === null &&
+                  !slugAvailability.isChecking &&
+                  slugAvailability.severity === "warning" &&
+                  slugAvailability.message !== null && (
+                    <p className="text-sm text-amber-600 mt-1">{slugAvailability.message}</p>
+                  )}
               </Field>
 
               {/* Picture URI (Story Picture or Cover Picture depending on entity type) */}
@@ -1066,55 +1066,41 @@ export function ContentEditor(props: ContentEditorProps) {
                   >
                     <Upload className="size-4" />
                   </Button>
-                  {!isNew && !isManaged && initialData.slug !== ""
-                    ? (
-                      contentType === "story"
-                        ? (
-                          <Link to="/$locale/stories/$storyslug/cover" params={{ locale, storyslug: initialData.slug }}>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              title={t("CoverDesigner.Design Cover")}
-                            >
-                              <ImagePlus className="size-4" />
-                            </Button>
-                          </Link>
-                        )
-                        : (
-                          // No page cover route is registered in the route tree, so a typed <Link> cannot target it
-                          <a href={`/${locale}/${profileSlug}/${initialData.slug}/cover`}>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              title={t("CoverDesigner.Design Cover")}
-                            >
-                              <ImagePlus className="size-4" />
-                            </Button>
-                          </a>
-                        )
+                  {!isNew && !isManaged && initialData.slug !== "" ? (
+                    contentType === "story" ? (
+                      <Link to="/$locale/stories/$storyslug/cover" params={{ locale, storyslug: initialData.slug }}>
+                        <Button type="button" variant="outline" size="icon" title={t("CoverDesigner.Design Cover")}>
+                          <ImagePlus className="size-4" />
+                        </Button>
+                      </Link>
+                    ) : (
+                      // No page cover route is registered in the route tree, so a typed <Link> cannot target it
+                      <a href={`/${locale}/${profileSlug}/${initialData.slug}/cover`}>
+                        <Button type="button" variant="outline" size="icon" title={t("CoverDesigner.Design Cover")}>
+                          <ImagePlus className="size-4" />
+                        </Button>
+                      </a>
                     )
-                    : (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        disabled
-                        title={isManaged
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled
+                      title={
+                        isManaged
                           ? t(
-                            "ContentEditor.This story is synced from an external source. Some fields cannot be edited.",
-                          )
-                          : t("CoverDesigner.Save content first to enable cover designer")}
-                      >
-                        <ImagePlus className="size-4" />
-                      </Button>
-                    )}
+                              "ContentEditor.This story is synced from an external source. Some fields cannot be edited.",
+                            )
+                          : t("CoverDesigner.Save content first to enable cover designer")
+                      }
+                    >
+                      <ImagePlus className="size-4" />
+                    </Button>
+                  )}
                 </div>
                 {isNew && (
-                  <FieldDescription>
-                    {t("CoverDesigner.Save content first to enable cover designer")}
-                  </FieldDescription>
+                  <FieldDescription>{t("CoverDesigner.Save content first to enable cover designer")}</FieldDescription>
                 )}
                 {storyPictureUriError !== null && <FieldError>{storyPictureUriError}</FieldError>}
                 {storyPictureUri !== null && storyPictureUri !== "" && storyPictureUriError === null && (
@@ -1131,10 +1117,7 @@ export function ContentEditor(props: ContentEditorProps) {
                 <FieldLabel htmlFor="visibility" className={styles.metadataLabel}>
                   {t("ContentEditor.Visibility")}
                 </FieldLabel>
-                <Select
-                  value={visibility}
-                  onValueChange={(value) => setVisibility(value as ContentVisibility)}
-                >
+                <Select value={visibility} onValueChange={(value) => setVisibility(value as ContentVisibility)}>
                   <SelectTrigger id="visibility">
                     <span className="flex items-center gap-2">
                       {visibility === "public" && <Eye className="size-4" />}
@@ -1185,9 +1168,11 @@ export function ContentEditor(props: ContentEditorProps) {
                   >
                     <SelectTrigger id="discussions">
                       <span className="flex items-center gap-2">
-                        {featDiscussions
-                          ? <MessageSquare className="size-4" />
-                          : <MessageSquareOff className="size-4" />}
+                        {featDiscussions ? (
+                          <MessageSquare className="size-4" />
+                        ) : (
+                          <MessageSquareOff className="size-4" />
+                        )}
                         {featDiscussions ? t("ContentEditor.Enabled") : t("ContentEditor.Disabled")}
                       </span>
                     </SelectTrigger>

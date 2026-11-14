@@ -29,11 +29,7 @@ export function FilterBar(props: FilterBarProps) {
         <FieldLabel htmlFor="kind-filter" className="font-semibold">
           {t("Elements.FilterByKind")}
         </FieldLabel>
-        <div
-          className="flex rounded-md shadow-xs"
-          role="group"
-          id="kind-filter"
-        >
+        <div className="flex rounded-md shadow-xs" role="group" id="kind-filter">
           {kindOptions.map((option) => (
             <Button
               key={option.value}
@@ -42,8 +38,7 @@ export function FilterBar(props: FilterBarProps) {
               onClick={() => props.onKindChange(option.value)}
               className={cn(
                 "rounded-none first:rounded-l-md last:rounded-r-md border-l-0 first:border-l",
-                props.activeKindFilter === option.value &&
-                  "bg-accent text-accent-foreground",
+                props.activeKindFilter === option.value && "bg-accent text-accent-foreground",
               )}
             >
               {option.label}

@@ -7,9 +7,6 @@ export async function getStoryForEdit(
   profileSlug: string,
   storyIdOrSlug: string,
 ): Promise<StoryEditData | null> {
-  const response = await fetcher<StoryEditData>(
-    locale,
-    `/profiles/${profileSlug}/_stories/${storyIdOrSlug}`,
-  );
+  const response = await fetcher<StoryEditData>(locale, `/profiles/${profileSlug}/_stories/${storyIdOrSlug}`);
   return response;
 }

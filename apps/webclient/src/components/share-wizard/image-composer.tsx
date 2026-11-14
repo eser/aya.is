@@ -98,15 +98,11 @@ export function ImageComposer(props: ImageComposerProps) {
 
       {/* Preview */}
       <div className={styles.preview} style={{ aspectRatio: `${dimension.width}/${dimension.height}` }}>
-        {props.story.story_picture_uri !== null && props.story.story_picture_uri !== undefined
-          ? (
-            <img
-              src={props.story.story_picture_uri}
-              alt={props.story.title ?? ""}
-              className={styles.previewImage}
-            />
-          )
-          : <span className={styles.previewPlaceholder}>{t("ShareWizard.No cover image")}</span>}
+        {props.story.story_picture_uri !== null && props.story.story_picture_uri !== undefined ? (
+          <img src={props.story.story_picture_uri} alt={props.story.title ?? ""} className={styles.previewImage} />
+        ) : (
+          <span className={styles.previewPlaceholder}>{t("ShareWizard.No cover image")}</span>
+        )}
       </div>
 
       {/* Download */}

@@ -340,11 +340,11 @@ func applyGenAIGenerationParams(
 	}
 
 	if opts.Temperature != nil {
-		config.Temperature = genai.Ptr(float32(*opts.Temperature))
+		config.Temperature = new(float32(*opts.Temperature))
 	}
 
 	if opts.TopP != nil {
-		config.TopP = genai.Ptr(float32(*opts.TopP))
+		config.TopP = new(float32(*opts.TopP))
 	}
 
 	if len(opts.StopWords) > 0 {
@@ -402,7 +402,7 @@ func applyGenAIThinkingConfig(
 ) {
 	if opts.ThinkingBudget != nil {
 		config.ThinkingConfig = &genai.ThinkingConfig{ //nolint:exhaustruct
-			ThinkingBudget: genai.Ptr(int32(*opts.ThinkingBudget)),
+			ThinkingBudget: new(int32(*opts.ThinkingBudget)),
 		}
 	}
 }

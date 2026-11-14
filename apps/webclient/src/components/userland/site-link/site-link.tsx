@@ -15,10 +15,7 @@ export function SiteLink(props: SiteLinkProps) {
   // For custom domains, keep paths as-is
   // For main domain, ensure locale prefix is present
   let targetHref = props.href;
-  if (
-    navigation.isCustomDomain === false &&
-    props.href.startsWith(`/${navigation.locale}`) === false
-  ) {
+  if (navigation.isCustomDomain === false && props.href.startsWith(`/${navigation.locale}`) === false) {
     // Add locale prefix if not already present
     if (props.href.startsWith("/")) {
       targetHref = `/${navigation.locale}${props.href}`;

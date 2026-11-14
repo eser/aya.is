@@ -17,14 +17,11 @@ export async function listProfilePointTransactions(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_points/transactions`,
-    {
-      method: "GET",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_points/transactions`, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

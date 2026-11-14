@@ -2,11 +2,7 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 
-export async function acceptProfileEnvelope(
-  locale: string,
-  slug: string,
-  envelopeId: string,
-): Promise<boolean> {
+export async function acceptProfileEnvelope(locale: string, slug: string, envelopeId: string): Promise<boolean> {
   const token = getAuthToken();
   if (token === null) {
     return false;
@@ -17,14 +13,11 @@ export async function acceptProfileEnvelope(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_envelopes/${envelopeId}/accept`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_envelopes/${envelopeId}/accept`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+  });
 
   return response.ok;
 }

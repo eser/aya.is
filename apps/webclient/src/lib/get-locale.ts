@@ -10,9 +10,7 @@ import { requestContextBinder } from "@/server/request-context-binder";
  *
  * Example header: "en-US,en;q=0.9,tr;q=0.8,fr;q=0.7"
  */
-function parseAcceptLanguage(
-  header: string,
-): SupportedLocaleCode | null {
+function parseAcceptLanguage(header: string): SupportedLocaleCode | null {
   const entries = header
     .split(",")
     .map((part) => {
@@ -30,9 +28,7 @@ function parseAcceptLanguage(
     const lang = entry.lang.toLowerCase();
 
     // Try exact match first (e.g. "pt-PT" matches "pt-PT")
-    const exactMatch = SUPPORTED_LOCALES.find(
-      (locale) => locale.toLowerCase() === lang,
-    );
+    const exactMatch = SUPPORTED_LOCALES.find((locale) => locale.toLowerCase() === lang);
     if (exactMatch !== undefined) {
       return exactMatch;
     }
@@ -40,9 +36,7 @@ function parseAcceptLanguage(
     // Try language-only prefix match (e.g. "en-US" → "en", "pt-BR" → skip if no "pt")
     const langPrefix = lang.split("-")[0];
     if (langPrefix !== undefined) {
-      const prefixMatch = SUPPORTED_LOCALES.find(
-        (locale) => locale.toLowerCase() === langPrefix,
-      );
+      const prefixMatch = SUPPORTED_LOCALES.find((locale) => locale.toLowerCase() === langPrefix);
       if (prefixMatch !== undefined) {
         return prefixMatch;
       }
@@ -56,17 +50,15 @@ function parseAcceptLanguage(
  * Server function to get the current locale from cookies.
  * Falls back to DEFAULT_LOCALE if no valid cookie is set.
  */
-export const getLocaleFromCookie = createServerFn({ method: "GET" }).handler(
-  (): SupportedLocaleCode => {
-    const cookieLocale = getCookie("SITE_LOCALE");
+export const getLocaleFromCookie = createServerFn({ method: "GET" }).handler((): SupportedLocaleCode => {
+  const cookieLocale = getCookie("SITE_LOCALE");
 
-    if (cookieLocale !== undefined && isValidLocale(cookieLocale)) {
-      return cookieLocale;
-    }
+  if (cookieLocale !== undefined && isValidLocale(cookieLocale)) {
+    return cookieLocale;
+  }
 
-    return DEFAULT_LOCALE;
-  },
-);
+  return DEFAULT_LOCALE;
+});
 
 /**
  * Server function to detect the user's preferred locale.
@@ -77,36 +69,34 @@ export const getLocaleFromCookie = createServerFn({ method: "GET" }).handler(
  * 3. Domain's default locale (from custom domain configuration)
  * 4. DEFAULT_LOCALE (system fallback)
  */
-export const getPreferredLocale = createServerFn({ method: "GET" }).handler(
-  (): SupportedLocaleCode => {
-    // 1. Check cookie first — explicit user choice takes priority
-    const cookieLocale = getCookie("SITE_LOCALE");
-    if (cookieLocale !== undefined && isValidLocale(cookieLocale)) {
-      return cookieLocale;
+export const getPreferredLocale = createServerFn({ method: "GET" }).handler((): SupportedLocaleCode => {
+  // 1. Check cookie first — explicit user choice takes priority
+  const cookieLocale = getCookie("SITE_LOCALE");
+  if (cookieLocale !== undefined && isValidLocale(cookieLocale)) {
+    return cookieLocale;
+  }
+
+  // 2. Check Accept-Language header — browser preference
+  const acceptLanguage = getRequestHeader("accept-language");
+  if (acceptLanguage !== undefined) {
+    const matched = parseAcceptLanguage(acceptLanguage);
+    if (matched !== null) {
+      return matched;
     }
+  }
 
-    // 2. Check Accept-Language header — browser preference
-    const acceptLanguage = getRequestHeader("accept-language");
-    if (acceptLanguage !== undefined) {
-      const matched = parseAcceptLanguage(acceptLanguage);
-      if (matched !== null) {
-        return matched;
-      }
+  // 3. Read domain's default locale from request context (set by custom domain middleware)
+  const requestContext = requestContextBinder.getStore();
+  const domainConfig = requestContext?.domainConfiguration;
+
+  if (domainConfig?.type === "custom-domain" || domainConfig?.type === "main") {
+    const domainLocale = domainConfig.defaultCulture;
+
+    if (isValidLocale(domainLocale) && domainLocale !== DEFAULT_LOCALE) {
+      return domainLocale;
     }
+  }
 
-    // 3. Read domain's default locale from request context (set by custom domain middleware)
-    const requestContext = requestContextBinder.getStore();
-    const domainConfig = requestContext?.domainConfiguration;
-
-    if (domainConfig?.type === "custom-domain" || domainConfig?.type === "main") {
-      const domainLocale = domainConfig.defaultCulture;
-
-      if (isValidLocale(domainLocale) && domainLocale !== DEFAULT_LOCALE) {
-        return domainLocale;
-      }
-    }
-
-    // 4. System default
-    return DEFAULT_LOCALE;
-  },
-);
+  // 4. System default
+  return DEFAULT_LOCALE;
+});

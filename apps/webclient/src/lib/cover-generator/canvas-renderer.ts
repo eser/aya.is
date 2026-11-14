@@ -105,11 +105,7 @@ function drawBackground(
 }
 
 // Draw background pattern
-function drawPattern(
-  ctx: CanvasRenderingContext2D,
-  pattern: BackgroundPattern,
-  options: CoverOptions,
-): void {
+function drawPattern(ctx: CanvasRenderingContext2D, pattern: BackgroundPattern, options: CoverOptions): void {
   if (pattern === "none") return;
 
   ctx.globalAlpha = 0.1;
@@ -181,11 +177,7 @@ function roundRect(
 }
 
 // Draw logo
-function drawLogo(
-  ctx: CanvasRenderingContext2D,
-  logoImage: HTMLImageElement | null,
-  options: CoverOptions,
-): void {
+function drawLogo(ctx: CanvasRenderingContext2D, logoImage: HTMLImageElement | null, options: CoverOptions): void {
   if (!options.showLogo || logoImage === null) return;
 
   const logoSize = 40;
@@ -251,12 +243,7 @@ function drawAuthorInfo(
 }
 
 // Draw date
-function drawDate(
-  ctx: CanvasRenderingContext2D,
-  story: StoryData,
-  options: CoverOptions,
-  y: number,
-): void {
+function drawDate(ctx: CanvasRenderingContext2D, story: StoryData, options: CoverOptions, y: number): void {
   if (!options.showDate || story.publishedAt === null) return;
 
   const date = new Date(story.publishedAt);
@@ -304,11 +291,7 @@ function drawKindBadge(
 }
 
 // Wrap text to fit width
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-): string[] {
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const words = text.split(" ");
   const lines: string[] = [];
   let currentLine = "";

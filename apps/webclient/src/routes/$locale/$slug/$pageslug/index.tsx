@@ -60,7 +60,7 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
     }
     const { page, locale, slug, pageslug } = loaderData;
     const contentLocale = page.locale_code?.trim() ?? locale;
-    const canonicalLocale = (contentLocale !== "" && contentLocale !== locale) ? contentLocale : locale;
+    const canonicalLocale = contentLocale !== "" && contentLocale !== locale ? contentLocale : locale;
     return {
       meta: generateMetaTags({
         title: page.title,
@@ -117,12 +117,7 @@ function ProfileCustomPage() {
             </Button>
           </Link>
         )}
-        <TextContent
-          title={page.title}
-          compiledContent={compiledContent}
-          rawContent={page.content}
-          headingOffset={2}
-        />
+        <TextContent title={page.title} compiledContent={compiledContent} rawContent={page.content} headingOffset={2} />
       </div>
     </ProfileSidebarLayout>
   );

@@ -7,8 +7,5 @@ export async function getCandidateVotes(
   slug: string,
   candidateId: string,
 ): Promise<CandidateVote[] | null> {
-  return await fetcher<CandidateVote[]>(
-    locale,
-    `/profiles/${slug}/_candidates/${candidateId}/votes`,
-  );
+  return await fetcher<CandidateVote[]>(locale, `/profiles/${slug}/_candidates/${candidateId}/votes`);
 }

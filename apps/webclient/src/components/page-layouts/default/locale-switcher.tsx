@@ -37,12 +37,7 @@ export function LocaleSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={(props) => (
-          <Button
-            {...props}
-            variant="outline"
-            size="sm"
-            aria-label="Change locale"
-          >
+          <Button {...props} variant="outline" size="sm" aria-label="Change locale">
             <span className="sr-only">Currently selected:</span>
             {localeData.flag} {localeData.name}
           </Button>

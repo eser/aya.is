@@ -21,21 +21,12 @@ function BlockInserterDialog(props: BlockInserterDialogProps) {
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-      <DialogContent
-        className={styles.dialogContent}
-        showCloseButton={false}
-      >
+      <DialogContent className={styles.dialogContent} showCloseButton={false}>
         <DialogHeader className="sr-only">
           <DialogTitle>Insert Block</DialogTitle>
-          <DialogDescription>
-            Search and insert a content block
-          </DialogDescription>
+          <DialogDescription>Search and insert a content block</DialogDescription>
         </DialogHeader>
-        <BlockInserterContent
-          onInsert={handleInsert}
-          onClose={handleClose}
-          autoFocus
-        />
+        <BlockInserterContent onInsert={handleInsert} onClose={handleClose} autoFocus />
       </DialogContent>
     </Dialog>
   );

@@ -8,13 +8,7 @@ import i18next from "i18next";
 import { NotFoundContent } from "./route";
 import { CandidatesPageClient } from "./-components/candidates-page-client";
 
-const MEMBER_PLUS_KINDS = new Set([
-  "member",
-  "contributor",
-  "maintainer",
-  "lead",
-  "owner",
-]);
+const MEMBER_PLUS_KINDS = new Set(["member", "contributor", "maintainer", "lead", "owner"]);
 
 export const Route = createFileRoute("/$locale/$slug/members/candidates")({
   loader: async ({ params, context }) => {
@@ -24,7 +18,8 @@ export const Route = createFileRoute("/$locale/$slug/members/candidates")({
       context.queryClient.ensureQueryData(profilePermissionsQueryOptions(locale, slug)).catch(() => null),
     ]);
 
-    const isMemberPlus = permissions?.viewer_membership_kind !== undefined &&
+    const isMemberPlus =
+      permissions?.viewer_membership_kind !== undefined &&
       permissions.viewer_membership_kind !== null &&
       MEMBER_PLUS_KINDS.has(permissions.viewer_membership_kind);
 
@@ -44,9 +39,7 @@ export const Route = createFileRoute("/$locale/$slug/members/candidates")({
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = `${t("Layout.Candidates")} - ${profile?.title ?? slug}`;
-    const translatedDescription = t(
-      "Candidates.Candidate proposals for new members.",
-    );
+    const translatedDescription = t("Candidates.Candidate proposals for new members.");
 
     return {
       candidates: candidates ?? [],
@@ -73,9 +66,7 @@ export const Route = createFileRoute("/$locale/$slug/members/candidates")({
         locale,
         type: "website",
       }),
-      links: [
-        generateCanonicalLink(buildUrl(locale, slug, "members/candidates")),
-      ],
+      links: [generateCanonicalLink(buildUrl(locale, slug, "members/candidates"))],
     };
   },
   errorComponent: QueryError,

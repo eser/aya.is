@@ -70,11 +70,7 @@ function ProfileStoriesIndexPage() {
       viewerMembershipKind={permissions?.viewer_membership_kind}
     >
       <div className="content">
-        <StoriesPageClient
-          initialStories={stories}
-          basePath={`/${locale}/${slug}/stories`}
-          profileSlug={slug}
-        />
+        <StoriesPageClient initialStories={stories} basePath={`/${locale}/${slug}/stories`} profileSlug={slug} />
       </div>
     </ProfileSidebarLayout>
   );

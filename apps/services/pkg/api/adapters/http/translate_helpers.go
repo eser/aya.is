@@ -176,10 +176,10 @@ func (g *AIContentGenerator) GenerateCV( //nolint:cyclop,funlen
 
 	for _, link := range links {
 		if link.URI != "" {
-			linksContext.WriteString(fmt.Sprintf("- %s: %s", link.Kind, link.URI))
+			fmt.Fprintf(&linksContext, "- %s: %s", link.Kind, link.URI)
 
 			if link.Title != "" {
-				linksContext.WriteString(fmt.Sprintf(" (%s)", link.Title))
+				fmt.Fprintf(&linksContext, " (%s)", link.Title)
 			}
 
 			linksContext.WriteString("\n")
@@ -197,17 +197,21 @@ func (g *AIContentGenerator) GenerateCV( //nolint:cyclop,funlen
 		role := membership.Kind
 		orgName := membership.Profile.Title
 
-		contributionsContext.WriteString(fmt.Sprintf("- %s at %s", role, orgName))
+		fmt.Fprintf(&contributionsContext, "- %s at %s", role, orgName)
 
 		if membership.StartedAt != nil {
-			contributionsContext.WriteString(
-				fmt.Sprintf(" (since %s)", membership.StartedAt.Format("January 2006")),
+			fmt.Fprintf(
+				&contributionsContext,
+				" (since %s)",
+				membership.StartedAt.Format("January 2006"),
 			)
 		}
 
 		if membership.FinishedAt != nil {
-			contributionsContext.WriteString(
-				fmt.Sprintf(" (until %s)", membership.FinishedAt.Format("January 2006")),
+			fmt.Fprintf(
+				&contributionsContext,
+				" (until %s)",
+				membership.FinishedAt.Format("January 2006"),
 			)
 		}
 

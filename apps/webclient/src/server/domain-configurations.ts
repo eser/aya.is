@@ -7,10 +7,7 @@ import type { SupportedLocaleCode } from "@/config";
 import type { DomainConfiguration } from "@/request-context";
 
 // Cache for custom domain lookups
-const domainCache = new Map<
-  string,
-  { slug: string; title: string | null; defaultLocale: string | null } | null
->();
+const domainCache = new Map<string, { slug: string; title: string | null; defaultLocale: string | null } | null>();
 const CACHE_TTL = 2 * 60 * 1000;
 const cacheTimestamps = new Map<string, number>();
 
@@ -36,9 +33,7 @@ export async function fetchCustomDomainFromBackend(
 
   try {
     const backendUri = process.env.BACKEND_URI ?? process.env.PUBLIC_BACKEND_URI ?? "https://api.aya.is";
-    const response = await fetch(
-      `${backendUri}/en/site/custom-domains/${encodeURIComponent(effectiveHost)}`,
-    );
+    const response = await fetch(`${backendUri}/en/site/custom-domains/${encodeURIComponent(effectiveHost)}`);
 
     if (!response.ok) {
       domainCache.set(effectiveHost, null);

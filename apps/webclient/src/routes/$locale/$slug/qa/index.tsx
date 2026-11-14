@@ -52,12 +52,16 @@ export const Route = createFileRoute("/$locale/$slug/qa/")({
         if (q.content !== "") {
           try {
             compiledContent = await compileMdxLite(q.content);
-          } catch { /* fallback */ }
+          } catch {
+            /* fallback */
+          }
         }
         if (q.answer_content !== null && q.answer_content !== "") {
           try {
             compiledAnswer = await compileMdxLite(q.answer_content);
-          } catch { /* fallback */ }
+          } catch {
+            /* fallback */
+          }
         }
 
         return { ...q, compiledContent, compiledAnswer };

@@ -33,12 +33,8 @@ export type RSVPButtonsProps = {
 
 export function RSVPButtons(props: RSVPButtonsProps) {
   const { t } = useTranslation();
-  const [myInteractions, setMyInteractions] = React.useState<StoryInteraction[]>(
-    props.initialMyInteractions ?? [],
-  );
-  const [counts, setCounts] = React.useState<InteractionCount[]>(
-    props.initialCounts ?? [],
-  );
+  const [myInteractions, setMyInteractions] = React.useState<StoryInteraction[]>(props.initialMyInteractions ?? []);
+  const [counts, setCounts] = React.useState<InteractionCount[]>(props.initialCounts ?? []);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   if (props.rsvpMode === "disabled") {
@@ -52,12 +48,7 @@ export function RSVPButtons(props: RSVPButtonsProps) {
 
     return (
       <div className={styles.container}>
-        <a
-          href={props.externalAttendanceUri}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.externalLink}
-        >
+        <a href={props.externalAttendanceUri} target="_blank" rel="noopener noreferrer" className={styles.externalLink}>
           <ExternalLink className="size-4" />
           {t("Activities.Register Externally")}
         </a>
@@ -81,18 +72,13 @@ export function RSVPButtons(props: RSVPButtonsProps) {
         const result = await backend.setInteraction(props.locale, props.storySlug, kind);
         if (result !== null) {
           setMyInteractions((prev) => {
-            const withoutRsvp = prev.filter(
-              (i) => !RSVP_KINDS.includes(i.kind as typeof RSVP_KINDS[number]),
-            );
+            const withoutRsvp = prev.filter((i) => !RSVP_KINDS.includes(i.kind as (typeof RSVP_KINDS)[number]));
             return [...withoutRsvp, result];
           });
         }
       }
 
-      const updatedCounts = await backend.getInteractionCounts(
-        props.locale,
-        props.storySlug,
-      );
+      const updatedCounts = await backend.getInteractionCounts(props.locale, props.storySlug);
       if (updatedCounts !== null) {
         setCounts(updatedCounts);
       }
@@ -117,10 +103,7 @@ export function RSVPButtons(props: RSVPButtonsProps) {
               <button
                 key={kind}
                 type="button"
-                className={cn(
-                  styles.rsvpButton,
-                  isActive ? styles.active : styles.inactive,
-                )}
+                className={cn(styles.rsvpButton, isActive ? styles.active : styles.inactive)}
                 onClick={() => handleRSVP(kind)}
                 disabled={isSubmitting}
               >

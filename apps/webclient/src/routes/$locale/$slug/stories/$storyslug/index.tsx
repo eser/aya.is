@@ -123,13 +123,11 @@ function ProfileStoryPage() {
   // Check edit permissions (hooks must run before any early return)
   React.useEffect(() => {
     if (storyId !== null && auth.isAuthenticated && !auth.isLoading) {
-      backend
-        .getStoryPermissions(params.locale, params.slug, storyId)
-        .then((perms) => {
-          if (perms !== null) {
-            setCanEdit(perms.can_edit);
-          }
-        });
+      backend.getStoryPermissions(params.locale, params.slug, storyId).then((perms) => {
+        if (perms !== null) {
+          setCanEdit(perms.can_edit);
+        }
+      });
     } else {
       setCanEdit(false);
     }

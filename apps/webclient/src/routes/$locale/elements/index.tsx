@@ -66,10 +66,7 @@ function ElementsIndexPage() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.Elements")}</h1>
             {isAuthenticated && (
-              <Link
-                to="/$locale/elements/new"
-                params={{ locale }}
-              >
+              <Link to="/$locale/elements/new" params={{ locale }}>
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />
                   {t("Elements.Add Element")}

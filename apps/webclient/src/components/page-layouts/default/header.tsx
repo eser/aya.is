@@ -76,8 +76,7 @@ export function Header() {
               <Logo />
             </LocaleLink>
             {isCustomDomain
-              ? (
-                profileTitle !== null && (
+              ? profileTitle !== null && (
                   <LocaleLink
                     to={`/${customDomainProfileSlug}`}
                     className="text-sm font-semibold text-foreground hover:text-accent-foreground no-underline"
@@ -85,9 +84,7 @@ export function Header() {
                     {profileTitle}
                   </LocaleLink>
                 )
-              )
-              : (
-                navItems.map((item) => (
+              : navItems.map((item) => (
                   <LocaleLink
                     key={item.key}
                     to={item.href}
@@ -95,63 +92,40 @@ export function Header() {
                   >
                     {item.title}
                   </LocaleLink>
-                ))
-              )}
+                ))}
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex md:hidden">
-            {isCustomDomain
-              ? (
-                <div className="flex items-center gap-3">
-                  <LocaleLink
-                    to="/"
-                    className="text-foreground hover:text-accent-foreground no-underline"
-                  >
-                    <Logo />
-                  </LocaleLink>
-                  {profileTitle !== null && (
-                    <span className="text-sm font-semibold text-foreground">
-                      {profileTitle}
-                    </span>
+            {isCustomDomain ? (
+              <div className="flex items-center gap-3">
+                <LocaleLink to="/" className="text-foreground hover:text-accent-foreground no-underline">
+                  <Logo />
+                </LocaleLink>
+                {profileTitle !== null && <span className="text-sm font-semibold text-foreground">{profileTitle}</span>}
+              </div>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={(props) => (
+                    <Button {...props} variant="ghost" className="-ml-4 hover:bg-transparent">
+                      <Logo />
+                    </Button>
                   )}
-                </div>
-              )
-              : (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={(props) => (
-                      <Button
-                        {...props}
-                        variant="ghost"
-                        className="-ml-4 hover:bg-transparent"
-                      >
-                        <Logo />
-                      </Button>
-                    )}
-                  />
-                  <DropdownMenuContent
-                    align="start"
-                    sideOffset={14}
-                    className="w-[300px]"
-                  >
-                    <DropdownMenuItem
-                      render={<LocaleLink to="/" className="no-underline" />}
-                    >
-                      {t("Layout.Homepage")}
+                />
+                <DropdownMenuContent align="start" sideOffset={14} className="w-[300px]">
+                  <DropdownMenuItem render={<LocaleLink to="/" className="no-underline" />}>
+                    {t("Layout.Homepage")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {navItems.map((item) => (
+                    <DropdownMenuItem key={item.key} render={<LocaleLink to={item.href} className="no-underline" />}>
+                      {item.title}
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {navItems.map((item) => (
-                      <DropdownMenuItem
-                        key={item.key}
-                        render={<LocaleLink to={item.href} className="no-underline" />}
-                      >
-                        {item.title}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </nav>
 

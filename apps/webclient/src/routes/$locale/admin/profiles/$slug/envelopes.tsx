@@ -117,9 +117,7 @@ function AdminProfileEnvelopes() {
         }
       }
     } catch (error) {
-      setSendError(
-        error instanceof Error ? error.message : t("Mailbox.Failed to send"),
-      );
+      setSendError(error instanceof Error ? error.message : t("Mailbox.Failed to send"));
     } finally {
       setIsSending(false);
     }
@@ -133,9 +131,7 @@ function AdminProfileEnvelopes() {
             <Send className="h-5 w-5" />
             {t("ProfileSettings.Send In-mail")}
           </CardTitle>
-          <CardDescription>
-            {t("ProfileSettings.Send an envelope to a profile")}
-          </CardDescription>
+          <CardDescription>{t("ProfileSettings.Send an envelope to a profile")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -143,9 +139,7 @@ function AdminProfileEnvelopes() {
               <FieldLabel htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
               <Select value={envelopeKind} onValueChange={(value) => setEnvelopeKind(value ?? "")}>
                 <SelectTrigger id="envelopeKind" className="w-full">
-                  <SelectValue>
-                    {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}
-                  </SelectValue>
+                  <SelectValue>{t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {ENVELOPE_KINDS.map((kind) => (
@@ -186,9 +180,7 @@ function AdminProfileEnvelopes() {
                   setFieldErrors((prev) => ({ ...prev, inviteCode: null }));
                 }}
               />
-              <FieldDescription>
-                {t("ProfileSettings.Use /invite in a Telegram group to get a code")}
-              </FieldDescription>
+              <FieldDescription>{t("ProfileSettings.Use /invite in a Telegram group to get a code")}</FieldDescription>
               {fieldErrors.inviteCode !== null && fieldErrors.inviteCode !== undefined && (
                 <FieldError>{fieldErrors.inviteCode}</FieldError>
               )}

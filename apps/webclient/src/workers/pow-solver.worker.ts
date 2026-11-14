@@ -36,10 +36,7 @@ function hasLeadingZeroBits(hash: Uint8Array, n: number): boolean {
  * Solve the PoW challenge by finding a nonce
  * where SHA256(prefix + nonce) has the required leading zero bits
  */
-async function solvePOW(
-  prefix: string,
-  difficulty: number,
-): Promise<POWSolverResponse> {
+async function solvePOW(prefix: string, difficulty: number): Promise<POWSolverResponse> {
   const startTime = performance.now();
   const encoder = new TextEncoder();
   let nonce = 0;

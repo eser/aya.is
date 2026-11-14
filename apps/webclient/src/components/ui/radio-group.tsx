@@ -8,13 +8,7 @@ import { cn } from "@/lib/utils";
 import { CircleIcon } from "lucide-react";
 
 function RadioGroup({ className, ...props }: RadioGroupPrimitive.Props) {
-  return (
-    <RadioGroupPrimitive
-      data-slot="radio-group"
-      className={cn("grid gap-3 w-full", className)}
-      {...props}
-    />
-  );
+  return <RadioGroupPrimitive data-slot="radio-group" className={cn("grid gap-3 w-full", className)} {...props} />;
 }
 
 function RadioGroupItem({ className, ...props }: RadioPrimitive.Root.Props) {

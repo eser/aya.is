@@ -9,12 +9,7 @@ Deno.test("round-trip Callout", () => {
   const parsed = parseBlockProps(input, 0);
   assertEquals(parsed !== null, true);
 
-  const generated = generateBlockTag(
-    parsed!.componentName,
-    parsed!.props,
-    parsed!.definition,
-    parsed!.selfClosing,
-  );
+  const generated = generateBlockTag(parsed!.componentName, parsed!.props, parsed!.definition, parsed!.selfClosing);
 
   // Parse again
   const reparsed = parseBlockProps(generated, 0);
@@ -31,12 +26,7 @@ Deno.test("round-trip Spacer self-closing", () => {
 
   // Edit size to "lg"
   const editedProps = { ...parsed!.props, size: "lg" };
-  const generated = generateBlockTag(
-    parsed!.componentName,
-    editedProps,
-    parsed!.definition,
-    parsed!.selfClosing,
-  );
+  const generated = generateBlockTag(parsed!.componentName, editedProps, parsed!.definition, parsed!.selfClosing);
 
   // Parse again
   const reparsed = parseBlockProps(generated, 0);
@@ -51,12 +41,7 @@ Deno.test("round-trip Columns with number", () => {
   assertEquals(parsed !== null, true);
   assertEquals(parsed!.props.cols, "2");
 
-  const generated = generateBlockTag(
-    parsed!.componentName,
-    parsed!.props,
-    parsed!.definition,
-    parsed!.selfClosing,
-  );
+  const generated = generateBlockTag(parsed!.componentName, parsed!.props, parsed!.definition, parsed!.selfClosing);
 
   const reparsed = parseBlockProps(generated, 0);
   assertEquals(reparsed !== null, true);
@@ -71,12 +56,7 @@ Deno.test("round-trip multi-line Cover", () => {
   assertEquals(parsed!.props.overlay, "dark");
 
   // Generate will produce single-line
-  const generated = generateBlockTag(
-    parsed!.componentName,
-    parsed!.props,
-    parsed!.definition,
-    parsed!.selfClosing,
-  );
+  const generated = generateBlockTag(parsed!.componentName, parsed!.props, parsed!.definition, parsed!.selfClosing);
 
   // Parse the single-line output
   const reparsed = parseBlockProps(generated, 0);

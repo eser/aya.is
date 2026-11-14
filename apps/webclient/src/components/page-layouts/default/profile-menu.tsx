@@ -36,9 +36,10 @@ export function ProfileMenu(props: ProfileMenuProps) {
   }
 
   // Determine avatar URL with priority: GitHub avatar > null (SiteAvatar will use dicebear fallback)
-  const githubAvatarUrl = user.github_handle !== undefined && user.github_handle !== null
-    ? `https://github.com/${user.github_handle}.png?size=32`
-    : null;
+  const githubAvatarUrl =
+    user.github_handle !== undefined && user.github_handle !== null
+      ? `https://github.com/${user.github_handle}.png?size=32`
+      : null;
 
   const accessibleProfiles = user.accessible_profiles !== undefined ? user.accessible_profiles : [];
 
@@ -72,11 +73,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
             variant="ghost"
             className={`relative h-8 w-8 rounded-full p-0 ${props.className !== undefined ? props.className : ""}`}
           >
-            <SiteAvatar
-              src={githubAvatarUrl}
-              name={user.name ?? "User"}
-              size="default"
-            />
+            <SiteAvatar src={githubAvatarUrl} name={user.name ?? "User"} size="default" />
           </Button>
         )}
       />
@@ -92,11 +89,8 @@ export function ProfileMenu(props: ProfileMenuProps) {
                   </span>
                 )}
               </p>
-              {user.github_handle !== undefined &&
-                user.github_handle !== null && (
-                <p className="text-xs leading-none text-muted-foreground">
-                  {user.github_handle}@github
-                </p>
+              {user.github_handle !== undefined && user.github_handle !== null && (
+                <p className="text-xs leading-none text-muted-foreground">{user.github_handle}@github</p>
               )}
             </div>
           </DropdownMenuLabel>
@@ -105,26 +99,17 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <DropdownMenuItem onClick={() => navigateToMain(`/${locale}/mailbox`)}>
           {t("Layout.Mailbox")}
           {user.total_pending_envelopes !== undefined && (
-            <span className="ml-auto text-xs text-muted-foreground">
-              ({user.total_pending_envelopes})
-            </span>
+            <span className="ml-auto text-xs text-muted-foreground">({user.total_pending_envelopes})</span>
           )}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleProfileClick}>
-          {t("Auth.My Profile")}
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleProfileClick}>{t("Auth.My Profile")}</DropdownMenuItem>
         {accessibleProfiles.length > 0 && (
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              {t("Auth.Profiles")}
-            </DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger>{t("Auth.Profiles")}</DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               {accessibleProfiles.map((profile) => (
-                <DropdownMenuItem
-                  key={profile.id}
-                  onClick={() => navigateToMain(`/${locale}/${profile.slug}`)}
-                >
+                <DropdownMenuItem key={profile.id} onClick={() => navigateToMain(`/${locale}/${profile.slug}`)}>
                   {profile.title}
                   <span className="ml-auto text-xs text-muted-foreground">
                     {t(`Profile.MembershipKind.${profile.membership_kind}`)}
@@ -139,9 +124,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
             {t("Admin.Admin Area")}
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={handleLogout}>
-          {t("Auth.Logout")}
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>{t("Auth.Logout")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

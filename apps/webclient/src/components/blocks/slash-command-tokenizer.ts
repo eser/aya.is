@@ -48,7 +48,7 @@ export function isSlashCommandContext(text: string, cursorPos: number): boolean 
 
   while (i < end) {
     // Timeout guard: fall back to "allow" for very long documents
-    if ((i & 0x3FF) === 0 && performance.now() - startTime > TIMEOUT_MS) {
+    if ((i & 0x3ff) === 0 && performance.now() - startTime > TIMEOUT_MS) {
       return true;
     }
 
@@ -87,7 +87,7 @@ export function isSlashCommandContext(text: string, cursorPos: number): boolean 
         }
 
         // Check for JSX tag opening: < followed by a letter or /
-        if (char === "<" && (/[a-zA-Z/]/).test(next)) {
+        if (char === "<" && /[a-zA-Z/]/.test(next)) {
           state = "jsx_tag";
           i++;
           continue;

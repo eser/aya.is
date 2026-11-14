@@ -54,7 +54,7 @@ jobs:
         deno-version:
           - 2.9.5
         golang-version:
-          - 1.27.0
+          - 1.27.4
 
     steps:
       - name: Checkout repository

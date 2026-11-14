@@ -41,15 +41,7 @@ export const siteConfig: SiteConfig = {
     "\u{1D400}\u{1D418}\u{1D400} \u{1D402}\u{1D428}\u{1D426}\u{1D426}\u{1D42E}\u{1D427}\u{1D422}\u{1D42D}\u{1D432} \u{1D407}\u{1D42E}\u{1D41B}",
   title: "AYA Community Hub",
   description: "The content and collaboration platform of our open software community",
-  keywords: [
-    "AYA",
-    "Community Hub",
-    "Community Platform",
-    "Community Site",
-    "Open Source",
-    "Open Data",
-    "Content",
-  ],
+  keywords: ["AYA", "Community Hub", "Community Platform", "Community Site", "Open Source", "Open Data", "Content"],
 
   links: {
     x: "https://twitter.com/acikyazilimagi",
@@ -71,9 +63,7 @@ export const siteConfig: SiteConfig = {
 export const getBackendUri = (): string => {
   // Only allow localStorage override in development to prevent SSRF via XSS
   if (siteConfig.environment === "development" && typeof globalThis.localStorage !== "undefined") {
-    const backendUriFromLocalStorage = globalThis.localStorage.getItem(
-      "backendUri",
-    );
+    const backendUriFromLocalStorage = globalThis.localStorage.getItem("backendUri");
     if (backendUriFromLocalStorage !== null) {
       return backendUriFromLocalStorage;
     }
@@ -81,10 +71,7 @@ export const getBackendUri = (): string => {
   return siteConfig.backendUri;
 };
 
-export const predefinedSlugs: readonly string[] = [
-  "auth",
-  "mailbox",
-];
+export const predefinedSlugs: readonly string[] = ["auth", "mailbox"];
 
 // Allowed URI prefixes for uploads (must match server-side config)
 // These are used to validate URIs for non-admin users
@@ -93,13 +80,23 @@ export const allowedURIPrefixes = {
   // Stories: only our upload service
   stories: [
     (import.meta.env.VITE_ALLOWED_URI_PREFIXES_STORIES as string | undefined) ?? "https://objects.aya.is/",
-  ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
+  ].flatMap((s) =>
+    s
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => p !== ""),
+  ),
 
   // Profiles: our upload service + GitHub avatars
   profiles: [
     (import.meta.env.VITE_ALLOWED_URI_PREFIXES_PROFILES as string | undefined) ??
       "https://objects.aya.is/,https://avatars.githubusercontent.com/",
-  ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
+  ].flatMap((s) =>
+    s
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => p !== ""),
+  ),
 
   // Content links: safe URL protocols for user-facing content (Button, etc.)
   content: ["http://", "https://", "/", "#"],

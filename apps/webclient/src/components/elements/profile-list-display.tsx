@@ -19,9 +19,7 @@ export function ProfileListDisplay(props: ProfileListDisplayProps) {
     let profilesFiltered: Profile[] = profiles;
 
     if (activeKindFilter !== "") {
-      profilesFiltered = profiles.filter(
-        (profile) => profile.kind === activeKindFilter,
-      );
+      profilesFiltered = profiles.filter((profile) => profile.kind === activeKindFilter);
     }
 
     if (searchText.trim() !== "") {
@@ -37,16 +35,14 @@ export function ProfileListDisplay(props: ProfileListDisplayProps) {
   }, [profiles, activeKindFilter, searchText]);
 
   if (filteredProfiles.length === 0) {
-    return (
-      <div className="py-10 text-xl text-center text-muted-foreground">
-        {t("Elements.NoProfilesFound")}
-      </div>
-    );
+    return <div className="py-10 text-xl text-center text-muted-foreground">{t("Elements.NoProfilesFound")}</div>;
   }
 
   return (
     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {filteredProfiles.map((profile) => <ProfileCard key={profile.slug} profile={profile} />)}
+      {filteredProfiles.map((profile) => (
+        <ProfileCard key={profile.slug} profile={profile} />
+      ))}
     </div>
   );
 }

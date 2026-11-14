@@ -14,14 +14,10 @@ export async function editComment(
   commentId: string,
   input: EditCommentInput,
 ): Promise<EditCommentResult | null> {
-  const response = await fetcher<EditCommentResult>(
-    locale,
-    `/discussions/comments/${commentId}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<EditCommentResult>(locale, `/discussions/comments/${commentId}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

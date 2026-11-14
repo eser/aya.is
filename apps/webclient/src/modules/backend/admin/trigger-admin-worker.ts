@@ -7,9 +7,7 @@ export interface TriggerWorkerResult {
   triggered: boolean;
 }
 
-export async function triggerAdminWorker(
-  name: string,
-): Promise<TriggerWorkerResult | null> {
+export async function triggerAdminWorker(name: string): Promise<TriggerWorkerResult | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -20,14 +18,11 @@ export async function triggerAdminWorker(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/admin/workers/${encodeURIComponent(name)}/trigger`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/admin/workers/${encodeURIComponent(name)}/trigger`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+  });
 
   if (!response.ok) return null;
   return response.json();

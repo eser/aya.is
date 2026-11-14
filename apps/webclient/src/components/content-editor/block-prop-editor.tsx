@@ -11,9 +11,7 @@ type BlockPropEditorProps = {
   onCancel: () => void;
 };
 
-function buildInitialValues(
-  props: BlockPropField[],
-): Record<string, string | number | boolean> {
+function buildInitialValues(props: BlockPropField[]): Record<string, string | number | boolean> {
   const values: Record<string, string | number | boolean> = {};
   for (const prop of props) {
     values[prop.name] = prop.defaultValue;
@@ -24,9 +22,9 @@ function buildInitialValues(
 function BlockPropEditor(props: BlockPropEditorProps) {
   const { t } = useTranslation();
   const { definition, onInsert, onCancel } = props;
-  const [values, setValues] = useState<
-    Record<string, string | number | boolean>
-  >(() => buildInitialValues(definition.props));
+  const [values, setValues] = useState<Record<string, string | number | boolean>>(() =>
+    buildInitialValues(definition.props),
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const IconComponent = definition.icon;
@@ -91,11 +89,7 @@ function BlockPropEditor(props: BlockPropEditorProps) {
               className={styles.propInput}
               value={typeof value === "number" ? value : String(value)}
               placeholder={prop.placeholder ?? ""}
-              onChange={(e) =>
-                handleValueChange(
-                  prop.name,
-                  e.target.value === "" ? "" : Number(e.target.value),
-                )}
+              onChange={(e) => handleValueChange(prop.name, e.target.value === "" ? "" : Number(e.target.value))}
             />
             {error !== undefined && <span className={styles.propError}>{error}</span>}
           </div>

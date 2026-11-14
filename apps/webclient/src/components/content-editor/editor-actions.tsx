@@ -107,9 +107,7 @@ export function EditorActions(props: EditorActionsProps) {
                 </DropdownMenuItem>
               </TooltipTrigger>
               {!canActuallyDelete && isPublished && (
-                <TooltipContent>
-                  {t("ContentEditor.Unpublish from all profiles first")}
-                </TooltipContent>
+                <TooltipContent>{t("ContentEditor.Unpublish from all profiles first")}</TooltipContent>
               )}
             </Tooltip>
           </TooltipProvider>
@@ -126,10 +124,7 @@ export function EditorActions(props: EditorActionsProps) {
           }}
         >
           <SelectTrigger size="sm" className="w-auto">
-            <SelectValue>
-              {(value: string) =>
-                localeLabelMap.get(value) ?? value}
-            </SelectValue>
+            <SelectValue>{(value: string) => localeLabelMap.get(value) ?? value}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {localeOptions.map((option) => (
@@ -142,16 +137,11 @@ export function EditorActions(props: EditorActionsProps) {
       )}
 
       {locale !== undefined && !isNew && onOpenLocalizationsDialog !== undefined && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onOpenLocalizationsDialog}
-          disabled={isSaving}
-        >
+        <Button variant="outline" size="sm" onClick={onOpenLocalizationsDialog} disabled={isSaving}>
           {locale in supportedLocales
             ? `${supportedLocales[locale as SupportedLocaleCode].flag} ${
-              supportedLocales[locale as SupportedLocaleCode].name
-            }`
+                supportedLocales[locale as SupportedLocaleCode].name
+              }`
             : locale.toUpperCase()}
         </Button>
       )}
@@ -168,12 +158,7 @@ export function EditorActions(props: EditorActionsProps) {
         </Button>
       )}
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onSave}
-        disabled={isSaving || !hasChanges}
-      >
+      <Button variant="outline" size="sm" onClick={onSave} disabled={isSaving || !hasChanges}>
         {isSaving ? <Loader2 className="mr-1.5 size-4 animate-spin" /> : <Save className="mr-1.5 size-4" />}
         {t("Common.Save")}
       </Button>
@@ -182,9 +167,7 @@ export function EditorActions(props: EditorActionsProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("Common.Delete")}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("ContentEditor.Delete Confirmation")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("ContentEditor.Delete Confirmation")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>

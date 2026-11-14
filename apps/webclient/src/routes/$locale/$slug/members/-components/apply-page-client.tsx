@@ -11,13 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ApplicationForm, ApplicationFormField, ProfileMembershipCandidate } from "@/modules/backend/types";
 import styles from "./apply-page-client.module.css";
 
-const MEMBER_KINDS = new Set([
-  "member",
-  "contributor",
-  "maintainer",
-  "lead",
-  "owner",
-]);
+const MEMBER_KINDS = new Set(["member", "contributor", "maintainer", "lead", "owner"]);
 
 type ApplyPageClientProps = {
   form: ApplicationForm | null;
@@ -41,11 +35,10 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
 
   // Instant membership check from auth context — available as soon as auth resolves,
   // no need to wait for a separate permissions API refetch
-  const isMemberFromAuth = isAuthenticated &&
+  const isMemberFromAuth =
+    isAuthenticated &&
     user.accessible_profiles !== undefined &&
-    user.accessible_profiles.some(
-      (p) => p.slug === props.slug && MEMBER_KINDS.has(p.membership_kind),
-    );
+    user.accessible_profiles.some((p) => p.slug === props.slug && MEMBER_KINDS.has(p.membership_kind));
 
   const isMember = props.isMember || isMemberFromAuth;
 
@@ -82,16 +75,9 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
         </div>
         <div className={styles.successState}>
           <CheckCircle2 className="size-12 text-primary" />
-          <p className={styles.successTitle}>
-            {t("Members.Already joined")}
-          </p>
-          <p className={styles.successDescription}>
-            {t("Applications.You are already a member of this organization")}
-          </p>
-          <LocaleLink
-            to={`/${props.slug}/members`}
-            className="text-sm text-primary hover:underline mt-2"
-          >
+          <p className={styles.successTitle}>{t("Members.Already joined")}</p>
+          <p className={styles.successDescription}>{t("Applications.You are already a member of this organization")}</p>
+          <LocaleLink to={`/${props.slug}/members`} className="text-sm text-primary hover:underline mt-2">
             {t("Applications.Back to members")}
           </LocaleLink>
         </div>
@@ -101,20 +87,19 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
 
   // If user already applied (not just referred), show their application status
   if (isAuthenticated && props.existingApplication !== null && props.existingApplication.source === "application") {
-    const formattedDate = new Date(
-      props.existingApplication.created_at,
-    ).toLocaleDateString(props.locale, {
+    const formattedDate = new Date(props.existingApplication.created_at).toLocaleDateString(props.locale, {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
 
-    const hasFormResponses = props.existingApplication.form_responses !== undefined &&
+    const hasFormResponses =
+      props.existingApplication.form_responses !== undefined &&
       props.existingApplication.form_responses !== null &&
       props.existingApplication.form_responses.length > 0;
 
-    const hasApplicantMessage = props.existingApplication.applicant_message !== null &&
-      props.existingApplication.applicant_message !== undefined;
+    const hasApplicantMessage =
+      props.existingApplication.applicant_message !== null && props.existingApplication.applicant_message !== undefined;
 
     return (
       <div className={styles.container}>
@@ -122,15 +107,9 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
           <h2>{t("Applications.Application Form")}</h2>
         </div>
         <div className={styles.statusCard}>
-          <p className={styles.statusLabel}>
-            {t("Applications.You have already applied")}
-          </p>
+          <p className={styles.statusLabel}>{t("Applications.You have already applied")}</p>
           <div className="flex items-center gap-2">
-            <span className={styles.statusBadge}>
-              {t(
-                `Candidates.Status.${props.existingApplication.status}`,
-              )}
-            </span>
+            <span className={styles.statusBadge}>{t(`Candidates.Status.${props.existingApplication.status}`)}</span>
             <span className={styles.statusDate}>{formattedDate}</span>
           </div>
 
@@ -148,9 +127,7 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
                 ))}
               {hasApplicantMessage && (
                 <div className="text-sm">
-                  <div className="text-muted-foreground text-xs">
-                    {t("Applications.Additional message")}
-                  </div>
+                  <div className="text-muted-foreground text-xs">{t("Applications.Additional message")}</div>
                   <div className="text-foreground">{props.existingApplication.applicant_message}</div>
                 </div>
               )}
@@ -167,16 +144,9 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
       <div className={styles.container}>
         <div className={styles.successState}>
           <CheckCircle2 className="size-12 text-primary" />
-          <p className={styles.successTitle}>
-            {t("Applications.Application submitted successfully")}
-          </p>
-          <p className={styles.successDescription}>
-            {t("Applications.Your application is being reviewed")}
-          </p>
-          <LocaleLink
-            to={`/${props.slug}/members`}
-            className="text-sm text-primary hover:underline mt-2"
-          >
+          <p className={styles.successTitle}>{t("Applications.Application submitted successfully")}</p>
+          <p className={styles.successDescription}>{t("Applications.Your application is being reviewed")}</p>
+          <LocaleLink to={`/${props.slug}/members`} className="text-sm text-primary hover:underline mt-2">
             {t("Applications.Back to members")}
           </LocaleLink>
         </div>
@@ -199,9 +169,7 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
       if (field.is_required) {
         const value = responses[field.id] ?? "";
         if (value.trim().length === 0) {
-          setError(
-            t("Applications.Please fill in all required fields"),
-          );
+          setError(t("Applications.Please fill in all required fields"));
           return;
         }
       }
@@ -239,15 +207,16 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        {sortedFields.length > 0 && sortedFields.map((field) => (
-          <ApplicationField
-            key={field.id}
-            field={field}
-            value={responses[field.id] ?? ""}
-            onChange={(value) => handleFieldChange(field.id, value)}
-            disabled={isSubmitting || !isAuthenticated}
-          />
-        ))}
+        {sortedFields.length > 0 &&
+          sortedFields.map((field) => (
+            <ApplicationField
+              key={field.id}
+              field={field}
+              value={responses[field.id] ?? ""}
+              onChange={(value) => handleFieldChange(field.id, value)}
+              disabled={isSubmitting || !isAuthenticated}
+            />
+          ))}
 
         <div className={styles.messageField}>
           <label htmlFor="applicant-message" className={styles.fieldLabel}>
@@ -279,18 +248,11 @@ export function ApplyPageClient(props: ApplyPageClientProps) {
         )}
 
         <div className={styles.formActions}>
-          <LocaleLink
-            to={`/${props.slug}/members`}
-            className={styles.cancelButton}
-          >
+          <LocaleLink to={`/${props.slug}/members`} className={styles.cancelButton}>
             {t("Common.Cancel")}
           </LocaleLink>
           {(isAuthenticated || isAuthLoading) && (
-            <button
-              type="submit"
-              disabled={isSubmitting || isAuthLoading}
-              className={styles.submitButton}
-            >
+            <button type="submit" disabled={isSubmitting || isAuthLoading} className={styles.submitButton}>
               {isSubmitting ? t("Applications.Submitting...") : t("Applications.Submit Application")}
             </button>
           )}
@@ -321,31 +283,29 @@ function ApplicationField(props: ApplicationFieldProps) {
         {props.field.is_required && <span className={styles.requiredMark}>*</span>}
       </label>
 
-      {props.field.field_type === "long_text"
-        ? (
-          <textarea
-            id={fieldId}
-            value={props.value}
-            onChange={(e) => props.onChange(e.target.value)}
-            placeholder={props.field.placeholder ?? ""}
-            className={styles.fieldTextarea}
-            rows={4}
-            required={props.field.is_required}
-            disabled={props.disabled}
-          />
-        )
-        : (
-          <input
-            id={fieldId}
-            type={props.field.field_type === "url" ? "url" : "text"}
-            value={props.value}
-            onChange={(e) => props.onChange(e.target.value)}
-            placeholder={props.field.placeholder ?? ""}
-            className={styles.fieldInput}
-            required={props.field.is_required}
-            disabled={props.disabled}
-          />
-        )}
+      {props.field.field_type === "long_text" ? (
+        <textarea
+          id={fieldId}
+          value={props.value}
+          onChange={(e) => props.onChange(e.target.value)}
+          placeholder={props.field.placeholder ?? ""}
+          className={styles.fieldTextarea}
+          rows={4}
+          required={props.field.is_required}
+          disabled={props.disabled}
+        />
+      ) : (
+        <input
+          id={fieldId}
+          type={props.field.field_type === "url" ? "url" : "text"}
+          value={props.value}
+          onChange={(e) => props.onChange(e.target.value)}
+          placeholder={props.field.placeholder ?? ""}
+          className={styles.fieldInput}
+          required={props.field.is_required}
+          disabled={props.disabled}
+        />
+      )}
     </div>
   );
 }

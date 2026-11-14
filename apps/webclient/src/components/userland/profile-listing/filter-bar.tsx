@@ -38,11 +38,7 @@ export function ProfileListingFilterBar(props: ProfileListingFilterBarProps) {
             className="w-full"
           >
             {props.filterOptions?.map((option) => (
-              <ToggleGroupItem
-                key={option.value}
-                value={option.value}
-                aria-label={option.label}
-              >
+              <ToggleGroupItem key={option.value} value={option.value} aria-label={option.label}>
                 {option.label}
               </ToggleGroupItem>
             ))}

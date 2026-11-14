@@ -10,32 +10,23 @@ export type CreateProfileRequest = {
   description: string;
 };
 
-export async function createProfile(
-  locale: string,
-  data: CreateProfileRequest,
-): Promise<Profile | null> {
+export async function createProfile(locale: string, data: CreateProfileRequest): Promise<Profile | null> {
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/_create`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/_create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
 
   if (!response.ok) {
     const errorData = await response.json();
-    if (
-      errorData.error?.includes("duplicate") ||
-      errorData.error?.includes("already exists")
-    ) {
+    if (errorData.error?.includes("duplicate") || errorData.error?.includes("already exists")) {
       throw new Error("DUPLICATE_INDIVIDUAL_PROFILE");
     }
     throw new Error(errorData.error ?? "Failed to create profile");

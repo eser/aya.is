@@ -113,11 +113,7 @@ export function generateProfileMarkdown(
 /**
  * Generate markdown for a profile custom page
  */
-export function generateProfilePageMarkdown(
-  page: ProfilePage,
-  profile: Profile,
-  _locale: string,
-): string {
+export function generateProfilePageMarkdown(page: ProfilePage, profile: Profile, _locale: string): string {
   const frontmatter = formatFrontmatter({
     title: page.title,
     profile: profile.title,

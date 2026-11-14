@@ -20,9 +20,7 @@ export function StoryFooter(props: StoryFooterProps) {
   }
 
   // Filter out publications where the id matches the author profile id
-  const filteredPublications = props.story.publications.filter(
-    (publication) => publication.id !== authorProfile.id,
-  );
+  const filteredPublications = props.story.publications.filter((publication) => publication.id !== authorProfile.id);
 
   return (
     <div className="w-full flex items-start gap-12 pt-20 pb-10">
@@ -44,21 +42,19 @@ export function StoryFooter(props: StoryFooterProps) {
               {authorProfile.title}
             </Link>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {authorProfile.description}
-          </div>
+          <div className="text-sm text-muted-foreground">{authorProfile.description}</div>
         </div>
       </div>
 
       {props.showPublications !== false && filteredPublications.length > 0 && (
         <div className="w-2/6 flex flex-col">
-          <div className="text-sm text-muted-foreground">
-            {t("Stories.Publications")}
-          </div>
+          <div className="text-sm text-muted-foreground">{t("Stories.Publications")}</div>
           <div className="flex flex-row gap-2 flex-wrap">
             {filteredPublications.map((publication) => (
               <div key={publication.id} className="text-sm text-foreground">
-                <Link to="/$locale/$slug" params={{ locale, slug: publication.slug }}>{publication.title}</Link>
+                <Link to="/$locale/$slug" params={{ locale, slug: publication.slug }}>
+                  {publication.title}
+                </Link>
               </div>
             ))}
           </div>

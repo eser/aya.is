@@ -33,12 +33,7 @@ export function ListItem(props: ListItemProps) {
       </div>
       <div className="flex-1 flex flex-col">
         <h4 className={styles.title}>
-          <a
-            href={props.item.url}
-            title={props.item.title}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href={props.item.url} title={props.item.title} target="_blank" rel="noreferrer">
             {props.item.title}
           </a>
         </h4>

@@ -182,19 +182,17 @@ export function SeriesManagementDialog(props: SeriesManagementDialogProps) {
     });
 
     // Upsert translation
-    const txSuccess = await backend.updateSeriesTranslation(
-      props.locale,
-      editingSeries.id,
-      contentLocale,
-      { title: trimmedTitle, description: description.trim() },
-    );
+    const txSuccess = await backend.updateSeriesTranslation(props.locale, editingSeries.id, contentLocale, {
+      title: trimmedTitle,
+      description: description.trim(),
+    });
 
     if (baseSuccess && txSuccess) {
       toast.success(t("Series.Series updated"));
       setHasTranslation(true);
       // Update local series data
       setEditingSeries((prev) =>
-        prev !== null ? { ...prev, slug: trimmedSlug, title: trimmedTitle, description: description.trim() } : null
+        prev !== null ? { ...prev, slug: trimmedSlug, title: trimmedTitle, description: description.trim() } : null,
       );
     }
 
@@ -205,197 +203,168 @@ export function SeriesManagementDialog(props: SeriesManagementDialogProps) {
     <>
       <Dialog open={props.open} onOpenChange={props.onOpenChange}>
         <DialogContent className="sm:max-w-lg">
-          {editingSeries === null
-            ? (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Library className="size-5" />
-                    {t("Series.Manage Series...")}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {t("Series.Manage your story series")}
-                  </DialogDescription>
-                </DialogHeader>
+          {editingSeries === null ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Library className="size-5" />
+                  {t("Series.Manage Series...")}
+                </DialogTitle>
+                <DialogDescription>{t("Series.Manage your story series")}</DialogDescription>
+              </DialogHeader>
 
-                {isLoading
-                  ? (
-                    <div className="flex justify-center py-4">
-                      <Loader2 className="size-5 animate-spin text-muted-foreground" />
-                    </div>
-                  )
-                  : (
-                    <div className="space-y-2">
-                      {seriesList.length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          {t("Series.No series yet")}
-                        </p>
-                      )}
-                      {seriesList.map((series) => (
-                        <div
-                          key={series.id}
-                          className="flex items-center justify-between p-2 rounded border"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Library className="size-4 shrink-0" />
-                            <div className="min-w-0">
-                              <span className="text-sm font-medium block truncate">{series.title}</span>
-                              <span className="text-xs text-muted-foreground">{series.slug}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => handleEdit(series)}
-                              title={t("Common.Edit")}
-                            >
-                              <Pencil className="size-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => setDeleteTarget(series)}
-                              title={t("Common.Delete")}
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                <div className="flex items-center gap-2 mt-4">
-                  <Input
-                    placeholder={t("ContentEditor.Series title")}
-                    value={newSeriesTitle}
-                    onChange={(e) => setNewSeriesTitle(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleCreate();
-                    }}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={handleCreate}
-                    disabled={isCreating || newSeriesTitle.trim().length === 0}
-                  >
-                    {isCreating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />}
-                    {t("ContentEditor.Create")}
-                  </Button>
+              {isLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
                 </div>
-              </>
-            )
-            : (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={handleBackToList}
-                      title={t("Series.Back to list")}
-                    >
-                      <ArrowLeft className="size-4" />
-                    </Button>
-                    {t("Series.Edit Series")}
-                  </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-4">
-                  {/* Content locale selector */}
-                  <div className="space-y-1.5">
-                    <Label>{t("Series.Content Locale")}</Label>
-                    <Select
-                      value={contentLocale}
-                      onValueChange={(value) => {
-                        if (value !== null) {
-                          handleContentLocaleChange(value);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue>
-                          {(value: string) => localeLabelMap.get(value) ?? value}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {localeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {!hasTranslation && (
-                    <p className="text-sm text-muted-foreground italic">
-                      {t("Series.No translation")}
-                    </p>
+              ) : (
+                <div className="space-y-2">
+                  {seriesList.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t("Series.No series yet")}</p>
                   )}
-
-                  {/* Translation fields */}
-                  {isLoadingTranslation
-                    ? (
-                      <div className="flex justify-center py-2">
-                        <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  {seriesList.map((series) => (
+                    <div key={series.id} className="flex items-center justify-between p-2 rounded border">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Library className="size-4 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-sm font-medium block truncate">{series.title}</span>
+                          <span className="text-xs text-muted-foreground">{series.slug}</span>
+                        </div>
                       </div>
-                    )
-                    : (
-                      <>
-                        <div className="space-y-1.5">
-                          <Label>{t("Common.Title")}</Label>
-                          <Input
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder={t("Common.Title")}
-                          />
-                        </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => handleEdit(series)}
+                          title={t("Common.Edit")}
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setDeleteTarget(series)}
+                          title={t("Common.Delete")}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-                        <div className="space-y-1.5">
-                          <Label>{t("Common.Description")}</Label>
-                          <Input
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder={t("Common.Description")}
-                          />
-                        </div>
-                      </>
-                    )}
+              <div className="flex items-center gap-2 mt-4">
+                <Input
+                  placeholder={t("ContentEditor.Series title")}
+                  value={newSeriesTitle}
+                  onChange={(e) => setNewSeriesTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreate();
+                  }}
+                  className="flex-1"
+                />
+                <Button onClick={handleCreate} disabled={isCreating || newSeriesTitle.trim().length === 0}>
+                  {isCreating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />}
+                  {t("ContentEditor.Create")}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon-sm" onClick={handleBackToList} title={t("Series.Back to list")}>
+                    <ArrowLeft className="size-4" />
+                  </Button>
+                  {t("Series.Edit Series")}
+                </DialogTitle>
+              </DialogHeader>
 
-                  {/* Base fields (locale-independent) */}
-                  <div className="border-t pt-4 space-y-4">
+              <div className="space-y-4">
+                {/* Content locale selector */}
+                <div className="space-y-1.5">
+                  <Label>{t("Series.Content Locale")}</Label>
+                  <Select
+                    value={contentLocale}
+                    onValueChange={(value) => {
+                      if (value !== null) {
+                        handleContentLocaleChange(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue>{(value: string) => localeLabelMap.get(value) ?? value}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {localeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {!hasTranslation && (
+                  <p className="text-sm text-muted-foreground italic">{t("Series.No translation")}</p>
+                )}
+
+                {/* Translation fields */}
+                {isLoadingTranslation ? (
+                  <div className="flex justify-center py-2">
+                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <>
                     <div className="space-y-1.5">
-                      <Label>{t("Series.Series slug")}</Label>
-                      <Input
-                        value={slug}
-                        onChange={(e) => setSlug(sanitizeSlug(e.target.value))}
-                        placeholder={t("Series.Series slug")}
-                      />
+                      <Label>{t("Common.Title")}</Label>
+                      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("Common.Title")} />
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label>{t("Series.Series picture URI")}</Label>
+                      <Label>{t("Common.Description")}</Label>
                       <Input
-                        value={pictureUri}
-                        onChange={(e) => setPictureUri(e.target.value)}
-                        placeholder={t("Series.Series picture URI")}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder={t("Common.Description")}
                       />
                     </div>
+                  </>
+                )}
+
+                {/* Base fields (locale-independent) */}
+                <div className="border-t pt-4 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label>{t("Series.Series slug")}</Label>
+                    <Input
+                      value={slug}
+                      onChange={(e) => setSlug(sanitizeSlug(e.target.value))}
+                      placeholder={t("Series.Series slug")}
+                    />
                   </div>
 
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving || title.trim().length === 0 || slug.trim().length === 0}
-                    className="w-full"
-                  >
-                    {isSaving && <Loader2 className="mr-2 size-4 animate-spin" />}
-                    {isSaving ? t("Common.Saving...") : t("Common.Save")}
-                  </Button>
+                  <div className="space-y-1.5">
+                    <Label>{t("Series.Series picture URI")}</Label>
+                    <Input
+                      value={pictureUri}
+                      onChange={(e) => setPictureUri(e.target.value)}
+                      placeholder={t("Series.Series picture URI")}
+                    />
+                  </div>
                 </div>
-              </>
-            )}
+
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving || title.trim().length === 0 || slug.trim().length === 0}
+                  className="w-full"
+                >
+                  {isSaving && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {isSaving ? t("Common.Saving...") : t("Common.Save")}
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -408,9 +377,7 @@ export function SeriesManagementDialog(props: SeriesManagementDialogProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("Series.Delete series?")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("Series.Delete series confirmation")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("Series.Delete series confirmation")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>

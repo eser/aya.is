@@ -14,12 +14,14 @@ type BlockHint = {
 };
 
 function formatPropsHint(block: BlockDefinition): string {
-  const propsHint = block.props.map((p) => {
-    if (p.type === "select" && p.options !== undefined) {
-      return `${p.name}: ${p.options.map((o) => o.value).join("|")}`;
-    }
-    return `${p.name}: ${p.type}`;
-  }).join(", ");
+  const propsHint = block.props
+    .map((p) => {
+      if (p.type === "select" && p.options !== undefined) {
+        return `${p.name}: ${p.options.map((o) => o.value).join("|")}`;
+      }
+      return `${p.name}: ${p.type}`;
+    })
+    .join(", ");
 
   return propsHint === "" ? "no props" : propsHint;
 }

@@ -11,10 +11,7 @@ export async function getInteractions(
 ): Promise<InteractionWithProfile[] | null> {
   const query = kind !== undefined ? `?kind=${kind}` : "";
 
-  const response = await fetcher<GetInteractionsData>(
-    locale,
-    `/stories/${storySlug}/interactions${query}`,
-  );
+  const response = await fetcher<GetInteractionsData>(locale, `/stories/${storySlug}/interactions${query}`);
 
   return response;
 }

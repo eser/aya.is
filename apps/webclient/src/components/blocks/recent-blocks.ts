@@ -15,9 +15,7 @@ export function getRecentBlockIds(): string[] {
     if (!Array.isArray(parsed)) {
       return [];
     }
-    return parsed
-      .filter((id): id is string => typeof id === "string")
-      .slice(0, MAX_RECENT);
+    return parsed.filter((id): id is string => typeof id === "string").slice(0, MAX_RECENT);
   } catch {
     return [];
   }

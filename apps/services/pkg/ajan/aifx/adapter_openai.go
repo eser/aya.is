@@ -34,8 +34,8 @@ func classifyOpenAIError(providerSentinel error, err error) error {
 		return ctxErr
 	}
 
-	var apiErr *openai.Error
-	if errors.As(err, &apiErr) {
+	apiErr, ok := errors.AsType[*openai.Error](err)
+	if ok {
 		return classifyAndWrap(providerSentinel, apiErr.StatusCode, err)
 	}
 
@@ -558,12 +558,12 @@ func (m *OpenAIModel) mapAssistantMessage(
 	// Check if this message has tool calls.
 	var toolCalls []openai.ChatCompletionMessageToolCallParam
 
-	text := ""
+	var text strings.Builder
 
 	for _, block := range msg.Content {
 		switch block.Type { //nolint:exhaustive
 		case ContentBlockText:
-			text += block.Text
+			text.WriteString(block.Text)
 
 		case ContentBlockToolCall:
 			if block.ToolCall != nil {
@@ -582,9 +582,9 @@ func (m *OpenAIModel) mapAssistantMessage(
 	}
 
 	assistantMsg := openai.ChatCompletionAssistantMessageParam{} //nolint:exhaustruct
-	if text != "" {
+	if text.String() != "" {
 		assistantMsg.Content = openai.ChatCompletionAssistantMessageParamContentUnion{ //nolint:exhaustruct
-			OfString: openai.String(text),
+			OfString: openai.String(text.String()),
 		}
 	}
 

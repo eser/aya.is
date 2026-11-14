@@ -15,14 +15,10 @@ export async function lockThread(
   threadId: string,
   input: LockThreadInput,
 ): Promise<LockThreadResult | null> {
-  const response = await fetcher<LockThreadResult>(
-    locale,
-    `/discussions/threads/${threadId}/lock`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<LockThreadResult>(locale, `/discussions/threads/${threadId}/lock`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

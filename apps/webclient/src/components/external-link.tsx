@@ -25,12 +25,7 @@ export function ExternalLink(props: ExternalLinkProps) {
   const isTouchDevice = useTouchDevice();
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (
-      isTouchDevice === true &&
-      isAppLinkableUrl(props.href) &&
-      event.metaKey === false &&
-      event.ctrlKey === false
-    ) {
+    if (isTouchDevice === true && isAppLinkableUrl(props.href) && event.metaKey === false && event.ctrlKey === false) {
       event.preventDefault();
       globalThis.location.href = props.href;
     }

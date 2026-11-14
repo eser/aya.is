@@ -19,13 +19,9 @@ export async function shareWizardAiAssist(
   storySlug: string,
   request: ShareWizardAiAssistRequest,
 ): Promise<ShareWizardAiAssistResponse | null> {
-  const response = await fetcher<ShareWizardAiAssistResponse>(
-    locale,
-    `/stories/${storySlug}/share/ai-assist`,
-    {
-      method: "POST",
-      body: JSON.stringify(request),
-    },
-  );
+  const response = await fetcher<ShareWizardAiAssistResponse>(locale, `/stories/${storySlug}/share/ai-assist`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
   return response;
 }

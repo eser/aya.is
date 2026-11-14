@@ -2,11 +2,7 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 
-export async function rejectProfileEnvelope(
-  locale: string,
-  slug: string,
-  envelopeId: string,
-): Promise<boolean> {
+export async function rejectProfileEnvelope(locale: string, slug: string, envelopeId: string): Promise<boolean> {
   const token = getAuthToken();
   if (token === null) {
     return false;
@@ -17,14 +13,11 @@ export async function rejectProfileEnvelope(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_envelopes/${envelopeId}/reject`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_envelopes/${envelopeId}/reject`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+  });
 
   return response.ok;
 }

@@ -11,10 +11,7 @@ import type { Profile } from "@/modules/backend/types";
 /**
  * Generate markdown for the products listing page
  */
-export function generateProductsListingMarkdown(
-  products: Profile[],
-  locale: string,
-): string {
+export function generateProductsListingMarkdown(products: Profile[], locale: string): string {
   const frontmatter = formatFrontmatter({
     title: "Products",
     generated_at: new Date().toISOString(),

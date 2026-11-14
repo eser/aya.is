@@ -26,8 +26,8 @@ func classifyGeminiError(providerSentinel error, err error) error {
 		return ctxErr
 	}
 
-	var apiErr genai.APIError
-	if errors.As(err, &apiErr) {
+	apiErr, ok := errors.AsType[genai.APIError](err)
+	if ok {
 		return classifyAndWrap(providerSentinel, apiErr.Code, err)
 	}
 

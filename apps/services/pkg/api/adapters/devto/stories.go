@@ -33,7 +33,7 @@ type devtoUser struct {
 }
 
 type devtoArticle struct {
-	ID           int       `json:"id"`
+	User         devtoUser `json:"user"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
 	PublishedAt  string    `json:"published_at"`
@@ -43,7 +43,7 @@ type devtoArticle struct {
 	SocialImage  string    `json:"social_image"`
 	BodyMarkdown string    `json:"body_markdown"`
 	TagList      tagList   `json:"tag_list"`
-	User         devtoUser `json:"user"`
+	ID           int       `json:"id"`
 }
 
 type tagList []string

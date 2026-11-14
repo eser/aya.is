@@ -34,12 +34,10 @@ function EditStoryPage() {
   const [translationLocale, setTranslationLocale] = React.useState(search.lang ?? params.locale);
   // Translation data tagged with its locale to prevent stale renders.
   // null = loading, data.locale mismatches translationLocale = stale (treat as loading)
-  const [translationState, setTranslationState] = React.useState<
-    {
-      locale: string;
-      data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
-    } | null
-  >(null);
+  const [translationState, setTranslationState] = React.useState<{
+    locale: string;
+    data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
+  } | null>(null);
 
   // Load story data and check permissions (once)
   React.useEffect(() => {
@@ -70,11 +68,13 @@ function EditStoryPage() {
       const isFallback = storyData.is_fallback;
       setTranslationState({
         locale: translationLocale,
-        data: isFallback ? undefined : {
-          title: storyData.title ?? "",
-          summary: storyData.summary ?? "",
-          content: storyData.content,
-        },
+        data: isFallback
+          ? undefined
+          : {
+              title: storyData.title ?? "",
+              summary: storyData.summary ?? "",
+              content: storyData.content,
+            },
       });
       return;
     }
@@ -163,10 +163,14 @@ function EditStoryPage() {
               {/* Toolbar skeleton */}
               <div className="flex items-center justify-between border-b px-4 py-2">
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="size-8" />)}
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
                 </div>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map((i) => <Skeleton key={i} className="size-8" />)}
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
                 </div>
               </div>
               {/* Panels skeleton */}
@@ -197,19 +201,20 @@ function EditStoryPage() {
 
   // Extract activity-specific fields from properties when kind is "activity"
   const props = storyData.properties as Record<string, unknown> | null | undefined;
-  const activityFields = storyData.kind === "activity" && props !== null && props !== undefined
-    ? {
-      activityKind: (props.activity_kind as string) ?? "meetup",
-      activityTimeStart: (props.activity_time_start as string) ?? "",
-      activityTimeEnd: (props.activity_time_end as string) ?? "",
-      externalActivityUri: (props.external_activity_uri as string) ?? "",
-      externalAttendanceUri: (props.external_attendance_uri as string) ?? "",
-      rsvpMode: (props.rsvp_mode as string) ?? "enabled",
-      dateMode: (props.date_mode as string) ?? "fixed",
-      dateProposalAccess: (props.date_proposal_access as string) ?? "anyone",
-      dateVoteAccess: (props.date_vote_access as string) ?? "anyone",
-    }
-    : {};
+  const activityFields =
+    storyData.kind === "activity" && props !== null && props !== undefined
+      ? {
+          activityKind: (props.activity_kind as string) ?? "meetup",
+          activityTimeStart: (props.activity_time_start as string) ?? "",
+          activityTimeEnd: (props.activity_time_end as string) ?? "",
+          externalActivityUri: (props.external_activity_uri as string) ?? "",
+          externalAttendanceUri: (props.external_attendance_uri as string) ?? "",
+          rsvpMode: (props.rsvp_mode as string) ?? "enabled",
+          dateMode: (props.date_mode as string) ?? "fixed",
+          dateProposalAccess: (props.date_proposal_access as string) ?? "anyone",
+          dateVoteAccess: (props.date_vote_access as string) ?? "anyone",
+        }
+      : {};
 
   const initialData: ContentEditorData = {
     title: translationData === undefined ? "" : translationData.title,
@@ -230,38 +235,34 @@ function EditStoryPage() {
 
   const handleSave = async (data: ContentEditorData) => {
     // Assemble properties for activity kind
-    const properties = data.kind === "activity"
-      ? {
-        activity_kind: data.activityKind ?? "meetup",
-        activity_time_start: data.activityTimeStart ?? "",
-        activity_time_end: data.activityTimeEnd ?? "",
-        external_activity_uri: data.externalActivityUri ?? "",
-        external_attendance_uri: data.externalAttendanceUri ?? "",
-        rsvp_mode: data.rsvpMode ?? "enabled",
-        date_mode: data.dateMode ?? "fixed",
-        ...(data.dateMode === "undecided"
-          ? {
-            date_proposal_access: data.dateProposalAccess ?? "anyone",
-            date_vote_access: data.dateVoteAccess ?? "anyone",
+    const properties =
+      data.kind === "activity"
+        ? {
+            activity_kind: data.activityKind ?? "meetup",
+            activity_time_start: data.activityTimeStart ?? "",
+            activity_time_end: data.activityTimeEnd ?? "",
+            external_activity_uri: data.externalActivityUri ?? "",
+            external_attendance_uri: data.externalAttendanceUri ?? "",
+            rsvp_mode: data.rsvpMode ?? "enabled",
+            date_mode: data.dateMode ?? "fixed",
+            ...(data.dateMode === "undecided"
+              ? {
+                  date_proposal_access: data.dateProposalAccess ?? "anyone",
+                  date_vote_access: data.dateVoteAccess ?? "anyone",
+                }
+              : {}),
           }
-          : {}),
-      }
-      : undefined;
+        : undefined;
 
     // Update the story main fields
-    const updateResult = await backend.updateStory(
-      params.locale,
-      authorProfileSlug,
-      storyData.id,
-      {
-        slug: data.slug,
-        story_picture_uri: data.storyPictureUri,
-        properties,
-        visibility: data.visibility ?? "public",
-        feat_discussions: data.featDiscussions,
-        series_id: data.seriesId ?? null,
-      },
-    );
+    const updateResult = await backend.updateStory(params.locale, authorProfileSlug, storyData.id, {
+      slug: data.slug,
+      story_picture_uri: data.storyPictureUri,
+      properties,
+      visibility: data.visibility ?? "public",
+      feat_discussions: data.featDiscussions,
+      series_id: data.seriesId ?? null,
+    });
 
     if (updateResult === null) {
       throw new Error("Failed to update story");
@@ -305,11 +306,7 @@ function EditStoryPage() {
   };
 
   const handleDelete = async () => {
-    const result = await backend.removeStory(
-      params.locale,
-      authorProfileSlug,
-      storyData.id,
-    );
+    const result = await backend.removeStory(params.locale, authorProfileSlug, storyData.id);
 
     if (result !== null) {
       toast.success(t("ContentEditor.Story deleted successfully"));
@@ -340,12 +337,7 @@ function EditStoryPage() {
   };
 
   const handleDeleteTranslation = async (localeToDelete: string) => {
-    const result = await backend.deleteStoryTranslation(
-      params.locale,
-      authorProfileSlug,
-      storyData.id,
-      localeToDelete,
-    );
+    const result = await backend.deleteStoryTranslation(params.locale, authorProfileSlug, storyData.id, localeToDelete);
     if (result === null) {
       throw new Error("Delete translation failed");
     }

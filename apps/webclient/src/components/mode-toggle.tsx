@@ -37,10 +37,7 @@ export function ModeToggle() {
     const { top, left, width, height } = triggerEl.getBoundingClientRect();
     const x = left + width / 2;
     const y = top + height / 2;
-    const endRadius = Math.hypot(
-      Math.max(x, globalThis.innerWidth - x),
-      Math.max(y, globalThis.innerHeight - y),
-    );
+    const endRadius = Math.hypot(Math.max(x, globalThis.innerWidth - x), Math.max(y, globalThis.innerHeight - y));
 
     const transition = document.startViewTransition(() => {
       flushSync(() => {
@@ -49,19 +46,19 @@ export function ModeToggle() {
       // Apply theme class synchronously — useEffect won't fire within flushSync
       const root = document.documentElement;
       root.classList.remove("light", "dark");
-      const resolved = newTheme === "system"
-        ? globalThis.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-        : newTheme;
+      const resolved =
+        newTheme === "system"
+          ? globalThis.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+          : newTheme;
       root.classList.add(resolved);
     });
 
     transition.ready.then(() => {
       document.documentElement.animate(
         {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${endRadius}px at ${x}px ${y}px)`,
-          ],
+          clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
         },
         {
           duration: 500,

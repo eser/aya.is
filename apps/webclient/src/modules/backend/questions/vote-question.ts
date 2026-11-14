@@ -10,13 +10,9 @@ export async function voteQuestion(
   slug: string,
   questionId: string,
 ): Promise<VoteQuestionResult | null> {
-  const response = await fetcher<VoteQuestionResult>(
-    locale,
-    `/profiles/${slug}/_questions/${questionId}/vote`,
-    {
-      method: "POST",
-    },
-  );
+  const response = await fetcher<VoteQuestionResult>(locale, `/profiles/${slug}/_questions/${questionId}/vote`, {
+    method: "POST",
+  });
 
   return response;
 }

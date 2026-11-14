@@ -11,78 +11,77 @@ import { registerAllMarkdownHandlers } from "./server/markdown-handlers";
 // Register all markdown handlers at startup
 registerAllMarkdownHandlers();
 
-const customDomainMiddleware = createMiddleware()
-  .server(async ({ request, next }) => {
-    const url = new URL(request.url);
+const customDomainMiddleware = createMiddleware().server(async ({ request, next }) => {
+  const url = new URL(request.url);
 
-    // Skip static assets and internal paths - pass through directly
-    // Note: .md files are NOT skipped - they need path rewriting for custom domains
-    if (
-      url.pathname.startsWith("/_") ||
-      url.pathname.startsWith("/api/") ||
-      url.pathname.startsWith("/assets/") ||
-      (url.pathname.includes(".") && !url.pathname.endsWith(".md") && !url.pathname.endsWith(".txt"))
-    ) {
-      return next();
+  // Skip static assets and internal paths - pass through directly
+  // Note: .md files are NOT skipped - they need path rewriting for custom domains
+  if (
+    url.pathname.startsWith("/_") ||
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/assets/") ||
+    (url.pathname.includes(".") && !url.pathname.endsWith(".md") && !url.pathname.endsWith(".txt"))
+  ) {
+    return next();
+  }
+
+  const forwardedHost = getRequestHeader("x-forwarded-host")?.split(":")[0];
+  const hostHeader = getRequestHeader("host")?.split(":")[0];
+  const hostFromHeaders = forwardedHost ?? hostHeader ?? url.hostname;
+  const hostname = process.env.CUSTOM_DOMAIN ?? hostFromHeaders;
+
+  // console.log("forwardedHost", forwardedHost);
+  // console.log("hostHeader", hostHeader);
+  // console.log("url.hostname", url.hostname);
+  // console.log("hostname", hostname);
+
+  // Get domain configuration (static or from backend)
+  const domainConfiguration = await getDomainConfiguration(hostname);
+
+  const originalPathParts = url.pathname.split("/").filter(Boolean);
+  const pathParts = [...originalPathParts];
+  if (domainConfiguration.type === "custom-domain") {
+    // Handle the case where the path is just /{locale}.md (e.g., /tr.md)
+    // In this case, we need to transform it to /{locale}/{profileSlug}.md
+    if (pathParts.length === 1 && pathParts[0] !== undefined && pathParts[0].endsWith(".md")) {
+      const localeWithMd = pathParts[0];
+      const locale = localeWithMd.slice(0, -3); // Remove .md suffix
+      pathParts[0] = locale;
+      pathParts.push(`${domainConfiguration.profileSlug}.md`);
+    } else if (predefinedSlugs.includes(pathParts[0])) {
+      // System route (e.g., /auth/callback) — no profile slug injection
+    } else {
+      // Standard case: insert profile slug after locale
+      pathParts.splice(1, 0, domainConfiguration.profileSlug);
     }
+  }
 
-    const forwardedHost = getRequestHeader("x-forwarded-host")?.split(":")[0];
-    const hostHeader = getRequestHeader("host")?.split(":")[0];
-    const hostFromHeaders = forwardedHost ?? hostHeader ?? url.hostname;
-    const hostname = process.env.CUSTOM_DOMAIN ?? hostFromHeaders;
-
-    // console.log("forwardedHost", forwardedHost);
-    // console.log("hostHeader", hostHeader);
-    // console.log("url.hostname", url.hostname);
-    // console.log("hostname", hostname);
-
-    // Get domain configuration (static or from backend)
-    const domainConfiguration = await getDomainConfiguration(hostname);
-
-    const originalPathParts = url.pathname.split("/").filter(Boolean);
-    const pathParts = [...originalPathParts];
-    if (domainConfiguration.type === "custom-domain") {
-      // Handle the case where the path is just /{locale}.md (e.g., /tr.md)
-      // In this case, we need to transform it to /{locale}/{profileSlug}.md
-      if (pathParts.length === 1 && pathParts[0] !== undefined && pathParts[0].endsWith(".md")) {
-        const localeWithMd = pathParts[0];
-        const locale = localeWithMd.slice(0, -3); // Remove .md suffix
-        pathParts[0] = locale;
-        pathParts.push(`${domainConfiguration.profileSlug}.md`);
-      } else if (predefinedSlugs.includes(pathParts[0])) {
-        // System route (e.g., /auth/callback) — no profile slug injection
-      } else {
-        // Standard case: insert profile slug after locale
-        pathParts.splice(1, 0, domainConfiguration.profileSlug);
-      }
+  // Parse site_theme cookie for SSR theme rendering
+  const cookieHeader = request.headers.get("cookie") ?? undefined;
+  let ssrTheme: string | undefined;
+  if (cookieHeader !== undefined) {
+    const themeMatch = cookieHeader.match(/(?:^|;\s*)site_theme=([^;]+)/);
+    if (themeMatch !== null && themeMatch[1] !== undefined) {
+      ssrTheme = themeMatch[1];
     }
+  }
 
-    // Parse site_theme cookie for SSR theme rendering
-    const cookieHeader = request.headers.get("cookie") ?? undefined;
-    let ssrTheme: string | undefined;
-    if (cookieHeader !== undefined) {
-      const themeMatch = cookieHeader.match(/(?:^|;\s*)site_theme=([^;]+)/);
-      if (themeMatch !== null && themeMatch[1] !== undefined) {
-        ssrTheme = themeMatch[1];
-      }
-    }
+  const acceptLanguageHeader = getRequestHeader("accept-language") ?? undefined;
 
-    const acceptLanguageHeader = getRequestHeader("accept-language") ?? undefined;
+  const requestContext: RequestContext = {
+    domainConfiguration: domainConfiguration,
+    path: pathParts,
+    originalPath: originalPathParts,
+    cookieHeader,
+    acceptLanguageHeader,
+    ssrTheme,
+  };
 
-    const requestContext: RequestContext = {
-      domainConfiguration: domainConfiguration,
-      path: pathParts,
-      originalPath: originalPathParts,
-      cookieHeader,
-      acceptLanguageHeader,
-      ssrTheme,
-    };
-
-    const { requestContextBinder } = await import("./server/request-context-binder");
-    return requestContextBinder.run(requestContext, () => {
-      return next({ context: { requestContext } });
-    });
+  const { requestContextBinder } = await import("./server/request-context-binder");
+  return requestContextBinder.run(requestContext, () => {
+    return next({ context: { requestContext } });
   });
+});
 
 export const startInstance = createStart(() => {
   return {

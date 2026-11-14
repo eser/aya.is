@@ -12,21 +12,18 @@ export async function createCandidate(
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_candidates`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        referred_profile_slug: referredProfileSlug,
-        team_ids: teamIds,
-      }),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_candidates`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify({
+      referred_profile_slug: referredProfileSlug,
+      team_ids: teamIds,
+    }),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

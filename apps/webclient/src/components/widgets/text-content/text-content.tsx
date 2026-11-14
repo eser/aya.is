@@ -19,21 +19,15 @@ export type TextContentProps = {
 };
 
 export function TextContent(props: TextContentProps) {
-  const {
-    title,
-    compiledContent,
-    rawContent = null,
-    shareOptions,
-    bare = false,
-    headingOffset = 1,
-    className,
-  } = props;
+  const { title, compiledContent, rawContent = null, shareOptions, bare = false, headingOffset = 1, className } = props;
 
   const content = (
     <>
       {title !== undefined && <h2>{title}</h2>}
 
-      {compiledContent !== null ? <MdxContent compiledSource={compiledContent} headingOffset={headingOffset} /> : (
+      {compiledContent !== null ? (
+        <MdxContent compiledSource={compiledContent} headingOffset={headingOffset} />
+      ) : (
         rawContent !== null && <div dangerouslySetInnerHTML={{ __html: rawContent }} />
       )}
 
@@ -53,9 +47,5 @@ export function TextContent(props: TextContentProps) {
     return content;
   }
 
-  return (
-    <article className={cn("content", className)}>
-      {content}
-    </article>
-  );
+  return <article className={cn("content", className)}>{content}</article>;
 }

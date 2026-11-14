@@ -8,19 +8,14 @@ export interface ToolAnnotations {
 }
 
 export interface ModelContextClient {
-  requestUserInteraction: (
-    callback: () => Promise<unknown>,
-  ) => Promise<unknown>;
+  requestUserInteraction: (callback: () => Promise<unknown>) => Promise<unknown>;
 }
 
 export interface ModelContextTool {
   name: string;
   description: string;
   inputSchema?: object;
-  execute: (
-    input: Record<string, unknown>,
-    client: ModelContextClient,
-  ) => Promise<unknown>;
+  execute: (input: Record<string, unknown>, client: ModelContextClient) => Promise<unknown>;
   annotations?: ToolAnnotations;
 }
 

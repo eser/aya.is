@@ -24,11 +24,7 @@ function computeCharCount(text: string, linkCost: number): number {
   return text.length + (linkCost > 0 ? linkCost : 0);
 }
 
-function counterStatus(
-  charCount: number,
-  limit: number,
-  warning: number,
-): "ok" | "warning" | "exceeded" {
+function counterStatus(charCount: number, limit: number, warning: number): "ok" | "warning" | "exceeded" {
   if (charCount > limit) return "exceeded";
   if (charCount >= warning) return "warning";
   return "ok";
@@ -112,11 +108,7 @@ export function ComposePanel(props: ComposePanelProps) {
         </label>
         <div className={styles.storyLinkCard}>
           {props.story.story_picture_uri !== null && props.story.story_picture_uri !== undefined && (
-            <img
-              src={props.story.story_picture_uri}
-              alt=""
-              className={styles.storyLinkImage}
-            />
+            <img src={props.story.story_picture_uri} alt="" className={styles.storyLinkImage} />
           )}
           <div className={styles.storyLinkMeta}>
             <div className={styles.storyLinkTitle}>{props.story.title}</div>

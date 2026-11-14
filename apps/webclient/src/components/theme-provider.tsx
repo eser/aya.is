@@ -32,9 +32,7 @@ function getCookieValue(name: string): string | null {
   if (typeof globalThis.document === "undefined") {
     return null;
   }
-  const match = globalThis.document.cookie.match(
-    new RegExp(`(?:^|;\\s*)${name}=([^;]+)`),
-  );
+  const match = globalThis.document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`));
   return match !== null && match[1] !== undefined ? match[1] : null;
 }
 
@@ -81,10 +79,7 @@ export function ThemeProvider(props: ThemeProviderProps) {
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
-      const systemTheme = globalThis.matchMedia("(prefers-color-scheme: dark)")
-          .matches
-        ? "dark"
-        : "light";
+      const systemTheme = globalThis.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 
       root.classList.add(systemTheme);
       return;
@@ -123,11 +118,7 @@ export function ThemeProvider(props: ThemeProviderProps) {
     isLoading: enableServerSync && auth.isLoading,
   };
 
-  return (
-    <ThemeProviderContext.Provider value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
-  );
+  return <ThemeProviderContext.Provider value={value}>{children}</ThemeProviderContext.Provider>;
 }
 
 export function useTheme() {

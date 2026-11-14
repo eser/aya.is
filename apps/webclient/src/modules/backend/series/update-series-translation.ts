@@ -11,18 +11,15 @@ export async function updateSeriesTranslation(
   const token = getAuthToken();
   if (token === null) return false;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/series/${seriesId}/translations/${txLocale}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
+  const response = await fetch(`${getBackendUri()}/${locale}/series/${seriesId}/translations/${txLocale}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
 
   return response.ok;
 }

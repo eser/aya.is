@@ -2,11 +2,7 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 
-export async function removeReaction(
-  locale: string,
-  envelopeId: string,
-  emoji: string,
-): Promise<boolean> {
+export async function removeReaction(locale: string, envelopeId: string, emoji: string): Promise<boolean> {
   const token = getAuthToken();
   if (token === null) {
     return false;

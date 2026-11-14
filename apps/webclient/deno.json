@@ -3,9 +3,5 @@
   "imports": {
     "@/": "./src/"
   },
-  "exclude": [
-    "**/node_modules/*",
-    "**/.tanstack/*",
-    "**/*.gen.ts"
-  ]
+  "exclude": ["**/node_modules/*", "**/.tanstack/*", "**/*.gen.ts"]
 }

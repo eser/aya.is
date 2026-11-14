@@ -35,13 +35,9 @@ export async function checkStorySlug(
   const queryString = params.toString();
   const queryParams = queryString.length > 0 ? `?${queryString}` : "";
 
-  const result = await fetcher<CheckStorySlugResponse>(
-    locale,
-    `/stories/${slug}/_check${queryParams}`,
-    {
-      method: "GET",
-    },
-  );
+  const result = await fetcher<CheckStorySlugResponse>(locale, `/stories/${slug}/_check${queryParams}`, {
+    method: "GET",
+  });
 
   return result;
 }

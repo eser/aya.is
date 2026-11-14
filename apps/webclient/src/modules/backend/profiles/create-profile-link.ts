@@ -22,18 +22,15 @@ export async function createProfileLink(
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_links`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_links`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

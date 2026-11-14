@@ -675,10 +675,11 @@ func (c *Client) executeGraphQLSearchBatch( //nolint:funlen // sequential GraphQ
 	for alias, searchQuery := range queries {
 		// Escape double quotes in the search query
 		escapedQuery := strings.ReplaceAll(searchQuery, `"`, `\"`)
-		queryBuilder.WriteString(fmt.Sprintf(
+		fmt.Fprintf(
+			&queryBuilder,
 			` %s: search(query: "%s", type: ISSUE, first: 1) { issueCount }`,
 			alias, escapedQuery,
-		))
+		)
 	}
 
 	queryBuilder.WriteString(" }")

@@ -119,14 +119,7 @@ export interface ProfileMember {
   end_date?: string | null;
 }
 
-export type ProfileMembershipKind =
-  | "follower"
-  | "sponsor"
-  | "member"
-  | "contributor"
-  | "maintainer"
-  | "lead"
-  | "owner";
+export type ProfileMembershipKind = "follower" | "sponsor" | "member" | "contributor" | "maintainer" | "lead" | "owner";
 
 export interface ProfileMembership {
   id: string;
@@ -307,14 +300,7 @@ export interface ProfileTranslation {
 }
 
 // Story Types
-export type StoryKind =
-  | "status"
-  | "announcement"
-  | "article"
-  | "news"
-  | "content"
-  | "presentation"
-  | "activity";
+export type StoryKind = "status" | "announcement" | "article" | "news" | "content" | "presentation" | "activity";
 
 export interface Story {
   id: string;
@@ -749,12 +735,7 @@ export interface GitHubRepo {
 
 // Profile Question Types
 // Activity Types (stories with kind='activity')
-export type ActivityKind =
-  | "meetup"
-  | "workshop"
-  | "conference"
-  | "broadcast"
-  | "meeting";
+export type ActivityKind = "meetup" | "workshop" | "conference" | "broadcast" | "meeting";
 
 export type RSVPMode = "disabled" | "managed_externally" | "enabled";
 
@@ -806,11 +787,7 @@ export interface DateProposalVoteResponse {
 }
 
 // Story Interaction Types
-export type InteractionKind =
-  | "attending"
-  | "interested"
-  | "not_attending"
-  | string;
+export type InteractionKind = "attending" | "interested" | "not_attending" | string;
 
 export interface StoryInteraction {
   id: string;

@@ -11,12 +11,8 @@ export async function removeStory(
   profileSlug: string,
   storyId: string,
 ): Promise<RemoveStoryResult | null> {
-  const response = await fetcher<RemoveStoryResult>(
-    locale,
-    `/profiles/${profileSlug}/_stories/${storyId}`,
-    {
-      method: "DELETE",
-    },
-  );
+  const response = await fetcher<RemoveStoryResult>(locale, `/profiles/${profileSlug}/_stories/${storyId}`, {
+    method: "DELETE",
+  });
   return response;
 }

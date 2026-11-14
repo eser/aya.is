@@ -102,9 +102,7 @@ function parseChangelog(changelogText: string): ChangelogEntry[] {
   }
 
   if (headings.length === 0) {
-    throw new Error(
-      "No release headings found in CHANGELOG.md. Expected headings like `## 0.1.14 - 2026-02-19`.",
-    );
+    throw new Error("No release headings found in CHANGELOG.md. Expected headings like `## 0.1.14 - 2026-02-19`.");
   }
 
   return headings.map((heading, index) => {
@@ -176,23 +174,13 @@ async function main(): Promise<void> {
 
   try {
     if (hasRelease(targetTag, args.repo)) {
-      runGh([
-        "release",
-        "edit",
-        targetTag,
-        "--repo",
-        args.repo,
-        "--notes-file",
-        notesPath,
-      ]);
+      runGh(["release", "edit", targetTag, "--repo", args.repo, "--notes-file", notesPath]);
       console.log(`Updated release notes for ${targetTag}.`);
       return;
     }
 
     if (!args.createIfMissing) {
-      console.log(
-        `Release ${targetTag} not found. Skipping because --create-if-missing was not provided.`,
-      );
+      console.log(`Release ${targetTag} not found. Skipping because --create-if-missing was not provided.`);
       return;
     }
 
@@ -214,15 +202,7 @@ async function main(): Promise<void> {
       console.warn(
         `Release creation failed for ${targetTag}; attempting edit in case another workflow created it concurrently.`,
       );
-      runGh([
-        "release",
-        "edit",
-        targetTag,
-        "--repo",
-        args.repo,
-        "--notes-file",
-        notesPath,
-      ]);
+      runGh(["release", "edit", targetTag, "--repo", args.repo, "--notes-file", notesPath]);
       console.log(`Updated release notes for ${targetTag} after create race.`);
 
       if (createError instanceof Error) {

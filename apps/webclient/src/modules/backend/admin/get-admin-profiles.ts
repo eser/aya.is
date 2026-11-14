@@ -17,9 +17,7 @@ export interface GetAdminProfilesParams {
   offset?: number;
 }
 
-export async function getAdminProfiles(
-  params: GetAdminProfilesParams = {},
-): Promise<AdminProfileListResult | null> {
+export async function getAdminProfiles(params: GetAdminProfilesParams = {}): Promise<AdminProfileListResult | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;

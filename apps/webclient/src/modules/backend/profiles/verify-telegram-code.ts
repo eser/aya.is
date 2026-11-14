@@ -18,18 +18,15 @@ export async function verifyTelegramCode(
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_links/telegram/verify-code`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({ code, visibility }),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_links/telegram/verify-code`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify({ code, visibility }),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

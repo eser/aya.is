@@ -155,10 +155,7 @@ function StoriesSettingsPage() {
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 p-4 border rounded-lg"
-            >
+            <div key={i} className="flex items-center gap-3 p-4 border rounded-lg">
               <Skeleton className="size-5" />
               <Skeleton className="size-10 rounded" />
               <div className="flex-1">
@@ -179,9 +176,7 @@ function StoriesSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-serif text-xl font-semibold text-foreground">{t("Layout.Stories")}</h3>
-          <p className="text-muted-foreground text-sm mt-1">
-            {t("Profile.Manage your stories and articles.")}
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">{t("Profile.Manage your stories and articles.")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -192,9 +187,7 @@ function StoriesSettingsPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("Profile.Story Defaults")}</DialogTitle>
-                <DialogDescription>
-                  {t("Profile.Configure default settings for new stories.")}
-                </DialogDescription>
+                <DialogDescription>{t("Profile.Configure default settings for new stories.")}</DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-2">
@@ -206,19 +199,13 @@ function StoriesSettingsPage() {
                         {t("Profile.New stories will have discussions enabled automatically.")}
                       </p>
                     </div>
-                    <Switch
-                      checked={storyDiscussionsByDefault}
-                      onCheckedChange={setStoryDiscussionsByDefault}
-                    />
+                    <Switch checked={storyDiscussionsByDefault} onCheckedChange={setStoryDiscussionsByDefault} />
                   </div>
                 </Field>
               </div>
 
               <DialogFooter>
-                <Button
-                  onClick={handleSaveDefaults}
-                  disabled={isSavingDefaults}
-                >
+                <Button onClick={handleSaveDefaults} disabled={isSavingDefaults}>
                   {isSavingDefaults && <Loader2 className="mr-2 size-4 animate-spin" />}
                   {isSavingDefaults ? t("Common.Saving...") : t("Common.Save")}
                 </Button>
@@ -240,131 +227,125 @@ function StoriesSettingsPage() {
         </div>
       </div>
 
-      {stories.length === 0
-        ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">{t("Profile.No stories found.")}</p>
-          </div>
-        )
-        : (
-          <>
-            <div className="space-y-2">
-              {currentStories.map((story) => {
-                const KindIcon = storyKindIcons[story.kind];
-                const isPublished = story.publications.length > 0;
+      {stories.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">{t("Profile.No stories found.")}</p>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-2">
+            {currentStories.map((story) => {
+              const KindIcon = storyKindIcons[story.kind];
+              const isPublished = story.publications.length > 0;
 
-                return (
-                  <div
-                    key={story.id}
-                    className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
-                      {KindIcon !== undefined ? <KindIcon className="size-5" /> : <FileText className="size-5" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{story.title}</p>
-                        {isPublished
-                          ? <Globe className="size-3.5 text-green-600" />
-                          : <GlobeLock className="size-3.5 text-yellow-600" />}
-                        {story.feat_discussions
-                          ? (
-                            <MessageSquare className="size-3.5 text-blue-500">
-                              <title>{t("ContentEditor.Discussions enabled description")}</title>
-                            </MessageSquare>
-                          )
-                          : (
-                            <MessageSquareOff className="size-3.5 text-muted-foreground">
-                              <title>{t("ContentEditor.Discussions disabled description")}</title>
-                            </MessageSquareOff>
-                          )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDateString(story.published_at ?? story.created_at, locale)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <LocaleLink to={`/stories/${story.slug}/edit`}>
-                        <Button variant="ghost" size="icon" title={t("Common.Edit")}>
-                          <Pencil className="size-4" />
-                        </Button>
-                      </LocaleLink>
-                      <LocaleLink to={`/stories/${story.slug}`}>
-                        <Button variant="ghost" size="icon" title={t("Common.View")}>
-                          <ExternalLink className="size-4" />
-                        </Button>
-                      </LocaleLink>
-                    </div>
+              return (
+                <div
+                  key={story.id}
+                  className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
+                    {KindIcon !== undefined ? <KindIcon className="size-5" /> : <FileText className="size-5" />}
                   </div>
-                );
-              })}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">{story.title}</p>
+                      {isPublished ? (
+                        <Globe className="size-3.5 text-green-600" />
+                      ) : (
+                        <GlobeLock className="size-3.5 text-yellow-600" />
+                      )}
+                      {story.feat_discussions ? (
+                        <MessageSquare className="size-3.5 text-blue-500">
+                          <title>{t("ContentEditor.Discussions enabled description")}</title>
+                        </MessageSquare>
+                      ) : (
+                        <MessageSquareOff className="size-3.5 text-muted-foreground">
+                          <title>{t("ContentEditor.Discussions disabled description")}</title>
+                        </MessageSquareOff>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDateString(story.published_at ?? story.created_at, locale)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <LocaleLink to={`/stories/${story.slug}/edit`}>
+                      <Button variant="ghost" size="icon" title={t("Common.Edit")}>
+                        <Pencil className="size-4" />
+                      </Button>
+                    </LocaleLink>
+                    <LocaleLink to={`/stories/${story.slug}`}>
+                      <Button variant="ghost" size="icon" title={t("Common.View")}>
+                        <ExternalLink className="size-4" />
+                      </Button>
+                    </LocaleLink>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                      render={(linkProps) => (
+                        <Link
+                          to="/$locale/$slug/settings/stories"
+                          params={{ locale: params.locale, slug: params.slug }}
+                          search={currentPage > 2 ? { page: currentPage - 1 } : {}}
+                          {...linkProps}
+                        />
+                      )}
+                    >
+                      {t("Common.Previous")}
+                    </PaginationPrevious>
+                  </PaginationItem>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        isActive={currentPage === page}
+                        render={(linkProps) => (
+                          <Link
+                            to="/$locale/$slug/settings/stories"
+                            params={{ locale: params.locale, slug: params.slug }}
+                            search={page > 1 ? { page } : {}}
+                            {...linkProps}
+                          />
+                        )}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                      render={(linkProps) => (
+                        <Link
+                          to="/$locale/$slug/settings/stories"
+                          params={{ locale: params.locale, slug: params.slug }}
+                          search={{ page: currentPage + 1 }}
+                          {...linkProps}
+                        />
+                      )}
+                    >
+                      {t("Common.Next")}
+                    </PaginationNext>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
-
-            {totalPages > 1 && (
-              <div className="mt-6 flex justify-center">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
-                        render={(linkProps) => (
-                          <Link
-                            to="/$locale/$slug/settings/stories"
-                            params={{ locale: params.locale, slug: params.slug }}
-                            search={currentPage > 2 ? { page: currentPage - 1 } : {}}
-                            {...linkProps}
-                          />
-                        )}
-                      >
-                        {t("Common.Previous")}
-                      </PaginationPrevious>
-                    </PaginationItem>
-
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          isActive={currentPage === page}
-                          render={(linkProps) => (
-                            <Link
-                              to="/$locale/$slug/settings/stories"
-                              params={{ locale: params.locale, slug: params.slug }}
-                              search={page > 1 ? { page } : {}}
-                              {...linkProps}
-                            />
-                          )}
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-
-                    <PaginationItem>
-                      <PaginationNext
-                        className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
-                        render={(linkProps) => (
-                          <Link
-                            to="/$locale/$slug/settings/stories"
-                            params={{ locale: params.locale, slug: params.slug }}
-                            search={{ page: currentPage + 1 }}
-                            {...linkProps}
-                          />
-                        )}
-                      >
-                        {t("Common.Next")}
-                      </PaginationNext>
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
-          </>
-        )}
-      <SeriesManagementDialog
-        open={seriesDialogOpen}
-        onOpenChange={setSeriesDialogOpen}
-        locale={locale}
-      />
+          )}
+        </>
+      )}
+      <SeriesManagementDialog open={seriesDialogOpen} onOpenChange={setSeriesDialogOpen} locale={locale} />
     </Card>
   );
 }

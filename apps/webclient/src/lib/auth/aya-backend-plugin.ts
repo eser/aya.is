@@ -37,172 +37,140 @@ export const ayaBackendPlugin = () => {
 
     endpoints: {
       // Proxy GitHub login to api.aya.is
-      githubLogin: createAuthEndpoint(
-        "/github/login",
-        { method: "GET" },
-        (ctx) => {
-          const backendUri = getBackendUri();
-          const url = new URL(ctx.request?.url ?? "");
-          const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
-          const redirectUri = url.searchParams.get("redirect_uri") ?? "/";
+      githubLogin: createAuthEndpoint("/github/login", { method: "GET" }, (ctx) => {
+        const backendUri = getBackendUri();
+        const url = new URL(ctx.request?.url ?? "");
+        const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
+        const redirectUri = url.searchParams.get("redirect_uri") ?? "/";
 
-          // Redirect to api.aya.is OAuth endpoint
-          const loginUrl = `${backendUri}/${locale}/auth/github/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
+        // Redirect to api.aya.is OAuth endpoint
+        const loginUrl = `${backendUri}/${locale}/auth/github/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-          throw ctx.redirect(loginUrl);
-        },
-      ),
+        throw ctx.redirect(loginUrl);
+      }),
 
       // Handle callback from api.aya.is (receives auth_token in query)
-      githubCallback: createAuthEndpoint(
-        "/github/callback",
-        { method: "GET" },
-        async (ctx) => {
-          const url = new URL(ctx.request?.url ?? "");
-          const authToken = url.searchParams.get("auth_token");
-          const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
+      githubCallback: createAuthEndpoint("/github/callback", { method: "GET" }, async (ctx) => {
+        const url = new URL(ctx.request?.url ?? "");
+        const authToken = url.searchParams.get("auth_token");
+        const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
 
-          if (authToken === null) {
-            return ctx.json({ error: "No auth token provided" }, {
+        if (authToken === null) {
+          return ctx.json(
+            { error: "No auth token provided" },
+            {
               status: 400,
-            });
+            },
+          );
+        }
+
+        // Fetch session from api.aya.is
+        const backendUri = getBackendUri();
+        try {
+          const sessionResponse = await fetch(`${backendUri}/${locale}/auth/session`, {
+            headers: { Authorization: `Bearer ${authToken}` },
+          });
+
+          if (!sessionResponse.ok) {
+            return ctx.json({ error: "Failed to fetch session" }, { status: 401 });
           }
 
-          // Fetch session from api.aya.is
-          const backendUri = getBackendUri();
-          try {
-            const sessionResponse = await fetch(
-              `${backendUri}/${locale}/auth/session`,
-              {
-                headers: { Authorization: `Bearer ${authToken}` },
-              },
-            );
+          const session = await sessionResponse.json();
 
-            if (!sessionResponse.ok) {
-              return ctx.json(
-                { error: "Failed to fetch session" },
-                { status: 401 },
-              );
-            }
-
-            const session = await sessionResponse.json();
-
-            return ctx.json({
-              token: authToken,
-              session: session.data || session,
-            });
-          } catch {
-            return ctx.json(
-              { error: "Failed to authenticate" },
-              { status: 500 },
-            );
-          }
-        },
-      ),
+          return ctx.json({
+            token: authToken,
+            session: session.data || session,
+          });
+        } catch {
+          return ctx.json({ error: "Failed to authenticate" }, { status: 500 });
+        }
+      }),
 
       // Get current session from api.aya.is
-      getSession: createAuthEndpoint(
-        "/session",
-        { method: "GET" },
-        async (ctx) => {
-          const token = extractBearerToken(ctx.request?.headers.get("authorization"));
+      getSession: createAuthEndpoint("/session", { method: "GET" }, async (ctx) => {
+        const token = extractBearerToken(ctx.request?.headers.get("authorization"));
 
-          if (token === null) {
+        if (token === null) {
+          return ctx.json({ session: null });
+        }
+
+        const url = new URL(ctx.request?.url ?? "");
+        const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
+        const backendUri = getBackendUri();
+
+        try {
+          const response = await fetch(`${backendUri}/${locale}/auth/session`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!response.ok) {
             return ctx.json({ session: null });
           }
 
-          const url = new URL(ctx.request?.url ?? "");
-          const locale = url.searchParams.get("locale") ?? DEFAULT_LOCALE;
-          const backendUri = getBackendUri();
-
-          try {
-            const response = await fetch(
-              `${backendUri}/${locale}/auth/session`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              },
-            );
-
-            if (!response.ok) {
-              return ctx.json({ session: null });
-            }
-
-            const data = await response.json();
-            return ctx.json({ session: data.data || data });
-          } catch {
-            return ctx.json({ session: null });
-          }
-        },
-      ),
+          const data = await response.json();
+          return ctx.json({ session: data.data || data });
+        } catch {
+          return ctx.json({ session: null });
+        }
+      }),
 
       // Refresh token via api.aya.is
-      refreshToken: createAuthEndpoint(
-        "/refresh",
-        { method: "POST" },
-        async (ctx) => {
-          const token = extractBearerToken(ctx.request?.headers.get("authorization"));
+      refreshToken: createAuthEndpoint("/refresh", { method: "POST" }, async (ctx) => {
+        const token = extractBearerToken(ctx.request?.headers.get("authorization"));
 
-          if (token === null) {
-            return ctx.json({ error: "No token provided" }, { status: 401 });
+        if (token === null) {
+          return ctx.json({ error: "No token provided" }, { status: 401 });
+        }
+
+        const backendUri = getBackendUri();
+
+        try {
+          const body = await ctx.request?.json().catch(() => ({}));
+          const locale = body?.locale ?? DEFAULT_LOCALE;
+
+          const response = await fetch(`${backendUri}/${locale}/auth/refresh`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            return ctx.json({ error: "Refresh failed" }, { status: 401 });
           }
 
-          const backendUri = getBackendUri();
+          const data = await response.json();
+          return ctx.json(data.data || data);
+        } catch {
+          return ctx.json({ error: "Refresh failed" }, { status: 401 });
+        }
+      }),
 
+      // Logout via api.aya.is
+      logout: createAuthEndpoint("/logout", { method: "POST" }, async (ctx) => {
+        const token = extractBearerToken(ctx.request?.headers.get("authorization"));
+        const backendUri = getBackendUri();
+
+        if (token !== null) {
           try {
             const body = await ctx.request?.json().catch(() => ({}));
             const locale = body?.locale ?? DEFAULT_LOCALE;
 
-            const response = await fetch(
-              `${backendUri}/${locale}/auth/refresh`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
+            await fetch(`${backendUri}/${locale}/auth/logout`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
-            );
-
-            if (!response.ok) {
-              return ctx.json({ error: "Refresh failed" }, { status: 401 });
-            }
-
-            const data = await response.json();
-            return ctx.json(data.data || data);
+            });
           } catch {
-            return ctx.json({ error: "Refresh failed" }, { status: 401 });
+            // Ignore logout errors
           }
-        },
-      ),
+        }
 
-      // Logout via api.aya.is
-      logout: createAuthEndpoint(
-        "/logout",
-        { method: "POST" },
-        async (ctx) => {
-          const token = extractBearerToken(ctx.request?.headers.get("authorization"));
-          const backendUri = getBackendUri();
-
-          if (token !== null) {
-            try {
-              const body = await ctx.request?.json().catch(() => ({}));
-              const locale = body?.locale ?? DEFAULT_LOCALE;
-
-              await fetch(`${backendUri}/${locale}/auth/logout`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-              });
-            } catch {
-              // Ignore logout errors
-            }
-          }
-
-          return ctx.json({ success: true });
-        },
-      ),
+        return ctx.json({ success: true });
+      }),
     },
   } satisfies BetterAuthPlugin;
 };

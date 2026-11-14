@@ -82,18 +82,13 @@ export const Route = createFileRoute("/$locale/")({
   component: LocaleHomePage,
 });
 
-function groupStoriesByMonth(
-  stories: StoryEx[],
-  locale: string,
-): GroupedStories[] {
+function groupStoriesByMonth(stories: StoryEx[], locale: string): GroupedStories[] {
   const storiesWithDates = stories
     .map((story) => ({
       story,
       date: parseDateFromSlug(story.slug),
     }))
-    .filter(
-      (item): item is { story: StoryEx; date: Date } => item.date !== null,
-    );
+    .filter((item): item is { story: StoryEx; date: Date } => item.date !== null);
 
   storiesWithDates.sort((a, b) => b.date.getTime() - a.date.getTime());
 
@@ -115,9 +110,7 @@ function groupStoriesByMonth(
     groups.get(monthYear)!.stories.push(story);
   });
 
-  return Array.from(groups.values()).sort(
-    (a, b) => b.date.getTime() - a.date.getTime(),
-  );
+  return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 function LocaleHomePage() {
@@ -171,9 +164,7 @@ function LocaleHomePage() {
             <article className="content relative z-10">
               <h1 className="hero">{t("Home.AYA the Open Source Network")}</h1>
               <h2 className="subtitle">
-                {t(
-                  "Home.A platform connecting the elements that produce and develop for the community",
-                )}
+                {t("Home.A platform connecting the elements that produce and develop for the community")}
               </h2>
 
               {compiledIntro !== null && <MdxContent compiledSource={compiledIntro} />}
@@ -194,14 +185,10 @@ function LocaleHomePage() {
       {/* Stories section - scrolls over hero for parallax */}
       <section id="latest" className={styles.storiesSection}>
         <div className={styles.storiesContainer}>
-          <h2 className={styles.storiesHeader}>
-            {t("Home.Latest Stories")}
-          </h2>
+          <h2 className={styles.storiesHeader}>{t("Home.Latest Stories")}</h2>
           <div className="content">
             {groupedStories.length === 0 && (
-              <p className="text-muted-foreground">
-                {t("Layout.Content not yet available.")}
-              </p>
+              <p className="text-muted-foreground">{t("Layout.Content not yet available.")}</p>
             )}
 
             {groupedStories.map((group) => (
@@ -210,7 +197,9 @@ function LocaleHomePage() {
                   {formatMonthYear(group.date, locale)}
                 </h3>
                 <div>
-                  {group.stories.map((story) => <Story key={story.id} story={story} />)}
+                  {group.stories.map((story) => (
+                    <Story key={story.id} story={story} />
+                  ))}
                 </div>
               </div>
             ))}

@@ -17,11 +17,7 @@ export function ContributionCard(props: ContributionCardProps) {
   const videoStats = properties !== null ? properties.videos : undefined;
 
   return (
-    <LocaleLink
-      data-slot="card"
-      to={`/${profile.slug}`}
-      className={styles.cardLink}
-    >
+    <LocaleLink data-slot="card" to={`/${profile.slug}`} className={styles.cardLink}>
       <div className={styles.contributionCard}>
         <div className={styles.avatarContainer}>
           <SiteAvatar
@@ -35,16 +31,12 @@ export function ContributionCard(props: ContributionCardProps) {
         <div className={styles.content}>
           <div className={styles.titleRow}>
             <h3 className={styles.title}>{profile.title}</h3>
-            <span className={styles.role}>
-              {t(`Contributions.${props.membership.kind}`)}
-            </span>
-            <span className={styles.profileKind}>
-              {t(`Contributions.${profile.kind}`)}
-            </span>
+            <span className={styles.role}>{t(`Contributions.${props.membership.kind}`)}</span>
+            <span className={styles.profileKind}>{t(`Contributions.${profile.kind}`)}</span>
           </div>
-          {profile.description !== null &&
-            profile.description !== undefined &&
-            profile.description !== "" && <p className={styles.description}>{profile.description}</p>}
+          {profile.description !== null && profile.description !== undefined && profile.description !== "" && (
+            <p className={styles.description}>{profile.description}</p>
+          )}
         </div>
 
         {githubStats !== undefined && (

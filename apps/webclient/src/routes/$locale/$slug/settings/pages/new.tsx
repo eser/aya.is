@@ -44,19 +44,15 @@ function NewPagePage() {
   };
 
   const handleSave = async (data: ContentEditorData) => {
-    const result = await backend.createProfilePage(
-      contentLocale,
-      params.slug,
-      {
-        slug: data.slug,
-        title: data.title,
-        summary: data.summary,
-        content: data.content,
-        cover_picture_uri: data.storyPictureUri ?? null,
-        published_at: null,
-        visibility: data.visibility ?? "public",
-      },
-    );
+    const result = await backend.createProfilePage(contentLocale, params.slug, {
+      slug: data.slug,
+      title: data.title,
+      summary: data.summary,
+      content: data.content,
+      cover_picture_uri: data.storyPictureUri ?? null,
+      published_at: null,
+      visibility: data.visibility ?? "public",
+    });
 
     if (result !== null) {
       toast.success(t("Profile.Page created successfully"));

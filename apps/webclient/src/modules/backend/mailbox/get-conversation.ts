@@ -3,10 +3,7 @@ import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 import type { ConversationDetail } from "../types";
 
-export async function getConversation(
-  locale: string,
-  conversationId: string,
-): Promise<ConversationDetail | null> {
+export async function getConversation(locale: string, conversationId: string): Promise<ConversationDetail | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -17,14 +14,11 @@ export async function getConversation(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/mailbox/conversations/${conversationId}`,
-    {
-      method: "GET",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${locale}/mailbox/conversations/${conversationId}`, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
 
   if (!response.ok) {
     return null;

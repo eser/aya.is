@@ -127,9 +127,7 @@ function StoryCoverPage() {
       <PageLayout>
         <div className={styles.accessDenied}>
           <ShieldX className={styles.accessDeniedIcon} />
-          <h2 className={styles.accessDeniedTitle}>
-            {t("CoverDesigner.Access Denied")}
-          </h2>
+          <h2 className={styles.accessDeniedTitle}>{t("CoverDesigner.Access Denied")}</h2>
           <p className={styles.accessDeniedMessage}>
             {t("CoverDesigner.You don't have permission to generate covers for this story.")}
           </p>
@@ -145,12 +143,7 @@ function StoryCoverPage() {
   return (
     <PageLayout>
       <div className="h-[calc(100vh-140px)]">
-        <CoverGenerator
-          story={story}
-          locale={params.locale}
-          onBack={handleBack}
-          onCoverSet={handleCoverSet}
-        />
+        <CoverGenerator story={story} locale={params.locale} onBack={handleBack} onCoverSet={handleCoverSet} />
       </div>
     </PageLayout>
   );

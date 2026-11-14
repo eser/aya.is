@@ -21,12 +21,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import {
-  backend,
-  type Conversation,
-  type ConversationDetail,
-  type EnvelopeStatus,
-} from "@/modules/backend/backend";
+import { backend, type Conversation, type ConversationDetail, type EnvelopeStatus } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -94,19 +89,24 @@ function ConversationRow(props: {
 
   const lastEnvelope = conv.last_envelope ?? null;
 
-  const title = conv.kind === "system"
-    ? (conv.title !== null && conv.title !== undefined && conv.title !== "" ? conv.title : t("Mailbox.System message"))
-    : (otherParticipants.length > 0
-      ? otherParticipants.map((p) => p.profile_title).join(", ")
-      : t("Mailbox.Conversation"));
+  const title =
+    conv.kind === "system"
+      ? conv.title !== null && conv.title !== undefined && conv.title !== ""
+        ? conv.title
+        : t("Mailbox.System message")
+      : otherParticipants.length > 0
+        ? otherParticipants.map((p) => p.profile_title).join(", ")
+        : t("Mailbox.Conversation");
 
-  const preview = lastEnvelope !== null && lastEnvelope.message !== null && lastEnvelope.message !== undefined
-    ? lastEnvelope.message
-    : "";
+  const preview =
+    lastEnvelope !== null && lastEnvelope.message !== null && lastEnvelope.message !== undefined
+      ? lastEnvelope.message
+      : "";
 
-  const timestamp = lastEnvelope !== null
-    ? formatDateString(lastEnvelope.created_at, props.locale)
-    : formatDateString(conv.created_at, props.locale);
+  const timestamp =
+    lastEnvelope !== null
+      ? formatDateString(lastEnvelope.created_at, props.locale)
+      : formatDateString(conv.created_at, props.locale);
 
   return (
     <button
@@ -114,27 +114,25 @@ function ConversationRow(props: {
       className={`${styles.conversationRow} ${props.isSelected ? styles.conversationRowActive : ""}`}
       onClick={() => props.onSelect(conv.id)}
     >
-      {otherParticipants.length <= 1
-        ? (
-          <Avatar className={styles.conversationAvatar}>
-            {firstOther !== null && firstOther.profile_picture_uri !== null
-              ? <AvatarImage src={firstOther.profile_picture_uri} alt={firstOther.profile_title} />
-              : null}
-            <AvatarFallback>{avatarFallback}</AvatarFallback>
-          </Avatar>
-        )
-        : (
-          <AvatarGroup className={styles.conversationAvatarGroup}>
-            {otherParticipants.slice(0, 3).map((p) => (
-              <Avatar key={p.profile_id} size="sm">
-                {p.profile_picture_uri !== null
-                  ? <AvatarImage src={p.profile_picture_uri} alt={p.profile_title} />
-                  : null}
-                <AvatarFallback>{p.profile_title.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-            ))}
-          </AvatarGroup>
-        )}
+      {otherParticipants.length <= 1 ? (
+        <Avatar className={styles.conversationAvatar}>
+          {firstOther !== null && firstOther.profile_picture_uri !== null ? (
+            <AvatarImage src={firstOther.profile_picture_uri} alt={firstOther.profile_title} />
+          ) : null}
+          <AvatarFallback>{avatarFallback}</AvatarFallback>
+        </Avatar>
+      ) : (
+        <AvatarGroup className={styles.conversationAvatarGroup}>
+          {otherParticipants.slice(0, 3).map((p) => (
+            <Avatar key={p.profile_id} size="sm">
+              {p.profile_picture_uri !== null ? (
+                <AvatarImage src={p.profile_picture_uri} alt={p.profile_title} />
+              ) : null}
+              <AvatarFallback>{p.profile_title.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          ))}
+        </AvatarGroup>
+      )}
       <div className={styles.conversationInfo}>
         <div className={styles.conversationHeader}>
           <span className={styles.conversationTitle}>{title}</span>
@@ -183,14 +181,13 @@ function EnvelopeBubble(props: {
   // Follow-up messages in a resolved conversation are implicitly accepted — hide the badge
   const hideStatusBadge = !props.isFirstEnvelope && !isInvitationLike && firstEnvelopeResolved;
   // Reactions allowed on accepted/redeemed envelopes (not system conversations)
-  const allowReactions = props.conversationKind !== "system" &&
-    (env.status === "accepted" || env.status === "redeemed" || hideStatusBadge);
+  const allowReactions =
+    props.conversationKind !== "system" && (env.status === "accepted" || env.status === "redeemed" || hideStatusBadge);
 
-  const envProperties = env.properties != null ? env.properties as Record<string, unknown> : null;
-  const groupName = envProperties !== null ? envProperties.group_name as string | undefined : undefined;
-  const invitationKind = envProperties !== null ? envProperties.invitation_kind as string | undefined : undefined;
-  const isTelegramGroupInvitation = env.kind === "invitation" &&
-    invitationKind === "telegram_group";
+  const envProperties = env.properties != null ? (env.properties as Record<string, unknown>) : null;
+  const groupName = envProperties !== null ? (envProperties.group_name as string | undefined) : undefined;
+  const invitationKind = envProperties !== null ? (envProperties.invitation_kind as string | undefined) : undefined;
+  const isTelegramGroupInvitation = env.kind === "invitation" && invitationKind === "telegram_group";
 
   const senderName = env.sender_profile_title ?? env.sender_profile_slug ?? null;
 
@@ -221,33 +218,31 @@ function EnvelopeBubble(props: {
         {groupName !== undefined && groupName !== "" && <p className={styles.messageGroup}>{groupName}</p>}
 
         {/* Telegram group invitation contextual messaging */}
-        {isTelegramGroupInvitation && isPending && (
-          props.userTelegramLinked
-            ? (
-              <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
-                <Info className="size-4 mt-0.5 shrink-0" />
-                <span>
-                  {t("Mailbox.TelegramInvitationInfo", { groupName: groupName ?? "" })}
-                </span>
-              </div>
-            )
-            : (
-              <div className="flex items-start gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
-                <AlertTriangle className="size-4 mt-0.5 shrink-0" />
-                <span>
-                  {t("Mailbox.TelegramLinkRequired")}
-                </span>
-              </div>
-            )
-        )}
+        {isTelegramGroupInvitation &&
+          isPending &&
+          (props.userTelegramLinked ? (
+            <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200">
+              <Info className="size-4 mt-0.5 shrink-0" />
+              <span>{t("Mailbox.TelegramInvitationInfo", { groupName: groupName ?? "" })}</span>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+              <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+              <span>{t("Mailbox.TelegramLinkRequired")}</span>
+            </div>
+          ))}
 
         {/* Row 2: [reactions] [add reaction] ... [date] */}
         <div className={styles.messageFooter}>
           {allowReactions && (
             <div className={styles.reactionsRow}>
-              {env.reactions !== null && env.reactions !== undefined && env.reactions.length > 0 && (
+              {env.reactions !== null &&
+                env.reactions !== undefined &&
+                env.reactions.length > 0 &&
                 env.reactions.map((reaction) => {
-                  const isOwn = reaction.profile_slug !== null && reaction.profile_slug !== undefined &&
+                  const isOwn =
+                    reaction.profile_slug !== null &&
+                    reaction.profile_slug !== undefined &&
                     props.userProfileSlugs.has(reaction.profile_slug);
                   const ownerName = reaction.profile_title ?? reaction.profile_slug ?? "";
 
@@ -264,13 +259,10 @@ function EnvelopeBubble(props: {
                       >
                         {reaction.emoji}
                       </TooltipTrigger>
-                      <TooltipContent>
-                        {ownerName}
-                      </TooltipContent>
+                      <TooltipContent>{ownerName}</TooltipContent>
                     </Tooltip>
                   );
-                })
-              )}
+                })}
               <Popover>
                 <PopoverTrigger render={<Button size="sm" variant="ghost" className={styles.reactionButton} />}>
                   <SmilePlus className="size-4" />
@@ -290,9 +282,7 @@ function EnvelopeBubble(props: {
               </Popover>
             </div>
           )}
-          <span className={styles.messageTime}>
-            {formatTimeString(env.created_at, props.locale)}
-          </span>
+          <span className={styles.messageTime}>{formatTimeString(env.created_at, props.locale)}</span>
         </div>
 
         {/* Accept/Reject Actions */}
@@ -338,7 +328,9 @@ function ComposeArea(props: {
     const individual = props.senderProfiles.find((p) => p.kind === "individual");
     return individual !== undefined
       ? individual.slug
-      : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
+      : props.senderProfiles.length > 0
+        ? props.senderProfiles[0].slug
+        : "";
   });
 
   // Determine the target: the first participant whose slug differs from the selected sender.
@@ -352,7 +344,7 @@ function ComposeArea(props: {
 
   const [state, submitAction, isPending] = React.useActionState(
     async (_prev: { error: string | null }, formData: FormData) => {
-      const msg = (formData.get("message") as string ?? "").trim();
+      const msg = ((formData.get("message") as string) ?? "").trim();
       if (msg === "" || targetSlug === null || senderSlug === "") {
         return { error: t("Common.This field is required") };
       }
@@ -400,11 +392,7 @@ function ComposeArea(props: {
           </Alert>
         )}
         <div className={styles.composeActions}>
-          <Button
-            type="submit"
-            size="sm"
-            disabled={isPending || targetSlug === null}
-          >
+          <Button type="submit" size="sm" disabled={isPending || targetSlug === null}>
             {isPending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Send className="size-4 mr-1" />}
             {t("Mailbox.Send")}
           </Button>
@@ -436,7 +424,9 @@ function NewConversationForm(props: {
     const individual = props.senderProfiles.find((p) => p.kind === "individual");
     return individual !== undefined
       ? individual.slug
-      : (props.senderProfiles.length > 0 ? props.senderProfiles[0].slug : "");
+      : props.senderProfiles.length > 0
+        ? props.senderProfiles[0].slug
+        : "";
   });
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string | null>>({});
 
@@ -544,9 +534,7 @@ function NewConversationForm(props: {
             <FieldLabel htmlFor="compose-kind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
             <Select value={envelopeKind} onValueChange={(value) => setEnvelopeKind(value ?? "")}>
               <SelectTrigger id="compose-kind">
-                <SelectValue>
-                  {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}
-                </SelectValue>
+                <SelectValue>{t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {ENVELOPE_KINDS.map((kind) => (
@@ -586,9 +574,7 @@ function NewConversationForm(props: {
                 setFieldErrors((prev) => ({ ...prev, inviteCode: null }));
               }}
             />
-            <FieldDescription>
-              {t("ProfileSettings.Use /invite in a Telegram group to get a code")}
-            </FieldDescription>
+            <FieldDescription>{t("ProfileSettings.Use /invite in a Telegram group to get a code")}</FieldDescription>
             {fieldErrors.inviteCode !== null && fieldErrors.inviteCode !== undefined && (
               <FieldError>{fieldErrors.inviteCode}</FieldError>
             )}
@@ -727,12 +713,15 @@ function MailboxPage() {
   }, [locale, showArchived]);
 
   // Load conversation detail
-  const loadConversationDetail = React.useCallback(async (conversationId: string) => {
-    setIsDetailLoading(true);
-    const result = await backend.getConversation(locale, conversationId);
-    setConvDetail(result);
-    setIsDetailLoading(false);
-  }, [locale]);
+  const loadConversationDetail = React.useCallback(
+    async (conversationId: string) => {
+      setIsDetailLoading(true);
+      const result = await backend.getConversation(locale, conversationId);
+      setConvDetail(result);
+      setIsDetailLoading(false);
+    },
+    [locale],
+  );
 
   // Silent refresh variants — update data in the background without skeleton flashing.
   // Used after actions (send, react, accept) where the UI should remain stable.
@@ -744,10 +733,13 @@ function MailboxPage() {
     }
   }, [locale, showArchived]);
 
-  const refreshConversationDetail = React.useCallback(async (conversationId: string) => {
-    const result = await backend.getConversation(locale, conversationId);
-    setConvDetail(result);
-  }, [locale]);
+  const refreshConversationDetail = React.useCallback(
+    async (conversationId: string) => {
+      const result = await backend.getConversation(locale, conversationId);
+      setConvDetail(result);
+    },
+    [locale],
+  );
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -919,15 +911,12 @@ function MailboxPage() {
     if (convDetail === null || convDetail.conversation.participants === null || user === null) {
       return false;
     }
-    const individualSlug = user.individual_profile !== undefined && user.individual_profile !== null
-      ? user.individual_profile.slug
-      : null;
+    const individualSlug =
+      user.individual_profile !== undefined && user.individual_profile !== null ? user.individual_profile.slug : null;
     if (individualSlug === null) {
       return false;
     }
-    const viewerParticipant = convDetail.conversation.participants.find(
-      (p) => p.profile_slug === individualSlug,
-    );
+    const viewerParticipant = convDetail.conversation.participants.find((p) => p.profile_slug === individualSlug);
     return viewerParticipant !== undefined && viewerParticipant.is_archived;
   }, [convDetail, user]);
 
@@ -964,9 +953,7 @@ function MailboxPage() {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <h2 className={styles.title}>{t("Layout.Mailbox")}</h2>
-            <p className={styles.subtitle}>
-              {t("Mailbox.Your conversations and messages")}
-            </p>
+            <p className={styles.subtitle}>{t("Mailbox.Your conversations and messages")}</p>
           </div>
           <Button
             size="sm"
@@ -1012,40 +999,36 @@ function MailboxPage() {
               </div>
 
               <div className={styles.conversationList}>
-                {isLoading
-                  ? (
-                    <div className="space-y-2 p-3">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="flex items-center gap-3 p-3">
-                          <Skeleton className="size-10 rounded-full" />
-                          <div className="flex-1">
-                            <Skeleton className="h-4 w-32 mb-1" />
-                            <Skeleton className="h-3 w-48" />
-                          </div>
+                {isLoading ? (
+                  <div className="space-y-2 p-3">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex items-center gap-3 p-3">
+                        <Skeleton className="size-10 rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton className="h-4 w-32 mb-1" />
+                          <Skeleton className="h-3 w-48" />
                         </div>
-                      ))}
-                    </div>
-                  )
-                  : filteredConversations.length === 0
-                  ? (
-                    <div className={styles.emptyState}>
-                      <Mail className={styles.emptyIcon} />
-                      <p className={styles.emptyText}>
-                        {showArchived ? t("Mailbox.No archived conversations") : t("Mailbox.No conversations yet")}
-                      </p>
-                    </div>
-                  )
-                  : (
-                    filteredConversations.map((conv) => (
-                      <ConversationRow
-                        key={conv.id}
-                        conversation={conv}
-                        locale={locale}
-                        isSelected={selectedConvId === conv.id}
-                        onSelect={handleSelectConversation}
-                      />
-                    ))
-                  )}
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredConversations.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <Mail className={styles.emptyIcon} />
+                    <p className={styles.emptyText}>
+                      {showArchived ? t("Mailbox.No archived conversations") : t("Mailbox.No conversations yet")}
+                    </p>
+                  </div>
+                ) : (
+                  filteredConversations.map((conv) => (
+                    <ConversationRow
+                      key={conv.id}
+                      conversation={conv}
+                      locale={locale}
+                      isSelected={selectedConvId === conv.id}
+                      onSelect={handleSelectConversation}
+                    />
+                  ))
+                )}
               </div>
             </div>
 
@@ -1055,191 +1038,172 @@ function MailboxPage() {
                 selectedConvId === null && !showNewMessage ? styles.detailPanelHiddenMobile : ""
               }`}
             >
-              {showNewMessage
-                ? (
-                  <NewConversationForm
-                    locale={locale}
-                    senderProfiles={maintainerProfiles}
-                    onConversationCreated={handleNewConversationCreated}
-                    onCancel={() => setShowNewMessage(false)}
-                  />
-                )
-                : selectedConvId === null
-                ? (
-                  <div className={styles.emptyDetail}>
-                    <MessageSquare className={styles.emptyDetailIcon} />
-                    <p className={styles.emptyDetailText}>{t("Mailbox.Select a conversation")}</p>
+              {showNewMessage ? (
+                <NewConversationForm
+                  locale={locale}
+                  senderProfiles={maintainerProfiles}
+                  onConversationCreated={handleNewConversationCreated}
+                  onCancel={() => setShowNewMessage(false)}
+                />
+              ) : selectedConvId === null ? (
+                <div className={styles.emptyDetail}>
+                  <MessageSquare className={styles.emptyDetailIcon} />
+                  <p className={styles.emptyDetailText}>{t("Mailbox.Select a conversation")}</p>
+                </div>
+              ) : isDetailLoading ? (
+                <div className="p-6 space-y-4">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-64" />
+                  <div className="space-y-3 mt-6">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-24 w-full rounded-lg" />
+                    ))}
                   </div>
-                )
-                : isDetailLoading
-                ? (
-                  <div className="p-6 space-y-4">
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-4 w-64" />
-                    <div className="space-y-3 mt-6">
-                      {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}
-                    </div>
-                  </div>
-                )
-                : convDetail !== null
-                ? (
-                  <div className={styles.detailContent}>
-                    {/* Detail Header */}
-                    <div className={styles.detailHeader}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={styles.backButton}
-                        onClick={() => {
-                          setSelectedConvId(null);
-                          setConvDetail(null);
-                        }}
-                      >
-                        <ChevronLeft className="size-4" />
-                      </Button>
-                      {convDetail.conversation.participants !== null && convDetail.conversation.participants.length > 1
-                        ? (
-                          <AvatarGroup className={styles.conversationAvatarGroup}>
-                            {convDetail.conversation.participants.slice(0, 3).map((p) => (
-                              <Avatar key={p.profile_id} size="sm">
-                                {p.profile_picture_uri !== null
-                                  ? <AvatarImage src={p.profile_picture_uri} alt={p.profile_title} />
-                                  : null}
-                                <AvatarFallback>{p.profile_title.charAt(0).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                            ))}
-                          </AvatarGroup>
-                        )
-                        : convDetail.conversation.participants !== null &&
-                            convDetail.conversation.participants.length === 1
-                        ? (
-                          <Avatar className={styles.conversationAvatar}>
-                            {convDetail.conversation.participants[0].profile_picture_uri !== null
-                              ? (
-                                <AvatarImage
-                                  src={convDetail.conversation.participants[0].profile_picture_uri}
-                                  alt={convDetail.conversation.participants[0].profile_title}
-                                />
-                              )
-                              : null}
-                            <AvatarFallback>
-                              {convDetail.conversation.participants[0].profile_title.charAt(0).toUpperCase()}
-                            </AvatarFallback>
+                </div>
+              ) : convDetail !== null ? (
+                <div className={styles.detailContent}>
+                  {/* Detail Header */}
+                  <div className={styles.detailHeader}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={styles.backButton}
+                      onClick={() => {
+                        setSelectedConvId(null);
+                        setConvDetail(null);
+                      }}
+                    >
+                      <ChevronLeft className="size-4" />
+                    </Button>
+                    {convDetail.conversation.participants !== null &&
+                    convDetail.conversation.participants.length > 1 ? (
+                      <AvatarGroup className={styles.conversationAvatarGroup}>
+                        {convDetail.conversation.participants.slice(0, 3).map((p) => (
+                          <Avatar key={p.profile_id} size="sm">
+                            {p.profile_picture_uri !== null ? (
+                              <AvatarImage src={p.profile_picture_uri} alt={p.profile_title} />
+                            ) : null}
+                            <AvatarFallback>{p.profile_title.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                        )
-                        : null}
-                      <div className={styles.detailHeaderInfo}>
-                        <h3 className={styles.detailTitle}>
-                          {convDetail.conversation.kind === "system"
-                            ? (convDetail.conversation.title !== null && convDetail.conversation.title !== undefined &&
-                                convDetail.conversation.title !== ""
-                              ? convDetail.conversation.title
-                              : t("Mailbox.System message"))
-                            : (convDetail.conversation.participants !== null &&
-                                convDetail.conversation.participants !== undefined &&
-                                convDetail.conversation.participants.length > 0
-                              ? convDetail.conversation.participants.map((p) => p.profile_title).join(", ")
-                              : t("Mailbox.Conversation"))}
-                        </h3>
-                        {convDetail.conversation.title !== null && convDetail.conversation.title !== undefined &&
-                          convDetail.conversation.title !== "" && (
-                          <p className={styles.detailSubtitle}>
-                            {convDetail.conversation.title}
-                          </p>
+                        ))}
+                      </AvatarGroup>
+                    ) : convDetail.conversation.participants !== null &&
+                      convDetail.conversation.participants.length === 1 ? (
+                      <Avatar className={styles.conversationAvatar}>
+                        {convDetail.conversation.participants[0].profile_picture_uri !== null ? (
+                          <AvatarImage
+                            src={convDetail.conversation.participants[0].profile_picture_uri}
+                            alt={convDetail.conversation.participants[0].profile_title}
+                          />
+                        ) : null}
+                        <AvatarFallback>
+                          {convDetail.conversation.participants[0].profile_title.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                    <div className={styles.detailHeaderInfo}>
+                      <h3 className={styles.detailTitle}>
+                        {convDetail.conversation.kind === "system"
+                          ? convDetail.conversation.title !== null &&
+                            convDetail.conversation.title !== undefined &&
+                            convDetail.conversation.title !== ""
+                            ? convDetail.conversation.title
+                            : t("Mailbox.System message")
+                          : convDetail.conversation.participants !== null &&
+                              convDetail.conversation.participants !== undefined &&
+                              convDetail.conversation.participants.length > 0
+                            ? convDetail.conversation.participants.map((p) => p.profile_title).join(", ")
+                            : t("Mailbox.Conversation")}
+                      </h3>
+                      {convDetail.conversation.title !== null &&
+                        convDetail.conversation.title !== undefined &&
+                        convDetail.conversation.title !== "" && (
+                          <p className={styles.detailSubtitle}>{convDetail.conversation.title}</p>
                         )}
-                      </div>
-                      <div className={styles.detailActions}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
-                            <Ellipsis className="size-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="min-w-[200px]">
-                            {viewerIsArchived
-                              ? (
-                                <DropdownMenuItem onClick={handleUnarchive}>
-                                  <ArchiveRestore className="size-4 mr-2" />
-                                  {t("Mailbox.Unarchive conversation")}
-                                </DropdownMenuItem>
-                              )
-                              : (
-                                <DropdownMenuItem onClick={handleArchive}>
-                                  <Archive className="size-4 mr-2" />
-                                  {t("Mailbox.Archive conversation")}
-                                </DropdownMenuItem>
-                              )}
-                            {user !== null && user.kind === "admin" && (
-                              <DropdownMenuItem
-                                onClick={() => setRemoveDialogOpen(true)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="size-4 mr-2" />
-                                {t("Mailbox.Remove conversation")}
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
                     </div>
-
-                    <Separator />
-
-                    {/* Message Thread */}
-                    <div ref={messageThreadRef} className={styles.messageThread}>
-                      {(() => {
-                        const firstStatus = convDetail.envelopes.length > 0
-                          ? convDetail.envelopes[0].status
-                          : "pending" as const;
-                        let lastDateKey = "";
-
-                        return convDetail.envelopes.map((envelope, index) => {
-                          const dateKey = envelope.created_at !== null
-                            ? formatDateShort(new Date(envelope.created_at), locale)
-                            : "";
-                          const showDateHeader = dateKey !== lastDateKey;
-                          lastDateKey = dateKey;
-
-                          return (
-                            <React.Fragment key={envelope.id}>
-                              {showDateHeader && dateKey !== "" && (
-                                <div className={styles.dateSeparator}>
-                                  <span className={styles.dateSeparatorLabel}>{dateKey}</span>
-                                </div>
-                              )}
-                              <EnvelopeBubble
-                                envelope={envelope}
-                                locale={locale}
-                                conversationKind={convDetail.conversation.kind}
-                                isFirstEnvelope={index === 0}
-                                firstEnvelopeStatus={firstStatus}
-                                userTelegramLinked={userTelegramLinked}
-                                userProfileSlugs={userProfileSlugs}
-                                onAccept={handleAccept}
-                                onReject={promptReject}
-                                onReaction={handleReaction}
-                                onRemoveReaction={handleRemoveReaction}
-                                actionInProgress={actionInProgress}
-                              />
-                            </React.Fragment>
-                          );
-                        });
-                      })()}
+                    <div className={styles.detailActions}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+                          <Ellipsis className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-[200px]">
+                          {viewerIsArchived ? (
+                            <DropdownMenuItem onClick={handleUnarchive}>
+                              <ArchiveRestore className="size-4 mr-2" />
+                              {t("Mailbox.Unarchive conversation")}
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={handleArchive}>
+                              <Archive className="size-4 mr-2" />
+                              {t("Mailbox.Archive conversation")}
+                            </DropdownMenuItem>
+                          )}
+                          {user !== null && user.kind === "admin" && (
+                            <DropdownMenuItem onClick={() => setRemoveDialogOpen(true)} className="text-destructive">
+                              <Trash2 className="size-4 mr-2" />
+                              {t("Mailbox.Remove conversation")}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-
-                    {/* Compose Area — for conversations where the first envelope is accepted or redeemed */}
-                    {convDetail.envelopes.length > 0 &&
-                      (convDetail.envelopes[0].status === "accepted" ||
-                        convDetail.envelopes[0].status === "redeemed") &&
-                      (
-                        <ComposeArea
-                          locale={locale}
-                          participants={conversationParticipants}
-                          senderProfiles={maintainerProfiles}
-                          onSent={handleMessageSent}
-                        />
-                      )}
                   </div>
-                )
-                : null}
+
+                  <Separator />
+
+                  {/* Message Thread */}
+                  <div ref={messageThreadRef} className={styles.messageThread}>
+                    {(() => {
+                      const firstStatus =
+                        convDetail.envelopes.length > 0 ? convDetail.envelopes[0].status : ("pending" as const);
+                      let lastDateKey = "";
+
+                      return convDetail.envelopes.map((envelope, index) => {
+                        const dateKey =
+                          envelope.created_at !== null ? formatDateShort(new Date(envelope.created_at), locale) : "";
+                        const showDateHeader = dateKey !== lastDateKey;
+                        lastDateKey = dateKey;
+
+                        return (
+                          <React.Fragment key={envelope.id}>
+                            {showDateHeader && dateKey !== "" && (
+                              <div className={styles.dateSeparator}>
+                                <span className={styles.dateSeparatorLabel}>{dateKey}</span>
+                              </div>
+                            )}
+                            <EnvelopeBubble
+                              envelope={envelope}
+                              locale={locale}
+                              conversationKind={convDetail.conversation.kind}
+                              isFirstEnvelope={index === 0}
+                              firstEnvelopeStatus={firstStatus}
+                              userTelegramLinked={userTelegramLinked}
+                              userProfileSlugs={userProfileSlugs}
+                              onAccept={handleAccept}
+                              onReject={promptReject}
+                              onReaction={handleReaction}
+                              onRemoveReaction={handleRemoveReaction}
+                              actionInProgress={actionInProgress}
+                            />
+                          </React.Fragment>
+                        );
+                      });
+                    })()}
+                  </div>
+
+                  {/* Compose Area — for conversations where the first envelope is accepted or redeemed */}
+                  {convDetail.envelopes.length > 0 &&
+                    (convDetail.envelopes[0].status === "accepted" ||
+                      convDetail.envelopes[0].status === "redeemed") && (
+                      <ComposeArea
+                        locale={locale}
+                        participants={conversationParticipants}
+                        senderProfiles={maintainerProfiles}
+                        onSent={handleMessageSent}
+                      />
+                    )}
+                </div>
+              ) : null}
             </div>
           </div>
         </Card>
@@ -1255,10 +1219,7 @@ function MailboxPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
-              <AlertDialogAction
-                variant="destructive"
-                onClick={handleRejectConfirm}
-              >
+              <AlertDialogAction variant="destructive" onClick={handleRejectConfirm}>
                 {t("Profile.Reject")}
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -1277,10 +1238,7 @@ function MailboxPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
-              <AlertDialogAction
-                variant="destructive"
-                onClick={handleRemoveConversation}
-              >
+              <AlertDialogAction variant="destructive" onClick={handleRemoveConversation}>
                 {t("Mailbox.Remove conversation")}
               </AlertDialogAction>
             </AlertDialogFooter>

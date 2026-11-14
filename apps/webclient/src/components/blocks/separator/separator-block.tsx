@@ -9,37 +9,18 @@ function SeparatorBlock(props: SeparatorBlockProps) {
   const variant = props.variant ?? "line";
 
   if (variant === "line") {
-    return (
-      <hr
-        className={styles.separator}
-        data-variant="line"
-        role="separator"
-        aria-hidden="true"
-      />
-    );
+    return <hr className={styles.separator} data-variant="line" role="separator" aria-hidden="true" />;
   }
 
   if (variant === "dots") {
     return (
-      <div
-        className={styles.separator}
-        data-variant="dots"
-        role="separator"
-        aria-hidden="true"
-      >
+      <div className={styles.separator} data-variant="dots" role="separator" aria-hidden="true">
         · · ·
       </div>
     );
   }
 
-  return (
-    <div
-      className={styles.separator}
-      data-variant="space"
-      role="separator"
-      aria-hidden="true"
-    />
-  );
+  return <div className={styles.separator} data-variant="space" role="separator" aria-hidden="true" />;
 }
 
 export { SeparatorBlock };

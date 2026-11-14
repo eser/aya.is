@@ -9,10 +9,7 @@ export interface MailboxEnvelope extends ProfileEnvelope {
   owning_profile_kind: string;
 }
 
-export async function listMailboxEnvelopes(
-  locale: string,
-  status?: string,
-): Promise<MailboxEnvelope[] | null> {
+export async function listMailboxEnvelopes(locale: string, status?: string): Promise<MailboxEnvelope[] | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;

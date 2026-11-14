@@ -71,7 +71,7 @@ export const Route = createFileRoute("/$locale/stories/$storyslug/")({
 
     // Activity-specific data
     const isActivity = story.kind === "activity";
-    const activityProperties = isActivity ? (story.properties ?? {}) as unknown as ActivityProperties : null;
+    const activityProperties = isActivity ? ((story.properties ?? {}) as unknown as ActivityProperties) : null;
     const dateMode: DateMode = activityProperties?.date_mode ?? "fixed";
 
     // Fetch activity-specific data in parallel with discussion data
@@ -172,13 +172,11 @@ function StoryPage() {
   // Check edit permissions (hooks must run before any early return)
   React.useEffect(() => {
     if (storyId !== null && auth.isAuthenticated && !auth.isLoading && authorProfileSlug !== null) {
-      backend
-        .getStoryPermissions(params.locale, authorProfileSlug, storyId)
-        .then((perms) => {
-          if (perms !== null) {
-            setCanEdit(perms.can_edit);
-          }
-        });
+      backend.getStoryPermissions(params.locale, authorProfileSlug, storyId).then((perms) => {
+        if (perms !== null) {
+          setCanEdit(perms.can_edit);
+        }
+      });
     } else {
       setCanEdit(false);
     }
@@ -195,9 +193,10 @@ function StoryPage() {
   const shareUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/share` : undefined;
 
   // Activity-specific widgets injected between metadata and content
-  const beforeContent = story.kind === "activity"
-    ? buildActivityBeforeContent(story, params.locale, params.storyslug, auth.isAuthenticated, canEdit, loaderData)
-    : undefined;
+  const beforeContent =
+    story.kind === "activity"
+      ? buildActivityBeforeContent(story, params.locale, params.storyslug, auth.isAuthenticated, canEdit, loaderData)
+      : undefined;
 
   return (
     <PageLayout>

@@ -59,17 +59,15 @@ function SeriesListPage() {
         <div className="content">
           <h1>{t("Layout.Series")}</h1>
 
-          {seriesList === null || seriesList.length === 0
-            ? (
-              <p className="text-muted-foreground">
-                {t("Series.No series yet")}
-              </p>
-            )
-            : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {seriesList.map((series) => <SeriesCard key={series.id} series={series} />)}
-              </div>
-            )}
+          {seriesList === null || seriesList.length === 0 ? (
+            <p className="text-muted-foreground">{t("Series.No series yet")}</p>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {seriesList.map((series) => (
+                <SeriesCard key={series.id} series={series} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </PageLayout>
@@ -78,25 +76,15 @@ function SeriesListPage() {
 
 function SeriesCard(props: { series: StorySeries }) {
   return (
-    <LocaleLink
-      data-slot="card"
-      to={`/series/${props.series.slug}`}
-      className="no-underline block"
-    >
+    <LocaleLink data-slot="card" to={`/series/${props.series.slug}`} className="no-underline block">
       <div className="border rounded-lg overflow-hidden hover:border-primary transition-colors">
         {props.series.series_picture_uri !== null && (
-          <img
-            src={props.series.series_picture_uri}
-            alt={props.series.title}
-            className="w-full h-40 object-cover"
-          />
+          <img src={props.series.series_picture_uri} alt={props.series.title} className="w-full h-40 object-cover" />
         )}
         <div className="p-4">
           <h3 className="text-lg font-semibold mb-1">{props.series.title}</h3>
           {props.series.description.length > 0 && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {props.series.description}
-            </p>
+            <p className="text-sm text-muted-foreground line-clamp-2">{props.series.description}</p>
           )}
         </div>
       </div>

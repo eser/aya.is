@@ -55,47 +55,27 @@ function TemplateCard(props: TemplateCardProps) {
       onClick={onSelect}
       aria-pressed={isSelected}
     >
-      <div
-        className={styles.templatePreview}
-        style={{ backgroundColor: bgColor }}
-      >
+      <div className={styles.templatePreview} style={{ backgroundColor: bgColor }}>
         {/* Mini preview representation */}
         <div className={styles.templatePreviewContent}>
           {/* Title placeholder */}
-          <div
-            className={styles.templatePreviewTitle}
-            style={{ backgroundColor: textColor }}
-          />
-          <div
-            className={styles.templatePreviewTitle}
-            style={{ backgroundColor: textColor, width: "60%" }}
-          />
+          <div className={styles.templatePreviewTitle} style={{ backgroundColor: textColor }} />
+          <div className={styles.templatePreviewTitle} style={{ backgroundColor: textColor, width: "60%" }} />
           {/* Accent line for bold template */}
           {template.id === "bold" && (
-            <div
-              className={styles.templatePreviewAccent}
-              style={{ backgroundColor: accentColor }}
-            />
+            <div className={styles.templatePreviewAccent} style={{ backgroundColor: accentColor }} />
           )}
           {/* Author placeholder */}
           {template.defaults.showAuthor !== false && (
             <div className={styles.templatePreviewAuthor}>
-              <div
-                className={styles.templatePreviewAvatar}
-                style={{ backgroundColor: textColor }}
-              />
-              <div
-                className={styles.templatePreviewName}
-                style={{ backgroundColor: textColor }}
-              />
+              <div className={styles.templatePreviewAvatar} style={{ backgroundColor: textColor }} />
+              <div className={styles.templatePreviewName} style={{ backgroundColor: textColor }} />
             </div>
           )}
         </div>
         {/* Pattern overlay */}
         {template.defaults.backgroundPattern === "diagonal" && (
-          <div
-            className={styles.templatePreviewPatternDiagonal}
-          />
+          <div className={styles.templatePreviewPatternDiagonal} />
         )}
         {template.defaults.backgroundPattern === "dots" && <div className={styles.templatePreviewPatternDots} />}
       </div>

@@ -30,8 +30,8 @@ func classifyAnthropicError(providerSentinel error, err error) error {
 		return ctxErr
 	}
 
-	var apiErr *anthropic.Error
-	if errors.As(err, &apiErr) {
+	apiErr, ok := errors.AsType[*anthropic.Error](err)
+	if ok {
 		return classifyAndWrap(providerSentinel, apiErr.StatusCode, err)
 	}
 
@@ -828,8 +828,8 @@ func newAnthropicBatchRequest(
 			Messages:      params.Messages,
 			Model:         params.Model,
 			System:        params.System,
-			Temperature:   params.Temperature,
-			TopP:          params.TopP,
+			Temperature:   params.Temperature, //nolint:staticcheck // still honored by older models
+			TopP:          params.TopP,        //nolint:staticcheck // still honored by older models
 			StopSequences: params.StopSequences,
 			Tools:         params.Tools,
 			ToolChoice:    params.ToolChoice,

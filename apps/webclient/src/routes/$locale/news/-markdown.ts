@@ -11,10 +11,7 @@ import type { StoryEx } from "@/modules/backend/types";
 /**
  * Generate markdown for the news listing page
  */
-export function generateNewsListingMarkdown(
-  news: StoryEx[],
-  locale: string,
-): string {
+export function generateNewsListingMarkdown(news: StoryEx[], locale: string): string {
   const frontmatter = formatFrontmatter({
     title: "News",
     generated_at: new Date().toISOString(),

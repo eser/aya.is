@@ -10,11 +10,7 @@ type StackBlockProps = {
 
 function StackBlock(props: StackBlockProps) {
   return (
-    <div
-      className={styles.stack}
-      data-gap={props.gap}
-      data-align={props.align}
-    >
+    <div className={styles.stack} data-gap={props.gap} data-align={props.align}>
       {props.children}
     </div>
   );

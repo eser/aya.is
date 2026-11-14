@@ -15,14 +15,10 @@ export async function answerQuestion(
   questionId: string,
   input: AnswerQuestionInput,
 ): Promise<AnswerQuestionResult | null> {
-  const response = await fetcher<AnswerQuestionResult>(
-    locale,
-    `/profiles/${slug}/_questions/${questionId}/answer`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<AnswerQuestionResult>(locale, `/profiles/${slug}/_questions/${questionId}/answer`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

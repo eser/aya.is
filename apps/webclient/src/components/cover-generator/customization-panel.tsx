@@ -54,10 +54,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
               {/* Theme Preset */}
               <div className={styles.optionRow}>
                 <Label>{t("CoverDesigner.Theme Preset")}</Label>
-                <Select
-                  value={options.themePreset}
-                  onValueChange={(value) => handleThemeChange(value as ThemePreset)}
-                >
+                <Select value={options.themePreset} onValueChange={(value) => handleThemeChange(value as ThemePreset)}>
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {options.themePreset === "light" && t("CoverDesigner.Light")}
@@ -162,10 +159,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
               {/* Body Font */}
               <div className={styles.optionRow}>
                 <Label>{t("CoverDesigner.Body Font")}</Label>
-                <Select
-                  value={options.bodyFont}
-                  onValueChange={(value) => onChange({ bodyFont: value as FontFamily })}
-                >
+                <Select value={options.bodyFont} onValueChange={(value) => onChange({ bodyFont: value as FontFamily })}>
                   <SelectTrigger className="w-full">
                     <SelectValue>
                       {options.bodyFont === "bree-serif" && "Bree Serif"}
@@ -183,7 +177,9 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Title Size */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Title Size")}: {options.titleSize}px</Label>
+                <Label>
+                  {t("CoverDesigner.Title Size")}: {options.titleSize}px
+                </Label>
                 <Slider
                   className="w-full"
                   value={[options.titleSize]}
@@ -196,7 +192,9 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Subtitle Size */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Subtitle Size")}: {options.subtitleSize}px</Label>
+                <Label>
+                  {t("CoverDesigner.Subtitle Size")}: {options.subtitleSize}px
+                </Label>
                 <Slider
                   className="w-full"
                   value={[options.subtitleSize]}
@@ -209,7 +207,9 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Line Height (multiplier) */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Line Height")}: {options.lineHeight}%</Label>
+                <Label>
+                  {t("CoverDesigner.Line Height")}: {options.lineHeight}%
+                </Label>
                 <Slider
                   className="w-full"
                   value={[options.lineHeight]}
@@ -222,7 +222,9 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Line Spacing (margin between title and subtitle) */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Block Spacing")}: {options.lineSpacing}px</Label>
+                <Label>
+                  {t("CoverDesigner.Block Spacing")}: {options.lineSpacing}px
+                </Label>
                 <Slider
                   className="w-full"
                   value={[options.lineSpacing]}
@@ -264,18 +266,12 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
               {/* Toggles */}
               <div className={styles.optionRowInline}>
                 <Label>{t("CoverDesigner.Show Author")}</Label>
-                <Switch
-                  checked={options.showAuthor}
-                  onCheckedChange={(checked) => onChange({ showAuthor: checked })}
-                />
+                <Switch checked={options.showAuthor} onCheckedChange={(checked) => onChange({ showAuthor: checked })} />
               </div>
 
               <div className={styles.optionRowInline}>
                 <Label>{t("CoverDesigner.Show Date")}</Label>
-                <Switch
-                  checked={options.showDate}
-                  onCheckedChange={(checked) => onChange({ showDate: checked })}
-                />
+                <Switch checked={options.showDate} onCheckedChange={(checked) => onChange({ showDate: checked })} />
               </div>
 
               <div className={styles.optionRowInline}>
@@ -297,10 +293,7 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
               {/* Show Logo */}
               <div className={styles.optionRowInline}>
                 <Label>{t("CoverDesigner.Show AYA Logo")}</Label>
-                <Switch
-                  checked={options.showLogo}
-                  onCheckedChange={(checked) => onChange({ showLogo: checked })}
-                />
+                <Switch checked={options.showLogo} onCheckedChange={(checked) => onChange({ showLogo: checked })} />
               </div>
 
               {/* Logo Position */}
@@ -330,7 +323,9 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Logo Opacity */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Logo Opacity")}: {options.logoOpacity}%</Label>
+                <Label>
+                  {t("CoverDesigner.Logo Opacity")}: {options.logoOpacity}%
+                </Label>
                 <Slider
                   className="w-full"
                   value={[options.logoOpacity]}
@@ -352,7 +347,9 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
             <div className={styles.optionsGrid}>
               {/* Padding */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Padding")}: {options.padding}px</Label>
+                <Label>
+                  {t("CoverDesigner.Padding")}: {options.padding}px
+                </Label>
                 <Slider
                   className="w-full"
                   value={[options.padding]}
@@ -365,7 +362,9 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
 
               {/* Vertical Position */}
               <div className={styles.optionRow}>
-                <Label>{t("CoverDesigner.Vertical Position")}: {options.contentOffsetY}px</Label>
+                <Label>
+                  {t("CoverDesigner.Vertical Position")}: {options.contentOffsetY}px
+                </Label>
                 <Slider
                   className="w-full"
                   value={[options.contentOffsetY]}
@@ -413,12 +412,15 @@ export function CustomizationPanel(props: CustomizationPanelProps) {
               {/* Image Opacity (only shown when an image is selected) */}
               {options.backgroundImageUrl !== null && (
                 <div className={styles.optionRow}>
-                  <Label>{t("CoverDesigner.Image Opacity")}: {options.backgroundImageOpacity}%</Label>
+                  <Label>
+                    {t("CoverDesigner.Image Opacity")}: {options.backgroundImageOpacity}%
+                  </Label>
                   <Slider
                     className="w-full"
                     value={[options.backgroundImageOpacity]}
                     onValueChange={(value) =>
-                      onChange({ backgroundImageOpacity: Array.isArray(value) ? value[0] : value })}
+                      onChange({ backgroundImageOpacity: Array.isArray(value) ? value[0] : value })
+                    }
                     min={10}
                     max={100}
                     step={5}

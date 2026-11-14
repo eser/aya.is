@@ -13,19 +13,17 @@ type MediaTextBlockProps = {
 function MediaTextBlock(props: MediaTextBlockProps) {
   const position = props.mediaPosition ?? "left";
 
-  const gridStyle: React.CSSProperties = props.mediaWidth !== undefined
-    ? {
-      gridTemplateColumns: position === "left" ? `${props.mediaWidth} 1fr` : `1fr ${props.mediaWidth}`,
-    }
-    : {};
+  const gridStyle: React.CSSProperties =
+    props.mediaWidth !== undefined
+      ? {
+          gridTemplateColumns: position === "left" ? `${props.mediaWidth} 1fr` : `1fr ${props.mediaWidth}`,
+        }
+      : {};
 
   return (
     <div className={styles.mediaText} style={gridStyle}>
       <div className={styles.media} data-position={position}>
-        <img
-          src={props.src}
-          alt={props.alt !== undefined ? props.alt : ""}
-        />
+        <img src={props.src} alt={props.alt !== undefined ? props.alt : ""} />
       </div>
       <div className={styles.content}>{props.children}</div>
     </div>

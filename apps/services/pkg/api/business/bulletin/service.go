@@ -175,7 +175,7 @@ func (s *Service) deliverAndLog(
 	channel, ok := s.channels[sub.Channel]
 	if !ok {
 		s.recordBulletinLog(ctx, sub.ID, storyCount, "failed",
-			strPtr(fmt.Sprintf("channel %q not available", sub.Channel)), now)
+			new(fmt.Sprintf("channel %q not available", sub.Channel)), now)
 
 		return fmt.Errorf("%w: %s", ErrChannelNotAvailable, sub.Channel)
 	}
@@ -183,7 +183,7 @@ func (s *Service) deliverAndLog(
 	sendErr := channel.Send(ctx, sub.ProfileID, digest)
 	if sendErr != nil {
 		s.recordBulletinLog(ctx, sub.ID, storyCount, "failed",
-			strPtr(sendErr.Error()), now)
+			new(sendErr.Error()), now)
 
 		return fmt.Errorf("sending bulletin via %s: %w", sub.Channel, sendErr)
 	}
@@ -456,8 +456,4 @@ func frequencyToLookback(freq DigestFrequency) time.Duration {
 	default:
 		return lookbackDaily
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
 }

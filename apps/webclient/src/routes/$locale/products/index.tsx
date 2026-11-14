@@ -64,10 +64,7 @@ function ProductsPage() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.Products")}</h1>
             {isAuthenticated && (
-              <Link
-                to="/$locale/products/new"
-                params={{ locale }}
-              >
+              <Link to="/$locale/products/new" params={{ locale }}>
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />
                   {t("Products.Add Product")}

@@ -58,28 +58,18 @@ export function CandidatesPageClient(props: CandidatesPageClientProps) {
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
   const teams = React.useMemo(() => {
-    const match = user?.accessible_profiles?.find(
-      (p) => p.slug === props.slug,
-    );
+    const match = user?.accessible_profiles?.find((p) => p.slug === props.slug);
     return match?.teams ?? [];
   }, [user?.accessible_profiles, props.slug]);
 
-  const handleCandidateCreated = React.useCallback(
-    () => {
-      setShowCreateDialog(false);
-      router.invalidate();
-    },
-    [router],
-  );
+  const handleCandidateCreated = React.useCallback(() => {
+    setShowCreateDialog(false);
+    router.invalidate();
+  }, [router]);
 
   const handleStatusChange = React.useCallback(
     async (candidateId: string, status: CandidateStatus) => {
-      const result = await backend.updateCandidateStatus(
-        props.locale,
-        props.slug,
-        candidateId,
-        status,
-      );
+      const result = await backend.updateCandidateStatus(props.locale, props.slug, candidateId, status);
 
       if (result) {
         toast.success(t("Candidates.Actions.StatusUpdated"));
@@ -91,8 +81,7 @@ export function CandidatesPageClient(props: CandidatesPageClientProps) {
     [props.locale, props.slug, router, t],
   );
 
-  const isLeadPlus = props.viewerMembershipKind !== null &&
-    LEAD_PLUS_KINDS.has(props.viewerMembershipKind);
+  const isLeadPlus = props.viewerMembershipKind !== null && LEAD_PLUS_KINDS.has(props.viewerMembershipKind);
 
   return (
     <>
@@ -101,11 +90,7 @@ export function CandidatesPageClient(props: CandidatesPageClientProps) {
           <h2>{t("Layout.Candidates")}</h2>
           <p>{t("Candidates.Candidate proposals for new members.")}</p>
         </div>
-        <button
-          type="button"
-          className={styles.referButton}
-          onClick={() => setShowCreateDialog(true)}
-        >
+        <button type="button" className={styles.referButton} onClick={() => setShowCreateDialog(true)}>
           <span className="flex items-center gap-1.5">
             <Plus className="size-4" />
             {t("Candidates.Refer Someone")}
@@ -113,28 +98,24 @@ export function CandidatesPageClient(props: CandidatesPageClientProps) {
         </button>
       </div>
 
-      {props.candidates.length === 0
-        ? (
-          <div className={styles.emptyState}>
-            <p className={styles.emptyStateText}>
-              {t("Candidates.No candidates yet")}
-            </p>
-          </div>
-        )
-        : (
-          <div className="flex flex-col gap-4">
-            {props.candidates.map((candidate) => (
-              <CandidateCard
-                key={candidate.id}
-                candidate={candidate}
-                locale={props.locale}
-                slug={props.slug}
-                isLeadPlus={isLeadPlus}
-                onStatusChange={handleStatusChange}
-              />
-            ))}
-          </div>
-        )}
+      {props.candidates.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p className={styles.emptyStateText}>{t("Candidates.No candidates yet")}</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {props.candidates.map((candidate) => (
+            <CandidateCard
+              key={candidate.id}
+              candidate={candidate}
+              locale={props.locale}
+              slug={props.slug}
+              isLeadPlus={isLeadPlus}
+              onStatusChange={handleStatusChange}
+            />
+          ))}
+        </div>
+      )}
 
       {showCreateDialog && (
         <CreateCandidateDialog
@@ -167,7 +148,7 @@ function CreateCandidateDialog(props: CreateCandidateDialogProps) {
   const [error, setError] = React.useState<string | null>(null);
 
   const handleTeamToggle = React.useCallback((teamId: string) => {
-    setSelectedTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
+    setSelectedTeamIds((prev) => (prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]));
   }, []);
 
   const handleSubmit = React.useCallback(
@@ -179,12 +160,7 @@ function CreateCandidateDialog(props: CreateCandidateDialogProps) {
       setIsSubmitting(true);
       setError(null);
 
-      const result = await backend.createCandidate(
-        props.locale,
-        props.slug,
-        trimmedUsername,
-        selectedTeamIds,
-      );
+      const result = await backend.createCandidate(props.locale, props.slug, trimmedUsername, selectedTeamIds);
 
       if (result === null) {
         setError(t("Candidates.Failed to create candidate. Please check the username and try again."));
@@ -199,14 +175,9 @@ function CreateCandidateDialog(props: CreateCandidateDialogProps) {
 
   return (
     <div className={styles.dialogOverlay} onClick={props.onClose}>
-      <div
-        className={styles.dialogContent}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className={styles.dialogContent} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <h3 className={styles.dialogTitle}>
-            {t("Candidates.Refer Someone")}
-          </h3>
+          <h3 className={styles.dialogTitle}>{t("Candidates.Refer Someone")}</h3>
           <button type="button" onClick={props.onClose}>
             <X className="size-4 text-muted-foreground hover:text-foreground" />
           </button>
@@ -230,9 +201,7 @@ function CreateCandidateDialog(props: CreateCandidateDialogProps) {
 
           {props.teams.length > 0 && (
             <div className={styles.formGroup}>
-              <label className={styles.label}>
-                {t("Candidates.Suggested Teams")}
-              </label>
+              <label className={styles.label}>{t("Candidates.Suggested Teams")}</label>
               <div className={styles.teamCheckboxes}>
                 {props.teams.map((team) => (
                   <label key={team.id} className={styles.teamCheckbox}>
@@ -251,11 +220,7 @@ function CreateCandidateDialog(props: CreateCandidateDialogProps) {
           {error !== null && <p className={styles.errorMessage}>{error}</p>}
 
           <div className={styles.dialogActions}>
-            <button
-              type="button"
-              onClick={props.onClose}
-              className={styles.cancelButton}
-            >
+            <button type="button" onClick={props.onClose} className={styles.cancelButton}>
               {t("Common.Cancel")}
             </button>
             <button
@@ -293,9 +258,7 @@ function CandidateCard(props: CandidateCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const initialScore = props.candidate.viewer_vote_score ?? null;
-  const [viewerScore, setViewerScore] = React.useState<number | null>(
-    initialScore,
-  );
+  const [viewerScore, setViewerScore] = React.useState<number | null>(initialScore);
   const [showVotes, setShowVotes] = React.useState(false);
   const [votes, setVotes] = React.useState<CandidateVote[] | null>(null);
   const [isLoadingVotes, setIsLoadingVotes] = React.useState(false);
@@ -317,17 +280,14 @@ function CandidateCard(props: CandidateCardProps) {
   const referred = props.candidate.referred_profile;
   const referrer = props.candidate.referrer_profile;
 
-  const formattedDate = new Date(props.candidate.created_at).toLocaleDateString(
-    props.locale,
-    { year: "numeric", month: "short", day: "numeric" },
-  );
+  const formattedDate = new Date(props.candidate.created_at).toLocaleDateString(props.locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   const refreshVotes = React.useCallback(async () => {
-    const freshVotes = await backend.getCandidateVotes(
-      props.locale,
-      props.slug,
-      props.candidate.id,
-    );
+    const freshVotes = await backend.getCandidateVotes(props.locale, props.slug, props.candidate.id);
 
     if (freshVotes !== null) {
       setVotes(freshVotes);
@@ -345,34 +305,30 @@ function CandidateCard(props: CandidateCardProps) {
     setComment(props.candidate.viewer_vote_comment ?? "");
   }, [initialScore, props.candidate.viewer_vote_comment]);
 
-  const isDirty = viewerScore !== (initialScore ?? null) ||
-    comment !== (props.candidate.viewer_vote_comment ?? "");
+  const isDirty = viewerScore !== (initialScore ?? null) || comment !== (props.candidate.viewer_vote_comment ?? "");
 
-  const [, saveAction, isSaving] = React.useActionState(
-    async (_prev: null): Promise<null> => {
-      if (viewerScore === null) return null;
+  const [, saveAction, isSaving] = React.useActionState(async (_prev: null): Promise<null> => {
+    if (viewerScore === null) return null;
 
-      const trimmedComment = comment.trim();
-      const result = await backend.voteCandidate(
-        props.locale,
-        props.slug,
-        props.candidate.id,
-        viewerScore,
-        trimmedComment.length > 0 ? trimmedComment : null,
-      );
+    const trimmedComment = comment.trim();
+    const result = await backend.voteCandidate(
+      props.locale,
+      props.slug,
+      props.candidate.id,
+      viewerScore,
+      trimmedComment.length > 0 ? trimmedComment : null,
+    );
 
-      if (result !== null) {
-        toast.success(t("Candidates.Comment saved"));
-        await refreshVotes();
-        router.invalidate();
-      } else {
-        toast.error(t("Candidates.Failed to submit vote"));
-      }
+    if (result !== null) {
+      toast.success(t("Candidates.Comment saved"));
+      await refreshVotes();
+      router.invalidate();
+    } else {
+      toast.error(t("Candidates.Failed to submit vote"));
+    }
 
-      return null;
-    },
-    null,
-  );
+    return null;
+  }, null);
 
   const handleToggleVotes = React.useCallback(async () => {
     if (showVotes) {
@@ -382,23 +338,13 @@ function CandidateCard(props: CandidateCardProps) {
 
     if (votes === null) {
       setIsLoadingVotes(true);
-      const result = await backend.getCandidateVotes(
-        props.locale,
-        props.slug,
-        props.candidate.id,
-      );
+      const result = await backend.getCandidateVotes(props.locale, props.slug, props.candidate.id);
       setVotes(result ?? []);
       setIsLoadingVotes(false);
     }
 
     setShowVotes(true);
-  }, [
-    showVotes,
-    votes,
-    props.locale,
-    props.slug,
-    props.candidate.id,
-  ]);
+  }, [showVotes, votes, props.locale, props.slug, props.candidate.id]);
 
   return (
     <div className={styles.candidateCard}>
@@ -416,10 +362,7 @@ function CandidateCard(props: CandidateCardProps) {
                 />
               </LocaleLink>
               <div>
-                <LocaleLink
-                  to={`/${referred.slug}`}
-                  className={styles.candidateName}
-                >
+                <LocaleLink to={`/${referred.slug}`} className={styles.candidateName}>
                   {referred.title}
                 </LocaleLink>
                 <div className={styles.candidateSlug}>@{referred.slug}</div>
@@ -428,41 +371,31 @@ function CandidateCard(props: CandidateCardProps) {
           )}
         </div>
         <div className={styles.statusActions}>
-          <span className={styles.statusBadge}>
-            {t(`Candidates.Status.${props.candidate.status}`)}
-          </span>
-          <CandidateActionsMenu
-            candidate={props.candidate}
-            isLeadPlus={props.isLeadPlus}
-            onAction={setConfirmAction}
-          />
+          <span className={styles.statusBadge}>{t(`Candidates.Status.${props.candidate.status}`)}</span>
+          <CandidateActionsMenu candidate={props.candidate} isLeadPlus={props.isLeadPlus} onAction={setConfirmAction} />
         </div>
       </div>
 
       {/* Referrer / applicant info */}
-      {props.candidate.source === "application"
-        ? (
-          <div className={styles.referrerInfo}>
-            {t("Candidates.Applied on")} {formattedDate}
-          </div>
-        )
-        : referrer !== undefined && referrer !== null && (
+      {props.candidate.source === "application" ? (
+        <div className={styles.referrerInfo}>
+          {t("Candidates.Applied on")} {formattedDate}
+        </div>
+      ) : (
+        referrer !== undefined &&
+        referrer !== null && (
           <div className={styles.referrerInfo}>
             {t("Candidates.Referred by")}{" "}
-            <LocaleLink
-              to={`/${referrer.slug}`}
-              className="hover:underline"
-            >
+            <LocaleLink to={`/${referrer.slug}`} className="hover:underline">
               {referrer.title}
             </LocaleLink>{" "}
             &middot; {formattedDate}
           </div>
-        )}
+        )
+      )}
 
       {/* Team badges */}
-      {props.candidate.teams !== undefined &&
-        props.candidate.teams !== null &&
-        props.candidate.teams.length > 0 && (
+      {props.candidate.teams !== undefined && props.candidate.teams !== null && props.candidate.teams.length > 0 && (
         <div className={styles.teamBadges}>
           {props.candidate.teams.map((team) => (
             <span key={team.id} className={styles.teamBadge}>
@@ -517,12 +450,7 @@ function CandidateCard(props: CandidateCardProps) {
 
           {/* Form actions */}
           <div className={styles.formActions}>
-            <button
-              type="button"
-              onClick={handleReset}
-              disabled={isSaving || !isDirty}
-              className={styles.resetButton}
-            >
+            <button type="button" onClick={handleReset} disabled={isSaving || !isDirty} className={styles.resetButton}>
               {t("Common.Reset")}
             </button>
             <button
@@ -539,11 +467,7 @@ function CandidateCard(props: CandidateCardProps) {
       {/* View all votes toggle */}
       {totalVotes > 0 && (
         <div className={styles.voteDetails}>
-          <button
-            type="button"
-            onClick={handleToggleVotes}
-            className={styles.voteDetailsToggle}
-          >
+          <button type="button" onClick={handleToggleVotes} className={styles.voteDetailsToggle}>
             <span className="flex items-center gap-1">
               {showVotes ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
               {t("Candidates.View All")} ({totalVotes} {t("Candidates.votes")}, {averageScore.toFixed(1)}{" "}
@@ -555,8 +479,7 @@ function CandidateCard(props: CandidateCardProps) {
             <div className={styles.voteList}>
               {votes.map((vote) => (
                 <div key={vote.id} className={styles.voteItem}>
-                  {vote.voter_profile !== undefined &&
-                    vote.voter_profile !== null && (
+                  {vote.voter_profile !== undefined && vote.voter_profile !== null && (
                     <LocaleLink to={`/${vote.voter_profile.slug}`}>
                       <SiteAvatar
                         src={vote.voter_profile.profile_picture_uri}
@@ -568,24 +491,15 @@ function CandidateCard(props: CandidateCardProps) {
                   )}
                   <div className={styles.voteItemContent}>
                     <div className={styles.voteItemHeader}>
-                      {vote.voter_profile !== undefined &&
-                        vote.voter_profile !== null && (
-                        <LocaleLink
-                          to={`/${vote.voter_profile.slug}`}
-                          className={styles.voteItemName}
-                        >
+                      {vote.voter_profile !== undefined && vote.voter_profile !== null && (
+                        <LocaleLink to={`/${vote.voter_profile.slug}`} className={styles.voteItemName}>
                           {vote.voter_profile.title}
                         </LocaleLink>
                       )}
-                      <span className={styles.voteItemScore}>
-                        {t(VOTE_LABELS[vote.score])}
-                      </span>
+                      <span className={styles.voteItemScore}>{t(VOTE_LABELS[vote.score])}</span>
                     </div>
-                    {vote.comment !== null &&
-                      vote.comment !== undefined && (
-                      <p className={styles.voteItemComment}>
-                        {vote.comment}
-                      </p>
+                    {vote.comment !== null && vote.comment !== undefined && (
+                      <p className={styles.voteItemComment}>{vote.comment}</p>
                     )}
                   </div>
                 </div>
@@ -594,9 +508,7 @@ function CandidateCard(props: CandidateCardProps) {
           )}
 
           {showVotes && isLoadingVotes && (
-            <p className="text-xs text-muted-foreground mt-2">
-              {t("Common.Loading")}...
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">{t("Common.Loading")}...</p>
           )}
         </div>
       )}
@@ -610,21 +522,14 @@ function CandidateCard(props: CandidateCardProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {confirmAction !== null ? t(confirmAction.titleKey) : ""}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{confirmAction !== null ? t(confirmAction.titleKey) : ""}</AlertDialogTitle>
             <AlertDialogDescription>
               {confirmAction !== null ? t(confirmAction.descriptionKey, confirmAction.descriptionParams) : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t("Candidates.Actions.Cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmAction}
-              disabled={isUpdatingStatus}
-            >
+            <AlertDialogCancel>{t("Candidates.Actions.Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction} disabled={isUpdatingStatus}>
               {t("Candidates.Actions.Confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -674,38 +579,39 @@ function CandidateActionsMenu(props: CandidateActionsMenuProps) {
                   status: "frozen",
                   titleKey: "Candidates.Actions.Freeze",
                   descriptionKey: "Candidates.Actions.FreezeConfirm",
-                })}
+                })
+              }
             >
               {t("Candidates.Actions.Freeze")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {props.candidate.source === "application"
-              ? (
-                <DropdownMenuItem
-                  onClick={() =>
-                    props.onAction({
-                      status: "application_accepted",
-                      titleKey: "Candidates.Actions.AcceptApplication",
-                      descriptionKey: "Candidates.Actions.AcceptApplicationConfirm",
-                      descriptionParams: { name: referredName },
-                    })}
-                >
-                  {t("Candidates.Actions.AcceptApplication")}
-                </DropdownMenuItem>
-              )
-              : (
-                <DropdownMenuItem
-                  onClick={() =>
-                    props.onAction({
-                      status: "invitation_pending_response",
-                      titleKey: "Candidates.Actions.SendInvite",
-                      descriptionKey: "Candidates.Actions.SendInviteConfirm",
-                      descriptionParams: { name: referredName },
-                    })}
-                >
-                  {t("Candidates.Actions.SendInvite")}
-                </DropdownMenuItem>
-              )}
+            {props.candidate.source === "application" ? (
+              <DropdownMenuItem
+                onClick={() =>
+                  props.onAction({
+                    status: "application_accepted",
+                    titleKey: "Candidates.Actions.AcceptApplication",
+                    descriptionKey: "Candidates.Actions.AcceptApplicationConfirm",
+                    descriptionParams: { name: referredName },
+                  })
+                }
+              >
+                {t("Candidates.Actions.AcceptApplication")}
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem
+                onClick={() =>
+                  props.onAction({
+                    status: "invitation_pending_response",
+                    titleKey: "Candidates.Actions.SendInvite",
+                    descriptionKey: "Candidates.Actions.SendInviteConfirm",
+                    descriptionParams: { name: referredName },
+                  })
+                }
+              >
+                {t("Candidates.Actions.SendInvite")}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               variant="destructive"
               onClick={() =>
@@ -713,7 +619,8 @@ function CandidateActionsMenu(props: CandidateActionsMenuProps) {
                   status: "reference_rejected",
                   titleKey: "Candidates.Actions.Reject",
                   descriptionKey: "Candidates.Actions.RejectConfirm",
-                })}
+                })
+              }
             >
               {t("Candidates.Actions.Reject")}
             </DropdownMenuItem>
@@ -728,7 +635,8 @@ function CandidateActionsMenu(props: CandidateActionsMenuProps) {
                   status: "voting",
                   titleKey: "Candidates.Actions.Unfreeze",
                   descriptionKey: "Candidates.Actions.UnfreezeConfirm",
-                })}
+                })
+              }
             >
               {t("Candidates.Actions.Unfreeze")}
             </DropdownMenuItem>
@@ -740,7 +648,8 @@ function CandidateActionsMenu(props: CandidateActionsMenuProps) {
                   status: "reference_rejected",
                   titleKey: "Candidates.Actions.Reject",
                   descriptionKey: "Candidates.Actions.RejectConfirm",
-                })}
+                })
+              }
             >
               {t("Candidates.Actions.Reject")}
             </DropdownMenuItem>
@@ -774,11 +683,7 @@ function FormResponsesViewer(props: FormResponsesViewerProps) {
 
     if (responses === null) {
       setIsLoading(true);
-      const result = await backend.getCandidateResponses(
-        props.locale,
-        props.slug,
-        props.candidateId,
-      );
+      const result = await backend.getCandidateResponses(props.locale, props.slug, props.candidateId);
       setResponses(result ?? []);
       setIsLoading(false);
     }
@@ -788,22 +693,14 @@ function FormResponsesViewer(props: FormResponsesViewerProps) {
 
   return (
     <div className={styles.formResponses}>
-      <button
-        type="button"
-        onClick={handleToggle}
-        className={styles.formResponsesToggle}
-      >
+      <button type="button" onClick={handleToggle} className={styles.formResponsesToggle}>
         <span className="flex items-center gap-1">
           {expanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
           {t("Candidates.Form Responses")}
         </span>
       </button>
 
-      {expanded && isLoading && (
-        <p className="text-xs text-muted-foreground mt-2">
-          {t("Common.Loading")}...
-        </p>
-      )}
+      {expanded && isLoading && <p className="text-xs text-muted-foreground mt-2">{t("Common.Loading")}...</p>}
 
       {expanded && responses !== null && (responses.length > 0 || props.applicantMessage !== null) && (
         <div className={styles.formResponsesList}>
@@ -819,21 +716,15 @@ function FormResponsesViewer(props: FormResponsesViewerProps) {
           ))}
           {props.applicantMessage !== null && (
             <div className={styles.formResponseItem}>
-              <div className={styles.formResponseLabel}>
-                {t("Applications.Additional message")}
-              </div>
-              <div className={styles.formResponseValue}>
-                {props.applicantMessage}
-              </div>
+              <div className={styles.formResponseLabel}>{t("Applications.Additional message")}</div>
+              <div className={styles.formResponseValue}>{props.applicantMessage}</div>
             </div>
           )}
         </div>
       )}
 
       {expanded && responses !== null && responses.length === 0 && props.applicantMessage === null && (
-        <p className="text-xs text-muted-foreground mt-2">
-          {t("Candidates.No form responses")}
-        </p>
+        <p className="text-xs text-muted-foreground mt-2">{t("Candidates.No form responses")}</p>
       )}
     </div>
   );

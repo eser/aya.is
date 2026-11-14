@@ -8,14 +8,10 @@ export async function createSeries(
   title: string,
   description: string,
 ): Promise<StorySeries | null> {
-  const response = await fetcher<StorySeries>(
-    locale,
-    "/series",
-    {
-      method: "POST",
-      body: JSON.stringify({ slug, title, description }),
-    },
-  );
+  const response = await fetcher<StorySeries>(locale, "/series", {
+    method: "POST",
+    body: JSON.stringify({ slug, title, description }),
+  });
 
   return response;
 }

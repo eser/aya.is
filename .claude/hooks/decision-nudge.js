@@ -40,7 +40,8 @@ process.stdin.on("end", () => {
   }
 
   const nudge = {
-    additionalContext: "KARAR HATIRLATMA: Bu değişiklik mimari bir karar içeriyorsa (teknoloji seçimi, " +
+    additionalContext:
+      "KARAR HATIRLATMA: Bu değişiklik mimari bir karar içeriyorsa (teknoloji seçimi, " +
       "yaklaşım tercihi, API tasarımı, güvenlik kararı) `log_decision` MCP aracını hemen çağır. " +
       "Sıradan kod değişikliklerinde çağırma.",
   };

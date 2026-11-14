@@ -67,10 +67,7 @@ function StoriesIndexPage() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.Stories")}</h1>
             {isAuthenticated && (
-              <Link
-                to="/$locale/stories/new"
-                params={{ locale }}
-              >
+              <Link to="/$locale/stories/new" params={{ locale }}>
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />
                   {t("ContentEditor.Add Story")}
@@ -79,10 +76,7 @@ function StoriesIndexPage() {
             )}
           </div>
 
-          <StoriesPageClient
-            initialStories={stories}
-            basePath={`/${locale}/stories`}
-          />
+          <StoriesPageClient initialStories={stories} basePath={`/${locale}/stories`} />
         </div>
       </section>
     </PageLayout>

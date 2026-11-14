@@ -76,10 +76,7 @@ function ArticlesPage() {
             )}
           </div>
 
-          <StoriesPageClient
-            initialStories={articles}
-            basePath={`/${locale}/articles`}
-          />
+          <StoriesPageClient initialStories={articles} basePath={`/${locale}/articles`} />
         </div>
       </section>
     </PageLayout>

@@ -7,8 +7,5 @@ export async function getCandidateResponses(
   slug: string,
   candidateId: string,
 ): Promise<CandidateFormResponse[] | null> {
-  return await fetcher<CandidateFormResponse[]>(
-    locale,
-    `/profiles/${slug}/_candidates/${candidateId}/responses`,
-  );
+  return await fetcher<CandidateFormResponse[]>(locale, `/profiles/${slug}/_candidates/${candidateId}/responses`);
 }

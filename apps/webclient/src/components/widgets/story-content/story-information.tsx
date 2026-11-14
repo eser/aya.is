@@ -46,39 +46,35 @@ function ActivityInformationContent(props: { story: StoryEx; locale: string; edi
 
   const activityProps = (props.story.properties ?? {}) as unknown as ActivityProperties;
   const dateMode = activityProps.date_mode ?? "fixed";
-  const timeStart = activityProps.activity_time_start !== undefined
-    ? new Date(activityProps.activity_time_start)
-    : null;
+  const timeStart =
+    activityProps.activity_time_start !== undefined ? new Date(activityProps.activity_time_start) : null;
   const timeEnd = activityProps.activity_time_end !== undefined ? new Date(activityProps.activity_time_end) : null;
   const kindLabel = activityKindLabels[activityProps.activity_kind ?? "meetup"] ?? "Activities.Meetup";
 
   return (
     <div className={cn(styles.container, "not-prose")}>
-      {dateMode === "undecided"
-        ? (
-          <span className={styles.item}>
-            <Calendar className="size-4" />
-            <span className={styles.dateUndecided}>
-              {t("Activities.Date Undecided")}
-            </span>
-          </span>
-        )
-        : timeStart !== null && (
+      {dateMode === "undecided" ? (
+        <span className={styles.item}>
+          <Calendar className="size-4" />
+          <span className={styles.dateUndecided}>{t("Activities.Date Undecided")}</span>
+        </span>
+      ) : (
+        timeStart !== null && (
           <span className={styles.item}>
             <Calendar className="size-4" />
             {timeEnd !== null
               ? formatDateTimeRange(timeStart, timeEnd, props.locale)
               : formatDateTimeLong(timeStart, props.locale)}
           </span>
-        )}
+        )
+      )}
 
       <span className={styles.item}>
         <Tag className="size-4" />
         {t(kindLabel)}
       </span>
 
-      {activityProps.external_activity_uri !== undefined &&
-        activityProps.external_activity_uri !== "" && (
+      {activityProps.external_activity_uri !== undefined && activityProps.external_activity_uri !== "" && (
         <a
           href={activityProps.external_activity_uri}
           target="_blank"
@@ -128,10 +124,7 @@ function DefaultInformationContent(props: { story: StoryEx; editUrl?: string; sh
     <div className={cn(styles.container, "not-prose")}>
       <span className={styles.item}>
         <Calendar className="size-4" />
-        <time
-          dateTime={props.story.published_at ?? props.story.created_at}
-          className="text-sm text-foreground"
-        >
+        <time dateTime={props.story.published_at ?? props.story.created_at} className="text-sm text-foreground">
           {t("Common.DateLong", { date: publishedDate })}
         </time>
       </span>

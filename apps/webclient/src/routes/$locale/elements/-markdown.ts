@@ -11,10 +11,7 @@ import type { Profile } from "@/modules/backend/types";
 /**
  * Generate markdown for the elements listing page
  */
-export function generateElementsListingMarkdown(
-  profiles: Profile[],
-  locale: string,
-): string {
+export function generateElementsListingMarkdown(profiles: Profile[], locale: string): string {
   const frontmatter = formatFrontmatter({
     title: "Elements",
     generated_at: new Date().toISOString(),
@@ -57,10 +54,7 @@ export function generateElementsListingMarkdown(
  */
 export function registerElementsListingHandler(): void {
   registerMarkdownHandler("$locale/elements", async (_params, locale, _searchParams) => {
-    const profiles = await backend.getProfilesByKinds(locale, [
-      "individual",
-      "organization",
-    ]);
+    const profiles = await backend.getProfilesByKinds(locale, ["individual", "organization"]);
 
     if (profiles === null) {
       return null;

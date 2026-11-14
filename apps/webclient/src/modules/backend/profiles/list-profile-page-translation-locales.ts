@@ -6,13 +6,9 @@ export async function listProfilePageTranslationLocales(
   profileSlug: string,
   pageId: string,
 ): Promise<string[] | null> {
-  const response = await fetcher<string[]>(
-    locale,
-    `/profiles/${profileSlug}/_pages/${pageId}/_tx`,
-    {
-      method: "GET",
-    },
-  );
+  const response = await fetcher<string[]>(locale, `/profiles/${profileSlug}/_pages/${pageId}/_tx`, {
+    method: "GET",
+  });
 
   return response;
 }

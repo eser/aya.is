@@ -248,12 +248,11 @@ func (b *Bot) handleGroups( //nolint:cyclop,funlen // sequential group command h
 	for _, link := range links {
 		if link.ProfileSlug != currentSlug {
 			currentSlug = link.ProfileSlug
-			builder.WriteString(
-				fmt.Sprintf(
-					"\n<b>%s</b> (https://aya.is/%s)\n",
-					link.ProfileTitle,
-					link.ProfileSlug,
-				),
+			fmt.Fprintf(
+				&builder,
+				"\n<b>%s</b> (https://aya.is/%s)\n",
+				link.ProfileTitle,
+				link.ProfileSlug,
 			)
 		}
 
@@ -269,9 +268,9 @@ func (b *Bot) handleGroups( //nolint:cyclop,funlen // sequential group command h
 		}
 
 		if link.LinkURI != "" {
-			builder.WriteString(fmt.Sprintf("  • <a href=\"%s\">%s</a>\n", link.LinkURI, label))
+			fmt.Fprintf(&builder, "  • <a href=\"%s\">%s</a>\n", link.LinkURI, label)
 		} else {
-			builder.WriteString(fmt.Sprintf("  • %s\n", label))
+			fmt.Fprintf(&builder, "  • %s\n", label)
 		}
 	}
 

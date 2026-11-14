@@ -7,14 +7,10 @@ export async function setInteraction(
   storySlug: string,
   kind: string,
 ): Promise<StoryInteraction | null> {
-  const response = await fetcher<StoryInteraction>(
-    locale,
-    `/stories/${storySlug}/interactions`,
-    {
-      method: "POST",
-      body: JSON.stringify({ kind }),
-    },
-  );
+  const response = await fetcher<StoryInteraction>(locale, `/stories/${storySlug}/interactions`, {
+    method: "POST",
+    body: JSON.stringify({ kind }),
+  });
 
   return response;
 }

@@ -7,11 +7,7 @@ export type ThemePreset = "light" | "dark" | "brand" | "custom";
 
 export type FontFamily = "bree-serif" | "nunito-sans" | "system";
 
-export type LogoPosition =
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right";
+export type LogoPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export type BackgroundPattern = "none" | "dots" | "grid" | "diagonal";
 
@@ -104,10 +100,7 @@ export const COVER_WIDTH = 1200;
 export const COVER_HEIGHT = 675;
 
 // Theme presets
-export const themePresets: Record<
-  ThemePreset,
-  { backgroundColor: string; accentColor: string; textColor: string }
-> = {
+export const themePresets: Record<ThemePreset, { backgroundColor: string; accentColor: string; textColor: string }> = {
   light: {
     backgroundColor: "#ffffff",
     accentColor: "#e94560",

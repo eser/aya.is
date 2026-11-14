@@ -8,13 +8,7 @@ import { ChildNotFound } from "../route";
 
 const parentRoute = getRouteApi("/$locale/$slug");
 
-const MEMBER_PLUS_KINDS = new Set([
-  "member",
-  "contributor",
-  "maintainer",
-  "lead",
-  "owner",
-]);
+const MEMBER_PLUS_KINDS = new Set(["member", "contributor", "maintainer", "lead", "owner"]);
 
 export const Route = createFileRoute("/$locale/$slug/members")({
   component: MembersLayout,
@@ -38,15 +32,12 @@ function MembersLayout() {
   const { t } = useTranslation();
   const params = Route.useParams();
 
-  if (
-    profile === null || profile.feature_relations === "disabled"
-  ) {
+  if (profile === null || profile.feature_relations === "disabled") {
     return <ChildNotFound />;
   }
 
   const membershipKind = permissions?.viewer_membership_kind;
-  const isMemberPlus = membershipKind !== undefined && membershipKind !== null &&
-    MEMBER_PLUS_KINDS.has(membershipKind);
+  const isMemberPlus = membershipKind !== undefined && membershipKind !== null && MEMBER_PLUS_KINDS.has(membershipKind);
 
   return (
     <ProfileSidebarLayout

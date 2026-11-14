@@ -52,11 +52,7 @@ function BlockToolbar(props: BlockToolbarProps) {
       definition,
       hint.parsedBlock.selfClosing,
     );
-    props.onPropsChange(
-      hint.parsedBlock.startOffset,
-      hint.parsedBlock.endOffset,
-      newTag,
-    );
+    props.onPropsChange(hint.parsedBlock.startOffset, hint.parsedBlock.endOffset, newTag);
   }
 
   function handleImmediateChange(propName: string, value: string) {
@@ -99,7 +95,9 @@ function BlockToolbar(props: BlockToolbarProps) {
                 onChange={(e) => handleImmediateChange(propDef.name, e.target.value)}
               >
                 {propDef.options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label || opt.value}</option>
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label || opt.value}
+                  </option>
                 ))}
               </select>
             </div>

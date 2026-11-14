@@ -12,10 +12,7 @@ export interface BulkRejectResult {
   results: BulkResultItem[];
 }
 
-export async function bulkRejectPendingAwards(
-  ids: string[],
-  reason?: string,
-): Promise<BulkRejectResult | null> {
+export async function bulkRejectPendingAwards(ids: string[], reason?: string): Promise<BulkRejectResult | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -26,15 +23,12 @@ export async function bulkRejectPendingAwards(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/admin/points/pending/bulk-reject`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-      body: JSON.stringify({ ids, reason: reason ?? "" }),
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/admin/points/pending/bulk-reject`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify({ ids, reason: reason ?? "" }),
+  });
 
   if (!response.ok) return null;
   return response.json();

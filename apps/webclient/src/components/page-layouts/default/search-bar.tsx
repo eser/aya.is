@@ -254,20 +254,14 @@ export function SearchBar() {
         )}
         onClick={() => setOpen(true)}
       >
-        <span className="hidden lg:inline-flex">
-          {t("Search.General search")}
-        </span>
+        <span className="hidden lg:inline-flex">{t("Search.General search")}</span>
         <span className="inline-flex lg:hidden">{t("Search.Search")}</span>
         <kbd className="pointer-events-none absolute right-[0.4rem] top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded-sm border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">&#8984;</span>K
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder={t("Search.General search")}
-          value={searchQuery}
-          onValueChange={setSearchQuery}
-        />
+        <CommandInput placeholder={t("Search.General search")} value={searchQuery} onValueChange={setSearchQuery} />
         <CommandList>
           <CommandEmpty>{t("Search.No results found.")}</CommandEmpty>
           {/* Dynamic search results */}
@@ -281,27 +275,25 @@ export function SearchBar() {
                   </span>
                 }
               >
-                {isSearching && searchResults === null
-                  ? (
-                    <>
-                      <div className="px-2 py-1.5">
-                        <div className="flex items-center gap-2">
-                          <div className="size-4 rounded bg-muted animate-pulse" />
-                          <div className="h-4 flex-1 rounded bg-muted animate-pulse" />
-                          <div className="h-4 w-12 rounded bg-muted animate-pulse" />
-                        </div>
+                {isSearching && searchResults === null ? (
+                  <>
+                    <div className="px-2 py-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="size-4 rounded bg-muted animate-pulse" />
+                        <div className="h-4 flex-1 rounded bg-muted animate-pulse" />
+                        <div className="h-4 w-12 rounded bg-muted animate-pulse" />
                       </div>
-                      <div className="px-2 py-1.5">
-                        <div className="flex items-center gap-2">
-                          <div className="size-4 rounded bg-muted animate-pulse" />
-                          <div className="h-4 flex-1 rounded bg-muted animate-pulse" />
-                          <div className="h-4 w-12 rounded bg-muted animate-pulse" />
-                        </div>
+                    </div>
+                    <div className="px-2 py-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="size-4 rounded bg-muted animate-pulse" />
+                        <div className="h-4 flex-1 rounded bg-muted animate-pulse" />
+                        <div className="h-4 w-12 rounded bg-muted animate-pulse" />
                       </div>
-                    </>
-                  )
-                  : searchResults !== null && searchResults.length > 0
-                  ? searchResults.map((result) => {
+                    </div>
+                  </>
+                ) : searchResults !== null && searchResults.length > 0 ? (
+                  searchResults.map((result) => {
                     const Icon = getSearchResultIcon(result);
                     return (
                       <CommandItem
@@ -320,13 +312,13 @@ export function SearchBar() {
                       </CommandItem>
                     );
                   })
-                  : !isSearching && (
+                ) : (
+                  !isSearching && (
                     <CommandItem disabled>
-                      <span className="text-muted-foreground">
-                        {t("Search.No results found.")}
-                      </span>
+                      <span className="text-muted-foreground">{t("Search.No results found.")}</span>
                     </CommandItem>
-                  )}
+                  )
+                )}
               </CommandGroup>
               <CommandSeparator />
             </>
@@ -431,8 +423,7 @@ export function SearchBar() {
                     handleBackendUriChange(null);
                     setOpen(false);
                   }}
-                  disabled={backendUri === null ||
-                    backendUri === siteConfig.backendUri}
+                  disabled={backendUri === null || backendUri === siteConfig.backendUri}
                 >
                   <SettingsIcon className="w-4 h-4 mr-2" />
                   <span>{t("Layout.Use default data source")}</span>

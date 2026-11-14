@@ -33,16 +33,7 @@ type EditorToolbarProps = {
   plusButtonRef?: React.RefObject<HTMLButtonElement | null>;
 };
 
-export type FormatAction =
-  | "bold"
-  | "italic"
-  | "h2"
-  | "h3"
-  | "ul"
-  | "ol"
-  | "link"
-  | "code"
-  | "quote";
+export type FormatAction = "bold" | "italic" | "h2" | "h3" | "ul" | "ol" | "link" | "code" | "quote";
 
 type ToolbarButton = {
   action: FormatAction;
@@ -87,11 +78,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
             </TooltipTrigger>
             <TooltipContent>
               {t(button.labelKey)}
-              {button.shortcut !== undefined && (
-                <span className="ml-2 text-muted-foreground">
-                  {button.shortcut}
-                </span>
-              )}
+              {button.shortcut !== undefined && <span className="ml-2 text-muted-foreground">{button.shortcut}</span>}
             </TooltipContent>
           </Tooltip>
         ))}

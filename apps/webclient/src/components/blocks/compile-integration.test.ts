@@ -36,12 +36,14 @@ Deno.test("every pattern template compiles", async () => {
 
 Deno.test("all blocks concatenated compile", async () => {
   const blocks = getAllBlocks();
-  const allMdx = blocks.map((block) => {
-    const defaultValues: Record<string, string | number | boolean> = {};
-    for (const prop of block.props) {
-      defaultValues[prop.name] = prop.defaultValue;
-    }
-    return block.generateMdx(defaultValues);
-  }).join("\n\n");
+  const allMdx = blocks
+    .map((block) => {
+      const defaultValues: Record<string, string | number | boolean> = {};
+      for (const prop of block.props) {
+        defaultValues[prop.name] = prop.defaultValue;
+      }
+      return block.generateMdx(defaultValues);
+    })
+    .join("\n\n");
   await compileTestMdx(allMdx);
 });

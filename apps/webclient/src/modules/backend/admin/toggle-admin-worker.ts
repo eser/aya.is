@@ -7,9 +7,7 @@ export interface ToggleWorkerResult {
   is_enabled: boolean;
 }
 
-export async function toggleAdminWorker(
-  name: string,
-): Promise<ToggleWorkerResult | null> {
+export async function toggleAdminWorker(name: string): Promise<ToggleWorkerResult | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -20,14 +18,11 @@ export async function toggleAdminWorker(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/admin/workers/${encodeURIComponent(name)}/toggle`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/admin/workers/${encodeURIComponent(name)}/toggle`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+  });
 
   if (!response.ok) return null;
   return response.json();

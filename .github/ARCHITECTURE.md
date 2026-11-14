@@ -73,6 +73,7 @@ aya.is/
 1. **Prerequisites**: Docker, Make, Git
 
 2. **Getting Started**:
+
    ```bash
    $ git clone git@github.com:eser/aya.is.git
    $ cd aya.is

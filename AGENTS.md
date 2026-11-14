@@ -90,12 +90,16 @@ skill under `.agents/skills` says to use Deno's built-in formatter or linter, th
 
 ```typescript
 // Correct
-if (value === null) {}
-if (array.length === 0) {}
+if (value === null) {
+}
+if (array.length === 0) {
+}
 
 // Wrong - never use truthy/falsy except for booleans
-if (!value) {}
-if (!array.length) {}
+if (!value) {
+}
+if (!array.length) {
+}
 ```
 
 ### Backend Object Pattern
@@ -242,9 +246,9 @@ const profile = await context.queryClient.ensureQueryData(profileQueryOptions(lo
 
 ```typescript
 // Permissions — optional, don't crash on failure
-const permissions = await context.queryClient.ensureQueryData(
-  profilePermissionsQueryOptions(locale, slug),
-).catch(() => null);
+const permissions = await context.queryClient
+  .ensureQueryData(profilePermissionsQueryOptions(locale, slug))
+  .catch(() => null);
 
 // Live streams — optional, auto-refetch in component
 await context.queryClient.prefetchQuery(liveNowQueryOptions(locale));
@@ -290,9 +294,7 @@ For menu items that navigate, use `render` prop with `LocaleLink` (renders a rea
 `<SelectValue />` renders the **raw value** by default. Always use a children render function:
 
 ```tsx
-<SelectValue>
-  {(value: string) => labelMap.get(value) ?? value}
-</SelectValue>;
+<SelectValue>{(value: string) => labelMap.get(value) ?? value}</SelectValue>
 ```
 
 For rich items with descriptions, use `SelectPrimitive.Item` directly — label in `ItemText`, description outside it.

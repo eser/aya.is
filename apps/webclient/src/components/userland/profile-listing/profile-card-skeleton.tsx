@@ -23,7 +23,9 @@ export function ProfileCardSkeletonGrid(props: ProfileCardSkeletonGridProps) {
 
   return (
     <div className={styles.grid}>
-      {Array.from({ length: count }, (_, i) => <ProfileCardSkeleton key={i} />)}
+      {Array.from({ length: count }, (_, i) => (
+        <ProfileCardSkeleton key={i} />
+      ))}
     </div>
   );
 }

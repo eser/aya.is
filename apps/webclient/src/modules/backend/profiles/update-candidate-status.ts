@@ -12,18 +12,15 @@ export async function updateCandidateStatus(
   const token = getAuthToken();
   if (token === null) return false;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_candidates/${candidateId}/status`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({ status }),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_candidates/${candidateId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify({ status }),
+  });
 
   return response.ok;
 }

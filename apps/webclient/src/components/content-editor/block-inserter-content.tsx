@@ -24,17 +24,11 @@ type BlockInserterContentProps = {
   autoFocus?: boolean;
 };
 
-function hasRequiredPropsWithoutDefaults(
-  definition: BlockDefinition,
-): boolean {
-  return definition.props.some(
-    (prop) => prop.required && prop.defaultValue === "",
-  );
+function hasRequiredPropsWithoutDefaults(definition: BlockDefinition): boolean {
+  return definition.props.some((prop) => prop.required && prop.defaultValue === "");
 }
 
-function buildDefaultValues(
-  definition: BlockDefinition,
-): Record<string, string | number | boolean> {
+function buildDefaultValues(definition: BlockDefinition): Record<string, string | number | boolean> {
   const values: Record<string, string | number | boolean> = {};
   for (const prop of definition.props) {
     values[prop.name] = prop.defaultValue;
@@ -45,9 +39,7 @@ function buildDefaultValues(
 function BlockInserterContent(props: BlockInserterContentProps) {
   const { onInsert, onClose: _onClose, wrapInCommand = true, autoFocus = false } = props;
   const { t } = useTranslation();
-  const [editingBlock, setEditingBlock] = useState<BlockDefinition | null>(
-    null,
-  );
+  const [editingBlock, setEditingBlock] = useState<BlockDefinition | null>(null);
   const [recentIds, setRecentIds] = useState<string[]>(() => getRecentBlockIds());
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -93,11 +85,7 @@ function BlockInserterContent(props: BlockInserterContentProps) {
 
   if (editingBlock !== null) {
     return (
-      <BlockPropEditor
-        definition={editingBlock}
-        onInsert={handlePropEditorInsert}
-        onCancel={handlePropEditorCancel}
-      />
+      <BlockPropEditor definition={editingBlock} onInsert={handlePropEditorInsert} onCancel={handlePropEditorCancel} />
     );
   }
 
@@ -132,9 +120,7 @@ function BlockInserterContent(props: BlockInserterContentProps) {
                       <IconComponent size={16} />
                       <div className={styles.blockInfo}>
                         <span className={styles.blockName}>{block.name}</span>
-                        <span className={styles.blockDescription}>
-                          {block.description}
-                        </span>
+                        <span className={styles.blockDescription}>{block.description}</span>
                         {block.preview !== undefined && <span className={styles.blockPreview}>{block.preview}</span>}
                       </div>
                     </div>
@@ -167,9 +153,7 @@ function BlockInserterContent(props: BlockInserterContentProps) {
                       <IconComponent size={16} />
                       <div className={styles.blockInfo}>
                         <span className={styles.blockName}>{block.name}</span>
-                        <span className={styles.blockDescription}>
-                          {block.description}
-                        </span>
+                        <span className={styles.blockDescription}>{block.description}</span>
                         {block.preview !== undefined && <span className={styles.blockPreview}>{block.preview}</span>}
                       </div>
                     </div>
@@ -188,18 +172,12 @@ function BlockInserterContent(props: BlockInserterContentProps) {
               {patterns.map((pattern) => {
                 const IconComponent = pattern.icon;
                 return (
-                  <CommandItem
-                    key={pattern.id}
-                    value={pattern.id}
-                    onSelect={() => handlePatternSelect(pattern)}
-                  >
+                  <CommandItem key={pattern.id} value={pattern.id} onSelect={() => handlePatternSelect(pattern)}>
                     <div className={styles.blockItem}>
                       <IconComponent size={16} />
                       <div className={styles.blockInfo}>
                         <span className={styles.blockName}>{pattern.name}</span>
-                        <span className={styles.blockDescription}>
-                          {pattern.description}
-                        </span>
+                        <span className={styles.blockDescription}>{pattern.description}</span>
                       </div>
                     </div>
                   </CommandItem>

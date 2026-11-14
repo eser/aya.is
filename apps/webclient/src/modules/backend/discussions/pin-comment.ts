@@ -15,14 +15,10 @@ export async function pinComment(
   commentId: string,
   input: PinCommentInput,
 ): Promise<PinCommentResult | null> {
-  const response = await fetcher<PinCommentResult>(
-    locale,
-    `/discussions/comments/${commentId}/pin`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<PinCommentResult>(locale, `/discussions/comments/${commentId}/pin`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

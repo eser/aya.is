@@ -34,9 +34,7 @@ export interface NavigationState {
   customDomainProfileTitle: string | null;
 }
 
-const NavigationContext = React.createContext<NavigationState | undefined>(
-  undefined,
-);
+const NavigationContext = React.createContext<NavigationState | undefined>(undefined);
 
 interface NavigationProviderProps {
   state: NavigationState;
@@ -44,11 +42,7 @@ interface NavigationProviderProps {
 }
 
 export function NavigationProvider(props: NavigationProviderProps) {
-  return (
-    <NavigationContext.Provider value={props.state}>
-      {props.children}
-    </NavigationContext.Provider>
-  );
+  return <NavigationContext.Provider value={props.state}>{props.children}</NavigationContext.Provider>;
 }
 
 export function useNavigation(): NavigationState {

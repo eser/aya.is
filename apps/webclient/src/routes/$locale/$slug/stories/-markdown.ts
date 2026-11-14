@@ -9,10 +9,7 @@ import { calculateReadingTime } from "@/lib/reading-time";
 import { backend } from "@/modules/backend/backend";
 import type { StoryEx } from "@/modules/backend/types";
 
-export function generateProfileStoryMarkdown(
-  story: StoryEx,
-  locale: string,
-): string {
+export function generateProfileStoryMarkdown(story: StoryEx, locale: string): string {
   // Try to get date from slug first, fall back to created_at
   const publishDate = story.slug !== null ? parseDateFromSlug(story.slug) : null;
   const dateToFormat = publishDate ?? new Date(story.created_at);
@@ -34,22 +31,19 @@ export function generateProfileStoryMarkdown(
  * Pattern: /$locale/$slug/stories/$storyslug
  */
 export function registerProfileStoryMarkdownHandler(): void {
-  registerMarkdownHandler(
-    "$locale/$slug/stories/$storyslug",
-    async (params, locale, _searchParams) => {
-      const { slug, storyslug } = params;
+  registerMarkdownHandler("$locale/$slug/stories/$storyslug", async (params, locale, _searchParams) => {
+    const { slug, storyslug } = params;
 
-      if (slug === undefined || storyslug === undefined) {
-        return null;
-      }
+    if (slug === undefined || storyslug === undefined) {
+      return null;
+    }
 
-      const story = await backend.getProfileStory(locale, slug, storyslug);
+    const story = await backend.getProfileStory(locale, slug, storyslug);
 
-      if (story === null) {
-        return null;
-      }
+    if (story === null) {
+      return null;
+    }
 
-      return generateProfileStoryMarkdown(story, locale);
-    },
-  );
+    return generateProfileStoryMarkdown(story, locale);
+  });
 }

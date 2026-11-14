@@ -43,9 +43,7 @@ export function AiAssistPanel(_props: AiAssistPanelProps) {
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground mt-2">
-        {t("Common.Coming soon")}
-      </p>
+      <p className="text-xs text-muted-foreground mt-2">{t("Common.Coming soon")}</p>
     </div>
   );
 }

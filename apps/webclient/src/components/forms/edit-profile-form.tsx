@@ -37,10 +37,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
   const localizedSchema = React.useMemo(
     () =>
       z.object({
-        title: z
-          .string()
-          .min(1, t("Profile.Title is required"))
-          .max(100, t("Profile.Title is too long")),
+        title: z.string().min(1, t("Profile.Title is required")).max(100, t("Profile.Title is too long")),
         description: z.string().max(500, t("Profile.Description is too long")),
         pronouns: z.string().max(50, t("Profile.Pronouns are too long")),
       }),
@@ -74,9 +71,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
           const hasError = field.state.meta.errors.length > 0;
           return (
             <Field data-invalid={hasError || undefined}>
-              <FieldLabel htmlFor={field.name}>
-                {t("Common.Title")}
-              </FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("Common.Title")}</FieldLabel>
               <Input
                 id={field.name}
                 value={field.state.value}
@@ -96,9 +91,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
           const hasError = field.state.meta.errors.length > 0;
           return (
             <Field data-invalid={hasError || undefined}>
-              <FieldLabel htmlFor={field.name}>
-                {t("Common.Description")}
-              </FieldLabel>
+              <FieldLabel htmlFor={field.name}>{t("Common.Description")}</FieldLabel>
               <Textarea
                 id={field.name}
                 value={field.state.value}
@@ -120,9 +113,7 @@ export function EditProfileForm(props: EditProfileFormProps) {
             const hasError = field.state.meta.errors.length > 0;
             return (
               <Field data-invalid={hasError || undefined}>
-                <FieldLabel htmlFor={field.name}>
-                  {t("Common.Pronouns")}
-                </FieldLabel>
+                <FieldLabel htmlFor={field.name}>{t("Common.Pronouns")}</FieldLabel>
                 <Input
                   id={field.name}
                   value={field.state.value}
@@ -138,15 +129,10 @@ export function EditProfileForm(props: EditProfileFormProps) {
         </form.Field>
       )}
 
-      <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting]}
-      >
+      <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={!canSubmit || isSubmitting || props.isSubmitting}
-            >
+            <Button type="submit" disabled={!canSubmit || isSubmitting || props.isSubmitting}>
               {(isSubmitting || props.isSubmitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting || props.isSubmitting ? t("Common.Saving...") : t("Profile.Save Changes")}
             </Button>

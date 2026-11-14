@@ -86,12 +86,7 @@ export function BackgroundImagePicker(props: BackgroundImagePickerProps) {
             alt={t("CoverDesigner.Selected background")}
             className={styles.selectedImagePreviewImg}
           />
-          <Button
-            variant="destructive"
-            size="icon"
-            className={styles.selectedImageClear}
-            onClick={handleClearImage}
-          >
+          <Button variant="destructive" size="icon" className={styles.selectedImageClear} onClick={handleClearImage}>
             <X className="size-4" />
           </Button>
         </div>
@@ -150,25 +145,17 @@ export function BackgroundImagePicker(props: BackgroundImagePickerProps) {
               <div className={styles.imageGridItemOverlay}>
                 <Check className={styles.imageGridItemCheck} />
               </div>
-              <span className={styles.photographerAttribution}>
-                {photo.user.name}
-              </span>
+              <span className={styles.photographerAttribution}>{photo.user.name}</span>
             </button>
           ))}
         </div>
       )}
 
       {!isLoading && hasSearched && searchResults.length === 0 && (
-        <p className={styles.noResults}>
-          {t("CoverDesigner.No images found")}
-        </p>
+        <p className={styles.noResults}>{t("CoverDesigner.No images found")}</p>
       )}
 
-      {!hasSearched && (
-        <p className={styles.searchHint}>
-          {t("CoverDesigner.Search for images to use as background")}
-        </p>
-      )}
+      {!hasSearched && <p className={styles.searchHint}>{t("CoverDesigner.Search for images to use as background")}</p>}
     </div>
   );
 }

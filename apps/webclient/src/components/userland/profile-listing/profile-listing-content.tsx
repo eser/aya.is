@@ -54,10 +54,7 @@ export function ProfileListingContent(props: ProfileListingContentProps) {
 
   // Debounce search input
   React.useEffect(() => {
-    const timer = setTimeout(
-      () => setDebouncedSearch(searchText),
-      DEBOUNCE_MS,
-    );
+    const timer = setTimeout(() => setDebouncedSearch(searchText), DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
   }, [searchText]);
@@ -70,7 +67,11 @@ export function ProfileListingContent(props: ProfileListingContentProps) {
 
   const kinds = resolveKinds(props.baseKinds, activeFilter);
 
-  const { data: firstPageData, isLoading, isFetching } = useQuery(
+  const {
+    data: firstPageData,
+    isLoading,
+    isFetching,
+  } = useQuery(
     profilesByKindsQueryOptions(props.locale, kinds, {
       seed: props.seed,
       q: debouncedSearch === "" ? undefined : debouncedSearch,
@@ -156,24 +157,14 @@ export function ProfileListingContent(props: ProfileListingContentProps) {
       {allProfiles.length > 0 && (
         <div className={`${styles.grid} ${isFetching ? "opacity-60 transition-opacity" : ""}`}>
           {allProfiles.map((profile) => (
-            <ProfileCard
-              key={profile.slug}
-              profile={profile}
-              variant="cover"
-              showKindBadge
-            />
+            <ProfileCard key={profile.slug} profile={profile} variant="cover" showKindBadge />
           ))}
         </div>
       )}
 
       {hasMore && allProfiles.length > 0 && (
         <div className={styles.loadMoreContainer}>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={loadMore}
-            disabled={isLoadingMore}
-          >
+          <Button variant="outline" size="lg" onClick={loadMore} disabled={isLoadingMore}>
             {isLoadingMore ? t("Common.Loading...") : t("Common.Load more")}
           </Button>
         </div>

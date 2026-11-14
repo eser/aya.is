@@ -44,7 +44,7 @@ function SettingsLayout() {
   // Check if we're on a full-width route (edit/new pages need full screen without sidebar)
   const isFullWidthRoute = matches.some((match) =>
     // match.pathname.endsWith("/edit") || match.pathname.endsWith("/new")
-    match.pathname.endsWith("/pages/new")
+    match.pathname.endsWith("/pages/new"),
   );
 
   if (isFullWidthRoute) {
@@ -62,9 +62,7 @@ function SettingsLayout() {
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">{t("Common.Settings")}</h2>
           <p className="text-muted-foreground">
-            {t(
-              "Profile.Manage your profile information, links, and preferences.",
-            )}
+            {t("Profile.Manage your profile information, links, and preferences.")}
           </p>
         </div>
 

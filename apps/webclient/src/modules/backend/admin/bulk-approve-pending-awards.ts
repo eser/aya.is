@@ -13,9 +13,7 @@ export interface BulkApproveResult {
   results: BulkResultItem[];
 }
 
-export async function bulkApprovePendingAwards(
-  ids: string[],
-): Promise<BulkApproveResult | null> {
+export async function bulkApprovePendingAwards(ids: string[]): Promise<BulkApproveResult | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -26,15 +24,12 @@ export async function bulkApprovePendingAwards(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/admin/points/pending/bulk-approve`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-      body: JSON.stringify({ ids }),
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/admin/points/pending/bulk-approve`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify({ ids }),
+  });
 
   if (!response.ok) return null;
   return response.json();

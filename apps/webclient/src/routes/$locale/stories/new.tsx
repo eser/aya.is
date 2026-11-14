@@ -82,10 +82,14 @@ function NewStoryPage() {
               {/* Toolbar skeleton */}
               <div className="flex items-center justify-between border-b px-4 py-2">
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="size-8" />)}
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
                 </div>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map((i) => <Skeleton key={i} className="size-8" />)}
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
                 </div>
               </div>
               {/* Panels skeleton */}

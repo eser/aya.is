@@ -37,7 +37,10 @@ Deno.test("createProfileSchema - slug too short", async (t) => {
   });
   assertEquals(result.success, false);
   if (!result.success) {
-    await assertSnapshot(t, result.error.issues.map((i) => ({ path: i.path, message: i.message })));
+    await assertSnapshot(
+      t,
+      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
+    );
   }
 });
 
@@ -49,7 +52,10 @@ Deno.test("createProfileSchema - slug with special chars", async (t) => {
   });
   assertEquals(result.success, false);
   if (!result.success) {
-    await assertSnapshot(t, result.error.issues.map((i) => ({ path: i.path, message: i.message })));
+    await assertSnapshot(
+      t,
+      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
+    );
   }
 });
 
@@ -61,7 +67,10 @@ Deno.test("createProfileSchema - missing title", async (t) => {
   });
   assertEquals(result.success, false);
   if (!result.success) {
-    await assertSnapshot(t, result.error.issues.map((i) => ({ path: i.path, message: i.message })));
+    await assertSnapshot(
+      t,
+      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
+    );
   }
 });
 
@@ -73,7 +82,10 @@ Deno.test("createProfileSchema - invalid kind", async (t) => {
   });
   assertEquals(result.success, false);
   if (!result.success) {
-    await assertSnapshot(t, result.error.issues.map((i) => ({ path: i.path, message: i.message })));
+    await assertSnapshot(
+      t,
+      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
+    );
   }
 });
 
@@ -100,6 +112,9 @@ Deno.test("updateProfileSchema - title too long", async (t) => {
   });
   assertEquals(result.success, false);
   if (!result.success) {
-    await assertSnapshot(t, result.error.issues.map((i) => ({ path: i.path, message: i.message })));
+    await assertSnapshot(
+      t,
+      result.error.issues.map((i) => ({ path: i.path, message: i.message })),
+    );
   }
 });

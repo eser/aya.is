@@ -14,9 +14,5 @@ export async function uploadProfilePicture(
   const formData = new FormData();
   formData.append("file", file);
 
-  return await uploadFetcher<UploadProfilePictureResponse>(
-    locale,
-    `/profiles/${slug}/_upload-picture`,
-    formData,
-  );
+  return await uploadFetcher<UploadProfilePictureResponse>(locale, `/profiles/${slug}/_upload-picture`, formData);
 }

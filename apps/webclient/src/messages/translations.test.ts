@@ -3,21 +3,7 @@
 import { assertSnapshot } from "@std/testing/snapshot";
 import { assertEquals } from "@std/assert";
 
-const LOCALES = [
-  "en",
-  "tr",
-  "fr",
-  "de",
-  "es",
-  "pt-PT",
-  "it",
-  "nl",
-  "ja",
-  "ko",
-  "ru",
-  "zh-CN",
-  "ar",
-] as const;
+const LOCALES = ["en", "tr", "fr", "de", "es", "pt-PT", "it", "nl", "ja", "ko", "ru", "zh-CN", "ar"] as const;
 
 type TranslationData = Record<string, Record<string, string>>;
 
@@ -55,9 +41,9 @@ Deno.test("translations - all locales have same sections as English", async () =
     assertEquals(
       sections,
       enSections,
-      `Locale "${locale}" has different sections than English. Missing: ${
-        enSections.filter((s) => !sections.includes(s)).join(", ")
-      }. Extra: ${sections.filter((s) => !enSections.includes(s)).join(", ")}`,
+      `Locale "${locale}" has different sections than English. Missing: ${enSections
+        .filter((s) => !sections.includes(s))
+        .join(", ")}. Extra: ${sections.filter((s) => !enSections.includes(s)).join(", ")}`,
     );
   }
 });
@@ -111,10 +97,11 @@ Deno.test("translations - no orphan keys in non-English locales", async () => {
   const localesWithOrphans = Object.keys(orphansByLocale);
   if (localesWithOrphans.length > 0) {
     const details = localesWithOrphans
-      .map((locale) =>
-        `  ${locale}: ${orphansByLocale[locale].length} orphan keys (${orphansByLocale[locale].slice(0, 3).join(", ")}${
-          orphansByLocale[locale].length > 3 ? "..." : ""
-        })`
+      .map(
+        (locale) =>
+          `  ${locale}: ${orphansByLocale[locale].length} orphan keys (${orphansByLocale[locale].slice(0, 3).join(", ")}${
+            orphansByLocale[locale].length > 3 ? "..." : ""
+          })`,
       )
       .join("\n");
     console.warn(`Orphan translation keys found:\n${details}`);

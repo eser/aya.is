@@ -105,10 +105,7 @@ export function getTemplate(id: TemplateId): TemplateConfig {
 }
 
 // Merge template defaults with user options
-export function mergeWithTemplateDefaults(
-  templateId: TemplateId,
-  options: Partial<CoverOptions>,
-): CoverOptions {
+export function mergeWithTemplateDefaults(templateId: TemplateId, options: Partial<CoverOptions>): CoverOptions {
   const template = templates[templateId];
   const { defaultCoverOptions } = require("./types.ts");
 

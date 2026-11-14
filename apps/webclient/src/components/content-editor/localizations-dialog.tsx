@@ -49,12 +49,10 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
   const { t } = useTranslation();
   const [translatingLocale, setTranslatingLocale] = React.useState<string | null>(null);
   const [deletingLocale, setDeletingLocale] = React.useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = React.useState<
-    {
-      type: "delete" | "auto-translate";
-      locale: string;
-    } | null
-  >(null);
+  const [confirmAction, setConfirmAction] = React.useState<{
+    type: "delete" | "auto-translate";
+    locale: string;
+  } | null>(null);
 
   const translationSet = React.useMemo(() => {
     if (translationLocales === null) {
@@ -69,9 +67,8 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
       await onAutoTranslate(targetLocale);
       toast.success(t("ContentEditor.Translation completed"));
     } catch (error) {
-      const message = error instanceof Error && error.message !== ""
-        ? error.message
-        : t("ContentEditor.Auto-translate failed");
+      const message =
+        error instanceof Error && error.message !== "" ? error.message : t("ContentEditor.Auto-translate failed");
       toast.error(message);
     } finally {
       setTranslatingLocale(null);
@@ -95,9 +92,10 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
     onOpenChange(false);
   };
 
-  const confirmLocaleName = confirmAction !== null && confirmAction.locale in supportedLocales
-    ? supportedLocales[confirmAction.locale as SupportedLocaleCode].name
-    : confirmAction?.locale ?? "";
+  const confirmLocaleName =
+    confirmAction !== null && confirmAction.locale in supportedLocales
+      ? supportedLocales[confirmAction.locale as SupportedLocaleCode].name
+      : (confirmAction?.locale ?? "");
 
   return (
     <>
@@ -108,9 +106,7 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
               <Languages className="size-5" />
               {t("ContentEditor.Translations")}
             </DialogTitle>
-            <DialogDescription>
-              {t("ContentEditor.Manage translations for this content")}
-            </DialogDescription>
+            <DialogDescription>{t("ContentEditor.Manage translations for this content")}</DialogDescription>
           </DialogHeader>
 
           <div>
@@ -122,16 +118,9 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
               const isBusy = translatingLocale !== null || deletingLocale !== null;
 
               return (
-                <div
-                  key={code}
-                  className="flex items-center justify-between rounded-lg px-3 py-1.5 hover:bg-muted/50"
-                >
+                <div key={code} className="flex items-center justify-between rounded-lg px-3 py-1.5 hover:bg-muted/50">
                   <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={hasTranslation}
-                      disabled
-                      className="pointer-events-none"
-                    />
+                    <Checkbox checked={hasTranslation} disabled className="pointer-events-none" />
 
                     <span className="text-lg">{data.flag}</span>
                     <div className="flex flex-col">
@@ -177,12 +166,7 @@ export function LocalizationsDialog(props: LocalizationsDialogProps) {
                       {isTranslating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
                     </Button>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSwitch(code)}
-                      disabled={isCurrent || isBusy}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleSwitch(code)} disabled={isCurrent || isBusy}>
                       <ArrowRightLeft className="mr-1 size-3.5" />
                       {t("ContentEditor.Switch")}
                     </Button>

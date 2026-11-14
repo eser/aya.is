@@ -22,18 +22,15 @@ export async function connectExternalSite(
     body.content_folder = contentFolder;
   }
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_links/connect/external-site`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(body),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_links/connect/external-site`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

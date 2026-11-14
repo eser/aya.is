@@ -16,9 +16,7 @@ export interface SendProfileEnvelopeParams {
   properties?: Record<string, unknown>;
 }
 
-export async function sendProfileEnvelope(
-  params: SendProfileEnvelopeParams,
-): Promise<ProfileEnvelope | null> {
+export async function sendProfileEnvelope(params: SendProfileEnvelopeParams): Promise<ProfileEnvelope | null> {
   const token = getAuthToken();
 
   if (token === null) {
@@ -59,9 +57,10 @@ export async function sendProfileEnvelope(
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null);
-    const message = errorBody !== null && typeof errorBody === "object" && "error" in errorBody
-      ? String(errorBody.error)
-      : "Failed to send envelope";
+    const message =
+      errorBody !== null && typeof errorBody === "object" && "error" in errorBody
+        ? String(errorBody.error)
+        : "Failed to send envelope";
 
     throw new Error(message);
   }

@@ -24,8 +24,7 @@ const HTTP_STATUS_SERVER_ERROR_THRESHOLD = 500;
  * localStorage alone is not enough. `document` is only present in browsers.
  */
 function isBrowserEnvironment(): boolean {
-  return typeof globalThis !== "undefined" &&
-    typeof globalThis.document !== "undefined";
+  return typeof globalThis !== "undefined" && typeof globalThis.document !== "undefined";
 }
 
 /**
@@ -91,9 +90,7 @@ let refreshPromise: Promise<string | null> | null = null;
  * Refresh the auth token via API call
  * Deduplicates concurrent refresh calls to prevent race conditions
  */
-export async function refreshTokenRequest(
-  locale: string,
-): Promise<{ token: string; expiresAt: number } | null> {
+export async function refreshTokenRequest(locale: string): Promise<{ token: string; expiresAt: number } | null> {
   // Return existing refresh promise if one is in progress
   if (refreshPromise !== null) {
     const token = await refreshPromise;
@@ -130,8 +127,7 @@ export async function refreshTokenRequest(
       const data = await response.json();
       if (data.data?.token !== undefined) {
         const newToken = data.data.token as string;
-        const expiresAt = (data.data.expires_at as number | undefined) ??
-          Date.now() + DEFAULT_TOKEN_EXPIRY_MS;
+        const expiresAt = (data.data.expires_at as number | undefined) ?? Date.now() + DEFAULT_TOKEN_EXPIRY_MS;
         setAuthToken(newToken, expiresAt);
         return newToken;
       }
@@ -157,10 +153,7 @@ export async function refreshTokenRequest(
  * The session cookie (aya_session) is the primary auth mechanism,
  * so credentials must always be sent for cross-origin requests.
  */
-function buildFetchOptions(
-  requestInit: RequestInit,
-  headers: HeadersInit,
-): RequestInit {
+function buildFetchOptions(requestInit: RequestInit, headers: HeadersInit): RequestInit {
   return {
     ...requestInit,
     credentials: "include",
@@ -191,16 +184,10 @@ async function getInflightCache(): Promise<Map<string, Promise<unknown>>> {
 
   // SSR: check if the request has a session cookie
   try {
-    const { requestContextBinder } = await import(
-      "@/server/request-context-binder"
-    );
+    const { requestContextBinder } = await import("@/server/request-context-binder");
     const ctx = requestContextBinder.getStore();
 
-    if (
-      ctx !== undefined &&
-      ctx.cookieHeader !== undefined &&
-      ctx.cookieHeader.includes(SESSION_COOKIE_NAME)
-    ) {
+    if (ctx !== undefined && ctx.cookieHeader !== undefined && ctx.cookieHeader.includes(SESSION_COOKIE_NAME)) {
       // Authenticated SSR — use per-request cache to prevent cross-user data leaks
       if (ctx.inflightGetRequests === undefined) {
         ctx.inflightGetRequests = new Map<string, Promise<unknown>>();
@@ -218,11 +205,7 @@ async function getInflightCache(): Promise<Map<string, Promise<unknown>>> {
 /**
  * Generic API fetcher with automatic token refresh and error handling
  */
-export function fetcher<T>(
-  locale: string,
-  relativePath: string,
-  requestInit: RequestInit = {},
-): Promise<T | null> {
+export function fetcher<T>(locale: string, relativePath: string, requestInit: RequestInit = {}): Promise<T | null> {
   const method = (requestInit.method ?? "GET").toUpperCase();
 
   if (method === "GET") {
@@ -232,11 +215,7 @@ export function fetcher<T>(
   return fetcherInternal<T>(locale, relativePath, requestInit);
 }
 
-async function fetcherWithDedup<T>(
-  locale: string,
-  relativePath: string,
-  requestInit: RequestInit,
-): Promise<T | null> {
+async function fetcherWithDedup<T>(locale: string, relativePath: string, requestInit: RequestInit): Promise<T | null> {
   const requestPath = `${locale}/${relativePath}`;
   const cache = await getInflightCache();
 
@@ -253,11 +232,7 @@ async function fetcherWithDedup<T>(
   return promise;
 }
 
-async function fetcherInternal<T>(
-  locale: string,
-  relativePath: string,
-  requestInit: RequestInit,
-): Promise<T | null> {
+async function fetcherInternal<T>(locale: string, relativePath: string, requestInit: RequestInit): Promise<T | null> {
   const backendUri = getBackendUri();
   const targetUrl = `${backendUri}/${locale}${relativePath}`;
 
@@ -275,9 +250,7 @@ async function fetcherInternal<T>(
   // Forward the incoming request's cookies to backend API calls during SSR.
   // On the client, getStore() returns undefined and this is a no-op.
   try {
-    const { requestContextBinder } = await import(
-      "@/server/request-context-binder"
-    );
+    const { requestContextBinder } = await import("@/server/request-context-binder");
     const ctx = requestContextBinder.getStore();
     if (ctx !== undefined && ctx.cookieHeader !== undefined) {
       (headers as Record<string, string>)["Cookie"] = ctx.cookieHeader;
@@ -290,10 +263,7 @@ async function fetcherInternal<T>(
   const response = await fetch(targetUrl, fetchOptions);
 
   // Handle authentication errors with token refresh retry
-  if (
-    response.status === HTTP_STATUS_UNAUTHORIZED ||
-    response.status === HTTP_STATUS_METHOD_NOT_ALLOWED
-  ) {
+  if (response.status === HTTP_STATUS_UNAUTHORIZED || response.status === HTTP_STATUS_METHOD_NOT_ALLOWED) {
     if (authToken !== null) {
       const tokenResponse = await refreshTokenRequest(locale);
 
@@ -370,11 +340,7 @@ async function fetcherInternal<T>(
  * Fetcher for file uploads using multipart/form-data
  * Does not set Content-Type header (browser sets it with boundary)
  */
-export async function uploadFetcher<T>(
-  locale: string,
-  relativePath: string,
-  formData: FormData,
-): Promise<T | null> {
+export async function uploadFetcher<T>(locale: string, relativePath: string, formData: FormData): Promise<T | null> {
   const backendUri = getBackendUri();
   const targetUrl = `${backendUri}/${locale}${relativePath}`;
 
@@ -395,10 +361,7 @@ export async function uploadFetcher<T>(
 
   const response = await fetch(targetUrl, uploadOptions);
 
-  if (
-    response.status === HTTP_STATUS_UNAUTHORIZED ||
-    response.status === HTTP_STATUS_METHOD_NOT_ALLOWED
-  ) {
+  if (response.status === HTTP_STATUS_UNAUTHORIZED || response.status === HTTP_STATUS_METHOD_NOT_ALLOWED) {
     return null;
   }
 

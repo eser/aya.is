@@ -33,27 +33,42 @@ Deno.test("all blocks have valid categories", () => {
 
 Deno.test("getBlocksByCategory text returns text blocks", async (t) => {
   const textBlocks = getBlocksByCategory("text");
-  await assertSnapshot(t, textBlocks.map((b) => b.id));
+  await assertSnapshot(
+    t,
+    textBlocks.map((b) => b.id),
+  );
 });
 
 Deno.test("getBlocksByCategory media returns media blocks", async (t) => {
   const mediaBlocks = getBlocksByCategory("media");
-  await assertSnapshot(t, mediaBlocks.map((b) => b.id));
+  await assertSnapshot(
+    t,
+    mediaBlocks.map((b) => b.id),
+  );
 });
 
 Deno.test("getBlocksByCategory embed returns embed blocks", async (t) => {
   const embedBlocks = getBlocksByCategory("embed");
-  await assertSnapshot(t, embedBlocks.map((b) => b.id));
+  await assertSnapshot(
+    t,
+    embedBlocks.map((b) => b.id),
+  );
 });
 
 Deno.test("searchBlocks video finds youtube", async (t) => {
   const results = searchBlocks("video");
-  await assertSnapshot(t, results.map((b) => b.id));
+  await assertSnapshot(
+    t,
+    results.map((b) => b.id),
+  );
 });
 
 Deno.test("searchBlocks callout finds callout", async (t) => {
   const results = searchBlocks("callout");
-  await assertSnapshot(t, results.map((b) => b.id));
+  await assertSnapshot(
+    t,
+    results.map((b) => b.id),
+  );
 });
 
 Deno.test("searchBlocks nonexistent returns empty", () => {
@@ -71,5 +86,8 @@ Deno.test("getAllPatterns returns patterns", async (t) => {
 
 Deno.test("searchPatterns hero finds hero pattern", async (t) => {
   const results = searchPatterns("hero");
-  await assertSnapshot(t, results.map((p) => p.id));
+  await assertSnapshot(
+    t,
+    results.map((p) => p.id),
+  );
 });

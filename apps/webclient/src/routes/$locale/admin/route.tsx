@@ -37,13 +37,9 @@ function AdminLayout() {
         <div className="space-y-6">
           <div>
             <LocaleLink to={`/admin`}>
-              <h1 className="font-serif text-3xl font-bold text-foreground">
-                {t("Admin.Admin Area")}
-              </h1>
+              <h1 className="font-serif text-3xl font-bold text-foreground">{t("Admin.Admin Area")}</h1>
             </LocaleLink>
-            <p className="text-muted-foreground">
-              {t("Admin.Manage site content and settings.")}
-            </p>
+            <p className="text-muted-foreground">{t("Admin.Manage site content and settings.")}</p>
           </div>
 
           <nav className="flex gap-4 border-b">

@@ -31,12 +31,8 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/webclient/node_modules/next/dist/bin/next",
-      "runtimeArgs": [
-        "--inspect"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "runtimeArgs": ["--inspect"],
+      "skipFiles": ["<node_internals>/**"],
       "serverReadyAction": {
         "action": "debugWithEdge",
         "killOnServerStop": true,

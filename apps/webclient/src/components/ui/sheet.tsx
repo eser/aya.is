@@ -63,13 +63,7 @@ function SheetContent({
         {showCloseButton && (
           <SheetPrimitive.Close
             data-slot="sheet-close"
-            render={
-              <Button
-                variant="ghost"
-                className="absolute top-4 right-4"
-                size="icon-sm"
-              />
-            }
+            render={<Button variant="ghost" className="absolute top-4 right-4" size="icon-sm" />}
           >
             <XIcon />
             <span className="sr-only">Close</span>
@@ -81,39 +75,20 @@ function SheetContent({
 }
 
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="sheet-header"
-      className={cn("gap-1.5 p-4 flex flex-col", className)}
-      {...props}
-    />
-  );
+  return <div data-slot="sheet-header" className={cn("gap-1.5 p-4 flex flex-col", className)} {...props} />;
 }
 
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="sheet-footer"
-      className={cn("gap-2 p-4 mt-auto flex flex-col", className)}
-      {...props}
-    />
-  );
+  return <div data-slot="sheet-footer" className={cn("gap-2 p-4 mt-auto flex flex-col", className)} {...props} />;
 }
 
 function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
-    <SheetPrimitive.Title
-      data-slot="sheet-title"
-      className={cn("text-foreground font-medium", className)}
-      {...props}
-    />
+    <SheetPrimitive.Title data-slot="sheet-title" className={cn("text-foreground font-medium", className)} {...props} />
   );
 }
 
-function SheetDescription({
-  className,
-  ...props
-}: SheetPrimitive.Description.Props) {
+function SheetDescription({ className, ...props }: SheetPrimitive.Description.Props) {
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"

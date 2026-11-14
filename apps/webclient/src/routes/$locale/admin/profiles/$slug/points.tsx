@@ -124,9 +124,7 @@ function AdminProfilePoints() {
             <Plus className="h-5 w-5" />
             {t("Admin.Add Points")}
           </CardTitle>
-          <CardDescription>
-            {t("Admin.Manually add points to this profile")}
-          </CardDescription>
+          <CardDescription>{t("Admin.Manually add points to this profile")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -170,63 +168,55 @@ function AdminProfilePoints() {
       <Card>
         <CardHeader>
           <CardTitle>{t("Admin.Transaction History")}</CardTitle>
-          <CardDescription>
-            {t("Admin.All point transactions for this profile")}
-          </CardDescription>
+          <CardDescription>{t("Admin.All point transactions for this profile")}</CardDescription>
         </CardHeader>
         <CardContent>
-          {transactions.length === 0
-            ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {t("Admin.No transactions found")}
-              </div>
-            )
-            : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("Common.Type")}</TableHead>
-                    <TableHead>{t("Common.Description")}</TableHead>
-                    <TableHead className="text-right">{t("Common.Amount")}</TableHead>
-                    <TableHead className="text-right">{t("Admin.Balance After")}</TableHead>
-                    <TableHead>{t("Common.Date")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell>{getTransactionTypeBadge(tx.transaction_type)}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {tx.description}
-                        {tx.triggering_event !== null && (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            ({tx.triggering_event})
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        <span
-                          className={tx.transaction_type === "GAIN"
+          {transactions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">{t("Admin.No transactions found")}</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("Common.Type")}</TableHead>
+                  <TableHead>{t("Common.Description")}</TableHead>
+                  <TableHead className="text-right">{t("Common.Amount")}</TableHead>
+                  <TableHead className="text-right">{t("Admin.Balance After")}</TableHead>
+                  <TableHead>{t("Common.Date")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell>{getTransactionTypeBadge(tx.transaction_type)}</TableCell>
+                    <TableCell className="max-w-xs truncate">
+                      {tx.description}
+                      {tx.triggering_event !== null && (
+                        <span className="ml-2 text-xs text-muted-foreground">({tx.triggering_event})</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      <span
+                        className={
+                          tx.transaction_type === "GAIN"
                             ? "text-green-600"
                             : tx.transaction_type === "SPEND"
-                            ? "text-red-600"
-                            : ""}
-                        >
-                          {tx.transaction_type === "GAIN" ? "+" : "-"}
-                          {tx.amount.toLocaleString()}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {tx.balance_after.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDateTimeShort(new Date(tx.created_at), locale)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+                              ? "text-red-600"
+                              : ""
+                        }
+                      >
+                        {tx.transaction_type === "GAIN" ? "+" : "-"}
+                        {tx.amount.toLocaleString()}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">{tx.balance_after.toLocaleString()}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDateTimeShort(new Date(tx.created_at), locale)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

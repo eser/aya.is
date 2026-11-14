@@ -89,9 +89,7 @@ function groupActivitiesByMonth(activities: StoryEx[], locale: string): GroupedA
     groups.get(monthYear)!.activities.push(activity);
   }
 
-  return Array.from(groups.values()).sort(
-    (a, b) => b.date.getTime() - a.date.getTime(),
-  );
+  return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 function ActivitiesPage() {
@@ -108,10 +106,7 @@ function ActivitiesPage() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="no-margin">{t("Layout.Activities")}</h1>
             {isAuthenticated && (
-              <Link
-                to="/$locale/activities/new"
-                params={{ locale }}
-              >
+              <Link to="/$locale/activities/new" params={{ locale }}>
                 <Button variant="default" size="sm">
                   <Plus className="mr-1.5 size-4" />
                   {t("Activities.Add Activity")}
@@ -120,26 +115,24 @@ function ActivitiesPage() {
             )}
           </div>
 
-          {activities === null || activities.length === 0
-            ? (
-              <p className="text-muted-foreground">
-                {t("Activities.No activities yet")}
-              </p>
-            )
-            : (
-              <>
-                {groupActivitiesByMonth(activities, currentLocale).map((group) => (
-                  <div key={group.monthYear} className="mb-8">
-                    <h2 className="text-lg font-semibold text-muted-foreground mb-4 pb-2 border-b border-border">
-                      {formatMonthYear(group.date, currentLocale)}
-                    </h2>
-                    <div>
-                      {group.activities.map((activity) => <Story key={activity.id} story={activity} />)}
-                    </div>
+          {activities === null || activities.length === 0 ? (
+            <p className="text-muted-foreground">{t("Activities.No activities yet")}</p>
+          ) : (
+            <>
+              {groupActivitiesByMonth(activities, currentLocale).map((group) => (
+                <div key={group.monthYear} className="mb-8">
+                  <h2 className="text-lg font-semibold text-muted-foreground mb-4 pb-2 border-b border-border">
+                    {formatMonthYear(group.date, currentLocale)}
+                  </h2>
+                  <div>
+                    {group.activities.map((activity) => (
+                      <Story key={activity.id} story={activity} />
+                    ))}
                   </div>
-                ))}
-              </>
-            )}
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </section>
     </PageLayout>

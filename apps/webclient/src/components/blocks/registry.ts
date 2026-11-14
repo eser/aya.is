@@ -107,11 +107,7 @@ const blockDefinitions: BlockDefinition[] = [
     ],
     generateMdx: (values) => {
       const summary = typeof values.summary === "string" && values.summary !== "" ? values.summary : "Click to expand";
-      return generateContainerMdx(
-        "Details",
-        { summary },
-        "Hidden content here.",
-      );
+      return generateContainerMdx("Details", { summary }, "Hidden content here.");
     },
   },
   {
@@ -813,9 +809,8 @@ const blockDefinitions: BlockDefinition[] = [
     ],
     generateMdx: (values) => {
       const title = typeof values.title === "string" && values.title !== "" ? values.title : "Title";
-      const description = typeof values.description === "string" && values.description !== ""
-        ? values.description
-        : "Description";
+      const description =
+        typeof values.description === "string" && values.description !== "" ? values.description : "Description";
       const props: Record<string, string | number | boolean> = {
         title,
         description,
@@ -1153,9 +1148,7 @@ export function getAllBlocks(): BlockDefinition[] {
   return blockDefinitions;
 }
 
-export function getBlocksByCategory(
-  category: BlockCategory,
-): BlockDefinition[] {
+export function getBlocksByCategory(category: BlockCategory): BlockDefinition[] {
   return blockDefinitions.filter((block) => block.category === category);
 }
 

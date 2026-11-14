@@ -34,30 +34,36 @@ export function QuestionCard(props: QuestionCardProps) {
     await props.onVote(props.question.id);
   }, [props.onVote, props.question.id]);
 
-  const handleAnswerSubmit = React.useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (answerContent.trim().length === 0) {
-      return;
-    }
+  const handleAnswerSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (answerContent.trim().length === 0) {
+        return;
+      }
 
-    setIsSubmitting(true);
-    await props.onAnswer(props.question.id, answerContent);
-    setAnswerContent("");
-    setShowAnswerForm(false);
-    setIsSubmitting(false);
-  }, [props.onAnswer, props.question.id, answerContent]);
+      setIsSubmitting(true);
+      await props.onAnswer(props.question.id, answerContent);
+      setAnswerContent("");
+      setShowAnswerForm(false);
+      setIsSubmitting(false);
+    },
+    [props.onAnswer, props.question.id, answerContent],
+  );
 
-  const handleEditSubmit = React.useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editContent.trim().length === 0) {
-      return;
-    }
+  const handleEditSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (editContent.trim().length === 0) {
+        return;
+      }
 
-    setIsSubmitting(true);
-    await props.onEditAnswer(props.question.id, editContent);
-    setShowEditForm(false);
-    setIsSubmitting(false);
-  }, [props.onEditAnswer, props.question.id, editContent]);
+      setIsSubmitting(true);
+      await props.onEditAnswer(props.question.id, editContent);
+      setShowEditForm(false);
+      setIsSubmitting(false);
+    },
+    [props.onEditAnswer, props.question.id, editContent],
+  );
 
   const handleEditClick = React.useCallback(() => {
     setEditContent(props.question.answer_content ?? "");
@@ -68,10 +74,11 @@ export function QuestionCard(props: QuestionCardProps) {
     await props.onHide(props.question.id, !props.question.is_hidden);
   }, [props.onHide, props.question.id, props.question.is_hidden]);
 
-  const formattedDate = new Date(props.question.created_at).toLocaleDateString(
-    props.locale,
-    { year: "numeric", month: "short", day: "numeric" },
-  );
+  const formattedDate = new Date(props.question.created_at).toLocaleDateString(props.locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   return (
     <div className={`${styles.card} ${props.question.is_hidden ? styles.hidden : ""}`}>
@@ -93,32 +100,35 @@ export function QuestionCard(props: QuestionCardProps) {
       <div className={styles.contentColumn}>
         <div className={styles.questionHeader}>
           <span className="text-sm text-muted-foreground">
-            {props.question.is_anonymous ? t("QA.Anonymous") : props.question.author_profile_slug !== null
-              ? (
-                <Link
-                  to="/$locale/$slug"
-                  params={{ locale: props.locale, slug: props.question.author_profile_slug }}
-                  className="hover:underline"
-                >
-                  {props.question.author_profile_title ?? props.question.author_profile_slug}
-                </Link>
-              )
-              : t("QA.Anonymous")} &middot; {formattedDate}
+            {props.question.is_anonymous ? (
+              t("QA.Anonymous")
+            ) : props.question.author_profile_slug !== null ? (
+              <Link
+                to="/$locale/$slug"
+                params={{ locale: props.locale, slug: props.question.author_profile_slug }}
+                className="hover:underline"
+              >
+                {props.question.author_profile_title ?? props.question.author_profile_slug}
+              </Link>
+            ) : (
+              t("QA.Anonymous")
+            )}{" "}
+            &middot; {formattedDate}
           </span>
 
           {props.question.is_hidden && <span className={styles.badge}>{t("QA.Hidden")}</span>}
         </div>
 
-        {props.question.compiledContent !== undefined && props.question.compiledContent !== null
-          ? (
-            <MdxContent
-              compiledSource={props.question.compiledContent}
-              className={styles.questionContent}
-              headingOffset={2}
-              includeUserlandComponents={false}
-            />
-          )
-          : <QAMarkdown content={props.question.content} className={styles.questionContent} />}
+        {props.question.compiledContent !== undefined && props.question.compiledContent !== null ? (
+          <MdxContent
+            compiledSource={props.question.compiledContent}
+            className={styles.questionContent}
+            headingOffset={2}
+            includeUserlandComponents={false}
+          />
+        ) : (
+          <QAMarkdown content={props.question.content} className={styles.questionContent} />
+        )}
 
         {/* Answer display */}
         {props.question.answer_content !== null && !showEditForm && (
@@ -129,7 +139,8 @@ export function QuestionCard(props: QuestionCardProps) {
                 {t("QA.Answered")}
                 {props.profileKind !== "individual" && props.question.answered_by_profile_slug !== null && (
                   <>
-                    {" "}&middot;{" "}
+                    {" "}
+                    &middot;{" "}
                     <Link
                       to="/$locale/$slug"
                       params={{ locale: props.locale, slug: props.question.answered_by_profile_slug }}
@@ -141,16 +152,16 @@ export function QuestionCard(props: QuestionCardProps) {
                 )}
               </span>
             </div>
-            {props.question.compiledAnswer !== undefined && props.question.compiledAnswer !== null
-              ? (
-                <MdxContent
-                  compiledSource={props.question.compiledAnswer}
-                  className={styles.answerContent}
-                  headingOffset={2}
-                  includeUserlandComponents={false}
-                />
-              )
-              : <QAMarkdown content={props.question.answer_content} className={styles.answerContent} />}
+            {props.question.compiledAnswer !== undefined && props.question.compiledAnswer !== null ? (
+              <MdxContent
+                compiledSource={props.question.compiledAnswer}
+                className={styles.answerContent}
+                headingOffset={2}
+                includeUserlandComponents={false}
+              />
+            ) : (
+              <QAMarkdown content={props.question.answer_content} className={styles.answerContent} />
+            )}
           </div>
         )}
 
@@ -165,11 +176,7 @@ export function QuestionCard(props: QuestionCardProps) {
               rows={3}
             />
             <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={() => setShowAnswerForm(false)}
-                className={styles.cancelButton}
-              >
+              <button type="button" onClick={() => setShowAnswerForm(false)} className={styles.cancelButton}>
                 {t("Common.Cancel")}
               </button>
               <button
@@ -194,11 +201,7 @@ export function QuestionCard(props: QuestionCardProps) {
               rows={3}
             />
             <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={() => setShowEditForm(false)}
-                className={styles.cancelButton}
-              >
+              <button type="button" onClick={() => setShowEditForm(false)} className={styles.cancelButton}>
                 {t("Common.Cancel")}
               </button>
               <button
@@ -215,44 +218,30 @@ export function QuestionCard(props: QuestionCardProps) {
         {/* Actions */}
         <div className={styles.actions}>
           {props.canAnswer && props.question.answer_content === null && !showAnswerForm && (
-            <button
-              type="button"
-              onClick={() => setShowAnswerForm(true)}
-              className={styles.actionButton}
-            >
+            <button type="button" onClick={() => setShowAnswerForm(true)} className={styles.actionButton}>
               <MessageSquare className="size-3.5" />
               {t("QA.Answer")}
             </button>
           )}
 
           {props.canEditAnswer && props.question.answer_content !== null && !showEditForm && (
-            <button
-              type="button"
-              onClick={handleEditClick}
-              className={styles.actionButton}
-            >
+            <button type="button" onClick={handleEditClick} className={styles.actionButton}>
               <Pencil className="size-3.5" />
               {t("QA.Edit")}
             </button>
           )}
 
           {props.canModerate && (
-            <button
-              type="button"
-              onClick={handleHideToggle}
-              className={styles.actionButton}
-            >
-              {props.question.is_hidden
-                ? (
-                  <>
-                    <Eye className="size-3.5" /> {t("QA.Show")}
-                  </>
-                )
-                : (
-                  <>
-                    <EyeOff className="size-3.5" /> {t("QA.Hide")}
-                  </>
-                )}
+            <button type="button" onClick={handleHideToggle} className={styles.actionButton}>
+              {props.question.is_hidden ? (
+                <>
+                  <Eye className="size-3.5" /> {t("QA.Show")}
+                </>
+              ) : (
+                <>
+                  <EyeOff className="size-3.5" /> {t("QA.Hide")}
+                </>
+              )}
             </button>
           )}
         </div>

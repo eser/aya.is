@@ -107,13 +107,7 @@
 
 .templatePreviewPatternDiagonal {
   @apply absolute inset-0 opacity-10;
-  background: repeating-linear-gradient(
-    45deg,
-    currentColor,
-    currentColor 1px,
-    transparent 1px,
-    transparent 8px
-  );
+  background: repeating-linear-gradient(45deg, currentColor, currentColor 1px, transparent 1px, transparent 8px);
 }
 
 .templatePreviewPatternDots {

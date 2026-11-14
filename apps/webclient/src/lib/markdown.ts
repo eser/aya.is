@@ -8,9 +8,7 @@ import { isValidLocale, type SupportedLocaleCode, supportedLocales } from "@/lib
 /**
  * Format data as YAML frontmatter
  */
-export function formatFrontmatter(
-  data: Record<string, string | number | boolean | null | undefined>,
-): string {
+export function formatFrontmatter(data: Record<string, string | number | boolean | null | undefined>): string {
   const lines: string[] = ["---"];
 
   for (const [key, value] of Object.entries(data)) {
@@ -20,8 +18,12 @@ export function formatFrontmatter(
 
     if (typeof value === "string") {
       // Escape quotes in strings and wrap in quotes if contains special chars
-      const needsQuotes = value.includes(":") || value.includes('"') ||
-        value.includes("\n") || value.startsWith(" ") || value.endsWith(" ");
+      const needsQuotes =
+        value.includes(":") ||
+        value.includes('"') ||
+        value.includes("\n") ||
+        value.startsWith(" ") ||
+        value.endsWith(" ");
       if (needsQuotes) {
         const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
         lines.push(`${key}: "${escaped}"`);

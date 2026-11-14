@@ -6,13 +6,9 @@ export async function listStoryTranslationLocales(
   profileSlug: string,
   storyId: string,
 ): Promise<string[] | null> {
-  const response = await fetcher<string[]>(
-    locale,
-    `/profiles/${profileSlug}/_stories/${storyId}/_tx`,
-    {
-      method: "GET",
-    },
-  );
+  const response = await fetcher<string[]>(locale, `/profiles/${profileSlug}/_stories/${storyId}/_tx`, {
+    method: "GET",
+  });
 
   return response;
 }

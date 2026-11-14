@@ -22,10 +22,7 @@ export const profilePageSchema = z.object({
     .string()
     .min(1, "Slug is required")
     .max(50, "Slug is too long")
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can only contain lowercase letters, numbers, and hyphens",
-    ),
+    .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
   content: z.string().min(1, "Content is required"),
 });

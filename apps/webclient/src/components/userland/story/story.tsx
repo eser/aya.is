@@ -54,24 +54,20 @@ export function Story(props: StoryProps) {
     <LocaleLink data-slot="card" to={href} className="no-underline block">
       <article className={styles.story}>
         <div className={cn(styles.imageContainer, "w-full h-[150px] md:w-[250px]")}>
-          {props.story.story_picture_uri !== null &&
-              props.story.story_picture_uri !== undefined
-            ? (
-              <img
-                src={props.story.story_picture_uri}
-                alt={stripMarkdown(props.story.title ?? t("News.News item image"))}
-                width={250}
-                height={150}
-                className={styles.image}
-              />
-            )
-            : (
-              <div className={styles.imagePlaceholderText}>
-                {stripMarkdown(props.story.title ?? t("News.No image available"))}
-              </div>
-            )}
-          {props.story.author_profile !== null &&
-            props.story.author_profile !== undefined && (
+          {props.story.story_picture_uri !== null && props.story.story_picture_uri !== undefined ? (
+            <img
+              src={props.story.story_picture_uri}
+              alt={stripMarkdown(props.story.title ?? t("News.News item image"))}
+              width={250}
+              height={150}
+              className={styles.image}
+            />
+          ) : (
+            <div className={styles.imagePlaceholderText}>
+              {stripMarkdown(props.story.title ?? t("News.No image available"))}
+            </div>
+          )}
+          {props.story.author_profile !== null && props.story.author_profile !== undefined && (
             <div className={styles.authorAvatarContainer}>
               <SiteAvatar
                 src={props.story.author_profile.profile_picture_uri}
@@ -91,15 +87,15 @@ export function Story(props: StoryProps) {
             <InlineMarkdown content={props.story.summary} className={styles.summary} />
           )}
           <div className={styles.meta}>
-            {isActivity
-              ? (
-                <ActivityMeta
-                  properties={props.story.properties}
-                  authorProfile={props.story.author_profile}
-                  locale={locale}
-                />
-              )
-              : <StoryMeta story={props.story} locale={locale} />}
+            {isActivity ? (
+              <ActivityMeta
+                properties={props.story.properties}
+                authorProfile={props.story.author_profile}
+                locale={locale}
+              />
+            ) : (
+              <StoryMeta story={props.story} locale={locale} />
+            )}
           </div>
         </div>
       </article>
@@ -118,16 +114,10 @@ function StoryMeta(props: { story: StoryType | StoryEx; locale: string }) {
             const KindIcon = storyKindIcons[props.story.kind];
             return KindIcon !== undefined ? <KindIcon className="size-3.5" /> : null;
           })()}
-          <time dateTime={dateStr}>
-            {formatDateString(dateStr, props.locale)}
-          </time>
+          <time dateTime={dateStr}>{formatDateString(dateStr, props.locale)}</time>
         </span>
       )}
-      {props.story.author_profile !== null && (
-        <span className={styles.author}>
-          {props.story.author_profile.title}
-        </span>
-      )}
+      {props.story.author_profile !== null && <span className={styles.author}>{props.story.author_profile.title}</span>}
     </>
   );
 }
@@ -140,40 +130,35 @@ function ActivityMeta(props: {
   const { t } = useTranslation();
   const activityProps = (props.properties ?? {}) as unknown as ActivityProperties;
   const dateMode = activityProps.date_mode ?? "fixed";
-  const timeStart = activityProps.activity_time_start !== undefined
-    ? new Date(activityProps.activity_time_start)
-    : null;
+  const timeStart =
+    activityProps.activity_time_start !== undefined ? new Date(activityProps.activity_time_start) : null;
   const timeEnd = activityProps.activity_time_end !== undefined ? new Date(activityProps.activity_time_end) : null;
   const kindLabel = activityKindLabels[activityProps.activity_kind ?? "meetup"] ?? "Activities.Meetup";
 
   return (
     <>
-      {dateMode === "undecided"
-        ? (
-          <span className="flex items-center gap-1.5">
-            <Calendar className="size-3.5" />
-            <span className="inline-block px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[0.65rem] font-medium dark:bg-amber-900 dark:text-amber-200">
-              {t("Activities.Date Undecided")}
-            </span>
+      {dateMode === "undecided" ? (
+        <span className="flex items-center gap-1.5">
+          <Calendar className="size-3.5" />
+          <span className="inline-block px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[0.65rem] font-medium dark:bg-amber-900 dark:text-amber-200">
+            {t("Activities.Date Undecided")}
           </span>
-        )
-        : timeStart !== null && (
+        </span>
+      ) : (
+        timeStart !== null && (
           <span className="flex items-center gap-1.5">
             <Calendar className="size-3.5" />
             {timeEnd !== null
               ? formatDateTimeRange(timeStart, timeEnd, props.locale)
               : formatDateTimeShort(timeStart, props.locale)}
           </span>
-        )}
+        )
+      )}
       <span className="flex items-center gap-1.5">
         <Tag className="size-3.5" />
         {t(kindLabel)}
       </span>
-      {props.authorProfile !== null && (
-        <span className={styles.author}>
-          {props.authorProfile.title}
-        </span>
-      )}
+      {props.authorProfile !== null && <span className={styles.author}>{props.authorProfile.title}</span>}
     </>
   );
 }

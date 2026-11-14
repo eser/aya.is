@@ -44,7 +44,8 @@ export function CoverGenerator(props: CoverGeneratorProps) {
   React.useEffect(() => {
     const loadAuthorImage = async () => {
       if (
-        story.author_profile?.profile_picture_uri === null || story.author_profile?.profile_picture_uri === undefined
+        story.author_profile?.profile_picture_uri === null ||
+        story.author_profile?.profile_picture_uri === undefined
       ) {
         setAuthorImageDataUrl(null);
         return;
@@ -75,15 +76,18 @@ export function CoverGenerator(props: CoverGeneratorProps) {
   };
 
   // Convert Story to StoryData
-  const storyData: StoryData = React.useMemo(() => ({
-    title: story.title ?? "Untitled",
-    summary: story.summary,
-    kind: story.kind,
-    kindLabel: getKindLabel(story.kind),
-    authorName: story.author_profile?.title ?? null,
-    authorAvatarUrl: story.author_profile?.profile_picture_uri ?? null,
-    publishedAt: story.created_at,
-  }), [story, t]);
+  const storyData: StoryData = React.useMemo(
+    () => ({
+      title: story.title ?? "Untitled",
+      summary: story.summary,
+      kind: story.kind,
+      kindLabel: getKindLabel(story.kind),
+      authorName: story.author_profile?.title ?? null,
+      authorAvatarUrl: story.author_profile?.profile_picture_uri ?? null,
+      publishedAt: story.created_at,
+    }),
+    [story, t],
+  );
 
   // Initialize options with template defaults
   const [options, setOptions] = React.useState<CoverOptions>(() => ({
@@ -147,11 +151,7 @@ export function CoverGenerator(props: CoverGeneratorProps) {
 
     try {
       // Upload the cover image
-      const result = await uploadCoverImage(
-        canvasRef.current,
-        locale,
-        story.slug ?? story.id,
-      );
+      const result = await uploadCoverImage(canvasRef.current, locale, story.slug ?? story.id);
 
       if (!result.success || result.publicUrl === undefined) {
         toast.error(result.error ?? t("CoverDesigner.Failed to upload image"));
@@ -161,15 +161,10 @@ export function CoverGenerator(props: CoverGeneratorProps) {
       // Update story with new cover
       // Note: backend.updateStory returns null on success when no data is returned
       // The fetcher throws on error, so reaching here means success
-      await backend.updateStory(
-        locale,
-        story.author_profile.slug,
-        story.id,
-        {
-          slug: story.slug ?? "",
-          story_picture_uri: result.publicUrl,
-        },
-      );
+      await backend.updateStory(locale, story.author_profile.slug, story.id, {
+        slug: story.slug ?? "",
+        story_picture_uri: result.publicUrl,
+      });
 
       toast.success(t("CoverDesigner.Cover set successfully"));
       props.onCoverSet?.(result.publicUrl);
@@ -222,23 +217,13 @@ export function CoverGenerator(props: CoverGeneratorProps) {
       <div className={styles.content}>
         {/* Preview */}
         <div className={styles.previewSection}>
-          <CanvasPreview
-            story={storyData}
-            options={options}
-            canvasRef={canvasRef}
-          />
+          <CanvasPreview story={storyData} options={options} canvasRef={canvasRef} />
         </div>
 
         {/* Controls */}
         <div className={styles.controlsSection}>
-          <TemplateSelector
-            selectedTemplate={options.templateId}
-            onSelect={handleTemplateChange}
-          />
-          <CustomizationPanel
-            options={options}
-            onChange={handleOptionsChange}
-          />
+          <TemplateSelector selectedTemplate={options.templateId} onSelect={handleTemplateChange} />
+          <CustomizationPanel options={options} onChange={handleOptionsChange} />
         </div>
       </div>
     </div>

@@ -15,17 +15,11 @@ export async function generateLlmsTxt(): Promise<string> {
   const locale = DEFAULT_LOCALE;
 
   // Fetch featured profiles
-  const profiles = await backend.getProfilesByKinds(locale, [
-    "individual",
-    "organization",
-  ]);
+  const profiles = await backend.getProfilesByKinds(locale, ["individual", "organization"]);
   const products = await backend.getProfilesByKinds(locale, ["product"]);
 
   // Fetch recent stories
-  const stories = await backend.getStoriesByKinds(locale, [
-    "article",
-    "announcement",
-  ]);
+  const stories = await backend.getStoriesByKinds(locale, ["article", "announcement"]);
   const featuredStories = stories?.slice(0, 5) ?? [];
 
   const sections: string[] = [];
@@ -99,17 +93,9 @@ export async function generateLlmsFullTxt(): Promise<string> {
   const locale = DEFAULT_LOCALE;
 
   // Fetch all content
-  const profiles = await backend.getProfilesByKinds(locale, [
-    "individual",
-    "organization",
-  ]);
+  const profiles = await backend.getProfilesByKinds(locale, ["individual", "organization"]);
   const products = await backend.getProfilesByKinds(locale, ["product"]);
-  const stories = await backend.getStoriesByKinds(locale, [
-    "article",
-    "announcement",
-    "content",
-    "presentation",
-  ]);
+  const stories = await backend.getStoriesByKinds(locale, ["article", "announcement", "content", "presentation"]);
   const news = await backend.getStoriesByKinds(locale, ["news"]);
 
   const sections: string[] = [];

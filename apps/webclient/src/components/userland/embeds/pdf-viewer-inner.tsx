@@ -6,10 +6,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 // Configure PDF.js worker (browser-only)
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 const DEFAULT_SCALE = 1.0;
 const SCALE_STEP = 0.25;
@@ -105,9 +102,7 @@ function PDFViewerInner(props: PDFViewerInnerProps) {
           >
             <ZoomOut className="size-4" />
           </button>
-          <span className="text-sm text-muted-foreground min-w-[50px] text-center">
-            {Math.round(scale * 100)}%
-          </span>
+          <span className="text-sm text-muted-foreground min-w-[50px] text-center">{Math.round(scale * 100)}%</span>
           <button
             type="button"
             onClick={zoomIn}
@@ -144,12 +139,7 @@ function PDFViewerInner(props: PDFViewerInnerProps) {
             </div>
           }
         >
-          <Page
-            pageNumber={pageNumber}
-            width={pageWidth}
-            renderTextLayer
-            renderAnnotationLayer
-          />
+          <Page pageNumber={pageNumber} width={pageWidth} renderTextLayer renderAnnotationLayer />
         </Document>
       </div>
     </div>

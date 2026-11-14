@@ -156,12 +156,10 @@ export function PublishDialog(props: PublishDialogProps) {
 
         if (!wasPublished && current.published) {
           // Add publication
-          const result = await backend.addStoryPublication(
-            locale,
-            profileSlug,
-            storyId,
-            { profile_id: profile.id, is_featured: current.featured },
-          );
+          const result = await backend.addStoryPublication(locale, profileSlug, storyId, {
+            profile_id: profile.id,
+            is_featured: current.featured,
+          });
           if (result !== null) {
             updatedPublications = [...updatedPublications, result];
           } else {
@@ -169,12 +167,7 @@ export function PublishDialog(props: PublishDialogProps) {
           }
         } else if (wasPublished && !current.published) {
           // Remove publication
-          const result = await backend.removeStoryPublication(
-            locale,
-            profileSlug,
-            storyId,
-            pub.id,
-          );
+          const result = await backend.removeStoryPublication(locale, profileSlug, storyId, pub.id);
           if (result !== null) {
             updatedPublications = updatedPublications.filter((p) => p.id !== pub.id);
           } else {
@@ -182,16 +175,12 @@ export function PublishDialog(props: PublishDialogProps) {
           }
         } else if (wasPublished && current.published && current.featured !== wasFeatured) {
           // Update featured
-          const result = await backend.updateStoryPublication(
-            locale,
-            profileSlug,
-            storyId,
-            pub.id,
-            { is_featured: current.featured },
-          );
+          const result = await backend.updateStoryPublication(locale, profileSlug, storyId, pub.id, {
+            is_featured: current.featured,
+          });
           if (result !== null) {
             updatedPublications = updatedPublications.map((p) =>
-              p.id === pub.id ? { ...p, is_featured: current.featured } : p
+              p.id === pub.id ? { ...p, is_featured: current.featured } : p,
             );
           } else {
             hadError = true;
@@ -220,9 +209,7 @@ export function PublishDialog(props: PublishDialogProps) {
             <Globe className="size-5" />
             {t("ContentEditor.Publish")}
           </DialogTitle>
-          <DialogDescription>
-            {t("ContentEditor.Select profiles to publish to")}
-          </DialogDescription>
+          <DialogDescription>{t("ContentEditor.Select profiles to publish to")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1 py-2">
@@ -240,10 +227,7 @@ export function PublishDialog(props: PublishDialogProps) {
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="size-8">
-                    <AvatarImage
-                      src={profile.profile_picture_uri ?? undefined}
-                      alt={profile.title}
-                    />
+                    <AvatarImage src={profile.profile_picture_uri ?? undefined} alt={profile.title} />
                     <AvatarFallback className="text-xs">
                       {(profile.title ?? profile.slug ?? "?").charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -269,7 +253,8 @@ export function PublishDialog(props: PublishDialogProps) {
                         setDraft((prev) => ({
                           ...prev,
                           [profile.id]: { ...prev[profile.id], featured: !state.featured },
-                        }))}
+                        }))
+                      }
                       disabled={isApplying}
                       className="p-1 rounded hover:bg-muted"
                       title={state.featured ? t("ContentEditor.Remove featured") : t("ContentEditor.Mark as featured")}
@@ -288,7 +273,8 @@ export function PublishDialog(props: PublishDialogProps) {
                       setDraft((prev) => ({
                         ...prev,
                         [profile.id]: { ...prev[profile.id], published: checked },
-                      }))}
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -296,17 +282,12 @@ export function PublishDialog(props: PublishDialogProps) {
           })}
 
           {allProfiles.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              {t("ContentEditor.No profiles available")}
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("ContentEditor.No profiles available")}</p>
           )}
         </div>
 
         <DialogFooter>
-          <Button
-            onClick={handleApply}
-            disabled={isApplying || !hasChanges}
-          >
+          <Button onClick={handleApply} disabled={isApplying || !hasChanges}>
             {isApplying && <Loader2 className="mr-1.5 size-4 animate-spin" />}
             {t("Common.Apply")}
           </Button>

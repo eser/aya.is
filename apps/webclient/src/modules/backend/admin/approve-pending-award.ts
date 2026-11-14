@@ -3,9 +3,7 @@ import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 import type { ProfilePointTransaction } from "../types";
 
-export async function approvePendingAward(
-  awardId: string,
-): Promise<ProfilePointTransaction | null> {
+export async function approvePendingAward(awardId: string): Promise<ProfilePointTransaction | null> {
   const token = getAuthToken();
   if (token === null) {
     return null;
@@ -16,14 +14,11 @@ export async function approvePendingAward(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/admin/points/pending/${awardId}/approve`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/admin/points/pending/${awardId}/approve`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+  });
 
   if (!response.ok) return null;
   return response.json();

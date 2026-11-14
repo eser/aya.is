@@ -11,23 +11,17 @@ export async function updateSessionPreferences(
   preferences: Partial<SessionPreferences>,
 ): Promise<SessionPreferences | null> {
   const backendUri = getBackendUri();
-  const response = await fetch(
-    `${backendUri}/${locale}/sessions/_current`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(preferences),
+  const response = await fetch(`${backendUri}/${locale}/sessions/_current`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(preferences),
+  });
 
   if (!response.ok) {
-    console.error(
-      "[Session] Failed to update preferences:",
-      response.status,
-    );
+    console.error("[Session] Failed to update preferences:", response.status);
     return null;
   }
 

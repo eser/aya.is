@@ -52,12 +52,7 @@ function AdminProfileLayout() {
       {/* Profile Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <SiteAvatar
-            src={profile.profile_picture_uri}
-            name={profile.title}
-            fallbackName={profile.slug}
-            size="lg"
-          />
+          <SiteAvatar src={profile.profile_picture_uri} name={profile.title} fallbackName={profile.slug} size="lg" />
           <div>
             <div className="flex items-center gap-2">
               <h2

@@ -105,9 +105,7 @@
     "ask": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "shadcn"
-  ],
+  "enabledMcpjsonServers": ["shadcn"],
   "hooks": {
     "PostToolUse": [
       {

@@ -67,12 +67,8 @@ function VisibilitySelectItem(props: { option: VisibilityOption }) {
         <CheckIcon className="size-4 pointer-events-none" />
       </SelectPrimitive.ItemIndicator>
       <div className="flex flex-col gap-0.5">
-        <SelectPrimitive.ItemText className="font-medium">
-          {props.option.label}
-        </SelectPrimitive.ItemText>
-        <span className="text-xs text-muted-foreground">
-          {props.option.description}
-        </span>
+        <SelectPrimitive.ItemText className="font-medium">{props.option.label}</SelectPrimitive.ItemText>
+        <span className="text-xs text-muted-foreground">{props.option.description}</span>
       </div>
     </SelectPrimitive.Item>
   );
@@ -101,12 +97,12 @@ function VisibilitySelect(props: {
       }}
     >
       <SelectTrigger>
-        <SelectValue>
-          {(value: string) => labelMap.get(value) ?? value}
-        </SelectValue>
+        <SelectValue>{(value: string) => labelMap.get(value) ?? value}</SelectValue>
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
-        {props.options.map((option) => <VisibilitySelectItem key={option.value} option={option} />)}
+        {props.options.map((option) => (
+          <VisibilitySelectItem key={option.value} option={option} />
+        ))}
       </SelectContent>
     </Select>
   );
@@ -327,10 +323,7 @@ function PagesSettingsPage() {
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 p-4 border rounded-lg"
-            >
+            <div key={i} className="flex items-center gap-3 p-4 border rounded-lg">
               <Skeleton className="size-5" />
               <Skeleton className="size-10 rounded" />
               <div className="flex-1">
@@ -350,9 +343,7 @@ function PagesSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-serif text-xl font-semibold text-foreground">{t("Profile.Pages")}</h3>
-          <p className="text-muted-foreground text-sm mt-1">
-            {t("Profile.Manage and reorder your profile pages.")}
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">{t("Profile.Manage and reorder your profile pages.")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -384,29 +375,18 @@ function PagesSettingsPage() {
                 {/* Links */}
                 <Field>
                   <FieldLabel>{t("Profile.Links Visibility")}</FieldLabel>
-                  <VisibilitySelect
-                    value={featureLinks}
-                    onChange={setFeatureLinks}
-                    options={visibilityOptions}
-                  />
+                  <VisibilitySelect value={featureLinks} onChange={setFeatureLinks} options={visibilityOptions} />
                 </Field>
 
                 {/* Q&A */}
                 <Field>
                   <FieldLabel>{t("Profile.Q&A Visibility")}</FieldLabel>
-                  <VisibilitySelect
-                    value={featureQA}
-                    onChange={setFeatureQA}
-                    options={visibilityOptions}
-                  />
+                  <VisibilitySelect value={featureQA} onChange={setFeatureQA} options={visibilityOptions} />
                 </Field>
               </div>
 
               <DialogFooter>
-                <Button
-                  onClick={handleSavePreferences}
-                  disabled={isSavingPrefs}
-                >
+                <Button onClick={handleSavePreferences} disabled={isSavingPrefs}>
                   {isSavingPrefs && <Loader2 className="mr-2 size-4 animate-spin" />}
                   {isSavingPrefs ? t("Common.Saving...") : t("Common.Save")}
                 </Button>
@@ -428,10 +408,7 @@ function PagesSettingsPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Link
-            to="/$locale/$slug/settings/pages/new"
-            params={{ locale: params.locale, slug: params.slug }}
-          >
+          <Link to="/$locale/$slug/settings/pages/new" params={{ locale: params.locale, slug: params.slug }}>
             <Button variant="default" size="sm">
               <Plus className="mr-1.5 size-4" />
               {t("ContentEditor.Add Page")}
@@ -440,69 +417,67 @@ function PagesSettingsPage() {
         </div>
       </div>
 
-      {pages.length === 0
-        ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">{t("Profile.No pages found.")}</p>
-          </div>
-        )
-        : (
-          <div className="space-y-2">
-            {pages.map((page) => {
-              const isDragOver = dragOverId === page.id;
+      {pages.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">{t("Profile.No pages found.")}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {pages.map((page) => {
+            const isDragOver = dragOverId === page.id;
 
-              return (
-                <div
-                  key={page.id}
-                  data-page-id={page.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, page.id)}
-                  onDragEnd={handleDragEnd}
-                  onDragOver={(e) => handleDragOver(e, page.id)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, page.id)}
-                  className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
-                    isDragOver ? "border-primary bg-primary/5 border-dashed" : "hover:bg-muted/50"
-                  }`}
-                >
-                  <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
-                    <GripVertical className="size-5" />
-                  </div>
-                  <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
-                    <FileText className="size-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">{page.title}</p>
-                      {page.visibility !== "public" && (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                          {page.visibility === "unlisted" && <EyeOff className="size-3" />}
-                          {page.visibility === "private" && <Lock className="size-3" />}
-                          {page.visibility === "unlisted" && t("ContentEditor.Unlisted")}
-                          {page.visibility === "private" && t("ContentEditor.Private")}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">/{page.slug}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <LocaleLink to={`/${params.slug}/${page.slug}/edit`}>
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="size-4" />
-                      </Button>
-                    </LocaleLink>
-                    <LocaleLink to={`/${params.slug}/${page.slug}`}>
-                      <Button variant="ghost" size="icon">
-                        <ExternalLink className="size-4" />
-                      </Button>
-                    </LocaleLink>
-                  </div>
+            return (
+              <div
+                key={page.id}
+                data-page-id={page.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, page.id)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOver(e, page.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, page.id)}
+                className={`flex items-center gap-3 p-4 border rounded-lg transition-all cursor-move select-none ${
+                  isDragOver ? "border-primary bg-primary/5 border-dashed" : "hover:bg-muted/50"
+                }`}
+              >
+                <div className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+                  <GripVertical className="size-5" />
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <div className="flex items-center justify-center size-10 rounded bg-muted shrink-0">
+                  <FileText className="size-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium truncate">{page.title}</p>
+                    {page.visibility !== "public" && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                        {page.visibility === "unlisted" && <EyeOff className="size-3" />}
+                        {page.visibility === "private" && <Lock className="size-3" />}
+                        {page.visibility === "unlisted" && t("ContentEditor.Unlisted")}
+                        {page.visibility === "private" && t("ContentEditor.Private")}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">/{page.slug}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <LocaleLink to={`/${params.slug}/${page.slug}/edit`}>
+                    <Button variant="ghost" size="icon">
+                      <Pencil className="size-4" />
+                    </Button>
+                  </LocaleLink>
+                  <LocaleLink to={`/${params.slug}/${page.slug}`}>
+                    <Button variant="ghost" size="icon">
+                      <ExternalLink className="size-4" />
+                    </Button>
+                  </LocaleLink>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </Card>
   );
 }

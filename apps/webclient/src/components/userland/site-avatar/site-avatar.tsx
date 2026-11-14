@@ -54,15 +54,8 @@ export function SiteAvatar(props: SiteAvatarProps) {
   const customSizeClass = !isPredefinedSize ? getSizeClass(props.size) : "";
 
   return (
-    <Avatar
-      size={avatarSize}
-      className={cn(customSizeClass, props.className)}
-    >
-      <AvatarImage
-        src={imageSrc}
-        alt={displayName}
-        onError={handleImageError}
-      />
+    <Avatar size={avatarSize} className={cn(customSizeClass, props.className)}>
+      <AvatarImage src={imageSrc} alt={displayName} onError={handleImageError} />
       <AvatarFallback>{initials}</AvatarFallback>
     </Avatar>
   );

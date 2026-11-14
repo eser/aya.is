@@ -16,18 +16,13 @@ function ResizablePanelGroup({
       data-slot="resizable-panel-group"
       data-panel-group-direction={direction}
       orientation={direction}
-      className={cn(
-        "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
-        className,
-      )}
+      className={cn("flex h-full w-full data-[panel-group-direction=vertical]:flex-col", className)}
       {...props}
     />
   );
 }
 
-function ResizablePanel({
-  ...props
-}: React.ComponentProps<typeof Panel>) {
+function ResizablePanel({ ...props }: React.ComponentProps<typeof Panel>) {
   return <Panel data-slot="resizable-panel" {...props} />;
 }
 

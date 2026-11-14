@@ -30,10 +30,7 @@ const markdownHandlers: Map<string, MarkdownHandler> = new Map();
  * Register a markdown handler for a specific route pattern
  * Pattern uses $ prefix for params: "$locale/$slug/stories/$storyslug"
  */
-export function registerMarkdownHandler(
-  pattern: string,
-  handler: MarkdownHandler,
-): void {
+export function registerMarkdownHandler(pattern: string, handler: MarkdownHandler): void {
   markdownHandlers.set(pattern, handler);
 }
 
@@ -117,85 +114,83 @@ function matchAllPatterns(
  *
  * Uses the rewritten path from request context for custom domains.
  */
-export const markdownMiddleware = createMiddleware().server(
-  async ({ request, next }) => {
-    const url = new URL(request.url);
+export const markdownMiddleware = createMiddleware().server(async ({ request, next }) => {
+  const url = new URL(request.url);
 
-    // Handle llms.txt
-    if (url.pathname === "/llms.txt") {
-      try {
-        const content = await generateLlmsTxt();
-        return createMarkdownResponse(content);
-      } catch (error) {
-        console.error("llms.txt generation error:", error);
-        return createNotFoundResponse();
-      }
-    }
-
-    // Handle llms-full.txt
-    if (url.pathname === "/llms-full.txt") {
-      try {
-        const content = await generateLlmsFullTxt();
-        return createMarkdownResponse(content);
-      } catch (error) {
-        console.error("llms-full.txt generation error:", error);
-        return createNotFoundResponse();
-      }
-    }
-
-    // Only handle .md requests
-    if (!url.pathname.endsWith(".md")) {
-      return next();
-    }
-
-    // Get the effective path - use rewritten path from request context if available
-    // This handles custom domains where /tr/index.md becomes /tr/eser/index.md
-    const { requestContextBinder } = await import("./request-context-binder");
-    const requestContext = requestContextBinder.getStore();
-    let effectivePath: string;
-
-    if (requestContext !== undefined && requestContext.path.length > 0) {
-      // Use the rewritten path from request context
-      // The path array doesn't include the .md suffix, so we need to handle it
-      const pathParts = [...requestContext.path];
-      const lastPart = pathParts[pathParts.length - 1];
-      if (lastPart !== undefined && lastPart.endsWith(".md")) {
-        // Last segment has .md suffix
-        effectivePath = "/" + pathParts.join("/");
-      } else {
-        // Append .md suffix from original URL
-        effectivePath = "/" + pathParts.join("/") + ".md";
-      }
-    } else {
-      effectivePath = url.pathname;
-    }
-
-    // Get all matching handlers sorted by specificity
-    const matches = matchAllPatterns(effectivePath);
-
-    if (matches.length === 0) {
-      // No handler registered for this pattern
+  // Handle llms.txt
+  if (url.pathname === "/llms.txt") {
+    try {
+      const content = await generateLlmsTxt();
+      return createMarkdownResponse(content);
+    } catch (error) {
+      console.error("llms.txt generation error:", error);
       return createNotFoundResponse();
     }
+  }
 
-    // Try each handler in order of specificity until one returns content
-    for (const { handler, params } of matches) {
-      const locale = params.locale ?? DEFAULT_LOCALE;
-
-      try {
-        const markdown = await handler(params, locale, url.searchParams);
-
-        if (markdown !== null) {
-          return createMarkdownResponse(markdown, locale);
-        }
-        // Handler returned null, try next one
-      } catch (error) {
-        console.error("Markdown generation error:", error);
-        // Continue to next handler
-      }
+  // Handle llms-full.txt
+  if (url.pathname === "/llms-full.txt") {
+    try {
+      const content = await generateLlmsFullTxt();
+      return createMarkdownResponse(content);
+    } catch (error) {
+      console.error("llms-full.txt generation error:", error);
+      return createNotFoundResponse();
     }
+  }
 
-    // No handler could produce content
+  // Only handle .md requests
+  if (!url.pathname.endsWith(".md")) {
+    return next();
+  }
+
+  // Get the effective path - use rewritten path from request context if available
+  // This handles custom domains where /tr/index.md becomes /tr/eser/index.md
+  const { requestContextBinder } = await import("./request-context-binder");
+  const requestContext = requestContextBinder.getStore();
+  let effectivePath: string;
+
+  if (requestContext !== undefined && requestContext.path.length > 0) {
+    // Use the rewritten path from request context
+    // The path array doesn't include the .md suffix, so we need to handle it
+    const pathParts = [...requestContext.path];
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart !== undefined && lastPart.endsWith(".md")) {
+      // Last segment has .md suffix
+      effectivePath = "/" + pathParts.join("/");
+    } else {
+      // Append .md suffix from original URL
+      effectivePath = "/" + pathParts.join("/") + ".md";
+    }
+  } else {
+    effectivePath = url.pathname;
+  }
+
+  // Get all matching handlers sorted by specificity
+  const matches = matchAllPatterns(effectivePath);
+
+  if (matches.length === 0) {
+    // No handler registered for this pattern
     return createNotFoundResponse();
-  },
-);
+  }
+
+  // Try each handler in order of specificity until one returns content
+  for (const { handler, params } of matches) {
+    const locale = params.locale ?? DEFAULT_LOCALE;
+
+    try {
+      const markdown = await handler(params, locale, url.searchParams);
+
+      if (markdown !== null) {
+        return createMarkdownResponse(markdown, locale);
+      }
+      // Handler returned null, try next one
+    } catch (error) {
+      console.error("Markdown generation error:", error);
+      // Continue to next handler
+    }
+  }
+
+  // No handler could produce content
+  return createNotFoundResponse();
+});

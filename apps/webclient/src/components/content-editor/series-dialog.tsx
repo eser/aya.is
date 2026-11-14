@@ -57,57 +57,53 @@ export function SeriesDialog(props: SeriesDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("ContentEditor.Assign to series...")}</DialogTitle>
-          <DialogDescription>
-            {t("ContentEditor.Assign this story to a series or create a new one.")}
-          </DialogDescription>
+          <DialogDescription>{t("ContentEditor.Assign this story to a series or create a new one.")}</DialogDescription>
         </DialogHeader>
 
-        {isLoading
-          ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        {isLoading ? (
+          <div className="flex justify-center py-4">
+            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {/* Unassigned option — always first */}
+            <div
+              className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${
+                props.seriesId === null ? "border-primary bg-primary/5" : "hover:border-primary"
+              }`}
+              role="button"
+              tabIndex={0}
+              onClick={() => props.onSeriesChange(null)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") props.onSeriesChange(null);
+              }}
+            >
+              <span className="text-sm text-muted-foreground">{t("ContentEditor.No series")}</span>
+              {props.seriesId === null && <Check className="size-4 text-primary" />}
             </div>
-          )
-          : (
-            <div className="space-y-2">
-              {/* Unassigned option — always first */}
+
+            {seriesList.map((series) => (
               <div
+                key={series.id}
                 className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${
-                  props.seriesId === null ? "border-primary bg-primary/5" : "hover:border-primary"
+                  series.id === props.seriesId ? "border-primary bg-primary/5" : "hover:border-primary"
                 }`}
                 role="button"
                 tabIndex={0}
-                onClick={() => props.onSeriesChange(null)}
+                onClick={() => handleSelect(series.id)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") props.onSeriesChange(null);
+                  if (e.key === "Enter" || e.key === " ") handleSelect(series.id);
                 }}
               >
-                <span className="text-sm text-muted-foreground">{t("ContentEditor.No series")}</span>
-                {props.seriesId === null && <Check className="size-4 text-primary" />}
-              </div>
-
-              {seriesList.map((series) => (
-                <div
-                  key={series.id}
-                  className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${
-                    series.id === props.seriesId ? "border-primary bg-primary/5" : "hover:border-primary"
-                  }`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleSelect(series.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") handleSelect(series.id);
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <Library className="size-4" />
-                    <span className="text-sm font-medium">{series.title}</span>
-                  </div>
-                  {series.id === props.seriesId && <Check className="size-4 text-primary" />}
+                <div className="flex items-center gap-2">
+                  <Library className="size-4" />
+                  <span className="text-sm font-medium">{series.title}</span>
                 </div>
-              ))}
-            </div>
-          )}
+                {series.id === props.seriesId && <Check className="size-4 text-primary" />}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center gap-2 mt-4">
           <Input
@@ -119,10 +115,7 @@ export function SeriesDialog(props: SeriesDialogProps) {
             }}
             className="flex-1"
           />
-          <Button
-            onClick={handleCreate}
-            disabled={isCreating || newSeriesTitle.trim().length === 0}
-          >
+          <Button onClick={handleCreate} disabled={isCreating || newSeriesTitle.trim().length === 0}>
             {isCreating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />}
             {t("ContentEditor.Create")}
           </Button>

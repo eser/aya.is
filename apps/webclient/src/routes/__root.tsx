@@ -75,7 +75,7 @@ function detectNavigationState(
     locale: localeCode,
     localeData: supportedLocales[localeCode],
     isCustomDomain: isCustom,
-    customDomainHost: isCustom ? host ?? null : null,
+    customDomainHost: isCustom ? (host ?? null) : null,
     customDomainProfileSlug: customProfileSlug,
     customDomainProfileTitle: customProfileTitle,
   };
@@ -213,9 +213,10 @@ function RootDocument(props: Readonly<RootDocumentProps>) {
   }
 })();
 
-globalThis.__REQUEST_CONTEXT__ = ${
-    JSON.stringify(requestContext ?? null).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/\//g, "\\u002f")
-  };
+globalThis.__REQUEST_CONTEXT__ = ${JSON.stringify(requestContext ?? null)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/\//g, "\\u002f")};
 `;
 
   return (

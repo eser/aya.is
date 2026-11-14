@@ -12,18 +12,15 @@ export async function createProfileTeam(
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_teams`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({ name, description: description ?? null }),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_teams`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify({ name, description: description ?? null }),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

@@ -12,14 +12,10 @@ export async function createQuestion(
   slug: string,
   input: CreateQuestionInput,
 ): Promise<ProfileQuestion | null> {
-  const response = await fetcher<ProfileQuestion>(
-    locale,
-    `/profiles/${slug}/_questions`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<ProfileQuestion>(locale, `/profiles/${slug}/_questions`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

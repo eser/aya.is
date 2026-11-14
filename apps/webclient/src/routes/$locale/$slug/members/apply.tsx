@@ -14,29 +14,18 @@ import i18next from "i18next";
 import { NotFoundContent } from "./route";
 import { ApplyPageClient } from "./-components/apply-page-client";
 
-const MEMBER_KINDS = new Set([
-  "member",
-  "contributor",
-  "maintainer",
-  "lead",
-  "owner",
-]);
+const MEMBER_KINDS = new Set(["member", "contributor", "maintainer", "lead", "owner"]);
 
 export const Route = createFileRoute("/$locale/$slug/members/apply")({
   loader: async ({ params, context }) => {
     const { locale, slug } = params;
     const [profile, form] = await Promise.all([
       context.queryClient.ensureQueryData(profileQueryOptions(locale, slug)),
-      context.queryClient.ensureQueryData(
-        applicationFormQueryOptions(locale, slug),
-      ).catch(() => null),
+      context.queryClient.ensureQueryData(applicationFormQueryOptions(locale, slug)).catch(() => null),
     ]);
 
     // Applications must be enabled
-    if (
-      profile === null ||
-      profile.feature_applications === "disabled"
-    ) {
+    if (profile === null || profile.feature_applications === "disabled") {
       return {
         form: null,
         existingApplication: null,
@@ -49,25 +38,24 @@ export const Route = createFileRoute("/$locale/$slug/members/apply")({
     }
 
     // Check permissions for membership (works during SSR on aya.is where cookies are forwarded)
-    const permissions = await context.queryClient.ensureQueryData(
-      profilePermissionsQueryOptions(locale, slug),
-    ).catch(() => null);
+    const permissions = await context.queryClient
+      .ensureQueryData(profilePermissionsQueryOptions(locale, slug))
+      .catch(() => null);
 
-    const ssrIsMember = permissions?.viewer_membership_kind !== undefined &&
+    const ssrIsMember =
+      permissions?.viewer_membership_kind !== undefined &&
       permissions.viewer_membership_kind !== null &&
       MEMBER_KINDS.has(permissions.viewer_membership_kind);
 
     // Check if user already applied (optional — null if not authenticated)
-    const existingApplication = await context.queryClient.ensureQueryData(
-      myApplicationQueryOptions(locale, slug),
-    ).catch(() => null);
+    const existingApplication = await context.queryClient
+      .ensureQueryData(myApplicationQueryOptions(locale, slug))
+      .catch(() => null);
 
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = `${t("Applications.Apply to Join")} - ${profile.title ?? slug}`;
-    const translatedDescription = t(
-      "Applications.Fill out the form below to apply",
-    );
+    const translatedDescription = t("Applications.Fill out the form below to apply");
 
     return {
       form,
@@ -95,9 +83,7 @@ export const Route = createFileRoute("/$locale/$slug/members/apply")({
         locale,
         type: "website",
       }),
-      links: [
-        generateCanonicalLink(buildUrl(locale, slug, "members/apply")),
-      ],
+      links: [generateCanonicalLink(buildUrl(locale, slug, "members/apply"))],
     };
   },
   errorComponent: QueryError,
@@ -126,7 +112,8 @@ function ApplyPage() {
 
   const { form, ssrIsMember, locale, slug } = loaderData;
 
-  const queryIsMember = permissions?.viewer_membership_kind !== undefined &&
+  const queryIsMember =
+    permissions?.viewer_membership_kind !== undefined &&
     permissions.viewer_membership_kind !== null &&
     MEMBER_KINDS.has(permissions.viewer_membership_kind);
 

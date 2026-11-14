@@ -56,10 +56,13 @@ export function CommentCard(props: CommentCardProps) {
   const isHidden = props.comment.is_hidden;
   const isOwn = props.viewerProfileId !== null && props.comment.author_profile_id === props.viewerProfileId;
 
-  const formattedDate = new Date(props.comment.created_at).toLocaleString(
-    props.locale,
-    { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" },
-  );
+  const formattedDate = new Date(props.comment.created_at).toLocaleString(props.locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const handleUpvote = React.useCallback(async () => {
     await props.onVote(props.comment.id, 1);
@@ -69,31 +72,37 @@ export function CommentCard(props: CommentCardProps) {
     await props.onVote(props.comment.id, -1);
   }, [props.onVote, props.comment.id]);
 
-  const handleReply = React.useCallback(async (content: string) => {
-    const result = await props.onReply(props.comment.id, content);
-    if (result !== null) {
-      setChildren((prev) => [...prev, result]);
-      setChildrenLoaded(true);
-      setShowReplyForm(false);
-    }
-  }, [props.onReply, props.comment.id]);
+  const handleReply = React.useCallback(
+    async (content: string) => {
+      const result = await props.onReply(props.comment.id, content);
+      if (result !== null) {
+        setChildren((prev) => [...prev, result]);
+        setChildrenLoaded(true);
+        setShowReplyForm(false);
+      }
+    },
+    [props.onReply, props.comment.id],
+  );
 
   const handleEditClick = React.useCallback(() => {
     setEditContent(props.comment.content);
     setShowEditForm(true);
   }, [props.comment.content]);
 
-  const handleEditSubmit = React.useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = editContent.trim();
-    if (trimmed.length === 0) {
-      return;
-    }
-    setIsEditSubmitting(true);
-    await props.onEdit(props.comment.id, trimmed);
-    setShowEditForm(false);
-    setIsEditSubmitting(false);
-  }, [props.onEdit, props.comment.id, editContent]);
+  const handleEditSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const trimmed = editContent.trim();
+      if (trimmed.length === 0) {
+        return;
+      }
+      setIsEditSubmitting(true);
+      await props.onEdit(props.comment.id, trimmed);
+      setShowEditForm(false);
+      setIsEditSubmitting(false);
+    },
+    [props.onEdit, props.comment.id, editContent],
+  );
 
   const handleDelete = React.useCallback(async () => {
     await props.onDelete(props.comment.id);
@@ -160,17 +169,17 @@ export function CommentCard(props: CommentCardProps) {
               className={styles.authorAvatar}
             />
           )}
-          {props.comment.author_profile_slug !== null
-            ? (
-              <Link
-                to="/$locale/$slug"
-                params={{ locale: props.locale, slug: props.comment.author_profile_slug }}
-                className={styles.authorLink}
-              >
-                {props.comment.author_profile_title ?? props.comment.author_profile_slug}
-              </Link>
-            )
-            : <span className={styles.metaText}>{t("Discussions.Unknown")}</span>}
+          {props.comment.author_profile_slug !== null ? (
+            <Link
+              to="/$locale/$slug"
+              params={{ locale: props.locale, slug: props.comment.author_profile_slug }}
+              className={styles.authorLink}
+            >
+              {props.comment.author_profile_title ?? props.comment.author_profile_slug}
+            </Link>
+          ) : (
+            <span className={styles.metaText}>{t("Discussions.Unknown")}</span>
+          )}
           <span className={styles.metaText}>&middot;</span>
           <span className={styles.metaText}>{formattedDate}</span>
           {props.comment.is_edited && (
@@ -184,12 +193,12 @@ export function CommentCard(props: CommentCardProps) {
                   <span className="text-xs text-muted-foreground">
                     {props.comment.updated_at !== null
                       ? new Date(props.comment.updated_at).toLocaleString(props.locale, {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : ""}
                   </span>
                 </PopoverContent>
@@ -201,63 +210,55 @@ export function CommentCard(props: CommentCardProps) {
         </div>
 
         {/* Content */}
-        {isDeleted
-          ? <p className={styles.deletedContent}>{t("Discussions.This comment has been deleted")}</p>
-          : isHidden && !props.canModerate
-          ? <p className={styles.hiddenContent}>{t("Discussions.Hidden by moderator")}</p>
-          : showEditForm
-          ? (
-            <form onSubmit={handleEditSubmit} className="mb-2">
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="w-full p-2 text-sm border rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                rows={3}
-                style={{ fieldSizing: "content" } as React.CSSProperties}
-              />
-              <div className="flex gap-2 justify-end mt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowEditForm(false)}
-                  className="px-3 py-1 text-xs rounded-md border hover:bg-accent transition-colors"
-                >
-                  {t("Common.Cancel")}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isEditSubmitting || editContent.trim().length === 0}
-                  className="px-3 py-1 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-                >
-                  {t("Discussions.Save")}
-                </button>
-              </div>
-            </form>
-          )
-          : props.comment.compiledContent !== undefined && props.comment.compiledContent !== null
-          ? (
-            <MdxContent
-              compiledSource={props.comment.compiledContent}
-              className={styles.commentContent}
-              headingOffset={3}
-              includeUserlandComponents={false}
+        {isDeleted ? (
+          <p className={styles.deletedContent}>{t("Discussions.This comment has been deleted")}</p>
+        ) : isHidden && !props.canModerate ? (
+          <p className={styles.hiddenContent}>{t("Discussions.Hidden by moderator")}</p>
+        ) : showEditForm ? (
+          <form onSubmit={handleEditSubmit} className="mb-2">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full p-2 text-sm border rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+              rows={3}
+              style={{ fieldSizing: "content" } as React.CSSProperties}
             />
-          )
-          : (
-            <p className={styles.commentContent} style={{ whiteSpace: "pre-wrap" }}>
-              {props.comment.content}
-            </p>
-          )}
+            <div className="flex gap-2 justify-end mt-2">
+              <button
+                type="button"
+                onClick={() => setShowEditForm(false)}
+                className="px-3 py-1 text-xs rounded-md border hover:bg-accent transition-colors"
+              >
+                {t("Common.Cancel")}
+              </button>
+              <button
+                type="submit"
+                disabled={isEditSubmitting || editContent.trim().length === 0}
+                className="px-3 py-1 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {t("Discussions.Save")}
+              </button>
+            </div>
+          </form>
+        ) : props.comment.compiledContent !== undefined && props.comment.compiledContent !== null ? (
+          <MdxContent
+            compiledSource={props.comment.compiledContent}
+            className={styles.commentContent}
+            headingOffset={3}
+            includeUserlandComponents={false}
+          />
+        ) : (
+          <p className={styles.commentContent} style={{ whiteSpace: "pre-wrap" }}>
+            {props.comment.content}
+          </p>
+        )}
 
         {/* Actions bar */}
         {!isDeleted && (
           <div className={styles.actions}>
             {/* Reply */}
             {props.isAuthenticated && !props.isThreadLocked && props.comment.depth < MAX_DEPTH && (
-              <button
-                type="button"
-                onClick={() => setShowReplyForm(!showReplyForm)}
-                className={styles.actionButton}
-              >
+              <button type="button" onClick={() => setShowReplyForm(!showReplyForm)} className={styles.actionButton}>
                 <MessageSquare className="size-3" />
                 {t("Discussions.Reply")}
               </button>
@@ -265,11 +266,7 @@ export function CommentCard(props: CommentCardProps) {
 
             {/* Edit (own comment) */}
             {isOwn && !props.isThreadLocked && (
-              <button
-                type="button"
-                onClick={handleEditClick}
-                className={styles.actionButton}
-              >
+              <button type="button" onClick={handleEditClick} className={styles.actionButton}>
                 <Pencil className="size-3" />
                 {t("Discussions.Edit")}
               </button>
@@ -302,17 +299,15 @@ export function CommentCard(props: CommentCardProps) {
                       }}
                       className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors"
                     >
-                      {isHidden
-                        ? (
-                          <>
-                            <Eye className="size-3" /> {t("Discussions.Show")}
-                          </>
-                        )
-                        : (
-                          <>
-                            <EyeOff className="size-3" /> {t("Discussions.Hide")}
-                          </>
-                        )}
+                      {isHidden ? (
+                        <>
+                          <Eye className="size-3" /> {t("Discussions.Show")}
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="size-3" /> {t("Discussions.Hide")}
+                        </>
+                      )}
                     </button>
                     <button
                       role="menuitem"
@@ -323,17 +318,15 @@ export function CommentCard(props: CommentCardProps) {
                       }}
                       className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-accent transition-colors"
                     >
-                      {props.comment.is_pinned
-                        ? (
-                          <>
-                            <PinOff className="size-3" /> {t("Discussions.Unpin")}
-                          </>
-                        )
-                        : (
-                          <>
-                            <Pin className="size-3" /> {t("Discussions.Pin")}
-                          </>
-                        )}
+                      {props.comment.is_pinned ? (
+                        <>
+                          <PinOff className="size-3" /> {t("Discussions.Unpin")}
+                        </>
+                      ) : (
+                        <>
+                          <Pin className="size-3" /> {t("Discussions.Pin")}
+                        </>
+                      )}
                     </button>
                     {props.isAdmin && (
                       <button
@@ -409,9 +402,7 @@ export function CommentCard(props: CommentCardProps) {
         )}
 
         {props.comment.depth >= MAX_DEPTH && props.comment.reply_count > 0 && (
-          <span className={styles.continueThread}>
-            {t("Discussions.Continue this thread")} &rarr;
-          </span>
+          <span className={styles.continueThread}>{t("Discussions.Continue this thread")} &rarr;</span>
         )}
       </div>
     </div>

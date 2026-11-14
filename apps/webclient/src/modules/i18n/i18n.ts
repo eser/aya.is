@@ -34,9 +34,7 @@ function formatRelativeTime(date: Date, locale: string): string {
 }
 
 // Dynamic import for translation files
-const loadResources = resourcesToBackend(
-  (language: string) => import(`@/messages/${language}.json`),
-);
+const loadResources = resourcesToBackend((language: string) => import(`@/messages/${language}.json`));
 
 // Named date/time formatters, referenced from translation strings as `{{value, date-long}}`.
 const dateFormatters: Record<string, (value: Date, locale: string) => string> = {
@@ -62,7 +60,7 @@ const dateFormatters: Record<string, (value: Date, locale: string) => string> = 
     }),
   "month-year": (value, locale) => value.toLocaleDateString(locale, { year: "numeric", month: "long" }),
   "month-short": (value, locale) => value.toLocaleDateString(locale, { month: "short" }),
-  "relative": (value, locale) => formatRelativeTime(value, locale),
+  relative: (value, locale) => formatRelativeTime(value, locale),
 };
 
 i18n

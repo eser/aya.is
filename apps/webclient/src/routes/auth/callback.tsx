@@ -81,9 +81,8 @@ function AuthCallbackPage() {
 
           // Redirect with full page load to locale-specific destination
           // New users (no individual profile) go to profile creation
-          const destination = is_new_user === "true"
-            ? `/${localeCode}/elements/new`
-            : getSafeRedirect(redirect, `/${localeCode}`);
+          const destination =
+            is_new_user === "true" ? `/${localeCode}/elements/new` : getSafeRedirect(redirect, `/${localeCode}`);
           globalThis.location.href = destination;
           return;
         }
@@ -109,10 +108,7 @@ function AuthCallbackPage() {
           if (typeof window !== "undefined" && globalThis.localStorage) {
             localStorage.setItem("auth_token", authData.token);
             if (authData.session !== undefined) {
-              localStorage.setItem(
-                "auth_session",
-                JSON.stringify(authData.session),
-              );
+              localStorage.setItem("auth_session", JSON.stringify(authData.session));
             }
             const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
             localStorage.setItem("auth_token_expires_at", expiresAt.toString());
@@ -136,9 +132,7 @@ function AuthCallbackPage() {
           currentUrl: typeof window !== "undefined" ? globalThis.location.href : "",
         });
         setStatus("error");
-        setErrorMessage(
-          error instanceof Error ? error.message : "Authentication failed",
-        );
+        setErrorMessage(error instanceof Error ? error.message : "Authentication failed");
       }
     };
 
@@ -160,20 +154,13 @@ function AuthCallbackPage() {
         <Card className="w-full">
           <CardHeader className="text-center">
             <CardTitle>{t("Auth.LoginFailed")}</CardTitle>
-            <CardDescription>
-              {t("Auth.TryAgainOrReturnToHomepage")}
-            </CardDescription>
+            <CardDescription>{t("Auth.TryAgainOrReturnToHomepage")}</CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <Alert variant="destructive">
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
-            <Button
-              type="button"
-              onClick={handleReturnHome}
-              variant="outline"
-              className="w-full"
-            >
+            <Button type="button" onClick={handleReturnHome} variant="outline" className="w-full">
               {t("Auth.ReturnToHomepage")}
             </Button>
           </CardContent>

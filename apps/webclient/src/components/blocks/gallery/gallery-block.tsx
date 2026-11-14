@@ -10,11 +10,7 @@ type GalleryBlockProps = {
 
 function GalleryBlock(props: GalleryBlockProps) {
   return (
-    <div
-      className={styles.gallery}
-      data-cols={props.cols ?? 3}
-      data-gap={props.gap ?? "md"}
-    >
+    <div className={styles.gallery} data-cols={props.cols ?? 3} data-gap={props.gap ?? "md"}>
       {props.children}
     </div>
   );

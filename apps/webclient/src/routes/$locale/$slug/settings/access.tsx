@@ -115,21 +115,12 @@ function MemberCard(props: MemberCardProps) {
   return (
     <div className={styles.selectedUser}>
       <Avatar className={props.avatarSize ?? "size-8"}>
-        <AvatarImage
-          src={props.pictureUri ?? undefined}
-          alt={props.title ?? ""}
-        />
-        <AvatarFallback>
-          {getInitials(props.title, props.slug)}
-        </AvatarFallback>
+        <AvatarImage src={props.pictureUri ?? undefined} alt={props.title ?? ""} />
+        <AvatarFallback>{getInitials(props.title, props.slug)}</AvatarFallback>
       </Avatar>
       <div className={styles.searchResultInfo}>
-        <p className={styles.searchResultName}>
-          {props.title ?? props.fallbackName ?? props.slug}
-        </p>
-        <p className={styles.searchResultSlug}>
-          @{props.slug}
-        </p>
+        <p className={styles.searchResultName}>{props.title ?? props.fallbackName ?? props.slug}</p>
+        <p className={styles.searchResultSlug}>@{props.slug}</p>
       </div>
     </div>
   );
@@ -157,12 +148,8 @@ function VisibilitySelectItem(props: { option: VisibilityOption }) {
         <CheckIcon className="size-4 pointer-events-none" />
       </SelectPrimitive.ItemIndicator>
       <div className="flex flex-col gap-0.5">
-        <SelectPrimitive.ItemText className="font-medium">
-          {props.option.label}
-        </SelectPrimitive.ItemText>
-        <span className="text-xs text-muted-foreground">
-          {props.option.description}
-        </span>
+        <SelectPrimitive.ItemText className="font-medium">{props.option.label}</SelectPrimitive.ItemText>
+        <span className="text-xs text-muted-foreground">{props.option.description}</span>
       </div>
     </SelectPrimitive.Item>
   );
@@ -191,12 +178,12 @@ function VisibilitySelect(props: {
       }}
     >
       <SelectTrigger>
-        <SelectValue>
-          {(value: string) => labelMap.get(value) ?? value}
-        </SelectValue>
+        <SelectValue>{(value: string) => labelMap.get(value) ?? value}</SelectValue>
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
-        {props.options.map((option) => <VisibilitySelectItem key={option.value} option={option} />)}
+        {props.options.map((option) => (
+          <VisibilitySelectItem key={option.value} option={option} />
+        ))}
       </SelectContent>
     </Select>
   );
@@ -369,19 +356,22 @@ function AccessSettingsPage() {
     setIsLoading(false);
   };
 
-  const handleSearch = React.useCallback(async (query: string) => {
-    if (query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
+  const handleSearch = React.useCallback(
+    async (query: string) => {
+      if (query.length < 2) {
+        setSearchResults([]);
+        return;
+      }
 
-    setIsSearching(true);
-    const results = await backend.searchUsersForMembership(params.locale, params.slug, query);
-    if (results !== null) {
-      setSearchResults(results);
-    }
-    setIsSearching(false);
-  }, [params.locale, params.slug]);
+      setIsSearching(true);
+      const results = await backend.searchUsersForMembership(params.locale, params.slug, query);
+      if (results !== null) {
+        setSearchResults(results);
+      }
+      setIsSearching(false);
+    },
+    [params.locale, params.slug],
+  );
 
   const handleSearchInputChange = (value: string) => {
     setSearchQuery(value);
@@ -425,7 +415,8 @@ function AccessSettingsPage() {
 
   const handleAddMember = async () => {
     if (
-      selectedUser === null || selectedUser.individual_profile_id === null ||
+      selectedUser === null ||
+      selectedUser.individual_profile_id === null ||
       selectedUser.individual_profile_id === undefined
     ) {
       toast.error(t("Profile.Please select a user"));
@@ -442,12 +433,7 @@ function AccessSettingsPage() {
     if (result !== null) {
       // Assign teams if any selected (separate audit event)
       if (selectedTeamIds.length > 0) {
-        await backend.setMembershipTeams(
-          params.locale,
-          params.slug,
-          result.id,
-          selectedTeamIds,
-        );
+        await backend.setMembershipTeams(params.locale, params.slug, result.id, selectedTeamIds);
       }
 
       toast.success(t("Profile.Member added successfully"));
@@ -463,12 +449,9 @@ function AccessSettingsPage() {
     if (editingMembership === null) return;
 
     setIsSaving(true);
-    const kindSuccess = await backend.updateProfileMembership(
-      params.locale,
-      params.slug,
-      editingMembership.id,
-      { kind: editKind },
-    );
+    const kindSuccess = await backend.updateProfileMembership(params.locale, params.slug, editingMembership.id, {
+      kind: editKind,
+    });
 
     const teamsSuccess = await backend.setMembershipTeams(
       params.locale,
@@ -491,11 +474,7 @@ function AccessSettingsPage() {
   const handleDeleteMembership = async () => {
     if (membershipToDelete === null) return;
 
-    const success = await backend.deleteProfileMembership(
-      params.locale,
-      params.slug,
-      membershipToDelete.id,
-    );
+    const success = await backend.deleteProfileMembership(params.locale, params.slug, membershipToDelete.id);
 
     if (success) {
       toast.success(t("Profile.Member removed successfully"));
@@ -535,11 +514,11 @@ function AccessSettingsPage() {
   };
 
   const handleToggleEditTeam = (teamId: string) => {
-    setEditTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
+    setEditTeamIds((prev) => (prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]));
   };
 
   const handleToggleAddTeam = (teamId: string) => {
-    setSelectedTeamIds((prev) => prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]);
+    setSelectedTeamIds((prev) => (prev.includes(teamId) ? prev.filter((id) => id !== teamId) : [...prev, teamId]));
   };
 
   const visibilityOptions: VisibilityOption[] = [
@@ -604,10 +583,7 @@ function AccessSettingsPage() {
         </div>
         <div className={styles.membersList}>
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={styles.memberItem}
-            >
+            <div key={i} className={styles.memberItem}>
               <Skeleton className="size-10 rounded-full" />
               <div className="flex-1">
                 <Skeleton className="h-5 w-32 mb-2" />
@@ -687,9 +663,7 @@ function AccessSettingsPage() {
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">
-                            {t("Profile.None (message only)")}
-                          </SelectItem>
+                          <SelectItem value="none">{t("Profile.None (message only)")}</SelectItem>
                           {presets.map((preset) => (
                             <SelectItem key={preset.key} value={preset.key}>
                               {preset.label}
@@ -704,18 +678,14 @@ function AccessSettingsPage() {
 
                         return (
                           <div className="mt-2 rounded-md border border-border bg-muted/30 p-3">
-                            <p className="text-xs font-medium text-muted-foreground mb-2">
-                              {t("Profile.Form fields")}
-                            </p>
+                            <p className="text-xs font-medium text-muted-foreground mb-2">{t("Profile.Form fields")}</p>
                             <ul className="space-y-1.5">
                               {activePreset.fields.map((field, index) => (
                                 <li key={index} className="flex items-center gap-2 text-sm">
                                   <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground font-mono">
                                     {field.field_type}
                                   </span>
-                                  <span className="text-foreground">
-                                    {field.label}
-                                  </span>
+                                  <span className="text-foreground">{field.label}</span>
                                   {field.is_required && <span className="text-destructive text-xs">*</span>}
                                 </li>
                               ))}
@@ -728,10 +698,7 @@ function AccessSettingsPage() {
                 </div>
 
                 <DialogFooter>
-                  <Button
-                    onClick={handleSaveMembership}
-                    disabled={isSavingMembership}
-                  >
+                  <Button onClick={handleSaveMembership} disabled={isSavingMembership}>
                     {isSavingMembership && <Loader2 className="mr-2 size-4 animate-spin" />}
                     {isSavingMembership ? t("Common.Saving...") : t("Common.Save")}
                   </Button>
@@ -750,98 +717,89 @@ function AccessSettingsPage() {
         </div>
       </div>
 
-      {memberships.length === 0
-        ? (
-          <div className={styles.emptyState}>
-            <Users className={styles.emptyIcon} />
-            <p className={styles.emptyText}>{t("Profile.No members added yet.")}</p>
-            <Button variant="outline" onClick={handleOpenAddDialog}>
-              <Plus className="size-4 mr-1" />
-              {t("Profile.Add Your First Member")}
-            </Button>
-          </div>
-        )
-        : (
-          <div className={styles.membersList}>
-            {memberships.map((membership) => {
-              const config = getMembershipKindConfig(membership.kind);
-              const IconComponent = config.icon;
-              const memberProfile = membership.member_profile;
+      {memberships.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Users className={styles.emptyIcon} />
+          <p className={styles.emptyText}>{t("Profile.No members added yet.")}</p>
+          <Button variant="outline" onClick={handleOpenAddDialog}>
+            <Plus className="size-4 mr-1" />
+            {t("Profile.Add Your First Member")}
+          </Button>
+        </div>
+      ) : (
+        <div className={styles.membersList}>
+          {memberships.map((membership) => {
+            const config = getMembershipKindConfig(membership.kind);
+            const IconComponent = config.icon;
+            const memberProfile = membership.member_profile;
 
-              const isMemberOwner = membership.kind === "owner";
-              const ownerCount = memberships.filter((m) => m.kind === "owner").length;
-              const isLastOwner = isMemberOwner && ownerCount === 1;
+            const isMemberOwner = membership.kind === "owner";
+            const ownerCount = memberships.filter((m) => m.kind === "owner").length;
+            const isLastOwner = isMemberOwner && ownerCount === 1;
 
-              // Non-owners (and non-admins) cannot edit/delete owners
-              const canEditMember = isMemberOwner ? isViewerOwner : true;
-              // Last owner cannot be deleted by anyone
-              const canDeleteMember = isLastOwner ? false : canEditMember;
+            // Non-owners (and non-admins) cannot edit/delete owners
+            const canEditMember = isMemberOwner ? isViewerOwner : true;
+            // Last owner cannot be deleted by anyone
+            const canDeleteMember = isLastOwner ? false : canEditMember;
 
-              return (
-                <div key={membership.id} className={styles.memberItem}>
-                  <Avatar className={styles.memberAvatar}>
-                    <AvatarImage
-                      src={memberProfile?.profile_picture_uri ?? undefined}
-                      alt={memberProfile?.title ?? ""}
-                    />
-                    <AvatarFallback>
-                      {getInitials(memberProfile?.title, memberProfile?.slug ?? "")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className={styles.memberInfo}>
-                    <div className={styles.memberName}>
-                      <span>{memberProfile?.title ?? t("Common.Unknown")}</span>
-                      <span className={`${styles.memberKindBadge} ${config.color}`}>
-                        <IconComponent className="size-3" />
-                        {t(config.labelKey)}
-                      </span>
-                      {membership.teams !== undefined && membership.teams.length > 0 &&
-                        membership.teams.map((team) => (
-                          <span key={team.id} className={styles.teamBadge}>{team.name}</span>
-                        ))}
-                    </div>
-                    <p className={styles.memberSlug}>@{memberProfile?.slug}</p>
+            return (
+              <div key={membership.id} className={styles.memberItem}>
+                <Avatar className={styles.memberAvatar}>
+                  <AvatarImage src={memberProfile?.profile_picture_uri ?? undefined} alt={memberProfile?.title ?? ""} />
+                  <AvatarFallback>{getInitials(memberProfile?.title, memberProfile?.slug ?? "")}</AvatarFallback>
+                </Avatar>
+                <div className={styles.memberInfo}>
+                  <div className={styles.memberName}>
+                    <span>{memberProfile?.title ?? t("Common.Unknown")}</span>
+                    <span className={`${styles.memberKindBadge} ${config.color}`}>
+                      <IconComponent className="size-3" />
+                      {t(config.labelKey)}
+                    </span>
+                    {membership.teams !== undefined &&
+                      membership.teams.length > 0 &&
+                      membership.teams.map((team) => (
+                        <span key={team.id} className={styles.teamBadge}>
+                          {team.name}
+                        </span>
+                      ))}
                   </div>
-                  <div className={styles.memberActions}>
-                    {canDeleteMember && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                          <MoreHorizontal className="size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-auto">
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => handleOpenDeleteDialog(membership)}
-                          >
-                            <Trash2 className="size-4" />
-                            {t("Profile.Remove Member")}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenEditDialog(membership)}
-                      disabled={!canEditMember}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                  </div>
+                  <p className={styles.memberSlug}>@{memberProfile?.slug}</p>
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <div className={styles.memberActions}>
+                  {canDeleteMember && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium h-8 w-8 hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <MoreHorizontal className="size-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-auto">
+                        <DropdownMenuItem variant="destructive" onClick={() => handleOpenDeleteDialog(membership)}>
+                          <Trash2 className="size-4" />
+                          {t("Profile.Remove Member")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleOpenEditDialog(membership)}
+                    disabled={!canEditMember}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Add Member Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("Profile.Add Member")}</DialogTitle>
-            <DialogDescription>
-              {t("Profile.Search for a user by their username, email, or name.")}
-            </DialogDescription>
+            <DialogDescription>{t("Profile.Search for a user by their username, email, or name.")}</DialogDescription>
           </DialogHeader>
 
           <div className={styles.addDialogContent}>
@@ -876,17 +834,11 @@ function AccessSettingsPage() {
                           src={user.profile?.profile_picture_uri ?? undefined}
                           alt={user.profile?.title ?? ""}
                         />
-                        <AvatarFallback>
-                          {getInitials(user.profile?.title, user.profile?.slug ?? "")}
-                        </AvatarFallback>
+                        <AvatarFallback>{getInitials(user.profile?.title, user.profile?.slug ?? "")}</AvatarFallback>
                       </Avatar>
                       <div className={styles.searchResultInfo}>
-                        <p className={styles.searchResultName}>
-                          {user.profile?.title ?? user.name ?? user.email}
-                        </p>
-                        <p className={styles.searchResultSlug}>
-                          @{user.profile?.slug}
-                        </p>
+                        <p className={styles.searchResultName}>{user.profile?.title ?? user.name ?? user.email}</p>
+                        <p className={styles.searchResultSlug}>@{user.profile?.slug}</p>
                       </div>
                     </button>
                   ))}
@@ -905,11 +857,7 @@ function AccessSettingsPage() {
 
             <div className={styles.kindField}>
               <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
-              <MembershipKindSelect
-                value={selectedKind}
-                onChange={setSelectedKind}
-                kinds={availableKinds}
-              />
+              <MembershipKindSelect value={selectedKind} onChange={setSelectedKind} kinds={availableKinds} />
             </div>
 
             {teams.length > 0 && (
@@ -946,28 +894,26 @@ function AccessSettingsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("Profile.Edit Access Level")}</DialogTitle>
-            <DialogDescription>
-              {t("Profile.Change the access level for this member.")}
-            </DialogDescription>
+            <DialogDescription>{t("Profile.Change the access level for this member.")}</DialogDescription>
           </DialogHeader>
 
-          {editingMembership !== null && (() => {
-            const ownerCount = memberships.filter((m) => m.kind === "owner").length;
-            const isOnlyOwner = editingMembership.kind === "owner" && ownerCount === 1;
+          {editingMembership !== null &&
+            (() => {
+              const ownerCount = memberships.filter((m) => m.kind === "owner").length;
+              const isOnlyOwner = editingMembership.kind === "owner" && ownerCount === 1;
 
-            return (
-              <div className={styles.editDialogContent}>
-                <MemberCard
-                  pictureUri={editingMembership.member_profile?.profile_picture_uri}
-                  title={editingMembership.member_profile?.title}
-                  slug={editingMembership.member_profile?.slug ?? ""}
-                  avatarSize="size-10"
-                />
+              return (
+                <div className={styles.editDialogContent}>
+                  <MemberCard
+                    pictureUri={editingMembership.member_profile?.profile_picture_uri}
+                    title={editingMembership.member_profile?.title}
+                    slug={editingMembership.member_profile?.slug ?? ""}
+                    avatarSize="size-10"
+                  />
 
-                <div className={styles.kindField}>
-                  <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
-                  {isOnlyOwner
-                    ? (
+                  <div className={styles.kindField}>
+                    <label className={styles.kindLabel}>{t("Profile.Access Level")}</label>
+                    {isOnlyOwner ? (
                       <div className={styles.onlyOwnerNotice}>
                         {(() => {
                           const config = getMembershipKindConfig(editKind);
@@ -983,35 +929,30 @@ function AccessSettingsPage() {
                           {t("Profile.Cannot change the access level of the only owner.")}
                         </p>
                       </div>
-                    )
-                    : (
-                      <MembershipKindSelect
-                        value={editKind}
-                        onChange={setEditKind}
-                        kinds={availableKinds}
-                      />
+                    ) : (
+                      <MembershipKindSelect value={editKind} onChange={setEditKind} kinds={availableKinds} />
                     )}
-                </div>
-
-                {teams.length > 0 && (
-                  <div className={styles.kindField}>
-                    <label className={styles.kindLabel}>{t("Profile.Assign Teams")}</label>
-                    <div className={styles.teamCheckboxList}>
-                      {teams.map((team) => (
-                        <label key={team.id} className={styles.teamCheckboxItem}>
-                          <Checkbox
-                            checked={editTeamIds.includes(team.id)}
-                            onCheckedChange={() => handleToggleEditTeam(team.id)}
-                          />
-                          <span className="text-sm">{team.name}</span>
-                        </label>
-                      ))}
-                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })()}
+
+                  {teams.length > 0 && (
+                    <div className={styles.kindField}>
+                      <label className={styles.kindLabel}>{t("Profile.Assign Teams")}</label>
+                      <div className={styles.teamCheckboxList}>
+                        {teams.map((team) => (
+                          <label key={team.id} className={styles.teamCheckboxItem}>
+                            <Checkbox
+                              checked={editTeamIds.includes(team.id)}
+                              onCheckedChange={() => handleToggleEditTeam(team.id)}
+                            />
+                            <span className="text-sm">{team.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
@@ -1037,9 +978,7 @@ function AccessSettingsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Common.Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteMembership}>
-              {t("Common.Remove")}
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteMembership}>{t("Common.Remove")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -1049,24 +988,19 @@ function AccessSettingsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("Profile.Teams")}</DialogTitle>
-            <DialogDescription>
-              {t("Profile.Manage teams for this profile.")}
-            </DialogDescription>
+            <DialogDescription>{t("Profile.Manage teams for this profile.")}</DialogDescription>
           </DialogHeader>
 
           <div className={styles.teamList}>
             {teams.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                {t("Profile.No teams yet.")}
-              </p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("Profile.No teams yet.")}</p>
             )}
             {teams.map((team) => (
               <div key={team.id} className={styles.teamItem}>
                 <div>
                   <span className="text-sm font-medium">{team.name}</span>
                   <span className={styles.teamMemberCount}>
-                    &middot; {team.member_count} {team.member_count === 1 ? t("Profile.member") : t("Profile.members")}
-                    {" "}
+                    &middot; {team.member_count} {team.member_count === 1 ? t("Profile.member") : t("Profile.members")}{" "}
                     &middot; {team.resource_count}{" "}
                     {team.resource_count === 1 ? t("Profile.resource") : t("Profile.resources")}
                   </span>
@@ -1076,13 +1010,15 @@ function AccessSettingsPage() {
                   size="icon"
                   onClick={() => handleDeleteTeam(team.id)}
                   disabled={isTeamSaving || team.member_count > 0 || team.resource_count > 0}
-                  title={team.member_count > 0 && team.resource_count > 0
-                    ? t("Profile.Cannot delete team with members and resources")
-                    : team.member_count > 0
-                    ? t("Profile.Cannot delete team with members")
-                    : team.resource_count > 0
-                    ? t("Profile.Cannot delete team with resources")
-                    : undefined}
+                  title={
+                    team.member_count > 0 && team.resource_count > 0
+                      ? t("Profile.Cannot delete team with members and resources")
+                      : team.member_count > 0
+                        ? t("Profile.Cannot delete team with members")
+                        : team.resource_count > 0
+                          ? t("Profile.Cannot delete team with resources")
+                          : undefined
+                  }
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -1102,10 +1038,7 @@ function AccessSettingsPage() {
               }}
               className="flex-1"
             />
-            <Button
-              onClick={handleCreateTeam}
-              disabled={isTeamSaving || newTeamName.trim().length === 0}
-            >
+            <Button onClick={handleCreateTeam} disabled={isTeamSaving || newTeamName.trim().length === 0}>
               {t("Profile.Add Team")}
             </Button>
           </div>

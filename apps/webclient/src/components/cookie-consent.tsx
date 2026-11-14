@@ -65,36 +65,28 @@ export function CookieConsent() {
       <div className={styles.content}>
         <div className={styles.message}>
           <Cookie className="size-4 shrink-0" />
-          <span>
-            {bannerState === "confirming" ? t("Cookies.confirmMessage") : t("Cookies.message")}
-          </span>
+          <span>{bannerState === "confirming" ? t("Cookies.confirmMessage") : t("Cookies.message")}</span>
         </div>
         <div className={styles.actions}>
-          {bannerState === "confirming"
-            ? (
-              <>
-                <Button variant="ghost" size="sm" onClick={handleNevermind}>
-                  {t("Cookies.nevermind")}
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleConfirmReject}
-                >
-                  {t("Cookies.confirmReject")}
-                </Button>
-              </>
-            )
-            : (
-              <>
-                <Button variant="ghost" size="sm" onClick={handleReject}>
-                  {t("Cookies.reject")}
-                </Button>
-                <Button variant="default" size="sm" onClick={handleAccept}>
-                  {t("Cookies.accept")}
-                </Button>
-              </>
-            )}
+          {bannerState === "confirming" ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={handleNevermind}>
+                {t("Cookies.nevermind")}
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleConfirmReject}>
+                {t("Cookies.confirmReject")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={handleReject}>
+                {t("Cookies.reject")}
+              </Button>
+              <Button variant="default" size="sm" onClick={handleAccept}>
+                {t("Cookies.accept")}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

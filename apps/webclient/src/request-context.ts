@@ -1,19 +1,22 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import type { SupportedLocaleCode } from "@/config";
 
-export type DomainConfiguration = {
-  type: "main";
-  defaultCulture: SupportedLocaleCode;
-  allowsWwwPrefix: boolean;
-} | {
-  type: "custom-domain";
-  defaultCulture: SupportedLocaleCode;
-  profileSlug: string;
-  profileTitle: string | null;
-  allowsWwwPrefix: boolean;
-} | {
-  type: "not-configured";
-};
+export type DomainConfiguration =
+  | {
+      type: "main";
+      defaultCulture: SupportedLocaleCode;
+      allowsWwwPrefix: boolean;
+    }
+  | {
+      type: "custom-domain";
+      defaultCulture: SupportedLocaleCode;
+      profileSlug: string;
+      profileTitle: string | null;
+      allowsWwwPrefix: boolean;
+    }
+  | {
+      type: "not-configured";
+    };
 
 export type RequestContext = {
   domainConfiguration: DomainConfiguration;

@@ -48,8 +48,6 @@ export const signIn = {
     getAuthClient().signIn.social(...args),
 };
 
-export function signOut(
-  ...args: Parameters<ReturnType<typeof createAuthClient>["signOut"]>
-) {
+export function signOut(...args: Parameters<ReturnType<typeof createAuthClient>["signOut"]>) {
   return getAuthClient().signOut(...args);
 }

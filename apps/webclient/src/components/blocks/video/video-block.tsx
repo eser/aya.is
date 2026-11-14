@@ -13,11 +13,7 @@ function VideoBlock(props: VideoBlockProps) {
     <div className={styles.video}>
       {props.title !== undefined && props.title !== null && <div className={styles.title}>{props.title}</div>}
       <div className={styles.wrapper}>
-        <video
-          controls
-          className={styles.player}
-          poster={props.poster}
-        >
+        <video controls className={styles.player} poster={props.poster}>
           <source src={props.src} />
         </video>
       </div>

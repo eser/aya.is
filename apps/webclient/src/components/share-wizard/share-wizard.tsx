@@ -36,23 +36,14 @@ export function ShareWizard(props: ShareWizardProps) {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <ShareActions
-          storyTitle={props.story.title ?? ""}
-          currentUrl={props.currentUrl}
-          onBack={props.onBack}
-        />
+        <ShareActions storyTitle={props.story.title ?? ""} currentUrl={props.currentUrl} onBack={props.onBack} />
       </div>
 
       {/* Main content */}
       <div className={styles.content}>
         {/* Left: Compose panel */}
         <div className={styles.mainPanel}>
-          <ComposePanel
-            text={text}
-            story={props.story}
-            currentUrl={props.currentUrl}
-            onTextChange={setText}
-          />
+          <ComposePanel text={text} story={props.story} currentUrl={props.currentUrl} onTextChange={setText} />
 
           <PlatformPreview
             text={text}
@@ -75,10 +66,7 @@ export function ShareWizard(props: ShareWizardProps) {
             activePlatform={activePlatform}
           />
 
-          <ImageComposer
-            story={props.story}
-            locale={props.locale}
-          />
+          <ImageComposer story={props.story} locale={props.locale} />
         </div>
       </div>
     </div>

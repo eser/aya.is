@@ -21,9 +21,7 @@ export async function createSession(
     const challenge = await getPOWChallenge(locale);
 
     if (challenge !== null) {
-      console.log(
-        `[Session] Solving PoW challenge (difficulty: ${challenge.difficulty})...`,
-      );
+      console.log(`[Session] Solving PoW challenge (difficulty: ${challenge.difficulty})...`);
       try {
         nonce = await solvePOW(challenge.prefix, challenge.difficulty);
         powChallengeId = challenge.pow_challenge_id;

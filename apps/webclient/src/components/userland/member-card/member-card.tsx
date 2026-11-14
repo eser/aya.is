@@ -17,11 +17,7 @@ export function MemberCard(props: MemberCardProps) {
   const videoStats = properties !== null ? properties.videos : undefined;
 
   return (
-    <LocaleLink
-      data-slot="card"
-      to={`/${memberProfile.slug}`}
-      className={styles.cardLink}
-    >
+    <LocaleLink data-slot="card" to={`/${memberProfile.slug}`} className={styles.cardLink}>
       <div className={styles.memberCard}>
         <div className={styles.avatarContainer}>
           <SiteAvatar
@@ -35,13 +31,11 @@ export function MemberCard(props: MemberCardProps) {
         <div className={styles.content}>
           <div className={styles.titleRow}>
             <h3 className={styles.title}>{memberProfile.title}</h3>
-            <span className={styles.role}>
-              {t(`Contributions.${props.membership.kind}`)}
-            </span>
+            <span className={styles.role}>{t(`Contributions.${props.membership.kind}`)}</span>
           </div>
-          {memberProfile.description !== null &&
-            memberProfile.description !== undefined && <p className={styles.description}>{memberProfile.description}
-          </p>}
+          {memberProfile.description !== null && memberProfile.description !== undefined && (
+            <p className={styles.description}>{memberProfile.description}</p>
+          )}
         </div>
 
         {githubStats !== undefined && (

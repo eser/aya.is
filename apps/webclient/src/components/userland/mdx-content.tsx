@@ -44,9 +44,7 @@ class MdxErrorBoundary extends React.Component<MdxErrorBoundaryProps, MdxErrorBo
       return (
         <div className="text-destructive text-sm">
           <strong>Content rendering error:</strong>
-          <pre className="mt-1 whitespace-pre-wrap text-xs opacity-80">
-            {this.state.error.message}
-          </pre>
+          <pre className="mt-1 whitespace-pre-wrap text-xs opacity-80">{this.state.error.message}</pre>
         </div>
       );
     }
@@ -56,12 +54,7 @@ class MdxErrorBoundary extends React.Component<MdxErrorBoundaryProps, MdxErrorBo
 }
 
 export function MdxContent(props: MdxContentProps) {
-  const {
-    compiledSource,
-    className,
-    headingOffset = 1,
-    includeUserlandComponents = true,
-  } = props;
+  const { compiledSource, className, headingOffset = 1, includeUserlandComponents = true } = props;
 
   // Use useMemo to cache the MDX component and avoid re-running on every render
   const Content = React.useMemo(() => {
@@ -79,11 +72,7 @@ export function MdxContent(props: MdxContentProps) {
   );
 
   if (Content === null) {
-    return (
-      <div className="text-destructive">
-        Error rendering content. Please try refreshing the page.
-      </div>
-    );
+    return <div className="text-destructive">Error rendering content. Please try refreshing the page.</div>;
   }
 
   return (

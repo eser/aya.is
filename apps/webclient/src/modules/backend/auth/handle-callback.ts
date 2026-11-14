@@ -17,15 +17,12 @@ export async function handleAuthCallback(
 ): Promise<AuthCallbackResponse | null> {
   const backendUri = getBackendUri();
 
-  const response = await fetch(
-    `${backendUri}/${locale}/auth/github/callback?code=${code}&state=${state ?? ""}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+  const response = await fetch(`${backendUri}/${locale}/auth/github/callback?code=${code}&state=${state ?? ""}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+  });
 
   if (!response.ok) {
     let errorMessage = `Authentication failed (${response.status})`;
@@ -45,9 +42,7 @@ export async function handleAuthCallback(
   const data = await response.json();
 
   if (data.data?.token === undefined) {
-    throw new Error(
-      `No token received from server. Response: ${JSON.stringify(data)}`,
-    );
+    throw new Error(`No token received from server. Response: ${JSON.stringify(data)}`);
   }
 
   return data.data as AuthCallbackResponse;

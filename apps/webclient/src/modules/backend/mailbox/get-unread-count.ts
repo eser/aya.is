@@ -2,9 +2,7 @@
 import { getBackendUri } from "@/config";
 import { getAuthToken } from "../fetcher";
 
-export async function getUnreadCount(
-  locale: string,
-): Promise<number> {
+export async function getUnreadCount(locale: string): Promise<number> {
   const token = getAuthToken();
   if (token === null) {
     return 0;
@@ -15,14 +13,11 @@ export async function getUnreadCount(
     Authorization: `Bearer ${token}`,
   };
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/mailbox/unread-count`,
-    {
-      method: "GET",
-      headers,
-      credentials: "include",
-    },
-  );
+  const response = await fetch(`${getBackendUri()}/${locale}/mailbox/unread-count`, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
 
   if (!response.ok) {
     return 0;

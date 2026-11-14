@@ -141,7 +141,9 @@
 
   body {
     font-synthesis: none;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
     @apply font-sans bg-background text-foreground subpixel-antialiased min-h-screen;
   }
 

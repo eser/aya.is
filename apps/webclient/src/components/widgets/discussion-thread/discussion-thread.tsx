@@ -33,35 +33,36 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   const [thread, setThread] = React.useState<DiscussionThreadType | null>(
     initialData !== null ? initialData.thread : null,
   );
-  const [comments, setComments] = React.useState<DiscussionComment[]>(
-    initialData !== null ? initialData.comments : [],
-  );
+  const [comments, setComments] = React.useState<DiscussionComment[]>(initialData !== null ? initialData.comments : []);
   const [sortMode, setSortMode] = React.useState<DiscussionSortMode>("hot");
   const [isLoading, setIsLoading] = React.useState(!hasInitialData);
   const [hasLoaded, setHasLoaded] = React.useState(hasInitialData);
   const [showHeaderMenu, setShowHeaderMenu] = React.useState(false);
 
   // Fetch discussion data
-  const fetchDiscussion = React.useCallback(async (sort: DiscussionSortMode) => {
-    try {
-      let data = null;
-      if (props.storySlug !== undefined) {
-        data = await backend.getStoryDiscussion(props.locale, props.storySlug, sort);
-      } else if (props.profileSlug !== undefined) {
-        data = await backend.getProfileDiscussion(props.locale, props.profileSlug, sort);
-      }
+  const fetchDiscussion = React.useCallback(
+    async (sort: DiscussionSortMode) => {
+      try {
+        let data = null;
+        if (props.storySlug !== undefined) {
+          data = await backend.getStoryDiscussion(props.locale, props.storySlug, sort);
+        } else if (props.profileSlug !== undefined) {
+          data = await backend.getProfileDiscussion(props.locale, props.profileSlug, sort);
+        }
 
-      if (data !== null && data !== undefined) {
-        setThread(data.thread);
-        const compiled = await compileCommentsBatch(data.comments);
-        setComments(compiled);
+        if (data !== null && data !== undefined) {
+          setThread(data.thread);
+          const compiled = await compileCommentsBatch(data.comments);
+          setComments(compiled);
+        }
+      } catch {
+        // API error (500, network failure, etc.) — silently fail and show empty state
       }
-    } catch {
-      // API error (500, network failure, etc.) — silently fail and show empty state
-    }
-    setIsLoading(false);
-    setHasLoaded(true);
-  }, [props.storySlug, props.profileSlug, props.locale]);
+      setIsLoading(false);
+      setHasLoaded(true);
+    },
+    [props.storySlug, props.profileSlug, props.locale],
+  );
 
   // Track whether the initial SSR data has been used (skip first client fetch)
   const usedInitialData = React.useRef(hasInitialData);
@@ -99,10 +100,12 @@ export function DiscussionThread(props: DiscussionThreadProps) {
     if (auth.user.accessible_profiles !== undefined) {
       const membership = auth.user.accessible_profiles.find((p) => p.id === props.profileId);
       if (membership !== undefined) {
-        return membership.membership_kind === "owner" ||
+        return (
+          membership.membership_kind === "owner" ||
           membership.membership_kind === "lead" ||
           membership.membership_kind === "maintainer" ||
-          membership.membership_kind === "contributor";
+          membership.membership_kind === "contributor"
+        );
       }
     }
 
@@ -120,36 +123,39 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   }, []);
 
   // Create comment handler
-  const handleCreateComment = React.useCallback(async (content: string) => {
-    let result = null;
-    if (props.storySlug !== undefined) {
-      result = await backend.createStoryComment(props.locale, props.storySlug, {
-        content,
-        parent_id: null,
-      });
-    } else if (props.profileSlug !== undefined) {
-      result = await backend.createProfileComment(props.locale, props.profileSlug, {
-        content,
-        parent_id: null,
-      });
-    }
+  const handleCreateComment = React.useCallback(
+    async (content: string) => {
+      let result = null;
+      if (props.storySlug !== undefined) {
+        result = await backend.createStoryComment(props.locale, props.storySlug, {
+          content,
+          parent_id: null,
+        });
+      } else if (props.profileSlug !== undefined) {
+        result = await backend.createProfileComment(props.locale, props.profileSlug, {
+          content,
+          parent_id: null,
+        });
+      }
 
-    if (result !== null) {
-      // Enrich with viewer profile data
-      const enriched = { ...result };
-      if (auth.user?.individual_profile !== undefined) {
-        enriched.author_profile_id = auth.user.individual_profile.id;
-        enriched.author_profile_slug = auth.user.individual_profile.slug;
-        enriched.author_profile_title = auth.user.individual_profile.title;
-        enriched.author_profile_picture_uri = auth.user.individual_profile.profile_picture_uri ?? null;
+      if (result !== null) {
+        // Enrich with viewer profile data
+        const enriched = { ...result };
+        if (auth.user?.individual_profile !== undefined) {
+          enriched.author_profile_id = auth.user.individual_profile.id;
+          enriched.author_profile_slug = auth.user.individual_profile.slug;
+          enriched.author_profile_title = auth.user.individual_profile.title;
+          enriched.author_profile_picture_uri = auth.user.individual_profile.profile_picture_uri ?? null;
+        }
+        const compiled = await compileOneComment(enriched);
+        setComments((prev) => [compiled, ...prev]);
+        if (thread !== null) {
+          setThread({ ...thread, comment_count: thread.comment_count + 1 });
+        }
       }
-      const compiled = await compileOneComment(enriched);
-      setComments((prev) => [compiled, ...prev]);
-      if (thread !== null) {
-        setThread({ ...thread, comment_count: thread.comment_count + 1 });
-      }
-    }
-  }, [props.storySlug, props.profileSlug, props.locale, auth.user, thread]);
+    },
+    [props.storySlug, props.profileSlug, props.locale, auth.user, thread],
+  );
 
   // Reply handler
   const handleReply = React.useCallback(
@@ -183,7 +189,7 @@ export function DiscussionThread(props: DiscussionThreadProps) {
               return { ...c, reply_count: c.reply_count + 1 };
             }
             return c;
-          })
+          }),
         );
         if (thread !== null) {
           setThread({ ...thread, comment_count: thread.comment_count + 1 });
@@ -197,114 +203,129 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   );
 
   // Vote handler (optimistic)
-  const handleVote = React.useCallback(async (commentId: string, direction: 1 | -1) => {
-    // Optimistic update
-    setComments((prev) =>
-      prev.map((c) => {
-        if (c.id === commentId) {
-          return applyVoteOptimistic(c, direction);
-        }
-        return c;
-      })
-    );
-
-    const result = await backend.voteComment(props.locale, commentId, { direction });
-    if (result !== null) {
-      // Reconcile with server response
+  const handleVote = React.useCallback(
+    async (commentId: string, direction: 1 | -1) => {
+      // Optimistic update
       setComments((prev) =>
         prev.map((c) => {
           if (c.id === commentId) {
-            return {
-              ...c,
-              vote_score: result.vote_score,
-              viewer_vote_direction: result.viewer_vote_direction,
-            };
+            return applyVoteOptimistic(c, direction);
           }
           return c;
-        })
+        }),
       );
-    }
-  }, [props.locale]);
+
+      const result = await backend.voteComment(props.locale, commentId, { direction });
+      if (result !== null) {
+        // Reconcile with server response
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                vote_score: result.vote_score,
+                viewer_vote_direction: result.viewer_vote_direction,
+              };
+            }
+            return c;
+          }),
+        );
+      }
+    },
+    [props.locale],
+  );
 
   // Edit handler
-  const handleEdit = React.useCallback(async (commentId: string, content: string) => {
-    const result = await backend.editDiscussionComment(props.locale, commentId, { content });
-    if (result !== null) {
-      let compiledContent: string | null = null;
-      try {
-        const { compileMdxLite } = await import("@/lib/mdx");
-        compiledContent = await compileMdxLite(content);
-      } catch {
-        // Fall back to plain text
+  const handleEdit = React.useCallback(
+    async (commentId: string, content: string) => {
+      const result = await backend.editDiscussionComment(props.locale, commentId, { content });
+      if (result !== null) {
+        let compiledContent: string | null = null;
+        try {
+          const { compileMdxLite } = await import("@/lib/mdx");
+          compiledContent = await compileMdxLite(content);
+        } catch {
+          // Fall back to plain text
+        }
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === commentId) {
+              return { ...c, content, is_edited: true, compiledContent };
+            }
+            return c;
+          }),
+        );
       }
-      setComments((prev) =>
-        prev.map((c) => {
-          if (c.id === commentId) {
-            return { ...c, content, is_edited: true, compiledContent };
-          }
-          return c;
-        })
-      );
-    }
-  }, [props.locale]);
+    },
+    [props.locale],
+  );
 
   // Delete handler
-  const handleDelete = React.useCallback(async (commentId: string) => {
-    const result = await backend.deleteDiscussionComment(props.locale, commentId, targetSlug);
-    if (result !== null) {
-      setComments((prev) =>
-        prev.map((c) => {
-          if (c.id === commentId) {
-            return {
-              ...c,
-              content: "",
-              author_profile_id: null,
-              author_profile_slug: null,
-              author_profile_title: null,
-              author_profile_picture_uri: null,
-            };
-          }
-          return c;
-        })
-      );
-    }
-  }, [props.locale, targetSlug]);
+  const handleDelete = React.useCallback(
+    async (commentId: string) => {
+      const result = await backend.deleteDiscussionComment(props.locale, commentId, targetSlug);
+      if (result !== null) {
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === commentId) {
+              return {
+                ...c,
+                content: "",
+                author_profile_id: null,
+                author_profile_slug: null,
+                author_profile_title: null,
+                author_profile_picture_uri: null,
+              };
+            }
+            return c;
+          }),
+        );
+      }
+    },
+    [props.locale, targetSlug],
+  );
 
   // Hide handler
-  const handleHide = React.useCallback(async (commentId: string, isHidden: boolean) => {
-    const result = await backend.hideDiscussionComment(props.locale, commentId, {
-      is_hidden: isHidden,
-      profile_slug: targetSlug,
-    });
-    if (result !== null) {
-      setComments((prev) =>
-        prev.map((c) => {
-          if (c.id === commentId) {
-            return { ...c, is_hidden: isHidden };
-          }
-          return c;
-        })
-      );
-    }
-  }, [props.locale, targetSlug]);
+  const handleHide = React.useCallback(
+    async (commentId: string, isHidden: boolean) => {
+      const result = await backend.hideDiscussionComment(props.locale, commentId, {
+        is_hidden: isHidden,
+        profile_slug: targetSlug,
+      });
+      if (result !== null) {
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === commentId) {
+              return { ...c, is_hidden: isHidden };
+            }
+            return c;
+          }),
+        );
+      }
+    },
+    [props.locale, targetSlug],
+  );
 
   // Pin handler
-  const handlePin = React.useCallback(async (commentId: string, isPinned: boolean) => {
-    const result = await backend.pinComment(props.locale, commentId, {
-      is_pinned: isPinned,
-      profile_slug: targetSlug,
-    });
-    if (result !== null) {
-      setComments((prev) =>
-        prev.map((c) => {
-          if (c.id === commentId) {
-            return { ...c, is_pinned: isPinned };
-          }
-          return c;
-        })
-      );
-    }
-  }, [props.locale, targetSlug]);
+  const handlePin = React.useCallback(
+    async (commentId: string, isPinned: boolean) => {
+      const result = await backend.pinComment(props.locale, commentId, {
+        is_pinned: isPinned,
+        profile_slug: targetSlug,
+      });
+      if (result !== null) {
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c.id === commentId) {
+              return { ...c, is_pinned: isPinned };
+            }
+            return c;
+          }),
+        );
+      }
+    },
+    [props.locale, targetSlug],
+  );
 
   // Lock/unlock handler
   const handleLockToggle = React.useCallback(async () => {
@@ -321,22 +342,23 @@ export function DiscussionThread(props: DiscussionThreadProps) {
   }, [props.locale, thread, targetSlug]);
 
   // Load replies handler
-  const handleLoadReplies = React.useCallback(async (commentId: string): Promise<DiscussionComment[]> => {
-    const data = await backend.getCommentReplies(props.locale, commentId);
-    if (data !== null) {
-      const compiled = await compileCommentsBatch(data.comments);
-      return compiled;
-    }
-    return [];
-  }, [props.locale]);
+  const handleLoadReplies = React.useCallback(
+    async (commentId: string): Promise<DiscussionComment[]> => {
+      const data = await backend.getCommentReplies(props.locale, commentId);
+      if (data !== null) {
+        const compiled = await compileCommentsBatch(data.comments);
+        return compiled;
+      }
+      return [];
+    },
+    [props.locale],
+  );
 
   // Loading state
   if (isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingState}>
-          {t("Discussions.Loading...")}
-        </div>
+        <div className={styles.loadingState}>{t("Discussions.Loading...")}</div>
       </div>
     );
   }
@@ -350,9 +372,7 @@ export function DiscussionThread(props: DiscussionThreadProps) {
         <div className={styles.headerInfo}>
           <h3 className={styles.heading}>{t("Discussions.Discussion")}</h3>
           {commentCount > 0 && (
-            <span className={styles.commentCount}>
-              {t("Discussions.comment_count", { count: commentCount })}
-            </span>
+            <span className={styles.commentCount}>{t("Discussions.comment_count", { count: commentCount })}</span>
           )}
         </div>
 
@@ -378,11 +398,7 @@ export function DiscussionThread(props: DiscussionThreadProps) {
           {/* Moderator actions menu */}
           {canModerate && thread !== null && (
             <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-                className={styles.lockButton}
-              >
+              <button type="button" onClick={() => setShowHeaderMenu(!showHeaderMenu)} className={styles.lockButton}>
                 <MoreHorizontal className="size-4" />
               </button>
               {showHeaderMenu && (
@@ -395,17 +411,15 @@ export function DiscussionThread(props: DiscussionThreadProps) {
                     }}
                     className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-left hover:bg-accent transition-colors"
                   >
-                    {isLocked
-                      ? (
-                        <>
-                          <Unlock className="size-3.5" /> {t("Discussions.Unlock thread")}
-                        </>
-                      )
-                      : (
-                        <>
-                          <Lock className="size-3.5" /> {t("Discussions.Lock thread")}
-                        </>
-                      )}
+                    {isLocked ? (
+                      <>
+                        <Unlock className="size-3.5" /> {t("Discussions.Unlock thread")}
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="size-3.5" /> {t("Discussions.Lock thread")}
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -423,55 +437,45 @@ export function DiscussionThread(props: DiscussionThreadProps) {
       )}
 
       {/* Comment form (top-level) */}
-      {auth.isAuthenticated && !isLocked
-        ? (
-          <CommentForm
-            onSubmit={handleCreateComment}
-          />
-        )
-        : !auth.isAuthenticated && (
+      {auth.isAuthenticated && !isLocked ? (
+        <CommentForm onSubmit={handleCreateComment} />
+      ) : (
+        !auth.isAuthenticated && (
           <div className={styles.signInPrompt}>
-            <button
-              type="button"
-              onClick={() => auth.login()}
-              className={styles.signInLink}
-            >
+            <button type="button" onClick={() => auth.login()} className={styles.signInLink}>
               {t("Discussions.Sign in to comment")}
             </button>
           </div>
-        )}
+        )
+      )}
 
       {/* Comment tree */}
-      {comments.length > 0
-        ? (
-          <CommentTree
-            comments={comments}
-            locale={props.locale}
-            isAuthenticated={auth.isAuthenticated}
-            isAdmin={isAdmin}
-            canModerate={canModerate}
-            isThreadLocked={isLocked}
-            profileSlug={targetSlug}
-            viewerProfileId={viewerProfileId}
-            onVote={handleVote}
-            onReply={handleReply}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onHide={handleHide}
-            onPin={handlePin}
-            onLoadReplies={handleLoadReplies}
-          />
-        )
-        : hasLoaded && (
+      {comments.length > 0 ? (
+        <CommentTree
+          comments={comments}
+          locale={props.locale}
+          isAuthenticated={auth.isAuthenticated}
+          isAdmin={isAdmin}
+          canModerate={canModerate}
+          isThreadLocked={isLocked}
+          profileSlug={targetSlug}
+          viewerProfileId={viewerProfileId}
+          onVote={handleVote}
+          onReply={handleReply}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onHide={handleHide}
+          onPin={handlePin}
+          onLoadReplies={handleLoadReplies}
+        />
+      ) : (
+        hasLoaded && (
           <div className={styles.emptyState}>
-            <p className="text-muted-foreground">
-              {t("Discussions.No comments yet")}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t("Discussions.Be the first to comment!")}
-            </p>
+            <p className="text-muted-foreground">{t("Discussions.No comments yet")}</p>
+            <p className="text-sm text-muted-foreground">{t("Discussions.Be the first to comment!")}</p>
           </div>
-        )}
+        )
+      )}
     </div>
   );
 }

@@ -12,17 +12,14 @@ export async function searchUsersForMembership(
   if (token === null) return null;
 
   const encodedQuery = encodeURIComponent(query);
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_memberships/search?q=${encodedQuery}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_memberships/search?q=${encodedQuery}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

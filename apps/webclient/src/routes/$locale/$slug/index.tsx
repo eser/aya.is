@@ -57,22 +57,14 @@ function ProfileIndexPage() {
     >
       <div className="content relative">
         {canEdit && (
-          <Link
-            to="/$locale/stories/new"
-            params={{ locale }}
-            className="absolute right-0 top-0 z-10"
-          >
+          <Link to="/$locale/stories/new" params={{ locale }} className="absolute right-0 top-0 z-10">
             <Button variant="default" size="sm">
               <Plus className="mr-1.5 size-4" />
               {t("ContentEditor.Add Story")}
             </Button>
           </Link>
         )}
-        <StoriesPageClient
-          initialStories={stories}
-          basePath={`/${locale}/${slug}`}
-          profileSlug={slug}
-        />
+        <StoriesPageClient initialStories={stories} basePath={`/${locale}/${slug}`} profileSlug={slug} />
       </div>
     </ProfileSidebarLayout>
   );

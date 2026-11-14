@@ -76,13 +76,7 @@ function LiveStreamCard(props: LiveStreamCardProps) {
   return (
     <div className={styles.card}>
       <div className={styles.thumbnailArea}>
-        {thumbnailUrl !== null && (
-          <img
-            src={thumbnailUrl}
-            alt={streamTitle}
-            className={styles.thumbnailImage}
-          />
-        )}
+        {thumbnailUrl !== null && <img src={thumbnailUrl} alt={streamTitle} className={styles.thumbnailImage} />}
         <div className={styles.liveBadge}>
           <span className={styles.liveBadgeDot} />
           {t("Home.Live")}
@@ -103,18 +97,12 @@ function LiveStreamCard(props: LiveStreamCardProps) {
 
         <div className={styles.streamTitle}>{streamTitle}</div>
         <div className={styles.profileName}>
-          <LocaleLink
-            to={`/${props.stream.profile_slug}`}
-            className={styles.profileLink}
-          >
+          <LocaleLink to={`/${props.stream.profile_slug}`} className={styles.profileLink}>
             {props.stream.profile_title}
           </LocaleLink>
         </div>
 
-        <ExternalLink
-          href={broadcastUrl}
-          className={styles.watchButton}
-        >
+        <ExternalLink href={broadcastUrl} className={styles.watchButton}>
           <Radio className="size-4" />
           {t("Home.Watch Live")}
         </ExternalLink>
@@ -140,11 +128,7 @@ export function LiveNowSection(props: LiveNowSectionProps) {
 
         <div className={styles.scrollContainer}>
           {props.streams.map((stream) => (
-            <LiveStreamCard
-              key={stream.link_id}
-              stream={stream}
-              locale={props.locale}
-            />
+            <LiveStreamCard key={stream.link_id} stream={stream} locale={props.locale} />
           ))}
         </div>
       </div>

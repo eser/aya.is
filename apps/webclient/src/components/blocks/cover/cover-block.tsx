@@ -16,10 +16,7 @@ function CoverBlock(props: CoverBlockProps) {
 
   return (
     <div
-      className={cn(
-        styles.cover,
-        overlay === "dark" || overlay === undefined ? styles.coverDark : styles.coverLight,
-      )}
+      className={cn(styles.cover, overlay === "dark" || overlay === undefined ? styles.coverDark : styles.coverLight)}
       style={{
         backgroundImage: `url(${props.src})`,
         minHeight: props.minHeight ?? "300px",

@@ -2,9 +2,6 @@
 import { fetcher } from "../fetcher";
 import type { StoryEx } from "../types";
 
-export async function getProfileAuthoredStories(
-  locale: string,
-  slug: string,
-): Promise<StoryEx[] | null> {
+export async function getProfileAuthoredStories(locale: string, slug: string): Promise<StoryEx[] | null> {
   return await fetcher<StoryEx[]>(locale, `/profiles/${slug}/stories-authored`);
 }

@@ -52,10 +52,7 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
     const textarea = textareaRef.current;
     if (textarea === null) return;
 
-    const formatMap: Record<
-      FormatAction,
-      { prefix: string; suffix: string } | { insert: string }
-    > = {
+    const formatMap: Record<FormatAction, { prefix: string; suffix: string } | { insert: string }> = {
       bold: { prefix: "**", suffix: "**" },
       italic: { prefix: "_", suffix: "_" },
       h2: { insert: "\n## " },
@@ -83,27 +80,30 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
   };
 
   // Block insertion handler
-  const handleBlockInsert = React.useCallback((mdxString: string) => {
-    const textarea = textareaRef.current;
-    if (textarea === null) return;
+  const handleBlockInsert = React.useCallback(
+    (mdxString: string) => {
+      const textarea = textareaRef.current;
+      if (textarea === null) return;
 
-    if (slashPosition !== null) {
-      // Replace the "/" character with the block MDX
+      if (slashPosition !== null) {
+        // Replace the "/" character with the block MDX
+        textarea.focus();
+        textarea.selectionStart = slashPosition;
+        textarea.selectionEnd = slashPosition + 1;
+        document.execCommand("insertText", false, mdxString);
+        props.onChange(textarea.value);
+      } else {
+        insertTextAtCursor(textarea, mdxString, props.onChange);
+      }
+
+      setInserterMode(null);
+      setSlashPosition(null);
+
+      // Defensive: refocus textarea after insertion
       textarea.focus();
-      textarea.selectionStart = slashPosition;
-      textarea.selectionEnd = slashPosition + 1;
-      document.execCommand("insertText", false, mdxString);
-      props.onChange(textarea.value);
-    } else {
-      insertTextAtCursor(textarea, mdxString, props.onChange);
-    }
-
-    setInserterMode(null);
-    setSlashPosition(null);
-
-    // Defensive: refocus textarea after insertion
-    textarea.focus();
-  }, [slashPosition, props.onChange, textareaRef]);
+    },
+    [slashPosition, props.onChange, textareaRef],
+  );
 
   // Handle inserter close
   const handleInserterClose = React.useCallback(() => {
@@ -212,22 +212,25 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
   const blockHint = getBlockHintForLine(props.content, cursorLine);
 
   // Handle toolbar prop changes by replacing the tag text in the textarea
-  const handleToolbarPropsChange = React.useCallback((_startOffset: number, _endOffset: number, newTag: string) => {
-    const textarea = textareaRef.current;
-    if (textarea === null) return;
+  const handleToolbarPropsChange = React.useCallback(
+    (_startOffset: number, _endOffset: number, newTag: string) => {
+      const textarea = textareaRef.current;
+      if (textarea === null) return;
 
-    // Re-parse to get fresh offsets (stale offset protection)
-    const freshHint = getBlockHintForLine(textarea.value, cursorLine);
-    if (freshHint === null) return;
+      // Re-parse to get fresh offsets (stale offset protection)
+      const freshHint = getBlockHintForLine(textarea.value, cursorLine);
+      if (freshHint === null) return;
 
-    const freshStart = freshHint.parsedBlock.startOffset;
-    const freshEnd = freshHint.parsedBlock.endOffset;
+      const freshStart = freshHint.parsedBlock.startOffset;
+      const freshEnd = freshHint.parsedBlock.endOffset;
 
-    textarea.focus();
-    textarea.setSelectionRange(freshStart, freshEnd);
-    document.execCommand("insertText", false, newTag);
-    props.onChange(textarea.value);
-  }, [cursorLine, textareaRef, props.onChange]);
+      textarea.focus();
+      textarea.setSelectionRange(freshStart, freshEnd);
+      document.execCommand("insertText", false, newTag);
+      props.onChange(textarea.value);
+    },
+    [cursorLine, textareaRef, props.onChange],
+  );
 
   return (
     <div className={styles.editorContent}>
@@ -240,10 +243,7 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
         plusButtonRef={toolbarPlusRef}
       />
 
-      <BlockToolbar
-        hint={blockHint}
-        onPropsChange={handleToolbarPropsChange}
-      />
+      <BlockToolbar hint={blockHint} onPropsChange={handleToolbarPropsChange} />
 
       <div className={styles.editorPanels}>
         {/* Split View with Resizable Panels */}
@@ -322,10 +322,7 @@ function EditorWorkspace(props: EditorWorkspaceProps) {
       />
 
       {/* Virtual anchor for slash command popover positioning */}
-      <span
-        ref={virtualAnchorRef}
-        style={{ position: "fixed", pointerEvents: "none", width: 0, height: 0 }}
-      />
+      <span ref={virtualAnchorRef} style={{ position: "fixed", pointerEvents: "none", width: 0, height: 0 }} />
     </div>
   );
 }

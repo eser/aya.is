@@ -57,11 +57,7 @@ export type PlatformPreviewProps = {
   onPlatformOverrideChange: (platformId: string, text: string | null) => void;
 };
 
-function getDisplayText(
-  platformId: string,
-  mainText: string,
-  overrides: Map<string, string>,
-): string {
+function getDisplayText(platformId: string, mainText: string, overrides: Map<string, string>): string {
   return overrides.get(platformId) ?? mainText;
 }
 
@@ -127,20 +123,14 @@ export function PlatformPreview(props: PlatformPreviewProps) {
         {/* Header */}
         <div className={styles.previewHeader}>
           {props.story.author_profile?.profile_picture_uri !== null &&
-              props.story.author_profile?.profile_picture_uri !== undefined
-            ? (
-              <img
-                src={props.story.author_profile.profile_picture_uri}
-                alt=""
-                className={styles.previewAvatar}
-              />
-            )
-            : <div className={styles.previewAvatar} />}
+          props.story.author_profile?.profile_picture_uri !== undefined ? (
+            <img src={props.story.author_profile.profile_picture_uri} alt="" className={styles.previewAvatar} />
+          ) : (
+            <div className={styles.previewAvatar} />
+          )}
           <div className={styles.previewNameGroup}>
             <span className={styles.previewName}>{authorName}</span>
-            <span className={styles.previewHandle}>
-              @{props.story.author_profile?.slug ?? "user"}
-            </span>
+            <span className={styles.previewHandle}>@{props.story.author_profile?.slug ?? "user"}</span>
           </div>
         </div>
 
@@ -159,11 +149,7 @@ export function PlatformPreview(props: PlatformPreviewProps) {
         {/* Link preview card */}
         <div className={styles.previewLinkCard}>
           {props.story.story_picture_uri !== null && props.story.story_picture_uri !== undefined && (
-            <img
-              src={props.story.story_picture_uri}
-              alt=""
-              className={styles.previewLinkImage}
-            />
+            <img src={props.story.story_picture_uri} alt="" className={styles.previewLinkImage} />
           )}
           <div className={styles.previewLinkMeta}>
             <div className={styles.previewLinkTitle}>{props.story.title}</div>
@@ -172,11 +158,7 @@ export function PlatformPreview(props: PlatformPreviewProps) {
         </div>
 
         {/* Customize toggle */}
-        <button
-          type="button"
-          className={styles.customizeToggle}
-          onClick={() => handleToggleCustomize(activeTab)}
-        >
+        <button type="button" className={styles.customizeToggle} onClick={() => handleToggleCustomize(activeTab)}>
           <Settings2 className="size-3.5" />
           {isCustomized ? t("ShareWizard.Remove customization") : t("ShareWizard.Customize for this platform")}
         </button>

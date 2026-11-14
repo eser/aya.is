@@ -32,10 +32,7 @@ export function generateGlobalStoryMarkdown(story: StoryEx, locale: string): str
 /**
  * Generate markdown for the stories listing page
  */
-export function generateStoriesListingMarkdown(
-  stories: StoryEx[],
-  locale: string,
-): string {
+export function generateStoriesListingMarkdown(stories: StoryEx[], locale: string): string {
   const frontmatter = formatFrontmatter({
     title: "Stories",
     generated_at: new Date().toISOString(),

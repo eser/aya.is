@@ -33,11 +33,7 @@ export function remarkEmbed() {
       if (url === null && node.children.length === 3) {
         const [first, second, third] = node.children;
 
-        if (
-          first.type === "text" &&
-          second.type === "link" &&
-          third.type === "text"
-        ) {
+        if (first.type === "text" && second.type === "link" && third.type === "text") {
           const prefix = (first as Text).value;
           const suffix = (third as Text).value;
 

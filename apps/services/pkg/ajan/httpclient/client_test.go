@@ -48,10 +48,10 @@ func TestClientSuccessfulRequest(t *testing.T) {
 func TestClientCircuitBreakerOnly(t *testing.T) {
 	t.Parallel()
 
-	var failureCount int32
+	var failureCount atomic.Int32
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&failureCount, 1)
+		failureCount.Add(1)
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
@@ -84,7 +84,7 @@ func TestClientCircuitBreakerOnly(t *testing.T) {
 
 		if errors.Is(err, httpclient.ErrCircuitOpen) {
 			// Circuit breaker should open after 3 failures
-			assert.Equal(t, int32(3), atomic.LoadInt32(&failureCount))
+			assert.Equal(t, int32(3), failureCount.Load())
 
 			return
 		}
@@ -101,10 +101,10 @@ func TestClientCircuitBreakerOnly(t *testing.T) {
 func TestClientRetryOnly(t *testing.T) {
 	t.Parallel()
 
-	var attemptCount int32
+	var attemptCount atomic.Int32
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		attempts := atomic.AddInt32(&attemptCount, 1)
+		attempts := attemptCount.Add(1)
 		if attempts < 3 {
 			w.WriteHeader(http.StatusInternalServerError)
 
@@ -142,17 +142,17 @@ func TestClientRetryOnly(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, int32(3), atomic.LoadInt32(&attemptCount))
+	assert.Equal(t, int32(3), attemptCount.Load())
 }
 
 // Test BOTH Circuit Breaker AND Retry Enabled.
 func TestClientCircuitBreakerAndRetryBoth(t *testing.T) { //nolint:dupl
 	t.Parallel()
 
-	var attemptCount int32
+	var attemptCount atomic.Int32
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&attemptCount, 1)
+		attemptCount.Add(1)
 		w.WriteHeader(http.StatusInternalServerError) // Always fail
 	}))
 	defer server.Close()
@@ -188,17 +188,17 @@ func TestClientCircuitBreakerAndRetryBoth(t *testing.T) { //nolint:dupl
 	// Should exhaust retries before circuit breaker opens
 	require.Error(t, err)
 	require.ErrorIs(t, err, httpclient.ErrMaxRetries)
-	assert.Equal(t, int32(3), atomic.LoadInt32(&attemptCount))
+	assert.Equal(t, int32(3), attemptCount.Load())
 }
 
 // Test BOTH Circuit Breaker AND Retry - Circuit Breaker Opens First.
 func TestClientCircuitBreakerOpensBeforeRetryExhaustion(t *testing.T) { //nolint:dupl
 	t.Parallel()
 
-	var attemptCount int32
+	var attemptCount atomic.Int32
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&attemptCount, 1)
+		attemptCount.Add(1)
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
@@ -234,17 +234,17 @@ func TestClientCircuitBreakerOpensBeforeRetryExhaustion(t *testing.T) { //nolint
 	// Circuit breaker should open before retries are exhausted
 	require.Error(t, err)
 	require.ErrorIs(t, err, httpclient.ErrCircuitOpen)
-	assert.Equal(t, int32(2), atomic.LoadInt32(&attemptCount))
+	assert.Equal(t, int32(2), attemptCount.Load())
 }
 
 // Test NEITHER Circuit Breaker NOR Retry Enabled.
 func TestClientNoResilienceFeatures(t *testing.T) {
 	t.Parallel()
 
-	var attemptCount int32
+	var attemptCount atomic.Int32
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt32(&attemptCount, 1)
+		attemptCount.Add(1)
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
@@ -272,7 +272,7 @@ func TestClientNoResilienceFeatures(t *testing.T) {
 	// Should get the server error response directly without any retries or circuit breaking
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-	assert.Equal(t, int32(1), atomic.LoadInt32(&attemptCount)) // Only one attempt
+	assert.Equal(t, int32(1), attemptCount.Load()) // Only one attempt
 }
 
 // Original tests (renamed for clarity).

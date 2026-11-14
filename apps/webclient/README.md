@@ -133,10 +133,14 @@ Always use explicit checks:
 
 ```tsx
 // Correct
-if (value === null) {}
-if (array.length === 0) {}
+if (value === null) {
+}
+if (array.length === 0) {
+}
 
 // Wrong
-if (!value) {}
-if (!array.length) {}
+if (!value) {
+}
+if (!array.length) {
+}
 ```

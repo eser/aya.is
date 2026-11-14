@@ -15,14 +15,10 @@ export async function editAnswer(
   questionId: string,
   input: EditAnswerInput,
 ): Promise<EditAnswerResult | null> {
-  const response = await fetcher<EditAnswerResult>(
-    locale,
-    `/profiles/${slug}/_questions/${questionId}/answer`,
-    {
-      method: "PUT",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<EditAnswerResult>(locale, `/profiles/${slug}/_questions/${questionId}/answer`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

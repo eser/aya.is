@@ -12,13 +12,9 @@ export async function deleteComment(
 ): Promise<DeleteCommentResult | null> {
   const query = profileSlug !== undefined ? `?profile_slug=${encodeURIComponent(profileSlug)}` : "";
 
-  const response = await fetcher<DeleteCommentResult>(
-    locale,
-    `/discussions/comments/${commentId}${query}`,
-    {
-      method: "DELETE",
-    },
-  );
+  const response = await fetcher<DeleteCommentResult>(locale, `/discussions/comments/${commentId}${query}`, {
+    method: "DELETE",
+  });
 
   return response;
 }

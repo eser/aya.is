@@ -130,10 +130,9 @@ export async function getRouter() {
     },
   });
 
-  const customDomainProfileSlug = (
-    requestContext?.domainConfiguration.type === "custom-domain" &&
-    requestContext.domainConfiguration.profileSlug
-  ) || undefined;
+  const customDomainProfileSlug =
+    (requestContext?.domainConfiguration.type === "custom-domain" && requestContext.domainConfiguration.profileSlug) ||
+    undefined;
 
   // Detect preferred locale for custom domain root path.
   // Uses: cookie → Accept-Language → domain default → DEFAULT_LOCALE
@@ -145,51 +144,52 @@ export async function getRouter() {
     defaultPreload: "intent",
     scrollRestoration: true,
 
-    rewrite: customDomainProfileSlug !== undefined
-      ? {
-        input: ({ url }) => {
-          // /en/about -> /en/{profileSlug}/about
-          const pathParts = url.pathname.split("/").filter(Boolean);
+    rewrite:
+      customDomainProfileSlug !== undefined
+        ? {
+            input: ({ url }) => {
+              // /en/about -> /en/{profileSlug}/about
+              const pathParts = url.pathname.split("/").filter(Boolean);
 
-          // Root path: use detected preferred locale
-          // (cookie → Accept-Language → domain default → 'en')
-          if (pathParts.length === 0) {
-            pathParts.push(preferredLocale);
+              // Root path: use detected preferred locale
+              // (cookie → Accept-Language → domain default → 'en')
+              if (pathParts.length === 0) {
+                pathParts.push(preferredLocale);
+              }
+
+              // System routes (e.g., /auth/callback) are not profile-scoped
+              if (predefinedSlugs.includes(pathParts[0])) {
+                return url;
+              }
+
+              pathParts.splice(1, 0, customDomainProfileSlug);
+              url.pathname = `/${pathParts.join("/")}`;
+
+              return url;
+            },
+            output: ({ url }) => {
+              // /tr/{profileSlug}/about -> /tr/about (always keeps locale)
+              const pathParts = url.pathname.split("/").filter(Boolean);
+
+              // System routes are not profile-scoped
+              if (predefinedSlugs.includes(pathParts[0])) {
+                return url;
+              }
+
+              // Remove profile slug from position 1
+              if (pathParts[1] === customDomainProfileSlug) {
+                pathParts.splice(1, 1);
+                url.pathname = `/${pathParts.join("/")}`;
+
+                return url;
+              }
+
+              const newUrl = new URL(siteConfig.host);
+              newUrl.pathname = `/${pathParts.join("/")}`;
+              return newUrl;
+            },
           }
-
-          // System routes (e.g., /auth/callback) are not profile-scoped
-          if (predefinedSlugs.includes(pathParts[0])) {
-            return url;
-          }
-
-          pathParts.splice(1, 0, customDomainProfileSlug);
-          url.pathname = `/${pathParts.join("/")}`;
-
-          return url;
-        },
-        output: ({ url }) => {
-          // /tr/{profileSlug}/about -> /tr/about (always keeps locale)
-          const pathParts = url.pathname.split("/").filter(Boolean);
-
-          // System routes are not profile-scoped
-          if (predefinedSlugs.includes(pathParts[0])) {
-            return url;
-          }
-
-          // Remove profile slug from position 1
-          if (pathParts[1] === customDomainProfileSlug) {
-            pathParts.splice(1, 1);
-            url.pathname = `/${pathParts.join("/")}`;
-
-            return url;
-          }
-
-          const newUrl = new URL(siteConfig.host);
-          newUrl.pathname = `/${pathParts.join("/")}`;
-          return newUrl;
-        },
-      }
-      : undefined,
+        : undefined,
   });
 
   // Integrates React Query with TanStack Router's SSR dehydration/hydration.

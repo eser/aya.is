@@ -28,17 +28,13 @@ Deno.test("valid - all required fields present", async (t) => {
 });
 
 Deno.test("invalid - required field missing", async (t) => {
-  const def = mockDefinition([
-    { name: "title", type: "string", label: "Title", required: true, defaultValue: "" },
-  ]);
+  const def = mockDefinition([{ name: "title", type: "string", label: "Title", required: true, defaultValue: "" }]);
   const result = validateBlockProps(def, {});
   await assertSnapshot(t, result);
 });
 
 Deno.test("invalid - required field empty string", async (t) => {
-  const def = mockDefinition([
-    { name: "title", type: "string", label: "Title", required: true, defaultValue: "" },
-  ]);
+  const def = mockDefinition([{ name: "title", type: "string", label: "Title", required: true, defaultValue: "" }]);
   const result = validateBlockProps(def, { title: "" });
   await assertSnapshot(t, result);
 });
@@ -52,33 +48,25 @@ Deno.test("valid - optional field missing", async (t) => {
 });
 
 Deno.test("invalid - number field with non-numeric", async (t) => {
-  const def = mockDefinition([
-    { name: "count", type: "number", label: "Count", required: false, defaultValue: 0 },
-  ]);
+  const def = mockDefinition([{ name: "count", type: "number", label: "Count", required: false, defaultValue: 0 }]);
   const result = validateBlockProps(def, { count: "abc" });
   await assertSnapshot(t, result);
 });
 
 Deno.test("valid - number field with numeric string", async (t) => {
-  const def = mockDefinition([
-    { name: "count", type: "number", label: "Count", required: false, defaultValue: 0 },
-  ]);
+  const def = mockDefinition([{ name: "count", type: "number", label: "Count", required: false, defaultValue: 0 }]);
   const result = validateBlockProps(def, { count: "42" });
   await assertSnapshot(t, result);
 });
 
 Deno.test("invalid - boolean field with invalid value", async (t) => {
-  const def = mockDefinition([
-    { name: "open", type: "boolean", label: "Open", required: false, defaultValue: false },
-  ]);
+  const def = mockDefinition([{ name: "open", type: "boolean", label: "Open", required: false, defaultValue: false }]);
   const result = validateBlockProps(def, { open: "maybe" });
   await assertSnapshot(t, result);
 });
 
 Deno.test("valid - boolean field with true/false string", async (t) => {
-  const def = mockDefinition([
-    { name: "open", type: "boolean", label: "Open", required: false, defaultValue: false },
-  ]);
+  const def = mockDefinition([{ name: "open", type: "boolean", label: "Open", required: false, defaultValue: false }]);
   const result = validateBlockProps(def, { open: "true" });
   await assertSnapshot(t, result);
 });

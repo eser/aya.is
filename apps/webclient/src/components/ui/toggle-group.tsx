@@ -10,9 +10,7 @@ type ToggleGroupContextValue = {
   variant?: "default" | "outline";
 };
 
-const ToggleGroupContext = React.createContext<ToggleGroupContextValue | null>(
-  null,
-);
+const ToggleGroupContext = React.createContext<ToggleGroupContextValue | null>(null);
 
 export type ToggleGroupProps = {
   type: "single";
@@ -25,29 +23,16 @@ export type ToggleGroupProps = {
   id?: string;
 };
 
-function ToggleGroup({
-  value,
-  onValueChange,
-  variant = "default",
-  className,
-  children,
-  ...props
-}: ToggleGroupProps) {
+function ToggleGroup({ value, onValueChange, variant = "default", className, children, ...props }: ToggleGroupProps) {
   return (
     <div
       data-slot="toggle-group"
       data-variant={variant}
       role="group"
-      className={cn(
-        "inline-flex rounded-md",
-        variant === "outline" && "shadow-xs",
-        className,
-      )}
+      className={cn("inline-flex rounded-md", variant === "outline" && "shadow-xs", className)}
       {...props}
     >
-      <ToggleGroupContext.Provider value={{ value, onValueChange, variant }}>
-        {children}
-      </ToggleGroupContext.Provider>
+      <ToggleGroupContext.Provider value={{ value, onValueChange, variant }}>{children}</ToggleGroupContext.Provider>
     </div>
   );
 }
@@ -59,12 +44,7 @@ export type ToggleGroupItemProps = {
   "aria-label"?: string;
 };
 
-function ToggleGroupItem({
-  value,
-  className,
-  children,
-  ...props
-}: ToggleGroupItemProps) {
+function ToggleGroupItem({ value, className, children, ...props }: ToggleGroupItemProps) {
   const context = React.useContext(ToggleGroupContext);
   if (!context) {
     throw new Error("ToggleGroupItem must be used within a ToggleGroup");

@@ -130,8 +130,8 @@ workflows:
           timeout: 60
       - shell:
           name: go-modernize
-          command: "go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./..."
-          fixCommand: "go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix ./..."
+          command: "go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest -test ./..."
+          fixCommand: "go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest -fix ./..."
           workingDirectory: ./apps/services/
           timeout: 120
       - shell:

@@ -9,9 +9,7 @@ export type ElementsContentProps = {
 };
 
 export function ElementsContent(props: ElementsContentProps) {
-  const [activeKindFilter, setActiveKindFilter] = React.useState<
-    ProfileKindFilter
-  >("");
+  const [activeKindFilter, setActiveKindFilter] = React.useState<ProfileKindFilter>("");
   const [searchText, setSearchText] = React.useState("");
 
   return (

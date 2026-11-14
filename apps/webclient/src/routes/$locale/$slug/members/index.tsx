@@ -51,9 +51,7 @@ export const Route = createFileRoute("/$locale/$slug/members/")({
     await i18next.loadLanguages(locale);
     const t = i18next.getFixedT(locale);
     const translatedTitle = `${t("Layout.Members")} - ${profile?.title ?? slug}`;
-    const translatedDescription = t(
-      "Members.Individuals and organizations that are members of this profile.",
-    );
+    const translatedDescription = t("Members.Individuals and organizations that are members of this profile.");
 
     return {
       members,
@@ -86,13 +84,7 @@ export const Route = createFileRoute("/$locale/$slug/members/")({
   component: MembersPage,
 });
 
-const MEMBER_KINDS = new Set([
-  "member",
-  "contributor",
-  "maintainer",
-  "lead",
-  "owner",
-]);
+const MEMBER_KINDS = new Set(["member", "contributor", "maintainer", "lead", "owner"]);
 
 function MembersPage() {
   const loaderData = Route.useLoaderData();
@@ -108,7 +100,8 @@ function MembersPage() {
 
   const { members } = loaderData;
 
-  const isMember = permissions?.viewer_membership_kind !== undefined &&
+  const isMember =
+    permissions?.viewer_membership_kind !== undefined &&
     permissions.viewer_membership_kind !== null &&
     MEMBER_KINDS.has(permissions.viewer_membership_kind);
 
@@ -118,57 +111,46 @@ function MembersPage() {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-foreground">
-            {t("Layout.Members")}
-          </h2>
+          <h2 className="font-serif text-2xl font-bold text-foreground">{t("Layout.Members")}</h2>
           <p className="text-muted-foreground">
-            {t(
-              "Members.Individuals and organizations that are members of this profile.",
-            )}
+            {t("Members.Individuals and organizations that are members of this profile.")}
           </p>
         </div>
-        {applicationsEnabled && (
-          isMember
-            ? (
-              <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-muted text-muted-foreground cursor-default">
-                <Check className="size-4" />
-                {t("Members.Already joined")}
-              </span>
-            )
-            : isAuthenticated
-            ? (
-              <LocaleLink
-                to={`/${params.slug}/members/apply`}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors no-underline"
-              >
-                <Send className="size-4" />
-                {t("Applications.Apply to Join")}
-              </LocaleLink>
-            )
-            : (
-              <button
-                type="button"
-                onClick={() => login(`/${params.locale}/${params.slug}/members/apply`)}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-0 cursor-pointer"
-              >
-                <Send className="size-4" />
-                {t("Applications.Apply to Join")}
-              </button>
-            )
-        )}
+        {applicationsEnabled &&
+          (isMember ? (
+            <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-muted text-muted-foreground cursor-default">
+              <Check className="size-4" />
+              {t("Members.Already joined")}
+            </span>
+          ) : isAuthenticated ? (
+            <LocaleLink
+              to={`/${params.slug}/members/apply`}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors no-underline"
+            >
+              <Send className="size-4" />
+              {t("Applications.Apply to Join")}
+            </LocaleLink>
+          ) : (
+            <button
+              type="button"
+              onClick={() => login(`/${params.locale}/${params.slug}/members/apply`)}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-0 cursor-pointer"
+            >
+              <Send className="size-4" />
+              {t("Applications.Apply to Join")}
+            </button>
+          ))}
       </div>
 
-      {members !== null && members.length > 0
-        ? (
-          <div className="flex flex-col gap-4">
-            {members.map((membership) => <MemberCard key={membership.id} membership={membership} />)}
-          </div>
-        )
-        : (
-          <p className="text-muted-foreground">
-            {t("Members.No members found.")}
-          </p>
-        )}
+      {members !== null && members.length > 0 ? (
+        <div className="flex flex-col gap-4">
+          {members.map((membership) => (
+            <MemberCard key={membership.id} membership={membership} />
+          ))}
+        </div>
+      ) : (
+        <p className="text-muted-foreground">{t("Members.No members found.")}</p>
+      )}
     </>
   );
 }

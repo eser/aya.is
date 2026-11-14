@@ -15,14 +15,10 @@ export async function hideComment(
   commentId: string,
   input: HideCommentInput,
 ): Promise<HideCommentResult | null> {
-  const response = await fetcher<HideCommentResult>(
-    locale,
-    `/discussions/comments/${commentId}/hide`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<HideCommentResult>(locale, `/discussions/comments/${commentId}/hide`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

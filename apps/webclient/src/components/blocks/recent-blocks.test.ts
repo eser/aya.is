@@ -118,13 +118,7 @@ Deno.test("addRecentBlock trims to 5", () => {
     addRecentBlock("block-6");
     const result = getRecentBlockIds();
     assertEquals(result.length, 5);
-    assertEquals(result, [
-      "block-6",
-      "block-5",
-      "block-4",
-      "block-3",
-      "block-2",
-    ]);
+    assertEquals(result, ["block-6", "block-5", "block-4", "block-3", "block-2"]);
   } finally {
     Object.defineProperty(globalThis, "localStorage", {
       value: original,

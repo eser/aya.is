@@ -76,10 +76,7 @@ function ContentPage() {
             )}
           </div>
 
-          <StoriesPageClient
-            initialStories={content}
-            basePath={`/${locale}/contents`}
-          />
+          <StoriesPageClient initialStories={content} basePath={`/${locale}/contents`} />
         </div>
       </section>
     </PageLayout>

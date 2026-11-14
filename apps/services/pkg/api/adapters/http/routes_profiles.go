@@ -135,18 +135,16 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop,maintidx,gocognit,goc
 
 					auditService.RecordIdempotent(
 						ctx.Request.Context(),
-						events.IdempotentAuditParams{
-							AuditParams: events.AuditParams{
-								EventType:  events.ProfileVisited,
-								EntityType: "profile",
-								EntityID:   record.ID,
-								ActorID:    viewerUserID,
-								ActorKind:  events.ActorUser,
-								SessionID:  sessionIDPtr,
-								Payload: map[string]any{
-									"slug":   slugParam,
-									"locale": localeParam,
-								},
+						events.IdempotentAuditParams{ //nolint:exhaustruct // AuditParams fields are promoted
+							EventType:  events.ProfileVisited,
+							EntityType: "profile",
+							EntityID:   record.ID,
+							ActorID:    viewerUserID,
+							ActorKind:  events.ActorUser,
+							SessionID:  sessionIDPtr,
+							Payload: map[string]any{
+								"slug":   slugParam,
+								"locale": localeParam,
 							},
 							ID:        auditID,
 							CreatedAt: windowTime,

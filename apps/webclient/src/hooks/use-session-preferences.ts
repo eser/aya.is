@@ -26,9 +26,7 @@ const LOCAL_STORAGE_LOCALE_KEY = "preferred-locale";
  * Reads initial preferences from AuthProvider (consolidated GET /sessions/_current).
  * Writes preference changes via PATCH /sessions/_current.
  */
-export function useSessionPreferences(
-  options: UseSessionPreferencesOptions,
-): UseSessionPreferencesResult {
+export function useSessionPreferences(options: UseSessionPreferencesOptions): UseSessionPreferencesResult {
   const { locale, defaultTheme = "system" } = options;
   const auth = useAuth();
 
@@ -49,10 +47,7 @@ export function useSessionPreferences(
       try {
         await updateSessionPreferences(locale, { theme });
       } catch (error) {
-        console.error(
-          "[SessionPreferences] Failed to sync theme to server:",
-          error,
-        );
+        console.error("[SessionPreferences] Failed to sync theme to server:", error);
       }
     },
     [locale],
@@ -70,10 +65,7 @@ export function useSessionPreferences(
       try {
         await updateSessionPreferences(locale, { locale: newLocale });
       } catch (error) {
-        console.error(
-          "[SessionPreferences] Failed to sync locale to server:",
-          error,
-        );
+        console.error("[SessionPreferences] Failed to sync locale to server:", error);
       }
     },
     [locale],

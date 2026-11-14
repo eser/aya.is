@@ -19,35 +19,37 @@ export function AskQuestionForm(props: AskQuestionFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (content.trim().length === 0) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const question = await backend.createQuestion(
-        props.locale,
-        props.slug,
-        { content: content.trim(), is_anonymous: isAnonymous },
-      );
-
-      if (question !== null) {
-        props.onSubmit(question);
-        setContent("");
-        setIsAnonymous(false);
+  const handleSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (content.trim().length === 0) {
+        return;
       }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
+
+      setIsSubmitting(true);
+      setError(null);
+
+      try {
+        const question = await backend.createQuestion(props.locale, props.slug, {
+          content: content.trim(),
+          is_anonymous: isAnonymous,
+        });
+
+        if (question !== null) {
+          props.onSubmit(question);
+          setContent("");
+          setIsAnonymous(false);
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
+      } finally {
+        setIsSubmitting(false);
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [content, isAnonymous, props.locale, props.slug, props.onSubmit]);
+    },
+    [content, isAnonymous, props.locale, props.slug, props.onSubmit],
+  );
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
@@ -75,18 +77,10 @@ export function AskQuestionForm(props: AskQuestionFormProps) {
         </label>
 
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={props.onCancel}
-            className={styles.cancelButton}
-          >
+          <button type="button" onClick={props.onCancel} className={styles.cancelButton}>
             {t("Common.Cancel")}
           </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || content.trim().length < 10}
-            className={styles.submitButton}
-          >
+          <button type="submit" disabled={isSubmitting || content.trim().length < 10} className={styles.submitButton}>
             {t("QA.Submit")}
           </button>
         </div>

@@ -11,14 +11,10 @@ export async function voteComment(
   commentId: string,
   input: VoteCommentInput,
 ): Promise<DiscussionVoteResponse | null> {
-  const response = await fetcher<DiscussionVoteResponse>(
-    locale,
-    `/discussions/comments/${commentId}/vote`,
-    {
-      method: "POST",
-      body: JSON.stringify(input),
-    },
-  );
+  const response = await fetcher<DiscussionVoteResponse>(locale, `/discussions/comments/${commentId}/vote`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 
   return response;
 }

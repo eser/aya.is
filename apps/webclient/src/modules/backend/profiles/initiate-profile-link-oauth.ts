@@ -20,17 +20,14 @@ export async function initiateProfileLinkOAuth(
     url += `?scope_upgrade=${scopeUpgrade}`;
   }
 
-  const response = await fetch(
-    url,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+  });
 
   if (!response.ok) return null;
   const result = await response.json();

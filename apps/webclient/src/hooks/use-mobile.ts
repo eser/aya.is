@@ -7,9 +7,7 @@ export function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
-    const mql = globalThis.matchMedia(
-      `(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
-    );
+    const mql = globalThis.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     const onChange = () => {
       setIsMobile(globalThis.innerWidth < MOBILE_BREAKPOINT);
     };

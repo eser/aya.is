@@ -196,15 +196,7 @@ export function buildGlobalTools(
           kind: {
             type: "string",
             description: "Filter by story kind (e.g., 'article', 'news'). Omit for all kinds.",
-            enum: [
-              "article",
-              "announcement",
-              "news",
-              "status",
-              "content",
-              "presentation",
-              "activity",
-            ],
+            enum: ["article", "announcement", "news", "status", "content", "presentation", "activity"],
           },
         },
       },
@@ -246,11 +238,7 @@ export function buildGlobalTools(
       execute: (input: Record<string, unknown>) => {
         const path = input.path as string;
         if (!path.startsWith("/")) {
-          return Promise.reject(
-            new Error(
-              "Path must start with '/' to prevent external navigation.",
-            ),
-          );
+          return Promise.reject(new Error("Path must start with '/' to prevent external navigation."));
         }
         navigate({ to: path });
         return Promise.resolve({ navigated: true, path });
@@ -276,9 +264,7 @@ export function buildGlobalTools(
         const targetLocale = input.locale as string;
         if (!isValidLocale(targetLocale)) {
           return Promise.reject(
-            new Error(
-              `Unsupported locale: ${targetLocale}. Supported: ${SUPPORTED_LOCALES.join(", ")}`,
-            ),
+            new Error(`Unsupported locale: ${targetLocale}. Supported: ${SUPPORTED_LOCALES.join(", ")}`),
           );
         }
         changeLocale(targetLocale, isCustomDomain, navigate);
@@ -313,10 +299,7 @@ export function buildGlobalTools(
 
 // --- Contextual tools (page-aware, added based on current route) ---
 
-export function buildContextualTools(
-  locale: string,
-  context: RouteContext,
-): ModelContextTool[] {
+export function buildContextualTools(locale: string, context: RouteContext): ModelContextTool[] {
   const tools: ModelContextTool[] = [];
 
   if (context.profileSlug !== null) {
@@ -350,9 +333,7 @@ export function buildContextualTools(
         inputSchema: { type: "object", properties: {} },
         annotations: { readOnlyHint: false },
         execute: async () => {
-          const response = await fetch(
-            `/${locale}/stories/${slug}.md`,
-          );
+          const response = await fetch(`/${locale}/stories/${slug}.md`);
           if (!response.ok) {
             throw new Error(`Story not found: ${slug}`);
           }

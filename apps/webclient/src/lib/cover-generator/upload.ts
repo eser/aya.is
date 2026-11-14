@@ -43,11 +43,7 @@ export async function uploadCoverImage(
     const file = new File([blob], filename, { type: "image/png" });
 
     // Upload to S3
-    const uploadSuccess = await backend.uploadToPresignedURL(
-      presignResponse.upload_url,
-      file,
-      "image/png",
-    );
+    const uploadSuccess = await backend.uploadToPresignedURL(presignResponse.upload_url, file, "image/png");
 
     if (!uploadSuccess) {
       return {

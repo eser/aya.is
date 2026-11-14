@@ -54,9 +54,7 @@ export function LiveBanner(props: LiveBannerProps) {
     return null;
   }
 
-  const liveLink = props.links.find(
-    (link) => link.is_online === true && link.kind === "youtube",
-  );
+  const liveLink = props.links.find((link) => link.is_online === true && link.kind === "youtube");
 
   if (liveLink === undefined) {
     return null;
@@ -75,10 +73,7 @@ export function LiveBanner(props: LiveBannerProps) {
         {liveLink.title}
         {onlineTitle !== null && <span className={styles.streamTitle}>· {onlineTitle}</span>}
       </span>
-      <ExternalLink
-        href={liveUrl}
-        className={styles.watchLink}
-      >
+      <ExternalLink href={liveUrl} className={styles.watchLink}>
         <Radio className="size-3.5" />
         {t("Profile.Watch Live")}
       </ExternalLink>

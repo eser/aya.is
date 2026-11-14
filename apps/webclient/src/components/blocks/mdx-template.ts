@@ -37,13 +37,8 @@ function formatProp(name: string, value: string | number | boolean): string {
  * Example: generateSelfClosingMdx("Spacer", { size: "md" })
  * → '\n<Spacer size="md" />\n'
  */
-export function generateSelfClosingMdx(
-  name: string,
-  props: Record<string, string | number | boolean>,
-): string {
-  const entries = Object.entries(props).filter(
-    ([_, v]) => v !== "" && v !== undefined,
-  );
+export function generateSelfClosingMdx(name: string, props: Record<string, string | number | boolean>): string {
+  const entries = Object.entries(props).filter(([_, v]) => v !== "" && v !== undefined);
 
   if (entries.length === 0) {
     return `\n<${name} />\n`;
@@ -67,13 +62,10 @@ export function generateContainerMdx(
   props: Record<string, string | number | boolean>,
   childrenPlaceholder: string,
 ): string {
-  const entries = Object.entries(props).filter(
-    ([_, v]) => v !== "" && v !== undefined,
-  );
+  const entries = Object.entries(props).filter(([_, v]) => v !== "" && v !== undefined);
 
-  const openTag = entries.length === 0
-    ? `<${name}>`
-    : `<${name} ${entries.map(([k, v]) => formatProp(k, v)).join(" ")}>`;
+  const openTag =
+    entries.length === 0 ? `<${name}>` : `<${name} ${entries.map(([k, v]) => formatProp(k, v)).join(" ")}>`;
 
   return `\n${openTag}\n\n${childrenPlaceholder}\n\n</${name}>\n`;
 }

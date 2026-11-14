@@ -48,12 +48,10 @@ function EditPagePage() {
   const [translationLocale, setTranslationLocale] = React.useState(search.lang ?? params.locale);
   // Translation data tagged with its locale to prevent stale renders.
   // null = loading, data.locale mismatches translationLocale = stale (treat as loading)
-  const [translationState, setTranslationState] = React.useState<
-    {
-      locale: string;
-      data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
-    } | null
-  >(null);
+  const [translationState, setTranslationState] = React.useState<{
+    locale: string;
+    data: { title: string; summary: string; content: string } | undefined; // undefined = no translation
+  } | null>(null);
 
   // Check permissions client-side
   React.useEffect(() => {
@@ -169,10 +167,14 @@ function EditPagePage() {
               {/* Toolbar skeleton */}
               <div className="flex items-center justify-between border-b px-4 py-2">
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="size-8" />)}
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
                 </div>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map((i) => <Skeleton key={i} className="size-8" />)}
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="size-8" />
+                  ))}
                 </div>
               </div>
               {/* Panels skeleton */}
@@ -216,18 +218,13 @@ function EditPagePage() {
 
   const handleSave = async (data: ContentEditorData) => {
     // Update the page main fields
-    const updateResult = await backend.updateProfilePage(
-      params.locale,
-      params.slug,
-      page.id,
-      {
-        slug: data.slug,
-        order: page.sort_order,
-        cover_picture_uri: data.storyPictureUri ?? null,
-        published_at: null,
-        visibility: data.visibility ?? "public",
-      },
-    );
+    const updateResult = await backend.updateProfilePage(params.locale, params.slug, page.id, {
+      slug: data.slug,
+      order: page.sort_order,
+      cover_picture_uri: data.storyPictureUri ?? null,
+      published_at: null,
+      visibility: data.visibility ?? "public",
+    });
 
     if (updateResult === null) {
       throw new Error("Failed to update page");
@@ -269,11 +266,7 @@ function EditPagePage() {
   };
 
   const handleDelete = async () => {
-    const result = await backend.deleteProfilePage(
-      params.locale,
-      params.slug,
-      page.id,
-    );
+    const result = await backend.deleteProfilePage(params.locale, params.slug, page.id);
 
     if (result !== null) {
       toast.success(t("ContentEditor.Page deleted successfully"));
@@ -304,12 +297,7 @@ function EditPagePage() {
   };
 
   const handleDeleteTranslation = async (localeToDelete: string) => {
-    const result = await backend.deleteProfilePageTranslation(
-      params.locale,
-      params.slug,
-      page.id,
-      localeToDelete,
-    );
+    const result = await backend.deleteProfilePageTranslation(params.locale, params.slug, page.id, localeToDelete);
     if (result === null) {
       throw new Error("Delete translation failed");
     }

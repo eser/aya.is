@@ -30,13 +30,7 @@ function ButtonBlock(props: ButtonBlockProps) {
   const externalProps = isExternalHref(props.href) ? { target: "_blank" as const, rel: "noopener noreferrer" } : {};
 
   return (
-    <a
-      href={props.href}
-      className={styles.button}
-      data-variant={variant}
-      data-size={size}
-      {...externalProps}
-    >
+    <a href={props.href} className={styles.button} data-variant={variant} data-size={size} {...externalProps}>
       {props.children}
     </a>
   );

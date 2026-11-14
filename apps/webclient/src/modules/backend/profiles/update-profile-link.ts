@@ -24,18 +24,15 @@ export async function updateProfileLink(
   const token = getAuthToken();
   if (token === null) return null;
 
-  const response = await fetch(
-    `${getBackendUri()}/${locale}/profiles/${slug}/_links/${linkId}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
+  const response = await fetch(`${getBackendUri()}/${locale}/profiles/${slug}/_links/${linkId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
 
   if (!response.ok) return null;
   const result = await response.json();
