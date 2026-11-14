@@ -59,7 +59,10 @@ services:
         condition: service_healthy
 
   postgres:
-    image: postgres:16-bookworm
+    # Same image as production (Coolify). PostgreSQL 18+ images keep data under /var/lib/postgresql/<major>/, so the
+    # volume is mounted one level up. A volume created by an older major version (e.g. the previous postgres:16 setup)
+    # is refused on startup: recreate it with `docker compose down -v`, or dump and restore your data first.
+    image: pgvector/pgvector:pg18
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: s3cr3t
@@ -69,7 +72,7 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
       # - ./resources/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - aya-is-network

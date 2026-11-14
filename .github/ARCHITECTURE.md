@@ -58,7 +58,7 @@ aya.is/
 
 ### Database
 
-- **Engine**: PostgreSQL 16+
+- **Engine**: PostgreSQL 18 (`pgvector/pgvector:pg18`, same image as production)
 - **Port**: 5432
 - **Key Tables**:
   - `profile`: User profiles (individuals, organizations, communities)

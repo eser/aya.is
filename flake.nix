@@ -35,7 +35,7 @@
             pkgs.gnumake
             pkgs.docker
             pkgs.docker-compose
-            pkgs.postgresql_16
+            pkgs.postgresql_18
             pkgs.sqlc
             pkgs.air
             pkgs.golangci-lint
