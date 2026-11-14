@@ -20,9 +20,9 @@ insert into "profile_tx" ("description", "locale_code", "profile_id", "propertie
 
 -- profile memberships
 
-insert into "profile_membership" ("created_at", "deleted_at", "finished_at", "id", "kind", "member_profile_id", "profile_id", "properties", "started_at", "updated_at") values ('2024-07-07 17:42:21.029785+00', NULL, NULL, '01J274K5X0E1WYTW3TK80K8WN5', 'owner', '01J27JA3WM81T7D1TCNJ6Q06P5', '01J274G56V6VCP6MHK6BFV3AX9', '{"videos":10}', NULL, NULL);
-insert into "profile_membership" ("created_at", "deleted_at", "finished_at", "id", "kind", "member_profile_id", "profile_id", "properties", "started_at", "updated_at") values ('2025-05-11 12:39:55.135571+00', NULL, NULL, '01JTZNQN04K0A4E8WDEDCSNBT4', 'lead', '01J27JA3WM81T7D1TCNJ6Q06P5', '01JT4FS0K93K4GG4Z40ZDFY3EQ', '{"github":{"prs":{"total":45,"resolved":42},"stars":206,"issues":{"total":20,"resolved":10},"commits":156}}', NULL, NULL);
-insert into "profile_membership" ("created_at", "deleted_at", "finished_at", "id", "kind", "member_profile_id", "profile_id", "properties", "started_at", "updated_at") values ('2025-06-27 23:38:00.603823+00', NULL, NULL, '01JYSW2EQR9BPQSFWHXJS68XGA', 'owner', '01J27JA3WM81T7D1TCNJ6Q06P5', '01JYSV4TD6FSM3F1RKFD4DT5F0', NULL, NULL, NULL);
+insert into "profile_membership" ("deleted_at", "finished_at", "id", "kind", "member_profile_id", "profile_id", "properties", "started_at") values (NULL, NULL, '01J274K5X0E1WYTW3TK80K8WN5', 'owner', '01J27JA3WM81T7D1TCNJ6Q06P5', '01J274G56V6VCP6MHK6BFV3AX9', '{"videos":10}', NULL);
+insert into "profile_membership" ("deleted_at", "finished_at", "id", "kind", "member_profile_id", "profile_id", "properties", "started_at") values (NULL, NULL, '01JTZNQN04K0A4E8WDEDCSNBT4', 'lead', '01J27JA3WM81T7D1TCNJ6Q06P5', '01JT4FS0K93K4GG4Z40ZDFY3EQ', '{"github":{"prs":{"total":45,"resolved":42},"stars":206,"issues":{"total":20,"resolved":10},"commits":156}}', NULL);
+insert into "profile_membership" ("deleted_at", "finished_at", "id", "kind", "member_profile_id", "profile_id", "properties", "started_at") values (NULL, NULL, '01JYSW2EQR9BPQSFWHXJS68XGA', 'owner', '01J27JA3WM81T7D1TCNJ6Q06P5', '01JYSV4TD6FSM3F1RKFD4DT5F0', NULL, NULL);
 
 -- profile links
 
