@@ -52,7 +52,7 @@ function NewPagePage() {
         title: data.title,
         summary: data.summary,
         content: data.content,
-        cover_picture_uri: data.storyPictureUri,
+        cover_picture_uri: data.storyPictureUri ?? null,
         published_at: null,
         visibility: data.visibility ?? "public",
       },

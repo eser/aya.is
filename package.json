@@ -1,10 +1,17 @@
 {
   "private": true,
+  "scripts": {
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint:scripts": "oxlint scripts"
+  },
   "dependencies": {
     "@std/fs": "npm:@jsr/std__fs@^1.0.24",
     "@std/path": "npm:@jsr/std__path@^1.1.6"
   },
   "devDependencies": {
-    "@eser/cli": "npm:@jsr/eser__cli@^4.1.56"
+    "@eser/cli": "npm:@jsr/eser__cli@^4.1.56",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0"
   }
 }

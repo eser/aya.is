@@ -1,6 +1,6 @@
 # AYA Development Guidelines
 
-Project-specific configuration and quick reference. For detailed rules, see `.Codex/skills/*/SKILL.md`.
+Project-specific configuration and quick reference. For detailed rules, see `.agents/skills/*/SKILL.md`.
 
 ## Quick Reference
 
@@ -46,7 +46,7 @@ aya.is/
 │           ├── api/business/     # Pure business logic
 │           ├── api/adapters/     # External implementations
 │           └── ajan/             # Framework utilities
-└── .Codex/skills/               # Development rules
+└── .agents/skills/               # Development rules
 ```
 
 ## Development Commands
@@ -55,7 +55,8 @@ aya.is/
 # Frontend (in /apps/webclient)
 deno task dev         # Start dev server
 deno task build       # Build for production
-deno lint && deno fmt # Lint and format
+deno task lint        # Lint (oxlint, type-aware)
+deno task typecheck   # Type check (TypeScript 7 native tsc)
 deno task test        # Run snapshot tests (writes snapshots)
 deno task test:update # Regenerate snapshots after intentional changes
 deno task test:ci     # Run tests read-only (CI mode, used by make ok)
@@ -66,8 +67,22 @@ make lint             # Run golangci-lint
 make test             # Run tests
 
 # Root
+deno task fmt         # Format everything (oxfmt)
+deno task fmt:check   # Check formatting (used by make ok)
 make ok               # All quality checks (includes frontend tests)
 ```
+
+### Tooling override (this project)
+
+This project uses **oxlint**, **oxfmt** and the native **TypeScript 7** `tsc` instead of `deno lint` / `deno fmt`. Where a
+skill under `.agents/skills` says to use Deno's built-in formatter or linter, this section takes precedence.
+
+- Lint: `deno task lint` in `apps/webclient` (oxlint, type-aware; config in `apps/webclient/.oxlintrc.json`)
+- Type check: `deno task typecheck` in `apps/webclient` (TypeScript 7 `tsc --noEmit`; test files are excluded, they run
+  under Deno)
+- Format: `deno task fmt` / `deno task fmt:check` from the repo root (oxfmt, `printWidth: 120`; config in `.oxfmtrc.json`)
+- oxfmt writes files in place by default; always use `--check` (or `fmt:check`) for verification
+- `oxlint` and `oxfmt` are pinned to exact versions on purpose (oxfmt is pre-1.0), bump them deliberately
 
 ## Key Conventions (CRITICAL)
 

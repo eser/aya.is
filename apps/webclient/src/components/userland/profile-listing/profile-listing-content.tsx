@@ -6,6 +6,7 @@ import { ProfileCard } from "@/components/userland/profile-card/profile-card";
 import { Button } from "@/components/ui/button";
 import { profilesByKindsQueryOptions } from "@/modules/backend/queries";
 import { backend } from "@/modules/backend/backend";
+import type { Profile } from "@/modules/backend/types";
 import { ProfileListingFilterBar } from "./filter-bar";
 import { ProfileCardSkeletonGrid } from "./profile-card-skeleton";
 import styles from "./profile-listing.module.css";
@@ -47,9 +48,7 @@ export function ProfileListingContent(props: ProfileListingContentProps) {
   const [searchText, setSearchText] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [activeFilter, setActiveFilter] = React.useState("");
-  const [additionalPages, setAdditionalPages] = React.useState<
-    Array<Array<{ slug: string; [key: string]: unknown }>>
-  >([]);
+  const [additionalPages, setAdditionalPages] = React.useState<Profile[][]>([]);
   const [hasMore, setHasMore] = React.useState(true);
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
 
@@ -90,11 +89,11 @@ export function ProfileListingContent(props: ProfileListingContentProps) {
   }, [firstPage]);
 
   const allProfiles = React.useMemo(() => {
-    const profiles = [...firstPage];
+    const profiles: Profile[] = [...firstPage];
 
     for (const page of additionalPages) {
       for (const profile of page) {
-        profiles.push(profile as typeof profiles[number]);
+        profiles.push(profile);
       }
     }
 

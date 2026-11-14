@@ -40,11 +40,13 @@ export function useSession() {
   return getAuthClient().useSession();
 }
 
-export function signIn(
-  ...args: Parameters<ReturnType<typeof createAuthClient>["signIn"]>
-) {
-  return getAuthClient().signIn(...args);
-}
+// better-auth's signIn is an object of methods (not callable), so each method is forwarded lazily
+export const signIn = {
+  email: (...args: Parameters<ReturnType<typeof createAuthClient>["signIn"]["email"]>) =>
+    getAuthClient().signIn.email(...args),
+  social: (...args: Parameters<ReturnType<typeof createAuthClient>["signIn"]["social"]>) =>
+    getAuthClient().signIn.social(...args),
+};
 
 export function signOut(
   ...args: Parameters<ReturnType<typeof createAuthClient>["signOut"]>

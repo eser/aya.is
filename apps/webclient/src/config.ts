@@ -88,15 +88,16 @@ export const predefinedSlugs: readonly string[] = [
 
 // Allowed URI prefixes for uploads (must match server-side config)
 // These are used to validate URIs for non-admin users
+// import.meta.env values are untyped (any); the casts below pin them to their real type (string | undefined)
 export const allowedURIPrefixes = {
   // Stories: only our upload service
   stories: [
-    import.meta.env.VITE_ALLOWED_URI_PREFIXES_STORIES ?? "https://objects.aya.is/",
+    (import.meta.env.VITE_ALLOWED_URI_PREFIXES_STORIES as string | undefined) ?? "https://objects.aya.is/",
   ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
 
   // Profiles: our upload service + GitHub avatars
   profiles: [
-    import.meta.env.VITE_ALLOWED_URI_PREFIXES_PROFILES ??
+    (import.meta.env.VITE_ALLOWED_URI_PREFIXES_PROFILES as string | undefined) ??
       "https://objects.aya.is/,https://avatars.githubusercontent.com/",
   ].flatMap((s) => s.split(",").map((p) => p.trim()).filter((p) => p !== "")),
 

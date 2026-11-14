@@ -12,7 +12,7 @@
   "deno.codeLens.referencesAllFunctions": true,
   "deno.codeLens.test": true,
   "deno.enable": true,
-  "deno.lint": true,
+  "deno.lint": false,
   "deno.suggest.imports.autoDiscover": true,
   "javascript.suggest.autoImports": true,
   "javascript.suggest.completeFunctionCalls": true,
@@ -31,7 +31,7 @@
   "typescript.suggest.includeCompletionsForImportStatements": true,
   "typescript.suggest.jsdoc.generateReturns": true,
   "typescript.suggest.paths": true,
-  "editor.defaultFormatter": "denoland.vscode-deno",
+  "editor.defaultFormatter": "oxc.oxc-vscode",
   "go.testFlags": [
     "-failfast"
   ],
@@ -82,6 +82,6 @@
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[typescript][typescriptreact][javascript][javascriptreact][markdown]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   }
 }

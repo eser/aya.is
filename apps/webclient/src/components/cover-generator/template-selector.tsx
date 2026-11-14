@@ -2,7 +2,6 @@
 // Template Selector Component
 // Grid of template thumbnails for selection
 
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type { TemplateId } from "@/lib/cover-generator/types.ts";
 import { getTemplateList, type TemplateConfig } from "@/lib/cover-generator/templates.ts";

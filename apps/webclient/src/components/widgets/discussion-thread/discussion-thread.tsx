@@ -28,12 +28,13 @@ type DiscussionThreadProps = {
 export function DiscussionThread(props: DiscussionThreadProps) {
   const { t } = useTranslation();
   const auth = useAuth();
-  const hasInitialData = props.initialData !== undefined && props.initialData !== null;
+  const initialData = props.initialData ?? null;
+  const hasInitialData = initialData !== null;
   const [thread, setThread] = React.useState<DiscussionThreadType | null>(
-    hasInitialData ? props.initialData.thread : null,
+    initialData !== null ? initialData.thread : null,
   );
   const [comments, setComments] = React.useState<DiscussionComment[]>(
-    hasInitialData ? props.initialData.comments : [],
+    initialData !== null ? initialData.comments : [],
   );
   const [sortMode, setSortMode] = React.useState<DiscussionSortMode>("hot");
   const [isLoading, setIsLoading] = React.useState(!hasInitialData);

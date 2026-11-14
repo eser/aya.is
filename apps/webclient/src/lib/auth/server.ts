@@ -20,7 +20,6 @@ function getServerBaseURL(): string {
  */
 export const auth = betterAuth({
   // No database - api.aya.is is the source of truth
-  // @ts-expect-error - database can be undefined for custom plugin-only auth
   database: undefined,
 
   // Base URL for the auth server
@@ -46,7 +45,9 @@ export const auth = betterAuth({
   // Advanced options
   advanced: {
     // Don't generate secret since we're using external auth
-    generateId: () => crypto.randomUUID(),
+    database: {
+      generateId: () => crypto.randomUUID(),
+    },
   },
 });
 

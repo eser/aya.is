@@ -9,7 +9,8 @@ export const Route = createFileRoute("/")({
     const locale = await getPreferredLocale();
 
     throw redirect({
-      to: `/${locale}`,
+      to: "/$locale",
+      params: { locale },
       replace: true,
     });
   },

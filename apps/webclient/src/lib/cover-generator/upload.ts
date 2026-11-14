@@ -80,7 +80,7 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
 }
 
 // Load AYA logo SVG as image with customizable color
-export async function loadLogoImage(color: string = "#152A35"): Promise<HTMLImageElement> {
+export async function loadLogoImage(color = "#152A35"): Promise<HTMLImageElement> {
   // Official AYA logo (without background for watermark use)
   const svgString = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 3000" fill="none">

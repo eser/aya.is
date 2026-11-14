@@ -96,7 +96,8 @@ export function QuestionCard(props: QuestionCardProps) {
             {props.question.is_anonymous ? t("QA.Anonymous") : props.question.author_profile_slug !== null
               ? (
                 <Link
-                  to={`/${props.locale}/${props.question.author_profile_slug}`}
+                  to="/$locale/$slug"
+                  params={{ locale: props.locale, slug: props.question.author_profile_slug }}
                   className="hover:underline"
                 >
                   {props.question.author_profile_title ?? props.question.author_profile_slug}
@@ -130,7 +131,8 @@ export function QuestionCard(props: QuestionCardProps) {
                   <>
                     {" "}&middot;{" "}
                     <Link
-                      to={`/${props.locale}/${props.question.answered_by_profile_slug}`}
+                      to="/$locale/$slug"
+                      params={{ locale: props.locale, slug: props.question.answered_by_profile_slug }}
                       className="hover:underline"
                     >
                       {props.question.answered_by_profile_title ?? props.question.answered_by_profile_slug}

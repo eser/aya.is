@@ -96,7 +96,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       }
     }
 
-    return { requestContext: context.requestContext };
+    // inflightGetRequests is a server-only dedup cache (Map of Promises) that is not serializable,
+    // so it must not be part of the route context returned from beforeLoad.
+    if (context.requestContext === undefined) {
+      return { requestContext: undefined };
+    }
+
+    const { inflightGetRequests: _inflightGetRequests, ...requestContext } = context.requestContext;
+
+    return { requestContext };
   },
   head: () => ({
     meta: generateMetaTags({

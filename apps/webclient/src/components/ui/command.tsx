@@ -117,8 +117,7 @@ function CommandGroup({
 
 function CommandSeparator({
   className,
-  // deno-lint-ignore no-unused-vars
-  decorative,
+  decorative: _decorative,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Separator> & {
   decorative?: boolean;

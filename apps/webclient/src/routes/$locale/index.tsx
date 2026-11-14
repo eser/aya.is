@@ -62,6 +62,10 @@ export const Route = createFileRoute("/$locale/")({
     return { compiledIntro, locale, siteSubtitle, githubStars };
   },
   head: ({ loaderData }) => {
+    if (loaderData === undefined) {
+      return {};
+    }
+
     const { locale, siteSubtitle } = loaderData;
     return {
       meta: generateMetaTags({

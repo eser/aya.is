@@ -29,13 +29,13 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
     // Skip if pageslug matches known routes
     const knownRoutes = ["stories", "settings", "members", "contributions"];
     if (knownRoutes.includes(pageslug)) {
-      return { page: null, compiledContent: null, notFound: true, locale, slug, pageslug };
+      return { page: null, compiledContent: null, notFound: true as const, locale, slug, pageslug };
     }
 
     const page = await context.queryClient.ensureQueryData(profilePageQueryOptions(locale, slug, pageslug));
 
     if (page === null || page === undefined) {
-      return { page: null, compiledContent: null, notFound: true, locale, slug, pageslug };
+      return { page: null, compiledContent: null, notFound: true as const, locale, slug, pageslug };
     }
 
     // Compile MDX content on the server
@@ -52,13 +52,13 @@ export const Route = createFileRoute("/$locale/$slug/$pageslug/")({
     // Set Content-Language header with content locale awareness
     setServerResponseHeader("Content-Language", computeContentLanguage(locale, page.locale_code));
 
-    return { page, compiledContent, notFound: false, locale, slug, pageslug };
+    return { page, compiledContent, notFound: false as const, locale, slug, pageslug };
   },
   head: ({ loaderData }) => {
-    const { page, locale, slug, pageslug } = loaderData;
-    if (page === null) {
+    if (loaderData === undefined || loaderData.page === null) {
       return { meta: [] };
     }
+    const { page, locale, slug, pageslug } = loaderData;
     const contentLocale = page.locale_code?.trim() ?? locale;
     const canonicalLocale = (contentLocale !== "" && contentLocale !== locale) ? contentLocale : locale;
     return {

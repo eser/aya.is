@@ -229,7 +229,11 @@ function BulletinsSettingsPage() {
             <p className={styles.sectionLabel}>{t("Bulletin.Preferred Sending Hour")}</p>
             <Select
               value={preferredTime}
-              onValueChange={setPreferredTime}
+              onValueChange={(value) => {
+                if (value !== null) {
+                  setPreferredTime(value);
+                }
+              }}
               disabled={isDontSend}
             >
               <SelectTrigger className="w-48">

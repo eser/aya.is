@@ -184,7 +184,11 @@ function VisibilitySelect(props: {
   return (
     <Select
       value={props.value}
-      onValueChange={(val: string) => props.onChange(val as ModuleVisibility)}
+      onValueChange={(val: string | null) => {
+        if (val !== null) {
+          props.onChange(val as ModuleVisibility);
+        }
+      }}
     >
       <SelectTrigger>
         <SelectValue>
@@ -306,7 +310,7 @@ function AccessSettingsPage() {
   const router = useRouter();
 
   // Debounce search
-  const searchTimeoutRef = React.useRef<number | null>(null);
+  const searchTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load memberships on mount
   React.useEffect(() => {
@@ -667,7 +671,11 @@ function AccessSettingsPage() {
                       <FieldLabel>{t("Profile.Application Form Preset")}</FieldLabel>
                       <Select
                         value={selectedPreset}
-                        onValueChange={setSelectedPreset}
+                        onValueChange={(value) => {
+                          if (value !== null) {
+                            setSelectedPreset(value);
+                          }
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue>

@@ -7,18 +7,5 @@
     "**/node_modules/*",
     "**/.tanstack/*",
     "**/*.gen.ts"
-  ],
-  "lint": {
-    "rules": {
-      "tags": [
-        "recommended"
-      ],
-      "exclude": [
-        "no-sloppy-imports"
-      ]
-    }
-  },
-  "fmt": {
-    "lineWidth": 120
-  }
+  ]
 }

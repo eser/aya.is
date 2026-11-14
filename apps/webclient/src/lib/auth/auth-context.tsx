@@ -87,7 +87,8 @@ export function AuthProvider(props: AuthProviderProps) {
             id: result.selected_profile.id,
             slug: result.selected_profile.slug,
             kind: result.selected_profile.kind,
-            title: result.selected_profile.title,
+            // IndividualProfile.title is required but the session's title is optional
+            title: result.selected_profile.title ?? "",
             profile_picture_uri: result.selected_profile.profile_picture_uri,
             points: result.selected_profile.points,
           }
@@ -156,7 +157,7 @@ export function AuthProvider(props: AuthProviderProps) {
     return () => clearInterval(interval);
   }, [state.isAuthenticated, state.token]);
 
-  const login = React.useCallback((redirectUri?: string, provider: string = "github") => {
+  const login = React.useCallback((redirectUri?: string, provider = "github") => {
     const locale = getCurrentLocale();
     const backendUri = getBackendUri();
 

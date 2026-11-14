@@ -74,6 +74,9 @@ jobs:
           cache: true
           cache-dependency-path: ./apps/services/go.sum
 
+      - name: Install root dependencies
+        run: deno install
+
       - name: Install dependencies
         run: deno install
         working-directory: ./apps/webclient/

@@ -117,7 +117,14 @@ export function EditorActions(props: EditorActionsProps) {
       </DropdownMenu>
 
       {locale !== undefined && isNew && onLocaleChange !== undefined && (
-        <Select value={locale} onValueChange={onLocaleChange}>
+        <Select
+          value={locale}
+          onValueChange={(value) => {
+            if (value !== null) {
+              onLocaleChange(value);
+            }
+          }}
+        >
           <SelectTrigger size="sm" className="w-auto">
             <SelectValue>
               {(value: string) =>

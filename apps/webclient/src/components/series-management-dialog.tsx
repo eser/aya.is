@@ -306,7 +306,14 @@ export function SeriesManagementDialog(props: SeriesManagementDialogProps) {
                   {/* Content locale selector */}
                   <div className="space-y-1.5">
                     <Label>{t("Series.Content Locale")}</Label>
-                    <Select value={contentLocale} onValueChange={handleContentLocaleChange}>
+                    <Select
+                      value={contentLocale}
+                      onValueChange={(value) => {
+                        if (value !== null) {
+                          handleContentLocaleChange(value);
+                        }
+                      }}
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue>
                           {(value: string) => localeLabelMap.get(value) ?? value}

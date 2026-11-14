@@ -1,0 +1,14 @@
+{
+  "printWidth": 120,
+  "ignorePatterns": [
+    "**/*.gen.ts",
+    "**/__snapshots__/**",
+    ".agents/skills/**",
+    ".claude/skills/**",
+    ".output/**",
+    ".tanstack/**",
+    "**/testdata/**",
+    "apps/apple/**",
+    "apps/webclient.old/**"
+  ]
+}

@@ -141,7 +141,7 @@ function AdminProfileEnvelopes() {
           <div className="grid grid-cols-2 gap-4">
             <Field>
               <FieldLabel htmlFor="envelopeKind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
-              <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
+              <Select value={envelopeKind} onValueChange={(value) => setEnvelopeKind(value ?? "")}>
                 <SelectTrigger id="envelopeKind" className="w-full">
                   <SelectValue>
                     {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}

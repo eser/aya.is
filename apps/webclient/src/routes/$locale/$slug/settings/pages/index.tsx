@@ -94,7 +94,11 @@ function VisibilitySelect(props: {
   return (
     <Select
       value={props.value}
-      onValueChange={(val: string) => props.onChange(val as ModuleVisibility)}
+      onValueChange={(val: string | null) => {
+        if (val !== null) {
+          props.onChange(val as ModuleVisibility);
+        }
+      }}
     >
       <SelectTrigger>
         <SelectValue>
@@ -128,19 +132,19 @@ function PagesSettingsPage() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [isSavingPrefs, setIsSavingPrefs] = React.useState(false);
   const [featureRelations, setFeatureRelations] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_relations as ModuleVisibility) ?? "public",
+    (initialProfile?.feature_relations as ModuleVisibility | undefined) ?? "public",
   );
   const [featureLinks, setFeatureLinks] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_links as ModuleVisibility) ?? "disabled",
+    (initialProfile?.feature_links as ModuleVisibility | undefined) ?? "disabled",
   );
   const [featureQA, setFeatureQA] = React.useState<ModuleVisibility>(
-    (initialProfile.feature_qa as ModuleVisibility) ?? "disabled",
+    (initialProfile?.feature_qa as ModuleVisibility | undefined) ?? "disabled",
   );
   // Sync dialog state when profile changes
   React.useEffect(() => {
-    setFeatureRelations((initialProfile.feature_relations as ModuleVisibility) ?? "public");
-    setFeatureLinks((initialProfile.feature_links as ModuleVisibility) ?? "disabled");
-    setFeatureQA((initialProfile.feature_qa as ModuleVisibility) ?? "disabled");
+    setFeatureRelations((initialProfile?.feature_relations as ModuleVisibility | undefined) ?? "public");
+    setFeatureLinks((initialProfile?.feature_links as ModuleVisibility | undefined) ?? "disabled");
+    setFeatureQA((initialProfile?.feature_qa as ModuleVisibility | undefined) ?? "disabled");
   }, [initialProfile]);
 
   // Drag and drop state
@@ -294,7 +298,7 @@ function PagesSettingsPage() {
   };
 
   // Determine which preferences to show based on profile kind
-  const isOrgOrProduct = initialProfile.kind === "organization" || initialProfile.kind === "product";
+  const isOrgOrProduct = initialProfile?.kind === "organization" || initialProfile?.kind === "product";
 
   const visibilityOptions: VisibilityOption[] = [
     {

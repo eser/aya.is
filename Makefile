@@ -19,10 +19,12 @@ ok: ## Checks if the code is ok.
 	cd ./apps/services && \
   make ok && \
   cd ../../apps/webclient && \
-  deno lint && \
-  deno fmt --check && \
+  deno task lint && \
+  deno task typecheck && \
   deno task test:ci && \
-  cd ../../
+  cd ../../ && \
+  deno task fmt:check && \
+  deno task lint:scripts
 
 .PHONY: build
 build: ## (Re)builds the containers.

@@ -80,6 +80,13 @@ function rehypeExternalLinks() {
   };
 }
 
+type MdxContentComponent = ReturnType<typeof runSync>["default"];
+
+/**
+ * Map of MDX element names to components, as accepted by the compiled MDX content component.
+ */
+export type MdxComponentMap = NonNullable<React.ComponentProps<MdxContentComponent>["components"]>;
+
 /**
  * Creates MDX components with heading level offset.
  * offset=1 means h1→h2, h2→h3, etc. (default, for h1 page titles)
@@ -90,10 +97,10 @@ function rehypeExternalLinks() {
  * MDX components should not be rendered.
  */
 export function createMdxComponents(
-  offset: number = 1,
-  includeUserlandComponents: boolean = true,
-): Record<string, React.ComponentType<Record<string, unknown>>> {
-  const components: Record<string, React.ComponentType<Record<string, unknown>>> = {};
+  offset = 1,
+  includeUserlandComponents = true,
+): MdxComponentMap {
+  const components: MdxComponentMap = {};
 
   // Override <a> to enable app deep linking on touch devices
   components.a = ExternalLink;
@@ -270,7 +277,7 @@ export async function compileMdxLite(source: string): Promise<string> {
  */
 export function runMdxSync(
   compiledCode: string,
-): React.ComponentType<{ components?: Record<string, React.ComponentType> }> {
+): MdxContentComponent {
   const { default: MdxContent } = runSync(compiledCode, {
     ...runtime,
     baseUrl: import.meta.url,

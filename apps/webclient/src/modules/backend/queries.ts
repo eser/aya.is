@@ -85,7 +85,7 @@ export const profilesByKindsQueryOptions = (
   return queryOptions({
     queryKey: ["profiles", locale, { kinds, seed, limit, offset, q }],
     queryFn: () => backend.getProfilesByKinds(locale, kinds, seed, limit, offset, q),
-    placeholderData: (prev: unknown) => prev, // keep stale data visible while refetching
+    placeholderData: (prev) => prev, // keep stale data visible while refetching
   });
 };
 

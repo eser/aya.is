@@ -27,6 +27,7 @@ workflows:
           allowMissingCredentials: true
           exclude:
             - ".claude/skills/"
+            - ".agents/skills/"
       - validate-filenames:
           rules:
             - directory: "apps/webclient/"
@@ -50,6 +51,7 @@ workflows:
             - directory: "*"
               convention: "kebab-case"
               exclude:
+                - ".agents/"
                 - ".claude/"
                 - ".cursor/"
                 - ".github/"
@@ -60,7 +62,7 @@ workflows:
                 - "docs/"
                 - "scripts/"
                 - "CHANGELOG.md"
-                - "CLAUDE.md"
+                - "AGENTS.md"
                 - "Dockerfile"
                 - "LICENSE"
                 - "Makefile"
@@ -73,13 +75,25 @@ workflows:
 
       # Frontend (Deno) checks
       - shell:
-          name: deno-formatter
-          command: deno fmt --check
-          fixCommand: deno fmt
+          name: oxfmt
+          command: deno task fmt:check
+          fixCommand: deno task fmt
+          timeout: 120
       - shell:
-          name: deno-linter
-          command: deno lint
-          fixCommand: deno lint --fix
+          name: oxlint
+          command: deno task lint
+          fixCommand: deno task lint:fix
+          workingDirectory: ./apps/webclient/
+          timeout: 120
+      - shell:
+          name: oxlint-scripts
+          command: deno task lint:scripts
+          timeout: 60
+      - shell:
+          name: webclient-typecheck
+          command: deno task typecheck
+          workingDirectory: ./apps/webclient/
+          timeout: 180
       - shell:
           name: webclient-tests
           command: deno task test:ci
@@ -91,7 +105,7 @@ workflows:
           name: go-vet
           command: go vet ./...
           workingDirectory: ./apps/services/
-          timeout: 60
+          timeout: 180
       - shell:
           name: go-build
           command: go build -v ./...

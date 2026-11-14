@@ -34,6 +34,10 @@ export const Route = createFileRoute("/$locale/elements/")({
     };
   },
   head: ({ loaderData }) => {
+    if (loaderData === undefined) {
+      return {};
+    }
+
     const { locale, translatedTitle, translatedDescription } = loaderData;
     return {
       meta: generateMetaTags({

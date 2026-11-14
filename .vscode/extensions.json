@@ -9,6 +9,7 @@
     "heybourn.headwind",
     "lang2hong.rest-client-neo",
     "ms-vscode.makefile-tools",
+    "oxc.oxc-vscode",
     "ryanluker.vscode-coverage-gutters"
   ]
 }

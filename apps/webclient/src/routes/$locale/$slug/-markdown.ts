@@ -6,7 +6,7 @@ import { formatFrontmatter } from "@/lib/markdown";
 import { registerMarkdownHandler } from "@/server/markdown-middleware";
 import { backend } from "@/modules/backend/backend";
 import { isValidLocale, type SupportedLocaleCode, supportedLocales } from "@/config";
-import type { Profile, ProfilePage, Story } from "@/modules/backend/types";
+import type { Profile, ProfilePage, StoryEx } from "@/modules/backend/types";
 
 const STORIES_PER_PAGE = 12;
 
@@ -23,7 +23,7 @@ interface PaginationInfo {
 export function generateProfileMarkdown(
   profile: Profile,
   locale: string,
-  stories: Story[],
+  stories: StoryEx[],
   pagination: PaginationInfo,
 ): string {
   const frontmatter = formatFrontmatter({
@@ -42,7 +42,7 @@ export function generateProfileMarkdown(
   }
 
   // Links section
-  const visibleLinks = profile.links?.filter((link) => !link.is_hidden) ?? [];
+  const visibleLinks = profile.links ?? [];
   if (visibleLinks.length > 0) {
     sections.push("\n## Links\n");
     for (const link of visibleLinks) {

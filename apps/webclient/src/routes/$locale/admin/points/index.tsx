@@ -46,10 +46,14 @@ function AdminPointsDashboard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = (newStatus: PendingAwardStatus | null) => {
+    if (newStatus === null) {
+      return;
+    }
+
     navigate({
       to: `/${params.locale}/admin/points`,
-      search: { status: newStatus as PendingAwardStatus },
+      search: { status: newStatus },
     });
   };
 

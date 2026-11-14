@@ -27,8 +27,8 @@ deno task build
 # Preview production build
 deno task preview
 
-# Lint and format
-deno lint && deno fmt
+# Lint and type check (format from the repo root with `deno task fmt`)
+deno task lint && deno task typecheck
 ```
 
 ## Project Structure

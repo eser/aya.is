@@ -14,7 +14,8 @@ export const createProfileSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
   description: z.string().max(500, "Description is too long").optional(),
   kind: z.enum(["individual", "organization", "product"], {
-    required_error: "Please select a profile type",
+    // zod 4: replaces `required_error`; custom message only when the value is missing
+    error: (issue) => (issue.input === undefined ? "Please select a profile type" : undefined),
   }),
 });
 

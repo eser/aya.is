@@ -44,8 +44,9 @@ function MembersLayout() {
     return <ChildNotFound />;
   }
 
-  const isMemberPlus = permissions?.viewer_membership_kind !== undefined &&
-    MEMBER_PLUS_KINDS.has(permissions.viewer_membership_kind);
+  const membershipKind = permissions?.viewer_membership_kind;
+  const isMemberPlus = membershipKind !== undefined && membershipKind !== null &&
+    MEMBER_PLUS_KINDS.has(membershipKind);
 
   return (
     <ProfileSidebarLayout

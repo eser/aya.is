@@ -26,7 +26,6 @@ import {
   type Conversation,
   type ConversationDetail,
   type EnvelopeStatus,
-  type MailboxEnvelope,
 } from "@/modules/backend/backend";
 import { PageLayout } from "@/components/page-layouts/default";
 import { Card } from "@/components/ui/card";
@@ -93,7 +92,7 @@ function ConversationRow(props: {
 
   const avatarFallback = firstOther !== null ? firstOther.profile_title.charAt(0).toUpperCase() : "?";
 
-  const hasLastEnvelope = conv.last_envelope !== null && conv.last_envelope !== undefined;
+  const lastEnvelope = conv.last_envelope ?? null;
 
   const title = conv.kind === "system"
     ? (conv.title !== null && conv.title !== undefined && conv.title !== "" ? conv.title : t("Mailbox.System message"))
@@ -101,12 +100,12 @@ function ConversationRow(props: {
       ? otherParticipants.map((p) => p.profile_title).join(", ")
       : t("Mailbox.Conversation"));
 
-  const preview = hasLastEnvelope && conv.last_envelope.message !== null && conv.last_envelope.message !== undefined
-    ? conv.last_envelope.message
+  const preview = lastEnvelope !== null && lastEnvelope.message !== null && lastEnvelope.message !== undefined
+    ? lastEnvelope.message
     : "";
 
-  const timestamp = hasLastEnvelope
-    ? formatDateString(conv.last_envelope.created_at, props.locale)
+  const timestamp = lastEnvelope !== null
+    ? formatDateString(lastEnvelope.created_at, props.locale)
     : formatDateString(conv.created_at, props.locale);
 
   return (
@@ -156,6 +155,9 @@ function ConversationRow(props: {
 }
 
 // --- Envelope/Message Bubble ---
+// backend.ts re-exports a different (profile-owned) MailboxEnvelope; conversation envelopes carry reactions.
+type MailboxEnvelope = ConversationDetail["envelopes"][number];
+
 function EnvelopeBubble(props: {
   envelope: MailboxEnvelope;
   locale: string;
@@ -523,7 +525,7 @@ function NewConversationForm(props: {
         <div className="grid grid-cols-2 gap-4">
           <Field>
             <FieldLabel htmlFor="compose-from">{t("Profile.From")}</FieldLabel>
-            <Select value={senderSlug} onValueChange={setSenderSlug}>
+            <Select value={senderSlug} onValueChange={(value) => setSenderSlug(value ?? "")}>
               <SelectTrigger id="compose-from">
                 <SelectValue>
                   {props.senderProfiles.find((p) => p.slug === senderSlug)?.title ?? senderSlug}
@@ -540,7 +542,7 @@ function NewConversationForm(props: {
           </Field>
           <Field>
             <FieldLabel htmlFor="compose-kind">{t("ProfileSettings.Envelope Kind")}</FieldLabel>
-            <Select value={envelopeKind} onValueChange={setEnvelopeKind}>
+            <Select value={envelopeKind} onValueChange={(value) => setEnvelopeKind(value ?? "")}>
               <SelectTrigger id="compose-kind">
                 <SelectValue>
                   {t(ENVELOPE_KINDS.find((k) => k.value === envelopeKind)?.labelKey ?? "")}

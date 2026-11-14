@@ -25,6 +25,9 @@ export const Route = createFileRoute("/$locale/$slug/")({
     return { slug, locale };
   },
   head: ({ loaderData }) => {
+    if (loaderData === undefined) {
+      return {};
+    }
     const { locale, slug } = loaderData;
     return {
       links: [generateCanonicalLink(buildUrl(locale, slug))],

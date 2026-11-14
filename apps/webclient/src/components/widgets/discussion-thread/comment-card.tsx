@@ -163,7 +163,8 @@ export function CommentCard(props: CommentCardProps) {
           {props.comment.author_profile_slug !== null
             ? (
               <Link
-                to={`/${props.locale}/${props.comment.author_profile_slug}`}
+                to="/$locale/$slug"
+                params={{ locale: props.locale, slug: props.comment.author_profile_slug }}
                 className={styles.authorLink}
               >
                 {props.comment.author_profile_title ?? props.comment.author_profile_slug}

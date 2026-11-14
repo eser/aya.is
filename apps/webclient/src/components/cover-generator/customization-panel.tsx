@@ -2,7 +2,6 @@
 // Customization Panel Component
 // Full customization controls for cover generation
 
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type {
   BackgroundPattern,

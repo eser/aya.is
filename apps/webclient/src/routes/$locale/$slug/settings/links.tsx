@@ -1627,7 +1627,11 @@ function LinksSettingsPage() {
               <FieldLabel htmlFor="external-site-system">{t("Profile.System")}</FieldLabel>
               <Select
                 value={externalSiteSystem}
-                onValueChange={(value) => setExternalSiteSystem(value)}
+                onValueChange={(value) => {
+                  if (value !== null) {
+                    setExternalSiteSystem(value);
+                  }
+                }}
                 disabled={isConnectingExternalSite}
               >
                 <SelectTrigger id="external-site-system">

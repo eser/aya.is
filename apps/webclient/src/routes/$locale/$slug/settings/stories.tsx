@@ -5,6 +5,7 @@ import { createFileRoute, getRouteApi, Link, useRouter } from "@tanstack/react-r
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+  Calendar,
   ExternalLink,
   FileText,
   Globe,
@@ -61,6 +62,7 @@ const storyKindIcons: Record<StoryKind, React.ElementType> = {
   status: Info,
   content: Images,
   presentation: Presentation,
+  activity: Calendar,
 };
 
 export const Route = createFileRoute("/$locale/$slug/settings/stories")({
@@ -89,12 +91,12 @@ function StoriesSettingsPage() {
   const [seriesDialogOpen, setSeriesDialogOpen] = React.useState(false);
   const [isSavingDefaults, setIsSavingDefaults] = React.useState(false);
   const [storyDiscussionsByDefault, setStoryDiscussionsByDefault] = React.useState(
-    initialProfile.option_story_discussions_by_default === true,
+    initialProfile?.option_story_discussions_by_default === true,
   );
 
   // Sync dialog state when profile changes
   React.useEffect(() => {
-    setStoryDiscussionsByDefault(initialProfile.option_story_discussions_by_default === true);
+    setStoryDiscussionsByDefault(initialProfile?.option_story_discussions_by_default === true);
   }, [initialProfile]);
 
   const handleSaveDefaults = async () => {
@@ -268,16 +270,14 @@ function StoriesSettingsPage() {
                           : <GlobeLock className="size-3.5 text-yellow-600" />}
                         {story.feat_discussions
                           ? (
-                            <MessageSquare
-                              className="size-3.5 text-blue-500"
-                              title={t("ContentEditor.Discussions enabled description")}
-                            />
+                            <MessageSquare className="size-3.5 text-blue-500">
+                              <title>{t("ContentEditor.Discussions enabled description")}</title>
+                            </MessageSquare>
                           )
                           : (
-                            <MessageSquareOff
-                              className="size-3.5 text-muted-foreground"
-                              title={t("ContentEditor.Discussions disabled description")}
-                            />
+                            <MessageSquareOff className="size-3.5 text-muted-foreground">
+                              <title>{t("ContentEditor.Discussions disabled description")}</title>
+                            </MessageSquareOff>
                           )}
                       </div>
                       <p className="text-sm text-muted-foreground">

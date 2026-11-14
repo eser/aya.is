@@ -742,7 +742,15 @@ export function ContentEditor(props: ContentEditorProps) {
                     <FieldLabel htmlFor="activity-kind" className={styles.metadataLabel}>
                       {t("Activities.Activity Kind")}
                     </FieldLabel>
-                    <Select value={activityKind} onValueChange={setActivityKind} disabled={isManaged}>
+                    <Select
+                      value={activityKind}
+                      onValueChange={(value) => {
+                        if (value !== null) {
+                          setActivityKind(value);
+                        }
+                      }}
+                      disabled={isManaged}
+                    >
                       <SelectTrigger id="activity-kind">
                         <span>{t(`Activities.${activityKind.charAt(0).toUpperCase() + activityKind.slice(1)}`)}</span>
                       </SelectTrigger>
@@ -760,7 +768,15 @@ export function ContentEditor(props: ContentEditorProps) {
                     <FieldLabel htmlFor="date-mode" className={styles.metadataLabel}>
                       {t("Activities.Date Mode")}
                     </FieldLabel>
-                    <Select value={dateMode} onValueChange={setDateMode} disabled={isManaged}>
+                    <Select
+                      value={dateMode}
+                      onValueChange={(value) => {
+                        if (value !== null) {
+                          setDateMode(value);
+                        }
+                      }}
+                      disabled={isManaged}
+                    >
                       <SelectTrigger id="date-mode">
                         <span>
                           {t(dateMode === "fixed" ? "Activities.Fixed Date" : "Activities.Undecided (Polling)")}
@@ -809,7 +825,15 @@ export function ContentEditor(props: ContentEditorProps) {
                         <FieldLabel htmlFor="date-proposal-access" className={styles.metadataLabel}>
                           {t("Activities.Proposal Access")}
                         </FieldLabel>
-                        <Select value={dateProposalAccess} onValueChange={setDateProposalAccess} disabled={isManaged}>
+                        <Select
+                          value={dateProposalAccess}
+                          onValueChange={(value) => {
+                            if (value !== null) {
+                              setDateProposalAccess(value);
+                            }
+                          }}
+                          disabled={isManaged}
+                        >
                           <SelectTrigger id="date-proposal-access">
                             <span>
                               {t(`Activities.${
@@ -836,7 +860,15 @@ export function ContentEditor(props: ContentEditorProps) {
                         <FieldLabel htmlFor="date-vote-access" className={styles.metadataLabel}>
                           {t("Activities.Vote Access")}
                         </FieldLabel>
-                        <Select value={dateVoteAccess} onValueChange={setDateVoteAccess} disabled={isManaged}>
+                        <Select
+                          value={dateVoteAccess}
+                          onValueChange={(value) => {
+                            if (value !== null) {
+                              setDateVoteAccess(value);
+                            }
+                          }}
+                          disabled={isManaged}
+                        >
                           <SelectTrigger id="date-vote-access">
                             <span>
                               {t(`Activities.${
@@ -891,7 +923,15 @@ export function ContentEditor(props: ContentEditorProps) {
                     <FieldLabel htmlFor="rsvp-mode" className={styles.metadataLabel}>
                       {t("Activities.RSVP Mode")}
                     </FieldLabel>
-                    <Select value={rsvpMode} onValueChange={setRsvpMode} disabled={isManaged}>
+                    <Select
+                      value={rsvpMode}
+                      onValueChange={(value) => {
+                        if (value !== null) {
+                          setRsvpMode(value);
+                        }
+                      }}
+                      disabled={isManaged}
+                    >
                       <SelectTrigger id="rsvp-mode">
                         <span>
                           {t(`Activities.RSVP ${
@@ -1028,23 +1068,32 @@ export function ContentEditor(props: ContentEditorProps) {
                   </Button>
                   {!isNew && !isManaged && initialData.slug !== ""
                     ? (
-                      <Link
-                        to={contentType === "story"
-                          ? "/$locale/stories/$storyslug/cover"
-                          : "/$locale/$slug/$pageslug/cover"}
-                        params={contentType === "story"
-                          ? { locale, storyslug: initialData.slug }
-                          : { locale, slug: profileSlug, pageslug: initialData.slug }}
-                      >
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          title={t("CoverDesigner.Design Cover")}
-                        >
-                          <ImagePlus className="size-4" />
-                        </Button>
-                      </Link>
+                      contentType === "story"
+                        ? (
+                          <Link to="/$locale/stories/$storyslug/cover" params={{ locale, storyslug: initialData.slug }}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              title={t("CoverDesigner.Design Cover")}
+                            >
+                              <ImagePlus className="size-4" />
+                            </Button>
+                          </Link>
+                        )
+                        : (
+                          // No page cover route is registered in the route tree, so a typed <Link> cannot target it
+                          <a href={`/${locale}/${profileSlug}/${initialData.slug}/cover`}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              title={t("CoverDesigner.Design Cover")}
+                            >
+                              <ImagePlus className="size-4" />
+                            </Button>
+                          </a>
+                        )
                     )
                     : (
                       <Button

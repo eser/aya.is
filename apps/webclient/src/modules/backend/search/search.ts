@@ -9,7 +9,7 @@ export async function search(
   locale: string,
   query: string,
   profileSlug?: string,
-  limit: number = 20,
+  limit = 20,
 ): Promise<SearchResult[] | null> {
   const params = new URLSearchParams({
     q: query,

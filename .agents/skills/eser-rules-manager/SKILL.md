@@ -27,8 +27,8 @@ Even 1% probability requires checking skills first. This is not optional.
 ## Rule Management
 
 1. Identify scope → choose skill (or create new)
-2. Add/update rule in `.Codex/skills/<name>/references/rules.md`
-3. Validate: `npx -y Codex-skills-cli validate .Codex/skills/<name>`
+2. Add/update rule in `.agents/skills/<name>/references/rules.md`
+3. Validate: `npx -y claude-skills-cli validate .agents/skills/<name>`
 
 ## Available Skills
 

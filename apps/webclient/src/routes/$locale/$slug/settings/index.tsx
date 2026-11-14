@@ -24,7 +24,7 @@ function SettingsIndexPage() {
   const { profile: initialProfile } = settingsRoute.useLoaderData();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [currentProfile, setCurrentProfile] = React.useState<Profile>(initialProfile);
+  const [currentProfile, setCurrentProfile] = React.useState<Profile | null>(initialProfile);
 
   // Update local profile state when loader data changes
   React.useEffect(() => {
@@ -35,7 +35,7 @@ function SettingsIndexPage() {
     setIsSubmitting(true);
     try {
       // Update pronouns via profile endpoint (only if individual profile)
-      if (currentProfile.kind === "individual") {
+      if (currentProfile?.kind === "individual") {
         const profileResult = await backend.updateProfile(params.locale, params.slug, {
           pronouns: data.pronouns || null,
         });
@@ -65,12 +65,14 @@ function SettingsIndexPage() {
       toast.success(t("Profile.Profile updated successfully"));
 
       // Update local state with new values
-      setCurrentProfile((prev) => ({
-        ...prev,
-        title: data.title,
-        description: data.description,
-        pronouns: data.pronouns || null,
-      }));
+      setCurrentProfile((prev) =>
+        prev === null ? prev : {
+          ...prev,
+          title: data.title,
+          description: data.description,
+          pronouns: data.pronouns || null,
+        }
+      );
 
       // Invalidate router cache to refresh profile data
       router.invalidate();
@@ -83,10 +85,7 @@ function SettingsIndexPage() {
 
   const handlePictureUpload = (newUri: string) => {
     // Update local state with new picture URI
-    setCurrentProfile((prev) => ({
-      ...prev,
-      profile_picture_uri: newUri,
-    }));
+    setCurrentProfile((prev) => prev === null ? prev : { ...prev, profile_picture_uri: newUri });
 
     // Invalidate router cache to refresh profile data
     router.invalidate();
@@ -94,14 +93,15 @@ function SettingsIndexPage() {
 
   const handlePictureRemove = () => {
     // Clear picture URI from local state
-    setCurrentProfile((prev) => ({
-      ...prev,
-      profile_picture_uri: null,
-    }));
+    setCurrentProfile((prev) => prev === null ? prev : { ...prev, profile_picture_uri: null });
 
     // Invalidate router cache to refresh profile data
     router.invalidate();
   };
+
+  if (currentProfile === null) {
+    return null;
+  }
 
   return (
     <Card className="p-6">

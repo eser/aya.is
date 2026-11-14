@@ -1,10 +1,10 @@
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 import { fetcher } from "../fetcher";
-import type { Story } from "../types";
+import type { StoryEx } from "../types";
 
 export async function getProfileStories(
   locale: string,
   slug: string,
-): Promise<Story[] | null> {
-  return await fetcher<Story[]>(locale, `/profiles/${slug}/stories`);
+): Promise<StoryEx[] | null> {
+  return await fetcher<StoryEx[]>(locale, `/profiles/${slug}/stories`);
 }

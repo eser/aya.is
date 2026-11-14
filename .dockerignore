@@ -40,6 +40,7 @@
 **/testdata
 
 # Development tooling
+.agents/
 .claude/
 apps/services/tmp/
 **/.air.toml

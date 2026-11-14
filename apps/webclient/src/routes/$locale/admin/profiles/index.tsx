@@ -44,10 +44,14 @@ function AdminProfiles() {
   const { profiles, total, limit } = Route.useLoaderData();
   const params = Route.useParams();
 
-  const handleKindChange = (newKind: string) => {
+  const handleKindChange = (newKind: ProfileKind | null) => {
+    if (newKind === null) {
+      return;
+    }
+
     navigate({
       to: `/${params.locale}/admin/profiles`,
-      search: { kind: newKind as ProfileKind, offset: 0 },
+      search: { kind: newKind, offset: 0 },
     });
   };
 

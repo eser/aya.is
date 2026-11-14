@@ -106,16 +106,25 @@ export const Route = createFileRoute("/$locale/$slug/members/apply")({
 
 function ApplyPage() {
   const loaderData = Route.useLoaderData();
+  const params = Route.useParams();
+  const isFound = !loaderData.notFound;
+
+  // Isomorphic queries — read from SSR-hydrated cache, auto-refetch on client.
+  // Hooks must run before any early return, so gate them with `enabled` instead.
+  const { data: permissions } = useQuery({
+    ...profilePermissionsQueryOptions(params.locale, params.slug),
+    enabled: isFound,
+  });
+  const { data: existingApplication } = useQuery({
+    ...myApplicationQueryOptions(params.locale, params.slug),
+    enabled: isFound,
+  });
 
   if (loaderData.notFound) {
     return <NotFoundContent />;
   }
 
   const { form, ssrIsMember, locale, slug } = loaderData;
-
-  // Isomorphic queries — read from SSR-hydrated cache, auto-refetch on client
-  const { data: permissions } = useQuery(profilePermissionsQueryOptions(locale, slug));
-  const { data: existingApplication } = useQuery(myApplicationQueryOptions(locale, slug));
 
   const queryIsMember = permissions?.viewer_membership_kind !== undefined &&
     permissions.viewer_membership_kind !== null &&

@@ -177,7 +177,7 @@ export type CandidateStatus =
   | "invitation_rejected"
   | "application_accepted";
 
-export type CandidateVoteScore = 1 | 2 | 3 | 4 | 5;
+export type CandidateVoteScore = 0 | 1 | 2 | 3 | 4;
 
 // Candidate form response (from application form submission)
 export interface CandidateFormResponse {
@@ -344,6 +344,8 @@ export interface StoryEx extends Omit<Story, "author_profile_id" | "author_profi
     id: string;
     slug: string;
     title: string;
+    kind: Profile["kind"];
+    description?: string | null;
     profile_picture_uri: string | null;
   } | null;
   publications: Profile[];

@@ -11,9 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/$locale/$slug/$pageslug/edit")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    lang: search.lang?.constructor === String ? (search.lang as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { lang?: string } => {
+    const lang = search.lang;
+    return typeof lang === "string" ? { lang } : {};
+  },
   loader: async ({ params }) => {
     const { locale, slug, pageslug } = params;
 
@@ -198,13 +199,13 @@ function EditPagePage() {
   }
 
   // translationState.data is undefined when no translation exists for the selected locale
-  const isNewTranslation = translationState.data === undefined;
+  const translationData = translationState.data;
 
   const initialData: ContentEditorData = {
-    title: isNewTranslation ? "" : translationState.data.title,
+    title: translationData === undefined ? "" : translationData.title,
     slug: page.slug ?? "",
-    summary: isNewTranslation ? "" : translationState.data.summary,
-    content: isNewTranslation ? "" : translationState.data.content,
+    summary: translationData === undefined ? "" : translationData.summary,
+    content: translationData === undefined ? "" : translationData.content,
     storyPictureUri: page.cover_picture_uri ?? null,
     visibility: page.visibility ?? "public",
   };

@@ -45,7 +45,7 @@ export const Route = createFileRoute("/$locale")({
 function LocaleLayout() {
   // i18n language sync is handled by LocaleSynchronizer in __root.tsx
   return (
-    <CatchNotFound fallback={<PageNotFound />}>
+    <CatchNotFound fallback={() => <PageNotFound />}>
       <Outlet />
     </CatchNotFound>
   );

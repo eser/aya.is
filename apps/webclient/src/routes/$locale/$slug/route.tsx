@@ -20,7 +20,7 @@ export const Route = createFileRoute("/$locale/$slug")({
     const profile = await context.queryClient.ensureQueryData(profileQueryOptions(locale, slug));
 
     if (profile === null) {
-      return { profile: null, notFound: true, locale, slug, permissions: null };
+      return { profile: null, notFound: true as const, locale, slug, permissions: null };
     }
 
     // Returns null for unauthenticated users (401 → null via fetcher)
@@ -28,13 +28,13 @@ export const Route = createFileRoute("/$locale/$slug")({
       profilePermissionsQueryOptions(locale, slug),
     ).catch(() => null);
 
-    return { profile, notFound: false, locale, slug, permissions };
+    return { profile, notFound: false as const, locale, slug, permissions };
   },
   head: ({ loaderData }) => {
-    const { profile, locale, slug } = loaderData;
-    if (profile === null) {
+    if (loaderData === undefined || loaderData.profile === null) {
       return { meta: [] };
     }
+    const { profile, locale, slug } = loaderData;
     return {
       meta: generateMetaTags({
         title: profile.title,
@@ -99,7 +99,7 @@ function ProfileRoute() {
   if (isFullWidthRoute) {
     return (
       <PageLayout fullHeight>
-        <CatchNotFound fallback={<ChildNotFound />}>
+        <CatchNotFound fallback={() => <ChildNotFound />}>
           <Outlet />
         </CatchNotFound>
       </PageLayout>
@@ -110,7 +110,7 @@ function ProfileRoute() {
   return (
     <PageLayout>
       <section className="container px-4 py-8 mx-auto">
-        <CatchNotFound fallback={<ChildNotFound />}>
+        <CatchNotFound fallback={() => <ChildNotFound />}>
           <Outlet />
         </CatchNotFound>
       </section>

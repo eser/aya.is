@@ -292,9 +292,9 @@ type ConfirmAction = {
 function CandidateCard(props: CandidateCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const initialScore = props.candidate.viewer_vote_score !== -1 ? props.candidate.viewer_vote_score : null;
+  const initialScore = props.candidate.viewer_vote_score ?? null;
   const [viewerScore, setViewerScore] = React.useState<number | null>(
-    initialScore ?? null,
+    initialScore,
   );
   const [showVotes, setShowVotes] = React.useState(false);
   const [votes, setVotes] = React.useState<CandidateVote[] | null>(null);

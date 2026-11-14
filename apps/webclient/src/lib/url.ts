@@ -82,7 +82,7 @@ export function parseLocaleFromPath(pathname: string): {
  */
 export function getAlternateUrls(
   basePath: string,
-  isCustomDomain: boolean = false,
+  isCustomDomain = false,
 ): Array<{ locale: SupportedLocaleCode; url: string }> {
   return SUPPORTED_LOCALES.map((locale: SupportedLocaleCode) => ({
     locale,

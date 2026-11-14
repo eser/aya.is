@@ -118,18 +118,13 @@ function ProfileStoryPage() {
   const loaderData = Route.useLoaderData();
   const { profile, permissions } = profileRoute.useLoaderData();
   const [canEdit, setCanEdit] = React.useState(false);
+  const storyId = loaderData.notFound ? null : (loaderData.story?.id ?? null);
 
-  if (loaderData.notFound || loaderData.story === null || profile === null) {
-    return <ChildNotFound />;
-  }
-
-  const { story, compiledContent, currentUrl, locale, slug, initialDiscussion } = loaderData;
-
-  // Check edit permissions
+  // Check edit permissions (hooks must run before any early return)
   React.useEffect(() => {
-    if (auth.isAuthenticated && !auth.isLoading) {
+    if (storyId !== null && auth.isAuthenticated && !auth.isLoading) {
       backend
-        .getStoryPermissions(params.locale, params.slug, story.id)
+        .getStoryPermissions(params.locale, params.slug, storyId)
         .then((perms) => {
           if (perms !== null) {
             setCanEdit(perms.can_edit);
@@ -138,7 +133,13 @@ function ProfileStoryPage() {
     } else {
       setCanEdit(false);
     }
-  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug, story.id]);
+  }, [auth.isAuthenticated, auth.isLoading, params.locale, params.slug, storyId]);
+
+  if (loaderData.notFound || loaderData.story === null || profile === null) {
+    return <ChildNotFound />;
+  }
+
+  const { story, compiledContent, currentUrl, locale, slug, initialDiscussion } = loaderData;
 
   const editUrl = canEdit ? `/${params.locale}/stories/${params.storyslug}/edit` : undefined;
 

@@ -89,7 +89,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
     () =>
       z.object({
         kind: z.enum(["individual", "organization", "product"], {
-          required_error: t("Profile.Please select a profile type"),
+          error: (issue) => issue.input === undefined ? t("Profile.Please select a profile type") : undefined,
         }),
         slug: z
           .string()
@@ -97,7 +97,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
           .max(50, t("Profile.Slug must be at most 50 characters"))
           .regex(/^[a-z0-9-]+$/, t("Profile.Slug can only contain lowercase letters, numbers, and hyphens")),
         title: z.string().min(1, t("Profile.Title is required")).max(100, t("Profile.Title is too long")),
-        description: z.string().max(500, t("Profile.Description is too long")).optional(),
+        description: z.string().max(500, t("Profile.Description is too long")),
       }),
     [t],
   );
@@ -118,7 +118,7 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
         kind: value.kind,
         slug: slugify(value.slug),
         title: value.title.trim(),
-        description: value.description?.trim() ?? "",
+        description: value.description.trim(),
       };
       await props.onSubmit(sanitizedValue);
     },
@@ -271,8 +271,8 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                   id={field.name}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={(e) => {
-                    field.handleBlur(e);
+                  onBlur={() => {
+                    field.handleBlur();
                     generateSlugFromTitle(field.state.value);
                     // Only show validation if title has content
                     if (field.state.value.trim() !== "") {
@@ -334,8 +334,8 @@ export function CreateProfileForm(props: CreateProfileFormProps) {
                       id={field.name}
                       value={field.state.value}
                       onChange={handleSlugChange}
-                      onBlur={(e) => {
-                        field.handleBlur(e);
+                      onBlur={() => {
+                        field.handleBlur();
                         if (!showSlugValidation) {
                           setShowSlugValidation(true);
                         }

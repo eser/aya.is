@@ -16,11 +16,11 @@ export const Route = createFileRoute("/$locale/$slug/settings")({
     try {
       permissions = await backend.getProfilePermissions(locale, slug);
     } catch {
-      throw redirect({ to: `/${locale}/${slug}` });
+      throw redirect({ to: "/$locale/$slug", params: { locale, slug } });
     }
 
     if (permissions === null || !permissions.can_edit) {
-      throw redirect({ to: `/${locale}/${slug}` });
+      throw redirect({ to: "/$locale/$slug", params: { locale, slug } });
     }
 
     // Profile fetch is non-critical for the settings layout

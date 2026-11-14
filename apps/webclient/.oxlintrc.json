@@ -1,0 +1,60 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+
+    "no-empty": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "no-case-declarations": "error",
+    "no-fallthrough": "error",
+    "no-prototype-builtins": "error",
+    "no-useless-catch": "error",
+    "no-extra-boolean-cast": "error",
+    "no-array-constructor": "error",
+    "require-await": "error",
+
+    "typescript/no-explicit-any": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-inferrable-types": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-this-alias": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+
+    "react/jsx-key": "error",
+    "react/rules-of-hooks": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "react/no-children-prop": "error",
+    "react/void-dom-elements-no-children": "error",
+    "react/no-danger-with-children": "error",
+
+    "typescript/await-thenable": "warn",
+    "typescript/no-floating-promises": "warn",
+    "typescript/no-misused-promises": "warn",
+
+    "react-hooks/exhaustive-deps": "warn",
+    "react/set-state-in-effect": "warn",
+    "react/immutability": "warn",
+    "react/purity": "warn",
+    "react/static-components": "warn",
+    "react/no-did-update-set-state": "warn",
+    "typescript/restrict-template-expressions": "warn",
+    "typescript/no-redundant-type-constituents": "warn",
+    "typescript/no-misused-spread": "warn"
+  },
+  "ignorePatterns": ["**/*.gen.ts", ".tanstack/**", ".output/**", "node_modules/**"]
+}

@@ -11,18 +11,17 @@ export type StoryFooterProps = {
 
 export function StoryFooter(props: StoryFooterProps) {
   const { t } = useTranslation();
-  const { locale } = useParams({ strict: false });
+  const params = useParams({ strict: false });
+  const locale = params.locale ?? "";
+  const authorProfile = props.story.author_profile;
 
-  if (
-    props.story.author_profile === null ||
-    props.story.author_profile === undefined
-  ) {
+  if (authorProfile === null || authorProfile === undefined) {
     return null;
   }
 
   // Filter out publications where the id matches the author profile id
   const filteredPublications = props.story.publications.filter(
-    (publication) => publication.id !== props.story.author_profile.id,
+    (publication) => publication.id !== authorProfile.id,
   );
 
   return (
@@ -30,9 +29,9 @@ export function StoryFooter(props: StoryFooterProps) {
       <div className="w-4/6 flex flex-row gap-4 items-center">
         <div className="flex-none p-0.5 bg-card rounded-full shadow-md">
           <SiteAvatar
-            src={props.story.author_profile.profile_picture_uri}
-            name={props.story.author_profile.title ?? "Author"}
-            fallbackName={props.story.author_profile.slug}
+            src={authorProfile.profile_picture_uri}
+            name={authorProfile.title ?? "Author"}
+            fallbackName={authorProfile.slug}
             className="size-24 border-2 border-background"
           />
         </div>
@@ -41,12 +40,12 @@ export function StoryFooter(props: StoryFooterProps) {
             {props.story.kind === "activity" ? t("Activities.Organized by") : t("Stories.Written by")}
           </div>
           <div className="text-lg font-semibold text-foreground">
-            <Link to={`/${locale}/${props.story.author_profile.slug}`}>
-              {props.story.author_profile.title}
+            <Link to="/$locale/$slug" params={{ locale, slug: authorProfile.slug }}>
+              {authorProfile.title}
             </Link>
           </div>
           <div className="text-sm text-muted-foreground">
-            {props.story.author_profile.description}
+            {authorProfile.description}
           </div>
         </div>
       </div>
@@ -59,7 +58,7 @@ export function StoryFooter(props: StoryFooterProps) {
           <div className="flex flex-row gap-2 flex-wrap">
             {filteredPublications.map((publication) => (
               <div key={publication.id} className="text-sm text-foreground">
-                <Link to={`/${locale}/${publication.slug}`}>{publication.title}</Link>
+                <Link to="/$locale/$slug" params={{ locale, slug: publication.slug }}>{publication.title}</Link>
               </div>
             ))}
           </div>

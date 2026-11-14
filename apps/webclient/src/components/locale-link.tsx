@@ -18,7 +18,7 @@ interface LocaleLinkProps extends Omit<LinkProps, "to"> {
   /**
    * Children to render inside the link
    */
-  children: React.ReactNode;
+  children?: React.ReactNode;
 
   /**
    * Additional class names
@@ -45,7 +45,8 @@ export function LocaleLink(props: LocaleLinkProps) {
   const { to: _to, locale: _locale, children, ...restProps } = props;
 
   return (
-    <Link to={href} {...restProps}>
+    // href is a runtime-computed localized URL, so it cannot be narrowed to a registered route literal
+    <Link to={href as LinkProps["to"]} {...restProps}>
       {children}
     </Link>
   );

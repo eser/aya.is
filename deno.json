@@ -3,18 +3,9 @@
   "exclude": [
     "**/node_modules/*",
     "**/.tanstack/*",
+    "**/.agents/skills/*",
     "**/.claude/skills/*",
     "**/apps/webclient.old/*",
     "**/apps/**/*.gen.ts"
-  ],
-  "lint": {
-    "rules": {
-      "tags": [
-        "recommended"
-      ]
-    }
-  },
-  "fmt": {
-    "lineWidth": 120
-  }
+  ]
 }

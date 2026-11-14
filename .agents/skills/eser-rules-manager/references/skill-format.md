@@ -176,7 +176,7 @@ Use `---` to separate major sections.
 Always validate after creating or modifying a skill:
 
 ```bash
-npx -y claude-skills-cli validate .claude/skills/<skill-name>
+npx -y claude-skills-cli validate .agents/skills/<skill-name>
 ````
 
 ### Validation Checks
@@ -206,10 +206,10 @@ references/ files
 
 ## Creating a New Skill
 
-1. Create directory: `.claude/skills/skill-name/`
+1. Create directory: `.agents/skills/skill-name/`
 2. Create `SKILL.md` with frontmatter and sections
 3. Create `references/rules.md` with detailed rules
-4. Validate: `npx -y claude-skills-cli validate .claude/skills/skill-name`
+4. Validate: `npx -y claude-skills-cli validate .agents/skills/skill-name`
 5. Test: Ask Claude questions that should trigger the skill
 
 ---
