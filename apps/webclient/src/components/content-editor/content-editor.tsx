@@ -1066,40 +1066,33 @@ export function ContentEditor(props: ContentEditorProps) {
                   >
                     <Upload className="size-4" />
                   </Button>
-                  {!isNew && !isManaged && initialData.slug !== "" ? (
-                    contentType === "story" ? (
+                  {/* The cover designer only exists for stories; there is no page cover route yet. */}
+                  {contentType === "story" &&
+                    (!isNew && !isManaged && initialData.slug !== "" ? (
                       <Link to="/$locale/stories/$storyslug/cover" params={{ locale, storyslug: initialData.slug }}>
                         <Button type="button" variant="outline" size="icon" title={t("CoverDesigner.Design Cover")}>
                           <ImagePlus className="size-4" />
                         </Button>
                       </Link>
                     ) : (
-                      // No page cover route is registered in the route tree, so a typed <Link> cannot target it
-                      <a href={`/${locale}/${profileSlug}/${initialData.slug}/cover`}>
-                        <Button type="button" variant="outline" size="icon" title={t("CoverDesigner.Design Cover")}>
-                          <ImagePlus className="size-4" />
-                        </Button>
-                      </a>
-                    )
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      disabled
-                      title={
-                        isManaged
-                          ? t(
-                              "ContentEditor.This story is synced from an external source. Some fields cannot be edited.",
-                            )
-                          : t("CoverDesigner.Save content first to enable cover designer")
-                      }
-                    >
-                      <ImagePlus className="size-4" />
-                    </Button>
-                  )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        disabled
+                        title={
+                          isManaged
+                            ? t(
+                                "ContentEditor.This story is synced from an external source. Some fields cannot be edited.",
+                              )
+                            : t("CoverDesigner.Save content first to enable cover designer")
+                        }
+                      >
+                        <ImagePlus className="size-4" />
+                      </Button>
+                    ))}
                 </div>
-                {isNew && (
+                {isNew && contentType === "story" && (
                   <FieldDescription>{t("CoverDesigner.Save content first to enable cover designer")}</FieldDescription>
                 )}
                 {storyPictureUriError !== null && <FieldError>{storyPictureUriError}</FieldError>}

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node '/Users/eser/projects/eser/aya.is/.codex/hooks/decision-nudge.js'",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/decision-nudge.mjs\"",
             "timeout": 5
           }
         ]

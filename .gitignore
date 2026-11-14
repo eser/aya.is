@@ -42,3 +42,7 @@ apps/apple/fastlane/metadata/*/review_information/
 apps/apple/fastlane/metadata-macos/*/review_information/
 apps/apple/fastlane/report.xml
 apps/apple/fastlane/README.md
+
+# Local agent state (.claude and .codex are symlinks to .agents)
+.agents/settings.local.json
+.agents/worktrees/

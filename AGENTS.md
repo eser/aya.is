@@ -84,6 +84,23 @@ skill under `.agents/skills` says to use Deno's built-in formatter or linter, th
 - oxfmt writes files in place by default; always use `--check` (or `fmt:check`) for verification
 - `oxlint` and `oxfmt` are pinned to exact versions on purpose (oxfmt is pre-1.0), bump them deliberately
 
+### Agent tooling layout
+
+`.agents/` is the only real agent directory; everything tool-specific lives inside it. `.claude`, `.codex` and
+`.mcp.json` are symlinks that exist only because Claude Code and Codex read those fixed paths. Never put real files
+behind a symlink, edit them in `.agents/`.
+
+- `AGENTS.md` — project instructions. A nested `AGENTS.md` scopes guidance to a directory, the closest one wins (see
+  `apps/services/AGENTS.md`).
+- `.agents/skills/<name>/SKILL.md` — skills in the open Agent Skills format.
+- `.agents/hooks/` — hook scripts shared by every tool.
+- `.agents/settings.json` — Claude Code permissions, env and hook registration (via `.claude`).
+- `.agents/config.toml`, `.agents/hooks.json` — Codex MCP servers, env and hook registration (via `.codex`).
+- `.agents/mcp.json` — MCP servers for Claude Code (via `.mcp.json`).
+- `.agents/settings.local.json` and `.agents/worktrees/` are local state and git-ignored.
+
+There is no `.cursor/` directory: Cursor reads `AGENTS.md` and `.agents/skills` natively.
+
 ## Key Conventions (CRITICAL)
 
 ### Explicit Checks

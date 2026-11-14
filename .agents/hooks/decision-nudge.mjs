@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
- * decision-nudge.js — Claude Code PostToolUse hook
+ * decision-nudge.mjs — PostToolUse hook shared by Claude Code and Codex
  *
  * Write, Edit veya MultiEdit araçları çalıştıktan sonra tetiklenir.
  * Claude'un bağlamına kısa bir hatırlatma enjekte eder:

@@ -43,6 +43,7 @@ workflows:
             - directory: "apps/services/"
               convention: "snake_case"
               exclude:
+                - "AGENTS.md"
                 - "Dockerfile"
                 - "Makefile"
                 - "README.md"
@@ -53,7 +54,6 @@ workflows:
               exclude:
                 - ".agents/"
                 - ".claude/"
-                - ".cursor/"
                 - ".github/"
                 - ".git/COMMIT_EDITMSG"
                 - "apps/apple/"

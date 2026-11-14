@@ -42,6 +42,7 @@
 # Development tooling
 .agents/
 .claude/
+.codex/
 apps/services/tmp/
 **/.air.toml
 **/.golangci.yaml
