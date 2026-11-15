@@ -4,12 +4,37 @@ import { createMiddleware, createStart } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import type { RequestContext } from "@/request-context";
 import { predefinedSlugs } from "@/config";
+import { DEFAULT_SERVER_FN_BASE, isBlockedServerFunctionRequest } from "@/lib/server-function-guard";
 import { getDomainConfiguration } from "./server/domain-configurations";
 import { markdownMiddleware } from "./server/markdown-middleware";
 import { registerAllMarkdownHandlers } from "./server/markdown-handlers";
 
 // Register all markdown handlers at startup
 registerAllMarkdownHandlers();
+
+// Refuses server-function requests that did not come from the Start client (reflected XSS, see the guard's doc).
+const serverFunctionGuardMiddleware = createMiddleware().server(({ request, next }) => {
+  const url = new URL(request.url);
+
+  if (
+    isBlockedServerFunctionRequest(
+      url.pathname,
+      request.headers,
+      process.env.TSS_SERVER_FN_BASE ?? DEFAULT_SERVER_FN_BASE,
+    )
+  ) {
+    return new Response("Forbidden", {
+      status: 403,
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
+      },
+    });
+  }
+
+  return next();
+});
 
 const customDomainMiddleware = createMiddleware().server(async ({ request, next }) => {
   const url = new URL(request.url);
@@ -87,6 +112,6 @@ export const startInstance = createStart(() => {
   return {
     // Custom domain middleware runs first to set up request context with rewritten paths
     // Markdown middleware then uses the rewritten path for custom domains
-    requestMiddleware: [customDomainMiddleware, markdownMiddleware],
+    requestMiddleware: [serverFunctionGuardMiddleware, customDomainMiddleware, markdownMiddleware],
   };
 });

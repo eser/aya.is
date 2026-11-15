@@ -2,6 +2,9 @@ package cursors
 
 const (
 	defaultLimit = 20
+	// maxLimit bounds one page: the web client asks for at most 24 rows, and an unbounded value both wraps when
+	// it is narrowed to int32 for SQL and lets a single request read the whole table.
+	maxLimit = 100
 
 	defaultSortBy  = "created_at"
 	defaultSortDir = "asc"
@@ -23,6 +26,8 @@ func NewCursor(limit int, offset *string) *Cursor {
 	if limit <= 0 {
 		limit = defaultLimit
 	}
+
+	limit = min(limit, maxLimit)
 
 	return &Cursor{
 		Limit:  limit,

@@ -49,7 +49,7 @@ func getLimitFromString(str string) int {
 		return defaultLimit
 	}
 
-	return val
+	return min(val, maxLimit)
 }
 
 func getSortFromString(str string) (string, string) {
