@@ -21,6 +21,9 @@ workflows:
       - validate-toml
       - validate-yaml:
           allowMultipleDocuments: true
+          # pnpm 12 writes the lockfile as several YAML documents; validate-yaml parses a single one.
+          exclude:
+            - "pnpm-lock.yaml"
       - validate-symlinks
       - validate-shebangs
       - validate-secrets:
@@ -60,6 +63,7 @@ workflows:
                 - "apps/services/"
                 - "apps/webclient/"
                 - "docs/"
+                - "patches/"
                 - "scripts/"
                 - "CHANGELOG.md"
                 - "AGENTS.md"

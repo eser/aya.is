@@ -48,11 +48,11 @@ const (
 // browser. ExportMaxBytes aborts an export whose archive grows beyond this size (it is assembled in memory).
 // FrontendURI builds the link in the "your archive is ready" e-mail.
 type Config struct {
+	FrontendURI     string        `conf:"frontend_uri"     default:""`
 	ExportCooldown  time.Duration `conf:"export_cooldown"  default:"720h"`
 	ExportRetention time.Duration `conf:"export_retention" default:"168h"`
 	DownloadURLTTL  time.Duration `conf:"download_url_ttl" default:"10m"`
 	ExportMaxBytes  int64         `conf:"export_max_bytes" default:"268435456"`
-	FrontendURI     string        `conf:"frontend_uri"     default:""`
 }
 
 // DataExport is one request to download the user's personal data.
@@ -110,8 +110,8 @@ type ExportState struct {
 	ExpiresAt     *time.Time   `json:"expires_at"`
 	NextRequestAt *time.Time   `json:"next_request_at"`
 	ID            *string      `json:"id"`
-	Status        ExportStatus `json:"status"`
 	SizeBytes     *int64       `json:"size_bytes"`
+	Status        ExportStatus `json:"status"`
 	// Available is false when the server has no private storage configured for archives.
 	Available   bool `json:"available"`
 	CanRequest  bool `json:"can_request"`

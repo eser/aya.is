@@ -1,3 +1,4 @@
+// Copyright 2023-present Eser Ozvataf and other contributors. All rights reserved. Apache-2.0 license.
 /**
  * Validates every skill under `.agents/skills/` (or the skill directories
  * given as arguments) against the format in references/skill-format.md, and
