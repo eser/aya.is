@@ -1,0 +1,58 @@
+[
+  {
+    "query": "add a settings section component to the webclient with a form and a save button",
+    "should_trigger": true
+  },
+  {
+    "query": "this .tsx destructures its props in the signature, fix it to our convention",
+    "should_trigger": true
+  },
+  {
+    "query": "oxlint reports no-floating-promises in apps/webclient/src/routes, how do I fix it",
+    "should_trigger": true
+  },
+  {
+    "query": "should I wrap this callback in useCallback in create-profile-form.tsx",
+    "should_trigger": true
+  },
+  {
+    "query": "extract the pure part of this helper so Vitest can import it without import.meta.env",
+    "should_trigger": true
+  },
+  {
+    "query": "t() shows the raw key for a new label, what is the right key format",
+    "should_trigger": true
+  },
+  {
+    "query": "this code reads Authorization with replace('Bearer ', ''), is that safe",
+    "should_trigger": true
+  },
+  {
+    "query": "bu bileşendeki localStorage okumasını SSR'da patlamayacak şekilde düzelt",
+    "should_trigger": true
+  },
+  {
+    "query": "add the zod package to apps/webclient",
+    "should_trigger": false
+  },
+  {
+    "query": "pnpm-lock.yaml is out of sync with the workspace",
+    "should_trigger": false
+  },
+  {
+    "query": "write a Go handler that returns the profile list",
+    "should_trigger": false
+  },
+  {
+    "query": "the Integrity Pipeline fails on the lint step in CI",
+    "should_trigger": false
+  },
+  {
+    "query": "update the snapshot for translations.test.ts after adding new keys",
+    "should_trigger": false
+  },
+  {
+    "query": "which make target runs the Go tests",
+    "should_trigger": false
+  }
+]

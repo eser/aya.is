@@ -1,0 +1,58 @@
+[
+  {
+    "query": "this catch block in the share dialog swallows the save error, fix it",
+    "should_trigger": true
+  },
+  {
+    "query": "the story translation error just says 'failed to get record', make it say which story",
+    "should_trigger": true
+  },
+  {
+    "query": "add logging to the story summaries worker",
+    "should_trigger": true
+  },
+  {
+    "query": "the SpeakerDeck fetch reads the whole response body with io.ReadAll, bound it",
+    "should_trigger": true
+  },
+  {
+    "query": "is it ok to compare the author by slug here instead of the profile id",
+    "should_trigger": true
+  },
+  {
+    "query": "this Authorization parser uses replace('Bearer ', '') to get the token",
+    "should_trigger": true
+  },
+  {
+    "query": "refactor `if (!items.length) return null` and the nested ifs in this component",
+    "should_trigger": true
+  },
+  {
+    "query": "hata mesajları kullanıcıya ne yapacağını söylemiyor",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I use errors.AsType in Go 1.27",
+    "should_trigger": false
+  },
+  {
+    "query": "which TanStack Query option factory should this route loader use",
+    "should_trigger": false
+  },
+  {
+    "query": "write the Vitest snapshot test for the translations file",
+    "should_trigger": false
+  },
+  {
+    "query": "the webhook URL must not resolve to a private address",
+    "should_trigger": false
+  },
+  {
+    "query": "deploy the webclient to Coolify",
+    "should_trigger": false
+  },
+  {
+    "query": "write a commit message for this change",
+    "should_trigger": false
+  }
+]

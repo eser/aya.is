@@ -1,0 +1,58 @@
+[
+  {
+    "query": "write a doc under docs/ for the Coolify deployment",
+    "should_trigger": true
+  },
+  {
+    "query": "this doc sounds generated, make it plain",
+    "should_trigger": true
+  },
+  {
+    "query": "update the docs after I added a new environment variable to compose.production.yml",
+    "should_trigger": true
+  },
+  {
+    "query": "write a README for the new pkg/ajan/cachefx package",
+    "should_trigger": true
+  },
+  {
+    "query": "does this note belong in docs/ or in the README",
+    "should_trigger": true
+  },
+  {
+    "query": "commit mesajını daha sade yaz",
+    "should_trigger": true
+  },
+  {
+    "query": "remove the 'lands next sprint' status notes from the deployment doc",
+    "should_trigger": true
+  },
+  {
+    "query": "which sections does a new ADR need",
+    "should_trigger": false
+  },
+  {
+    "query": "cut the next release and push the tag",
+    "should_trigger": false
+  },
+  {
+    "query": "add a CI job that checks formatting",
+    "should_trigger": false
+  },
+  {
+    "query": "fix the go vet finding",
+    "should_trigger": false
+  },
+  {
+    "query": "which test covers the translation snapshot",
+    "should_trigger": false
+  },
+  {
+    "query": "add a new package under pkg/api/business",
+    "should_trigger": false
+  },
+  {
+    "query": "security review of the auth endpoints",
+    "should_trigger": false
+  }
+]

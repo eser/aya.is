@@ -1,0 +1,58 @@
+[
+  {
+    "query": "let users enter a webhook URL that the backend calls when a story is published",
+    "should_trigger": true
+  },
+  {
+    "query": "where should the JWT secret and the AI provider API key live in production",
+    "should_trigger": true
+  },
+  {
+    "query": "the API error response includes the Go error text, is that ok",
+    "should_trigger": true
+  },
+  {
+    "query": "the new upload endpoint takes the file name from the client and builds the storage key from it",
+    "should_trigger": true
+  },
+  {
+    "query": "the summarizer puts the story text into the system prompt and renders the answer as HTML",
+    "should_trigger": true
+  },
+  {
+    "query": "bu endpoint'te yetki kontrolü nerede yapılmalı, sadece AuthMiddleware yeterli mi",
+    "should_trigger": true
+  },
+  {
+    "query": "log the session id and the request body when sign-in fails",
+    "should_trigger": true
+  },
+  {
+    "query": "add a new MCP tool that lets a client edit a story",
+    "should_trigger": true
+  },
+  {
+    "query": "add a retry with backoff to the YouTube client",
+    "should_trigger": false
+  },
+  {
+    "query": "fix the flaky Vitest test in the profile form",
+    "should_trigger": false
+  },
+  {
+    "query": "write a commit message",
+    "should_trigger": false
+  },
+  {
+    "query": "choose a data structure for the story view counters",
+    "should_trigger": false
+  },
+  {
+    "query": "make the card links on the stories page accessible",
+    "should_trigger": false
+  },
+  {
+    "query": "upgrade Go to the next patch release in CI",
+    "should_trigger": false
+  }
+]

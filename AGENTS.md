@@ -4,31 +4,26 @@ Project-specific configuration and quick reference. For detailed rules, see `.ag
 
 ## Quick Reference
 
-| Topic                | Skill                     |
-| -------------------- | ------------------------- |
-| Project structure    | `architecture-guidelines` |
-| Code quality         | `coding-practices`        |
-| JS/TS patterns       | `javascript-practices`    |
-| Go patterns          | `go-practices`            |
-| Security             | `security-practices`      |
-| Development workflow | `workflow-practices`      |
-| CI/CD                | `ci-cd-practices`         |
-| Tooling              | `tooling-standards`       |
+| Topic                    | Skill                       |
+| ------------------------ | --------------------------- |
+| Project structure        | `architecture-guidelines`   |
+| Code quality             | `coding-practices`          |
+| Code design              | `design-principles`         |
+| JS/TS patterns           | `javascript-practices`      |
+| Go patterns              | `go-practices`              |
+| Security                 | `security-practices`        |
+| Tests                    | `qa-practices`              |
+| Development workflow     | `workflow-practices`        |
+| Releases and CI          | `release-and-ci`            |
+| Tooling                  | `tooling-standards`         |
+| Docs and prose           | `documentation-conventions` |
+| Open questions, handoffs | `enrichment`, `handoff`     |
+| Skill maintenance        | `eser-rules-manager`        |
 
-## gstack
+## Browsing
 
-Use the `/browse` skill from gstack for all web browsing. **Never use `mcp__claude-in-chrome__*` tools.**
-
-Available skills:
-
-- `/browse` — Web browsing and page interaction (Playwright-based)
-- `/plan-ceo-review` — CEO-level plan review
-- `/plan-eng-review` — Engineering plan review
-- `/review` — Code review
-- `/ship` — Ship code (commit, PR, deploy workflow)
-- `/qa` — Quality assurance testing
-- `/setup-browser-cookies` — Import browser cookies for authenticated browsing
-- `/retro` — Retrospective analysis
+Use the `mcp__claude-in-chrome__*` tools to browse and to check a change in the real browser. Chrome DevTools
+(`mcp__chrome-devtools__*`) complements them for console, network and performance debugging.
 
 ## Project Structure
 
@@ -62,22 +57,21 @@ pnpm test:update       # Regenerate snapshots after intentional changes
 pnpm test:ci           # Run tests read-only (CI mode, used by make ok)
 
 # Backend (in /apps/services)
-make restart          # Restart after changes
 make lint             # Run golangci-lint
 make test             # Run tests
 
 # Root
+make restart          # Restart the Docker containers (docker compose restart, ARGS=<service>)
 pnpm fmt               # Format everything (oxfmt, from the repo root)
 pnpm fmt:check         # Check formatting (used by make ok)
-make ok               # All quality checks (includes frontend tests)
+make ok               # All quality checks (includes frontend tests; its Go lint step rewrites files)
 ```
 
 ### Tooling override (this project)
 
 This project runs on **Node.js (24+) and pnpm** (workspace: root + `apps/webclient`). It uses **oxlint**, **oxfmt**, the
 native **TypeScript 7** `tsc` and **Vitest** instead of Deno's built-in tooling. Deno is only used to install and run the
-`eser` CLI (git hook runner, published on JSR), nothing else. Where a skill under `.agents/skills` says to use Deno tooling
-(`deno install/fmt/lint/test/task`), this section takes precedence.
+`eser` CLI (git hook runner, published on JSR), nothing else. The `tooling-standards` skill documents the same stack.
 
 - Lint: `pnpm lint` in `apps/webclient` (oxlint, type-aware; config in `apps/webclient/.oxlintrc.json`)
 - Type check: `pnpm typecheck` in `apps/webclient` (TypeScript 7 `tsc --noEmit`, test files included)
@@ -95,7 +89,7 @@ behind a symlink, edit them in `.agents/`.
 - `AGENTS.md` — project instructions. A nested `AGENTS.md` scopes guidance to a directory, the closest one wins (see
   `apps/services/AGENTS.md`).
 - `.agents/skills/<name>/SKILL.md` — skills in the open Agent Skills format.
-- `.agents/hooks/` — hook scripts shared by every tool.
+- `.agents/hooks/` — hook scripts shared by every tool (none at the moment).
 - `.agents/settings.json` — Claude Code permissions, env and hook registration (via `.claude`).
 - `.agents/config.toml`, `.agents/hooks.json` — Codex MCP servers, env and hook registration (via `.codex`).
 - `.agents/mcp.json` — MCP servers for Claude Code (via `.mcp.json`).
@@ -103,7 +97,7 @@ behind a symlink, edit them in `.agents/`.
 
 There is no `.cursor/` directory: Cursor reads `AGENTS.md` and `.agents/skills` natively.
 
-## Key Conventions (CRITICAL)
+## Key Conventions
 
 ### Explicit Checks
 
@@ -176,10 +170,10 @@ export function buildUrl(locale: string) { return `${siteConfig.host}/${locale}`
 
 ## Project-Specific Notes
 
-### Internationalization & Locale Fallback (CRITICAL)
+### Internationalization & Locale Fallback
 
 - 13 locales: ar, de, en, es, fr, it, ja, ko, nl, pt-PT, ru, tr, zh-CN
-- Translation keys use English text: `t("Section", "English text")`
+- Translation keys use English text: `t("Section.English text")`
 - Messages in `/apps/webclient/src/messages/[locale].json`
 - **NEVER put English text in non-English locale files** — every value in a locale file MUST be translated to that
   locale's language. When adding new i18n keys, always provide proper translations for ALL 13 locales.
@@ -213,7 +207,7 @@ For stories, `<default_locale_reference>` is
 `(SELECT p_loc.default_locale FROM "profile" p_loc WHERE p_loc.id = s.author_profile_id)`. For profiles/pages/links,
 it's `p.default_locale` directly.
 
-### React Query with SSR (CRITICAL)
+### React Query with SSR
 
 All route data fetching uses **TanStack Query (React Query)** with SSR dehydration/hydration via
 `@tanstack/react-router-ssr-query`.
@@ -282,8 +276,9 @@ exact versions) while source code still imports `@tanstack/react-router`. The sw
 
 - TanStack Start, `@tanstack/react-router-ssr-query` and the route-tree generator are still TanStack; types also still come
   from `@tanstack/react-router`.
-- To switch back to TanStack Router: delete those three alias lines and the `ssr` block from `vite.config.ts`, remove the
-  `speedy-router*` dependencies from `apps/webclient/package.json`, run `pnpm install`.
+- To switch back to TanStack Router: delete those three alias lines, the `ssr` block and the `speedy-router*` entries
+  of `optimizeDeps.include` from `vite.config.ts`, remove the `speedy-router*` dependencies from
+  `apps/webclient/package.json`, run `pnpm install`.
 - Bugs found in speedy-router are worth reporting or fixing upstream (https://github.com/anonrig/router/issues).
 
 ### Profile System
@@ -344,7 +339,7 @@ For menu items that navigate, use `render` prop with `LocaleLink` (renders a rea
 - Generated code - follows shadcn patterns (props destructuring allowed)
 - Don't modify inline Tailwind in these files
 
-### Base UI Select (CRITICAL)
+### Base UI Select
 
 `<SelectValue />` renders the **raw value** by default. Always use a children render function:
 
@@ -356,9 +351,8 @@ For rich items with descriptions, use `SelectPrimitive.Item` directly — label 
 
 ## Remember
 
-- **Run `make ok` before committing**
+- Run `make ok` before handing a change over. Its Go lint step rewrites files (`fix: true`), so read `git status` afterwards
 - **Business logic stays dependency-free** (hexagonal architecture)
 - **Sentinel errors in Go** - no `fmt.Errorf("message")` without wrapping
-- Use Chrome DevTools to debug and verify
 - **NEVER claim "not deployed" without evidence** — always verify the live site first (curl, browser). When the user
   reports something broken, investigate the actual cause instead of assuming deployment state

@@ -1,0 +1,58 @@
+[
+  {
+    "query": "the story list drops stories whose author has no translation in the requested locale, find out why and fix it",
+    "should_trigger": true
+  },
+  {
+    "query": "commit these changes, you write the message",
+    "should_trigger": true
+  },
+  {
+    "query": "implement pagination for the stories listing API",
+    "should_trigger": true
+  },
+  {
+    "query": "refactor the profile query options so the key convention lives in one place",
+    "should_trigger": true
+  },
+  {
+    "query": "is this done? can we say the privacy settings task is complete",
+    "should_trigger": true
+  },
+  {
+    "query": "make ok keeps rewriting my Go files, what should I run before handing over",
+    "should_trigger": true
+  },
+  {
+    "query": "add caching to the profile page",
+    "should_trigger": true
+  },
+  {
+    "query": "I renamed userId to id in the session code by hand, now finish the rest of the change",
+    "should_trigger": true
+  },
+  {
+    "query": "push this and cut a v1.4.0 tag",
+    "should_trigger": true
+  },
+  {
+    "query": "what is the 3-tier locale fallback pattern for _tx tables",
+    "should_trigger": false
+  },
+  {
+    "query": "add a test table for the slug normalizer",
+    "should_trigger": false
+  },
+  {
+    "query": "which GitHub Actions job pins the Go toolchain version",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I structure a hexagonal Go package",
+    "should_trigger": false
+  },
+  {
+    "query": "what does `cmp.Or` do in Go",
+    "should_trigger": false
+  }
+]

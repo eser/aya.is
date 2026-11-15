@@ -1,0 +1,58 @@
+[
+  {
+    "query": "enrich this plan for story reply notifications",
+    "should_trigger": true
+  },
+  {
+    "query": "grill me on the profile privacy design before we build anything",
+    "should_trigger": true
+  },
+  {
+    "query": "let's enrich this idea",
+    "should_trigger": true
+  },
+  {
+    "query": "stress-test my plan to move uploads to S3 presigned URLs",
+    "should_trigger": true
+  },
+  {
+    "query": "interrogate this idea until nothing is left open",
+    "should_trigger": true
+  },
+  {
+    "query": "I want every open decision on the story series design surfaced before we start",
+    "should_trigger": true
+  },
+  {
+    "query": "question my plan and pull out every decision one by one",
+    "should_trigger": true
+  },
+  {
+    "query": "add caching to the stories API",
+    "should_trigger": false
+  },
+  {
+    "query": "what does make ok run",
+    "should_trigger": false
+  },
+  {
+    "query": "fix the failing Go test in pkg/api/business/stories",
+    "should_trigger": false
+  },
+  {
+    "query": "write a README for pkg/ajan/logfx",
+    "should_trigger": false
+  },
+  {
+    "query": "which skills apply to this task",
+    "should_trigger": false
+  },
+  {
+    "query": "review this PR and rank the findings",
+    "should_trigger": false
+  },
+  {
+    "query": "can we discuss the pros and cons of Redis vs in-memory caching",
+    "should_trigger": false
+  }
+]

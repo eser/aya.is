@@ -1,0 +1,54 @@
+[
+  {
+    "query": "add a new business module for story reminders under pkg/api/business with its repository port",
+    "should_trigger": true
+  },
+  {
+    "query": "this service returns errors.New inline in a handler path, should it be a sentinel",
+    "should_trigger": true
+  },
+  {
+    "query": "golangci-lint reports exhaustruct and wrapcheck in the new privacy adapter",
+    "should_trigger": true
+  },
+  {
+    "query": "the worker goroutine keeps running after the server shuts down",
+    "should_trigger": true
+  },
+  {
+    "query": "should I use errors.As or errors.AsType in routes_privacy.go",
+    "should_trigger": true
+  },
+  {
+    "query": "add a sqlc query and a goose migration for the profile_notes table",
+    "should_trigger": true
+  },
+  {
+    "query": "should the new Go code use encoding/json/v2",
+    "should_trigger": true
+  },
+  {
+    "query": "bu Go servisinde context'i handler'dan repository'ye doğru mu geçiriyorum",
+    "should_trigger": true
+  },
+  {
+    "query": "add a Turkish translation key to the profile settings page",
+    "should_trigger": false
+  },
+  {
+    "query": "write a table-driven snapshot test for the translations file in the webclient",
+    "should_trigger": false
+  },
+  {
+    "query": "the GitHub Actions integrity workflow fails on the frontend job",
+    "should_trigger": false
+  },
+  {
+    "query": "refactor this React component to use a CSS module",
+    "should_trigger": false
+  },
+  {
+    "query": "which commit message format should I use for this change",
+    "should_trigger": false
+  }
+]

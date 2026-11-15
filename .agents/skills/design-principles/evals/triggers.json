@@ -1,0 +1,58 @@
+[
+  {
+    "query": "make this helper a pure function and keep the import.meta.env read in a thin wrapper",
+    "should_trigger": true
+  },
+  {
+    "query": "this reducer mutates the cached React Query data, how should I change it",
+    "should_trigger": true
+  },
+  {
+    "query": "should the privacy service take a narrow interface for the mailer or the whole repository",
+    "should_trigger": true
+  },
+  {
+    "query": "the expiry check calls time.Now() in every loop iteration",
+    "should_trigger": true
+  },
+  {
+    "query": "should I use a Map or a find over the array for profile lookups in this loop",
+    "should_trigger": true
+  },
+  {
+    "query": "this module reads process.env and a file at the top level, refactor it",
+    "should_trigger": true
+  },
+  {
+    "query": "should this be a class with getters or a plain object with functions",
+    "should_trigger": true
+  },
+  {
+    "query": "this goroutine uses context.Background() instead of the request context",
+    "should_trigger": true
+  },
+  {
+    "query": "where should the new storage port and its adapter live in the services layout",
+    "should_trigger": false
+  },
+  {
+    "query": "write an ADR for the router swap",
+    "should_trigger": false
+  },
+  {
+    "query": "how should I wrap the database error before returning it",
+    "should_trigger": false
+  },
+  {
+    "query": "add a snapshot test for the translations file",
+    "should_trigger": false
+  },
+  {
+    "query": "oxlint reports an unused import, fix the lint config",
+    "should_trigger": false
+  },
+  {
+    "query": "commit this and open a PR",
+    "should_trigger": false
+  }
+]

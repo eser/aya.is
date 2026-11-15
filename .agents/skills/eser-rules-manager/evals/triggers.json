@@ -1,0 +1,58 @@
+[
+  {
+    "query": "remember: never use em dashes in docs",
+    "should_trigger": true
+  },
+  {
+    "query": "add a rule that Go packages must not use init functions",
+    "should_trigger": true
+  },
+  {
+    "query": "create a skill for adding a new locale to the webclient",
+    "should_trigger": true
+  },
+  {
+    "query": "the go-practices skill is too long, split it",
+    "should_trigger": true
+  },
+  {
+    "query": "from now on make the commit scope mandatory, add it as a rule",
+    "should_trigger": true
+  },
+  {
+    "query": "evaluate whether the security skill actually triggers",
+    "should_trigger": true
+  },
+  {
+    "query": "which skills should I load for this task",
+    "should_trigger": true
+  },
+  {
+    "query": "write a README for pkg/ajan/httpfx",
+    "should_trigger": false
+  },
+  {
+    "query": "fix the oxlint error in the webclient",
+    "should_trigger": false
+  },
+  {
+    "query": "bump the version and push the release tag",
+    "should_trigger": false
+  },
+  {
+    "query": "add a GitHub Actions workflow that runs the Go tests",
+    "should_trigger": false
+  },
+  {
+    "query": "explain how business logic talks to adapters through ports",
+    "should_trigger": false
+  },
+  {
+    "query": "write a Go test for the profile handler",
+    "should_trigger": false
+  },
+  {
+    "query": "what's the SSRF rule for outgoing webhooks",
+    "should_trigger": false
+  }
+]

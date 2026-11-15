@@ -1,188 +1,78 @@
-# Skill Discovery & Invocation
+# Skill Discovery
 
-Mandatory skill identification and invocation at every conversation start.
-
----
-
-## The Non-Negotiable Rule
-
-**Invoke relevant skills BEFORE any response or action.**
-
-This includes:
-- Before answering questions
-- Before asking clarifying questions
-- Before exploring code
-- Before making suggestions
-
-Even 1% probability of skill relevance requires checking first.
+Which skills to load for a task, and in what order.
 
 ---
 
-## Discovery Workflow
+## Load Before Responding
+
+Scope: Every task, including questions and clarifying questions
+
+Rule: Before the first answer, question or file read, load every skill that
+might apply (a small chance is enough) and say which ones you are applying:
+`Applying skills: workflow-practices, go-practices, security-practices`. A skill
+loaded after the plan is made cannot change the plan. Loading one that turns out
+not to matter costs little.
+
+Look past the obvious one. "Add an API endpoint for user preferences" needs
+go-practices, and also architecture-guidelines (layers and ports),
+security-practices (input and auth), qa-practices (tests) and
+workflow-practices (steps and gates). The same holds for a question: before
+asking which caching strategy to use, load workflow-practices, because it says
+when to ask and when to assume.
+
+Correct:
 
 ```
-1. Receive user message
-2. Scan for skill triggers (keywords, file types, task types)
-3. Identify ALL potentially relevant skills
-4. Invoke skills using Skill tool
-5. Announce: "Applying skills: [list]"
-6. Follow skill instructions
-7. Then respond to user
+User: Add caching to the API
+Agent: Applying skills: workflow-practices, architecture-guidelines, go-practices
+       (then asks about the data and the invalidation, as
+       workflow-practices: Ask, Assume or Proceed describes)
 ```
 
-### Example
+Incorrect:
 
-User: "Add a new API endpoint for user preferences"
-
-Before responding:
 ```
-Applying skills: javascript-practices, workflow-practices, security-practices
+User: Add caching to the API
+Agent: What caching strategy do you prefer?   <!-- asked before loading any skill -->
 ```
 
-Then proceed with the task following those skill guidelines.
+**Why:** agents tend to under-load skills; the ones missed are the ones whose
+rules were broken.
 
 ---
 
 ## Skill Trigger Keywords
 
-| Skill                       | Trigger Keywords/Patterns                         |
-| --------------------------- | ------------------------------------------------- |
-| `javascript-practices`      | .ts, .tsx, .js, React, TypeScript, module, import |
-| `go-practices`              | .go, Go, hexagonal, service, repository           |
-| `workflow-practices`        | implement, add, fix, refactor, task, commit       |
-| `requirement-clarification` | unclear, multiple ways, should I, which approach  |
-| `security-practices`        | auth, password, secret, token, validation, CORS   |
-| `ci-cd-practices`           | deploy, CI, GitHub Actions, Kubernetes, pipeline  |
-| `tooling-standards`         | deno, npm, package.json, config, lint, format     |
-| `coding-practices`          | error handling, validation, testing, DRY          |
-| `architecture-guidelines`   | structure, design, ADR, hexagonal, layers         |
+| Skill                       | Trigger keywords and patterns                                                 |
+| --------------------------- | ----------------------------------------------------------------------------- |
+| `enrichment`                | enrich, grill, stress-test, interrogate a plan or idea                        |
+| `handoff`                   | user-invoked only: `/handoff [next focus]`                                    |
+| `workflow-practices`        | any file change, vague request, review, commit, push, tag, delete             |
+| `qa-practices`              | test, go test, vitest, snapshot, flaky, coverage, failing check, done         |
+| `architecture-guidelines`   | structure, layout, layer, port, adapter, hexagonal, ADR                       |
+| `design-principles`         | pure function, immutability, interfaces, composition, async                   |
+| `coding-practices`          | errors, logging, validation, naming, comments, comparing entities             |
+| `javascript-practices`      | .ts, .tsx, React, webclient, route, module, import, types                     |
+| `go-practices`              | .go, apps/services, pkg/, context, errors, log/slog, sqlc, go vet             |
+| `security-practices`        | auth, secret, token, input, SSRF, injection, CORS                             |
+| `tooling-standards`         | dependency, go.mod, package.json, pnpm, Make target, oxlint, oxfmt, file name |
+| `documentation-conventions` | README, docs, CHANGELOG, doc comments, ADR prose, commit message              |
+| `release-and-ci`            | release, version, tag, workflow, CI, deploy, compose, Coolify                 |
+| `eser-rules-manager`        | new rule, preference, create or change a skill, evals                         |
 
 ---
 
-## Skill Prioritization
+## Order
 
-When multiple skills apply, invoke in this order:
+When several skills apply, apply them in this order:
 
-1. **Process skills first** (determine approach)
-   - `requirement-clarification` - clarify before implementing
-   - `workflow-practices` - establish execution plan
+1. Process: workflow-practices (clarifying, approvals, steps and gates).
+2. Design and implementation: architecture-guidelines, design-principles, the
+   language skill, coding-practices, security-practices.
+3. Verification: qa-practices (which tests, what the report says).
+4. Delivery: release-and-ci.
 
-2. **Implementation skills second** (guide execution)
-   - `javascript-practices`, `go-practices` - language conventions
-   - `security-practices` - security requirements
-   - `coding-practices` - quality standards
-
-3. **Operational skills last** (deployment/CI)
-   - `ci-cd-practices` - pipeline and deployment
-
----
-
-## Skill Types
-
-### Rigid Skills (Follow Exactly)
-
-These skills have strict workflows that must be followed step-by-step:
-
-- `workflow-practices` - git commit process
-- `ci-cd-practices` - deployment procedures
-- `security-practices` - security requirements
-
-### Flexible Skills (Adapt Principles)
-
-These skills provide guidelines to adapt contextually:
-
-- `javascript-practices` - coding conventions
-- `go-practices` - architectural patterns
-- `coding-practices` - general quality
-
----
-
-## Red Flag Rationalizations
-
-Stop immediately if you're thinking any of these:
-
-**"I'll just answer quickly first"**
-No. Skills come before ANY response.
-
-**"This is just a simple question"**
-Questions still require skill context. Check first.
-
-**"I already know how to do this"**
-Your knowledge doesn't replace documented workflows.
-
-**"I'll check skills after gathering more info"**
-Wrong order. Skills first, then information gathering.
-
-**"No skills seem directly relevant"**
-If even 1% might apply, check. `workflow-practices` applies to almost everything.
-
-**"The user seems in a hurry"**
-Speed doesn't override process. Skills prevent costly mistakes.
-
-**"I'll mention skills later"**
-Invoke at start. Later is too late.
-
----
-
-## Common Mistakes
-
-### Mistake 1: Responding Before Invoking
-
-```
-❌ Wrong:
-User: "Fix the login bug"
-Claude: "I'll look at the login code..." [no skill invocation]
-
-✅ Correct:
-User: "Fix the login bug"
-Claude: "Applying skills: workflow-practices, security-practices, javascript-practices"
-[Then proceeds with investigation]
-```
-
-### Mistake 2: Asking Questions Before Invoking
-
-```
-❌ Wrong:
-User: "Add caching to the API"
-Claude: "What caching strategy do you prefer?" [no skill invocation]
-
-✅ Correct:
-User: "Add caching to the API"
-Claude: "Applying skills: requirement-clarification, javascript-practices"
-[requirement-clarification guides how to ask about caching strategy]
-```
-
-### Mistake 3: Invoking Only Obvious Skills
-
-```
-❌ Wrong:
-User: "Write a Go service for notifications"
-Claude: "Applying skills: go-practices" [missed others]
-
-✅ Correct:
-Claude: "Applying skills: go-practices, architecture-guidelines,
-         workflow-practices, security-practices"
-```
-
----
-
-## Verification Checklist
-
-Before every response, verify:
-
-- [ ] Scanned message for ALL potential skill triggers
-- [ ] Invoked relevant skills using Skill tool
-- [ ] Announced which skills are active
-- [ ] Following skill instructions in my response
-- [ ] Not rationalizing skipping any skills
-
----
-
-## Meta-Rule
-
-If uncertain whether a skill applies: **invoke it anyway**.
-
-The cost of unnecessary invocation is minimal.
-The cost of missing a relevant skill can be significant.
-
-Default to inclusion, not exclusion.
+Process and safety skills are followed as written (commit policy, quality gates,
+release steps). Design and language skills state defaults that the code around
+the change may refine. Repository-wide rules in AGENTS.md hold over every skill.

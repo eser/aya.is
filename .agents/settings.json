@@ -49,9 +49,18 @@
       "Bash(tree:*)",
       "Bash(wc:*)",
       "Skill(architecture-guidelines)",
+      "Skill(coding-practices)",
+      "Skill(design-principles)",
+      "Skill(documentation-conventions)",
+      "Skill(enrichment)",
       "Skill(eser-rules-manager)",
       "Skill(go-practices)",
+      "Skill(handoff)",
       "Skill(javascript-practices)",
+      "Skill(qa-practices)",
+      "Skill(release-and-ci)",
+      "Skill(security-practices)",
+      "Skill(tooling-standards)",
       "Skill(workflow-practices)",
       "WebFetch(domain:api.aya.is)",
       "WebFetch(domain:base-ui.com)",
@@ -105,20 +114,6 @@
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": ["shadcn"],
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.agents/hooks/decision-nudge.mjs\"",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true

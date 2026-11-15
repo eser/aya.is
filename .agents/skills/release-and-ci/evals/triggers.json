@@ -1,0 +1,58 @@
+[
+  {
+    "query": "cut release 0.2.0",
+    "should_trigger": true
+  },
+  {
+    "query": "what does make tag do and which workflows start after the tag is pushed",
+    "should_trigger": true
+  },
+  {
+    "query": "the Release Notes Sync run failed with No matching changelog section",
+    "should_trigger": true
+  },
+  {
+    "query": "integrity pipeline is red on my pull request, find out why",
+    "should_trigger": true
+  },
+  {
+    "query": "add a timeout to the apple workflow jobs",
+    "should_trigger": true
+  },
+  {
+    "query": "check whether the latest commit is deployed on Coolify",
+    "should_trigger": true
+  },
+  {
+    "query": "CI neden kırmızı, bakar mısın",
+    "should_trigger": true
+  },
+  {
+    "query": "add a Go service for profile points",
+    "should_trigger": false
+  },
+  {
+    "query": "which tests does eser ok run for the webclient",
+    "should_trigger": false
+  },
+  {
+    "query": "update a Vitest snapshot after changing a translation",
+    "should_trigger": false
+  },
+  {
+    "query": "commit these changes",
+    "should_trigger": false
+  },
+  {
+    "query": "add a new i18n key for the privacy page",
+    "should_trigger": false
+  },
+  {
+    "query": "write a goose migration for a new column",
+    "should_trigger": false
+  },
+  {
+    "query": "is this endpoint safe against SSRF",
+    "should_trigger": false
+  }
+]

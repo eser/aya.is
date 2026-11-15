@@ -1,0 +1,58 @@
+[
+  {
+    "query": "design a new business module for story reactions, where do the repository interface and the adapter go",
+    "should_trigger": true
+  },
+  {
+    "query": "should this logic live in pkg/api/business/profiles or in an adapter",
+    "should_trigger": true
+  },
+  {
+    "query": "write an ADR for moving the webclient router to speedy-router",
+    "should_trigger": true
+  },
+  {
+    "query": "wire the new mailer into AppContext.Init and cmd/serve",
+    "should_trigger": true
+  },
+  {
+    "query": "add a conf setting for the export retention days with a safe default",
+    "should_trigger": true
+  },
+  {
+    "query": "how does the session id reach the route handler from the auth middleware",
+    "should_trigger": true
+  },
+  {
+    "query": "where should the new API call for profile links go in apps/webclient/src/modules/backend",
+    "should_trigger": true
+  },
+  {
+    "query": "yeni bir servis paketi tasarlıyorum, business ve adapter katmanlarını nasıl ayırayım",
+    "should_trigger": true
+  },
+  {
+    "query": "the Go test fails with a data race on the stories service",
+    "should_trigger": false
+  },
+  {
+    "query": "should this function take a pointer or a value receiver",
+    "should_trigger": false
+  },
+  {
+    "query": "make this helper a pure function with the clock passed in",
+    "should_trigger": false
+  },
+  {
+    "query": "add the missing translations for the privacy settings page in all 13 locales",
+    "should_trigger": false
+  },
+  {
+    "query": "set the GitHub Actions workflow timeout in integrity.yml",
+    "should_trigger": false
+  },
+  {
+    "query": "commit and push",
+    "should_trigger": false
+  }
+]

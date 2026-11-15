@@ -1,0 +1,58 @@
+[
+  {
+    "query": "which tests should I run before handing over this change to the privacy service",
+    "should_trigger": true
+  },
+  {
+    "query": "add a test for the story date proposal service with a fake repository",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I run the real-database privacy tests, PRIVACY_TEST_DSN is not set",
+    "should_trigger": true
+  },
+  {
+    "query": "the translations snapshot test fails after I added a key, do I update the snapshot",
+    "should_trigger": true
+  },
+  {
+    "query": "pnpm test:ci fails but pnpm test passes locally",
+    "should_trigger": true
+  },
+  {
+    "query": "write a vitest test for the new url helper",
+    "should_trigger": true
+  },
+  {
+    "query": "the Go tests fail with the race detector in CI only, is it flaky",
+    "should_trigger": true
+  },
+  {
+    "query": "how should I report what I tested when I could not run the S3 integration test",
+    "should_trigger": true
+  },
+  {
+    "query": "rename the story_tx table column",
+    "should_trigger": false
+  },
+  {
+    "query": "write an ADR for moving uploads to a private bucket",
+    "should_trigger": false
+  },
+  {
+    "query": "bump the Go toolchain in the integrity workflow",
+    "should_trigger": false
+  },
+  {
+    "query": "should this Go function take a pointer or a value",
+    "should_trigger": false
+  },
+  {
+    "query": "the Resend API key appears in the logs",
+    "should_trigger": false
+  },
+  {
+    "query": "translate the new Settings label to Turkish",
+    "should_trigger": false
+  }
+]

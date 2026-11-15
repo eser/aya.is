@@ -1,16 +1,3 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/decision-nudge.mjs\"",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
+  "hooks": {}
 }

@@ -1,0 +1,58 @@
+[
+  {
+    "query": "add the date-fns locale package to apps/webclient",
+    "should_trigger": true
+  },
+  {
+    "query": "pnpm-lock.yaml is out of sync with apps/webclient/package.json",
+    "should_trigger": true
+  },
+  {
+    "query": "which command checks formatting without rewriting files",
+    "should_trigger": true
+  },
+  {
+    "query": "what does .manifest.yml run on pre-commit and how do I run it by hand",
+    "should_trigger": true
+  },
+  {
+    "query": "this new file is called UserCard.tsx, is that allowed by the filename hook",
+    "should_trigger": true
+  },
+  {
+    "query": "add a make target that regenerates the sqlc code and migrates the dev database",
+    "should_trigger": true
+  },
+  {
+    "query": "the speedy-router patch in pnpm-workspace.yaml needs updating after a version bump",
+    "should_trigger": true
+  },
+  {
+    "query": "yeni bir script ekleyeceğim, scripts/ altında nasıl adlandırmalıyım",
+    "should_trigger": true
+  },
+  {
+    "query": "is there a deno.json or a deno task for the frontend tests",
+    "should_trigger": true
+  },
+  {
+    "query": "wrap this error with a sentinel in Go",
+    "should_trigger": false
+  },
+  {
+    "query": "this component destructures its props, change it to a props object",
+    "should_trigger": false
+  },
+  {
+    "query": "write a snapshot test for the new locale helper",
+    "should_trigger": false
+  },
+  {
+    "query": "tag v1.4.0 and let the deployment pipeline run",
+    "should_trigger": false
+  },
+  {
+    "query": "the Integrity Pipeline job is red on the pull request, why",
+    "should_trigger": false
+  }
+]

@@ -16,8 +16,8 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
 
       // speedy-router (https://github.com/anonrig/router) is a drop-in for the TanStack Router runtime.
-      // Source imports stay `@tanstack/react-router`; remove these three lines (and the `ssr` block below)
-      // together with the speedy-router* dependencies to switch back to TanStack Router.
+      // Source imports stay `@tanstack/react-router`; remove these three lines, the `ssr` block below and the
+      // speedy-router* entries of `optimizeDeps.include` together with the speedy-router* dependencies to switch back.
       "@tanstack/react-router": "speedy-router",
       "@tanstack/router-core": "speedy-router-core",
       "@tanstack/history": "speedy-router-history",
